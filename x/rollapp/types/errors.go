@@ -34,6 +34,7 @@ var (
 	ErrInvalidURL                        = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 	ErrInvalidDescription                = errorsmod.Wrap(gerrc.ErrInvalidArgument, "description")
 	ErrInvalidMetadata                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
+	ErrInvalidGenesisInfo                = errorsmod.Wrap(gerrc.ErrInvalidArgument, "genesis info")
 	ErrImmutableFieldUpdateAfterLaunched = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp launched")
 	ErrGenesisInfoSealed                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update genesis info sealed")
 	ErrUnauthorizedSigner                = errorsmod.Wrap(gerrc.ErrPermissionDenied, "unauthorized signer")

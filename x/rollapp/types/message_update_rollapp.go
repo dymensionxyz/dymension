@@ -77,8 +77,11 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	// genesis info is not validated here, as we allow to update partial fields
-	// it will be validated when trying to apply the update
+	if msg.GenesisInfo != nil {
+		if err := msg.GenesisInfo.ValidateBasic(); err != nil {
+			return errors.Join(ErrInvalidGenesisInfo, err)
+		}
+	}
 
 	return nil
 }

@@ -33,7 +33,10 @@ func (gi GenesisInfo) GenesisTransferAmount() math.Int {
 	return total
 }
 
-// native denom is optional
+// Launchable checks if the genesis info has all the necessary fields set
+// - genesis checksum
+// - bech32 prefix
+// - initial supply
 func (gi GenesisInfo) Launchable() bool {
 	return gi.GenesisChecksum != "" &&
 		gi.Bech32Prefix != "" &&
@@ -69,13 +72,15 @@ func (gi GenesisInfo) ValidateBasic() error {
 		return ErrInvalidGenesisChecksum
 	}
 
+	numGenesisAccounts := len(gi.Accounts())
+
 	// if native denom is not set, initial supply must be 0 and no accounts
 	if !gi.NativeDenom.IsSet() {
 		if !gi.InitialSupply.IsNil() && !gi.InitialSupply.IsZero() {
 			return errorsmod.Wrap(ErrNoNativeTokenRollapp, "non zero initial supply")
 		}
 
-		if l := len(gi.Accounts()); l > 0 {
+		if numGenesisAccounts > 0 {
 			return errorsmod.Wrap(ErrNoNativeTokenRollapp, "non empty genesis accounts")
 		}
 
@@ -90,7 +95,6 @@ func (gi GenesisInfo) ValidateBasic() error {
 		return ErrInvalidInitialSupply
 	}
 
-	numGenesisAccounts := len(gi.Accounts())
 	if numGenesisAccounts > 0 {
 		if numGenesisAccounts > maxAllowedGenesisAccounts {
 			return ErrTooManyGenesisAccounts

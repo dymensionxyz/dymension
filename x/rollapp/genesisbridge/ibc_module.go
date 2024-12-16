@@ -149,6 +149,7 @@ func (w IBCModule) OnRecvPacket(
 // EnableTransfers marks the end of the genesis bridge phase.
 // It sets the transfers enabled flag on the rollapp.
 // It also calls the after transfers enabled hook (used to settle IRO plans)
+// rollappIBCtrace can be empty for non-token rollapps
 func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
 	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {

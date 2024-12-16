@@ -7,9 +7,28 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
+	// valid basic genesis info
+	gInfo := GenesisInfo{
+		Bech32Prefix:    bech32Prefix,
+		GenesisChecksum: "checksum",
+		NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+		InitialSupply:   sdk.NewInt(1000),
+	}
+
+	// valid modified genesis info
+	gInfo2 := gInfo
+	gInfo2.InitialSupply = sdk.NewInt(2000)
+	gInfo2.GenesisAccounts = createManyGenesisAccounts(10)
+
+	// invalid modified genesis info
+	gInfo3 := gInfo
+	gInfo3.InitialSupply = sdk.NewInt(20000000000000)
+	gInfo3.GenesisAccounts = createManyGenesisAccounts(200)
+
 	tests := []struct {
 		name string
 		msg  MsgUpdateRollappInformation
@@ -21,12 +40,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				RollappId:        "dym_100-1",
 				InitialSequencer: sample.AccAddress(),
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: "checksum",
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
+				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -61,12 +75,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: "invalid_address",
 				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: "checksum",
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
+				GenesisInfo:      &gInfo,
 			},
 			err: ErrInvalidInitialSequencer,
 		},
@@ -76,12 +85,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: "checksum",
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
+				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -96,12 +100,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: "checksum",
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
+				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -116,12 +115,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: "checksum",
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
+				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -136,12 +130,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					Bech32Prefix:    bech32Prefix,
-					GenesisChecksum: "checksum",
-					NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-					InitialSupply:   sdk.NewInt(1000),
-				},
+				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -150,7 +139,6 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			},
 			err: ErrDuplicateTag,
 		},
-
 		{
 			name: "valid: updating without genesis info",
 			msg: MsgUpdateRollappInformation{
@@ -161,18 +149,25 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 			},
 			err: nil,
 		},
-		// genesis info is not validated here
 		{
 			name: "valid: updating genesis info",
 			msg: MsgUpdateRollappInformation{
 				Owner:            sample.AccAddress(),
 				InitialSequencer: sample.AccAddress(),
 				RollappId:        "dym_100-1",
-				GenesisInfo: &GenesisInfo{
-					GenesisAccounts: createManyGenesisAccounts(100),
-				},
+				GenesisInfo:      &gInfo2,
 			},
 			err: nil,
+		},
+		{
+			name: "invalid: invalid genesis info",
+			msg: MsgUpdateRollappInformation{
+				Owner:            sample.AccAddress(),
+				InitialSequencer: sample.AccAddress(),
+				RollappId:        "dym_100-1",
+				GenesisInfo:      &gInfo3,
+			},
+			err: gerrc.ErrInvalidArgument,
 		},
 	}
 	for _, tt := range tests {
