@@ -24,4 +24,5 @@ var (
 	ErrInvalidAddr               = gerrc.ErrInvalidArgument.Wrap("address")
 	ErrInvalidPubKey             = gerrc.ErrInvalidArgument.Wrap("pubkey")
 	ErrUnknownRequest            = gerrc.ErrInvalidArgument.Wrap("unknown request")
+	ErrInvalidFeeDenom           = gerrc.ErrInvalidArgument.Wrap("invalid fee denom")
 )

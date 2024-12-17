@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
@@ -18,6 +19,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgKickProposer{}, "sequencer/KickProposer", nil)
 	cdc.RegisterConcrete(&MsgUpdateOptInStatus{}, "sequencer/UpdateOtpInStatus", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "sequencer/UpdateParams", nil)
+	cdc.RegisterConcrete(&PunishSequencerProposal{}, "sequencer/PunishSequencerProposal", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -32,6 +34,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgUpdateOptInStatus{},
 		&MsgUpdateParams{},
 	)
+
+	registry.RegisterImplementations((*govtypes.Content)(nil), &PunishSequencerProposal{})
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

@@ -22,7 +22,7 @@ message MsgFulfillOrder {
     string fulfiller_address = 1;
     // order_id is the unique identifier of the order to be fulfilled.
     string order_id = 2;
-    // expected_fee is the nominal fee set in the order. 
+    // expected_fee is the nominal fee set in the order. Fulfiller will generally make less profit (after deducting bridge fee)
     string expected_fee = 3;
 }
 

@@ -112,7 +112,7 @@ func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*com
 func (k Keeper) UpdateRollappPacketTransferAddress(
 	ctx sdk.Context,
 	rollappPacketKey string,
-	address string,
+	address string, // who will get the funds on finalization
 ) error {
 	rollappPacket, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
@@ -202,7 +202,6 @@ func (k *Keeper) UpdateRollappPacketAfterFinalization(ctx sdk.Context, rollappPa
 
 	newKey := rollappPacket.RollappPacketKey()
 
-	// Call hook subscribers
 	keeperHooks := k.GetHooks()
 	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
