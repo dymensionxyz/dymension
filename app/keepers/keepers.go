@@ -555,7 +555,7 @@ func (a *AppKeepers) InitTransferStack() {
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 
-	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper, a.TxFeesKeeper)
+	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
 	// already instantiated in SetupHooks()
 	a.delayedAckMiddleware.Setup(
 		delayedackmodule.WithIBCModule(a.TransferStack),
