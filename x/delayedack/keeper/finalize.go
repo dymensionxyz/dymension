@@ -110,8 +110,7 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 			to ensure the ack matches what the rollapp expects.
 		*/
 		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
-		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-		return
+		return k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 	}
 }
 
