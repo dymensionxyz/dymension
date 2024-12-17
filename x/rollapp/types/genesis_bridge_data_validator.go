@@ -13,7 +13,7 @@ const HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
 
 type GenesisBridgeValidator struct {
 	rollapp GenesisBridgeData // what the rollapp sent over IBC
-	hub     GenesisInfo       // what the rollapp thinks is correct
+	hub     GenesisInfo       // what the hub thinks is correct
 }
 
 func NewGenesisBridgeValidator(
@@ -85,12 +85,11 @@ func compareGenesisAccounts(raCommitted []GenesisAccount, gbData []GenesisAccoun
 	return nil
 }
 
-// validateGenesisTransfer validates the genesis transfer.
 func (v *GenesisBridgeValidator) validateGenesisTransfer() error {
 	gTransfer := v.rollapp.GenesisTransfer
 	requiresTransfer := v.hub.RequiresTransfer()
 
-	// required but not present
+	// required but absent
 	if requiresTransfer && gTransfer == nil {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis transfer required")
 	}

@@ -36,6 +36,7 @@ type DemandOrder struct {
 	// price is the amount that the fulfiller sends to original eibc transfer recipient
 	Price github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
 	// fee is the effective profit made by the fulfiller because they pay price and receive fee + price
+	// NOTE: can be empty coins (meaning zero)
 	Fee       github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=fee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"fee"`
 	Recipient string                                   `protobuf:"bytes,5,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// Deprecated: use DemandOrder.IsFulfilled method instead.

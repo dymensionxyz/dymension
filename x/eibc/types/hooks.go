@@ -5,7 +5,7 @@ import (
 )
 
 type EIBCHooks interface {
-	AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *DemandOrder, fulfillerAddress string) error
+	AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *DemandOrder, receiverAddr string) error
 }
 
 type MultiEIBCHooks []EIBCHooks
@@ -16,9 +16,9 @@ func NewMultiEIBCHooks(hooks ...EIBCHooks) MultiEIBCHooks {
 	return hooks
 }
 
-func (h MultiEIBCHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *DemandOrder, fulfillerAddress string) error {
+func (h MultiEIBCHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *DemandOrder, receiverAddr string) error {
 	for i := range h {
-		err := h[i].AfterDemandOrderFulfilled(ctx, demandOrder, fulfillerAddress)
+		err := h[i].AfterDemandOrderFulfilled(ctx, demandOrder, receiverAddr)
 		if err != nil {
 			return err
 		}

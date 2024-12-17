@@ -41,6 +41,9 @@ func (p *RollappPacket) RollappPacketKey() []byte {
 		p.ProofHeight,
 		p.Type,
 		p.Packet.SourceChannel,
+
+		// Sequence makes it unique during normal operation, but hard fork rollback
+		// can mean it gets reused, so must delete orders on hard fork.
 		p.Packet.Sequence,
 	)
 }
