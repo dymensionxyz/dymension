@@ -29,7 +29,6 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 		name          string
 		keeper        *mockDenomMetadataKeeper
 		rollappKeeper *mockRollappKeeper
-		txFeesKeeper  *mockTxFeeKeeper
 
 		memoData         *memoData
 		wantAck          exported.Acknowledgement
@@ -110,7 +109,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app := &mockIBCModule{}
-			im := denommetadata.NewIBCModule(app, tt.keeper, tt.rollappKeeper, tt.txFeesKeeper)
+			im := denommetadata.NewIBCModule(app, tt.keeper, tt.rollappKeeper)
 			var memo string
 			if tt.memoData != nil {
 				memo = mustMarshalJSON(tt.memoData)
@@ -346,7 +345,6 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	type fields struct {
 		IBCModule     porttypes.IBCModule
 		rollappKeeper *mockRollappKeeper
-		txFeesKeeper  *mockTxFeeKeeper
 	}
 	type args struct {
 		packetData      *transfertypes.FungibleTokenPacketData
@@ -526,7 +524,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := denommetadata.NewIBCModule(tt.fields.IBCModule, nil, tt.fields.rollappKeeper, tt.fields.txFeesKeeper)
+			m := denommetadata.NewIBCModule(tt.fields.IBCModule, nil, tt.fields.rollappKeeper)
 
 			packet := channeltypes.Packet{}
 
@@ -746,18 +744,4 @@ func (m mockBankKeeper) SetDenomMetaData(ctx sdk.Context, denomMetaData banktype
 
 func (m mockBankKeeper) GetDenomMetaData(sdk.Context, string) (banktypes.Metadata, bool) {
 	return m.returnMetadata, m.returnMetadata.Base != ""
-}
-
-type mockTxFeeKeeper struct {
-	err error
-}
-
-// ChargeFeesFromPayer implements types.TxFeesKeeper.
-func (m *mockTxFeeKeeper) ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error {
-	return m.err
-}
-
-// GetBaseDenom implements types.TxFeesKeeper.
-func (m *mockTxFeeKeeper) GetBaseDenom(ctx sdk.Context) (denom string, err error) {
-	return "adym", nil
 }
