@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -68,5 +69,15 @@ func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *comm
 	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 	for _, status := range statuses {
 		d.deleteDemandOrder(ctx, status, demandOrderID)
+
+		if err := uevent.EmitTypedEvent(ctx, &types.EventDemandOrderDeleted{
+			OrderId:      demandOrderID,
+			PacketKey:    string(packetKey),
+			PacketStatus: status.String(),
+			RollappId:    rollappPacket.RollappId,
+			PacketType:   rollappPacket.Type.String(),
+		}); err != nil {
+			d.Logger(ctx).Error("emit event", "error", err)
+		}
 	}
 }
