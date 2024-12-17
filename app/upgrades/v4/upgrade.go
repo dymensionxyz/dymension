@@ -407,6 +407,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 			ExtraData: nil,
 			Snapshots: []*sequencertypes.SnapshotInfo{},
 			GasPrice:  &defaultGasPrice,
+			FeeDenom:  nil,
 		},
 	}
 }
