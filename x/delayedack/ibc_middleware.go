@@ -1,6 +1,8 @@
 package delayedack
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -96,11 +98,23 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	// Run the underlying app's OnRecvPacket callback
+	// with cache context to avoid state changes and report the receipt result.
+	// Only save the packet if the underlying app's callback succeeds.
+	cacheCtx, _ := ctx.CacheContext()
+	ack := w.IBCModule.OnRecvPacket(cacheCtx, packet, relayer)
+	if ack == nil {
+		return uevent.NewErrorAcknowledgement(ctx, errors.New("delayed ack is not supported by the underlying IBC module"))
+	}
+	if !ack.Success() {
+		return ack
+	}
+
 	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
 
 	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "delayed ack"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "EIBC demand order handler"))
 	}
 
 	return nil

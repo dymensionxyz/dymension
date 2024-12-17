@@ -29,8 +29,3 @@ type RollappKeeper interface {
 	HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error)
 	ClearRegisteredDenoms(ctx sdk.Context, rollappID string) error
 }
-
-type TxFeesKeeper interface {
-	GetBaseDenom(ctx sdk.Context) (denom string, err error)
-	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
-}

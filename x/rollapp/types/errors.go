@@ -34,6 +34,7 @@ var (
 	ErrInvalidURL                        = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 	ErrInvalidDescription                = errorsmod.Wrap(gerrc.ErrInvalidArgument, "description")
 	ErrInvalidMetadata                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
+	ErrInvalidGenesisInfo                = errorsmod.Wrap(gerrc.ErrInvalidArgument, "genesis info")
 	ErrImmutableFieldUpdateAfterLaunched = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp launched")
 	ErrGenesisInfoSealed                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update genesis info sealed")
 	ErrUnauthorizedSigner                = errorsmod.Wrap(gerrc.ErrPermissionDenied, "unauthorized signer")
@@ -50,6 +51,8 @@ var (
 	ErrTooManyTags                       = errorsmod.Wrap(gerrc.ErrInvalidArgument, "too many tags")
 	ErrDuplicateTag                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "duplicate tag")
 	ErrInvalidInitialSupply              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid initial supply")
+	ErrNoNativeTokenRollapp              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "no native token rollapp")
+	ErrTooManyGenesisAccounts            = errorsmod.Wrap(gerrc.ErrInvalidArgument, "too many genesis accounts")
 	ErrInvalidBech32Prefix               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid bech32 prefix")
 	ErrRollappNotFound                   = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 

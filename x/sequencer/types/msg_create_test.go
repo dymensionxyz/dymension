@@ -89,6 +89,11 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 						},
 					},
 					GasPrice: uptr.To(sdk.NewInt(100)),
+					FeeDenom: &DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
 				},
 			},
 		}, {
@@ -213,6 +218,25 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				},
 				WhitelistedRelayers: []string{sample.AccAddress()},
 			},
+		}, {
+			name: "invalid fee denom metadata",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				RewardAddr:   sample.AccAddress(),
+				Metadata: SequencerMetadata{
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
+					FeeDenom: &DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 0,
+					},
+				},
+			},
+			err: ErrInvalidFeeDenom,
 		},
 	}
 	for _, tt := range tests {

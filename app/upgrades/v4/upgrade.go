@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -285,7 +286,11 @@ func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
+	DYM := math.NewIntWithDecimal(1, 18)
 	params := incentivestypes.DefaultParams()
+	params.CreateGaugeBaseFee = DYM.MulRaw(10)
+	params.AddToGaugeBaseFee = DYM.MulRaw(10)
+	params.AddDenomFee = DYM.MulRaw(10)
 	params.DistrEpochIdentifier = "day"
 	ik.SetParams(ctx, params)
 }
@@ -402,6 +407,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 			ExtraData: nil,
 			Snapshots: []*sequencertypes.SnapshotInfo{},
 			GasPrice:  &defaultGasPrice,
+			FeeDenom:  nil,
 		},
 	}
 }

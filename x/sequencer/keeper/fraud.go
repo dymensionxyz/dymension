@@ -64,17 +64,37 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 
 	// correct formula is e.g. min(sequencer tokens, max(1, sequencer tokens * 0.01 ))
 
+	err := k.livenessSlash(ctx, &seq)
+	if err != nil {
+		return errorsmod.Wrap(err, "slash")
+	}
+	k.livenessDishonor(ctx, &seq)
+	k.SetSequencer(ctx, seq)
+	return nil
+}
+
+func (k Keeper) livenessSlash(ctx sdk.Context, seq *types.Sequencer) error {
 	mul := k.GetParams(ctx).LivenessSlashMinMultiplier
 	abs := k.GetParams(ctx).LivenessSlashMinAbsolute
 	tokens := seq.TokensCoin()
 	tokensMul := ucoin.MulDec(mul, tokens)
 	amt := ucoin.SimpleMin(tokens, ucoin.SimpleMax(abs, tokensMul[0]))
-	err := errorsmod.Wrap(k.slash(ctx, &seq, amt, sdk.ZeroDec(), nil), "slash")
-	k.SetSequencer(ctx, seq)
-	return err
+	return errorsmod.Wrap(k.slash(ctx, seq, amt, sdk.ZeroDec(), nil), "slash")
+}
+
+func (k Keeper) livenessHonor(ctx sdk.Context, seq *types.Sequencer) {
+	reward := k.GetParams(ctx).DishonorStateUpdate
+	reward = min(reward, seq.Dishonor)
+	seq.Dishonor -= reward
+}
+
+func (k Keeper) livenessDishonor(ctx sdk.Context, seq *types.Sequencer) {
+	penalty := k.GetParams(ctx).DishonorLiveness
+	seq.Dishonor += penalty
 }
 
 // Takes an optional rewardee addr who will receive some bounty
+// Currently there is no dishonor penalty (anyway we slash 100%)
 func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	var (
 		rewardMul = sdk.ZeroDec()

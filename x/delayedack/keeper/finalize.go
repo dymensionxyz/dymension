@@ -113,8 +113,7 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 		*/
 		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet (big change)
 		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
-		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-		return
+		return k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 	}
 }
 

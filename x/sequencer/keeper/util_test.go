@@ -30,7 +30,6 @@ var (
 	// TODO: use separate cosmos/dymint pubkeys in tests https://github.com/dymensionxyz/dymension/issues/1360
 
 	bond = rollapptypes.DefaultMinSequencerBondGlobalCoin
-	kick = types.DefaultParams().KickThreshold
 	pks  = []cryptotypes.PubKey{
 		randomTMPubKey(),
 		randomTMPubKey(),
