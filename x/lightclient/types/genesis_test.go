@@ -52,6 +52,44 @@ func TestGenesisValidate(t *testing.T) {
 			g:     types.DefaultGenesisState(),
 			valid: true,
 		},
+		{
+			name: "duplicate canonical client",
+			g: types.GenesisState{
+				CanonicalClients: []types.CanonicalClient{
+					{RollappId: "rollapp-1", IbcClientId: "client-1"},
+					{RollappId: "rollapp-1", IbcClientId: "client-1"},
+				},
+			},
+			valid: false,
+		},
+		{
+			name: "duplicate header signer",
+			g: types.GenesisState{
+				HeaderSigners: []types.HeaderSignerEntry{
+					{SequencerAddress: "sequencer1", ClientId: "client1", Height: 100},
+					{SequencerAddress: "sequencer1", ClientId: "client1", Height: 100},
+				},
+			},
+			valid: false,
+		},
+		{
+			name: "empty sequencer address in header signer",
+			g: types.GenesisState{
+				HeaderSigners: []types.HeaderSignerEntry{
+					{SequencerAddress: "", ClientId: "client1", Height: 100},
+				},
+			},
+			valid: false,
+		},
+		{
+			name: "empty client id in header signer",
+			g: types.GenesisState{
+				HeaderSigners: []types.HeaderSignerEntry{
+					{SequencerAddress: "sequencer1", ClientId: "", Height: 100},
+				},
+			},
+			valid: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
