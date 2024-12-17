@@ -15,11 +15,8 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
-
-var RegistrationFeeAmt = commontypes.DYM.QuoRaw(10) // 0.1 DYM
 
 var _ porttypes.IBCModule = &IBCModule{}
 
