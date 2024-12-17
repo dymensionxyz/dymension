@@ -37,6 +37,7 @@ func (k Keeper) PruneSequencerHeights(ctx sdk.Context, sequencers []string, h ui
 	return nil
 }
 
+// bookkeeping for which sequencers have unfinalized heights
 func (k Keeper) SaveSequencerHeight(ctx sdk.Context, seqAddr string, height uint64) error {
 	return k.seqToUnfinalizedHeight.Set(ctx, collections.Join(seqAddr, height))
 }
@@ -57,6 +58,7 @@ func (k Keeper) AllSequencerHeightPairs(ctx sdk.Context) ([]types.SequencerHeigh
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.
 func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
+		// hub just started
 		return
 	}
 	// check to see if there are pending  states to be finalized
@@ -84,16 +86,14 @@ func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingQueues []types.BlockH
 	// Map here is safe to use since it's used only as a key set for existence checks.
 	failedRollapps := make(map[string]struct{})
 
-	// Iterate over all the pending finalization height queues
 	for _, queue := range pendingQueues {
-		// Check if the rollapp failed to finalize previously
+		// Already failed?
 		_, failed := failedRollapps[queue.RollappId]
 		if failed {
 			// Skip the rollapp if it failed to finalize previously
 			continue
 		}
 
-		// Finalize the queue. If it fails, add the rollapp to the failedRollapps set.
 		finalized := k.FinalizeStates(ctx, queue)
 		if !finalized {
 			failedRollapps[queue.RollappId] = struct{}{}
@@ -102,11 +102,12 @@ func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingQueues []types.BlockH
 }
 
 // FinalizeStates finalizes all the pending states in the queue. Returns true if all the states are finalized successfully.
+// Queue is for one rollapp
 func (k Keeper) FinalizeStates(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue) bool {
 	for i, stateInfoIndex := range queue.FinalizationQueue {
 		// if this fails, no state change will happen
 		err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-			return k.finalizePending(ctx, stateInfoIndex)
+			return k.finalizePending(ctx, stateInfoIndex) // (actual function here is k.finalizePendingState, see below)
 		})
 		if err != nil {
 			k.Logger(ctx).
@@ -153,18 +154,18 @@ func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.Stat
 	k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
 
 	for _, bd := range stateInfo.BDs.BD {
+		// sequencer is no longer liable
 		if err := k.DelSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
 			return errorsmod.Wrap(err, "del sequencer height")
 		}
 	}
 
-	// call the after-update-state hook
+	// No actually used atm
 	err := k.GetHooks().AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 	if err != nil {
 		return fmt.Errorf("after state finalized: %w", err)
 	}
 
-	// emit event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStatusChange,
 			stateInfo.GetEvents()...,

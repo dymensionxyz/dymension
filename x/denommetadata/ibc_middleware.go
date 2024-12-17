@@ -143,6 +143,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return gerrc.ErrNotFound
 	}
 
+	// TODO: simplify: can do with just Set*
 	has, err := im.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, dm.Base)
 	if err != nil {
 		return errorsmod.Wrapf(errortypes.ErrKeyNotFound, "check if rollapp has registered denom: %s", err.Error())
@@ -226,11 +227,11 @@ func (m *ICS4Wrapper) SendPacket(
 	// We need to handle both cases:
 	// 		1. We use the value of `packet.Denom` as the baseDenom
 	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
-	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom()
+	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom() // TODO: rename base denom to ibc denom https://github.com/dymensionxyz/dymension/issues/1650
 
 	has, err := m.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, baseDenom)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrKeyNotFound, "check if rollapp has registered denom: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrKeyNotFound, "check if rollapp has registered denom: %s", err.Error()) /// TODO: no .Error()
 	}
 	if has {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
@@ -244,12 +245,12 @@ func (m *ICS4Wrapper) SendPacket(
 
 	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
 	if err != nil {
-		return 0, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "add denom metadata to memo: %s", err.Error())
+		return 0, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "add denom metadata to memo: %s", err.Error()) /// TODO: no .Error()
 	}
 
 	data, err = types.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error()) /// TODO: no .Error()
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)

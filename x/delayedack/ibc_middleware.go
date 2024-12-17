@@ -148,6 +148,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	// Run the underlying app's OnAcknowledgementPacket callback
 	// with cache context to avoid state changes and report the acknowledgement result.
 	// Only save the packet if the underlying app's callback succeeds.
+	// NOTE: this is not an absolute guarantee that it will succeed when the packet is finalized
 	cacheCtx, _ := ctx.CacheContext()
 	err = w.IBCModule.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
 	if err != nil {
@@ -186,6 +187,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	// Run the underlying app's OnTimeoutPacket callback
 	// with cache context to avoid state changes and report the timeout result.
 	// Only save the packet if the underlying app's callback succeeds.
+	// NOTE: this is not an absolute guarantee that it will succeed when the packet is finalized
 	cacheCtx, _ := ctx.CacheContext()
 	err = w.IBCModule.OnTimeoutPacket(cacheCtx, packet, relayer)
 	if err != nil {
