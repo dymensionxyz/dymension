@@ -69,8 +69,8 @@ message QueryParamsResponse {
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.
 message QueryPlansRequest {
-  // tradable_only is an optional flag to filter out plans that have not started yet, and that are not settled.
-  bool tradable_only = 1;
+  // non_settled_only is an optional flag to filter out plans that are already settled.
+  bool non_settled_only = 1;
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 

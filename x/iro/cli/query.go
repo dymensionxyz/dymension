@@ -46,7 +46,7 @@ func CmdQueryPlans() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			tradableOnly, err := cmd.Flags().GetBool(FlagTradableOnly)
+			nonSettledOnly, err := cmd.Flags().GetBool(FlagNonSettledOnly)
 			if err != nil {
 				return err
 			}
@@ -57,8 +57,8 @@ func CmdQueryPlans() *cobra.Command {
 			}
 
 			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{
-				TradableOnly: tradableOnly,
-				Pagination:   pageReq,
+				NonSettledOnly: nonSettledOnly,
+				Pagination:     pageReq,
 			})
 			if err != nil {
 				return err
@@ -70,7 +70,7 @@ func CmdQueryPlans() *cobra.Command {
 
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
-	cmd.Flags().BoolP(FlagTradableOnly, "t", false, "Query only tradable plans")
+	cmd.Flags().BoolP(FlagNonSettledOnly, "s", false, "Query only unsettled IRO plans")
 	return cmd
 }
 
