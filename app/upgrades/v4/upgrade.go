@@ -1,6 +1,7 @@
 package v4
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -104,6 +106,10 @@ func CreateUpgradeHandler(
 		}
 
 		if err := migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper); err != nil {
+			return nil, err
+		}
+
+		if err := migrateGAMMPoolDenomMetadata(ctx, keepers.BankKeeper); err != nil {
 			return nil, err
 		}
 
@@ -310,6 +316,34 @@ func migrateDelayedAckPacketIndex(ctx sdk.Context, dk delayedackkeeper.Keeper) e
 			dk.MustSetPendingPacketByAddress(ctx, pd.Sender, packet.RollappPacketKey())
 		}
 	}
+	return nil
+}
+
+func migrateGAMMPoolDenomMetadata(ctx sdk.Context, rk bankkeeper.Keeper) error {
+	const lastOldDenomIndex = 13
+
+	for i := 1; i <= lastOldDenomIndex; i++ {
+		denom := fmt.Sprintf("gamm/pool/%d", i)
+		dm, ok := rk.GetDenomMetaData(ctx, denom)
+		if !ok {
+			return errorsmod.Wrapf(banktypes.ErrDenomMetadataNotFound, "denom metadata not found for denom %s", denom)
+		}
+
+		if dm.Name == "" {
+			dm.Name = denom
+		}
+
+		if dm.Display == "" {
+			dm.Display = fmt.Sprintf("GAMM-%d", i)
+		}
+
+		if dm.Symbol == "" {
+			dm.Symbol = dm.Display
+		}
+
+		rk.SetDenomMetaData(ctx, dm)
+	}
+
 	return nil
 }
 
