@@ -8,11 +8,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -88,7 +86,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: uptr.To(sdk.NewInt(100)),
+					GasPrice: "100",
 					FeeDenom: &DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
