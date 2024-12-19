@@ -8,7 +8,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -833,7 +832,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 				Checksum:    "checksum",
 			},
 		},
-		GasPrice: uptr.To(sdk.NewInt(100)),
+		GasPrice: "100",
 	}
 	_, err = s.seqMsgServer.UpdateSequencerInformation(s.Ctx, &sequencertypes.MsgUpdateSequencerInformation{
 		Creator:  addrInit,
