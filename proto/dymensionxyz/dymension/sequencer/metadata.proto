@@ -32,7 +32,7 @@ message SequencerMetadata {
   // snapshots of the sequencer
   repeated SnapshotInfo snapshots = 14;
   // gas_price defines the value for each gas unit
-  string gas_price = 15 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+  string gas_price = 15;
   // fee_denom is the base denom for fees
   DenomMetadata fee_denom = 16;
 }
