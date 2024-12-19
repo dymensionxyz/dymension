@@ -9,6 +9,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -296,7 +297,7 @@ func validateURL(urlStr string) error {
 		return fmt.Errorf("URL exceeds maximum length")
 	}
 
-	if _, err := url.Parse(urlStr); err != nil {
+	if _, err := url.ParseRequestURI(urlStr); err != nil {
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 
