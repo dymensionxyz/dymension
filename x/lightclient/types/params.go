@@ -25,7 +25,7 @@ const (
 	trustPeriodMultiplier = 65
 )
 
-// expectedTrustPeriod calculates an sensible trust period based on unbonding period
+// expectedTrustPeriod calculates a sensible trust period based on unbonding period
 // taking into account potential high skew between L1 and L2
 // See https://github.com/dymensionxyz/dymension/issues/1209
 func expectedTrustPeriod(unbondingPeriod time.Duration) time.Duration {

@@ -202,7 +202,7 @@ func (server msgServer) ForceUnlock(goCtx context.Context, msg *types.MsgForceUn
 	forceUnlockAllowedAddresses := server.keeper.GetParams(ctx).ForceUnlockAllowedAddresses
 	found := false
 	for _, addr := range forceUnlockAllowedAddresses {
-		// defense in depth, double checking the message owner and lock owner are both the same and is one of the allowed force unlock addresses
+		// defense in depth, double-checking the message owner and lock owner are both the same and is one of the allowed force unlock addresses
 		if addr == lock.Owner && addr == msg.Owner {
 			found = true
 			break

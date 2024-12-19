@@ -12,7 +12,7 @@ type SequencerHooks struct {
 	*Keeper
 }
 
-// AfterRecoveryFromHalt is called after a new sequencer is set the proposer for an halted rollapp.
+// AfterRecoveryFromHalt is called after a new sequencer is set the proposer for a halted rollapp.
 // We assume the rollapp had forked once halted
 func (h SequencerHooks) AfterSetRealProposer(ctx sdk.Context, rollapp string, newSeq sequencertypes.Sequencer) error {
 	// Start the liveness clock from zero
