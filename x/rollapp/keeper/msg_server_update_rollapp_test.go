@@ -177,16 +177,15 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			},
 			expError: gerrc.ErrInvalidArgument,
 		},
-		// FIXME: URL validation not working as expected?
-		// {
-		// 	name: "invalid metadata",
-		// 	update: &types.MsgUpdateRollappInformation{
-		// 		Owner:     alice,
-		// 		RollappId: rollappId,
-		// 		Metadata:  &types.RollappMetadata{X: "not-url"},
-		// 	},
-		// 	expError: gerrc.ErrInvalidArgument,
-		// },
+		{
+			name: "invalid metadata",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:     alice,
+				RollappId: rollappId,
+				Metadata:  &types.RollappMetadata{X: "not-url"},
+			},
+			expError: gerrc.ErrInvalidArgument,
+		},
 	}
 
 	for _, tc := range tests {
