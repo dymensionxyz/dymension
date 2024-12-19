@@ -118,24 +118,6 @@ func TestMsgCreateGauge(t *testing.T) {
 			}),
 			expectPass: false,
 		},
-		{
-			name: "invalid num epochs paid over for perpetual gauge",
-			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.NumEpochsPaidOver = 2
-				msg.IsPerpetual = true
-				return msg
-			}),
-			expectPass: false,
-		},
-		{
-			name: "valid num epochs paid over for perpetual gauge",
-			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.NumEpochsPaidOver = 1
-				msg.IsPerpetual = true
-				return msg
-			}),
-			expectPass: true,
-		},
 	}
 
 	for _, test := range tests {

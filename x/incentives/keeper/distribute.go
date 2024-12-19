@@ -113,7 +113,7 @@ func (k Keeper) getToDistributeCoinsFromGauges(gauges []types.Gauge) sdk.Coins {
 // updateGaugePostDistribute increments the gauge's filled epochs field.
 // Also adds the coins that were just distributed to the gauge's distributed coins field.
 func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, newlyDistributedCoins sdk.Coins, epochEnd bool) error {
-	if epochEnd {
+	if !gauge.IsPerpetual && epochEnd {
 		gauge.FilledEpochs += 1
 	}
 	gauge.DistributedCoins = gauge.DistributedCoins.Add(newlyDistributedCoins...)

@@ -55,8 +55,9 @@ func (m MsgCreateGauge) ValidateBasic() error {
 	if m.NumEpochsPaidOver == 0 {
 		return errors.New("distribution period should be at least 1 epoch")
 	}
-	if m.IsPerpetual && m.NumEpochsPaidOver != 1 {
-		return errors.New("distribution period should be 1 epoch for perpetual gauge")
+
+	if m.IsPerpetual {
+		return errors.New("custom perpetual gauges are not supported")
 	}
 
 	if lockuptypes.LockQueryType_name[int32(m.DistributeTo.LockQueryType)] != "ByDuration" {
