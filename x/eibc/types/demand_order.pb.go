@@ -36,7 +36,6 @@ type DemandOrder struct {
 	// price is the amount that the fulfiller sends to original eibc transfer recipient
 	Price github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
 	// fee is the effective profit made by the fulfiller because they pay price and receive fee + price
-	// NOTE: can be empty coins (meaning zero)
 	Fee       github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=fee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"fee"`
 	Recipient string                                   `protobuf:"bytes,5,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// Deprecated: use DemandOrder.IsFulfilled method instead.
@@ -47,7 +46,7 @@ type DemandOrder struct {
 	Type                  types1.RollappPacket_Type `protobuf:"varint,10,opt,name=type,proto3,enum=dymensionxyz.dymension.common.RollappPacket_Type" json:"type,omitempty"`
 	// fulfiller_address is the bech32-encoded address of the account which fulfilled the order.
 	FulfillerAddress string `protobuf:"bytes,11,opt,name=fulfiller_address,json=fulfillerAddress,proto3" json:"fulfiller_address,omitempty"`
-	// creation_height is the height of the block when order was created.
+	// creation_height is the height of the block on the hub when order was created.
 	CreationHeight uint64 `protobuf:"varint,12,opt,name=creation_height,json=creationHeight,proto3" json:"creation_height,omitempty"`
 }
 

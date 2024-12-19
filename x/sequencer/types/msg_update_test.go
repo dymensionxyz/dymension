@@ -4,8 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -43,7 +41,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: uptr.To(sdk.NewInt(100)),
+					GasPrice: "100",
 				},
 			},
 		}, {

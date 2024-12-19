@@ -413,8 +413,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 	}
 }
 
-var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
-
 func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Sequencer {
 	return sequencertypes.Sequencer{
 		Address:      old.Address,
@@ -440,7 +438,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 			},
 			ExtraData: nil,
 			Snapshots: []*sequencertypes.SnapshotInfo{},
-			GasPrice:  &defaultGasPrice,
+			GasPrice:  "10000000000",
 			FeeDenom:  nil,
 		},
 	}
