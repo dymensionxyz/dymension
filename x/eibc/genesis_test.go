@@ -1,6 +1,7 @@
 package eibc_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -74,15 +75,28 @@ func TestExportGenesis(t *testing.T) {
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 	}
+
 	for _, demandOrder := range demandOrders {
 		demandOrderCopy := demandOrder
 		err := k.SetDemandOrder(ctx, &demandOrderCopy)
 		require.NoError(t, err)
 	}
+
 	k.SetParams(ctx, params)
 	// Verify the exported genesis
 	got := eibc.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.ElementsMatch(t, demandOrders, got.DemandOrders)
-	require.Equal(t, params, got.Params)
+
+	require.NotNil(t, got, "ExportGenesis should not return nil")
+
+	require.Equal(t, params, got.Params, "Params should match the set params")
+
+	expectedDemandOrders := make([]types.DemandOrder, len(demandOrders))
+	for i, order := range demandOrders {
+		orderCopy := order
+		encodedKey := base64.StdEncoding.EncodeToString([]byte(order.TrackingPacketKey))
+		orderCopy.TrackingPacketKey = encodedKey
+		expectedDemandOrders[i] = orderCopy
+	}
+
+	require.ElementsMatch(t, expectedDemandOrders, got.DemandOrders, "DemandOrders should match after encoding TrackingPacketKey")
 }
