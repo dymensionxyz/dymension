@@ -39,6 +39,17 @@ func NewChainID(id string) (ChainID, error) {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty")
 	}
 
+	// TODO: this is a testnet temp hack to support specific non-valid chain id
+	// will be removed once testnet fixed
+	if chainID == "gogol_090909090-1" {
+		return ChainID{
+			chainID:  chainID,
+			name:     "gogol",
+			eip155ID: big.NewInt(90909090),
+			revision: 1,
+		}, nil
+	}
+
 	if len(chainID) > types.MaxChainIDLen {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds %d chars: %s: len: %d", types.MaxChainIDLen, chainID, len(chainID))
 	}
