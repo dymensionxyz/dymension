@@ -326,7 +326,7 @@ func migrateGAMMPoolDenomMetadata(ctx sdk.Context, rk bankkeeper.Keeper) error {
 		denom := fmt.Sprintf("gamm/pool/%d", i)
 		dm, ok := rk.GetDenomMetaData(ctx, denom)
 		if !ok {
-			return errorsmod.Wrapf(banktypes.ErrDenomMetadataNotFound, "denom metadata not found for denom %s", denom)
+			break
 		}
 
 		if dm.Name == "" {
