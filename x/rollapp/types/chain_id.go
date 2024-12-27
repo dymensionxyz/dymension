@@ -48,6 +48,13 @@ func NewChainID(id string) (ChainID, error) {
 			eip155ID: big.NewInt(90909090),
 			revision: 1,
 		}, nil
+	} else if chainID == "trumpnumba1_101010-1" {
+		return ChainID{
+			chainID:  chainID,
+			name:     "trumpnumba",
+			eip155ID: big.NewInt(101010),
+			revision: 1,
+		}, nil
 	}
 
 	if len(chainID) > types.MaxChainIDLen {
