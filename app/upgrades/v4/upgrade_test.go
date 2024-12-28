@@ -79,6 +79,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
 
+				// TODO: create and store IBC clients and connections, to test migration of canonical clients
+
 				s.seedPendingRollappPackets()
 
 				s.seedRollappFinalizationQueue()
@@ -437,7 +439,6 @@ func (s *UpgradeTestSuite) seedRollapps(numRollapps int) []rollapptypes.Rollapp 
 			RollappId:    rollappID,
 			Owner:        sample.AccAddressFromSecret(rollappID),
 			GenesisState: rollapptypes.RollappGenesisState{},
-			ChannelId:    fmt.Sprintf("channel-%d", i),
 		}
 		rollapps[i] = rollapp
 	}
