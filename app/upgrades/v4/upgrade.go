@@ -83,7 +83,9 @@ func CreateUpgradeHandler(
 		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
-		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+		if err := migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper); err != nil {
+			return nil, err
+		}
 		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
 			return nil, err
 		}
@@ -205,23 +207,26 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, dymns
 	return nil
 }
 
-func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) {
+func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) error {
 	list := rollappkeeper.GetAllRollapps(ctx)
 	for _, rollapp := range list {
 		// check if the rollapp has a canonical channel already
 		if rollapp.ChannelId == "" {
-			return
+			continue
 		}
+
 		// get the client ID the channel belongs to
 		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
 		if err != nil {
-			// if could not find a connection, skip the canonical client assignment
-			return
+			return errorsmod.Wrapf(err, "could not find a connection for channel %s rollapp %s", rollapp.ChannelId, rollapp.RollappId)
 		}
+
 		clientID := connection.GetClientID()
 		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
+
+	return nil
 }
 
 // migrateStreamer creates epoch pointers for all epoch infos and updates module params
@@ -326,7 +331,7 @@ func migrateGAMMPoolDenomMetadata(ctx sdk.Context, rk bankkeeper.Keeper) error {
 		denom := fmt.Sprintf("gamm/pool/%d", i)
 		dm, ok := rk.GetDenomMetaData(ctx, denom)
 		if !ok {
-			return errorsmod.Wrapf(banktypes.ErrDenomMetadataNotFound, "denom metadata not found for denom %s", denom)
+			break
 		}
 
 		if dm.Name == "" {
