@@ -1,6 +1,7 @@
 name: Auto Changelog Update
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
