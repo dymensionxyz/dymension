@@ -21,7 +21,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		if demandOrderCopy.TrackingPacketKey != "" {
 			decodedKey, err := base64.StdEncoding.DecodeString(demandOrderCopy.TrackingPacketKey)
 			if err != nil {
-				panic(fmt.Errorf("failed to decode tracking_packet_key: %v", err))
+				panic(fmt.Errorf("failed to decode tracking_packet_key: %w", err))
 			}
 			demandOrderCopy.TrackingPacketKey = string(decodedKey)
 		}
