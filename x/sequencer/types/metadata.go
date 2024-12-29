@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cockroachdb/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -17,6 +18,12 @@ const (
 	MaxExtraDataLength    = 280
 	maxURLLength          = 256
 	maxListLength         = 5
+)
+
+type AllowedDecimals uint32
+
+const (
+	Decimals18 AllowedDecimals = 18
 )
 
 func (d SequencerMetadata) Validate() error {
@@ -33,11 +40,38 @@ func (d SequencerMetadata) Validate() error {
 		return errorsmod.Wrap(err, "invalid rest api URLs")
 	}
 
+	if d.FeeDenom != nil {
+		if err := d.FeeDenom.Validate(); err != nil {
+			return errors.Join(ErrInvalidFeeDenom, err)
+		}
+	}
+
 	if d.ContactDetails == nil {
 		return nil
 	}
 
 	return d.ContactDetails.Validate()
+}
+
+func (dm DenomMetadata) IsSet() bool {
+	return dm != DenomMetadata{}
+}
+
+func (dm DenomMetadata) Validate() error {
+	if err := sdk.ValidateDenom(dm.Base); err != nil {
+		return fmt.Errorf("invalid metadata base denom: %w", err)
+	}
+
+	if err := sdk.ValidateDenom(dm.Display); err != nil {
+		return fmt.Errorf("invalid metadata display denom: %w", err)
+	}
+
+	// validate exponent
+	if AllowedDecimals(dm.Exponent) != Decimals18 {
+		return fmt.Errorf("invalid exponent")
+	}
+
+	return nil
 }
 
 func (cd ContactDetails) Validate() error {

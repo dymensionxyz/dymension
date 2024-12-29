@@ -92,7 +92,7 @@ func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
 	gAccounts := []rollapptypes.GenesisAccount{
 		{
 			Address: gAddr.String(),
-			Amount:  math.NewIntFromUint64(10000000000000000000),
+			Amount:  math.NewIntFromUint64(100000),
 		},
 	}
 	s.addGenesisAccounts(gAccounts)

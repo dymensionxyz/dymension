@@ -94,7 +94,8 @@ func (w IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, rel
 	denom := denomutils.GetIncomingTransferDenom(packet, transfer.FungibleTokenPacketData)
 	feeCoin := sdk.NewCoin(denom, feeAmt)
 
-	// charge the bridging fee in cache context
+	// since transfer worked, then receiver should have enough balance to pay
+	// (unless param increased since the delayedck packet was created)
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 		return w.txFeesKeeper.ChargeFeesFromPayer(ctx, receiver, feeCoin, nil)
 	})

@@ -94,38 +94,42 @@ func (w IBCModule) OnRecvPacket(
 
 	l := w.logger(ctx, packet).With("rollapp_id", ra.RollappId)
 
-	// parse the genesis bridge data
 	var genesisBridgeData types.GenesisBridgeData
 	if err := json.Unmarshal(packet.GetData(), &genesisBridgeData); err != nil {
 		l.Error("Unmarshal genesis bridge data.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unmarshal genesis bridge data"))
 	}
 
-	// validate the genesis bridge data against the hub's genesis info
+	// Make sure what the rollapp has is what the hub thinks it should have.
 	err = types.NewGenesisBridgeValidator(genesisBridgeData, ra.GenesisInfo).Validate()
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "validate and get actionable data"))
 	}
 
-	trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
-	if err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
+	// handle rollapp's denom metadata
+	var raDenomOnHUb string
+	if genesisBridgeData.GenesisInfo.NativeDenom.IsSet() {
+		// if the rollapp has a native denom, we register the denom's metadata with the IBC denom
+		trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
+		if err != nil {
+			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
+		}
+		w.transferKeeper.SetDenomTrace(ctx, trace)
+		if err := w.denomKeeper.CreateDenomMetadata(ctx, denom); err != nil {
+			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
+		}
+		raDenomOnHUb = denom.Base
 	}
 
 	genesisPackets := genesisBridgeData.GenesisAccPackets()
-
-	w.transferKeeper.SetDenomTrace(ctx, trace)
-	if err := w.denomKeeper.CreateDenomMetadata(ctx, denom); err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "create denom metadata"))
-	}
-
 	for _, data := range genesisPackets {
 		if err := w.transferKeeper.OnRecvPacket(ctx, packet, data); err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "handle genesis transfer"))
 		}
 	}
 
-	err = w.EnableTransfers(ctx, packet, ra, denom.Base)
+	// open the bridge!
+	err = w.EnableTransfers(ctx, packet, ra, raDenomOnHUb)
 	if err != nil {
 		l.Error("Enable transfers.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "transfer genesis: enable transfers"))
@@ -133,18 +137,18 @@ func (w IBCModule) OnRecvPacket(
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
-		sdk.NewAttribute(types.AttributeRollappIBCdenom, denom.Base),
+		sdk.NewAttribute(types.AttributeRollappIBCdenom, raDenomOnHUb),
 	))
 
-	// return success ack
-	// acknowledgement will be written synchronously during IBC handler execution.
-	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}) // core ibc writes it
 	return successAck
 }
 
 // EnableTransfers marks the end of the genesis bridge phase.
 // It sets the transfers enabled flag on the rollapp.
-// It also calls the after transfers enabled hook.
+// It also calls the after transfers enabled hook (used to settle IRO plans)
+// rollappIBCtrace can be empty for non-token rollapps
+// rollappIBC trace like 'ibc/19208310923..' otherwise
 func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
 	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
@@ -154,7 +158,6 @@ func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, 
 	ra.GenesisState.TransferProofHeight = height
 	w.rollappKeeper.SetRollapp(ctx, *ra)
 
-	// call the after transfers enabled hook
 	// currently, used for IRO settlement
 	err = w.rollappKeeper.GetHooks().AfterTransfersEnabled(ctx, ra.RollappId, rollappIBCtrace)
 	if err != nil {

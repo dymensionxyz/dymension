@@ -1,6 +1,7 @@
 package v4
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -81,7 +83,9 @@ func CreateUpgradeHandler(
 		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
-		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+		if err := migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper); err != nil {
+			return nil, err
+		}
 		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
 			return nil, err
 		}
@@ -104,6 +108,10 @@ func CreateUpgradeHandler(
 		}
 
 		if err := migrateRollappFinalizationQueue(ctx, keepers.RollappKeeper); err != nil {
+			return nil, err
+		}
+
+		if err := migrateGAMMPoolDenomMetadata(ctx, keepers.BankKeeper); err != nil {
 			return nil, err
 		}
 
@@ -199,23 +207,26 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, dymns
 	return nil
 }
 
-func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) {
+func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) error {
 	list := rollappkeeper.GetAllRollapps(ctx)
 	for _, rollapp := range list {
 		// check if the rollapp has a canonical channel already
 		if rollapp.ChannelId == "" {
-			return
+			continue
 		}
+
 		// get the client ID the channel belongs to
 		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
 		if err != nil {
-			// if could not find a connection, skip the canonical client assignment
-			return
+			return errorsmod.Wrapf(err, "could not find a connection for channel %s rollapp %s", rollapp.ChannelId, rollapp.RollappId)
 		}
+
 		clientID := connection.GetClientID()
 		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
+
+	return nil
 }
 
 // migrateStreamer creates epoch pointers for all epoch infos and updates module params
@@ -313,6 +324,34 @@ func migrateDelayedAckPacketIndex(ctx sdk.Context, dk delayedackkeeper.Keeper) e
 	return nil
 }
 
+func migrateGAMMPoolDenomMetadata(ctx sdk.Context, rk bankkeeper.Keeper) error {
+	const lastOldDenomIndex = 13
+
+	for i := 1; i <= lastOldDenomIndex; i++ {
+		denom := fmt.Sprintf("gamm/pool/%d", i)
+		dm, ok := rk.GetDenomMetaData(ctx, denom)
+		if !ok {
+			break
+		}
+
+		if dm.Name == "" {
+			dm.Name = denom
+		}
+
+		if dm.Display == "" {
+			dm.Display = fmt.Sprintf("GAMM-%d", i)
+		}
+
+		if dm.Symbol == "" {
+			dm.Symbol = dm.Display
+		}
+
+		rk.SetDenomMetaData(ctx, dm)
+	}
+
+	return nil
+}
+
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
 	genesisInfo := rollapptypes.GenesisInfo{
 		Bech32Prefix:    oldRollapp.RollappId[:5],                            // placeholder data
@@ -379,8 +418,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 	}
 }
 
-var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
-
 func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Sequencer {
 	return sequencertypes.Sequencer{
 		Address:      old.Address,
@@ -406,7 +443,8 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 			},
 			ExtraData: nil,
 			Snapshots: []*sequencertypes.SnapshotInfo{},
-			GasPrice:  &defaultGasPrice,
+			GasPrice:  "10000000000",
+			FeeDenom:  nil,
 		},
 	}
 }

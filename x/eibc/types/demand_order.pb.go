@@ -46,7 +46,7 @@ type DemandOrder struct {
 	Type                  types1.RollappPacket_Type `protobuf:"varint,10,opt,name=type,proto3,enum=dymensionxyz.dymension.common.RollappPacket_Type" json:"type,omitempty"`
 	// fulfiller_address is the bech32-encoded address of the account which fulfilled the order.
 	FulfillerAddress string `protobuf:"bytes,11,opt,name=fulfiller_address,json=fulfillerAddress,proto3" json:"fulfiller_address,omitempty"`
-	// creation_height is the height of the block when order was created.
+	// creation_height is the height of the block on the hub when order was created.
 	CreationHeight uint64 `protobuf:"varint,12,opt,name=creation_height,json=creationHeight,proto3" json:"creation_height,omitempty"`
 }
 

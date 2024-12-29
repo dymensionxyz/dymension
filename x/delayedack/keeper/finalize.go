@@ -13,21 +13,17 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-// FinalizeRollappPacket finalizes a singe packet by its rollapp packet key.
 func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappPacketKey string) (*commontypes.RollappPacket, error) {
-	// Get a rollapp packet
 	packet, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
 		return nil, fmt.Errorf("get rollapp packet: %s: %w", rollappPacketKey, err)
 	}
 
-	// Verify the height is finalized
 	err = k.VerifyHeightFinalized(ctx, packet.RollappId, packet.ProofHeight)
 	if err != nil {
 		return packet, fmt.Errorf("verify height: rollapp '%s': %w", packet.RollappId, err)
 	}
 
-	// Finalize the packet
 	err = k.finalizeRollappPacket(ctx, ibc, packet.RollappId, *packet)
 	if err != nil {
 		return packet, fmt.Errorf("finalize rollapp packet: %w", err)
@@ -36,8 +32,10 @@ func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, 
 	return packet, nil
 }
 
+// used with osmo helper
 type wrappedFunc func(ctx sdk.Context) error
 
+// ibc = the next IBC module in the stack, to 'resume' the rest of the transfer flow
 func (k Keeper) finalizeRollappPacket(
 	ctx sdk.Context,
 	ibc porttypes.IBCModule,
@@ -55,7 +53,9 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet
+		// Because we intercepted the packet, the core ibc library wasn't able to write the ack when we first
+		// got the packet. So we try to write it here.
+
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		/*
 				We only write the ack if writing it succeeds:
@@ -68,7 +68,7 @@ func (k Keeper) finalizeRollappPacket(
 						non-eibc: sender will get the funds back
 			            eibc:     effective transfer from fulfiller to original target
 		*/
-		if ack != nil {
+		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:
@@ -78,8 +78,10 @@ func (k Keeper) finalizeRollappPacket(
 	default:
 		logger.Error("Unknown rollapp packet type")
 	}
-	// Update the packet with the error
 	if packetErr != nil {
+		// NOTE (timeout,ack): in regular (non dymension) IBC, timeout and ack errors are actually supposed
+		//  to cause the delivery transaction to be rejected.
+		//  Here, we already accepted the original msg delivery transaction, we can't retroactively reject it.
 		rollappPacket.Error = packetErr.Error()
 	}
 
@@ -109,9 +111,9 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
 			to ensure the ack matches what the rollapp expects.
 		*/
+		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet (big change)
 		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
-		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-		return
+		return k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 	}
 }
 
@@ -133,6 +135,7 @@ func (k Keeper) onTimeoutPacket(rollappPacket commontypes.RollappPacket, ibc por
 }
 
 func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height uint64) error {
+	// TODO: can extract rollapp keeper IsHeightFinalized method
 	latestFinalizedHeight, err := k.getRollappLatestFinalizedHeight(ctx, rollappID)
 	if err != nil {
 		return err

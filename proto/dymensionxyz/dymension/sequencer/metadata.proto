@@ -32,7 +32,9 @@ message SequencerMetadata {
   // snapshots of the sequencer
   repeated SnapshotInfo snapshots = 14;
   // gas_price defines the value for each gas unit
-  string gas_price = 15 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+  string gas_price = 15;
+  // fee_denom is the base denom for fees
+  DenomMetadata fee_denom = 16;
 }
 
 message ContactDetails {
@@ -51,4 +53,10 @@ message SnapshotInfo {
   uint64 height = 2;
   // sha-256 checksum value for the snapshot file
   string checksum=3;
+}
+
+message DenomMetadata {
+  string display = 1;
+  string base = 2;
+  uint32 exponent = 3;
 }

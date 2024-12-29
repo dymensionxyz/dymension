@@ -106,3 +106,16 @@ message EventDemandOrderFulfilledAuthorized {
   // operator_fee is the fee of the operator.
   string operator_fee = 14;
 }
+
+message EventDemandOrderDeleted {
+  // order_id is the unique identifier of the demand order.
+  string order_id = 1;
+  // packet_key is the base64 encoded key of the packet.
+  string packet_key = 2;
+  // packet_status is the status of the packet.
+  string packet_status = 3;
+  // rollapp_id is the id of the rollapp.
+  string rollapp_id = 4;
+  // packet_type is the type of the packet.
+  string packet_type = 5;
+}

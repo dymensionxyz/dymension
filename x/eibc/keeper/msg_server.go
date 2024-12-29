@@ -30,7 +30,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, sdk does this
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,6 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrExpectedFeeNotMet
 	}
 
-	// Check that the fulfiller has enough balance to fulfill the order
 	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fulfillerAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
@@ -76,7 +75,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, sdk does this
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +85,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, err
 	}
 
+	// check compat between the fulfillment and current order and packet status
 	if err := m.validateOrder(demandOrder, msg, ctx); err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
@@ -135,6 +135,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	return &types.MsgFulfillOrderAuthorizedResponse{}, nil
 }
 
+// TODO: rename and fix signature (ctx first)
 func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
 	if demandOrder.RollappId != msg.RollappId {
 		return types.ErrRollappIdMismatch
@@ -170,6 +171,8 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 		return false, fmt.Errorf("get rollapp packet: %w", err)
 	}
 
+	// TODO: extract to rollapp keeper func HaveHeight(..)
+
 	// as it is not currently possible to make IBC transfers without a canonical client,
 	// we can assume that there has to exist at least one state info record for the rollapp
 	stateInfo, ok := m.rk.GetLatestStateInfo(ctx, demandOrder.RollappId)
@@ -179,10 +182,10 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 
 	lastHeight := stateInfo.GetLatestHeight()
 
+	// TODO: write oneliner
 	if lastHeight < raPacket.ProofHeight {
 		return false, nil
 	}
-
 	return true, nil
 }
 
@@ -190,7 +193,7 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdateDemandOrder) (*types.MsgUpdateDemandOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, sdk does this
 	if err != nil {
 		return nil, err
 	}
@@ -210,6 +213,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 
 	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 	if err != nil {
+		// TODO: isn't this internal error?
 		return nil, err
 	}
 
