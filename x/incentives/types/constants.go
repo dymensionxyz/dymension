@@ -11,4 +11,7 @@ var (
 	DefaultAddDenomFee    = DYM            // 1 DYM
 )
 
-const DefaultDistrEpochIdentifier = "week"
+const (
+	DefaultDistrEpochIdentifier    = "week"
+	MaxEpochsPerDistributionPeriod = 1000
+)
