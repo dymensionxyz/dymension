@@ -38,6 +38,9 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 	lockHolders := NewRewardDistributionTracker()
 	totalDistributedCoins := sdk.Coins{}
 
+	// for each gauge,
+	// - update the lockHolders map with account -> coins (according to the distribution type)
+	// - update the gauge's filled epochs
 	for _, gauge := range gauges {
 		var (
 			gaugeDistributedCoins sdk.Coins
@@ -56,13 +59,11 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 			return nil, err
 		}
 
-		if !gaugeDistributedCoins.Empty() {
-			err = k.updateGaugePostDistribute(ctx, gauge, gaugeDistributedCoins, epochEnd)
-			if err != nil {
-				return nil, err
-			}
-			totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
+		err = k.updateGaugePostDistribute(ctx, gauge, gaugeDistributedCoins, epochEnd)
+		if err != nil {
+			return nil, err
 		}
+		totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
 	}
 
 	// apply the distribution to asset gauges
@@ -113,7 +114,7 @@ func (k Keeper) getToDistributeCoinsFromGauges(gauges []types.Gauge) sdk.Coins {
 // updateGaugePostDistribute increments the gauge's filled epochs field.
 // Also adds the coins that were just distributed to the gauge's distributed coins field.
 func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, newlyDistributedCoins sdk.Coins, epochEnd bool) error {
-	if !gauge.IsPerpetual && epochEnd {
+	if epochEnd {
 		gauge.FilledEpochs += 1
 	}
 	gauge.DistributedCoins = gauge.DistributedCoins.Add(newlyDistributedCoins...)
@@ -133,6 +134,7 @@ func (k Keeper) checkFinishedGauges(ctx sdk.Context, gauges []types.Gauge) {
 
 		// filled epoch is increased in this step and we compare with +1
 		if gauge.NumEpochsPaidOver <= gauge.FilledEpochs+1 {
+			// TODO: burn/community pool all remaining coins
 			if err := k.moveActiveGaugeToFinishedGauge(ctx, gauge); err != nil {
 				panic(err)
 			}

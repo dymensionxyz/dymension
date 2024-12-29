@@ -24,7 +24,6 @@ type Keeper struct {
 
 	stakingKeeper    types.StakingKeeper
 	incentivesKeeper types.IncentivesKeeper
-	sequencerKeeper  types.SequencerKeeper
 }
 
 // NewKeeper returns a new instance of the x/sponsorship keeper.
@@ -34,7 +33,6 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
 	ik types.IncentivesKeeper,
-	sqk types.SequencerKeeper,
 	authority string,
 ) Keeper {
 	// ensure the module account is set
@@ -82,7 +80,6 @@ func NewKeeper(
 		),
 		stakingKeeper:    sk,
 		incentivesKeeper: ik,
-		sequencerKeeper:  sqk,
 	}
 
 	// SchemaBuilder CANNOT be used after Build is called,

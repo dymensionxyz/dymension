@@ -433,7 +433,6 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.StakingKeeper,
 		a.IncentivesKeeper,
-		a.SequencerKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

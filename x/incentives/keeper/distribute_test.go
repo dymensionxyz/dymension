@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
@@ -188,7 +189,6 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 1,
-		FilledEpochs:      0,
 		DistributedCoins:  sdk.Coins{},
 		StartTime:         startTime,
 	}
@@ -209,7 +209,8 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 	// check state is same after distribution
 	gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
 	suite.Require().Len(gauges, 1)
-	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
+	expectedGauge.FilledEpochs = 1
+	suite.Require().Equal(expectedGauge.String(), gauges[0].String())
 }
 
 // TestNoLockNonPerpetualGaugeDistribution tests that the creation of a non perp gauge that has no locks associated does not distribute any tokens.
@@ -235,7 +236,6 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
-		FilledEpochs:      0,
 		DistributedCoins:  sdk.Coins{},
 		StartTime:         startTime,
 	}
@@ -256,5 +256,51 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 	// check state is same after distribution
 	gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
 	suite.Require().Len(gauges, 1)
+
+	expectedGauge.FilledEpochs = 1
 	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
+}
+
+// TestTooSmallDistribution tests the distribution logic where the sum of coins to be distributed is too small
+func (suite *KeeperTestSuite) TestTooSmallDistribution() {
+	coins := sdk.Coins{sdk.NewCoin("stake", math.NewInt(1).MulRaw(1e18))}
+	totalLockedAmt := math.NewInt(1000).MulRaw(1e18)
+	numEpochsPaidOver := uint64(18446744073709522816)
+
+	// Set up the state for the test
+	suite.SetupTest()
+
+	addr := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
+	startTime2 := time.Now()
+	distrTo := lockuptypes.QueryCondition{
+		LockQueryType: lockuptypes.ByDuration,
+		Denom:         "stake",
+		Duration:      time.Hour,
+	}
+
+	// mints coins so supply exists on chain
+	mintCoins := sdk.Coins{sdk.NewInt64Coin(distrTo.Denom, 200)}
+	suite.FundAcc(addr, mintCoins)
+
+	_, gauge := suite.CreateGauge(false, addr, coins, distrTo, startTime2, numEpochsPaidOver)
+
+	numLocks := int64(1000)
+	users := make([]userLocks, numLocks)
+	perLockAmt := totalLockedAmt.QuoRaw(numLocks)
+	for i := 0; i < 1000; i++ {
+		users[i].lockDurations = []time.Duration{time.Hour}
+		users[i].lockAmounts = []sdk.Coins{sdk.NewCoins(sdk.NewCoin("stake", perLockAmt))}
+	}
+	addrs := suite.SetupUserLocks(users)
+	_ = addrs
+
+	// Call the distribution function
+	distrCoins, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
+	suite.Require().NoError(err)
+
+	// Check the result
+	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gauge.Id)
+	suite.Require().NoError(err)
+	suite.Assert().Equal(uint64(1), gauge.FilledEpochs)
+	suite.Require().Equal(distrCoins, sdk.Coins{})
 }
