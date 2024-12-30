@@ -86,7 +86,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v4.Upgrade}
+	Upgrades = []upgrades.Upgrade{v4.Upgrade, v4.UpgradeBlumbusHotfix}
 )
 
 func init() {
