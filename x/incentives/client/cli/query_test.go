@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -36,7 +37,8 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 		Alias:            strings.ToLower(tmrand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 		GenesisInfo: &rollapptypes.GenesisInfo{
-			Bech32Prefix: strings.ToLower(tmrand.Str(3)),
+			Bech32Prefix:  strings.ToLower(tmrand.Str(3)),
+			InitialSupply: math.ZeroInt(),
 		},
 	}
 
