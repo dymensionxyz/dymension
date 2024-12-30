@@ -59,6 +59,10 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 	genInfo := GenesisInfo{}
 	if msg.GenesisInfo != nil {
 		genInfo = *msg.GenesisInfo
+		// hotfix: if supply is zero, override the denom metadata with empty
+		if genInfo.InitialSupply.IsZero() {
+			genInfo.NativeDenom = DenomMetadata{}
+		}
 	}
 	return NewRollapp(
 		msg.Creator,

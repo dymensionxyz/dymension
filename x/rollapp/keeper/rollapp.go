@@ -48,6 +48,10 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 
 	if update.GenesisInfo != nil {
 		current.GenesisInfo = *update.GenesisInfo
+		// hotfix: if supply is zero, override the denom metadata with empty
+		if update.GenesisInfo.InitialSupply.IsZero() {
+			current.GenesisInfo.NativeDenom = types.DenomMetadata{}
+		}
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {

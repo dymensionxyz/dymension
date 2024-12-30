@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -143,10 +144,10 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:       alice,
 				RollappId:   rollappId,
-				GenesisInfo: &types.GenesisInfo{},
+				GenesisInfo: &types.GenesisInfo{InitialSupply: math.ZeroInt()},
 			},
 			mallete: func(expected *types.Rollapp) {
-				expected.GenesisInfo = types.GenesisInfo{InitialSupply: sdk.NewInt(0)}
+				expected.GenesisInfo = types.GenesisInfo{InitialSupply: math.ZeroInt()}
 			},
 		},
 		{
@@ -270,6 +271,7 @@ func (s *RollappTestSuite) TestUpdateRollappSealed() {
 				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
+					InitialSupply:   math.ZeroInt(),
 				},
 			},
 			expError: types.ErrGenesisInfoSealed,
@@ -280,7 +282,8 @@ func (s *RollappTestSuite) TestUpdateRollappSealed() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
-					Bech32Prefix: "new",
+					Bech32Prefix:  "new",
+					InitialSupply: math.ZeroInt(),
 				},
 			},
 			expError: types.ErrGenesisInfoSealed,
@@ -296,6 +299,7 @@ func (s *RollappTestSuite) TestUpdateRollappSealed() {
 						Base:     "aden",
 						Exponent: 18,
 					},
+					InitialSupply: sdk.NewInt(10000),
 				},
 			},
 			expError: types.ErrGenesisInfoSealed,
@@ -392,6 +396,7 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
+					InitialSupply:   math.ZeroInt(),
 				},
 			},
 			expError: types.ErrImmutableFieldUpdateAfterLaunched,
@@ -426,7 +431,7 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 	// we start with empty genesis info
 	gInfo := types.GenesisInfo{
-		InitialSupply: sdk.NewInt(0),
+		InitialSupply: math.ZeroInt(),
 	}
 
 	tests := []struct {
@@ -447,6 +452,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Base:     "aden",
 						Exponent: 18,
 					},
+					InitialSupply: sdk.NewInt(10000),
 				},
 			},
 			mallete: func(expected *types.Rollapp) {
@@ -455,6 +461,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 					Base:     "aden",
 					Exponent: 18,
 				}
+				expected.GenesisInfo.InitialSupply = sdk.NewInt(10000)
 			},
 			expError: nil,
 		},
@@ -466,6 +473,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				InitialSequencer: initialSequencerAddress,
 				GenesisInfo: &types.GenesisInfo{
 					GenesisChecksum: "checksum",
+					InitialSupply:   math.ZeroInt(),
 				},
 			},
 			mallete: func(expected *types.Rollapp) {
@@ -485,16 +493,13 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Base:     "aden",
 						Exponent: 18,
 					},
-					InitialSupply: sdk.NewInt(0),
+					InitialSupply: math.ZeroInt(),
 				},
 			},
 			mallete: func(expected *types.Rollapp) {
-				expected.GenesisInfo.NativeDenom = types.DenomMetadata{
-					Display:  "DEN",
-					Base:     "aden",
-					Exponent: 18,
-				}
-				expected.GenesisInfo.InitialSupply = sdk.NewInt(0)
+				// we overwrite native denom with empty one when setting supply to 0
+				expected.GenesisInfo.NativeDenom = types.DenomMetadata{}
+				expected.GenesisInfo.InitialSupply = math.ZeroInt()
 			},
 			expError: nil,
 		},
