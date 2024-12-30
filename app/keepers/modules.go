@@ -217,8 +217,8 @@ func (a *AppKeepers) SetupModules(
 		groupmodule.NewAppModule(appCodec, a.GroupKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 
 		// Ethermint app modules
-		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
-		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
+		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName)),
+		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName)),
 
 		// osmosis modules
 		lockup.NewAppModule(*a.LockupKeeper),

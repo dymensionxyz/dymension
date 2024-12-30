@@ -1,10 +1,5 @@
 package types
 
-var (
-	KeyMinAllocationWeight = []byte("MinAllocationWeight")
-	KeyMinVotingPower      = []byte("MinVotingPower")
-)
-
 func DefaultParams() Params {
 	return Params{
 		MinAllocationWeight: DefaultMinAllocationWeight,
