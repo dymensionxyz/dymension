@@ -13,7 +13,7 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -41,7 +41,8 @@ jobs:
           if [ "$branch_exists" == "true" ]; then
             git checkout auto-changelog-update-do-not-create-manually
             git merge main --strategy-option theirs --allow-unrelated-histories --no-edit
-            conventional-changelog -p angular -i CHANGELOG.md -s
+            conventional-changelog -p angular -i CHANGELOG.md -s -r 0 
+            sed -i '1i # Changelog\n## [Unreleased]\n' CHANGELOG.md
             git add CHANGELOG.md
             git commit -m "Update CHANGELOG.md [skip ci]"
             git push origin auto-changelog-update-do-not-create-manually
@@ -50,7 +51,8 @@ jobs:
             git checkout main
             git checkout -b auto-changelog-update-do-not-create-manually
             git push origin auto-changelog-update-do-not-create-manually
-            conventional-changelog -p angular -i CHANGELOG.md -s
+            conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+            sed -i '1i # Changelog\n## [Unreleased]\n' CHANGELOG.md
           fi
 
       - name: Create Pull Request
