@@ -11,22 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchannelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
@@ -54,8 +42,6 @@ func CreateUpgradeHandler(
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
-
-		setKeyTables(keepers)
 
 		// Run migrations before applying any other state changes.
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
@@ -121,53 +107,13 @@ func CreateUpgradeHandler(
 	}
 }
 
-func setKeyTables(keepers *keepers.AppKeepers) {
-	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
-		var keyTable paramstypes.KeyTable
-		switch subspace.Name() {
-		// Cosmos SDK modules
-		case authtypes.ModuleName:
-			keyTable = authtypes.ParamKeyTable()
-		case banktypes.ModuleName:
-			keyTable = banktypes.ParamKeyTable()
-		case stakingtypes.ModuleName:
-			keyTable = stakingtypes.ParamKeyTable()
-		case minttypes.ModuleName:
-			keyTable = minttypes.ParamKeyTable()
-		case distrtypes.ModuleName:
-			keyTable = distrtypes.ParamKeyTable()
-		case slashingtypes.ModuleName:
-			keyTable = slashingtypes.ParamKeyTable()
-		case govtypes.ModuleName:
-			keyTable = govv1.ParamKeyTable()
-		case crisistypes.ModuleName:
-			keyTable = crisistypes.ParamKeyTable()
-
-		// Dymension modules
-		case rollapptypes.ModuleName:
-			keyTable = rollapptypes.ParamKeyTable()
-		case sequencertypes.ModuleName:
-			continue
-
-		// Ethermint  modules
-		case evmtypes.ModuleName:
-			keyTable = evmtypes.ParamKeyTable()
-		case feemarkettypes.ModuleName:
-			keyTable = feemarkettypes.ParamKeyTable()
-		default:
-			continue
-		}
-
-		if !subspace.HasKeyTable() {
-			subspace.WithKeyTable(keyTable)
-		}
-	}
-}
-
 //nolint:staticcheck - note this is a cosmos SDK supplied function specifically for upgrading consensus params
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	baseAppLegacySS, ok := keepers.ParamsKeeper.GetSubspace(baseapp.Paramspace)
+	if !ok {
+		panic("failed to get consensus params subspace from params keeper")
+	}
 	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
