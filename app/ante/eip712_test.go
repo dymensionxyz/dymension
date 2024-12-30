@@ -140,16 +140,19 @@ func (s *AnteTestSuite) TestEIP712() {
 	from := acc
 
 	msgs := []sdk.Msg{
-		// getMsgSend(from),
-		// getMsgCreateRollapp(from.String(), false, nil), // native denom
-		// getMsgCreateRollapp(from.String(), true, nil), // tokenless
-		// s.getMsgGrant("/dymensionxyz.dymension.gamm.poolmodels.balancer.v1beta1.MsgCreateBalancerPool", from),
+		s.getMsgSend(from),
+		s.getMsgCreateRollapp(from.String(), false, nil), // native denom
+		s.getMsgCreateRollapp(from.String(), true, nil),  // tokenless
+		s.getMsgGrant("/dymensionxyz.dymension.gamm.poolmodels.balancer.v1beta1.MsgCreateBalancerPool", from),
 		s.getMsgGrantAllowance(from),
-		// getMsgSubmitProposal(from),
+		s.getMsgSubmitProposal(from),
 	}
 
-	err = s.DumpEIP712TypedData(from, msgs)
-	s.Require().NoError(err)
+	for _, msg := range msgs {
+		toTest := []sdk.Msg{msg}
+		err = s.DumpEIP712TypedData(from, toTest)
+		s.Require().NoError(err)
+	}
 }
 
 // FIXME: should iterate over all messages
