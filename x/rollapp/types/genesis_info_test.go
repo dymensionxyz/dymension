@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -65,7 +66,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 			msg: GenesisInfo{
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
-				InitialSupply:   sdk.NewInt(0),
+				InitialSupply:   math.ZeroInt(),
 			},
 			err: nil,
 		},
