@@ -76,7 +76,7 @@ func (k Keeper) HasLock(ctx sdk.Context, owner sdk.AccAddress, denom string, dur
 	return len(locks) > 0
 }
 
-// AddTokensToLock locks additional tokens into an existing lock with the given ID.
+// AddTokensToLockByID locks additional tokens into an existing lock with the given ID.
 // Tokens locked are sent and kept in the module account.
 // This method alters the lock state in store, thus we do a sanity check to ensure
 // lock owner matches the given owner.
