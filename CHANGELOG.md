@@ -1,23 +1,17 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2024-12-31)
+## Unreleased
+
+## [v3.2.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.2.0)
 
 
 ### Bug Fixes
 
-* linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([109d4d3](https://github.com/dymensionxyz/dymension/commit/109d4d310518dfc8132751b2597e622460a02df9))
-* **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
-* **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
-* **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([5ce245c](https://github.com/dymensionxyz/dymension/commit/5ce245c1eddcbbe150ce2db97ce6cfcde936a35e))
-
-
-
-# [3.2.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.1.0-rc03...v3.2.0-rc01) (2024-12-24)
-
-
-### Bug Fixes
-
+* **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([abe082a](https://github.com/dymensionxyz/dymension/commit/abe082ab2cdb0363f1075356fc4f18f506065d74))
+* **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([b77a9e1](https://github.com/dymensionxyz/dymension/commit/b77a9e11a4e890135274effd48e318c17e231e25))
+* linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([95ab385](https://github.com/dymensionxyz/dymension/commit/95ab38589fa69e04ef8116feee263c914bf865d0))
+* **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([a27cb91](https://github.com/dymensionxyz/dymension/commit/a27cb91e5c245025f2da89c6bcddebb31d092935))
 * ante handler reject messages recursively ([#1392](https://github.com/dymensionxyz/dymension/issues/1392)) ([5111f26](https://github.com/dymensionxyz/dymension/commit/5111f261887f334e3c3cf7b4c981f3fce92dfb2f))
 * **ante:** FeeMarket minGasPrice enforcement ([#1602](https://github.com/dymensionxyz/dymension/issues/1602)) ([b98c7cf](https://github.com/dymensionxyz/dymension/commit/b98c7cfca9ec7b17a589fcb394b968558e966ac8))
 * **app:** fix initialization of `transferKeeper` for `x/rollapp` ([#1495](https://github.com/dymensionxyz/dymension/issues/1495)) ([b8a69b8](https://github.com/dymensionxyz/dymension/commit/b8a69b8e5d2a7268185d7b1402b71a0b8d3a7df9))
