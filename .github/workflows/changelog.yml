@@ -7,11 +7,12 @@ on:
       - main
 
 jobs:
-  update_changelog:
+  update_changelog_auto:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -50,9 +51,11 @@ jobs:
           else
             git checkout main
             git checkout -b auto-changelog-update-do-not-create-manually
-            git push origin auto-changelog-update-do-not-create-manually
             conventional-changelog -p angular -i CHANGELOG.md -s -r 0
             sed -i '1i # Changelog\n## [Unreleased]\n' CHANGELOG.md
+            git add CHANGELOG.md
+            git commit -m "Update CHANGELOG.md [skip ci]"
+            git push origin auto-changelog-update-do-not-create-manually
           fi
 
       - name: Create Pull Request
@@ -78,3 +81,43 @@ jobs:
         if: steps.cpr.outputs.pull-request-operation == 'updated'
         run: |
           echo "Changelog PR updated due to new commit to main."
+
+  update_changelog_manually:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout the repository
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        
+        - name: Setup Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '18'
+        
+        - name: Configure Git
+          run: |
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+        
+        - name: Check if "manually-changelog-update" branch exists
+          id: check_branch
+          run: |
+            if [ -n "$(git ls-remote --heads origin manually-changelog-update)" ]; then
+              git branch -d manually-changelog-update
+              echo "branch_exists=true" >> $GITHUB_ENV
+            else
+              echo "branch_exists=false" >> $GITHUB_ENV
+            fi
+        
+        - name: Generate Changelog Update and update if branch exists
+          run: |
+            npm install -g conventional-changelog-cli
+            git checkout -b manually-changelog-update
+            conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+            sed -i '1i # Changelog\n## [Unreleased]\n' CHANGELOG.md
+            git add CHANGELOG.md
+            git commit -m "Update CHANGELOG.md [skip ci]"
+            git push origin manually-changelog-update
+            
