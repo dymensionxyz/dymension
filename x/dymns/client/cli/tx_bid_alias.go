@@ -16,12 +16,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewPlaceBidOnAliasOrderTxCmd is the CLI command for placing a bid on a Alias/Handle Sell-Order.
+// NewPlaceBidOnAliasOrderTxCmd is the CLI command for placing a bid on an Alias/Handle Sell-Order.
 func NewPlaceBidOnAliasOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     fmt.Sprintf("bid-alias [Alias] [amount] %s", params.DisplayDenom),
 		Aliases: []string{"bid-handle"},
-		Short:   "place a bid on a Alias/Handle Sell-Order",
+		Short:   "place a bid on an Alias/Handle Sell-Order",
 		Example: fmt.Sprintf(
 			"$ %s tx %s bid-alias dym 100 %s --%s sequencer",
 			version.AppName, dymnstypes.ModuleName, params.DisplayDenom, flags.FlagFrom,
