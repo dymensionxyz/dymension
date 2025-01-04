@@ -192,7 +192,7 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 	return math.LegacyDec{}, maxIterations, fmt.Errorf("solution did not converge")
 }
 
-// SpotPrice returns the spot price at x
+// spotPriceInternal returns the spot price at x
 func (lbc BondingCurve) spotPriceInternal(x sdk.Dec) sdk.Dec {
 	xDec := osmomath.BigDecFromSDKDec(x)
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)

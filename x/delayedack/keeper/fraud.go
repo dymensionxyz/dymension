@@ -52,7 +52,7 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, lastValidHeight ui
 	return nil
 }
 
-// DeleteRollappPacket deletes a packet receipt from the store
+// deletePacketReceipt deletes a packet receipt from the store
 func (k Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := ctx.KVStore(k.channelKeeperStoreKey)
 	store.Delete(host.PacketReceiptKey(portID, channelID, sequence))
