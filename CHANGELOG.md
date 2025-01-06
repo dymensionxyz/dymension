@@ -1,11 +1,12 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2024-12-31)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-01-06)
 
 
 ### Bug Fixes
 
+* correct two usages of indefinite articles in cli ([#1698](https://github.com/dymensionxyz/dymension/issues/1698)) ([1750571](https://github.com/dymensionxyz/dymension/commit/1750571db86c1ff77538e01d01de240a1ededa42))
 * linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([109d4d3](https://github.com/dymensionxyz/dymension/commit/109d4d310518dfc8132751b2597e622460a02df9))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
 * **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
