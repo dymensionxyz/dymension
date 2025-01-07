@@ -1,11 +1,12 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-01-06)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-01-07)
 
 
 ### Bug Fixes
 
+* add missing validations in x/rollapp/types/genesis.go ([#1657](https://github.com/dymensionxyz/dymension/issues/1657)) ([4ebef89](https://github.com/dymensionxyz/dymension/commit/4ebef89664fbefbede41aa2df24cc0087e01a288))
 * correct two usages of indefinite articles in cli ([#1698](https://github.com/dymensionxyz/dymension/issues/1698)) ([1750571](https://github.com/dymensionxyz/dymension/commit/1750571db86c1ff77538e01d01de240a1ededa42))
 * linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([109d4d3](https://github.com/dymensionxyz/dymension/commit/109d4d310518dfc8132751b2597e622460a02df9))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
