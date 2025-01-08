@@ -389,6 +389,16 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 			},
 			expError: types.ErrImmutableFieldUpdateAfterLaunched,
 		},
+		// update min sequencer bond
+		{
+			name: "Update sealed rollapp: fail - min sequencer bond update",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+			},
+			expError: types.ErrImmutableFieldUpdateAfterLaunched,
+		},
 		{
 			name: "Update sealed rollapp: fail - try to update genesis checksum when sealed",
 			update: &types.MsgUpdateRollappInformation{
@@ -400,6 +410,17 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 				},
 			},
 			expError: types.ErrImmutableFieldUpdateAfterLaunched,
+		},
+		// TODO: should return error, but now it doesn't (https://github.com/dymensionxyz/dymension/issues/1703)
+		{
+			name: "Update rollapp: success - set non valid min denom ignores this field",
+			update: &types.MsgUpdateRollappInformation{
+				Owner:            alice,
+				RollappId:        rollappId,
+				MinSequencerBond: sdk.Coin{Denom: "no_valid_1243", Amount: sdk.NewInt(100)},
+			},
+			mallete:  func(expected *types.Rollapp) {},
+			expError: nil,
 		},
 	}
 
