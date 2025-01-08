@@ -12,6 +12,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
@@ -36,6 +37,7 @@ type Keeper struct {
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.StoreKey
 	ibcClientKeeper types.IBCClientKeeperExpected
+	ibcChannelK     types.IBCChannelKeeperExpected
 	SeqK            types.SequencerKeeperExpected
 	rollappKeeper   types.RollappKeeperExpected
 
@@ -57,6 +59,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ibcKeeper types.IBCClientKeeperExpected,
+	ibcChannelK types.IBCChannelKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
 ) *Keeper {
@@ -67,6 +70,7 @@ func NewKeeper(
 		cdc:             cdc,
 		storeKey:        storeKey,
 		ibcClientKeeper: ibcKeeper,
+		ibcChannelK:     ibcChannelK,
 		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,
 		headerSigners: collections.NewKeySet(
@@ -89,7 +93,11 @@ func NewKeeper(
 func (k Keeper) CanUnbond(ctx sdk.Context, seq sequencertypes.Sequencer) error {
 	client, ok := k.GetCanonicalClient(ctx, seq.RollappId)
 	if !ok {
-		return errorsmod.Wrap(sequencertypes.ErrUnbondNotAllowed, "no canonical client")
+		// It doesn't make sense to prevent unbonding here. If there is no canonical client, then
+		// there can have been no fraud that needs to be checked.
+		// Moreover, if we did prevent unbonding, it would lead to awkward situations where non proposer
+		// sequencers of early stage rollapps can't unbond, when the proposer is not doing his job.
+		return nil
 	}
 	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](seq.Address, client)
 	return k.headerSigners.Walk(ctx, rng, func(key collections.Triple[string, string, uint64]) (stop bool, err error) {
@@ -150,6 +158,26 @@ func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientS
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "pack client state")
 	}
 	return &types.QueryExpectedClientStateResponse{ClientState: anyClient}, nil
+}
+
+// a convenience function to get both hub and rollapp channel ids from just the rollapp id
+func (k Keeper) RollappCanonChannel(goCtx context.Context, req *types.QueryRollappCanonChannelRequest) (*types.QueryRollappCanonChannelResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	ra, ok := k.rollappKeeper.GetRollapp(ctx, req.GetRollappId())
+	if !ok {
+		return nil, rollapptypes.ErrRollappNotFound
+	}
+	if ra.ChannelId == "" {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("canonical channel not set on rollapp")
+	}
+	cha, ok := k.ibcChannelK.GetChannel(ctx, "transfer", ra.ChannelId)
+	if !ok {
+		return nil, gerrc.ErrInternal.Wrapf("channel: %s", ra.ChannelId)
+	}
+	return &types.QueryRollappCanonChannelResponse{
+		HubChannelId:     ra.ChannelId,
+		RollappChannelId: cha.GetCounterparty().GetChannelID(),
+	}, nil
 }
 
 func (k Keeper) pruneSigners(ctx sdk.Context, client string, h uint64, isAbove bool) error {

@@ -204,7 +204,7 @@ func (a *AppKeepers) SetupModules(
 		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
-		iro.NewAppModule(appCodec, *a.IROKeeper),
+		iro.NewAppModule(appCodec, *a.IROKeeper, a.AccountKeeper, a.BankKeeper),
 
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
 		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
@@ -217,8 +217,8 @@ func (a *AppKeepers) SetupModules(
 		groupmodule.NewAppModule(appCodec, a.GroupKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 
 		// Ethermint app modules
-		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
-		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
+		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName)),
+		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName)),
 
 		// osmosis modules
 		lockup.NewAppModule(*a.LockupKeeper),

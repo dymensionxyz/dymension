@@ -10,8 +10,21 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
+// when the proposer did a state update
+func (k Keeper) afterStateUpdate(ctx sdk.Context, prop types.Sequencer, last bool) error {
+	k.livenessHonor(ctx, &prop)
+	k.SetSequencer(ctx, prop)
+	if last {
+		return k.OnProposerLastBlock(ctx, prop)
+	}
+	return nil
+}
+
 func (k Keeper) abruptRemoveProposer(ctx sdk.Context, rollapp string) {
 	proposer := k.GetProposer(ctx, rollapp)
+	if proposer.Sentinel() {
+		return
+	}
 	k.removeFromNoticeQueue(ctx, proposer)
 	k.unbond(ctx, &proposer)
 	k.SetSequencer(ctx, proposer)

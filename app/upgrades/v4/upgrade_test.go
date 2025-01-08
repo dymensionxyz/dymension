@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -78,9 +79,13 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				// Create and store sequencers
 				s.seedAndStoreSequencers(numRollapps)
 
+				// TODO: create and store IBC clients and connections, to test migration of canonical clients
+
 				s.seedPendingRollappPackets()
 
 				s.seedRollappFinalizationQueue()
+
+				s.seedOldGAMMDenomMetadata()
 
 				return nil
 			},
@@ -152,6 +157,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.validateStreamerMigration()
 
 				s.validateModulePermissions()
+
+				s.validateGAMMDenomMetadata()
 
 				return
 			},
@@ -305,7 +312,9 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		s.Require().False(p.Sentinel())
 	}
 	s.Require().Equal(sequencertypes.DefaultNoticePeriod, s.App.SequencerKeeper.GetParams(s.Ctx).NoticePeriod)
-	s.Require().Equal(sequencertypes.DefaultKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).KickThreshold)
+	s.Require().Equal(sequencertypes.DefaultDishonorKickThreshold, s.App.SequencerKeeper.GetParams(s.Ctx).DishonorKickThreshold)
+	s.Require().Equal(sequencertypes.DefaultDishonorLiveness, s.App.SequencerKeeper.GetParams(s.Ctx).DishonorLiveness)
+	s.Require().Equal(sequencertypes.DefaultDishonorStateUpdate, s.App.SequencerKeeper.GetParams(s.Ctx).DishonorStateUpdate)
 	s.Require().Equal(sequencertypes.DefaultLivenessSlashMultiplier, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinMultiplier)
 	s.Require().Equal(sequencertypes.DefaultLivenessSlashMinAbsolute, s.App.SequencerKeeper.GetParams(s.Ctx).LivenessSlashMinAbsolute)
 
@@ -404,6 +413,18 @@ func (s *UpgradeTestSuite) validateNonFinalizedStateInfos() {
 	}
 }
 
+func (s *UpgradeTestSuite) validateGAMMDenomMetadata() {
+	for _, dm := range generateOldGAMMDenomMetadata() {
+		// name and symbol are expected to be set
+		dm.Name = dm.Base
+		dm.Symbol = dm.Display
+
+		got, ok := s.App.BankKeeper.GetDenomMetaData(s.Ctx, dm.Base)
+		s.Require().True(ok)
+		s.Require().Equal(got, dm)
+	}
+}
+
 func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
 	for _, rollapp := range s.seedRollapps(numRollapps) {
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
@@ -418,7 +439,6 @@ func (s *UpgradeTestSuite) seedRollapps(numRollapps int) []rollapptypes.Rollapp 
 			RollappId:    rollappID,
 			Owner:        sample.AccAddressFromSecret(rollappID),
 			GenesisState: rollapptypes.RollappGenesisState{},
-			ChannelId:    fmt.Sprintf("channel-%d", i),
 		}
 		rollapps[i] = rollapp
 	}
@@ -517,6 +537,43 @@ func (s *UpgradeTestSuite) seedRollappFinalizationQueue() {
 
 	for _, stateInfo := range stateInfos {
 		s.App.RollappKeeper.SetStateInfo(s.Ctx, stateInfo)
+	}
+}
+
+func generateOldGAMMDenomMetadata() (dms []types.Metadata) {
+	const lastOldDenomIndex = 13
+	for i := 1; i <= lastOldDenomIndex; i++ {
+		denom := fmt.Sprintf("gamm/pool/%d", i)
+		display := fmt.Sprintf("GAMM-%d", i)
+
+		dm := types.Metadata{
+			Description: fmt.Sprintf("The share token of the gamm pool %d", i),
+			DenomUnits: []*types.DenomUnit{
+				{
+					Denom:    denom,
+					Exponent: 0,
+					Aliases:  []string{"attopoolshare"},
+				}, {
+					Denom:    display,
+					Exponent: 18,
+					Aliases:  nil,
+				},
+			},
+			Base:    denom,
+			Display: display,
+			Name:    "",
+			Symbol:  "",
+			URI:     "",
+			URIHash: "",
+		}
+		dms = append(dms, dm)
+	}
+	return
+}
+
+func (s *UpgradeTestSuite) seedOldGAMMDenomMetadata() {
+	for _, dm := range generateOldGAMMDenomMetadata() {
+		s.App.BankKeeper.SetDenomMetaData(s.Ctx, dm)
 	}
 }
 

@@ -1,29 +1,20 @@
 package v4
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchannelkeeper "github.com/cosmos/ibc-go/v7/modules/core/04-channel/keeper"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
@@ -52,8 +43,6 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		setKeyTables(keepers)
-
 		// Run migrations before applying any other state changes.
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
 		// (This is how osmosis do it)
@@ -80,7 +69,9 @@ func CreateUpgradeHandler(
 		}
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
-		migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper)
+		if err := migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper); err != nil {
+			return nil, err
+		}
 		if err := migrateStreamer(ctx, keepers.StreamerKeeper, keepers.EpochsKeeper); err != nil {
 			return nil, err
 		}
@@ -106,59 +97,23 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		if err := migrateGAMMPoolDenomMetadata(ctx, keepers.BankKeeper); err != nil {
+			return nil, err
+		}
+
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return migrations, nil
 	}
 }
 
-func setKeyTables(keepers *keepers.AppKeepers) {
-	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
-		var keyTable paramstypes.KeyTable
-		switch subspace.Name() {
-		// Cosmos SDK modules
-		case authtypes.ModuleName:
-			keyTable = authtypes.ParamKeyTable()
-		case banktypes.ModuleName:
-			keyTable = banktypes.ParamKeyTable()
-		case stakingtypes.ModuleName:
-			keyTable = stakingtypes.ParamKeyTable()
-		case minttypes.ModuleName:
-			keyTable = minttypes.ParamKeyTable()
-		case distrtypes.ModuleName:
-			keyTable = distrtypes.ParamKeyTable()
-		case slashingtypes.ModuleName:
-			keyTable = slashingtypes.ParamKeyTable()
-		case govtypes.ModuleName:
-			keyTable = govv1.ParamKeyTable()
-		case crisistypes.ModuleName:
-			keyTable = crisistypes.ParamKeyTable()
-
-		// Dymension modules
-		case rollapptypes.ModuleName:
-			keyTable = rollapptypes.ParamKeyTable()
-		case sequencertypes.ModuleName:
-			continue
-
-		// Ethermint  modules
-		case evmtypes.ModuleName:
-			keyTable = evmtypes.ParamKeyTable()
-		case feemarkettypes.ModuleName:
-			keyTable = feemarkettypes.ParamKeyTable()
-		default:
-			continue
-		}
-
-		if !subspace.HasKeyTable() {
-			subspace.WithKeyTable(keyTable)
-		}
-	}
-}
-
 //nolint:staticcheck - note this is a cosmos SDK supplied function specifically for upgrading consensus params
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	baseAppLegacySS, ok := keepers.ParamsKeeper.GetSubspace(baseapp.Paramspace)
+	if !ok {
+		panic("failed to get consensus params subspace from params keeper")
+	}
 	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
@@ -198,23 +153,26 @@ func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, dymns
 	return nil
 }
 
-func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) {
+func migrateRollappLightClients(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper, lightClientKeeper lightclientkeeper.Keeper, ibcChannelKeeper ibcchannelkeeper.Keeper) error {
 	list := rollappkeeper.GetAllRollapps(ctx)
 	for _, rollapp := range list {
 		// check if the rollapp has a canonical channel already
 		if rollapp.ChannelId == "" {
-			return
+			continue
 		}
+
 		// get the client ID the channel belongs to
 		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
 		if err != nil {
-			// if could not find a connection, skip the canonical client assignment
-			return
+			return errorsmod.Wrapf(err, "could not find a connection for channel %s rollapp %s", rollapp.ChannelId, rollapp.RollappId)
 		}
+
 		clientID := connection.GetClientID()
 		// store the rollapp to canonical light client ID mapping
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, clientID)
 	}
+
+	return nil
 }
 
 // migrateStreamer creates epoch pointers for all epoch infos and updates module params
@@ -285,8 +243,12 @@ func ReformatFinalizationQueue(queue rollapptypes.BlockHeightToFinalizationQueue
 }
 
 func migrateIncentivesParams(ctx sdk.Context, ik *incentiveskeeper.Keeper) {
+	DYM := math.NewIntWithDecimal(1, 18)
 	params := incentivestypes.DefaultParams()
-	params.DistrEpochIdentifier = ik.DistrEpochIdentifier(ctx)
+	params.CreateGaugeBaseFee = DYM.MulRaw(10)
+	params.AddToGaugeBaseFee = DYM.MulRaw(10)
+	params.AddDenomFee = DYM.MulRaw(10)
+	params.DistrEpochIdentifier = "day"
 	ik.SetParams(ctx, params)
 }
 
@@ -305,6 +267,34 @@ func migrateDelayedAckPacketIndex(ctx sdk.Context, dk delayedackkeeper.Keeper) e
 			dk.MustSetPendingPacketByAddress(ctx, pd.Sender, packet.RollappPacketKey())
 		}
 	}
+	return nil
+}
+
+func migrateGAMMPoolDenomMetadata(ctx sdk.Context, rk bankkeeper.Keeper) error {
+	const lastOldDenomIndex = 13
+
+	for i := 1; i <= lastOldDenomIndex; i++ {
+		denom := fmt.Sprintf("gamm/pool/%d", i)
+		dm, ok := rk.GetDenomMetaData(ctx, denom)
+		if !ok {
+			break
+		}
+
+		if dm.Name == "" {
+			dm.Name = denom
+		}
+
+		if dm.Display == "" {
+			dm.Display = fmt.Sprintf("GAMM-%d", i)
+		}
+
+		if dm.Symbol == "" {
+			dm.Symbol = dm.Display
+		}
+
+		rk.SetDenomMetaData(ctx, dm)
+	}
+
 	return nil
 }
 
@@ -374,8 +364,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 	}
 }
 
-var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
-
 func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Sequencer {
 	return sequencertypes.Sequencer{
 		Address:      old.Address,
@@ -401,7 +389,8 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 			},
 			ExtraData: nil,
 			Snapshots: []*sequencertypes.SnapshotInfo{},
-			GasPrice:  &defaultGasPrice,
+			GasPrice:  "10000000000",
+			FeeDenom:  nil,
 		},
 	}
 }

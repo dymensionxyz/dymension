@@ -34,8 +34,8 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 
 // AfterDemandOrderFulfilled is called every time a demand order is fulfilled.
 // Once it is fulfilled the underlying packet recipient should be updated to the fulfiller.
-func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, fulfillerAddress string) error {
-	err := k.UpdateRollappPacketTransferAddress(ctx, demandOrder.TrackingPacketKey, fulfillerAddress)
+func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, receiverAddr string) error {
+	err := k.UpdateRollappPacketTransferAddress(ctx, demandOrder.TrackingPacketKey, receiverAddr)
 	if err != nil {
 		return err
 	}

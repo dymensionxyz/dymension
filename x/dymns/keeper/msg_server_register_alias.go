@@ -44,7 +44,7 @@ func (k msgServer) RegisterAlias(goCtx context.Context, msg *dymnstypes.MsgRegis
 		sdk.NewCoins(registrationCost),
 	); err != nil {
 		return nil, errorsmod.Wrap(
-			errors.Join(gerrc.ErrInternal, err), "failed to register alias for RollApp",
+			errors.Join(gerrc.ErrUnknown, err), "failed to register alias for RollApp",
 		)
 	}
 
@@ -92,7 +92,7 @@ func (k Keeper) registerAliasForRollApp(
 	}
 
 	if err := k.SetAliasForRollAppId(ctx, rollAppId, alias); err != nil {
-		return errorsmod.Wrap(gerrc.ErrInternal, "failed to set alias for RollApp")
+		return errorsmod.Wrap(gerrc.ErrUnknown, "failed to set alias for RollApp")
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

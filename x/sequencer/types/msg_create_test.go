@@ -8,11 +8,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -88,7 +86,12 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: uptr.To(sdk.NewInt(100)),
+					GasPrice: "100",
+					FeeDenom: &DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 18,
+					},
 				},
 			},
 		}, {
@@ -213,6 +216,25 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				},
 				WhitelistedRelayers: []string{sample.AccAddress()},
 			},
+		}, {
+			name: "invalid fee denom metadata",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				RewardAddr:   sample.AccAddress(),
+				Metadata: SequencerMetadata{
+					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
+					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
+					RestApiUrls: []string{"https://api.wpd.evm.rollapp.noisnemyd.xyz:443"},
+					FeeDenom: &DenomMetadata{
+						Display:  "DEN",
+						Base:     "aden",
+						Exponent: 0,
+					},
+				},
+			},
+			err: ErrInvalidFeeDenom,
 		},
 	}
 	for _, tt := range tests {

@@ -83,6 +83,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		storeKey,
 		mockIBCKeeper,
+		nil,
 		mockSequencerKeeper,
 		mockRollappKeeper,
 	)

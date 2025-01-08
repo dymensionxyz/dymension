@@ -47,9 +47,9 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
-	// "claims" the unsold FUT token
-	futBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
-	err := k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(futBalance))
+	// burn all the remaining IRO token.
+	iroTokenBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
+	err := k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(iroTokenBalance))
 	if err != nil {
 		return err
 	}
@@ -87,11 +87,14 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 // - Creates a balancer pool with the determined tokens and DYM.
 // - Uses leftover tokens as incentives to the pool LP token holders.
 func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID, gaugeID uint64, err error) {
-	tokenFee := math.NewIntWithDecimal(types.TokenCreationFee, int(plan.BondingCurve.SupplyDecimals()))
-	unallocatedTokens := plan.TotalAllocation.Amount.Sub(plan.SoldAmt.Sub(tokenFee)) // at least "reserve" amount of tokens (>0)
-	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)        // at least IRO creation fee (>0)
+	// claimable amount is kept in the module account and used for user's claims
+	claimableAmt := plan.SoldAmt.Sub(plan.ClaimedAmt)
+
+	// the remaining tokens are used to bootstrap the liquidity pool
+	unallocatedTokens := plan.TotalAllocation.Amount.Sub(claimableAmt)
 
 	// send the raised DYM to the iro module as it will be used as the pool creator
+	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
 	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
 	if err != nil {
 		return 0, 0, err

@@ -26,7 +26,7 @@ var (
 
 	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
 
-	DefaultAppRegistrationFee         = commontypes.DYMCoin
+	DefaultAppRegistrationFee         = commontypes.Dym(sdk.NewInt(1))
 	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(sdk.NewInt(100))
 )
 

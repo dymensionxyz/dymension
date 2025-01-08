@@ -7,7 +7,6 @@ import (
 )
 
 func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
-	s.App.RollappKeeper.SetHooks(nil)
 	ra := s.createRollapp()
 	seqAlice := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
@@ -37,7 +36,7 @@ func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
 	s.Require().False(s.k().IsProposer(s.Ctx, seqBob))
 
 	// alice falls to threshold
-	seqAlice.SetTokensCoin(kick)
+	seqAlice.Dishonor = types.DefaultDishonorKickThreshold
 	s.k().SetSequencer(s.Ctx, seqAlice)
 	_, err = s.msgServer.KickProposer(s.Ctx, m)
 	s.Require().NoError(err)
@@ -47,4 +46,9 @@ func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
 	s.Require().True(s.k().IsProposer(s.Ctx, seqBob))
 	seqAlice = s.k().GetSequencer(s.Ctx, seqAlice.Address)
 	s.Require().Equal(types.Unbonded, seqAlice.Status)
+
+	// alice can get tokens back (assuming no unfinalized states etc)
+	s.k().SetUnbondBlockers()
+	_, err = s.msgServer.Unbond(s.Ctx, &types.MsgUnbond{Creator: pkAddr(alice)})
+	s.Require().NoError(err)
 }

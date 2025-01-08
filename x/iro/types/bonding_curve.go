@@ -192,7 +192,7 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 	return math.LegacyDec{}, maxIterations, fmt.Errorf("solution did not converge")
 }
 
-// SpotPrice returns the spot price at x
+// spotPriceInternal returns the spot price at x
 func (lbc BondingCurve) spotPriceInternal(x sdk.Dec) sdk.Dec {
 	xDec := osmomath.BigDecFromSDKDec(x)
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
@@ -286,4 +286,13 @@ func checkPrecision(d math.LegacyDec) bool {
 	// Multiply by 10^MaxPrecision and check if it's an integer
 	multiplied := d.Mul(math.LegacyNewDec(10).Power(uint64(MaxNPrecision)))
 	return multiplied.IsInteger()
+}
+
+// String returns a human readable string representation of the bonding curve
+func (lbc BondingCurve) Stringify() string {
+	return fmt.Sprintf("M=%s N=%s C=%s",
+		lbc.M.String(),
+		lbc.N.String(),
+		lbc.C.String(),
+	)
 }

@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -87,13 +86,7 @@ func InvariantAccounting(k Keeper) uinv.Func {
 				// module should have no more IRO
 				iroBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.GetIRODenom())
 				if !iroBalance.IsZero() {
-					errs = append(errs, fmt.Errorf("iro tokens left in settled: planID: %d, balance: %s", plan.Id, iroBalance))
-				}
-
-				// plan should have no more dym
-				dymBalance := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
-				if !dymBalance.IsZero() {
-					errs = append(errs, fmt.Errorf("dym tokens left in settled: planID: %d, balance: %s", plan.Id, dymBalance))
+					errs = append(errs, fmt.Errorf("iro tokens left in module, settled: planID: %d, balance: %s", plan.Id, iroBalance))
 				}
 
 				// Check if module has enough RA tokens to cover the claimable amount

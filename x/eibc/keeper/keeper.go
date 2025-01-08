@@ -115,10 +115,9 @@ func (k Keeper) SetOrderFulfilled(
 	if err != nil {
 		return err
 	}
-	// if the collector address is not nil, then the receiver address should be the collector address.
-	// Otherwise, the receiver address should be the fulfiller address.
 	receiverAddress := fulfillerAddress
 	if collectorAddress != nil {
+		// optional override
 		receiverAddress = collectorAddress
 	}
 	// Call hooks if fulfilled. This hook should be called only once per fulfillment.

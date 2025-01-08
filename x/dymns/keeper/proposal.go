@@ -73,7 +73,7 @@ func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewCh
 	}
 
 	if err := k.SetParams(ctx, params); err != nil {
-		return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to update params")
+		return errorsmod.Wrapf(errors.Join(gerrc.ErrUnknown, err), "failed to update params")
 	}
 
 	return nil
@@ -127,7 +127,7 @@ func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNew
 
 		if err := k.SetDymName(ctx, dymName); err != nil {
 			return errorsmod.Wrapf(
-				errors.Join(gerrc.ErrInternal, err),
+				errors.Join(gerrc.ErrUnknown, err),
 				"failed to migrate chain ids for Dym-Name: %s", dymName.Name,
 			)
 		}
@@ -212,7 +212,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 	params.Chains.AliasesOfChainIds = newAliasesOfChainIds
 
 	if err := k.SetParams(ctx, params); err != nil {
-		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "failed to update params")
+		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "failed to update params")
 	}
 
 	return nil

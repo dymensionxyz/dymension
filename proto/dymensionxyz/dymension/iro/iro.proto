@@ -16,6 +16,9 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
+  // The fee for creating a plan in rollapp tokens (e.g 1000000000000000000 for 1Token fee)
+  // must be > 1
+  // The cost in dym is charged from the creator
   string creation_fee = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false

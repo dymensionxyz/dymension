@@ -29,13 +29,14 @@ func NewMsgServer(k Keeper, ibc DelayedAckIBCModule) MsgServer {
 }
 
 func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizePacket) (*types.MsgFinalizePacketResponse, error) {
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, called by sdk
 	if err != nil {
 		return nil, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// next middleware is denommetadata, see transfer stack setup
 	_, err = m.k.FinalizeRollappPacket(ctx, m.ibc.NextIBCMiddleware(), string(msg.PendingPacketKey()))
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizeP
 }
 
 func (m MsgServer) FinalizePacketByPacketKey(goCtx context.Context, msg *types.MsgFinalizePacketByPacketKey) (*types.MsgFinalizePacketByPacketKeyResponse, error) {
-	err := msg.ValidateBasic()
+	err := msg.ValidateBasic() // TODO: remove, called by sdk
 	if err != nil {
 		return nil, err
 	}

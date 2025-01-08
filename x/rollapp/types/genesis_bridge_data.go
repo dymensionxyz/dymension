@@ -15,43 +15,39 @@ import (
 
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.
 func (d GenesisBridgeData) ValidateBasic() error {
-	// Validate genesis info
 	if err := d.GenesisInfo.ValidateBasic(); err != nil {
 		return errors.Wrap(err, "invalid genesis info")
 	}
 
-	// Validate metadata
-	if err := d.NativeDenom.Validate(); err != nil {
-		return errors.Wrap(err, "invalid metadata")
-	}
+	if d.GenesisInfo.NativeDenom.IsSet() {
+		if err := d.NativeDenom.Validate(); err != nil {
+			return errors.Wrap(err, "invalid metadata")
+		}
 
-	// validate metadata corresponding to the genesis info denom
-	// check the base denom, display unit and decimals
-	if d.NativeDenom.Base != d.GenesisInfo.NativeDenom.Base {
-		return fmt.Errorf("metadata denom does not match genesis info denom")
-	}
+		if d.NativeDenom.Base != d.GenesisInfo.NativeDenom.Base {
+			return fmt.Errorf("metadata denom does not match genesis info denom")
+		}
 
-	// validate the decimals of the display denom
-	valid := false
-	for _, unit := range d.NativeDenom.DenomUnits {
-		if unit.Denom == d.GenesisInfo.NativeDenom.Display {
-			if unit.Exponent == d.GenesisInfo.NativeDenom.Exponent {
-				valid = true
-				break
+		// validate the decimals of the display denom
+		valid := false
+		for _, unit := range d.NativeDenom.DenomUnits {
+			if unit.Denom == d.GenesisInfo.NativeDenom.Display {
+				if unit.Exponent == d.GenesisInfo.NativeDenom.Exponent {
+					valid = true
+					break
+				}
 			}
 		}
-	}
-	if !valid {
-		return fmt.Errorf("denom metadata does not contain display unit with the correct exponent")
+		if !valid {
+			return fmt.Errorf("denom metadata does not contain display unit with the correct exponent")
+		}
 	}
 
-	// Validate genesis transfers
 	if d.GenesisTransfer != nil {
 		if err := d.GenesisTransfer.ValidateBasic(); err != nil {
 			return errors.Wrap(err, "invalid genesis transfer")
 		}
 
-		// validate the genesis transfer denom
 		if d.GenesisInfo.NativeDenom.Base != d.GenesisTransfer.Denom {
 			return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom mismatch")
 		}
@@ -125,9 +121,9 @@ func (i GenesisBridgeInfo) ValidateBasic() error {
 		GenesisAccounts: &GenesisAccounts{Accounts: i.GenesisAccounts},
 	}
 
-	if !raGenesisInfo.AllSet() {
-		return fmt.Errorf("missing fields in genesis info")
+	if !raGenesisInfo.Launchable() {
+		return fmt.Errorf("missing fields in genesis bridge info")
 	}
 
-	return raGenesisInfo.Validate()
+	return raGenesisInfo.ValidateBasic()
 }

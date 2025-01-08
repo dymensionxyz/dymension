@@ -47,24 +47,11 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 	}
 
 	if update.GenesisInfo != nil {
-		if update.GenesisInfo.GenesisChecksum != "" {
-			current.GenesisInfo.GenesisChecksum = update.GenesisInfo.GenesisChecksum
+		current.GenesisInfo = *update.GenesisInfo
+		// hotfix: if supply is zero, override the denom metadata with empty
+		if update.GenesisInfo.InitialSupply.IsZero() {
+			current.GenesisInfo.NativeDenom = types.DenomMetadata{}
 		}
-
-		if update.GenesisInfo.Bech32Prefix != "" {
-			current.GenesisInfo.Bech32Prefix = update.GenesisInfo.Bech32Prefix
-		}
-
-		if update.GenesisInfo.NativeDenom.Base != "" {
-			current.GenesisInfo.NativeDenom = update.GenesisInfo.NativeDenom
-		}
-
-		if !update.GenesisInfo.InitialSupply.IsNil() {
-			current.GenesisInfo.InitialSupply = update.GenesisInfo.InitialSupply
-		}
-
-		// Frontend always passes new value
-		current.GenesisInfo.GenesisAccounts = update.GenesisInfo.GenesisAccounts
 	}
 
 	if update.Metadata != nil && !update.Metadata.IsEmpty() {
@@ -143,7 +130,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info already sealed")
 	}
 
-	if !rollapp.GenesisInfoFieldsAreSet() {
+	if !rollapp.GenesisInfo.IROReady() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis info not set")
 	}
 

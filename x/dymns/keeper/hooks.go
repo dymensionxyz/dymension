@@ -61,7 +61,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 
 	err := h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 	if err != nil {
-		return errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "register alias for RollApp")
+		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "register alias for RollApp")
 	}
 
 	return nil
@@ -85,24 +85,12 @@ func (h rollappHooks) AfterTransfersEnabled(_ sdk.Context, _, _ string) error {
 	return nil
 }
 
-// FutureRollappHooks is temporary added to handle future hooks that not available yet.
 type FutureRollappHooks interface {
-	// OnRollAppIdChanged is called when a RollApp's ID is changed, typically due to fraud submission.
-	// It migrates all aliases and Dym-Names associated with the previous RollApp ID to the new one.
-	// This function executes step by step in a branched context to prevent side effects, and any errors
-	// during execution will result in the state changes being discarded.
-	//
-	// Parameters:
-	//   - ctx: The SDK context
-	//   - previousRollAppId: The original ID of the RollApp
-	//   - newRollAppId: The new ID assigned to the RollApp
+	// TODO: remove/deprecate - rollapp id cannot change
 	OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, newRollAppId string)
-	// Just a pseudo method signature, the actual method signature might be different.
-
-	// TODO DymNS: connect to the actual implementation when the hooks are available.
-	//   The implementation of OnRollAppIdChanged assume that both of the RollApp records are exists in the x/rollapp store.
 }
 
+// TODO: Hooks should embed the noop base type, and only implement what they need, instead of repeating the whole interface.
 var _ FutureRollappHooks = rollappHooks{}
 
 func (k Keeper) GetFutureRollAppHooks() FutureRollappHooks {
@@ -130,7 +118,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 
 		for _, alias := range aliasesLinkedToPreviousRollApp {
 			if err := h.MoveAliasToRollAppId(ctx, previousRollAppId, alias, newRollAppId); err != nil {
-				return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to migrate alias: %s", alias)
+				return errorsmod.Wrapf(errors.Join(gerrc.ErrUnknown, err), "failed to migrate alias: %s", alias)
 			}
 		}
 
@@ -147,7 +135,7 @@ func (h rollappHooks) OnRollAppIdChanged(ctx sdk.Context, previousRollAppId, new
 		}
 
 		if err := h.migrateChainIdsInDymNames(ctx, previousChainIdsToNewChainId); err != nil {
-			return errorsmod.Wrapf(errors.Join(gerrc.ErrInternal, err), "failed to migrate chain-ids in Dym-Names")
+			return errorsmod.Wrapf(errors.Join(gerrc.ErrUnknown, err), "failed to migrate chain-ids in Dym-Names")
 		}
 
 		return nil

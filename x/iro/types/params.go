@@ -11,14 +11,10 @@ import (
 
 var (
 	DefaultTakerFee                                     = "0.02"                      // 2%
-	DefaultCreationFee                                  = math.NewInt(1).MulRaw(1e18) /* 1 DYM */
+	DefaultCreationFee                                  = math.NewInt(1).MulRaw(1e18) /* 1 Rollapp token */
 	DefaultMinPlanDuration                              = 0 * time.Hour               // no enforced minimum by default
-	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(10_080)              // default: min 7 days (based on 1 minute distribution epoch)
+	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(364)                 // default: min 364 days (based on 1 day distribution epoch)
 	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute            // default: min 1 hour after settlement
-)
-
-const (
-	TokenCreationFee = 1 // 1 IRO token is reserved from the allocation as a creation fee
 )
 
 // NewParams creates a new Params object
@@ -91,7 +87,8 @@ func validateCreationFee(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if !v.IsPositive() {
+	// creation fee must be a positive integer greater than 1^18 (1 Rollapp token)
+	if v.LT(math.NewIntWithDecimal(1, 18)) {
 		return fmt.Errorf("creation fee must be a positive integer: %s", v)
 	}
 

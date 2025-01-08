@@ -9,6 +9,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
@@ -26,7 +27,7 @@ const (
 var RollappTags = []string{
 	"Meme",
 	"AI",
-	"DeFI",
+	"DeFi",
 	"NFT",
 	"Gaming",
 	"Betting",
@@ -59,6 +60,23 @@ func NewRollapp(creator, rollappId, initialSequencer string, minSequencerBond sd
 	}
 }
 
+// ValidateBasic performs basic validation of the rollapp fields.
+// It returns an error if any of the following conditions are not met:
+// - Owner must be a valid bech32 address
+// - RollappId must be a valid chain ID
+// - MinSequencerBond must be valid and non-zero
+// - InitialSequencer must be a valid bech32 address
+// - GenesisInfo must pass basic validation
+// - VmType must be non-zero
+// - Metadata (if present) must be valid
+// - If rollapp is launched, GenesisInfo must be sealed
+//
+// Returns:
+//   - ErrInvalidCreatorAddress: if owner address is invalid
+//   - ErrInvalidInitialSequencer: if initial sequencer address is invalid
+//   - ErrInvalidVMType: if VM type is not set
+//   - ErrInvalidMetadata: if metadata validation fails
+//   - Other errors from GenesisInfo.ValidateBasic() or MinSeqBondCoins validation
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Owner)
 	if err != nil {
@@ -79,7 +97,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
 	}
 
-	if err = r.GenesisInfo.Validate(); err != nil {
+	if err = r.GenesisInfo.ValidateBasic(); err != nil {
 		return err
 	}
 
@@ -110,11 +128,7 @@ func (s RollappGenesisState) IsTransferEnabled() bool {
 }
 
 func (r Rollapp) AllImmutableFieldsAreSet() bool {
-	return r.InitialSequencer != "" && r.GenesisInfoFieldsAreSet() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
-}
-
-func (r Rollapp) GenesisInfoFieldsAreSet() bool {
-	return r.GenesisInfo.AllSet()
+	return r.InitialSequencer != "" && r.GenesisInfo.Launchable() && ValidateBasicMinSeqBondCoins(r.MinSequencerBond) == nil
 }
 
 func (r Rollapp) LatestRevision() Revision {
@@ -283,7 +297,7 @@ func validateURL(urlStr string) error {
 		return fmt.Errorf("URL exceeds maximum length")
 	}
 
-	if _, err := url.Parse(urlStr); err != nil {
+	if _, err := url.ParseRequestURI(urlStr); err != nil {
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 

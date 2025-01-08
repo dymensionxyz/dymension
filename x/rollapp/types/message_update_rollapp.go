@@ -71,15 +71,15 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	if msg.GenesisInfo != nil {
-		if err := msg.GenesisInfo.Validate(); err != nil {
-			return err
-		}
-	}
-
 	if msg.Metadata != nil {
 		if err := msg.Metadata.Validate(); err != nil {
 			return errors.Join(ErrInvalidMetadata, err)
+		}
+	}
+
+	if msg.GenesisInfo != nil {
+		if err := msg.GenesisInfo.ValidateBasic(); err != nil {
+			return errors.Join(ErrInvalidGenesisInfo, err)
 		}
 	}
 
@@ -112,14 +112,14 @@ func (m *MsgForceGenesisInfoChange) ValidateBasic() error {
 	}
 
 	// Validate new genesis info
-	if err := m.NewGenesisInfo.Validate(); err != nil {
+	if err := m.NewGenesisInfo.ValidateBasic(); err != nil {
 		return errorsmod.Wrapf(
 			errors.Join(gerrc.ErrInvalidArgument, err),
 			"invalid genesis info",
 		)
 	}
 
-	if !m.NewGenesisInfo.AllSet() {
+	if !m.NewGenesisInfo.Launchable() {
 		return errorsmod.Wrapf(
 			errors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("missing fields in genesis info")),
 			"invalid genesis info",
