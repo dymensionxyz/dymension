@@ -94,7 +94,8 @@ func (p Plan) GetIRODenom() string {
 
 func DefaultIncentivePlanParams() IncentivePlanParams {
 	return IncentivePlanParams{
-		NumEpochsPaidOver: 43200, // 1 month in minute epoch
+		NumEpochsPaidOver:        43200, // 1 month in minute epoch
+		StartTimeAfterSettlement: DefaultIncentivePlanMinimumStartTimeAfterSettlement,
 	}
 }
 
