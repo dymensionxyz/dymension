@@ -71,6 +71,8 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
+	// TODO: validate min seq bond (https://github.com/dymensionxyz/dymension/issues/1703)
+
 	if msg.Metadata != nil {
 		if err := msg.Metadata.Validate(); err != nil {
 			return errors.Join(ErrInvalidMetadata, err)
