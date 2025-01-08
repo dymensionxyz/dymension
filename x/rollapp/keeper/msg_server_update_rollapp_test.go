@@ -417,8 +417,9 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				MinSequencerBond: sdk.Coin{"no_valid_1243", sdk.NewInt(100)},
+				MinSequencerBond: sdk.Coin{Denom: "no_valid_1243", Amount: sdk.NewInt(100)},
 			},
+			mallete:  func(expected *types.Rollapp) {},
 			expError: nil,
 		},
 	}
