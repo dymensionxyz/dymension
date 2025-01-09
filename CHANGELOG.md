@@ -15,6 +15,11 @@
 * **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([5ce245c](https://github.com/dymensionxyz/dymension/commit/5ce245c1eddcbbe150ce2db97ce6cfcde936a35e))
 
 
+### Features
+
+* **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
+
+
 
 # [3.2.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.1.0-rc03...v3.2.0-rc01) (2024-12-24)
 
