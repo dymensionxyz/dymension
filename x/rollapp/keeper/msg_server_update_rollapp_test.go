@@ -44,6 +44,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 
 	tests := []struct {
 		name     string
+		sealed   bool
 		update   *types.MsgUpdateRollappInformation
 		expError error
 		mallete  func(expected *types.Rollapp)
@@ -98,11 +99,15 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 		},
 		{
 			name: "Update rollapp: success - update only metadata",
-			update: &types.MsgUpdateRollappInformation{
-				Owner:     alice,
-				RollappId: rollappId,
-				Metadata:  &mockRollappMetadata,
-			},
+			update: types.NewMsgUpdateRollappInformation(
+				alice,
+				rollappId,
+				"",
+				sdk.Coin{},
+				&mockRollappMetadata,
+				nil,
+			),
+			sealed:   true,
 			expError: nil,
 			mallete: func(expected *types.Rollapp) {
 				expected.Metadata = &mockRollappMetadata
@@ -193,6 +198,8 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			goCtx := sdk.WrapSDKContext(s.Ctx)
 
 			rollapp := types.NewRollapp(alice, rollappId, "*", types.DefaultMinSequencerBondGlobalCoin, types.Rollapp_EVM, &types.RollappMetadata{}, gInfo)
+			rollapp.Launched = tc.sealed
+			rollapp.GenesisInfo.Sealed = tc.sealed
 			s.k().SetRollapp(s.Ctx, rollapp)
 
 			_, err := s.msgServer.UpdateRollappInformation(goCtx, tc.update)
