@@ -56,6 +56,6 @@ message Sequencer {
 
   // how badly behaved sequencer is, can incur penalties (kicking) when high
   // 0 is good/default, more is worse
-  uint64 dishonor = 15;
+  uint64 penalty = 15;
 }
 

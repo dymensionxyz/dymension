@@ -8,7 +8,7 @@ import (
 )
 
 func (k Keeper) ValidateParams(_ sdk.Context, params types.Params) error {
-	if params.DishonorKickThreshold == 0 {
+	if params.PenaltyKickThreshold == 0 {
 		return gerrc.ErrOutOfRange.Wrap("0 kick threshold")
 	}
 	return nil

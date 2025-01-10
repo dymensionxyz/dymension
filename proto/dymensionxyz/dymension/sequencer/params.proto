@@ -38,10 +38,10 @@ message Params {
     (gogoproto.jsontag) = "liveness_slash_min_absolute,omitempty"
   ];
 
-  // how much dishonor a sequencer gains on liveness events (+dishonor)
-  uint64 dishonor_liveness = 7;
-  // how much honor a sequencer gains on state updates (-dishonor)
-  uint64 dishonor_state_update = 8;
-  // the minimum dishonor at which a sequencer can be kicked (<=)
-  uint64 dishonor_kick_threshold = 9;
+  // how much penalty a sequencer gains on liveness events (+penalty)
+  uint64 penalty_liveness = 7;
+  // how much penalty a sequencer gains on state updates (-penalty)
+  uint64 penalty_state_update = 8;
+  // the minimum penalty at which a sequencer can be kicked (<=)
+  uint64 penalty_kick_threshold = 9;
 }

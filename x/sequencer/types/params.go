@@ -18,30 +18,30 @@ var (
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
 	DefaultLivenessSlashMinAbsolute = commontypes.DYMCoin
 
-	DefaultDishonorStateUpdate   = uint64(1)
-	DefaultDishonorLiveness      = uint64(300)
-	DefaultDishonorKickThreshold = uint64(900)
+	DefaultPenaltyStateUpdate   = uint64(1)
+	DefaultPenaltyLiveness      = uint64(300)
+	DefaultPenaltyKickThreshold = uint64(900)
 )
 
 // NewParams creates a new Params instance
 func NewParams(noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin,
-	dishonorStateUpdate uint64,
-	dishonorLiveness uint64,
-	dishonorKickThreshold uint64,
+	penaltyStateUpdate uint64,
+	penaltyLiveness uint64,
+	penaltyKickThreshold uint64,
 ) Params {
 	return Params{
 		NoticePeriod:               noticePeriod,
 		LivenessSlashMinMultiplier: livenessSlashMul,
 		LivenessSlashMinAbsolute:   livenessSlashAbs,
-		DishonorStateUpdate:        dishonorStateUpdate,
-		DishonorLiveness:           dishonorLiveness,
-		DishonorKickThreshold:      dishonorKickThreshold,
+		PenaltyStateUpdate:         penaltyStateUpdate,
+		PenaltyLiveness:            penaltyLiveness,
+		PenaltyKickThreshold:       penaltyKickThreshold,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultDishonorStateUpdate, DefaultDishonorLiveness, DefaultDishonorKickThreshold)
+	return NewParams(DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultPenaltyStateUpdate, DefaultPenaltyLiveness, DefaultPenaltyKickThreshold)
 }
 
 func validateTime(i interface{}) error {
@@ -75,13 +75,13 @@ func (p Params) ValidateBasic() error {
 		return err
 	}
 
-	if err := uparam.ValidateUint64(p.DishonorKickThreshold); err != nil {
+	if err := uparam.ValidateUint64(p.PenaltyKickThreshold); err != nil {
 		return err
 	}
-	if err := uparam.ValidateUint64(p.DishonorLiveness); err != nil {
+	if err := uparam.ValidateUint64(p.PenaltyLiveness); err != nil {
 		return err
 	}
-	if err := uparam.ValidateUint64(p.DishonorKickThreshold); err != nil {
+	if err := uparam.ValidateUint64(p.PenaltyKickThreshold); err != nil {
 		return err
 	}
 
