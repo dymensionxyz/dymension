@@ -63,7 +63,7 @@ ErrFoo = errors.New("foo")
 return errorsmod.Wrap(ErrFoo, "bar")
 ```
 
-7. Use the Dymension cosmos error library as basis for errors. They are automatically converted to GRPC codes and registered. Choose the appropriate pre defined `gerrc.Err*`, considering API. This is based on the following principle from Google API guidelines
+7. Use the Dymension cosmos error library as basis for errors. They are automatically converted to GRPC codes and registered. Choose the appropriate pre-defined `gerrc.Err*`, considering API. This is based on the following principle from Google API guidelines
 
 >(Google) APIs must use the canonical error codes defined by google.rpc.Code. Individual APIs must avoid defining additional error codes, since developers are very unlikely to write logic to handle a large number of error codes. For reference, handling an average of three error codes per API call would mean most application logic would just be for error handling, which would not be a good developer experience.
 
