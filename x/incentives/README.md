@@ -11,7 +11,7 @@ Anyone can create gauge and add rewards to the gauge, there is no way to take it
 There are two kinds of `gauges`, perpetual and non-perpetual ones.
 
 - Non-perpetual ones get removed from active queue after the distribution period finish but perpetual ones persist.
-- For non perpetual ones, they distribute the tokens equally per epoch during the `gauge` is in the active period.
+- For non-perpetual ones, they distribute the tokens equally per epoch during the `gauge` is in the active period.
 - For perpetual ones, it distributes all the tokens at a single time. Those gauges need to be filled externally.
 
 ## Contents
