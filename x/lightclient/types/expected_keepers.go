@@ -1,8 +1,6 @@
 package types
 
 import (
-	"context"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -25,13 +23,16 @@ type RollappKeeperExpected interface {
 	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool
+
+	GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (rollapptypes.StateInfoIndex, bool)
+	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (sInfo rollapptypes.StateInfo, found bool)
 }
 
 type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
-	ConsensusStateHeights(c context.Context, req *ibcclienttypes.QueryConsensusStateHeightsRequest) (*ibcclienttypes.QueryConsensusStateHeightsResponse, error)
 	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs ibcclienttypes.ConsensusStateWithHeight) bool)
 }
 
 type IBCChannelKeeperExpected interface {
