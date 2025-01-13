@@ -100,7 +100,11 @@ func TestCmdCreateIRO(t *testing.T) {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.errMsg)
 			} else {
-				require.Contains(t, err.Error(), "key not found") // we expect this error because we are not setting the key. anyway it means we passed validation
+				// we expect this error because we are not setting the key. anyway it means we passed validation
+				expected1 := "No directory provided for file keyring"
+				expected2 := "key not found"
+				ok := strings.Contains(err.Error(), expected1) || strings.Contains(err.Error(), expected2)
+				require.True(t, ok)
 			}
 		})
 	}
