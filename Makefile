@@ -181,6 +181,7 @@ proto-gen:
 proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"
 	@make proto-download-deps
+	@make psf
 	@echo "Generating Protobuf Swagger"
 	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
@@ -193,7 +194,12 @@ proto-lint:
 SWAGGER_DIR=./swagger-proto
 THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
 
+psf:
+	@echo psf $(SWAGGER_DIR)
+	./scripts/protoswagfix/bin/psf $(SWAGGER_DIR)
+
 proto-download-deps:
+	rm -rf $(SWAGGER_DIR)
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	git init && \
@@ -271,4 +277,25 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos/ics23/v1" && \
 	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/$(DEPS_COSMOS_ICS23)/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
-.PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps
+	mkdir -p "$(THIRD_PARTY_DIR)/grpc_gw_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/grpc_gw_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/grpc-ecosystem/grpc-gateway.git" && \
+	git config core.sparseCheckout true && \
+	printf "protoc-gen-openapiv2/options\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin main && \
+	git checkout FETCH_HEAD && \
+	mkdir -p "$(THIRD_PARTY_DIR)/protoc-gen-openapiv2/options" && \
+	mv ./* .. && \
+	rm -rf "$(THIRD_PARTY_DIR)/grpc_gw_tmp"
+
+	# prepare swagger generation
+	mkdir -p "$(SWAGGER_DIR)/proto"
+	printf "version: v1\ndirectories:\n  - proto\n  - third_party" > "$(SWAGGER_DIR)/buf.work.yaml"
+	printf "version: v1\nname: buf.build/dymensionxyz/dymension\n" > "$(SWAGGER_DIR)/proto/buf.yaml"
+	cp ./proto/buf.gen.swagger.yaml "$(SWAGGER_DIR)/proto/buf.gen.swagger.yaml"
+
+	# copy existing proto files
+	cp -r ./proto/dymensionxyz "$(SWAGGER_DIR)/proto"
+
+.PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps psf
