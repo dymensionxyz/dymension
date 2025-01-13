@@ -7,8 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/spf13/cobra"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -39,9 +40,14 @@ func CmdUpdateRollapp() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			minSeqBond, ok := sdk.NewIntFromString(minSeqBondS)
-			if !ok {
-				return fmt.Errorf("invalid min sequencer bond: %s", minSeqBondS)
+
+			var minSeqBondDym sdk.Coin
+			if minSeqBondS != "" {
+				minSeqBond, ok := sdk.NewIntFromString(minSeqBondS)
+				if !ok {
+					return fmt.Errorf("invalid min sequencer bond: %s", minSeqBondS)
+				}
+				minSeqBondDym = commontypes.ADym(minSeqBond)
 			}
 
 			genesisInfo, err := parseGenesisInfo(cmd)
@@ -63,7 +69,7 @@ func CmdUpdateRollapp() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
 				initSequencer,
-				commontypes.ADym(minSeqBond),
+				minSeqBondDym,
 				metadata,
 				genesisInfo,
 			)

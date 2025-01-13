@@ -1,7 +1,6 @@
 package cli
 
 import (
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	flag "github.com/spf13/pflag"
 )
 
@@ -21,7 +20,7 @@ func FlagSetUpdateRollapp() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.String(FlagInitSequencer, "", "The address of the sequencer that will be used to initialize the rollapp")
-	fs.String(FlagMinSequencerBond, rollapptypes.DefaultMinSequencerBondGlobalCoin.Amount.String(), "Minimum amount of bond required to be a sequencer in DYM (not adym)")
+	fs.String(FlagMinSequencerBond, "", "Minimum amount of bond required to be a sequencer in DYM (not adym)")
 	fs.String(FlagGenesisChecksum, "", "The checksum of the genesis file of the rollapp")
 	fs.String(FlagNativeDenom, "", "The native denomination of the rollapp")
 	fs.String(FlagInitialSupply, "", "The initial supply of the rollapp")

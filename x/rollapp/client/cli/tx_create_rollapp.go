@@ -8,8 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/spf13/cobra"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -48,6 +49,9 @@ func CmdCreateRollapp() *cobra.Command {
 			minSeqBondS, err := cmd.Flags().GetString(FlagMinSequencerBond)
 			if err != nil {
 				return err
+			}
+			if minSeqBondS == "" {
+				minSeqBondS = types.DefaultMinSequencerBondGlobalCoin.Amount.String()
 			}
 			minSeqBond, ok := sdk.NewIntFromString(minSeqBondS)
 			if !ok {
@@ -158,9 +162,16 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 				Amount:  amt,
 			})
 		}
-		genesisInfo.GenesisAccounts = &types.GenesisAccounts{
-			Accounts: accounts,
+		if len(genesisAccounts) > 0 {
+			genesisInfo.GenesisAccounts = &types.GenesisAccounts{
+				Accounts: accounts,
+			}
 		}
+	}
+
+	if genesisInfo.GenesisChecksum == "" && genesisInfo.GenesisAccounts == nil && genesisInfo.Bech32Prefix == "" &&
+		genesisInfo.InitialSupply.IsNil() && genesisInfo.NativeDenom.Base == "" {
+		return nil, nil
 	}
 
 	return genesisInfo, nil
