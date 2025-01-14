@@ -3,8 +3,8 @@ package keeper
 import (
 	"time"
 
+	storetypes "cosmossdk.io/store"
 	db "github.com/cometbft/cometbft-db"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"

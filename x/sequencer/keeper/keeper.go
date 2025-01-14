@@ -7,8 +7,8 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 
+	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"

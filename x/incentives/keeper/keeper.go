@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	storetypes "cosmossdk.io/store"
 	"github.com/cometbft/cometbft/libs/log"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"

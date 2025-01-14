@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transferTypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	udenom "github.com/dymensionxyz/dymension/v3/utils/denom"

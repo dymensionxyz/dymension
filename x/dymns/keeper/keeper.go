@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
