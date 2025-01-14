@@ -2,14 +2,13 @@ package types
 
 import (
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 func NewDistrInfo(records []DistrRecord) (DistrInfo, error) {
 	distrInfo := DistrInfo{}
-	totalWeight := sdk.NewInt(0)
+	totalWeight := math.NewInt(0)
 
 	for _, record := range records {
 		if err := record.ValidateBasic(); err != nil {

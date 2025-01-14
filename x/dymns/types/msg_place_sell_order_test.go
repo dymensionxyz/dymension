@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -128,7 +129,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			assetType: TypeName,
 			minPrice: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,

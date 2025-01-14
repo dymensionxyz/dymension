@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -60,7 +61,7 @@ func NewPlaceBidOnAliasOrderTxCmd() *cobra.Command {
 			msg := &dymnstypes.MsgPurchaseOrder{
 				AssetId:   alias,
 				AssetType: dymnstypes.TypeAlias,
-				Offer:     sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(adymToDymMultiplier)),
+				Offer:     sdk.NewCoin(params.BaseDenom, math.NewInt(int64(amount)).MulRaw(adymToDymMultiplier)),
 				Buyer:     buyer,
 			}
 

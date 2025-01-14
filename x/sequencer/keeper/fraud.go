@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -119,7 +120,7 @@ func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.A
 	return nil
 }
 
-func (k Keeper) slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin, rewardMul sdk.Dec, rewardee sdk.AccAddress) error {
+func (k Keeper) slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coin, rewardMul math.LegacyDec, rewardee sdk.AccAddress) error {
 	rewardCoin := ucoin.MulDec(rewardMul, amt)[0]
 	if !rewardCoin.IsZero() {
 		err := k.sendFromModule(ctx, seq, rewardCoin, rewardee)

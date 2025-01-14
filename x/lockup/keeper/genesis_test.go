@@ -28,21 +28,21 @@ var (
 				Owner:    acc1.String(),
 				Duration: time.Second,
 				EndTime:  time.Time{},
-				Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 10000000)},
+				Coins:    sdk.Coins{math.NewInt64Coin("foo", 10000000)},
 			},
 			{
 				ID:       2,
 				Owner:    acc1.String(),
 				Duration: time.Hour,
 				EndTime:  time.Time{},
-				Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 15000000)},
+				Coins:    sdk.Coins{math.NewInt64Coin("foo", 15000000)},
 			},
 			{
 				ID:       3,
 				Owner:    acc2.String(),
 				Duration: time.Minute,
 				EndTime:  time.Time{},
-				Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+				Coins:    sdk.Coins{math.NewInt64Coin("foo", 5000000)},
 			},
 		},
 	}
@@ -56,10 +56,10 @@ func TestInitGenesis(t *testing.T) {
 	app.LockupKeeper.InitGenesis(ctx, genesis)
 
 	coins := app.LockupKeeper.GetAccountLockedCoins(ctx, acc1)
-	require.Equal(t, coins.String(), sdk.NewInt64Coin("foo", 25000000).String())
+	require.Equal(t, coins.String(), math.NewInt64Coin("foo", 25000000).String())
 
 	coins = app.LockupKeeper.GetAccountLockedCoins(ctx, acc2)
-	require.Equal(t, coins.String(), sdk.NewInt64Coin("foo", 5000000).String())
+	require.Equal(t, coins.String(), math.NewInt64Coin("foo", 5000000).String())
 
 	lastLockId := app.LockupKeeper.GetLastLockID(ctx)
 	require.Equal(t, lastLockId, uint64(10))
@@ -68,7 +68,7 @@ func TestInitGenesis(t *testing.T) {
 		Denom:    "foo",
 		Duration: time.Second,
 	})
-	require.Equal(t, sdk.NewInt(30000000), acc)
+	require.Equal(t, math.NewInt(30000000), acc)
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -78,13 +78,13 @@ func TestExportGenesis(t *testing.T) {
 	genesis := testGenesis
 	app.LockupKeeper.InitGenesis(ctx, genesis)
 
-	err := bankutil.FundAccount(app.BankKeeper, ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
+	err := bankutil.FundAccount(app.BankKeeper, ctx, acc2, sdk.Coins{math.NewInt64Coin("foo", 5000000)})
 	require.NoError(t, err)
-	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)}, time.Second*5)
+	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{math.NewInt64Coin("foo", 5000000)}, time.Second*5)
 	require.NoError(t, err)
 
 	coins := app.LockupKeeper.GetAccountLockedCoins(ctx, acc2)
-	require.Equal(t, coins.String(), sdk.NewInt64Coin("foo", 10000000).String())
+	require.Equal(t, coins.String(), math.NewInt64Coin("foo", 10000000).String())
 
 	genesisExported := app.LockupKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesisExported.LastLockId, uint64(11))
@@ -94,28 +94,28 @@ func TestExportGenesis(t *testing.T) {
 			Owner:    acc1.String(),
 			Duration: time.Second,
 			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 10000000)},
+			Coins:    sdk.Coins{math.NewInt64Coin("foo", 10000000)},
 		},
 		{
 			ID:       11,
 			Owner:    acc2.String(),
 			Duration: time.Second * 5,
 			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+			Coins:    sdk.Coins{math.NewInt64Coin("foo", 5000000)},
 		},
 		{
 			ID:       3,
 			Owner:    acc2.String(),
 			Duration: time.Minute,
 			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+			Coins:    sdk.Coins{math.NewInt64Coin("foo", 5000000)},
 		},
 		{
 			ID:       2,
 			Owner:    acc1.String(),
 			Duration: time.Hour,
 			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 15000000)},
+			Coins:    sdk.Coins{math.NewInt64Coin("foo", 15000000)},
 		},
 	})
 }
@@ -129,9 +129,9 @@ func TestMarshalUnmarshalGenesis(t *testing.T) {
 	appCodec := encodingConfig.Codec
 	am := lockup.NewAppModule(*app.LockupKeeper)
 
-	err := bankutil.FundAccount(app.BankKeeper, ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
+	err := bankutil.FundAccount(app.BankKeeper, ctx, acc2, sdk.Coins{math.NewInt64Coin("foo", 5000000)})
 	require.NoError(t, err)
-	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)}, time.Second*5)
+	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{math.NewInt64Coin("foo", 5000000)}, time.Second*5)
 	require.NoError(t, err)
 
 	genesisExported := am.ExportGenesis(ctx, appCodec)

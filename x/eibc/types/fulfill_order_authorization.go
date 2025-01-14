@@ -19,10 +19,10 @@ func NewFulfillOrderAuthorization(rollapps []*RollappCriteria) *FulfillOrderAuth
 func NewRollappCriteria(
 	rollappID string,
 	denoms []string,
-	minFeePercentage sdk.DecProto,
+	minFeePercentage math.LegacyDecProto,
 	maxPrice sdk.Coins,
 	spendLimit sdk.Coins,
-	fulfillerFeePart sdk.DecProto,
+	fulfillerFeePart math.LegacyDecProto,
 	settlementValidated bool,
 ) *RollappCriteria {
 	return &RollappCriteria{

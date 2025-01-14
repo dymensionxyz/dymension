@@ -1,7 +1,7 @@
 package types
 
 import (
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -21,7 +21,7 @@ const (
 )
 
 // MinPriceValue is the minimum value allowed for price configuration.
-var MinPriceValue = sdkmath.NewInt(1e18)
+var MinPriceValue = math.NewInt(1e18)
 
 const (
 	// OpGasPlaceSellOrder is the gas consumed when an asset owner creates a Sell-Order for selling the asset.

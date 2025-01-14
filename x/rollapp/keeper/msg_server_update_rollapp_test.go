@@ -30,12 +30,12 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			Base:     "aold",
 			Exponent: 18,
 		},
-		InitialSupply: sdk.NewInt(1000),
+		InitialSupply: math.NewInt(1000),
 		Sealed:        false,
 		GenesisAccounts: &types.GenesisAccounts{
 			Accounts: []types.GenesisAccount{
 				{
-					Amount:  sdk.NewInt(1000),
+					Amount:  math.NewInt(1000),
 					Address: initialSequencerAddress,
 				},
 			},
@@ -60,7 +60,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "NEWDEN",
 						Base:     "anewden",
@@ -76,7 +76,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				expected.GenesisInfo = types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "NEWDEN",
 						Base:     "anewden",
@@ -121,7 +121,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "NEWDEN",
 						Base:     "anewden",
@@ -134,7 +134,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				expected.GenesisInfo = types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "NEWDEN",
 						Base:     "anewden",
@@ -178,7 +178,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin.SubAmount(sdk.NewInt(1)),
+				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin.SubAmount(math.NewInt(1)),
 			},
 			expError: gerrc.ErrInvalidArgument,
 		},
@@ -229,12 +229,12 @@ func (s *RollappTestSuite) TestUpdateRollappSealed() {
 			Base:     "aold",
 			Exponent: 18,
 		},
-		InitialSupply: sdk.NewInt(1000),
+		InitialSupply: math.NewInt(1000),
 		Sealed:        true,
 		GenesisAccounts: &types.GenesisAccounts{
 			Accounts: []types.GenesisAccount{
 				{
-					Amount:  sdk.NewInt(1000),
+					Amount:  math.NewInt(1000),
 					Address: initialSequencerAddress,
 				},
 			},
@@ -306,7 +306,7 @@ func (s *RollappTestSuite) TestUpdateRollappSealed() {
 						Base:     "aden",
 						Exponent: 18,
 					},
-					InitialSupply: sdk.NewInt(10000),
+					InitialSupply: math.NewInt(10000),
 				},
 			},
 			expError: types.ErrGenesisInfoSealed,
@@ -317,7 +317,7 @@ func (s *RollappTestSuite) TestUpdateRollappSealed() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1000),
+					InitialSupply: math.NewInt(1000),
 				},
 			},
 			expError: types.ErrGenesisInfoSealed,
@@ -357,12 +357,12 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 			Base:     "aold",
 			Exponent: 18,
 		},
-		InitialSupply: sdk.NewInt(1000),
+		InitialSupply: math.NewInt(1000),
 		Sealed:        true,
 		GenesisAccounts: &types.GenesisAccounts{
 			Accounts: []types.GenesisAccount{
 				{
-					Amount:  sdk.NewInt(1000),
+					Amount:  math.NewInt(1000),
 					Address: initialSequencerAddress,
 				},
 			},
@@ -424,7 +424,7 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				MinSequencerBond: sdk.Coin{Denom: "no_valid_1243", Amount: sdk.NewInt(100)},
+				MinSequencerBond: sdk.Coin{Denom: "no_valid_1243", Amount: math.NewInt(100)},
 			},
 			mallete:  func(expected *types.Rollapp) {},
 			expError: nil,
@@ -480,7 +480,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Base:     "aden",
 						Exponent: 18,
 					},
-					InitialSupply: sdk.NewInt(10000),
+					InitialSupply: math.NewInt(10000),
 				},
 			},
 			mallete: func(expected *types.Rollapp) {
@@ -489,7 +489,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 					Base:     "aden",
 					Exponent: 18,
 				}
-				expected.GenesisInfo.InitialSupply = sdk.NewInt(10000)
+				expected.GenesisInfo.InitialSupply = math.NewInt(10000)
 			},
 			expError: nil,
 		},
@@ -537,7 +537,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1000),
+					InitialSupply: math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -547,14 +547,14 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Accounts: []types.GenesisAccount{
 							{
 								Address: initialSequencerAddress,
-								Amount:  sdk.NewInt(500),
+								Amount:  math.NewInt(500),
 							},
 						},
 					},
 				},
 			},
 			mallete: func(expected *types.Rollapp) {
-				expected.GenesisInfo.InitialSupply = sdk.NewInt(1000)
+				expected.GenesisInfo.InitialSupply = math.NewInt(1000)
 				expected.GenesisInfo.NativeDenom = types.DenomMetadata{
 					Display:  "DEN",
 					Base:     "aden",
@@ -564,7 +564,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 					Accounts: []types.GenesisAccount{
 						{
 							Address: initialSequencerAddress,
-							Amount:  sdk.NewInt(500),
+							Amount:  math.NewInt(500),
 						},
 					},
 				}
@@ -578,7 +578,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				GenesisInfo: &types.GenesisInfo{
-					InitialSupply: sdk.NewInt(-1), // Invalid negative supply
+					InitialSupply: math.NewInt(-1), // Invalid negative supply
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -595,7 +595,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
 				GenesisInfo: &types.GenesisInfo{
-					InitialSupply: sdk.NewInt(1000), // Non-zero supply without native token
+					InitialSupply: math.NewInt(1000), // Non-zero supply without native token
 				},
 			},
 			expError: types.ErrInvalidInitialSupply,
@@ -607,7 +607,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				Owner:     alice,
 				RollappId: rollappId,
 				GenesisInfo: &types.GenesisInfo{
-					InitialSupply: sdk.NewInt(500),
+					InitialSupply: math.NewInt(500),
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -617,7 +617,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Accounts: []types.GenesisAccount{
 							{
 								Address: initialSequencerAddress,
-								Amount:  sdk.NewInt(600),
+								Amount:  math.NewInt(600),
 							},
 						},
 					},
@@ -633,7 +633,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "test",
 					GenesisChecksum: "checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -643,11 +643,11 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Accounts: []types.GenesisAccount{
 							{
 								Address: initialSequencerAddress,
-								Amount:  sdk.NewInt(300),
+								Amount:  math.NewInt(300),
 							},
 							{
 								Address: initialSequencerAddress, // Duplicate address
-								Amount:  sdk.NewInt(400),
+								Amount:  math.NewInt(400),
 							},
 						},
 					},
@@ -663,7 +663,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "test",
 					GenesisChecksum: "checksum",
-					InitialSupply:   sdk.NewInt(1000),
+					InitialSupply:   math.NewInt(1000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "DEN",
 						Base:     "aden",
@@ -673,7 +673,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 						Accounts: []types.GenesisAccount{
 							{
 								Address: "invalid_address",
-								Amount:  sdk.NewInt(300),
+								Amount:  math.NewInt(300),
 							},
 						},
 					},
@@ -732,12 +732,12 @@ func (s *RollappTestSuite) TestUpdateRollappRegression() {
 				Base:     "aold",
 				Exponent: 18,
 			},
-			InitialSupply: sdk.NewInt(1000),
+			InitialSupply: math.NewInt(1000),
 			Sealed:        true,
 			GenesisAccounts: &types.GenesisAccounts{
 				Accounts: []types.GenesisAccount{
 					{
-						Amount:  sdk.NewInt(1000),
+						Amount:  math.NewInt(1000),
 						Address: initialSequencerAddress,
 					},
 				},
@@ -776,7 +776,7 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 			Base:     "aden",
 			Exponent: 18,
 		},
-		InitialSupply: sdk.NewInt(1000),
+		InitialSupply: math.NewInt(1000),
 	}
 
 	// 1. register rollapp
@@ -892,7 +892,7 @@ func (s *RollappTestSuite) TestForceGenesisInfoChange() {
 				NewGenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(2000),
+					InitialSupply:   math.NewInt(2000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "NEW",
 						Base:     "anew",
@@ -908,7 +908,7 @@ func (s *RollappTestSuite) TestForceGenesisInfoChange() {
 				Authority: govModuleAccount,
 				NewGenesisInfo: types.GenesisInfo{
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(2000),
+					InitialSupply:   math.NewInt(2000),
 					NativeDenom: types.DenomMetadata{
 						Display:  "NEW",
 						Base:     "anew",
@@ -925,7 +925,7 @@ func (s *RollappTestSuite) TestForceGenesisInfoChange() {
 				NewGenesisInfo: types.GenesisInfo{
 					Bech32Prefix:    "new",
 					GenesisChecksum: "new_checksum",
-					InitialSupply:   sdk.NewInt(2000),
+					InitialSupply:   math.NewInt(2000),
 				},
 			},
 			expError: gerrc.ErrInvalidArgument,

@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 
 	// we must create at least one lock, otherwise distribution won't work
 	lockOwner := apptesting.CreateRandomAccounts(1)[0]
-	suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
+	suite.LockTokens(lockOwner, sdk.NewCoins(math.NewInt64Coin("stake", 100)))
 
 	// initial module streams check
 	streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
@@ -35,15 +35,15 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	// setup streams
 
 	// daily stream, 30 epochs
-	coins := sdk.Coins{sdk.NewInt64Coin("stake", 30000)}
+	coins := sdk.Coins{math.NewInt64Coin("stake", 30000)}
 	_, _ = suite.CreateStream(singleDistrInfo, coins, time.Now(), "day", 30)
 
 	// daily stream, 2 epochs
-	coins2 := sdk.Coins{sdk.NewInt64Coin("stake", 2000)}
+	coins2 := sdk.Coins{math.NewInt64Coin("stake", 2000)}
 	_, _ = suite.CreateStream(singleDistrInfo, coins2, time.Now(), "day", 2)
 
 	// weekly stream
-	coins3 := sdk.Coins{sdk.NewInt64Coin("stake", 5000)}
+	coins3 := sdk.Coins{math.NewInt64Coin("stake", 5000)}
 	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now(), "week", 5)
 
 	// future stream - non-active
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	// check distribution
 	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 2000)).String(), gauge.Coins.String())
+	suite.Require().Equal(sdk.NewCoins(math.NewInt64Coin("stake", 2000)).String(), gauge.Coins.String())
 
 	/* ------------------------- call weekly epoch hook ------------------------- */
 	err = suite.App.StreamerKeeper.Hooks().BeforeEpochStart(ctx, "week", 0)
@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	// check distribution
 	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 3000)).String(), gauge.Coins.String())
+	suite.Require().Equal(sdk.NewCoins(math.NewInt64Coin("stake", 3000)).String(), gauge.Coins.String())
 
 	/* ------- call daily epoch hook again, check both stream distirubute ------- */
 	err = suite.App.StreamerKeeper.Hooks().BeforeEpochStart(ctx, "day", 0)
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	// check distribution
 	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 5000)).String(), gauge.Coins.String())
+	suite.Require().Equal(sdk.NewCoins(math.NewInt64Coin("stake", 5000)).String(), gauge.Coins.String())
 
 	/* ------- call daily epoch hook again, check both stream distirubute ------- */
 	err = suite.App.StreamerKeeper.Hooks().BeforeEpochStart(ctx, "day", 0)
@@ -140,5 +140,5 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	// check distribution
 	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 6000)).String(), gauge.Coins.String())
+	suite.Require().Equal(sdk.NewCoins(math.NewInt64Coin("stake", 6000)).String(), gauge.Coins.String())
 }

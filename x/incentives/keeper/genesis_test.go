@@ -27,7 +27,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 
 	// create an address and fund with coins
 	addr := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
+	coins := sdk.Coins{math.NewInt64Coin("stake", 10000)}
 	err := bankutil.FundAccount(app.BankKeeper, ctx, addr, coins)
 	require.NoError(t, err)
 
@@ -38,7 +38,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 		Denom:         "lptoken",
 		Duration:      time.Second,
 	}
-	mintLPtokens := sdk.Coins{sdk.NewInt64Coin(distrTo.Denom, 200)}
+	mintLPtokens := sdk.Coins{math.NewInt64Coin(distrTo.Denom, 200)}
 	err = bankutil.FundAccount(app.BankKeeper, ctx, addr, mintLPtokens)
 	require.NoError(t, err)
 
@@ -76,7 +76,7 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	require.NoError(t, validateGenesis)
 
 	// create coins, lp tokens with lockup durations, and a gauge for this lockup
-	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
+	coins := sdk.Coins{math.NewInt64Coin("stake", 10000)}
 	startTime := time.Now()
 	distrTo := lockuptypes.QueryCondition{
 		LockQueryType: lockuptypes.ByDuration,

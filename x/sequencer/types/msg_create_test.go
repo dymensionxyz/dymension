@@ -31,7 +31,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 	pkInvalid, err := codectypes.NewAnyWithValue(invalidpk)
 	require.NoError(t, err)
 
-	bond := sdk.NewCoin("stake", sdk.NewInt(100))
+	bond := sdk.NewCoin("stake", math.NewInt(100))
 
 	tests := []struct {
 		name string
@@ -157,7 +157,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
-				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
+				Bond:         sdk.Coin{Denom: "k", Amount: math.NewInt(0)},
 				Metadata: SequencerMetadata{
 					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
 					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},
@@ -259,7 +259,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgIncreaseBond{
 				Creator:   "invalid_address",
-				AddAmount: sdk.NewInt64Coin("stake", 100),
+				AddAmount: math.NewInt64Coin("stake", 100),
 			},
 			err: ErrInvalidAddr,
 		},
@@ -267,7 +267,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid bond amount",
 			msg: MsgIncreaseBond{
 				Creator:   sample.AccAddress(),
-				AddAmount: sdk.NewInt64Coin("stake", 0),
+				AddAmount: math.NewInt64Coin("stake", 0),
 			},
 			err: ErrInvalidCoins,
 		},
@@ -275,7 +275,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 			name: "valid",
 			msg: MsgIncreaseBond{
 				Creator:   sample.AccAddress(),
-				AddAmount: sdk.NewInt64Coin("stake", 100),
+				AddAmount: math.NewInt64Coin("stake", 100),
 			},
 		},
 	}
@@ -301,7 +301,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgDecreaseBond{
 				Creator:        "invalid_address",
-				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
+				DecreaseAmount: math.NewInt64Coin("stake", 100),
 			},
 			err: ErrInvalidAddr,
 		},
@@ -309,7 +309,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid bond amount",
 			msg: MsgDecreaseBond{
 				Creator:        sample.AccAddress(),
-				DecreaseAmount: sdk.NewInt64Coin("stake", 0),
+				DecreaseAmount: math.NewInt64Coin("stake", 0),
 			},
 			err: ErrInvalidCoins,
 		},
@@ -317,7 +317,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 			name: "valid",
 			msg: MsgDecreaseBond{
 				Creator:        sample.AccAddress(),
-				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
+				DecreaseAmount: math.NewInt64Coin("stake", 100),
 			},
 		},
 	}

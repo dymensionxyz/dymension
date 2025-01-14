@@ -68,7 +68,7 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("invalid min fee percentage: %w", err)
 			}
-			minFeePercent := sdk.DecProto{Dec: minFeePercDec}
+			minFeePercent := math.LegacyDecProto{Dec: minFeePercDec}
 
 			maxPriceStr, err := cmd.Flags().GetString(FlagMaxPrice)
 			if err != nil {
@@ -89,7 +89,7 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("failed to parse fulfiller fee part: %w", err)
 			}
-			fulfillerFeePart := sdk.DecProto{Dec: fulfillerFeePartDec}
+			fulfillerFeePart := math.LegacyDecProto{Dec: fulfillerFeePartDec}
 
 			settlementValidated, err := cmd.Flags().GetBool(FlagSettlementValidated)
 			if err != nil {

@@ -41,13 +41,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             16,
 			blocksToProcess:       1,
 			initialLockups: []lockup{ // this owner receives 100% of the rewards
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
@@ -60,7 +60,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
@@ -73,7 +73,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
@@ -86,7 +86,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
@@ -122,19 +122,19 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 6, coins: nil},
 						{gaugeID: 7, coins: nil},
 						{gaugeID: 8, coins: nil},
@@ -144,13 +144,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 450))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 450))},
 					},
 				},
 			},
@@ -161,13 +161,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             16,
 			blocksToProcess:       2,
 			initialLockups: []lockup{ // this owner receives 100% of the rewards
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
@@ -180,7 +180,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
@@ -193,7 +193,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
@@ -206,7 +206,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
@@ -242,17 +242,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -264,13 +264,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 14, coins: nil},
 						{gaugeID: 15, coins: nil},
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 250))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 250))},
 					},
 				},
 				{
@@ -297,20 +297,20 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 7, coins: nil},
 						{gaugeID: 8, coins: nil},
 						// 3rd stream
@@ -319,13 +319,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 500))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 500))},
 					},
 				},
 			},
@@ -336,13 +336,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             4,
 			blocksToProcess:       5,
 			initialLockups: []lockup{ // this owner receives 100% of the rewards
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(1)},
@@ -352,7 +352,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 2, Weight: math.NewInt(1)},
@@ -362,7 +362,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 3, Weight: math.NewInt(1)},
@@ -372,7 +372,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 4, Weight: math.NewInt(1)},
@@ -405,19 +405,19 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
 					},
 					gauges: []gaugeCoins{
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 8))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 8))},
 					},
 				},
 			},
@@ -428,13 +428,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             16,
 			blocksToProcess:       200,
 			initialLockups: []lockup{ // this owner receives 100% of the rewards
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
@@ -447,7 +447,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
@@ -460,7 +460,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
@@ -473,7 +473,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
@@ -509,16 +509,16 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 150))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 150))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
 						{streamID: 4, coins: nil},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 4, coins: nil},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
@@ -537,7 +537,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 150))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 150))},
 					},
 				},
 				{
@@ -564,17 +564,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -586,13 +586,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 15, coins: nil},
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 300))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 300))},
 					},
 				},
 				{
@@ -619,19 +619,19 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 6, coins: nil},
 						{gaugeID: 7, coins: nil},
 						{gaugeID: 8, coins: nil},
@@ -641,13 +641,13 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 450))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 450))},
 					},
 				},
 				{
@@ -674,35 +674,35 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
 						{gaugeID: 9, coins: nil},
 						{gaugeID: 10, coins: nil},
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 600))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 600))},
 					},
 				},
 				{
@@ -729,35 +729,35 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 150))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 150))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
-						{gaugeID: 9, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 10, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 11, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 9, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 10, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 11, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 750))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 750))},
 					},
 				},
 				{
@@ -784,35 +784,35 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
-						{gaugeID: 9, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 10, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 11, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 12, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 9, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 10, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 11, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 12, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 800))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 800))},
 					},
 				},
 			},
@@ -836,14 +836,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             16,
 			blocksToProcess:       1,
 			initialLockups: []lockup{ // this owner receives 100% of the rewards
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-				{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+				{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
@@ -856,7 +856,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
@@ -869,7 +869,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
@@ -882,7 +882,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
@@ -918,17 +918,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -940,14 +940,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 14, coins: nil},
 						{gaugeID: 15, coins: nil},
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 125))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 125))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 125))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 125))},
 					},
 				},
 			},
@@ -973,16 +973,16 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             16,
 			blocksToProcess:       2,
 			initialLockups: []lockup{
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-				{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-				{owner: addrs[2], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-				{owner: addrs[3], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+				{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+				{owner: addrs[2], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+				{owner: addrs[3], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
@@ -995,7 +995,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
@@ -1008,7 +1008,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
@@ -1021,7 +1021,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
@@ -1057,15 +1057,15 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
 						{streamID: 4, coins: nil},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
 						{gaugeID: 3, coins: nil},
 						{gaugeID: 4, coins: nil},
 						// 2nd stream
@@ -1085,10 +1085,10 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 24))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 24))},
-						{owner: addrs[2], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 24))},
-						{owner: addrs[3], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 24))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 24))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 24))},
+						{owner: addrs[2], balance: sdk.NewCoins(math.NewInt64Coin("stake", 24))},
+						{owner: addrs[3], balance: sdk.NewCoins(math.NewInt64Coin("stake", 24))},
 					},
 				},
 				{
@@ -1115,17 +1115,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
 						{streamID: 4, coins: nil},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -1143,10 +1143,10 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{owner: addrs[2], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
-						{owner: addrs[3], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 48))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{owner: addrs[2], balance: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
+						{owner: addrs[3], balance: sdk.NewCoins(math.NewInt64Coin("stake", 48))},
 					},
 				},
 			},
@@ -1157,14 +1157,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             4,
 			blocksToProcess:       5,
 			initialLockups: []lockup{
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-				{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+				{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(1)},
@@ -1174,7 +1174,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 2, Weight: math.NewInt(1)},
@@ -1184,7 +1184,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 3, Weight: math.NewInt(1)},
@@ -1194,7 +1194,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 2)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 2)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 4, Weight: math.NewInt(1)},
@@ -1227,20 +1227,20 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
 					},
 					gauges: []gaugeCoins{
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 2))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 2))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 4))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 4))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 4))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 4))},
 					},
 				},
 			},
@@ -1251,14 +1251,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 			numGauges:             16,
 			blocksToProcess:       200,
 			initialLockups: []lockup{
-				{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-				{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+				{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+				{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 			},
 			streams: []types.Stream{
 				{
 					Id:                   1,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 1, Weight: math.NewInt(50)},
@@ -1271,7 +1271,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   2,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 5, Weight: math.NewInt(50)},
@@ -1284,7 +1284,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   3,
 					DistrEpochIdentifier: "day",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 9, Weight: math.NewInt(50)},
@@ -1297,7 +1297,7 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 				{
 					Id:                   4,
 					DistrEpochIdentifier: "hour",
-					Coins:                sdk.NewCoins(sdk.NewInt64Coin("stake", 200)),
+					Coins:                sdk.NewCoins(math.NewInt64Coin("stake", 200)),
 					DistributeTo: types.DistrInfo{
 						Records: []types.DistrRecord{
 							{GaugeId: 13, Weight: math.NewInt(50)},
@@ -1333,15 +1333,15 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
 						{streamID: 4, coins: nil},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 3, coins: nil},
 						{gaugeID: 4, coins: nil},
 						// 2nd stream
@@ -1361,8 +1361,8 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 				},
 				{
@@ -1389,17 +1389,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
 						{streamID: 4, coins: nil},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -1417,8 +1417,8 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 					},
 				},
 				{
@@ -1445,17 +1445,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -1467,14 +1467,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 15, coins: nil},
 						{gaugeID: 16, coins: nil},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 150))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 150))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 150))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 150))},
 					},
 				},
 				{
@@ -1501,17 +1501,17 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 2, coins: nil},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
 						{gaugeID: 5, coins: nil},
 						{gaugeID: 6, coins: nil},
@@ -1523,14 +1523,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 				},
 				{
@@ -1557,20 +1557,20 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 7, coins: nil},
 						{gaugeID: 8, coins: nil},
 						// 3rd stream
@@ -1579,14 +1579,14 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 250))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 250))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 250))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 250))},
 					},
 				},
 				{
@@ -1613,36 +1613,36 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 						{streamID: 3, coins: nil},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
 						{gaugeID: 9, coins: nil},
 						{gaugeID: 10, coins: nil},
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 300))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 300))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 300))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 300))},
 					},
 				},
 				{
@@ -1669,36 +1669,36 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 100))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 100))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
-						{gaugeID: 9, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 10, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 9, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 10, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						{gaugeID: 11, coins: nil},
 						{gaugeID: 12, coins: nil},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 350))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 350))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 350))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 350))},
 					},
 				},
 				{
@@ -1725,36 +1725,36 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
-						{gaugeID: 9, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 10, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 11, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 12, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 9, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 10, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 11, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 12, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 400))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 400))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 400))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 400))},
 					},
 				},
 				{
@@ -1781,36 +1781,36 @@ func (s *KeeperTestSuite) TestProcessEpochPointer() {
 						},
 					},
 					distributedCoins: []distributedCoins{
-						{streamID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
-						{streamID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 200))},
+						{streamID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
+						{streamID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 200))},
 					},
 					gauges: []gaugeCoins{
 						// 1st stream
-						{gaugeID: 1, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 2, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 3, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 4, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 1, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 2, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 3, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 4, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 2nd stream
-						{gaugeID: 5, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 6, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 7, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 8, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 5, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 6, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 7, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 8, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 3rd stream
-						{gaugeID: 9, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 10, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 11, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 12, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 9, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 10, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 11, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 12, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 						// 4th stream
-						{gaugeID: 13, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 14, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 15, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
-						{gaugeID: 16, coins: sdk.NewCoins(sdk.NewInt64Coin("stake", 50))},
+						{gaugeID: 13, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 14, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 15, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
+						{gaugeID: 16, coins: sdk.NewCoins(math.NewInt64Coin("stake", 50))},
 					},
 					lockups: []lockup{
-						{owner: addrs[0], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 400))},
-						{owner: addrs[1], balance: sdk.NewCoins(sdk.NewInt64Coin("stake", 400))},
+						{owner: addrs[0], balance: sdk.NewCoins(math.NewInt64Coin("stake", 400))},
+						{owner: addrs[1], balance: sdk.NewCoins(math.NewInt64Coin("stake", 400))},
 					},
 				},
 			},

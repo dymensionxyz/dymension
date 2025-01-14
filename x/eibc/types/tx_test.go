@@ -10,18 +10,18 @@ import (
 func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 	validOrderID := "8f833734cf6b3890c386b8f7d0dc2c9ef077e8b1f3a8cf03874d37a316eb1308"
 	validRollappID := "rollapp_1234-1"
-	validPrice := sdk.NewCoins(sdk.NewInt64Coin("udenom", 100))
-	negativePrice := sdk.Coins{sdk.Coin{Denom: "udenom", Amount: sdk.NewInt(-1)}}
+	validPrice := sdk.NewCoins(math.NewInt64Coin("udenom", 100))
+	negativePrice := sdk.Coins{sdk.Coin{Denom: "udenom", Amount: math.NewInt(-1)}}
 
-	validAmount := sdk.IntProto{Int: sdk.NewInt(10)}
-	nilAmount := sdk.IntProto{}                          // Int is nil
-	zeroAmount := sdk.IntProto{Int: sdk.NewInt(0)}       // zero
-	negativeAmount := sdk.IntProto{Int: sdk.NewInt(-10)} // negative
+	validAmount := math.IntProto{Int: math.NewInt(10)}
+	nilAmount := math.IntProto{}                           // Int is nil
+	zeroAmount := math.IntProto{Int: math.NewInt(0)}       // zero
+	negativeAmount := math.IntProto{Int: math.NewInt(-10)} // negative
 
-	validFeeShare := sdk.DecProto{Dec: sdk.NewDecWithPrec(5, 1)} // 0.5
-	nilFeeShare := sdk.DecProto{}                                // nil dec
-	negFeeShare := sdk.DecProto{Dec: sdk.NewDec(-1)}             // negative dec
-	gtOneFeeShare := sdk.DecProto{Dec: sdk.NewDec(2)}            // >1
+	validFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(5, 1)} // 0.5
+	nilFeeShare := math.LegacyDecProto{}                                       // nil dec
+	negFeeShare := math.LegacyDecProto{Dec: sdk.NewDec(-1)}                    // negative dec
+	gtOneFeeShare := math.LegacyDecProto{Dec: sdk.NewDec(2)}                   // >1
 
 	validBech32 := "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"
 	invalidBech32 := "notanaddress"

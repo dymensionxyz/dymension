@@ -1,7 +1,8 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -19,17 +20,17 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 	const price7PL = 3
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-		moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
-			sdk.NewInt(price1L).Mul(priceMultiplier),
-			sdk.NewInt(price2L).Mul(priceMultiplier),
-			sdk.NewInt(price3L).Mul(priceMultiplier),
-			sdk.NewInt(price4L).Mul(priceMultiplier),
-			sdk.NewInt(price5L).Mul(priceMultiplier),
-			sdk.NewInt(price6L).Mul(priceMultiplier),
-			sdk.NewInt(price7PL).Mul(priceMultiplier),
+		moduleParams.Price.AliasPriceSteps = []math.Int{
+			math.NewInt(price1L).Mul(priceMultiplier),
+			math.NewInt(price2L).Mul(priceMultiplier),
+			math.NewInt(price3L).Mul(priceMultiplier),
+			math.NewInt(price4L).Mul(priceMultiplier),
+			math.NewInt(price5L).Mul(priceMultiplier),
+			math.NewInt(price6L).Mul(priceMultiplier),
+			math.NewInt(price7PL).Mul(priceMultiplier),
 		}
 		return moduleParams
 	})
@@ -482,11 +483,11 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 			s.RefreshContext()
 
 			if tt.originalCreatorBalance > 0 {
-				s.mintToAccount2(creatorAccAddr.String(), sdk.NewInt(tt.originalCreatorBalance).Mul(priceMultiplier))
+				s.mintToAccount2(creatorAccAddr.String(), math.NewInt(tt.originalCreatorBalance).Mul(priceMultiplier))
 			}
 
 			if tt.originalModuleBalance > 0 {
-				s.mintToModuleAccount2(sdk.NewInt(tt.originalModuleBalance).Mul(priceMultiplier))
+				s.mintToModuleAccount2(math.NewInt(tt.originalModuleBalance).Mul(priceMultiplier))
 			}
 
 			for _, rollAppId := range tt.addRollApps {
@@ -509,7 +510,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 
 				laterModuleBalance := s.moduleBalance2()
 				s.Equal(
-					sdk.NewInt(tt.originalModuleBalance).Mul(priceMultiplier),
+					math.NewInt(tt.originalModuleBalance).Mul(priceMultiplier),
 					laterModuleBalance,
 					"module balance should not be changed regardless of success because of burn",
 				)
@@ -528,7 +529,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 
 			laterCreatorBalance := s.balance2(creatorAccAddr.String())
 			s.Equal(
-				sdk.NewInt(tt.wantLaterCreatorBalance).Mul(priceMultiplier),
+				math.NewInt(tt.wantLaterCreatorBalance).Mul(priceMultiplier),
 				laterCreatorBalance,
 				"creator balance mismatch",
 			)

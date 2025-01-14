@@ -27,7 +27,7 @@ import (
 func (s *AnteTestSuite) getMsgSend(from sdk.AccAddress) sdk.Msg {
 	privkey2, _ := ethsecp256k1.GenerateKey()
 	to := sdk.AccAddress(privkey2.PubKey().Address())
-	return banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(1))))
+	return banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, math.NewInt(1))))
 }
 
 /*
@@ -35,7 +35,7 @@ func createIRO() sdk.Msg {
 	return &irotypes.MsgCreatePlan{
 		Owner:               "",
 		RollappId:           "",
-		AllocatedAmount:     sdk.Int{},
+		AllocatedAmount:     math.Int{},
 		BondingCurve:        irotypes.BondingCurve{},
 		StartTime:           time.Time{},
 		IroPlanDuration:     0,
@@ -64,14 +64,14 @@ func (s *AnteTestSuite) getMsgGrant(msgTypeUrl string, from sdk.AccAddress) *aut
 func (s *AnteTestSuite) getMsgSubmitProposal(from sdk.AccAddress) sdk.Msg {
 	proposal, ok := govtypes.ContentFromProposalType("My proposal", "My description", govtypes.ProposalTypeText)
 	s.Require().True(ok)
-	deposit := sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(10)))
+	deposit := sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, math.NewInt(10)))
 	msgSubmit, err := govtypes.NewMsgSubmitProposal(proposal, deposit, from)
 	s.Require().NoError(err)
 	return msgSubmit
 }
 
 func (s *AnteTestSuite) getMsgGrantAllowance(from sdk.AccAddress) sdk.Msg {
-	spendLimit := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 10000000))
+	spendLimit := sdk.NewCoins(math.NewInt64Coin(params.BaseDenom, 10000000))
 	threeHours := time.Now().Add(3 * time.Hour)
 	basic := &feegrant.BasicAllowance{
 		SpendLimit: spendLimit,
@@ -89,7 +89,7 @@ func (s *AnteTestSuite) getMsgCreateRollapp(from string, tokenless bool, metadat
 	genesisInfo := &rollapptypes.GenesisInfo{
 		Bech32Prefix:    strings.ToLower(rand.Str(3)),
 		GenesisChecksum: "1234567890abcdefg",
-		InitialSupply:   sdk.NewInt(1000),
+		InitialSupply:   math.NewInt(1000),
 		NativeDenom: rollapptypes.DenomMetadata{
 			Display:  "DEN",
 			Base:     "aden",
@@ -133,7 +133,7 @@ func (s *AnteTestSuite) TestEIP712() {
 	privkey, _ := ethsecp256k1.GenerateKey()
 	acc := sdk.AccAddress(privkey.PubKey().Address())
 
-	amt := sdk.NewInt(10000).MulRaw(1e18)
+	amt := math.NewInt(10000).MulRaw(1e18)
 	err := bankutil.FundAccount(s.app.BankKeeper, s.ctx, privkey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)))
 	s.Require().Nil(err)
 
@@ -158,7 +158,7 @@ func (s *AnteTestSuite) TestEIP712() {
 // FIXME: should iterate over all messages
 func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) error {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.DisplayDenom, sdk.NewInt(20))
+	coinAmount := sdk.NewCoin(params.DisplayDenom, math.NewInt(20))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -16,7 +17,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 		name               string
 		testingDistrRecord []types.DistrRecord
 		expectErr          bool
-		expectTotalWeight  sdk.Int
+		expectTotalWeight  math.Int
 		streamId           uint64
 	}{
 		{
@@ -24,15 +25,15 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(10),
+					Weight:  math.NewInt(10),
 				},
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(20),
+					Weight:  math.NewInt(20),
 				},
 			},
 			expectErr:         false,
-			expectTotalWeight: sdk.NewInt(30),
+			expectTotalWeight: math.NewInt(30),
 		},
 		{
 			name:               "happy flow - same gauges with same weights",
@@ -45,15 +46,15 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(10),
+					Weight:  math.NewInt(10),
 				},
 				{
 					GaugeId: 3,
-					Weight:  sdk.NewInt(20),
+					Weight:  math.NewInt(20),
 				},
 			},
 			expectErr:         false,
-			expectTotalWeight: sdk.NewInt(30),
+			expectTotalWeight: math.NewInt(30),
 		},
 		{
 			name:               "Not existent stream.",
@@ -65,7 +66,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			name: "Not existent gauge.",
 			testingDistrRecord: []types.DistrRecord{{
 				GaugeId: 12,
-				Weight:  sdk.NewInt(100),
+				Weight:  math.NewInt(100),
 			}},
 			expectErr: true,
 		},
@@ -74,11 +75,11 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(100),
+					Weight:  math.NewInt(100),
 				},
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(200),
+					Weight:  math.NewInt(200),
 				},
 			},
 			expectErr: true,
@@ -88,11 +89,11 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(200),
+					Weight:  math.NewInt(200),
 				},
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(250),
+					Weight:  math.NewInt(250),
 				},
 			},
 			expectErr: true,
@@ -110,7 +111,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			err = suite.CreateGauge()
 			suite.Require().NoError(err)
 
-			id, _ := suite.CreateDefaultStream(sdk.NewCoins(sdk.NewInt64Coin("udym", 100000)))
+			id, _ := suite.CreateDefaultStream(sdk.NewCoins(math.NewInt64Coin("udym", 100000)))
 			if test.streamId != 0 {
 				id = test.streamId
 			}
@@ -140,7 +141,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 		name               string
 		testingDistrRecord []types.DistrRecord
 		expectErr          bool
-		expectTotalWeight  sdk.Int
+		expectTotalWeight  math.Int
 		streamId           uint64
 	}{
 		{
@@ -148,30 +149,30 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(10),
+					Weight:  math.NewInt(10),
 				},
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(20),
+					Weight:  math.NewInt(20),
 				},
 			},
 			expectErr:         false,
-			expectTotalWeight: sdk.NewInt(30),
+			expectTotalWeight: math.NewInt(30),
 		},
 		{
 			name: "happy flow - remove gauge and add new one",
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(0),
+					Weight:  math.NewInt(0),
 				},
 				{
 					GaugeId: 3,
-					Weight:  sdk.NewInt(30),
+					Weight:  math.NewInt(30),
 				},
 			},
 			expectErr:         false,
-			expectTotalWeight: sdk.NewInt(80),
+			expectTotalWeight: math.NewInt(80),
 		},
 		{
 			name:               "happy flow - same gauges with same weights",
@@ -184,19 +185,19 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(0),
+					Weight:  math.NewInt(0),
 				},
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(0),
+					Weight:  math.NewInt(0),
 				},
 				{
 					GaugeId: 3,
-					Weight:  sdk.NewInt(20),
+					Weight:  math.NewInt(20),
 				},
 			},
 			expectErr:         false,
-			expectTotalWeight: sdk.NewInt(20),
+			expectTotalWeight: math.NewInt(20),
 		},
 		{
 			name:               "Not existent stream.",
@@ -208,7 +209,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			name: "Not existent gauge.",
 			testingDistrRecord: []types.DistrRecord{{
 				GaugeId: 12,
-				Weight:  sdk.NewInt(100),
+				Weight:  math.NewInt(100),
 			}},
 			expectErr: true,
 		},
@@ -217,11 +218,11 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(100),
+					Weight:  math.NewInt(100),
 				},
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(200),
+					Weight:  math.NewInt(200),
 				},
 			},
 			expectErr: true,
@@ -231,11 +232,11 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(200),
+					Weight:  math.NewInt(200),
 				},
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(250),
+					Weight:  math.NewInt(250),
 				},
 			},
 			expectErr: true,
@@ -253,7 +254,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			err = suite.CreateGauge()
 			suite.Require().NoError(err)
 
-			id, _ := suite.CreateDefaultStream(sdk.NewCoins(sdk.NewInt64Coin("udym", 100000)))
+			id, _ := suite.CreateDefaultStream(sdk.NewCoins(math.NewInt64Coin("udym", 100000)))
 			if test.streamId != 0 {
 				id = test.streamId
 			}

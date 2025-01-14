@@ -9,7 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -513,18 +514,18 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 	const extendsPrice int64 = 4
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 		params.Price.PriceDenom = denom
-		params.Price.NamePriceSteps = []sdkmath.Int{
-			sdkmath.NewInt(price1L).Mul(priceMultiplier),
-			sdkmath.NewInt(price2L).Mul(priceMultiplier),
-			sdkmath.NewInt(price3L).Mul(priceMultiplier),
-			sdkmath.NewInt(price4L).Mul(priceMultiplier),
-			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+		params.Price.NamePriceSteps = []math.Int{
+			math.NewInt(price1L).Mul(priceMultiplier),
+			math.NewInt(price2L).Mul(priceMultiplier),
+			math.NewInt(price3L).Mul(priceMultiplier),
+			math.NewInt(price4L).Mul(priceMultiplier),
+			math.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
-		params.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+		params.Price.PriceExtends = math.NewInt(extendsPrice).Mul(priceMultiplier)
 		params.Misc.GracePeriodDuration = 30 * 24 * time.Hour
 
 		return params
@@ -917,10 +918,10 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 			s.Require().NoError(err)
 			s.Require().NotNil(resp)
 
-			s.Equal(sdk.NewInt(tt.wantFirstYearPrice).Mul(priceMultiplier).String(), resp.FirstYearPrice.Amount.String())
-			s.Equal(sdk.NewInt(tt.wantExtendPrice).Mul(priceMultiplier).String(), resp.ExtendPrice.Amount.String())
+			s.Equal(math.NewInt(tt.wantFirstYearPrice).Mul(priceMultiplier).String(), resp.FirstYearPrice.Amount.String())
+			s.Equal(math.NewInt(tt.wantExtendPrice).Mul(priceMultiplier).String(), resp.ExtendPrice.Amount.String())
 			s.Equal(
-				sdk.NewInt(tt.wantFirstYearPrice+tt.wantExtendPrice).Mul(priceMultiplier).String(),
+				math.NewInt(tt.wantFirstYearPrice+tt.wantExtendPrice).Mul(priceMultiplier).String(),
 				resp.TotalPrice.Amount.String(),
 				"total price must be equals to sum of first year and extend price",
 			)
@@ -947,16 +948,16 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterAlias() {
 	const price5PlusL int64 = 5
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 		params.Price.PriceDenom = denom
-		params.Price.AliasPriceSteps = []sdkmath.Int{
-			sdkmath.NewInt(price1L).Mul(priceMultiplier),
-			sdkmath.NewInt(price2L).Mul(priceMultiplier),
-			sdkmath.NewInt(price3L).Mul(priceMultiplier),
-			sdkmath.NewInt(price4L).Mul(priceMultiplier),
-			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+		params.Price.AliasPriceSteps = []math.Int{
+			math.NewInt(price1L).Mul(priceMultiplier),
+			math.NewInt(price2L).Mul(priceMultiplier),
+			math.NewInt(price3L).Mul(priceMultiplier),
+			math.NewInt(price4L).Mul(priceMultiplier),
+			math.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
 		params.Misc.GracePeriodDuration = 30 * 24 * time.Hour
 
@@ -1133,7 +1134,7 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterAlias() {
 			s.Require().NoError(err)
 			s.Require().NotNil(resp)
 
-			s.Equal(sdk.NewInt(tt.wantPrice).Mul(priceMultiplier).String(), resp.Price.Amount.String())
+			s.Equal(math.NewInt(tt.wantPrice).Mul(priceMultiplier).String(), resp.Price.Amount.String())
 			s.Equal(denom, resp.Price.Denom)
 		})
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store"
 	"cosmossdk.io/store/prefix"
@@ -25,7 +26,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -224,12 +225,12 @@ func (s *KeeperTestSuite) priceDenom() string {
 func (s *KeeperTestSuite) mintToModuleAccount(amount int64) {
 	err := s.bankKeeper.MintCoins(s.ctx,
 		dymnstypes.ModuleName,
-		sdk.Coins{sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))},
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), math.NewInt(amount))},
 	)
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) mintToModuleAccount2(amount sdkmath.Int) {
+func (s *KeeperTestSuite) mintToModuleAccount2(amount math.Int) {
 	err := s.bankKeeper.MintCoins(s.ctx,
 		dymnstypes.ModuleName,
 		sdk.Coins{sdk.NewCoin(s.priceDenom(), amount)},
@@ -242,12 +243,12 @@ func (s *KeeperTestSuite) mintToAccount(bech32Account string, amount int64) {
 	err := s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
 		dymnstypes.ModuleName,
 		sdk.MustAccAddressFromBech32(bech32Account),
-		sdk.Coins{sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))},
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), math.NewInt(amount))},
 	)
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) mintToAccount2(bech32Account string, amount sdkmath.Int) {
+func (s *KeeperTestSuite) mintToAccount2(bech32Account string, amount math.Int) {
 	s.mintToModuleAccount2(amount)
 	err := s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
 		dymnstypes.ModuleName,
@@ -264,7 +265,7 @@ func (s *KeeperTestSuite) balance(bech32Account string) int64 {
 	).Amount.Int64()
 }
 
-func (s *KeeperTestSuite) balance2(bech32Account string) sdkmath.Int {
+func (s *KeeperTestSuite) balance2(bech32Account string) math.Int {
 	return s.bankKeeper.GetBalance(s.ctx,
 		sdk.MustAccAddressFromBech32(bech32Account),
 		s.priceDenom(),
@@ -275,7 +276,7 @@ func (s *KeeperTestSuite) moduleBalance() int64 {
 	return s.balance(dymNsModuleAccAddr.String())
 }
 
-func (s *KeeperTestSuite) moduleBalance2() sdkmath.Int {
+func (s *KeeperTestSuite) moduleBalance2() math.Int {
 	return s.balance2(dymNsModuleAccAddr.String())
 }
 
@@ -360,7 +361,7 @@ func (s *KeeperTestSuite) requireDymNameList(dymNames []dymnstypes.DymName, want
 }
 
 func (s *KeeperTestSuite) coin(amount int64) sdk.Coin {
-	return sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))
+	return sdk.NewCoin(s.priceDenom(), math.NewInt(amount))
 }
 
 //

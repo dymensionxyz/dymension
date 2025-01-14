@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	chantypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "hour",
-					BridgingFee:     sdk.NewDecWithPrec(1, 1),
+					BridgingFee:     math.NewLegacyDecWithPrec(1, 1),
 				},
 				RollappPackets: []ctypes.RollappPacket{validRollappPacket},
 			},
@@ -41,7 +41,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "",
-					BridgingFee:     sdk.Dec{},
+					BridgingFee:     math.LegacyDec{},
 				},
 			},
 			valid: false,

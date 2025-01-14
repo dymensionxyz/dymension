@@ -158,7 +158,7 @@ func TestMsgAddToGauge(t *testing.T) {
 		properMsg := *incentivestypes.NewMsgAddToGauge(
 			addr1,
 			1,
-			sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+			sdk.Coins{math.NewInt64Coin("stake", 10)},
 		)
 
 		return after(properMsg)
@@ -218,7 +218,7 @@ func TestAuthzMsg(t *testing.T) {
 	appParams.SetAddressPrefixes()
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pk1.Address()).String()
-	coin := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1))
 	someDate := time.Date(1, 1, 1, 1, 1, 1, 1, time.UTC)
 
 	testCases := []struct {

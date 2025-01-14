@@ -207,7 +207,7 @@ func (s *RollappTestSuite) Test_msgServer_AddApp() {
 			},
 			malleate: func() {
 				params := s.k().GetParams(s.Ctx)
-				params.AppRegistrationFee = sdk.NewInt64Coin("arax", 1)
+				params.AppRegistrationFee = math.NewInt64Coin("arax", 1)
 				s.k().SetParams(s.Ctx, params)
 			},
 			wantErr: types.ErrAppRegistrationFeePayment,

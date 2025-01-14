@@ -393,7 +393,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        testCoin(1),
-			sellPrice:       uptr.To(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
+			sellPrice:       uptr.To(math.NewInt64Coin("u"+params.BaseDenom, 2)),
 			wantErr:         true,
 			wantErrContains: "SO sell price denom is different from min price denom",
 		},
@@ -536,7 +536,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			params:          nil,
 			assetType:       TypeName,
@@ -699,6 +699,6 @@ func requireEventEquals(t *testing.T, event sdk.Event, wantType string, wantAttr
 func testCoin(amount int64) sdk.Coin {
 	return sdk.Coin{
 		Denom:  params.BaseDenom,
-		Amount: sdk.NewInt(amount),
+		Amount: math.NewInt(amount),
 	}
 }

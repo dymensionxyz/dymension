@@ -22,7 +22,7 @@ func TestLockTokensCmd(t *testing.T) {
 			ExpectedMsg: &types.MsgLockTokens{
 				Owner:    testAddresses[0].String(),
 				Duration: time.Hour * 24,
-				Coins:    sdk.NewCoins(sdk.NewInt64Coin("uosmo", 201)),
+				Coins:    sdk.NewCoins(math.NewInt64Coin("uosmo", 201)),
 			},
 		},
 	}
@@ -58,7 +58,7 @@ func TestBeginUnlockingByIDCmd(t *testing.T) {
 			ExpectedMsg: &types.MsgBeginUnlocking{
 				Owner: testAddresses[0].String(),
 				ID:    10,
-				Coins: sdk.NewCoins(sdk.NewInt64Coin("uosmo", 5)),
+				Coins: sdk.NewCoins(math.NewInt64Coin("uosmo", 5)),
 			},
 		},
 	}

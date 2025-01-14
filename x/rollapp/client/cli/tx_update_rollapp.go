@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -43,7 +44,7 @@ func CmdUpdateRollapp() *cobra.Command {
 
 			var minSeqBondDym sdk.Coin
 			if minSeqBondS != "" {
-				minSeqBond, ok := sdk.NewIntFromString(minSeqBondS)
+				minSeqBond, ok := math.NewIntFromString(minSeqBondS)
 				if !ok {
 					return fmt.Errorf("invalid min sequencer bond: %s", minSeqBondS)
 				}

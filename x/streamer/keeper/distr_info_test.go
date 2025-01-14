@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 		testingDistrRecord     []types.DistrRecord
 		mintedCoins            sdk.Coin
 		expectedGaugesBalances []sdk.Coins
-		expectedCommunityPool  sdk.DecCoin
+		expectedCommunityPool  math.LegacyDecCoin
 	}{
 		// With minting 15000 stake to module, after AllocateAsset we get:
 		// expectedCommunityPool = 0 (All reward will be transferred to the gauges)
@@ -29,24 +29,24 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 			testingDistrRecord: []types.DistrRecord{
 				{
 					GaugeId: 1,
-					Weight:  sdk.NewInt(100),
+					Weight:  math.NewInt(100),
 				},
 				{
 					GaugeId: 2,
-					Weight:  sdk.NewInt(200),
+					Weight:  math.NewInt(200),
 				},
 				{
 					GaugeId: 3,
-					Weight:  sdk.NewInt(300),
+					Weight:  math.NewInt(300),
 				},
 			},
-			mintedCoins: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(15000)),
+			mintedCoins: sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(15000)),
 			expectedGaugesBalances: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500))),
-				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(4999))),
-				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(7500))),
+				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500))),
+				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(4999))),
+				sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(7500))),
 			},
-			expectedCommunityPool: sdk.NewDecCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+			expectedCommunityPool: sdk.NewDecCoin(sdk.DefaultBondDenom, math.NewInt(0)),
 		},
 	}
 
@@ -77,16 +77,16 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 func TestNewDistrInfo(t *testing.T) {
 	// Test case: valid records
 	records := []types.DistrRecord{
-		{Weight: sdk.NewInt(1)},
-		{Weight: sdk.NewInt(2)},
+		{Weight: math.NewInt(1)},
+		{Weight: math.NewInt(2)},
 	}
 	distrInfo, err := types.NewDistrInfo(records)
 	require.NoError(t, err)
-	require.Equal(t, distrInfo.TotalWeight, sdk.NewInt(3))
+	require.Equal(t, distrInfo.TotalWeight, math.NewInt(3))
 
 	// Test case: invalid record
 	records = []types.DistrRecord{
-		{Weight: sdk.NewInt(-1)},
+		{Weight: math.NewInt(-1)},
 	}
 	_, err = types.NewDistrInfo(records)
 	require.Error(t, err)

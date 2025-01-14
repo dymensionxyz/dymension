@@ -115,12 +115,12 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				return fmt.Errorf("amount is required")
 			}
 
-			amountInt, ok := sdk.NewIntFromString(amountStr)
+			amountInt, ok := math.NewIntFromString(amountStr)
 			if !ok {
 				return fmt.Errorf("invalid amount")
 			}
 
-			amount := sdk.IntProto{Int: amountInt}
+			amount := math.IntProto{Int: amountInt}
 
 			oepratorFeeShareStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
 			if err != nil {
@@ -130,7 +130,7 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("invalid fulfiller fee part: %w", err)
 			}
-			operatorFeeShare := sdk.DecProto{Dec: operatorFeeShareDec}
+			operatorFeeShare := math.LegacyDecProto{Dec: operatorFeeShareDec}
 
 			settlementValidated, err := cmd.Flags().GetBool(FlagSettlementValidated)
 			if err != nil {

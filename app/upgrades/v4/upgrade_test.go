@@ -57,7 +57,7 @@ const (
 	expectDisputePeriodInBlocks = 3
 )
 
-var expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)
+var expectDelayedackBridgingFee = math.NewLegacyDecWithPrec(1, 3)
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
 func (s *UpgradeTestSuite) TestUpgrade() {
@@ -470,7 +470,7 @@ func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequ
 					Details: fmt.Sprintf("Additional details about the %s", uuid),
 				},
 				Status:   sequencertypes.Bonded,
-				Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
+				Tokens:   sdk.NewCoins(math.NewInt64Coin("dym", 100)),
 				Proposer: j == 0, // first sequencer is proposer
 			}
 			sequencers = append(sequencers, sequencer)

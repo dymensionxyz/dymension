@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -135,7 +136,7 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 			Bech32Prefix:    "rol",
 			GenesisChecksum: "checksum",
 			NativeDenom:     rollapptypes.DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-			InitialSupply:   sdk.NewInt(1000),
+			InitialSupply:   math.NewInt(1000),
 		},
 		InitialSequencer: initSeq,
 		GenesisState:     rollapptypes.RollappGenesisState{TransferProofHeight: 1},

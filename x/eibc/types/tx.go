@@ -70,8 +70,8 @@ func NewMsgFulfillOrderAuthorized(
 	operatorFeeAddress,
 	expectedFee string,
 	price sdk.Coins,
-	amount sdk.IntProto,
-	fulfillerFeePart sdk.DecProto,
+	amount math.IntProto,
+	fulfillerFeePart math.LegacyDecProto,
 	settlementValidated bool,
 ) *MsgFulfillOrderAuthorized {
 	return &MsgFulfillOrderAuthorized{
@@ -208,7 +208,7 @@ func validateCommon(orderId, fee string, address ...string) error {
 		}
 	}
 
-	feeInt, ok := sdk.NewIntFromString(fee)
+	feeInt, ok := math.NewIntFromString(fee)
 	if !ok {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
 	}

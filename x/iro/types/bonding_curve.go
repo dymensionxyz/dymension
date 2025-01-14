@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/osmomath"
 )
 
@@ -193,7 +192,7 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 }
 
 // spotPriceInternal returns the spot price at x
-func (lbc BondingCurve) spotPriceInternal(x sdk.Dec) sdk.Dec {
+func (lbc BondingCurve) spotPriceInternal(x math.LegacyDec) math.LegacyDec {
 	xDec := osmomath.BigDecFromSDKDec(x)
 	nDec := osmomath.BigDecFromSDKDec(lbc.N)
 	mDec := osmomath.BigDecFromSDKDec(lbc.M)

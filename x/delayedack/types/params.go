@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -32,7 +33,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLimit int) Params {
+func NewParams(epochIdentifier string, bridgingFee math.LegacyDec, deletePacketsEpochLimit int) Params {
 	return Params{
 		EpochIdentifier:         epochIdentifier,
 		BridgingFee:             bridgingFee,
@@ -44,7 +45,7 @@ func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLi
 func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
-		sdk.NewDecWithPrec(1, 3), // 0.1%
+		math.LegacyNewDecWithPrec(1, 3), // 0.1%
 		defaultDeletePacketsEpochLimit,
 	)
 }
@@ -59,7 +60,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 func validateBridgingFee(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

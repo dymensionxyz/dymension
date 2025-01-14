@@ -97,7 +97,7 @@ func Setup(t *testing.T) *app.App {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000000000000))),
 	}
 
 	a := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)

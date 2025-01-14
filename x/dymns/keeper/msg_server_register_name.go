@@ -7,7 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
@@ -52,7 +52,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 			priceParams.PriceDenom,
 			firstYearPrice.Add( // first year has different price
 				priceParams.PriceExtends.Mul(
-					sdkmath.NewInt(
+					math.NewInt(
 						msg.Duration-1, // subtract first year
 					),
 				),
@@ -89,7 +89,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		totalCost = sdk.NewCoin(
 			priceParams.PriceDenom,
 			priceParams.PriceExtends.Mul(
-				sdkmath.NewInt(msg.Duration),
+				math.NewInt(msg.Duration),
 			),
 		)
 	} else {
@@ -111,7 +111,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 			priceParams.PriceDenom,
 			firstYearPrice.Add( // first year has different price
 				priceParams.PriceExtends.Mul(
-					sdkmath.NewInt(
+					math.NewInt(
 						msg.Duration-1, // subtract first year
 					),
 				),
@@ -227,21 +227,21 @@ func EstimateRegisterName(
 	newOwner string,
 	duration int64,
 ) dymnstypes.EstimateRegisterNameResponse {
-	var newFirstYearPrice, extendsPrice sdkmath.Int
+	var newFirstYearPrice, extendsPrice math.Int
 
 	if existingDymName != nil && existingDymName.Owner == newOwner {
 		// Dym-Name exists and just renew or extends by the same owner
 
 		newFirstYearPrice = sdk.ZeroInt() // regardless of expired or not, we don't charge this
 		extendsPrice = priceParams.PriceExtends.Mul(
-			sdkmath.NewInt(duration),
+			math.NewInt(duration),
 		)
 	} else {
 		// new registration or take over
 		newFirstYearPrice = priceParams.GetFirstYearDymNamePrice(name) // charge based on name length for the first year
 		if duration > 1 {
 			extendsPrice = priceParams.PriceExtends.Mul(
-				sdkmath.NewInt(duration - 1), // subtract first year, which has different price
+				math.NewInt(duration - 1), // subtract first year, which has different price
 			)
 		} else {
 			extendsPrice = sdk.ZeroInt()

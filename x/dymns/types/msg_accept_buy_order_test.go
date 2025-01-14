@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
@@ -63,7 +64,7 @@ func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			minAccept: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			wantErr:         true,
 			wantErrContains: "invalid min-accept amount",

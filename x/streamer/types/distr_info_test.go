@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
@@ -20,27 +21,27 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 			name:  "Empty distribution",
 			distr: sponsorshiptypes.NewDistribution(),
 			expDistr: types.DistrInfo{
-				TotalWeight: sdk.NewInt(0),
+				TotalWeight: math.NewInt(0),
 				Records:     []types.DistrRecord{},
 			},
 		},
 		{
 			name: "Distribution with single gauge",
 			distr: sponsorshiptypes.Distribution{
-				VotingPower: sdk.NewInt(10),
+				VotingPower: math.NewInt(10),
 				Gauges: []sponsorshiptypes.Gauge{
 					{
 						GaugeId: 1,
-						Power:   sdk.NewInt(10),
+						Power:   math.NewInt(10),
 					},
 				},
 			},
 			expDistr: types.DistrInfo{
-				TotalWeight: sdk.NewInt(10),
+				TotalWeight: math.NewInt(10),
 				Records: []types.DistrRecord{
 					{
 						GaugeId: 1,
-						Weight:  sdk.NewInt(10),
+						Weight:  math.NewInt(10),
 					},
 				},
 			},
@@ -48,28 +49,28 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 		{
 			name: "Distribution with multiple gauges",
 			distr: sponsorshiptypes.Distribution{
-				VotingPower: sdk.NewInt(30),
+				VotingPower: math.NewInt(30),
 				Gauges: []sponsorshiptypes.Gauge{
 					{
 						GaugeId: 1,
-						Power:   sdk.NewInt(10),
+						Power:   math.NewInt(10),
 					},
 					{
 						GaugeId: 2,
-						Power:   sdk.NewInt(20),
+						Power:   math.NewInt(20),
 					},
 				},
 			},
 			expDistr: types.DistrInfo{
-				TotalWeight: sdk.NewInt(30),
+				TotalWeight: math.NewInt(30),
 				Records: []types.DistrRecord{
 					{
 						GaugeId: 1,
-						Weight:  sdk.NewInt(10),
+						Weight:  math.NewInt(10),
 					},
 					{
 						GaugeId: 2,
-						Weight:  sdk.NewInt(20),
+						Weight:  math.NewInt(20),
 					},
 				},
 			},
@@ -77,7 +78,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 		{
 			name: "Distribution with empty gauges",
 			distr: sponsorshiptypes.Distribution{
-				VotingPower: sdk.NewInt(30),
+				VotingPower: math.NewInt(30),
 				Gauges:      []sponsorshiptypes.Gauge{},
 			},
 			expDistr: types.DistrInfo{
@@ -88,30 +89,30 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 		{
 			name: "Distribution with abstained gauge",
 			distr: sponsorshiptypes.Distribution{
-				VotingPower: sdk.NewInt(100),
+				VotingPower: math.NewInt(100),
 				Gauges: []sponsorshiptypes.Gauge{
 					// 30 is abstained
 					{
 						GaugeId: 1,
-						Power:   sdk.NewInt(50),
+						Power:   math.NewInt(50),
 					},
 					{
 						GaugeId: 2,
-						Power:   sdk.NewInt(20),
+						Power:   math.NewInt(20),
 					},
 				},
 			},
 			expDistr: types.DistrInfo{
-				TotalWeight: sdk.NewInt(70),
+				TotalWeight: math.NewInt(70),
 				Records: []types.DistrRecord{
 					// 30 is abstained
 					{
 						GaugeId: 1,
-						Weight:  sdk.NewInt(50),
+						Weight:  math.NewInt(50),
 					},
 					{
 						GaugeId: 2,
-						Weight:  sdk.NewInt(20),
+						Weight:  math.NewInt(20),
 					},
 				},
 			},

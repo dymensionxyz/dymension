@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				coins       sdk.Coins
 				numOfEpochs uint64
 				distrInfo   []types.DistrRecord
-			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, defaultDistrInfo}},
+			}{{sdk.Coins{math.NewInt64Coin("stake", 100)}, 30, defaultDistrInfo}},
 		},
 		{
 			name: "single stream multiple coins",
@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				coins       sdk.Coins
 				numOfEpochs uint64
 				distrInfo   []types.DistrRecord
-			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo}},
+			}{{sdk.Coins{math.NewInt64Coin("stake", 100), math.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo}},
 		},
 		{
 			name: "multiple streams multiple coins multiple epochs",
@@ -46,9 +46,9 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				numOfEpochs uint64
 				distrInfo   []types.DistrRecord
 			}{
-				{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo},
-				{sdk.Coins{sdk.NewInt64Coin("stake", 1000)}, 365, defaultDistrInfo},
-				{sdk.Coins{sdk.NewInt64Coin("udym", 1000)}, 730, defaultDistrInfo},
+				{sdk.Coins{math.NewInt64Coin("stake", 100), math.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo},
+				{sdk.Coins{math.NewInt64Coin("stake", 1000)}, 365, defaultDistrInfo},
+				{sdk.Coins{math.NewInt64Coin("udym", 1000)}, 730, defaultDistrInfo},
 			},
 		},
 	}
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 
 				// Calculate expected rewards
 				for _, coin := range stream.coins {
-					epochAmt := coin.Amount.Quo(sdk.NewInt(int64(stream.numOfEpochs)))
+					epochAmt := coin.Amount.Quo(math.NewInt(int64(stream.numOfEpochs)))
 					if !epochAmt.IsPositive() {
 						continue
 					}
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		{
 			name: "single-coin stream, no initial nor intermediate distributions",
 			stream: stream{
-				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				coins:       sdk.Coins{math.NewInt64Coin("stake", 100)},
 				numOfEpochs: 30,
 				distrInfo:   defaultDistrInfo,
 			},
@@ -130,7 +130,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		{
 			name: "single-coin stream, initial distribution",
 			stream: stream{
-				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				coins:       sdk.Coins{math.NewInt64Coin("stake", 100)},
 				numOfEpochs: 30,
 				distrInfo:   defaultDistrInfo,
 			},
@@ -149,7 +149,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		{
 			name: "single-coin stream, intermediate distribution",
 			stream: stream{
-				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				coins:       sdk.Coins{math.NewInt64Coin("stake", 100)},
 				numOfEpochs: 30,
 				distrInfo:   defaultDistrInfo,
 			},
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		{
 			name: "single-coin stream, initial and intermediate distributions",
 			stream: stream{
-				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				coins:       sdk.Coins{math.NewInt64Coin("stake", 100)},
 				numOfEpochs: 30,
 				distrInfo:   defaultDistrInfo,
 			},
@@ -193,7 +193,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		{
 			name: "stream distr info doesn't play any role",
 			stream: stream{
-				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				coins:       sdk.Coins{math.NewInt64Coin("stake", 100)},
 				numOfEpochs: 30,
 				// Random unrealistic values
 				distrInfo: []types.DistrRecord{
@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// We must create at least one lock, otherwise distribution won't work
 			lockOwner := apptesting.CreateRandomAccounts(1)[0]
-			suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
+			suite.LockTokens(lockOwner, sdk.NewCoins(math.NewInt64Coin("stake", 100)))
 
 			// Cast an initial vote
 			if tc.hasInitialDistr {
@@ -318,7 +318,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	suite.Require().Equal(coins, sdk.Coins{})
 
 	// setup a stream
-	streamCoins := sdk.Coins{sdk.NewInt64Coin("stake", 600000)}
+	streamCoins := sdk.Coins{math.NewInt64Coin("stake", 600000)}
 	_, _ = suite.CreateDefaultStream(streamCoins)
 
 	// check that the sum of coins yet to be distributed is equal to the newly created streamCoins
@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	// create a new stream
 	// check that the sum of coins yet to be distributed is equal to the stream1 and stream2 coins combined
 
-	streamCoins2 := sdk.Coins{sdk.NewInt64Coin("udym", 300000)}
+	streamCoins2 := sdk.Coins{math.NewInt64Coin("udym", 300000)}
 	_, _ = suite.CreateDefaultStream(streamCoins2)
 
 	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
@@ -340,7 +340,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	// distribute coins to stakers
 	distrCoins := suite.DistributeAllRewards()
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 20000), sdk.NewInt64Coin("udym", 10000)}, distrCoins)
+	suite.Require().Equal(sdk.Coins{math.NewInt64Coin("stake", 20000), math.NewInt64Coin("udym", 10000)}, distrCoins)
 
 	// check stream changes after distribution
 	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)

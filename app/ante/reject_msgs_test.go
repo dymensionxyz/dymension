@@ -73,7 +73,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				&banktypes.MsgSend{
 					FromAddress: "cosmos1...",
 					ToAddress:   "cosmos1...",
-					Amount:      sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+					Amount:      sdk.NewCoins(math.NewInt64Coin("stake", 1000)),
 				},
 			},
 			expectPass:    false,
@@ -98,7 +98,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 						packMsg(suite.T(), &banktypes.MsgSend{
 							FromAddress: "cosmos1...",
 							ToAddress:   "cosmos1...",
-							Amount:      sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+							Amount:      sdk.NewCoins(math.NewInt64Coin("stake", 1000)),
 						}),
 					},
 				},
@@ -129,10 +129,10 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 						packMsg(suite.T(), &banktypes.MsgSend{
 							FromAddress: "cosmos1...",
 							ToAddress:   "cosmos1...",
-							Amount:      sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+							Amount:      sdk.NewCoins(math.NewInt64Coin("stake", 1000)),
 						}),
 					},
-					InitialDeposit: sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+					InitialDeposit: sdk.NewCoins(math.NewInt64Coin("stake", 1000)),
 					Proposer:       "cosmos1...",
 				},
 			},

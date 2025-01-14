@@ -145,7 +145,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_DymName() {
 		},
 		{
 			name:            "fail - not allowed denom",
-			minPrice:        sdk.NewInt64Coin("u"+s.priceDenom(), 100),
+			minPrice:        math.NewInt64Coin("u"+s.priceDenom(), 100),
 			wantErr:         true,
 			wantErrContains: fmt.Sprintf("the only denom allowed as price: %s", s.priceDenom()),
 		},
@@ -435,7 +435,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceSellOrder_Alias() {
 		},
 		{
 			name:            "fail - not allowed denom",
-			minPrice:        sdk.NewInt64Coin("u"+denom, 100),
+			minPrice:        math.NewInt64Coin("u"+denom, 100),
 			wantErr:         true,
 			wantErrContains: fmt.Sprintf("the only denom allowed as price: %s", denom),
 		},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
@@ -24,7 +25,7 @@ var (
 )
 
 // NewParams creates a new Params instance
-func NewParams(noticePeriod time.Duration, livenessSlashMul sdk.Dec, livenessSlashAbs sdk.Coin,
+func NewParams(noticePeriod time.Duration, livenessSlashMul math.LegacyDec, livenessSlashAbs sdk.Coin,
 	dishonorStateUpdate uint64,
 	dishonorLiveness uint64,
 	dishonorKickThreshold uint64,

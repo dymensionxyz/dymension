@@ -9,7 +9,7 @@ import (
 
 // TestDistributeToRollappGauges tests distributing rewards to rollapp gauges.
 func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
-	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
+	oneKRewardCoins := sdk.Coins{math.NewInt64Coin(defaultRewardDenom, 1000)}
 	addrs := apptesting.CreateRandomAccounts(1)
 
 	testCases := []struct {
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 // 3. Distributes rewards to the gauge with the final owner
 // 4. Validates balances of both initial and final owners
 func (suite *KeeperTestSuite) TestDistributeToRollappGaugesAfterOwnerChange() {
-	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
+	oneKRewardCoins := sdk.Coins{math.NewInt64Coin(defaultRewardDenom, 1000)}
 	addrs := apptesting.CreateRandomAccounts(2)
 
 	testCases := []struct {

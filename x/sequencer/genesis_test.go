@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -44,7 +45,7 @@ func TestInitGenesis(t *testing.T) {
 				Address:      "rollapp1_addr2",
 				RollappId:    "rollapp1",
 				Status:       types.Bonded,
-				Tokens:       sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
+				Tokens:       sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(100))),
 				DymintPubKey: anyPk(ed25519.GenPrivKey().PubKey()),
 			},
 
