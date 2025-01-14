@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"

@@ -9,9 +9,9 @@ import (
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	usim "github.com/cosmos/cosmos-sdk/testutil/sims"
 
+	"cosmossdk.io/log"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"

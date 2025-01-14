@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cometbftlog "github.com/cometbft/cometbft/libs/log"
+	cometbftlog "cosmossdk.io/log"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	errorsmod "cosmossdk.io/errors"

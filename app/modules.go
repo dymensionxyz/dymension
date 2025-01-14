@@ -1,4 +1,4 @@
-package keepers
+package app
 
 import (
 	"cosmossdk.io/x/evidence"
@@ -52,6 +52,7 @@ import (
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	keepers "github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -167,7 +168,8 @@ var ModuleBasics = module.NewBasicManager(
 	txfees.AppModuleBasic{},
 )
 
-func (a *AppKeepers) SetupModules(
+func SetupModules(
+	a *keepers.AppKeepers,
 	appCodec codec.Codec,
 	bApp *baseapp.BaseApp,
 	encodingConfig appparams.EncodingConfig,
@@ -225,7 +227,7 @@ func (a *AppKeepers) SetupModules(
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
+func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true

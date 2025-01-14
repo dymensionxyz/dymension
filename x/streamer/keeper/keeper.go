@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

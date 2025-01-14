@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 
 	storetypes "cosmossdk.io/store"

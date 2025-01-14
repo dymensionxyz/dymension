@@ -17,8 +17,6 @@ import (
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/gov"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
@@ -26,10 +24,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
 	cometbftos "github.com/cometbft/cometbft/libs/os"
 
 	"github.com/gorilla/mux"
@@ -199,20 +198,24 @@ func New(
 	// must be passed by reference here.
 	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
 
-	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
-	// non-dependant module elements, such as codec registration and genesis verification.
-	// By default it is composed of all the module from the module manager.
-	// Additionally, app module basics can be overwritten by passing them as argument.
-	app.BasicModuleManager = module.NewBasicManagerFromManager(
-		app.ModuleManager,
-		map[string]module.AppModuleBasic{
-			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-			govtypes.ModuleName: gov.NewAppModuleBasic(
-				[]govclient.ProposalHandler{
-					paramsclient.ProposalHandler,
-				},
-			),
-		})
+	app.BasicModuleManager = ModuleBasics
+
+	/*
+		// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
+		// non-dependant module elements, such as codec registration and genesis verification.
+		// By default it is composed of all the module from the module manager.
+		// Additionally, app module basics can be overwritten by passing them as argument.
+		app.BasicModuleManager = module.NewBasicManagerFromManager(
+			app.ModuleManager,
+			map[string]module.AppModuleBasic{
+				genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				govtypes.ModuleName: gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{
+						paramsclient.ProposalHandler,
+					},
+				),
+			})
+	*/
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 

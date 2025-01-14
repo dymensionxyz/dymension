@@ -2,7 +2,7 @@ package bridgingfee
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
