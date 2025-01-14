@@ -447,7 +447,7 @@ func (k Keeper) InitializeAllLocks(ctx sdk.Context, locks []types.PeriodLock) er
 			return err
 		}
 
-		// Add to the accumlation store cache
+		// Add to the accumulation store cache
 		for _, coin := range lock.Coins {
 			// update or create the new map from duration -> Int for this denom.
 			var curDurationMap map[time.Duration]sdk.Int
