@@ -293,7 +293,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
 	s.Equal(uint64(header.Header.Height), s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
-	// There shouldnt be any optimistic updates as the roots were verified
+	// There shouldn't be any optimistic updates as the roots were verified
 	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
 	s.Error(err)
 }

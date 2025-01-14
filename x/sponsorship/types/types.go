@@ -70,7 +70,7 @@ func (g GaugeWeight) Validate() error {
 	return nil
 }
 
-// ToDistribution multiplies each gauge weight by the voting power to get its absolut voting power.
+// ToDistribution multiplies each gauge weight by the voting power to get its absolute voting power.
 func (v Vote) ToDistribution() Distribution {
 	return ApplyWeights(v.VotingPower, v.Weights)
 }

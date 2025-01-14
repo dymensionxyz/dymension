@@ -423,7 +423,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - delayedack
   /dymensionxyz/dymension/delayedack/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -662,7 +662,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - delayedack
   /dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}:
     get:
       summary: Queries a list of pending RollappPacket items by rollappID and receiver.
@@ -1065,7 +1065,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - delayedack
   /dymensionxyz/dymension/eibc/demand_order/{id}:
     get:
       summary: Queries a Demand Order by id.
@@ -1168,8 +1168,8 @@ paths:
                     type: string
                     format: uint64
                     description: >-
-                      creation_height is the height of the block when order was
-                      created.
+                      creation_height is the height of the block on the hub when
+                      order was created.
             description: >-
               QueryGetDemandOrderResponse is the response type for the
               Query/GetDemandOrder RPC method.
@@ -1374,7 +1374,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - eibc
   /dymensionxyz/dymension/eibc/demand_orders/{status}:
     get:
       summary: Queries a list of demand orders by status.
@@ -1480,8 +1480,8 @@ paths:
                       type: string
                       format: uint64
                       description: >-
-                        creation_height is the height of the block when order
-                        was created.
+                        creation_height is the height of the block on the hub
+                        when order was created.
                 title: A list of demand orders with the given status
               pagination:
                 type: object
@@ -1821,7 +1821,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - eibc
   /dymensionxyz/dymension/eibc/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -2040,7 +2040,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - eibc
   /dymensionxyz/dymension/dymns/alias/{alias}:
     get:
       summary: >-
@@ -2103,7 +2103,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/aliases:
     get:
       summary: Aliases queries all the aliases for a chain id or all chains.
@@ -2155,7 +2155,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_order/{id}:
     get:
       summary: BuyOrderById queries a Buy-Order by its id.
@@ -2266,7 +2266,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_by_alias/{alias}:
     get:
       summary: BuyOrdersByAlias queries all the buy orders of an Alias.
@@ -2393,7 +2393,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_by_dym_name/{name}:
     get:
       summary: BuyOrdersByDymName queries all the buy orders of a Dym-Name.
@@ -2520,7 +2520,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_of_aliases_linked_to_rollapp/{rollapp_id}:
     get:
       summary: >-
@@ -2653,7 +2653,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_of_dym_names_owned_by_account/{account}:
     get:
       summary: >-
@@ -2784,7 +2784,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/buy_orders_placed_by_account/{account}:
     get:
       summary: >-
@@ -2913,7 +2913,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/dym_name/{dym_name}:
     get:
       summary: DymName queries a Dym-Name by its name.
@@ -3041,7 +3041,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/estimate_register_alias/{alias}:
     get:
       summary: EstimateRegisterAlias estimates the cost to register an Alias.
@@ -3104,7 +3104,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}:
     get:
       summary: EstimateRegisterName estimates the cost to register a Dym-Name.
@@ -3190,7 +3190,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/owned_by/{owner}:
     get:
       summary: DymNamesOwnedByAccount queries the Dym-Names owned by an account.
@@ -3335,7 +3335,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/params:
     get:
       summary: Params queries the parameters of the module.
@@ -3515,7 +3515,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/resolve:
     get:
       summary: >-
@@ -3590,7 +3590,7 @@ paths:
             type: string
           collectionFormat: multi
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/reverse_resolve:
     get:
       summary: >-
@@ -3678,7 +3678,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/sell_order/{asset_id}:
     get:
       summary: SellOrder queries the active SO of a Dym-Name/Alias.
@@ -3803,7 +3803,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/dymns/translate_alias/{alias_or_chain_id}:
     get:
       summary: >-
@@ -3856,7 +3856,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - dymns
   /dymensionxyz/dymension/rollapp/eip155/{eip155}:
     get:
       summary: Queries a Rollapp by index.
@@ -4280,7 +4280,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/latest_height/{rollappId}:
     get:
       summary: Queries a LatestHeight by rollapp-id.
@@ -4326,7 +4326,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}:
     get:
       summary: Queries a LatestStateIndex by rollapp-id.
@@ -4403,7 +4403,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/obsolete_drs_versions:
     get:
       summary: Queries a list of obsolete DRS versions.
@@ -4442,7 +4442,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -4534,7 +4534,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/registered_denoms:
     get:
       summary: Queries a list of registered denoms for the rollapp.
@@ -4661,7 +4661,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/rollapp:
     get:
       summary: Queries a list of Rollapp items.
@@ -5185,7 +5185,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/rollapp/{rollappId}:
     get:
       summary: Queries a Rollapp by index.
@@ -5608,7 +5608,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}:
     get:
       summary: Queries a StateInfo by index.
@@ -5784,7 +5784,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - rollapp
   /dymensionxyz/dymension/sequencer/next_proposer/{rollappId}:
     get:
       summary: Queries the next proposer by rollappId.
@@ -6008,7 +6008,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -6023,24 +6023,6 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  kick_threshold:
-                    title: >-
-                      amt where the active sequencer can be kicked if he has
-                      less or equal bond
-                    type: object
-                    properties:
-                      denom:
-                        type: string
-                      amount:
-                        type: string
-                    description: >-
-                      Coin defines a token with a denomination and an amount.
-
-
-                      NOTE: The amount field is an Int which implements the
-                      custom method
-
-                      signatures required by gogoproto.
                   notice_period:
                     type: string
                     description: >-
@@ -6074,6 +6056,24 @@ paths:
                       custom method
 
                       signatures required by gogoproto.
+                  dishonor_liveness:
+                    type: string
+                    format: uint64
+                    title: >-
+                      how much dishonor a sequencer gains on liveness events
+                      (+dishonor)
+                  dishonor_state_update:
+                    type: string
+                    format: uint64
+                    title: >-
+                      how much honor a sequencer gains on state updates
+                      (-dishonor)
+                  dishonor_kick_threshold:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the minimum dishonor at which a sequencer can be kicked
+                      (<=)
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -6272,7 +6272,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/proposers:
     get:
       summary: Queries a list of proposers.
@@ -6559,6 +6559,17 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
+                        fee_denom:
+                          title: fee_denom is the base denom for fees
+                          type: object
+                          properties:
+                            display:
+                              type: string
+                            base:
+                              type: string
+                            exponent:
+                              type: integer
+                              format: int64
                     proposer:
                       type: boolean
                     status:
@@ -6618,6 +6629,14 @@ paths:
                       description: >-
                         WhitelistedRelayers is an array of the whitelisted
                         relayer addresses. Addresses are bech32-encoded strings.
+                    dishonor:
+                      type: string
+                      format: uint64
+                      title: >-
+                        how badly behaved sequencer is, can incur penalties
+                        (kicking) when high
+
+                        0 is good/default, more is worse
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -6905,7 +6924,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/proposers/{rollappId}:
     get:
       summary: Queries the current proposer by rollappId.
@@ -7119,7 +7138,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}:
     get:
       summary: Queries a Sequencer by address.
@@ -7402,6 +7421,17 @@ paths:
                       gas_price:
                         type: string
                         title: gas_price defines the value for each gas unit
+                      fee_denom:
+                        title: fee_denom is the base denom for fees
+                        type: object
+                        properties:
+                          display:
+                            type: string
+                          base:
+                            type: string
+                          exponent:
+                            type: integer
+                            format: int64
                   proposer:
                     type: boolean
                   status:
@@ -7458,6 +7488,14 @@ paths:
                     description: >-
                       WhitelistedRelayers is an array of the whitelisted relayer
                       addresses. Addresses are bech32-encoded strings.
+                  dishonor:
+                    type: string
+                    format: uint64
+                    title: >-
+                      how badly behaved sequencer is, can incur penalties
+                      (kicking) when high
+
+                      0 is good/default, more is worse
                 description: >-
                   Sequencer defines a sequencer identified by its' address
                   (sequencerAddress).
@@ -7664,7 +7702,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencers:
     get:
       summary: Queries a list of Sequencer items.
@@ -7951,6 +7989,17 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
+                        fee_denom:
+                          title: fee_denom is the base denom for fees
+                          type: object
+                          properties:
+                            display:
+                              type: string
+                            base:
+                              type: string
+                            exponent:
+                              type: integer
+                              format: int64
                     proposer:
                       type: boolean
                     status:
@@ -8010,6 +8059,14 @@ paths:
                       description: >-
                         WhitelistedRelayers is an array of the whitelisted
                         relayer addresses. Addresses are bech32-encoded strings.
+                    dishonor:
+                      type: string
+                      format: uint64
+                      title: >-
+                        how badly behaved sequencer is, can incur penalties
+                        (kicking) when high
+
+                        0 is good/default, more is worse
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -8296,7 +8353,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}:
     get:
       summary: Queries a SequencersByRollapp by rollappId.
@@ -8583,6 +8640,17 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
+                        fee_denom:
+                          title: fee_denom is the base denom for fees
+                          type: object
+                          properties:
+                            display:
+                              type: string
+                            base:
+                              type: string
+                            exponent:
+                              type: integer
+                              format: int64
                     proposer:
                       type: boolean
                     status:
@@ -8642,6 +8710,14 @@ paths:
                       description: >-
                         WhitelistedRelayers is an array of the whitelisted
                         relayer addresses. Addresses are bech32-encoded strings.
+                    dishonor:
+                      type: string
+                      format: uint64
+                      title: >-
+                        how badly behaved sequencer is, can incur penalties
+                        (kicking) when high
+
+                        0 is good/default, more is worse
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -8932,7 +9008,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}:
     get:
       summary: Queries a SequencersByRollappByStatus
@@ -9219,6 +9295,17 @@ paths:
                         gas_price:
                           type: string
                           title: gas_price defines the value for each gas unit
+                        fee_denom:
+                          title: fee_denom is the base denom for fees
+                          type: object
+                          properties:
+                            display:
+                              type: string
+                            base:
+                              type: string
+                            exponent:
+                              type: integer
+                              format: int64
                     proposer:
                       type: boolean
                     status:
@@ -9278,6 +9365,14 @@ paths:
                       description: >-
                         WhitelistedRelayers is an array of the whitelisted
                         relayer addresses. Addresses are bech32-encoded strings.
+                    dishonor:
+                      type: string
+                      format: uint64
+                      title: >-
+                        how badly behaved sequencer is, can incur penalties
+                        (kicking) when high
+
+                        0 is good/default, more is worse
                   description: >-
                     Sequencer defines a sequencer identified by its' address
                     (sequencerAddress).
@@ -9575,7 +9670,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - sequencer
   /dymensionxyz/dymension/streamer/active_streams:
     get:
       summary: ActiveStreams returns active streams
@@ -9826,7 +9921,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/module_to_distribute_coins:
     get:
       summary: ModuleToDistributeCoins returns coins that are going to be distributed
@@ -9878,7 +9973,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/stream_by_id/{id}:
     get:
       summary: StreamByID returns streams by their respective ID
@@ -10045,7 +10140,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/streams:
     get:
       summary: Streams returns both upcoming and active streams
@@ -10296,7 +10391,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - streamer
   /dymensionxyz/dymension/streamer/upcoming_streams:
     get:
       summary: Returns scheduled streams that have not yet occurred
@@ -10547,7 +10642,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - streamer
   /ethermint/evm/v1/account/{address}:
     get:
       summary: Account queries an Ethereum account.
@@ -10772,7 +10867,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/balances/{address}:
     get:
       summary: |-
@@ -10992,7 +11087,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/base_fee:
     get:
       summary: >-
@@ -11206,7 +11301,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/codes/{address}:
     get:
       summary: Code queries the balance of all coins for a single account.
@@ -11425,7 +11520,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/cosmos_account/{address}:
     get:
       summary: CosmosAccount queries an Ethereum account's Cosmos Address.
@@ -11653,7 +11748,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/estimate_gas:
     get:
       summary: EstimateGas implements the `eth_estimateGas` rpc api
@@ -11891,7 +11986,7 @@ paths:
           type: string
           format: int64
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/eth_call:
     get:
       summary: EthCall implements the `eth_call` rpc api
@@ -12222,7 +12317,7 @@ paths:
           type: string
           format: int64
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/params:
     get:
       summary: Params queries the parameters of x/evm module.
@@ -12570,7 +12665,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/storage/{address}/{key}:
     get:
       summary: Storage queries the balance of all coins for a single account.
@@ -12797,7 +12892,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/trace_block:
     get:
       summary: >-
@@ -13229,7 +13324,7 @@ paths:
           type: string
           format: int64
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/trace_tx:
     get:
       summary: TraceTx implements the `debug_traceTransaction` rpc api
@@ -13741,7 +13836,7 @@ paths:
           type: string
           format: int64
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/validator_account/{cons_address}:
     get:
       summary: >-
@@ -13973,7 +14068,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/virtual_frontier_bank_contract/by_denom/{min_denom}:
     get:
       summary: >-
@@ -14206,7 +14301,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/virtual_frontier_bank_contracts:
     get:
       summary: ListVirtualFrontierBankContracts returns the list of bank contract
@@ -14511,7 +14606,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/virtual_frontier_contracts:
     get:
       summary: >-
@@ -14802,7 +14897,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - evm
   /ethermint/evm/v1/virtual_frontier_contracts/{address}:
     get:
       summary: >-
@@ -15020,7 +15115,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - evm
   /ethermint/feemarket/v1/base_fee:
     get:
       summary: BaseFee queries the base fee of the parent block of the current block.
@@ -15058,7 +15153,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - feemarket
   /ethermint/feemarket/v1/block_gas:
     get:
       summary: BlockGas queries the gas used at a given block height
@@ -15097,7 +15192,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - feemarket
   /ethermint/feemarket/v1/params:
     get:
       summary: Params queries the parameters of x/feemarket module.
@@ -15181,7 +15276,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - feemarket
   /dymensionxyz/dymension/gamm/v2/pools/{pool_id}/prices:
     get:
       summary: |-
@@ -15411,7 +15506,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/filtered_pools:
     get:
       summary: |-
@@ -15888,7 +15983,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/num_pools:
     get:
       summary: 'Deprecated: please use the alternative in x/poolmanager'
@@ -16097,7 +16192,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/params:
     get:
       summary: Params returns lockup params.
@@ -16334,7 +16429,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools:
     get:
       operationId: Pools
@@ -16797,7 +16892,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}:
     get:
       summary: Per Pool gRPC Endpoints
@@ -17185,7 +17280,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}/exit_swap_share_amount_in:
     get:
       operationId: CalcExitPoolCoinsFromShares
@@ -17417,7 +17512,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}/join_swap_exact_in:
     get:
       operationId: CalcJoinPoolShares
@@ -17647,7 +17742,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}/params:
     get:
       operationId: PoolParams
@@ -18034,7 +18129,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}/prices:
     get:
       summary: |-
@@ -18264,7 +18359,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}/total_pool_liquidity:
     get:
       operationId: TotalPoolLiquidity
@@ -18492,7 +18587,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/pools/{pool_id}/total_shares:
     get:
       operationId: TotalShares
@@ -18718,7 +18813,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/total_liquidity:
     get:
       operationId: TotalLiquidity
@@ -18940,7 +19035,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/{pool_id}/estimate/swap_exact_amount_in:
     get:
       operationId: EstimateSwapExactAmountIn
@@ -19161,7 +19256,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/gamm/v1beta1/{pool_id}/estimate/swap_exact_amount_out:
     get:
       operationId: EstimateSwapExactAmountOut
@@ -19382,7 +19477,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - gamm
   /dymensionxyz/dymension/epochs/v1beta1/current_epoch:
     get:
       summary: CurrentEpoch provide current epoch of specified identifier
@@ -19424,7 +19519,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - epochs
   /dymensionxyz/dymension/epochs/v1beta1/epochs:
     get:
       summary: EpochInfos provide running epochInfos
@@ -19566,7 +19661,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - epochs
   /dymensionxyz/dymension/incentives/v1beta1/active_gauges:
     get:
       summary: ActiveGauges returns active gauges
@@ -19842,7 +19937,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/active_gauges_per_denom:
     get:
       summary: ActiveGaugesPerDenom returns active gauges by denom
@@ -20123,7 +20218,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/gauge_by_id/{id}:
     get:
       summary: GaugeByID returns gauges by their respective ID
@@ -20316,7 +20411,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/gauges:
     get:
       summary: Gauges returns both upcoming and active gauges
@@ -20592,7 +20687,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/lockable_durations:
     get:
       summary: >-
@@ -20637,7 +20732,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/module_to_distribute_coins:
     get:
       summary: ModuleToDistributeCoins returns coins that are going to be distributed
@@ -20689,7 +20784,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/params:
     get:
       operationId: IncentivesParams
@@ -20757,7 +20852,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/rollapp_gauges:
     get:
       summary: RollappGauges returns both upcoming and active rollapp gauges
@@ -21033,7 +21128,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges:
     get:
       summary: Returns scheduled gauges that have not yet occured
@@ -21309,7 +21404,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges_per_denom:
     get:
       summary: >-
@@ -21594,7 +21689,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - incentives
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_coins/{owner}:
     get:
       summary: Return a locked coins that can't be withdrawn
@@ -21650,7 +21745,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_duration/{owner}:
     get:
       summary: Returns account locked records with a specific duration
@@ -21766,7 +21861,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_longer_duration/{owner}:
     get:
       summary: Returns account locked records with longer duration
@@ -21882,7 +21977,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_longer_duration_denom/{owner}:
     get:
       summary: Returns account's locked records for a denom with longer duration
@@ -22002,7 +22097,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_longer_duration_not_unlocking_only/{owner}:
     get:
       summary: |-
@@ -22120,7 +22215,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_pasttime/{owner}:
     get:
       summary: Returns locked records of an account with unlock time beyond timestamp
@@ -22237,7 +22332,7 @@ paths:
           type: string
           format: date-time
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_pasttime_denom/{owner}:
     get:
       summary: Returns lock records by address, timestamp, denom
@@ -22358,7 +22453,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_locked_pasttime_not_unlocking_only/{owner}:
     get:
       summary: |-
@@ -22477,7 +22572,7 @@ paths:
           type: string
           format: date-time
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_unlockable_coins/{owner}:
     get:
       summary: Returns unlockable coins which are not withdrawn yet
@@ -22533,7 +22628,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_unlocked_before_time/{owner}:
     get:
       summary: Returns unlocked records with unlock time before timestamp
@@ -22650,7 +22745,7 @@ paths:
           type: string
           format: date-time
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/account_unlocking_coins/{owner}:
     get:
       summary: Returns unlocking coins
@@ -22706,7 +22801,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/locked_by_id/{lock_id}:
     get:
       summary: Returns lock record by id
@@ -22816,7 +22911,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/locked_denom:
     get:
       summary: Returns total locked per denom with longer past given time
@@ -22861,7 +22956,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/module_balance:
     get:
       summary: Return full balance of the module
@@ -22912,7 +23007,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/module_locked_amount:
     get:
       summary: Return locked balance of the module
@@ -22963,7 +23058,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/next_lock_id:
     get:
       summary: Returns next lock ID
@@ -23000,7 +23095,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/lockup/v1beta1/params:
     get:
       summary: Params returns lockup params.
@@ -23041,7 +23136,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - lockup
   /dymensionxyz/dymension/txfees/v1beta1/base_denom:
     get:
       summary: Returns a list of all base denom tokens and their corresponding pools.
@@ -23077,7 +23172,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - txfees
   /dymensionxyz/dymension/txfees/v1beta1/denom_pool_id/{denom}:
     get:
       summary: Returns the poolID for a specified denom input.
@@ -23119,7 +23214,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - txfees
   /dymensionxyz/dymension/txfees/v1beta1/fee_tokens:
     get:
       summary: >-
@@ -23180,7 +23275,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - txfees
   /dymensionxyz/dymension/txfees/v1beta1/params:
     get:
       summary: Params returns params.
@@ -23225,7 +23320,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - txfees
   /dymensionxyz/dymension/txfees/v1beta1/spot_price_by_denom:
     get:
       summary: DenomSpotPrice returns all spot prices by each registered token denom.
@@ -23274,7 +23369,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - txfees
   /ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address:
     get:
       summary: >-
@@ -23327,7 +23422,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - transfer
   /ibc/apps/transfer/v1/denom_hashes/{trace}:
     get:
       summary: DenomHash queries a denomination hash information.
@@ -23375,7 +23470,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - transfer
   /ibc/apps/transfer/v1/denom_traces:
     get:
       summary: DenomTraces queries all denomination traces.
@@ -23511,7 +23606,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - transfer
   /ibc/apps/transfer/v1/denom_traces/{hash}:
     get:
       summary: DenomTrace queries a denomination trace information.
@@ -23576,7 +23671,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - transfer
   /ibc/apps/transfer/v1/denoms/{denom}/total_escrow:
     get:
       summary: >-
@@ -23635,7 +23730,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - transfer
   /ibc/apps/transfer/v1/params:
     get:
       summary: Params queries all parameters of the ibc-transfer module.
@@ -23690,7 +23785,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - transfer
   /ibc/core/client/v1/client_states:
     get:
       summary: ClientStates queries all the IBC light clients of a chain.
@@ -24184,7 +24279,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/client_states/{client_id}:
     get:
       summary: ClientState queries an IBC light client.
@@ -24614,7 +24709,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/client_status/{client_id}:
     get:
       summary: Status queries the status of an IBC client.
@@ -24833,7 +24928,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/consensus_states/{client_id}:
     get:
       summary: |-
@@ -25358,7 +25453,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/consensus_states/{client_id}/heights:
     get:
       summary: >-
@@ -25698,7 +25793,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}:
     get:
       summary: >-
@@ -26158,7 +26253,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/params:
     get:
       summary: ClientParams queries all parameters of the ibc client submodule.
@@ -26386,7 +26481,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/upgraded_client_states:
     get:
       summary: UpgradedClientState queries an Upgraded IBC light client.
@@ -26772,7 +26867,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - client
   /ibc/core/client/v1/upgraded_consensus_states:
     get:
       summary: UpgradedConsensusState queries an Upgraded IBC consensus state.
@@ -27158,7 +27253,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - client
   /ibc/core/connection/v1/client_connections/{client_id}:
     get:
       summary: |-
@@ -27413,7 +27508,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - connection
   /ibc/core/connection/v1/connections:
     get:
       summary: Connections queries all the IBC connections of a chain.
@@ -27826,7 +27921,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - connection
   /ibc/core/connection/v1/connections/{connection_id}:
     get:
       summary: Connection queries an IBC connection end.
@@ -28172,7 +28267,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - connection
   /ibc/core/connection/v1/connections/{connection_id}/client_state:
     get:
       summary: |-
@@ -28615,7 +28710,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - connection
   /ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}:
     get:
       summary: |-
@@ -29055,7 +29150,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - connection
   /ibc/core/connection/v1/params:
     get:
       summary: ConnectionParams queries all parameters of the ibc connection submodule.
@@ -29280,7 +29375,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - connection
   /ibc/core/channel/v1/channels:
     get:
       summary: Channels queries all the IBC channels of a chain.
@@ -29684,7 +29779,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}:
     get:
       summary: Channel queries an IBC Channel.
@@ -30016,7 +30111,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state:
     get:
       summary: >-
@@ -30466,7 +30561,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}:
     get:
       summary: |-
@@ -30913,7 +31008,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence:
     get:
       summary: >-
@@ -31172,7 +31267,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements:
     get:
       summary: >-
@@ -31548,7 +31643,7 @@ paths:
             format: uint64
           collectionFormat: multi
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}:
     get:
       summary: PacketAcknowledgement queries a stored packet acknowledgement hash.
@@ -31815,7 +31910,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments:
     get:
       summary: |-
@@ -32180,7 +32275,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks:
     get:
       summary: >-
@@ -32449,7 +32544,7 @@ paths:
           collectionFormat: csv
           minItems: 1
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets:
     get:
       summary: >-
@@ -32718,7 +32813,7 @@ paths:
           collectionFormat: csv
           minItems: 1
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}:
     get:
       summary: PacketCommitment queries a stored packet commitment hash.
@@ -32986,7 +33081,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}:
     get:
       summary: >-
@@ -33257,7 +33352,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - channel
   /ibc/core/channel/v1/connections/{connection}/channels:
     get:
       summary: |-
@@ -33668,7 +33763,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - channel
   /cosmos/auth/v1beta1/account_info/{address}:
     get:
       summary: AccountInfo queries account info which is common to all account types.
@@ -34077,7 +34172,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/accounts:
     get:
       summary: Accounts returns all the existing accounts.
@@ -34556,7 +34651,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/accounts/{address}:
     get:
       summary: Account returns account details based on address.
@@ -34947,7 +35042,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/address_by_id/{id}:
     get:
       summary: AccountAddressByID returns account address based on account number.
@@ -35181,7 +35276,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/bech32:
     get:
       summary: Bech32Prefix queries bech32Prefix
@@ -35396,7 +35491,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/bech32/{address_bytes}:
     get:
       summary: AddressBytesToString converts Account Address bytes to string
@@ -35617,7 +35712,7 @@ paths:
           type: string
           format: byte
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/bech32/{address_string}:
     get:
       summary: AddressStringToBytes converts Address string to bytes
@@ -35838,7 +35933,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/module_accounts:
     get:
       summary: ModuleAccounts returns all the existing module accounts.
@@ -36233,7 +36328,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/module_accounts/{name}:
     get:
       summary: ModuleAccountByName returns the module account info by module name
@@ -36623,7 +36718,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - auth
   /cosmos/auth/v1beta1/params:
     get:
       summary: Params queries all parameters.
@@ -36851,7 +36946,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - auth
   /cosmos/authz/v1beta1/grants:
     get:
       summary: Returns list of `Authorization`, granted to the grantee by the granter.
@@ -37355,7 +37450,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - authz
   /cosmos/authz/v1beta1/grants/grantee/{grantee}:
     get:
       summary: GranteeGrants returns a list of `GrantAuthorization` by grantee.
@@ -37845,7 +37940,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - authz
   /cosmos/authz/v1beta1/grants/granter/{granter}:
     get:
       summary: GranterGrants returns list of `GrantAuthorization`, granted by granter.
@@ -38335,7 +38430,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - authz
   /cosmos/bank/v1beta1/balances/{address}:
     get:
       summary: AllBalances queries the balance of all coins for a single account.
@@ -38478,7 +38573,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/balances/{address}/by_denom:
     get:
       summary: Balance queries the balance of a single coin for a single account.
@@ -38541,7 +38636,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/denom_owners/{denom}:
     get:
       summary: >-
@@ -38712,7 +38807,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/denoms_metadata:
     get:
       summary: |-
@@ -38923,7 +39018,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/denoms_metadata/{denom}:
     get:
       summary: DenomsMetadata queries the client metadata of a given coin denomination.
@@ -39057,7 +39152,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/params:
     get:
       summary: Params queries the parameters of x/bank module.
@@ -39126,7 +39221,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/send_enabled:
     get:
       summary: SendEnabled queries for SendEnabled entries.
@@ -39281,7 +39376,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/spendable_balances/{address}:
     get:
       summary: >-
@@ -39434,7 +39529,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/spendable_balances/{address}/by_denom:
     get:
       summary: >-
@@ -39514,7 +39609,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/supply:
     get:
       summary: TotalSupply queries the total supply of all coins.
@@ -39655,7 +39750,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - bank
   /cosmos/bank/v1beta1/supply/by_denom:
     get:
       summary: SupplyOf queries the supply of a single coin.
@@ -39718,7 +39813,7 @@ paths:
           required: false
           type: string
       tags:
-        - Query
+        - bank
   /cosmos/distribution/v1beta1/community_pool:
     get:
       summary: CommunityPool queries the community pool coins.
@@ -39776,7 +39871,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards:
     get:
       summary: |-
@@ -39869,7 +39964,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}:
     get:
       summary: DelegationRewards queries the total rewards accrued by a delegation.
@@ -39936,7 +40031,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/delegators/{delegator_address}/validators:
     get:
       summary: DelegatorValidators queries the validators of a delegator.
@@ -39986,7 +40081,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/delegators/{delegator_address}/withdraw_address:
     get:
       summary: DelegatorWithdrawAddress queries withdraw address of a delegator.
@@ -40032,7 +40127,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/params:
     get:
       summary: Params queries params of the distribution module.
@@ -40091,7 +40186,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/validators/{validator_address}:
     get:
       summary: >-
@@ -40177,7 +40272,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/validators/{validator_address}/commission:
     get:
       summary: ValidatorCommission queries accumulated commission for a validator.
@@ -40242,7 +40337,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards:
     get:
       summary: ValidatorOutstandingRewards queries rewards of a validator address.
@@ -40314,7 +40409,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - distribution
   /cosmos/distribution/v1beta1/validators/{validator_address}/slashes:
     get:
       summary: ValidatorSlashes queries slash events of a validator.
@@ -40469,7 +40564,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - distribution
   /cosmos/feegrant/v1beta1/allowance/{granter}/{grantee}:
     get:
       summary: Allowance returns fee granted to the grantee by the granter.
@@ -40780,7 +40875,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - feegrant
   /cosmos/feegrant/v1beta1/allowances/{grantee}:
     get:
       summary: Allowances returns all the grants for address.
@@ -41158,7 +41253,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - feegrant
   /cosmos/feegrant/v1beta1/issued/{granter}:
     get:
       summary: AllowancesByGranter returns all the grants given by an address
@@ -41540,7 +41635,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - feegrant
   /cosmos/gov/v1beta1/params/{params_type}:
     get:
       summary: Params queries all parameters of the gov module.
@@ -41821,7 +41916,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals:
     get:
       summary: Proposals queries all proposals based on given status.
@@ -42414,7 +42509,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals/{proposal_id}:
     get:
       summary: Proposal queries proposal details based on ProposalID.
@@ -42892,7 +42987,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals/{proposal_id}/deposits:
     get:
       summary: Deposits queries all deposits of a single proposal.
@@ -43222,7 +43317,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals/{proposal_id}/deposits/{depositor}:
     get:
       summary: >-
@@ -43480,7 +43575,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals/{proposal_id}/tally:
     get:
       summary: TallyResult queries the tally of a proposal vote.
@@ -43714,7 +43809,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals/{proposal_id}/votes:
     get:
       summary: Votes queries votes of a given proposal.
@@ -44073,7 +44168,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1beta1/proposals/{proposal_id}/votes/{voter}:
     get:
       summary: Vote queries voted information based on proposalID, voterAddr.
@@ -44359,7 +44454,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/params/{params_type}:
     get:
       summary: Params queries all parameters of the gov module.
@@ -44709,7 +44804,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals:
     get:
       summary: Proposals queries all proposals based on given status.
@@ -45324,7 +45419,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals/{proposal_id}:
     get:
       summary: Proposal queries proposal details based on ProposalID.
@@ -45828,7 +45923,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals/{proposal_id}/deposits:
     get:
       summary: Deposits queries all deposits of a single proposal.
@@ -46158,7 +46253,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals/{proposal_id}/deposits/{depositor}:
     get:
       summary: >-
@@ -46416,7 +46511,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals/{proposal_id}/tally:
     get:
       summary: TallyResult queries the tally of a proposal vote.
@@ -46652,7 +46747,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals/{proposal_id}/votes:
     get:
       summary: Votes queries votes of a given proposal.
@@ -46992,7 +47087,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - gov
   /cosmos/gov/v1/proposals/{proposal_id}/votes/{voter}:
     get:
       summary: Vote queries voted information based on proposalID, voterAddr.
@@ -47259,7 +47354,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - gov
   /cosmos/slashing/v1beta1/params:
     get:
       summary: Params queries the parameters of slashing module
@@ -47316,7 +47411,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Query
+        - slashing
   /cosmos/slashing/v1beta1/signing_infos:
     get:
       summary: SigningInfos queries signing info of all validators
@@ -47493,7 +47588,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - slashing
   /cosmos/slashing/v1beta1/signing_infos/{cons_address}:
     get:
       summary: SigningInfo queries the signing info of given cons address
@@ -47591,7 +47686,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - slashing
   /cosmos/staking/v1beta1/delegations/{delegator_addr}:
     get:
       summary: >-
@@ -47941,7 +48036,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/delegators/{delegator_addr}/redelegations:
     get:
       summary: Redelegations queries redelegations of given address.
@@ -48385,7 +48480,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/delegators/{delegator_addr}/unbonding_delegations:
     get:
       summary: >-
@@ -48749,7 +48844,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/delegators/{delegator_addr}/validators:
     get:
       summary: |-
@@ -49381,7 +49476,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}:
     get:
       summary: |-
@@ -49932,7 +50027,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/historical_info/{height}:
     get:
       summary: HistoricalInfo queries the historical info for given height.
@@ -50567,7 +50662,7 @@ paths:
           type: string
           format: int64
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/params:
     get:
       summary: Parameters queries the staking parameters.
@@ -50807,7 +50902,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/pool:
     get:
       summary: Pool queries the pool info.
@@ -51022,7 +51117,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/validators:
     get:
       summary: Validators queries all validators that match the given status.
@@ -51652,7 +51747,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/validators/{validator_addr}:
     get:
       summary: Validator queries validator info for given validator address.
@@ -52196,7 +52291,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/validators/{validator_addr}/delegations:
     get:
       summary: ValidatorDelegations queries delegate info for given validator.
@@ -52541,7 +52636,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}:
     get:
       summary: Delegation queries delegate info for given validator delegator pair.
@@ -52809,7 +52904,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation:
     get:
       summary: |-
@@ -53090,7 +53185,7 @@ paths:
           required: true
           type: string
       tags:
-        - Query
+        - staking
   /cosmos/staking/v1beta1/validators/{validator_addr}/unbonding_delegations:
     get:
       summary: >-
@@ -53452,7 +53547,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Query
+        - staking
   /cosmos/tx/v1beta1/decode:
     post:
       summary: TxDecode decodes the transaction.
@@ -53674,7 +53769,7 @@ paths:
 
               Since: cosmos-sdk 0.47
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/decode/amino:
     post:
       summary: TxDecodeAmino decodes an Amino transaction from encoded bytes to JSON.
@@ -53909,7 +54004,7 @@ paths:
 
               Since: cosmos-sdk 0.47
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/encode:
     post:
       summary: TxEncode encodes the transaction.
@@ -54131,7 +54226,7 @@ paths:
           schema:
             $ref: '#/definitions/cosmos.tx.v1beta1.TxEncodeRequest'
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/encode/amino:
     post:
       summary: TxEncodeAmino encodes an Amino transaction from JSON to encoded bytes.
@@ -54366,7 +54461,7 @@ paths:
 
               Since: cosmos-sdk 0.47
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/simulate:
     post:
       summary: Simulate simulates executing a transaction for estimating gas usage.
@@ -54842,7 +54937,7 @@ paths:
           schema:
             $ref: '#/definitions/cosmos.tx.v1beta1.SimulateRequest'
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/txs:
     get:
       summary: GetTxsEvent fetches txs by event.
@@ -55143,7 +55238,7 @@ paths:
           type: string
           format: uint64
       tags:
-        - Service
+        - tx
     post:
       summary: BroadcastTx broadcast transaction.
       operationId: BroadcastTx
@@ -55712,7 +55807,7 @@ paths:
 
               RPC method.
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/txs/block/{height}:
     get:
       summary: GetBlockWithTxs fetches a block with decoded txs.
@@ -55981,7 +56076,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Service
+        - tx
   /cosmos/tx/v1beta1/txs/{hash}:
     get:
       summary: GetTx fetches a tx by hash.
@@ -56192,7 +56287,7 @@ paths:
           required: true
           type: string
       tags:
-        - Service
+        - tx
   /cosmos/base/tendermint/v1beta1/abci_query:
     get:
       summary: >-
@@ -56489,7 +56584,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Service
+        - tendermint
   /cosmos/base/tendermint/v1beta1/blocks/latest:
     get:
       summary: GetLatestBlock returns the latest block.
@@ -57803,7 +57898,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Service
+        - tendermint
   /cosmos/base/tendermint/v1beta1/blocks/{height}:
     get:
       summary: GetBlockByHeight queries block for given height.
@@ -59123,7 +59218,7 @@ paths:
           type: string
           format: int64
       tags:
-        - Service
+        - tendermint
   /cosmos/base/tendermint/v1beta1/node_info:
     get:
       summary: GetNodeInfo queries the current node info.
@@ -59401,7 +59496,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Service
+        - tendermint
   /cosmos/base/tendermint/v1beta1/syncing:
     get:
       summary: GetSyncing queries node syncing.
@@ -59612,7 +59707,7 @@ paths:
                           "value": "1.212s"
                         }
       tags:
-        - Service
+        - tendermint
   /cosmos/base/tendermint/v1beta1/validatorsets/latest:
     get:
       summary: GetLatestValidatorSet queries latest validator-set.
@@ -60096,7 +60191,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Service
+        - tendermint
   /cosmos/base/tendermint/v1beta1/validatorsets/{height}:
     get:
       summary: GetValidatorSetByHeight queries validator-set at a given height.
@@ -60585,7 +60680,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Service
+        - tendermint
 definitions:
   cosmos.base.query.v1beta1.PageRequest:
     type: object
@@ -61635,7 +61730,9 @@ definitions:
       creation_height:
         type: string
         format: uint64
-        description: creation_height is the height of the block when order was created.
+        description: >-
+          creation_height is the height of the block on the hub when order was
+          created.
   dymensionxyz.dymension.eibc.FulfillmentState:
     type: string
     enum:
@@ -61748,8 +61845,8 @@ definitions:
               type: string
               format: uint64
               description: >-
-                creation_height is the height of the block when order was
-                created.
+                creation_height is the height of the block on the hub when order
+                was created.
         title: A list of demand orders with the given status
       pagination:
         type: object
@@ -61873,7 +61970,9 @@ definitions:
           creation_height:
             type: string
             format: uint64
-            description: creation_height is the height of the block when order was created.
+            description: >-
+              creation_height is the height of the block on the hub when order
+              was created.
     description: >-
       QueryGetDemandOrderResponse is the response type for the
       Query/GetDemandOrder RPC method.
@@ -65668,6 +65767,16 @@ definitions:
       x:
         type: string
         title: twitter link
+  dymensionxyz.dymension.sequencer.DenomMetadata:
+    type: object
+    properties:
+      display:
+        type: string
+      base:
+        type: string
+      exponent:
+        type: integer
+        format: int64
   dymensionxyz.dymension.sequencer.OperatingStatus:
     type: string
     enum:
@@ -65685,21 +65794,6 @@ definitions:
   dymensionxyz.dymension.sequencer.Params:
     type: object
     properties:
-      kick_threshold:
-        title: >-
-          amt where the active sequencer can be kicked if he has less or equal
-          bond
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
       notice_period:
         type: string
         description: >-
@@ -65729,6 +65823,18 @@ definitions:
 
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
+      dishonor_liveness:
+        type: string
+        format: uint64
+        title: how much dishonor a sequencer gains on liveness events (+dishonor)
+      dishonor_state_update:
+        type: string
+        format: uint64
+        title: how much honor a sequencer gains on state updates (-dishonor)
+      dishonor_kick_threshold:
+        type: string
+        format: uint64
+        title: the minimum dishonor at which a sequencer can be kicked (<=)
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.sequencer.QueryGetNextProposerByRollappResponse:
     type: object
@@ -66006,6 +66112,17 @@ definitions:
               gas_price:
                 type: string
                 title: gas_price defines the value for each gas unit
+              fee_denom:
+                title: fee_denom is the base denom for fees
+                type: object
+                properties:
+                  display:
+                    type: string
+                  base:
+                    type: string
+                  exponent:
+                    type: integer
+                    format: int64
           proposer:
             type: boolean
           status:
@@ -66059,6 +66176,14 @@ definitions:
             description: >-
               WhitelistedRelayers is an array of the whitelisted relayer
               addresses. Addresses are bech32-encoded strings.
+          dishonor:
+            type: string
+            format: uint64
+            title: >-
+              how badly behaved sequencer is, can incur penalties (kicking) when
+              high
+
+              0 is good/default, more is worse
         description: >-
           Sequencer defines a sequencer identified by its' address
           (sequencerAddress).
@@ -66330,6 +66455,17 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
+                fee_denom:
+                  title: fee_denom is the base denom for fees
+                  type: object
+                  properties:
+                    display:
+                      type: string
+                    base:
+                      type: string
+                    exponent:
+                      type: integer
+                      format: int64
             proposer:
               type: boolean
             status:
@@ -66383,6 +66519,14 @@ definitions:
               description: >-
                 WhitelistedRelayers is an array of the whitelisted relayer
                 addresses. Addresses are bech32-encoded strings.
+            dishonor:
+              type: string
+              format: uint64
+              title: >-
+                how badly behaved sequencer is, can incur penalties (kicking)
+                when high
+
+                0 is good/default, more is worse
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -66680,6 +66824,17 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
+                fee_denom:
+                  title: fee_denom is the base denom for fees
+                  type: object
+                  properties:
+                    display:
+                      type: string
+                    base:
+                      type: string
+                    exponent:
+                      type: integer
+                      format: int64
             proposer:
               type: boolean
             status:
@@ -66733,6 +66888,14 @@ definitions:
               description: >-
                 WhitelistedRelayers is an array of the whitelisted relayer
                 addresses. Addresses are bech32-encoded strings.
+            dishonor:
+              type: string
+              format: uint64
+              title: >-
+                how badly behaved sequencer is, can incur penalties (kicking)
+                when high
+
+                0 is good/default, more is worse
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -66771,24 +66934,6 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          kick_threshold:
-            title: >-
-              amt where the active sequencer can be kicked if he has less or
-              equal bond
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
           notice_period:
             type: string
             description: >-
@@ -66822,6 +66967,18 @@ definitions:
               method
 
               signatures required by gogoproto.
+          dishonor_liveness:
+            type: string
+            format: uint64
+            title: how much dishonor a sequencer gains on liveness events (+dishonor)
+          dishonor_state_update:
+            type: string
+            format: uint64
+            title: how much honor a sequencer gains on state updates (-dishonor)
+          dishonor_kick_threshold:
+            type: string
+            format: uint64
+            title: the minimum dishonor at which a sequencer can be kicked (<=)
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.sequencer.QueryProposersResponse:
     type: object
@@ -67089,6 +67246,17 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
+                fee_denom:
+                  title: fee_denom is the base denom for fees
+                  type: object
+                  properties:
+                    display:
+                      type: string
+                    base:
+                      type: string
+                    exponent:
+                      type: integer
+                      format: int64
             proposer:
               type: boolean
             status:
@@ -67142,6 +67310,14 @@ definitions:
               description: >-
                 WhitelistedRelayers is an array of the whitelisted relayer
                 addresses. Addresses are bech32-encoded strings.
+            dishonor:
+              type: string
+              format: uint64
+              title: >-
+                how badly behaved sequencer is, can incur penalties (kicking)
+                when high
+
+                0 is good/default, more is worse
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -67440,6 +67616,17 @@ definitions:
                 gas_price:
                   type: string
                   title: gas_price defines the value for each gas unit
+                fee_denom:
+                  title: fee_denom is the base denom for fees
+                  type: object
+                  properties:
+                    display:
+                      type: string
+                    base:
+                      type: string
+                    exponent:
+                      type: integer
+                      format: int64
             proposer:
               type: boolean
             status:
@@ -67493,6 +67680,14 @@ definitions:
               description: >-
                 WhitelistedRelayers is an array of the whitelisted relayer
                 addresses. Addresses are bech32-encoded strings.
+            dishonor:
+              type: string
+              format: uint64
+              title: >-
+                how badly behaved sequencer is, can incur penalties (kicking)
+                when high
+
+                0 is good/default, more is worse
           description: >-
             Sequencer defines a sequencer identified by its' address
             (sequencerAddress).
@@ -67773,6 +67968,17 @@ definitions:
           gas_price:
             type: string
             title: gas_price defines the value for each gas unit
+          fee_denom:
+            title: fee_denom is the base denom for fees
+            type: object
+            properties:
+              display:
+                type: string
+              base:
+                type: string
+              exponent:
+                type: integer
+                format: int64
       proposer:
         type: boolean
       status:
@@ -67823,6 +68029,14 @@ definitions:
         description: >-
           WhitelistedRelayers is an array of the whitelisted relayer addresses.
           Addresses are bech32-encoded strings.
+      dishonor:
+        type: string
+        format: uint64
+        title: >-
+          how badly behaved sequencer is, can incur penalties (kicking) when
+          high
+
+          0 is good/default, more is worse
     description: >-
       Sequencer defines a sequencer identified by its' address
       (sequencerAddress).
@@ -67901,6 +68115,17 @@ definitions:
       gas_price:
         type: string
         title: gas_price defines the value for each gas unit
+      fee_denom:
+        title: fee_denom is the base denom for fees
+        type: object
+        properties:
+          display:
+            type: string
+          base:
+            type: string
+          exponent:
+            type: integer
+            format: int64
     description: Metadata defines rollapp/sequencer extra information.
   dymensionxyz.dymension.sequencer.SnapshotInfo:
     type: object
