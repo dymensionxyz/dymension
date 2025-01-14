@@ -11,12 +11,15 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/x/tx/signing"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 
-	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
@@ -34,13 +37,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	tmservice "github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/address"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/std"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -51,7 +57,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/docs"
 
@@ -66,13 +73,12 @@ import (
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
-	"github.com/evmos/ethermint/ethereum/eip712"
-
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
 	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
+	// FIXME: remove
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
 	_ = packetforwardmiddleware.AppModule{}
 	_ = packetforwardtypes.ErrIntOverflowGenesis
@@ -105,14 +111,17 @@ func init() {
 type App struct {
 	*baseapp.BaseApp
 
-	cdc               *codec.LegacyAmino
+	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
+	txConfig          client.TxConfig
 	interfaceRegistry types.InterfaceRegistry
 
 	// keepers
 	keepers.AppKeepers
 	// the module manager
-	mm *module.Manager
+	mm                 *module.Manager
+	BasicModuleManager module.BasicManager // FIXME: what for?
+
 	// module configurator
 	configurator module.Configurator
 	// simulation manager
@@ -132,27 +141,42 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	appCodec := encodingConfig.Codec
-	cdc := encodingConfig.Amino
-	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	eip712.SetEncodingConfig(simappparams.EncodingConfig{
-		InterfaceRegistry: interfaceRegistry,
-		Codec:             appCodec,
-		TxConfig:          encodingConfig.TxConfig,
-		Amino:             encodingConfig.Amino,
+	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
+		ProtoFiles: proto.HybridResolver,
+		SigningOptions: signing.Options{
+			AddressCodec: address.Bech32Codec{
+				Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
+			},
+			ValidatorAddressCodec: address.Bech32Codec{
+				Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
+			},
+		},
 	})
+	appCodec := codec.NewProtoCodec(interfaceRegistry)
+	legacyAmino := codec.NewLegacyAmino()
+	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
 
-	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	std.RegisterLegacyAminoCodec(legacyAmino)
+	std.RegisterInterfaces(interfaceRegistry)
+
+	// appCodec := encodingConfig.Codec
+	// cdc := encodingConfig.Amino
+	// interfaceRegistry := encodingConfig.InterfaceRegistry
+
+	// eip712.SetEncodingConfig(encodingConfig.Amino, interfaceRegistry)
+
+	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
-	bApp.SetTxEncoder(encodingConfig.TxConfig.TxEncoder())
+	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	app := &App{
 		BaseApp:           bApp,
-		cdc:               cdc,
+		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
+		txConfig:          txConfig,
 		interfaceRegistry: interfaceRegistry,
 		AppKeepers:        keepers.AppKeepers{},
 	}
@@ -175,6 +199,23 @@ func New(
 	// must be passed by reference here.
 	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
 
+	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
+	// non-dependant module elements, such as codec registration and genesis verification.
+	// By default it is composed of all the module from the module manager.
+	// Additionally, app module basics can be overwritten by passing them as argument.
+	app.BasicModuleManager = module.NewBasicManagerFromManager(
+		app.ModuleManager,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+			govtypes.ModuleName: gov.NewAppModuleBasic(
+				[]govclient.ProposalHandler{
+					paramsclient.ProposalHandler,
+				},
+			),
+		})
+	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
+	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
+
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
@@ -193,7 +234,10 @@ func New(
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	err := app.mm.RegisterServices(app.configurator)
+	if err != nil {
+		panic(err)
+	}
 
 	/****  Simulations ****/
 	overrideModules := map[string]module.AppModuleSimulation{
@@ -209,8 +253,8 @@ func New(
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetPreBlocker(app.PreBlocker)
+	app.SetBeginBlocker(app.BeginBlocker)
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
@@ -353,8 +397,8 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *App) RegisterNodeService(clientCtx client.Context) {
-	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
+func (app *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

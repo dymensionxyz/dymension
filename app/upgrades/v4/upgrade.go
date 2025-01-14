@@ -7,12 +7,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcchannelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
 	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"

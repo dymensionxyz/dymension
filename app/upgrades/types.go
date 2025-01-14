@@ -2,10 +2,10 @@ package upgrades
 
 import (
 	storetypes "cosmossdk.io/store"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 )

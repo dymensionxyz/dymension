@@ -9,8 +9,8 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"

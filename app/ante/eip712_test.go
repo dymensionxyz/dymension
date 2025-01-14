@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	feegrant "cosmossdk.io/x/feegrant"
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
@@ -13,7 +14,6 @@ import (
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"

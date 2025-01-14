@@ -5,7 +5,6 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"cosmossdk.io/simapp"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -45,7 +44,7 @@ func New(t *testing.T, configs ...network.Config) *network.Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg := network.DefaultConfig(simapp.NewTestNetworkFixture)
+	cfg := network.DefaultConfig(nil)
 	encoding := app.MakeEncodingConfig()
 
 	// FIXME: add rand tmrand.Uint64() to chainID
@@ -73,3 +72,40 @@ func DefaultConfig() network.Config {
 
 	return cfg
 }
+
+//FIXME:
+
+/*
+// NewTestNetworkFixture returns a new simapp AppConstructor for network simulation tests
+func NewTestNetworkFixture() network.TestFixture {
+	dir, err := os.MkdirTemp("", "simapp")
+	if err != nil {
+		panic(fmt.Sprintf("failed creating temporary directory: %v", err))
+	}
+	defer os.RemoveAll(dir)
+
+	app := NewSimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(dir))
+
+	appCtr := func(val network.ValidatorI) servertypes.Application {
+		return NewSimApp(
+			val.GetCtx().Logger, dbm.NewMemDB(), nil, true,
+			simtestutil.NewAppOptionsWithFlagHome(val.GetCtx().Config.RootDir),
+			bam.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
+			bam.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
+			bam.SetChainID(val.GetCtx().Viper.GetString(flags.FlagChainID)),
+		)
+	}
+
+	return network.TestFixture{
+		AppConstructor: appCtr,
+		GenesisState:   app.DefaultGenesis(),
+		EncodingConfig: testutil.TestEncodingConfig{
+			InterfaceRegistry: app.InterfaceRegistry(),
+			Codec:             app.AppCodec(),
+			TxConfig:          app.TxConfig(),
+			Amino:             app.LegacyAmino(),
+		},
+	}
+}
+
+*/
