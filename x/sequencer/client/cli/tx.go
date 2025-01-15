@@ -9,11 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"utils "github.com/dymensionxyz/dymension/v3/utils/ucli""
 	"github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/spf13/cobra"
 
-	ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -61,7 +59,7 @@ Whitelisted relayers is an optional flag-arg. It expects a comma-separated list 
 
 			var metadata types.SequencerMetadata
 			if len(args) == 4 {
-				if err = utils.ParseJsonFromFile(args[3], &metadata); err != nil {
+				if err = ucli.ParseJsonFromFile(args[3], &metadata); err != nil {
 					return
 				}
 			}
@@ -120,7 +118,7 @@ func CmdUpdateSequencer() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			metadata := new(types.SequencerMetadata)
-			if err = utils.ParseJsonFromFile(args[0], metadata); err != nil {
+			if err = ucli.ParseJsonFromFile(args[0], metadata); err != nil {
 				return
 			}
 

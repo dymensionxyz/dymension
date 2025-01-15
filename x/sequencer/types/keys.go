@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 )
 
 var _ binary.ByteOrder
@@ -101,7 +102,7 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 /* --------------------------  queues keys -------------------------- */
 
 func NoticeQueueByTimeKey(endTime time.Time) []byte {
-	return utils.EncodeTimeToKey(NoticePeriodQueueKey, endTime)
+	return ukeys.EncodeTimeToKey(NoticePeriodQueueKey, endTime)
 }
 
 func NoticeQueueBySeqTimeKey(sequencerAddress string, endTime time.Time) []byte {

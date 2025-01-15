@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -51,20 +52,20 @@ func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error
 	timeKey := getTimeKey(stream.StartTime)
 
 	if stream.IsUpcomingStream(curTime) {
-		combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, timeKey)
+		combinedKeys := ukeys.CombineKeys(types.KeyPrefixUpcomingStreams, timeKey)
 		return k.CreateStreamRefKeys(ctx, stream, combinedKeys)
 	} else if stream.IsActiveStream(curTime) {
-		combinedKeys := combineKeys(types.KeyPrefixActiveStreams, timeKey)
+		combinedKeys := ukeys.CombineKeys(types.KeyPrefixActiveStreams, timeKey)
 		return k.CreateStreamRefKeys(ctx, stream, combinedKeys)
 	} else {
-		combinedKeys := combineKeys(types.KeyPrefixFinishedStreams, timeKey)
+		combinedKeys := ukeys.CombineKeys(types.KeyPrefixFinishedStreams, timeKey)
 		return k.CreateStreamRefKeys(ctx, stream, combinedKeys)
 	}
 }
 
 // streamStoreKey returns the combined byte array (store key) of the provided stream ID's key prefix and the ID itself.
 func streamStoreKey(ID uint64) []byte {
-	return combineKeys(types.KeyPrefixPeriodStream, sdk.Uint64ToBigEndian(ID))
+	return ukeys.CombineKeys(types.KeyPrefixPeriodStream, sdk.Uint64ToBigEndian(ID))
 }
 
 // SetStream set the stream inside store.

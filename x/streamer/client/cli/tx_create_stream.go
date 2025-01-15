@@ -12,7 +12,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/spf13/cobra"
 
-	utils ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
+	"github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -30,7 +30,7 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 				return err
 			}
 
-			proposal, deposit, err := utils.ParseProposal(cmd)
+			proposal, deposit, err := ucli.ParseProposal(cmd)
 			if err != nil {
 				return err
 			}

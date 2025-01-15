@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	"utils "github.com/dymensionxyz/dymension/v3/utils/ucli""
+	"github.com/dymensionxyz/dymension/v3/utils/ucli"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -117,7 +117,7 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 	}
 
 	if nativeDenomFlag != "" {
-		if err = utils.ParseJsonFromFile(nativeDenomFlag, &genesisInfo.NativeDenom); err != nil {
+		if err = ucli.ParseJsonFromFile(nativeDenomFlag, &genesisInfo.NativeDenom); err != nil {
 			return nil, err
 		}
 	}
@@ -185,7 +185,7 @@ func parseMetadata(cmd *cobra.Command) (*types.RollappMetadata, error) {
 
 	metadata := new(types.RollappMetadata)
 	if metadataFlag != "" {
-		if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
+		if err = ucli.ParseJsonFromFile(metadataFlag, metadata); err != nil {
 			return nil, err
 		}
 	}

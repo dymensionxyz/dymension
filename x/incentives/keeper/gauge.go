@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
@@ -77,13 +78,13 @@ func (k Keeper) SetGaugeWithRefKey(ctx sdk.Context, gauge *types.Gauge) error {
 	activeOrUpcomingGauge := gauge.IsActiveGauge(curTime) || gauge.IsUpcomingGauge(curTime)
 
 	if gauge.IsUpcomingGauge(curTime) {
-		combinedKeys := combineKeys(types.KeyPrefixUpcomingGauges, timeKey)
+		combinedKeys := ukeys.CombineKeys(types.KeyPrefixUpcomingGauges, timeKey)
 		return k.CreateGaugeRefKeys(ctx, gauge, combinedKeys, activeOrUpcomingGauge)
 	} else if gauge.IsActiveGauge(curTime) {
-		combinedKeys := combineKeys(types.KeyPrefixActiveGauges, timeKey)
+		combinedKeys := ukeys.CombineKeys(types.KeyPrefixActiveGauges, timeKey)
 		return k.CreateGaugeRefKeys(ctx, gauge, combinedKeys, activeOrUpcomingGauge)
 	} else {
-		combinedKeys := combineKeys(types.KeyPrefixFinishedGauges, timeKey)
+		combinedKeys := ukeys.CombineKeys(types.KeyPrefixFinishedGauges, timeKey)
 		return k.CreateGaugeRefKeys(ctx, gauge, combinedKeys, activeOrUpcomingGauge)
 	}
 }
@@ -122,7 +123,7 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 	}
 	k.SetLastGaugeID(ctx, gauge.Id)
 
-	combinedKeys := combineKeys(types.KeyPrefixUpcomingGauges, getTimeKey(gauge.StartTime))
+	combinedKeys := ukeys.CombineKeys(types.KeyPrefixUpcomingGauges, getTimeKey(gauge.StartTime))
 	activeOrUpcomingGauge := true
 
 	err = k.CreateGaugeRefKeys(ctx, &gauge, combinedKeys, activeOrUpcomingGauge)
@@ -224,10 +225,10 @@ func (k Keeper) moveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gaug
 	}
 
 	timeKey := getTimeKey(gauge.StartTime)
-	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingGauges, timeKey), gauge.Id); err != nil {
+	if err := k.deleteGaugeRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixUpcomingGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
-	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
+	if err := k.addGaugeRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
 	return nil
@@ -236,10 +237,10 @@ func (k Keeper) moveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gaug
 // moveActiveGaugeToFinishedGauge moves a gauge that has completed its distribution from an active to a finished status.
 func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gauge) error {
 	timeKey := getTimeKey(gauge.StartTime)
-	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
+	if err := k.deleteGaugeRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
-	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
+	if err := k.addGaugeRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
 

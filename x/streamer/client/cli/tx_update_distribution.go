@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	utils utils "github.com/dymensionxyz/dymension/v3/utils/ucli"
+	ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
@@ -26,7 +26,7 @@ func NewCmdSubmitUpdateStreamDistributionProposal() *cobra.Command {
 				return err
 			}
 
-			proposal, deposit, err := utils.ParseProposal(cmd)
+			proposal, deposit, err := ucli.ParseProposal(cmd)
 			if err != nil {
 				return err
 			}

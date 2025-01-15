@@ -15,6 +15,7 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -129,7 +130,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 	}
 	k.SetLastStreamID(ctx, stream.Id)
 
-	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
+	combinedKeys := ukeys.CombineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
 	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys)
 	if err != nil {
 		return 0, err

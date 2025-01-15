@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	utils "github.com/dymensionxyz/dymension/v3/utils/ucli"
+	"github.com/dymensionxyz/dymension/v3/utils/ucli"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/spf13/cobra"
 )
@@ -196,7 +196,7 @@ Sample proposal file content:
 func parseMigrateChainIdsProposal(metadataFile string) (*dymnstypes.MigrateChainIdsProposal, error) {
 	var proposal dymnstypes.MigrateChainIdsProposal
 
-	err := utils.ParseJsonFromFile(metadataFile, &proposal)
+	err := ucli.ParseJsonFromFile(metadataFile, &proposal)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func parseMigrateChainIdsProposal(metadataFile string) (*dymnstypes.MigrateChain
 func parseUpdateAliasesProposal(metadataFile string) (*dymnstypes.UpdateAliasesProposal, error) {
 	var proposal dymnstypes.UpdateAliasesProposal
 
-	err := utils.ParseJsonFromFile(metadataFile, &proposal)
+	err := ucli.ParseJsonFromFile(metadataFile, &proposal)
 	if err != nil {
 		return nil, err
 	}

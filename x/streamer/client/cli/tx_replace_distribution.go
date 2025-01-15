@@ -11,7 +11,7 @@ import (
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	utils ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
+	ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
 )
 
 // NewCmdSubmitReplaceStreamDistributionProposal broadcasts a CreateStream message.
@@ -26,7 +26,7 @@ func NewCmdSubmitReplaceStreamDistributionProposal() *cobra.Command {
 				return err
 			}
 
-			proposal, deposit, err := utils.ParseProposal(cmd)
+			proposal, deposit, err := ucli.ParseProposal(cmd)
 			if err != nil {
 				return err
 			}
