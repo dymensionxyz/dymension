@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/utils"
+	utils utils "github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"

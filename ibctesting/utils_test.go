@@ -30,7 +30,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/uibc"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"

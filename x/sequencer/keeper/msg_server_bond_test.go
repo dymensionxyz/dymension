@@ -3,10 +3,10 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/dymension/v3/utils/ucoin"
+	"github.com/dymensionxyz/dymension/v3/utils/utest"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
 func (s *SequencerTestSuite) TestIncreaseBondBasic() {

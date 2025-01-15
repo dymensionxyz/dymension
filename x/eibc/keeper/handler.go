@@ -5,10 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 	"github.com/pkg/errors"
 
-	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/uibc"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"

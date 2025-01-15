@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"

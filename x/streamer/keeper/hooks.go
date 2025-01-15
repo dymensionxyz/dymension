@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 

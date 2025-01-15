@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"

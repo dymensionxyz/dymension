@@ -5,12 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
+	"github.com/dymensionxyz/dymension/v3/utils/utest"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
 // On success, we should get back an object with all the right info

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
-	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
 var _ binary.ByteOrder

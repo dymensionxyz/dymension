@@ -8,7 +8,7 @@ import (
 
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"

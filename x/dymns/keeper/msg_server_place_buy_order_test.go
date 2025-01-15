@@ -4,7 +4,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 

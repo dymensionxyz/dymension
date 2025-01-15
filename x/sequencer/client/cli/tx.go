@@ -9,10 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/ucli"
+	"utils "github.com/dymensionxyz/dymension/v3/utils/ucli""
+	"github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/utils"
+	ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 

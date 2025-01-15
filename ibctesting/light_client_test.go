@@ -9,10 +9,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/dymensionxyz/dymension/v3/utils/utest"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/stretchr/testify/suite"

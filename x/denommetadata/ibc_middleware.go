@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uibc"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )

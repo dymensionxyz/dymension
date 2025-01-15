@@ -8,7 +8,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/utils"
+	utils "github.com/dymensionxyz/dymension/v3/utils/ucli"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 

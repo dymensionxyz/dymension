@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
+	"github.com/dymensionxyz/dymension/v3/utils/utest"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
 )
 
 func (s *SequencerTestSuite) TestKickProposerBasicFlow() {

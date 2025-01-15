@@ -15,7 +15,7 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"

@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/utils"
+	utils "github.com/dymensionxyz/dymension/v3/utils/ucli"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/spf13/cobra"
 )

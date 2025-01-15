@@ -7,8 +7,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uparam"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 

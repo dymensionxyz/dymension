@@ -6,7 +6,7 @@ import (
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 

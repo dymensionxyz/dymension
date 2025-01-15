@@ -9,8 +9,8 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/uibc"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 

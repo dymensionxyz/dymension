@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 

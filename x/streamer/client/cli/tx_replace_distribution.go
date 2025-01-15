@@ -11,7 +11,7 @@ import (
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	utils "github.com/dymensionxyz/dymension/v3/utils"
+	utils ucli "github.com/dymensionxyz/dymension/v3/utils/ucli"
 )
 
 // NewCmdSubmitReplaceStreamDistributionProposal broadcasts a CreateStream message.
