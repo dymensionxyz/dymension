@@ -5,18 +5,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-)
-
-var (
-	ErrNoMatch        = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
-	ErrMismatch       = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
-	ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
 )
 
 // intended to be called by relayer, but can be called by anyone
@@ -44,9 +39,14 @@ func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 		return gerrc.ErrAlreadyExists.Wrap("canonical client for rollapp")
 	}
 
-	err := k.validClient(ctx, clientID, clientState, rollappID)
+	latestHeight, ok := k.rollappKeeper.GetLatestHeight(ctx, rollappID)
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("latest rollapp height")
+	}
+
+	err := k.validClient(ctx, clientID, clientState, rollappID, latestHeight)
 	if err != nil {
-		return errorsmod.Wrap(err, "unsafe to mark client canonical")
+		return errorsmod.Wrap(err, "unsafe to mark client canonical: check that sequencer has posted a recent state update")
 	}
 
 	k.SetCanonicalClient(ctx, rollappID, clientID)
@@ -93,43 +93,69 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 	return types.DefaultExpectedCanonicalClientParams()
 }
 
+var (
+	ErrNoMatch        = gerrc.ErrFailedPrecondition.Wrap("not at least one cons state matches the rollapp state")
+	ErrMismatch       = gerrc.ErrInvalidArgument.Wrap("consensus state mismatch")
+	ErrParamsMismatch = gerrc.ErrInvalidArgument.Wrap("params")
+)
+
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
 // 3. All the existing consensus states much match the corresponding height rollapp block descriptors
-func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string) error {
+func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string, maxHeight uint64) error {
+	log := k.Logger(ctx).With("component", "valid client func", "rollapp", rollappId, "client", clientID)
+
+	log.Debug("top of func", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())
+
 	expClient := k.expectedClient()
+
 	if err := types.IsCanonicalClientParamsValid(cs, &expClient); err != nil {
 		return errors.Join(err, ErrParamsMismatch)
 	}
 
-	sinfo, ok := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollappId)
-	if !ok {
-		return gerrc.ErrNotFound.Wrap("latest state info index")
+	// FIXME: No need to get all consensus states. should iterate over the consensus states
+	res, err := k.ibcClientKeeper.ConsensusStateHeights(ctx, &ibcclienttypes.QueryConsensusStateHeightsRequest{
+		ClientId:   clientID,
+		Pagination: &query.PageRequest{Limit: maxHeight},
+	})
+	log.Debug("after fetch heights", "max height", maxHeight, "gas", ctx.GasMeter().GasConsumed())
+	if err != nil {
+		return errorsmod.Wrap(err, "cons state heights")
 	}
-
-	baseHeight := k.GetFirstConsensusStateHeight(ctx, clientID)
 	atLeastOneMatch := false
-	for i := sinfo.Index; i > 0; i-- {
-		sInfo, ok := k.rollappKeeper.GetStateInfo(ctx, rollappId, i)
-		if !ok {
-			return errorsmod.Wrap(gerrc.ErrInternal, "get state info")
-		}
-		matched, err := k.ValidateStateInfoAgainstConsensusStates(ctx, clientID, &sInfo)
-		if err != nil {
-			return errors.Join(ErrMismatch, err)
-		}
-
-		if matched {
-			atLeastOneMatch = true
-		}
-
-		// break point with the lowest height of the consensus states
-		if sInfo.StartHeight > baseHeight {
+	for _, consensusHeight := range res.ConsensusStateHeights {
+		log.Debug("after fetch heights", "cons state height", consensusHeight.RevisionHeight, "gas", ctx.GasMeter().GasConsumed())
+		h := consensusHeight.GetRevisionHeight()
+		if maxHeight <= h {
 			break
 		}
-	}
+		consensusState, _ := k.ibcClientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
+		tmConsensusState, _ := consensusState.(*ibctm.ConsensusState)
+		stateInfoH, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h)
+		if err != nil {
+			return errorsmod.Wrapf(err, "find state info by height h: %d", h)
+		}
+		stateInfoHplus1, err := k.rollappKeeper.FindStateInfoByHeight(ctx, rollappId, h+1)
+		if err != nil {
+			return errorsmod.Wrapf(err, "find state info by height h+1: %d", h+1)
+		}
+		bd, _ := stateInfoH.GetBlockDescriptor(h)
 
+		nextSeq, err := k.SeqK.RealSequencer(ctx, stateInfoHplus1.Sequencer)
+		if err != nil {
+			return errorsmod.Wrap(err, "get sequencer")
+		}
+		rollappState := types.RollappState{
+			BlockDescriptor:    bd,
+			NextBlockSequencer: nextSeq,
+		}
+		err = types.CheckCompatibility(*tmConsensusState, rollappState)
+		if err != nil {
+			return errorsmod.Wrapf(errors.Join(ErrMismatch, err), "check compatibility: height: %d", h)
+		}
+		atLeastOneMatch = true
+	}
 	// Need to be sure that at least one consensus state agrees with a state update
 	// (There are also no disagreeing consensus states. There may be some consensus states
 	// for future state updates, which will incur a fraud if they disagree.)
@@ -137,22 +163,4 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		return ErrNoMatch
 	}
 	return nil
-}
-
-func (k Keeper) ValidateHeaderAgainstStateInfo(ctx sdk.Context, sInfo *rollapptypes.StateInfo, consState *ibctm.ConsensusState, h uint64) error {
-	bd, ok := sInfo.GetBlockDescriptor(h)
-	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrInternal, "no block descriptor found for height %d", h)
-	}
-
-	nextSeq, err := k.SeqK.RealSequencer(ctx, sInfo.NextSequencerForHeight(h))
-	if err != nil {
-		return errorsmod.Wrap(errors.Join(err, gerrc.ErrInternal), "get sequencer of state info")
-	}
-
-	rollappState := types.RollappState{
-		BlockDescriptor:    bd,
-		NextBlockSequencer: nextSeq,
-	}
-	return errorsmod.Wrap(types.CheckCompatibility(*consState, rollappState), "check compatibility")
 }

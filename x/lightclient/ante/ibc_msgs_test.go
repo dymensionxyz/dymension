@@ -18,11 +18,6 @@ type MockRollappKeeper struct {
 	stateInfos map[string]map[uint64]rollapptypes.StateInfo
 }
 
-// GetLatestStateInfoIndex implements types.RollappKeeperExpected.
-func (m *MockRollappKeeper) GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (rollapptypes.StateInfoIndex, bool) {
-	panic("unimplemented")
-}
-
 func (m *MockRollappKeeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, revision, height uint64) bool {
 	panic("implement me")
 }
@@ -79,11 +74,6 @@ func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID string, fraudHei
 
 type MockIBCClientKeeper struct {
 	clientStates map[string]exported.ClientState
-}
-
-// IterateConsensusStates implements types.IBCClientKeeperExpected.
-func (m *MockIBCClientKeeper) IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs ibcclienttypes.ConsensusStateWithHeight) bool) {
-	panic("unimplemented")
 }
 
 // ClientStore implements types.IBCClientKeeperExpected.

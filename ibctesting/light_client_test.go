@@ -129,7 +129,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_ConsStateMismatch() {
 	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
 	s.Require().Error(err)
 
-	// Update the rollapp state so we could attempt to set the canonical client
+	// Update the rollapp state - this will trigger the check for prospective canonical client
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),

@@ -45,10 +45,6 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 	return s.StateInfoIndex
 }
 
-func (s *StateInfo) GetRollappId() string {
-	return s.StateInfoIndex.RollappId
-}
-
 func (s *StateInfo) GetLatestHeight() uint64 {
 	if s.StartHeight+s.NumBlocks > 0 {
 		return s.StartHeight + s.NumBlocks - 1
@@ -72,16 +68,9 @@ func (s *StateInfo) GetLatestBlockDescriptor() BlockDescriptor {
 	return s.BDs.BD[len(s.BDs.BD)-1]
 }
 
-func (s *StateInfo) NextSequencerForHeight(height uint64) string {
-	if height != s.GetLatestHeight() {
-		return s.Sequencer
-	}
-	return s.NextProposer
-}
-
 func (s *StateInfo) GetEvents() []sdk.Attribute {
 	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(AttributeKeyRollappId, s.GetRollappId()),
+		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),
 		sdk.NewAttribute(AttributeKeyStateInfoIndex, strconv.FormatUint(s.StateInfoIndex.Index, 10)),
 		sdk.NewAttribute(AttributeKeyStartHeight, strconv.FormatUint(s.StartHeight, 10)),
 		sdk.NewAttribute(AttributeKeyNumBlocks, strconv.FormatUint(s.NumBlocks, 10)),
