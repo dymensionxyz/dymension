@@ -38,4 +38,4 @@ jobs:
     needs: build-image
     uses: dymensionxyz/e2e-tests/.github/workflows/e2e-test-workflow-call-nightly.yml@main
     secrets:
-      SLACK_E2E_TEST_TOKEN: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
+      SLACK_E2E_TEST_WEBHOOK_URL: ${{ secrets.SLACK_E2E_TEST_WEBHOOK_URL }}
