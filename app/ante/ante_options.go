@@ -3,9 +3,6 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
@@ -25,18 +22,19 @@ type FeeMarketKeeper interface {
 }
 
 type HandlerOptions struct {
-	AccountKeeper          *authkeeper.AccountKeeper
-	BankKeeper             bankkeeper.Keeper
-	IBCKeeper              *ibckeeper.Keeper
-	FeeMarketKeeper        FeeMarketKeeper
-	EvmKeeper              ethante.EVMKeeper
-	FeegrantKeeper         ante.FeegrantKeeper
-	TxFeesKeeper           *txfeeskeeper.Keeper
-	SignModeHandler        authsigning.SignModeHandler
-	MaxTxGasWanted         uint64
-	ExtensionOptionChecker ante.ExtensionOptionChecker
-	RollappKeeper          rollappkeeper.Keeper
-	LightClientKeeper      *lightclientkeeper.Keeper
+	ante.HandlerOptions
+	// AccountKeeper          *authkeeper.AccountKeeper
+	// BankKeeper             bankkeeper.Keeper
+	// FeegrantKeeper         ante.FeegrantKeeper
+	// ExtensionOptionChecker ante.ExtensionOptionChecker
+	// SignModeHandler        authsigning.SignModeHandler
+	IBCKeeper         *ibckeeper.Keeper
+	FeeMarketKeeper   FeeMarketKeeper
+	EvmKeeper         ethante.EVMKeeper
+	TxFeesKeeper      *txfeeskeeper.Keeper
+	MaxTxGasWanted    uint64
+	RollappKeeper     rollappkeeper.Keeper
+	LightClientKeeper *lightclientkeeper.Keeper
 }
 
 func (options HandlerOptions) validate() error {

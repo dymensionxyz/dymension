@@ -1,20 +1,27 @@
 package keepers
 
 import (
-	storetypes "cosmossdk.io/store"
+	"cosmossdk.io/log"
+
+	flags "github.com/cosmos/cosmos-sdk/client/flags"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	ethflags "github.com/evmos/ethermint/server/flags"
+
+	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
-	"cosmossdk.io/x/upgrade"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -28,6 +35,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/cosmos-sdk/x/group"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
@@ -48,8 +56,6 @@ import (
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -68,6 +74,7 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/spf13/cast"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -165,108 +172,84 @@ type AppKeepers struct {
 // InitKeepers initializes all keepers for the app
 func (a *AppKeepers) InitKeepers(
 	appCodec codec.Codec,
-	cdc *codec.LegacyAmino,
+	legacyAmino *codec.LegacyAmino,
 	bApp *baseapp.BaseApp,
+	logger log.Logger,
 	moduleAccountAddrs map[string]bool,
-	skipUpgradeHeights map[int64]bool,
-	invCheckPeriod uint,
-	tracer, homePath string,
+	appOpts servertypes.AppOptions,
 ) {
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+	// get skipUpgradeHeights from the app options
+	skipUpgradeHeights := map[int64]bool{}
+	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
+		skipUpgradeHeights[int64(h)] = true
+	}
+	homePath := cast.ToString(appOpts.Get(flags.FlagHome))
+	tracer := cast.ToString(appOpts.Get(ethflags.EVMTracer))
+	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
+
 	// init keepers
-
-	a.ParamsKeeper = initParamsKeeper(appCodec, cdc, a.keys[paramstypes.StoreKey], a.tkeys[paramstypes.TStoreKey])
+	a.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, a.keys[paramstypes.StoreKey], a.tkeys[paramstypes.TStoreKey])
 	// set the BaseApp's parameter store
-	a.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, a.keys[consensusparamtypes.StoreKey], govModuleAddress)
-	bApp.SetParamStore(&a.ConsensusParamsKeeper)
-
-	// add capability keeper and ScopeToModule for ibc module
-	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
+	a.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[consensusparamtypes.StoreKey]), govModuleAddress, runtime.EventService{})
+	bApp.SetParamStore(a.ConsensusParamsKeeper.ParamsStore)
 
 	// grant capabilities for the ibc and ibc-transfer modules
+	// fixme: compare with ibc-go
+	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
 	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-
 	a.CapabilityKeeper.Seal()
 
-	a.UpgradeKeeper = upgradekeeper.NewKeeper(
-		skipUpgradeHeights,
-		a.keys[upgradetypes.StoreKey],
-		appCodec,
-		homePath,
-		bApp,
-		govModuleAddress,
-	)
+	// set the governance module account as the authority for conducting upgrades
+	a.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(a.keys[upgradetypes.StoreKey]), appCodec, homePath, bApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
-	a.AccountKeeper = authkeeper.NewAccountKeeper(
-		appCodec,
-		a.keys[authtypes.StoreKey],
-		authtypes.ProtoBaseAccount,
-		maccPerms,
-		sdk.GetConfig().GetBech32AccountAddrPrefix(),
-		govModuleAddress,
-	)
-
-	a.AuthzKeeper = authzkeeper.NewKeeper(
-		a.keys[authz.ModuleName],
-		appCodec,
-		bApp.MsgServiceRouter(),
-		a.AccountKeeper,
-	)
+	a.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, runtime.NewKVStoreService(a.keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, authcodec.NewBech32Codec(sdk.Bech32MainPrefix), sdk.Bech32MainPrefix, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	a.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
-		a.keys[banktypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[banktypes.StoreKey]),
 		a.AccountKeeper,
 		moduleAccountAddrs,
-		govModuleAddress,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		logger,
 	)
-
-	a.CrisisKeeper = crisiskeeper.NewKeeper(
-		appCodec, a.keys[crisistypes.StoreKey], invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName, govModuleAddress,
-	)
-
 	a.StakingKeeper = stakingkeeper.NewKeeper(
-		appCodec,
-		a.keys[stakingtypes.StoreKey],
-		a.AccountKeeper,
-		a.BankKeeper,
-		govModuleAddress,
+		appCodec, runtime.NewKVStoreService(a.keys[stakingtypes.StoreKey]), a.AccountKeeper, a.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(), authcodec.NewBech32Codec(sdk.Bech32PrefixValAddr), authcodec.NewBech32Codec(sdk.Bech32PrefixConsAddr),
 	)
+	a.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[minttypes.StoreKey]), a.StakingKeeper, a.AccountKeeper, a.BankKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
-	a.MintKeeper = mintkeeper.NewKeeper(
-		appCodec,
-		a.keys[minttypes.StoreKey],
-		a.StakingKeeper,
-		a.AccountKeeper,
-		a.BankKeeper,
-		authtypes.FeeCollectorName,
-		govModuleAddress,
-	)
-
-	a.DistrKeeper = distrkeeper.NewKeeper(
-		appCodec,
-		a.keys[distrtypes.StoreKey],
-		a.AccountKeeper,
-		a.BankKeeper,
-		a.StakingKeeper,
-		authtypes.FeeCollectorName,
-		govModuleAddress,
-	)
+	a.DistrKeeper = distrkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[distrtypes.StoreKey]), a.AccountKeeper, a.BankKeeper, a.StakingKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
-		appCodec,
-		cdc,
-		a.keys[slashingtypes.StoreKey],
-		a.StakingKeeper,
-		govModuleAddress,
+		appCodec, legacyAmino, runtime.NewKVStoreService(a.keys[slashingtypes.StoreKey]), a.StakingKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(
-		appCodec,
-		a.keys[feegrant.StoreKey],
-		a.AccountKeeper,
+	a.CrisisKeeper = crisiskeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[crisistypes.StoreKey]), invCheckPeriod,
+		a.BankKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String(), a.AccountKeeper.AddressCodec())
+
+	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[feegrant.StoreKey]), a.AccountKeeper)
+
+	// FIXME: needed?
+	// a.CircuitKeeper = circuitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[circuittypes.StoreKey]), authtypes.NewModuleAddress(govtypes.ModuleName).String(), a.AccountKeeper.AddressCodec())
+	// a.BaseApp.SetCircuitBreaker(&a.CircuitKeeper)
+
+	a.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewKVStoreService(a.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), a.AccountKeeper)
+
+	groupConfig := grouptypes.DefaultConfig()
+	groupConfig.MaxMetadataLen = 5500
+	a.GroupKeeper = groupkeeper.NewKeeper(a.keys[group.StoreKey], appCodec, bApp.MsgServiceRouter(), a.AccountKeeper, groupConfig)
+
+	// set the governance module account as the authority for conducting upgrades
+	a.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(a.keys[upgradetypes.StoreKey]), appCodec, homePath, bApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
+	// create evidence keeper with router
+	evidenceKeeper := evidencekeeper.NewKeeper(
+		appCodec, runtime.NewKVStoreService(a.keys[evidencetypes.StoreKey]), a.StakingKeeper, a.SlashingKeeper, a.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
 	)
+	// If evidence needs to be handled for the app, set routes in router here and seal
+	a.EvidenceKeeper = *evidenceKeeper
 
 	// Create Ethermint keepers
 	a.FeeMarketKeeper = feemarketkeeper.NewKeeper(
@@ -384,17 +367,6 @@ func (a *AppKeepers) InitKeepers(
 	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
 	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{rollappmodulekeeper.SequencerHooks{Keeper: a.RollappKeeper}})
 
-	groupConfig := grouptypes.DefaultConfig()
-	groupConfig.MaxMetadataLen = 5500
-
-	a.GroupKeeper = groupkeeper.NewKeeper(
-		a.keys[grouptypes.StoreKey],
-		appCodec,
-		bApp.MsgServiceRouter(),
-		a.AccountKeeper,
-		groupConfig,
-	)
-
 	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
 	a.RollappKeeper.SetCanonicalClientKeeper(a.LightClientKeeper)
 
@@ -479,10 +451,11 @@ func (a *AppKeepers) InitKeepers(
 			a.IBCKeeper.ChannelKeeper,
 		),
 		a.IBCKeeper.ChannelKeeper,
-		&a.IBCKeeper.PortKeeper,
+		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.ScopedTransferKeeper,
+		govModuleAddress,
 	)
 	a.RollappKeeper.SetTransferKeeper(a.TransferKeeper)
 
@@ -506,32 +479,24 @@ func (a *AppKeepers) InitKeepers(
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(sequencermoduletypes.RouterKey, sequencermodule.NewSequencerProposalHandler(*a.SequencerKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(dymnstypes.RouterKey, dymnsmodule.NewDymNsProposalHandler(a.DymNSKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
 
-	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
-	// If evidence needs to be handled for the app, set routes in router here and seal
-	a.EvidenceKeeper = *evidencekeeper.NewKeeper(
-		appCodec, a.keys[evidencetypes.StoreKey], a.StakingKeeper, a.SlashingKeeper,
-	)
-
 	govConfig := govtypes.DefaultConfig()
 	a.GovKeeper = govkeeper.NewKeeper(
-		appCodec, a.keys[govtypes.StoreKey], a.AccountKeeper, a.BankKeeper,
-		a.StakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
+		appCodec, runtime.NewKVStoreService(a.keys[govtypes.StoreKey]), a.AccountKeeper, a.BankKeeper,
+		a.StakingKeeper, a.DistrKeeper, bApp.MsgServiceRouter(), govConfig, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	// Set legacy router for backwards compatibility with gov v1beta1
 	a.GovKeeper.SetLegacyRouter(govRouter)
 
 	a.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
 		appCodec, a.keys[packetforwardtypes.StoreKey],
 		a.TransferKeeper,
 		a.IBCKeeper.ChannelKeeper,
-		a.DistrKeeper,
 		a.BankKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		govModuleAddress,

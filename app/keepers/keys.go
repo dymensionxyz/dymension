@@ -1,11 +1,10 @@
 package keepers
 
 import (
-	storetypes "cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -51,10 +50,10 @@ func (a *AppKeepers) GenerateKeys() {
 	a.keys = KVStoreKeys
 
 	// Define transient store keys
-	a.tkeys = sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
+	a.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 
 	// MemKeys are for information that is stored only in RAM.
-	a.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	a.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 
 // GetSubspace gets existing substore from keeper.
@@ -99,7 +98,7 @@ func (a *AppKeepers) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return a.memKeys[storeKey]
 }
 
-var KVStoreKeys = sdk.NewKVStoreKeys(
+var KVStoreKeys = storetypes.NewKVStoreKeys(
 	authtypes.StoreKey,
 	authzkeeper.StoreKey,
 	banktypes.StoreKey,

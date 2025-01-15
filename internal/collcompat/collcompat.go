@@ -14,12 +14,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewKVStoreService(storeKey storetypes.StoreKey) store.KVStoreService {
+func NewKVStoreService(storeKey storetypes.Key) store.KVStoreService {
 	return &kvStoreService{key: storeKey}
 }
 
 type kvStoreService struct {
-	key storetypes.StoreKey
+	key storetypes.Key
 }
 
 func (k kvStoreService) OpenKVStore(ctx context.Context) store.KVStore {
