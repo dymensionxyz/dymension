@@ -4,7 +4,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -26,7 +25,7 @@ type EpochKeeper interface {
 }
 
 type AccountKeeper interface {
-	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
+	GetModuleAccount(ctx sdk.Context, moduleName string) sdk.ModuleAccountI
 	GetModuleAddress(name string) sdk.AccAddress
 }
 

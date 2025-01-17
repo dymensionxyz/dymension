@@ -4,7 +4,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
@@ -15,10 +14,10 @@ import (
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
+	GetModuleAccount(ctx sdk.Context, moduleName string) sdk.ModuleAccountI
 	GetModuleAddress(moduleName string) sdk.AccAddress
-	NewAccount(ctx sdk.Context, acc authtypes.AccountI) authtypes.AccountI
-	SetModuleAccount(ctx sdk.Context, macc authtypes.ModuleAccountI)
+	NewAccount(ctx sdk.Context, acc sdk.AccountI) sdk.AccountI
+	SetModuleAccount(ctx sdk.Context, macc sdk.ModuleAccountI)
 }
 
 type DenomMetadataKeeper interface {
