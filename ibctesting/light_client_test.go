@@ -227,6 +227,59 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	s.Equal(endpointA.ClientID, canonClientID)
 }
 
+func (s *lightClientSuite) TestSetCanonicalClient_MultipleClients_Succeeds() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+
+	// Create multiple IBC endpoints
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointC := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig()) // Additional client
+	endpointD := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())               // Additional client
+
+	endpointA.Counterparty = endpointB
+	endpointB.Counterparty = endpointA
+	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
+
+	// create dummy channels
+	endpointC.Counterparty = endpointD
+	endpointD.Counterparty = endpointC
+	s.NoError(endpointC.CreateClient())
+	s.NoError(endpointD.CreateClient())
+
+	currentHeader := s.rollappChain().CurrentHeader
+	startHeight := uint64(currentHeader.Height)
+	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+
+	// Create the IBC clients
+	s.NoError(s.path.EndpointA.CreateClient())
+
+	currentHeader = s.rollappChain().CurrentHeader
+	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+
+	// Update the rollapp state
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		"mock-da-path",
+		startHeight,
+		2,
+		&rollapptypes.BlockDescriptors{BD: []rollapptypes.BlockDescriptor{bd, bdNext}},
+	)
+	_, err := s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.Require().NoError(err)
+
+	setCanonMsg := &types.MsgSetCanonicalClient{
+		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+	}
+	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	s.Require().NoError(err)
+
+	canonClientID, found := s.hubApp().LightClientKeeper.GetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID)
+	s.Require().True(found)
+	s.Equal(endpointA.ClientID, canonClientID)
+}
+
 func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
