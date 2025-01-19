@@ -6,7 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )

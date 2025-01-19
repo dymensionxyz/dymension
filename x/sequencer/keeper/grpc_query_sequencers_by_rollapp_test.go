@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
+	"github.com/dymensionxyz/dymension/v3/utils/utest"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"

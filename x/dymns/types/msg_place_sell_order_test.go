@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"

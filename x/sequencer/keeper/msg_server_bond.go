@@ -5,9 +5,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {

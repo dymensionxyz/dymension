@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+	"github.com/dymensionxyz/dymension/v3/utils/uptr"
 
 	sdkmath "cosmossdk.io/math"
 

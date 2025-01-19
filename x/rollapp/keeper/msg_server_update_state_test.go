@@ -7,10 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
 func (s *RollappTestSuite) TestFirstUpdateState() {

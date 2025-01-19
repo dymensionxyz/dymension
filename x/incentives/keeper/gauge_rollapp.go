@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,7 +25,7 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, e
 	}
 	k.SetLastGaugeID(ctx, gauge.Id)
 
-	combinedKeys := combineKeys(types.KeyPrefixUpcomingGauges, getTimeKey(gauge.StartTime))
+	combinedKeys := ukeys.CombineKeys(types.KeyPrefixUpcomingGauges, getTimeKey(gauge.StartTime))
 	err = k.CreateGaugeRefKeys(ctx, &gauge, combinedKeys, true)
 	if err != nil {
 		return 0, err

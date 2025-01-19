@@ -1,11 +1,10 @@
-package denom_test
+package uibc_test
 
 import (
 	"testing"
 
+	"github.com/dymensionxyz/dymension/v3/utils/uibc"
 	"github.com/stretchr/testify/require"
-
-	"github.com/dymensionxyz/dymension/v3/utils/denom"
 )
 
 func TestSourcePortChanFromTracePath(t *testing.T) {
@@ -28,7 +27,7 @@ func TestSourcePortChanFromTracePath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			port, channel, valid := denom.SourcePortChanFromTracePath(tc.trace)
+			port, channel, valid := uibc.SourcePortChanFromTracePath(tc.trace)
 
 			require.Equal(t, tc.expValid, valid)
 			if tc.expValid {

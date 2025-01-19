@@ -13,9 +13,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"

@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"

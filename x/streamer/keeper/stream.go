@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -119,10 +120,10 @@ func (k Keeper) moveUpcomingStreamToActiveStream(ctx sdk.Context, stream types.S
 	}
 
 	timeKey := getTimeKey(stream.StartTime)
-	if err := k.deleteStreamRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingStreams, timeKey), stream.Id); err != nil {
+	if err := k.deleteStreamRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixUpcomingStreams, timeKey), stream.Id); err != nil {
 		return err
 	}
-	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixActiveStreams, timeKey), stream.Id); err != nil {
+	if err := k.addStreamRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixActiveStreams, timeKey), stream.Id); err != nil {
 		return err
 	}
 	return nil
@@ -141,10 +142,10 @@ func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.S
 // moveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
 func (k Keeper) moveStreamToFinishedStream(ctx sdk.Context, stream types.Stream, prefixKey []byte) error {
 	timeKey := getTimeKey(stream.StartTime)
-	if err := k.deleteStreamRefByKey(ctx, combineKeys(prefixKey, timeKey), stream.Id); err != nil {
+	if err := k.deleteStreamRefByKey(ctx, ukeys.CombineKeys(prefixKey, timeKey), stream.Id); err != nil {
 		return err
 	}
-	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixFinishedStreams, timeKey), stream.Id); err != nil {
+	if err := k.addStreamRefByKey(ctx, ukeys.CombineKeys(types.KeyPrefixFinishedStreams, timeKey), stream.Id); err != nil {
 		return err
 	}
 	return nil

@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/ucoin"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
 func Test_proposerChoiceAlgo(t *testing.T) {

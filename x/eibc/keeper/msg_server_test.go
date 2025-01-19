@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"

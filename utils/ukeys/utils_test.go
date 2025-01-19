@@ -1,4 +1,4 @@
-package keeper
+package ukeys_test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -18,7 +19,7 @@ func TestCombineKeys(t *testing.T) {
 	key3 := []byte{0x13}
 
 	// combine the three keys into a single key
-	key := combineKeys(key1, key2, key3)
+	key := ukeys.CombineKeys(key1, key2, key3)
 
 	// three keys plus two separators is equal to a length of 5
 	require.Len(t, key, 3+2)
@@ -37,10 +38,10 @@ func TestFindIndex(t *testing.T) {
 
 	// use the findIndex function to find the index of the respective IDs
 	// if it doesn't exist, return -1
-	require.Equal(t, findIndex(IDs, 1), 0)
-	require.Equal(t, findIndex(IDs, 3), 2)
-	require.Equal(t, findIndex(IDs, 5), 4)
-	require.Equal(t, findIndex(IDs, 6), -1)
+	require.Equal(t, ukeys.FindIndex(IDs, 1), 0)
+	require.Equal(t, ukeys.FindIndex(IDs, 3), 2)
+	require.Equal(t, ukeys.FindIndex(IDs, 5), 4)
+	require.Equal(t, ukeys.FindIndex(IDs, 6), -1)
 }
 
 func TestRemoveValue(t *testing.T) {
@@ -49,23 +50,23 @@ func TestRemoveValue(t *testing.T) {
 
 	// remove an ID
 	// ensure if ID exists, the length is reduced by one and the index of the removed ID is returned
-	IDs, index1 := removeValue(IDs, 5)
+	IDs, index1 := ukeys.RemoveValue(IDs, 5)
 	require.Len(t, IDs, 4)
 	require.Equal(t, index1, 4)
-	IDs, index2 := removeValue(IDs, 3)
+	IDs, index2 := ukeys.RemoveValue(IDs, 3)
 	require.Len(t, IDs, 3)
 	require.Equal(t, index2, 2)
-	IDs, index3 := removeValue(IDs, 1)
+	IDs, index3 := ukeys.RemoveValue(IDs, 1)
 	require.Len(t, IDs, 2)
 	require.Equal(t, index3, 0)
-	IDs, index4 := removeValue(IDs, 6)
+	IDs, index4 := ukeys.RemoveValue(IDs, 6)
 	require.Len(t, IDs, 2)
 	require.Equal(t, index4, -1)
 }
 
 func TestGetTimeKey(t *testing.T) {
 	now := time.Now()
-	timeKey := getTimeKey(now)
+	timeKey := ukeys.GetTimeKey(now)
 	require.True(t, bytes.HasPrefix(timeKey, types.KeyPrefixTimestamp))
 	require.True(t, bytes.HasSuffix(timeKey, sdk.FormatTimeBytes(now)))
 }

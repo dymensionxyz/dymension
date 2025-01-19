@@ -11,7 +11,7 @@ import (
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	udenom "github.com/dymensionxyz/dymension/v3/utils/denom"
+	udenom "github.com/dymensionxyz/dymension/v3/utils/uibc"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )

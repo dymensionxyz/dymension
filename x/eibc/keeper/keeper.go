@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 

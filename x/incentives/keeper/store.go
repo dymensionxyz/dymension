@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,12 +30,12 @@ func (k Keeper) SetLastGaugeID(ctx sdk.Context, ID uint64) {
 
 // gaugeStoreKey returns the combined byte array (store key) of the provided gauge ID's key prefix and the ID itself.
 func gaugeStoreKey(ID uint64) []byte {
-	return combineKeys(types.KeyPrefixPeriodGauge, sdk.Uint64ToBigEndian(ID))
+	return ukeys.CombineKeys(types.KeyPrefixPeriodGauge, sdk.Uint64ToBigEndian(ID))
 }
 
 // gaugeDenomStoreKey returns the combined byte array (store key) of the provided gauge denom key prefix and the denom itself.
 func gaugeDenomStoreKey(denom string) []byte {
-	return combineKeys(types.KeyPrefixGaugesByDenom, []byte(denom))
+	return ukeys.CombineKeys(types.KeyPrefixGaugesByDenom, []byte(denom))
 }
 
 // getGaugeRefs returns the gauge IDs specified by the provided key.

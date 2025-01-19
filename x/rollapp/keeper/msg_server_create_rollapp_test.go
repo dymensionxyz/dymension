@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"

@@ -1,4 +1,4 @@
-package utils
+package ucli
 
 import (
 	"encoding/json"

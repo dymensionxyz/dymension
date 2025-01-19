@@ -8,7 +8,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 

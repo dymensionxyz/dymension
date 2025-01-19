@@ -8,9 +8,9 @@ import (
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uibc"
+	"github.com/dymensionxyz/dymension/v3/utils/uslice"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
-	"github.com/dymensionxyz/sdk-utils/utils/uslice"
 )
 
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.

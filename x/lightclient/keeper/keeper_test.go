@@ -6,9 +6,9 @@ import (
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/utils/utest"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/utest"
 	"github.com/stretchr/testify/suite"
 )
 

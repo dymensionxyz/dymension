@@ -6,6 +6,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ukeys"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
@@ -14,7 +15,7 @@ import (
 func (k Keeper) iteratorAfterTime(ctx sdk.Context, prefix []byte, time time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	timeKey := getTimeKey(time)
-	key := combineKeys(prefix, timeKey)
+	key := ukeys.CombineKeys(prefix, timeKey)
 	return store.Iterator(storetypes.InclusiveEndBytes(key), storetypes.PrefixEndBytes(prefix))
 }
 
@@ -22,7 +23,7 @@ func (k Keeper) iteratorAfterTime(ctx sdk.Context, prefix []byte, time time.Time
 func (k Keeper) iteratorBeforeTime(ctx sdk.Context, prefix []byte, time time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	timeKey := getTimeKey(time)
-	key := combineKeys(prefix, timeKey)
+	key := ukeys.CombineKeys(prefix, timeKey)
 	return store.Iterator(prefix, storetypes.InclusiveEndBytes(key))
 }
 

@@ -7,7 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"

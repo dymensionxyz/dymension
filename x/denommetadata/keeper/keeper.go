@@ -6,8 +6,8 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )

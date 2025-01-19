@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
+	"github.com/dymensionxyz/dymension/v3/utils/urand"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
 )
 
 // RandomizedGenState generates a random GenesisState for iro module

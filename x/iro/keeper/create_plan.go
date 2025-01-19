@@ -12,8 +12,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uevent"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"

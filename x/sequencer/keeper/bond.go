@@ -3,8 +3,8 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/ucoin"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
 )
 
 // UnbondBlocker allows vetoing unbond attempts

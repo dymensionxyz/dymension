@@ -1,11 +1,10 @@
-package denom
+package uibc
 
 import (
 	"strings"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 )
 
 // ValidateIBCDenom validates that the given denomination is a valid fungible token representation (i.e 'ibc/{hash}')
@@ -57,7 +56,7 @@ func GetIncomingTransferDenom(packet channeltypes.Packet, fungibleTokenPacketDat
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		denom = uibc.GetForeignDenomTrace(packet.GetDestChannel(), fungibleTokenPacketData.Denom).IBCDenom()
+		denom = GetForeignDenomTrace(packet.GetDestChannel(), fungibleTokenPacketData.Denom).IBCDenom()
 	}
 	return denom
 }
