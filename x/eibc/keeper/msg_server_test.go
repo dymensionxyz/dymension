@@ -210,12 +210,12 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 	}{
 		{
 			name:           "Successful fulfillment",
-			orderPrice:     math.NewInt64Coin("adym", 90),
+			orderPrice:     sdk.NewInt64Coin("adym", 90),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 90)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
 				Amount:              math.IntProto{Int: math.NewInt(100)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -223,21 +223,21 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:                  sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance:         sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:                  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance:         sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			expectError:                       nil,
 			expectOrderFulfilled:              true,
-			expectedLPAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
-			expectedOperatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 52)),  // 50 + 2 (operator fee)
+			expectedLPAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
+			expectedOperatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 52)),  // 50 + 2 (operator fee)
 		},
 		{
 			name:           "Successful fulfillment with settlement",
-			orderPrice:     math.NewInt64Coin("adym", 90),
+			orderPrice:     sdk.NewInt64Coin("adym", 90),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 90)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
 				Amount:              math.IntProto{Int: math.NewInt(100)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -245,8 +245,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: true,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			proofHeight:               1,
 			malleate: func() {
 				siIndex := rollapptypes.StateInfoIndex{
@@ -263,17 +263,17 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			expectError:                       nil,
 			expectOrderFulfilled:              true,
-			expectedLPAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
-			expectedOperatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 52)),  // 50 + 2 (operator fee)
+			expectedLPAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 108)), // 200 - 90 (price) - 2 (operator fee)
+			expectedOperatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 52)),  // 50 + 2 (operator fee)
 		},
 		{
 			name:           "Failure due to mismatched rollapp ID",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           "rollapp_2345-1", // Mismatched Rollapp ID
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 100)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              math.IntProto{Int: math.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -281,20 +281,20 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			expectError:               types.ErrRollappIdMismatch,
 			expectOrderFulfilled:      false,
-			expectedLPAccountBalance:  sdk.NewCoins(math.NewInt64Coin("adym", 200)), // Unchanged
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
 		{
 			name:           "Failure due to mismatched price",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 110)), // Mismatched Price
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 110)), // Mismatched Price
 				Amount:              math.IntProto{Int: math.NewInt(120)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -302,20 +302,20 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			expectError:               types.ErrPriceMismatch,
 			expectOrderFulfilled:      false,
-			expectedLPAccountBalance:  sdk.NewCoins(math.NewInt64Coin("adym", 200)), // Unchanged
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
 		{
 			name:           "Failure due to mismatched expected fee",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 100)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              math.IntProto{Int: math.NewInt(115)},
 				ExpectedFee:         "15",                                                      // Mismatched Expected Fee
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -323,20 +323,20 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			expectError:               types.ErrExpectedFeeNotMet,
 			expectOrderFulfilled:      false,
-			expectedLPAccountBalance:  sdk.NewCoins(math.NewInt64Coin("adym", 200)), // Unchanged
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
 		{
 			name:           "Failure due to LP account not existing",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 100)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              math.IntProto{Int: math.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -345,18 +345,18 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				SettlementValidated: false,
 			},
 			lpAccountBalance:          nil, // Account does not exist
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			expectError:               types.ErrLPAccountDoesNotExist,
 			expectOrderFulfilled:      false,
 		},
 		{
 			name:           "Failure due to operator fee account not existing",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 100)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              math.IntProto{Int: math.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -364,20 +364,20 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
 			operatorFeeAccountBalance: nil, // Account does not exist
 			expectError:               types.ErrOperatorFeeAccountDoesNotExist,
 			expectOrderFulfilled:      false,
-			expectedLPAccountBalance:  sdk.NewCoins(math.NewInt64Coin("adym", 200)), // Unchanged
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
 		{
 			name:           "Failure due to insufficient funds in LP account",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 100)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              math.IntProto{Int: math.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -385,20 +385,20 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 90)), // Insufficient funds
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 90)), // Insufficient funds
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			expectError:               sdkerrors.ErrInsufficientFunds,
 			expectOrderFulfilled:      false,
-			expectedLPAccountBalance:  sdk.NewCoins(math.NewInt64Coin("adym", 90)), // Unchanged
+			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 90)), // Unchanged
 		},
 		{
 			name:           "Failure due to not settlement validated",
-			orderPrice:     math.NewInt64Coin("adym", 100),
+			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 100)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
 				Amount:              math.IntProto{Int: math.NewInt(110)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -406,8 +406,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: true,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			proofHeight:               10,
 			malleate: func() {
 				siIndex := rollapptypes.StateInfoIndex{
@@ -424,16 +424,16 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			expectError:              types.ErrOrderNotSettlementValidated,
 			expectOrderFulfilled:     false,
-			expectedLPAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 200)), // Unchanged
+			expectedLPAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
 		{
 			name:           "Failure due to finalization status",
-			orderPrice:     math.NewInt64Coin("adym", 90),
+			orderPrice:     sdk.NewInt64Coin("adym", 90),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
-				Price:               sdk.NewCoins(math.NewInt64Coin("adym", 90)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
 				Amount:              math.IntProto{Int: math.NewInt(100)},
 				ExpectedFee:         "10",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(2, 1)}, // 0.2
@@ -441,8 +441,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
-			lpAccountBalance:          sdk.NewCoins(math.NewInt64Coin("adym", 200)),
-			operatorFeeAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 50)),
+			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
+			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
 			proofHeight:               9,
 			malleate: func() {
 				siIndex := rollapptypes.StateInfoIndex{
@@ -459,7 +459,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			expectError:              types.ErrDemandOrderInactive,
 			expectOrderFulfilled:     false,
-			expectedLPAccountBalance: sdk.NewCoins(math.NewInt64Coin("adym", 200)), // Unchanged
+			expectedLPAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
 	}
 

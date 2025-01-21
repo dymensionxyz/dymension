@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	math "cosmossdk.io/math"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -393,7 +394,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			_type:           TypeName,
 			expireAt:        time.Now().Unix(),
 			minPrice:        testCoin(1),
-			sellPrice:       uptr.To(math.NewInt64Coin("u"+params.BaseDenom, 2)),
+			sellPrice:       uptr.To(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
 			wantErr:         true,
 			wantErrContains: "SO sell price denom is different from min price denom",
 		},

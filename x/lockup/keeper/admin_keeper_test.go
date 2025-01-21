@@ -12,7 +12,7 @@ func (suite *KeeperTestSuite) TestRelock() {
 	suite.SetupTest()
 
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 
 	// lock with balance
 	suite.FundAcc(addr1, coins)
@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestRelock() {
 	suite.Require().NoError(err)
 
 	// lock with balance with same id
-	coins2 := sdk.Coins{math.NewInt64Coin("stake2", 10)}
+	coins2 := sdk.Coins{sdk.NewInt64Coin("stake2", 10)}
 	suite.FundAcc(addr1, coins2)
 	err = keeper.AdminKeeper{*suite.App.LockupKeeper}.Relock(suite.Ctx, lock.ID, coins2)
 	suite.Require().NoError(err)
@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) BreakLock() {
 	suite.SetupTest()
 
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 
 	// lock with balance
 	suite.FundAcc(addr1, coins)

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -18,8 +19,8 @@ import (
 
 var (
 	defaultLPDenom      string        = "lptoken"
-	defaultLPTokens     sdk.Coins     = sdk.Coins{math.NewInt64Coin(defaultLPDenom, 10)}
-	defaultLiquidTokens sdk.Coins     = sdk.Coins{math.NewInt64Coin("foocoin", 10)}
+	defaultLPTokens     sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPDenom, 10)}
+	defaultLiquidTokens sdk.Coins     = sdk.Coins{sdk.NewInt64Coin("foocoin", 10)}
 	defaultLockDuration time.Duration = time.Second
 	oneLockupUser       userLocks     = userLocks{
 		lockDurations: []time.Duration{time.Second},
@@ -131,7 +132,7 @@ func (suite *KeeperTestSuite) setupNewGaugeWithDuration(isPerpetual bool, coins 
 	}
 
 	// mints coins so supply exists on chain
-	mintCoins := sdk.Coins{math.NewInt64Coin(distrTo.Denom, 200)}
+	mintCoins := sdk.Coins{sdk.NewInt64Coin(distrTo.Denom, 200)}
 	suite.FundAcc(addr, mintCoins)
 
 	numEpochsPaidOver := uint64(2)
@@ -160,7 +161,7 @@ func (suite *KeeperTestSuite) setupNewGaugeWithDenom(isPerpetual bool, coins sdk
 	}
 
 	// mints coins so supply exists on chain
-	mintCoins := sdk.Coins{math.NewInt64Coin(distrTo.Denom, 200)}
+	mintCoins := sdk.Coins{sdk.NewInt64Coin(distrTo.Denom, 200)}
 	suite.FundAcc(addr, mintCoins)
 
 	numEpochsPaidOver := uint64(2)
@@ -198,10 +199,10 @@ func (suite *KeeperTestSuite) SetupManyLocks(numLocks int, liquidBalance sdk.Coi
 func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddress, uint64, sdk.Coins, time.Time) {
 	// create a gauge and locks
 	lockOwner := sdk.AccAddress([]byte("addr1---------------"))
-	suite.LockTokens(lockOwner, sdk.Coins{math.NewInt64Coin("lptoken", 10)}, time.Second)
+	suite.LockTokens(lockOwner, sdk.Coins{sdk.NewInt64Coin("lptoken", 10)}, time.Second)
 
 	// create gauge
-	gaugeID, _, gaugeCoins, startTime := suite.SetupNewGauge(isPerpetual, sdk.Coins{math.NewInt64Coin("stake", 10)})
+	gaugeID, _, gaugeCoins, startTime := suite.SetupNewGauge(isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
 
 	return lockOwner, gaugeID, gaugeCoins, startTime
 }

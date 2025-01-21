@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 
 		// setup lock and gauge
 		_ = suite.SetupManyLocks(tc.numLocks, defaultLiquidTokens, defaultLPTokens, time.Second)
-		gaugeID, _, coins, startTime := suite.SetupNewGauge(tc.isPerpetual, sdk.Coins{math.NewInt64Coin("stake", 12)})
+		gaugeID, _, coins, startTime := suite.SetupNewGauge(tc.isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 12)})
 		// set expected epochs
 		var expectedNumEpochsPaidOver int
 		if tc.isPerpetual {
@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		distrCoins, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 		suite.Require().NoError(err)
 		// We hardcoded 12 "stake" tokens when initializing gauge
-		suite.Require().Equal(sdk.Coins{math.NewInt64Coin("stake", int64(12/expectedNumEpochsPaidOver))}, distrCoins)
+		suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", int64(12/expectedNumEpochsPaidOver))}, distrCoins)
 
 		if tc.isPerpetual {
 			// distributing twice without adding more for perpetual gauge
@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			suite.Require().True(distrCoins.Empty())
 
 			// add to gauge
-			addCoins := sdk.Coins{math.NewInt64Coin("stake", 200)}
+			addCoins := sdk.Coins{sdk.NewInt64Coin("stake", 200)}
 			suite.AddToGauge(addCoins, gaugeID)
 
 			// distributing twice with adding more for perpetual gauge
@@ -171,10 +171,10 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			suite.Require().NoError(err)
 			distrCoins, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 			suite.Require().NoError(err)
-			suite.Require().Equal(sdk.Coins{math.NewInt64Coin("stake", 200)}, distrCoins)
+			suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 200)}, distrCoins)
 		} else {
 			// add to gauge
-			addCoins := sdk.Coins{math.NewInt64Coin("stake", 200)}
+			addCoins := sdk.Coins{sdk.NewInt64Coin("stake", 200)}
 			suite.AddToGauge(addCoins, gaugeID)
 		}
 

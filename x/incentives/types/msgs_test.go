@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -158,7 +159,7 @@ func TestMsgAddToGauge(t *testing.T) {
 		properMsg := *incentivestypes.NewMsgAddToGauge(
 			addr1,
 			1,
-			sdk.Coins{math.NewInt64Coin("stake", 10)},
+			sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 		)
 
 		return after(properMsg)

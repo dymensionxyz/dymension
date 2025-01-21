@@ -352,7 +352,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			params:                 nil,
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice:             testCoin(1),
-			counterpartyOfferPrice: uptr.To(math.NewInt64Coin("u"+params.BaseDenom, 2)),
+			counterpartyOfferPrice: uptr.To(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
 			wantErr:                true,
 			wantErrContains:        "counterparty offer price denom is different from offer price denom",
 		},

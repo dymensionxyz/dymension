@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 			err = suite.CreateGauge()
 			suite.Require().NoError(err)
 
-			id, _ := suite.CreateDefaultStream(sdk.NewCoins(math.NewInt64Coin("udym", 100000)))
+			id, _ := suite.CreateDefaultStream(sdk.NewCoins(sdk.NewInt64Coin("udym", 100000)))
 			if test.streamId != 0 {
 				id = test.streamId
 			}
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 			err = suite.CreateGauge()
 			suite.Require().NoError(err)
 
-			id, _ := suite.CreateDefaultStream(sdk.NewCoins(math.NewInt64Coin("udym", 100000)))
+			id, _ := suite.CreateDefaultStream(sdk.NewCoins(sdk.NewInt64Coin("udym", 100000)))
 			if test.streamId != 0 {
 				id = test.streamId
 			}

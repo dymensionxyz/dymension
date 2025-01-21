@@ -470,7 +470,7 @@ func (s *UpgradeTestSuite) seedSequencers(numRollapps int) []sequencertypes.Sequ
 					Details: fmt.Sprintf("Additional details about the %s", uuid),
 				},
 				Status:   sequencertypes.Bonded,
-				Tokens:   sdk.NewCoins(math.NewInt64Coin("dym", 100)),
+				Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
 				Proposer: j == 0, // first sequencer is proposer
 			}
 			sequencers = append(sequencers, sequencer)

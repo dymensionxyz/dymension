@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -26,6 +28,7 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 	// FIXME: support beginBlock
+	_ appmodule.HasEndBlocker = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -159,12 +162,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // EndBlock executes all ABCI EndBlock logic respective to the module.
 // Returns a nil validatorUpdate struct array.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	err := am.keeper.EndBlock(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	return am.keeper.EndBlock(sdk.UnwrapSDKContext(goCtx))
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

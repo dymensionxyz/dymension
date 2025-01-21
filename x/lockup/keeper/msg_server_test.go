@@ -28,20 +28,20 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 		{
 			name: "creation of lock via lockTokens",
 			param: param{
-				coinsToLock:         sdk.Coins{math.NewInt64Coin("stake", 10)},      // setup wallet
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
 				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{math.NewInt64Coin("stake", 10)},
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			expectPass: true,
 		},
 		{
 			name: "locking more coins than are in the address",
 			param: param{
-				coinsToLock:         sdk.Coins{math.NewInt64Coin("stake", 20)},      // setup wallet
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 20)},       // setup wallet
 				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{math.NewInt64Coin("stake", 10)},
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			expectPass: false,
 		},
@@ -125,22 +125,22 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 		{
 			name: "unlock full amount of tokens via begin unlock",
 			param: param{
-				coinsToLock:         sdk.Coins{math.NewInt64Coin("stake", 10)},      // setup wallet
-				coinsToUnlock:       sdk.Coins{math.NewInt64Coin("stake", 10)},      // setup wallet
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
+				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
 				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{math.NewInt64Coin("stake", 10)},
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			expectPass: true,
 		},
 		{
 			name: "unlock partial amount of tokens via begin unlock",
 			param: param{
-				coinsToLock:         sdk.Coins{math.NewInt64Coin("stake", 10)},      // setup wallet
-				coinsToUnlock:       sdk.Coins{math.NewInt64Coin("stake", 5)},       // setup wallet
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
+				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake", 5)},        // setup wallet
 				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{math.NewInt64Coin("stake", 10)},
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			isPartial:  true,
 			expectPass: true,
@@ -148,11 +148,11 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 		{
 			name: "unlock zero amount of tokens via begin unlock",
 			param: param{
-				coinsToLock:         sdk.Coins{math.NewInt64Coin("stake", 10)},      // setup wallet
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
 				coinsToUnlock:       sdk.Coins{},                                    // setup wallet
 				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{math.NewInt64Coin("stake", 10)},
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			expectPass: true,
 		},
@@ -205,10 +205,10 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlockingAll() {
 		{
 			name: "unlock all lockups",
 			param: param{
-				coinsToLock:         sdk.Coins{math.NewInt64Coin("stake", 10)},      // setup wallet
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
 				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{math.NewInt64Coin("stake", 10)},
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			expectPass: true,
 		},
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestMsgEditLockup() {
 		{
 			name: "edit lockups by duration",
 			param: param{
-				coinsToLock:       sdk.Coins{math.NewInt64Coin("stake", 10)}, // setup wallet
+				coinsToLock:       sdk.Coins{sdk.NewInt64Coin("stake", 10)}, // setup wallet
 				isSyntheticLockup: false,
 				lockOwner:         sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:          time.Second,
@@ -265,7 +265,7 @@ func (suite *KeeperTestSuite) TestMsgEditLockup() {
 		{
 			name: "edit lockups by lesser duration",
 			param: param{
-				coinsToLock:       sdk.Coins{math.NewInt64Coin("stake", 10)}, // setup wallet
+				coinsToLock:       sdk.Coins{sdk.NewInt64Coin("stake", 10)}, // setup wallet
 				isSyntheticLockup: false,
 				lockOwner:         sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:          time.Second,

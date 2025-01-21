@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -16,7 +17,7 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 		testingDistrRecord     []types.DistrRecord
 		mintedCoins            sdk.Coin
 		expectedGaugesBalances []sdk.Coins
-		expectedCommunityPool  math.LegacyDecCoin
+		expectedCommunityPool  sdk.DecCoin
 	}{
 		// With minting 15000 stake to module, after AllocateAsset we get:
 		// expectedCommunityPool = 0 (All reward will be transferred to the gauges)

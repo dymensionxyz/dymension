@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -259,7 +260,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgIncreaseBond{
 				Creator:   "invalid_address",
-				AddAmount: math.NewInt64Coin("stake", 100),
+				AddAmount: sdk.NewInt64Coin("stake", 100),
 			},
 			err: ErrInvalidAddr,
 		},
@@ -267,7 +268,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid bond amount",
 			msg: MsgIncreaseBond{
 				Creator:   sample.AccAddress(),
-				AddAmount: math.NewInt64Coin("stake", 0),
+				AddAmount: sdk.NewInt64Coin("stake", 0),
 			},
 			err: ErrInvalidCoins,
 		},
@@ -275,7 +276,7 @@ func TestNewMsgIncreaseBond_ValidateBasic(t *testing.T) {
 			name: "valid",
 			msg: MsgIncreaseBond{
 				Creator:   sample.AccAddress(),
-				AddAmount: math.NewInt64Coin("stake", 100),
+				AddAmount: sdk.NewInt64Coin("stake", 100),
 			},
 		},
 	}
@@ -301,7 +302,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgDecreaseBond{
 				Creator:        "invalid_address",
-				DecreaseAmount: math.NewInt64Coin("stake", 100),
+				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
 			},
 			err: ErrInvalidAddr,
 		},
@@ -309,7 +310,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 			name: "invalid bond amount",
 			msg: MsgDecreaseBond{
 				Creator:        sample.AccAddress(),
-				DecreaseAmount: math.NewInt64Coin("stake", 0),
+				DecreaseAmount: sdk.NewInt64Coin("stake", 0),
 			},
 			err: ErrInvalidCoins,
 		},
@@ -317,7 +318,7 @@ func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
 			name: "valid",
 			msg: MsgDecreaseBond{
 				Creator:        sample.AccAddress(),
-				DecreaseAmount: math.NewInt64Coin("stake", 100),
+				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
 			},
 		},
 	}

@@ -502,7 +502,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).PurchaseOrder(s.ctx, &dymnstypes.MsgPurchaseOrder{
 				AssetId:   dymName.Name,
 				AssetType: dymnstypes.TypeName,
-				Offer:     math.NewInt64Coin(useDenom, tt.newBid),
+				Offer:     sdk.NewInt64Coin(useDenom, tt.newBid),
 				Buyer:     useBuyer,
 			})
 			laterDymName := s.dymNsKeeper.GetDymName(s.ctx, dymName.Name)

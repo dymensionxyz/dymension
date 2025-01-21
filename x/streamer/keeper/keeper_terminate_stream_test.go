@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -10,21 +11,21 @@ import (
 var _ = suite.TestingSuite(nil)
 
 var createActiveStreamFunc = func(suite *KeeperTestSuite) uint64 {
-	id, stream := suite.CreateStream(defaultDistrInfo, sdk.Coins{math.NewInt64Coin("stake", 100)}, time.Time{}, "day", 30)
+	id, stream := suite.CreateStream(defaultDistrInfo, sdk.Coins{sdk.NewInt64Coin("stake", 100)}, time.Time{}, "day", 30)
 	err := suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 	return id
 }
 
 var createUpcomingStreamFunc = func(suite *KeeperTestSuite) uint64 {
-	id, _ := suite.CreateStream(defaultDistrInfo, sdk.Coins{math.NewInt64Coin("stake", 100)}, time.Now().Add(10*time.Minute), "day", 30)
+	id, _ := suite.CreateStream(defaultDistrInfo, sdk.Coins{sdk.NewInt64Coin("stake", 100)}, time.Now().Add(10*time.Minute), "day", 30)
 	_, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, id)
 	suite.Require().NoError(err)
 	return id
 }
 
 var createFinishedStreamFunc = func(suite *KeeperTestSuite) uint64 {
-	id, stream := suite.CreateStream(defaultDistrInfo, sdk.Coins{math.NewInt64Coin("stake", 100)}, time.Time{}, "day", 30)
+	id, stream := suite.CreateStream(defaultDistrInfo, sdk.Coins{sdk.NewInt64Coin("stake", 100)}, time.Time{}, "day", 30)
 	err := suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 	err = suite.App.StreamerKeeper.MoveActiveStreamToFinishedStream(suite.Ctx, *stream)
@@ -78,7 +79,7 @@ func (suite *KeeperTestSuite) TestTerminateStream() {
 
 // test GetModuleToDistributeCoins
 func (suite *KeeperTestSuite) TestTerminateStream_ModuleToDistributeCoins() {
-	coinUpcoming := math.NewInt64Coin("stake", 10000)
+	coinUpcoming := sdk.NewInt64Coin("stake", 10000)
 	coinActive := coinUpcoming
 
 	// create upcoming stream
@@ -104,7 +105,7 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleToDistributeCoins() {
 
 // test GetModuleDistributedCoins
 func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
-	coinUpcoming := math.NewInt64Coin("stake", 10000)
+	coinUpcoming := sdk.NewInt64Coin("stake", 10000)
 	coinActive := coinUpcoming
 
 	suite.CreateGauges(2)

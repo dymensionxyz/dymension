@@ -10,7 +10,7 @@ import (
 func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 	validOrderID := "8f833734cf6b3890c386b8f7d0dc2c9ef077e8b1f3a8cf03874d37a316eb1308"
 	validRollappID := "rollapp_1234-1"
-	validPrice := sdk.NewCoins(math.NewInt64Coin("udenom", 100))
+	validPrice := sdk.NewCoins(sdk.NewInt64Coin("udenom", 100))
 	negativePrice := sdk.Coins{sdk.Coin{Denom: "udenom", Amount: math.NewInt(-1)}}
 
 	validAmount := math.IntProto{Int: math.NewInt(10)}

@@ -15,7 +15,7 @@ var _ = suite.TestingSuite(nil)
 // TestGRPCStreamByID tests querying streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCStreamByID() {
 	// create a stream
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	streamID, stream := suite.CreateDefaultStream(coins)
 
 	// ensure that querying for a stream with an ID that doesn't exist returns an error.
@@ -40,7 +40,7 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 	suite.Require().Len(res.Data, 0)
 
 	// create a stream
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	streamID, stream := suite.CreateDefaultStream(coins)
 	suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 	// create 10 more streams
 	for i := 0; i < 10; i++ {
 		// create a stream
-		coins := sdk.Coins{math.NewInt64Coin("stake", 3)}
+		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 		_, stream = suite.CreateDefaultStream(coins)
 		suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 	}
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 	suite.Require().Len(res.Data, 0)
 
 	// create a stream and move it from upcoming to active
-	coins := sdk.Coins{math.NewInt64Coin("stake", 3)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 	streamID, stream := suite.CreateDefaultStream(coins)
 	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
 
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 
 	// create 20 more streams
 	for i := 0; i < 20; i++ {
-		coins := sdk.Coins{math.NewInt64Coin("stake", 3)}
+		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 		_, stream := suite.CreateDefaultStream(coins)
 		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
 
@@ -126,7 +126,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 	suite.Require().Len(res.Data, 0)
 
 	// create a stream
-	coins := sdk.Coins{math.NewInt64Coin("stake", 3)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 	streamID, stream := suite.CreateDefaultStream(coins)
 
 	// query upcoming streams again, but this time expect the stream created earlier in the response
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 
 	// setup 20 more upcoming streams
 	for i := 0; i < 20; i++ {
-		coins := sdk.Coins{math.NewInt64Coin("stake", 3)}
+		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 		_, stream := suite.CreateDefaultStream(coins)
 		suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
@@ -177,7 +177,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().Equal(res.Coins, sdk.Coins{})
 
 	// setup a non perpetual stream
-	coins := sdk.Coins{math.NewInt64Coin("stake", 300000)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 300000)}
 	streamID, _ := suite.CreateDefaultStream(coins)
 	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
 
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// trigger the epoch end. this will distribute all rewards assigned to this epoch
 	distrCoins, err := suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins{math.NewInt64Coin("stake", 10000)})
+	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 10000)})
 
 	// check stream changes after distribution
 	// ensure the stream's filled epochs have been increased by 1
@@ -221,7 +221,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(stream)
 	suite.Require().Equal(stream.FilledEpochs, uint64(1))
-	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{math.NewInt64Coin("stake", 10000)})
+	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 10000)})
 
 	// check that the to distribute coins is equal to the initial stream coin balance minus what has been distributed already (10-4=6)
 	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
@@ -234,7 +234,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().NoError(err)
 	distrCoins, err = suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.Coins{math.NewInt64Coin("stake", 10000)}, distrCoins)
+	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 10000)}, distrCoins)
 
 	// check stream changes after distribution
 	// ensure the stream's filled epochs have been increased by 1
@@ -243,11 +243,11 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(stream)
 	suite.Require().Equal(stream.FilledEpochs, uint64(2))
-	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{math.NewInt64Coin("stake", 20000)})
+	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 20000)})
 
 	// now that all coins have been distributed (4 in first found 6 in the second round)
 	// to distribute coins should be null
 	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(res.Coins, sdk.Coins{math.NewInt64Coin("stake", 280000)})
+	suite.Require().Equal(res.Coins, sdk.Coins{sdk.NewInt64Coin("stake", 280000)})
 }

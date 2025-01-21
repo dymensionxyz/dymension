@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
@@ -18,7 +19,7 @@ func (suite *KeeperTestSuite) TestBeginUnlocking() { // test for all unlockable 
 
 	// lock coins
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr1, coins, time.Second)
 
 	// check locks
@@ -54,7 +55,7 @@ func (suite *KeeperTestSuite) TestGetPeriodLocks() {
 
 	// lock coins
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr1, coins, time.Second)
 
 	// check locks
@@ -65,7 +66,7 @@ func (suite *KeeperTestSuite) TestGetPeriodLocks() {
 
 func (suite *KeeperTestSuite) TestUnlock() {
 	suite.SetupTest()
-	initialLockCoins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	initialLockCoins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 
 	testCases := []struct {
 		name                          string
@@ -94,30 +95,30 @@ func (suite *KeeperTestSuite) TestUnlock() {
 		},
 		{
 			name:                          "unlocking coins exceed what's in lock",
-			unlockingCoins:                sdk.Coins{math.NewInt64Coin("stake", 20)},
+			unlockingCoins:                sdk.Coins{sdk.NewInt64Coin("stake", 20)},
 			passedTime:                    time.Second,
 			expectedUnlockMaturedLockPass: false,
 			balanceAfterUnlock:            sdk.Coins{},
 		},
 		{
 			name:                          "unlocking unknown tokens",
-			unlockingCoins:                sdk.Coins{math.NewInt64Coin("unknown", 10)},
+			unlockingCoins:                sdk.Coins{sdk.NewInt64Coin("unknown", 10)},
 			passedTime:                    time.Second,
 			expectedUnlockMaturedLockPass: false,
 			balanceAfterUnlock:            sdk.Coins{},
 		},
 		{
 			name:                          "partial unlocking",
-			unlockingCoins:                sdk.Coins{math.NewInt64Coin("stake", 5)},
+			unlockingCoins:                sdk.Coins{sdk.NewInt64Coin("stake", 5)},
 			expectedBeginUnlockPass:       true,
 			passedTime:                    time.Second,
 			expectedUnlockMaturedLockPass: true,
-			balanceAfterUnlock:            sdk.Coins{math.NewInt64Coin("stake", 5)},
+			balanceAfterUnlock:            sdk.Coins{sdk.NewInt64Coin("stake", 5)},
 			isPartial:                     true,
 		},
 		{
 			name:                          "partial unlocking unknown tokens",
-			unlockingCoins:                sdk.Coins{math.NewInt64Coin("unknown", 5)},
+			unlockingCoins:                sdk.Coins{sdk.NewInt64Coin("unknown", 5)},
 			passedTime:                    time.Second,
 			expectedUnlockMaturedLockPass: false,
 			balanceAfterUnlock:            sdk.Coins{},
@@ -230,7 +231,7 @@ func (suite *KeeperTestSuite) TestModuleLockedCoins() {
 
 	// lock coins
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr1, coins, time.Second)
 
 	// final check
@@ -250,7 +251,7 @@ func (suite *KeeperTestSuite) TestLocksPastTimeDenom() {
 
 	// lock coins
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr1, coins, time.Second)
 
 	// final check
@@ -268,7 +269,7 @@ func (suite *KeeperTestSuite) TestLocksLongerThanDurationDenom() {
 
 	// lock coins
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr1, coins, time.Second)
 
 	// final check
@@ -280,7 +281,7 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 	suite.SetupTest()
 
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 
 	// test locking without balance
 	_, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr1, coins, time.Second)
@@ -309,7 +310,7 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 	suite.Require().Equal(accum.String(), "10")
 
 	// create new lock
-	coins = sdk.Coins{math.NewInt64Coin("stake", 20)}
+	coins = sdk.Coins{sdk.NewInt64Coin("stake", 20)}
 	suite.FundAcc(addr1, coins)
 
 	lock, err = suite.App.LockupKeeper.CreateLock(suite.Ctx, addr1, coins, time.Second)
@@ -336,7 +337,7 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 }
 
 func (suite *KeeperTestSuite) TestAddTokensToLock() {
-	initialLockCoin := math.NewInt64Coin("stake", 10)
+	initialLockCoin := sdk.NewInt64Coin("stake", 10)
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
 	addr2 := sdk.AccAddress([]byte("addr2---------------"))
 
@@ -449,7 +450,7 @@ func (suite *KeeperTestSuite) TestHasLock() {
 	}{
 		{
 			name:            "same token, same duration",
-			tokenLocked:     math.NewInt64Coin("stake", 10),
+			tokenLocked:     sdk.NewInt64Coin("stake", 10),
 			durationLocked:  time.Minute,
 			lockAddr:        addr1,
 			denomToQuery:    "stake",
@@ -458,7 +459,7 @@ func (suite *KeeperTestSuite) TestHasLock() {
 		},
 		{
 			name:            "same token, shorter duration",
-			tokenLocked:     math.NewInt64Coin("stake", 10),
+			tokenLocked:     sdk.NewInt64Coin("stake", 10),
 			durationLocked:  time.Minute,
 			lockAddr:        addr1,
 			denomToQuery:    "stake",
@@ -467,7 +468,7 @@ func (suite *KeeperTestSuite) TestHasLock() {
 		},
 		{
 			name:            "same token, longer duration",
-			tokenLocked:     math.NewInt64Coin("stake", 10),
+			tokenLocked:     sdk.NewInt64Coin("stake", 10),
 			durationLocked:  time.Minute,
 			lockAddr:        addr1,
 			denomToQuery:    "stake",
@@ -476,7 +477,7 @@ func (suite *KeeperTestSuite) TestHasLock() {
 		},
 		{
 			name:            "different token, same duration",
-			tokenLocked:     math.NewInt64Coin("stake", 10),
+			tokenLocked:     sdk.NewInt64Coin("stake", 10),
 			durationLocked:  time.Minute,
 			lockAddr:        addr1,
 			denomToQuery:    "uosmo",
@@ -485,7 +486,7 @@ func (suite *KeeperTestSuite) TestHasLock() {
 		},
 		{
 			name:            "same token, same duration, different address",
-			tokenLocked:     math.NewInt64Coin("stake", 10),
+			tokenLocked:     sdk.NewInt64Coin("stake", 10),
 			durationLocked:  time.Minute,
 			lockAddr:        addr2,
 			denomToQuery:    "uosmo",
@@ -509,7 +510,7 @@ func (suite *KeeperTestSuite) TestLock() {
 	suite.SetupTest()
 
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 
 	lock := types.PeriodLock{
 		ID:       1,
@@ -555,7 +556,7 @@ func (suite *KeeperTestSuite) TestEndblockerWithdrawAllMaturedLockups() {
 	suite.SetupTest()
 
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	totalCoins := coins.Add(coins...).Add(coins...)
 
 	// lock coins for 5 second, 1 seconds, and 3 seconds in that order
@@ -642,12 +643,12 @@ func (suite *KeeperTestSuite) TestLockAccumulationStore() {
 	// 1 * time.Second: 10 + 20
 	// 2 * time.Second: 20 + 30
 	// 3 * time.Second: 30
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr, coins, time.Second)
-	coins = sdk.Coins{math.NewInt64Coin("stake", 20)}
+	coins = sdk.Coins{sdk.NewInt64Coin("stake", 20)}
 	suite.LockTokens(addr, coins, time.Second)
 	suite.LockTokens(addr, coins, time.Second*2)
-	coins = sdk.Coins{math.NewInt64Coin("stake", 30)}
+	coins = sdk.Coins{sdk.NewInt64Coin("stake", 30)}
 	suite.LockTokens(addr, coins, time.Second*2)
 	suite.LockTokens(addr, coins, time.Second*3)
 
@@ -691,7 +692,7 @@ func (suite *KeeperTestSuite) TestEditLockup() {
 	addr := sdk.AccAddress([]byte("addr1---------------"))
 
 	// 1 * time.Second: 10
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	suite.LockTokens(addr, coins, time.Second)
 
 	// check accumulations

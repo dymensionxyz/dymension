@@ -25,8 +25,8 @@ func TestStreamerExportGenesis(t *testing.T) {
 	require.Len(t, genesis.Streams, 0)
 
 	// fund the module
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10000)}
-	err := bankutil.FundModuleAccount(app.BankKeeper, ctx, types.ModuleName, coins)
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
+	err := bankutil.FundModuleAccount(ctx, app.BankKeeper, types.ModuleName, coins)
 	require.NoError(t, err)
 
 	_, err = app.IncentivesKeeper.CreateGauge(
@@ -87,7 +87,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 	require.NoError(t, validateGenesis)
 
 	// create coins, lp tokens with lockup durations, and a stream for this lockup
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10000)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
 	startTime := time.Now()
 
 	distr := types.DistrInfo{
@@ -147,7 +147,7 @@ func TestStreamerOrder(t *testing.T) {
 	validateGenesis := types.DefaultGenesis().Params.Validate()
 	require.NoError(t, validateGenesis)
 	// create coins, lp tokens with lockup durations, and a stream for this lockup
-	coins := sdk.Coins{math.NewInt64Coin("stake", 10000)}
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
 	startTime := time.Now()
 
 	distr := types.DistrInfo{

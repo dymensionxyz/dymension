@@ -23,38 +23,38 @@ func TestSpendable(t *testing.T) {
 		expectErr    bool
 	}{
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000)},
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1000)},
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000)},
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1000)},
 			expectErr:    false,
 		},
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000)},
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1001)},
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000)},
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1001)},
 			expectErr:    true,
 		},
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1000)}.Sort(),
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1000)},
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1000)}.Sort(),
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1000)},
 			expectErr:    false,
 		},
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1000)}.Sort(),
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1000)}.Sort(),
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1000)}.Sort(),
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1000)}.Sort(),
 			expectErr:    false,
 		},
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1000)}.Sort(),
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1001)}.Sort(),
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1000)}.Sort(),
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1001)}.Sort(),
 			expectErr:    true,
 		},
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1000)}.Sort(),
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1001), math.NewInt64Coin("stake", 1000)}.Sort(),
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1000)}.Sort(),
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1001), sdk.NewInt64Coin("stake", 1000)}.Sort(),
 			expectErr:    true,
 		},
 		{
-			balance:      sdk.Coins{math.NewInt64Coin("udym", 1000), math.NewInt64Coin("stake", 1000)}.Sort(),
-			coinsToSpend: sdk.Coins{math.NewInt64Coin("udym", 1001), math.NewInt64Coin("stake", 1001)}.Sort(),
+			balance:      sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 1000)}.Sort(),
+			coinsToSpend: sdk.Coins{sdk.NewInt64Coin("udym", 1001), sdk.NewInt64Coin("stake", 1001)}.Sort(),
 			expectErr:    true,
 		},
 	}
@@ -82,11 +82,11 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	toDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(currModuleBalance, toDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{math.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().Error(err)
 
 	// mint more tokens to the streamer account
-	mintCoins := sdk.NewCoins(math.NewInt64Coin("udym", 1000000))
+	mintCoins := sdk.NewCoins(sdk.NewInt64Coin("udym", 1000000))
 	suite.FundModuleAcc(types.ModuleName, mintCoins)
 
 	newToDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().Error(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{math.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 }
 
@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	}{
 		{
 			name:              "happy flow",
-			coins:             sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:              "multiple coins",
-			coins:             sdk.Coins{math.NewInt64Coin("udym", 100000), math.NewInt64Coin("stake", 100000)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("stake", 100000)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
@@ -126,7 +126,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:              "non existing denom",
-			coins:             sdk.Coins{math.NewInt64Coin("udasdas", 10)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udasdas", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:              "multiple tokens - one is non existing denom",
-			coins:             sdk.Coins{math.NewInt64Coin("udym", 100000), math.NewInt64Coin("udasdas", 10)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("udasdas", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:  "bad distribution info - negative weight",
-			coins: sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo: []types.DistrRecord{
 				{
 					GaugeId: 1,
@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:  "bad distribution info - invalid gauge",
-			coins: sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo: []types.DistrRecord{
 				{
 					GaugeId: 0,
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:  "bad distribution info - zero weight",
-			coins: sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo: []types.DistrRecord{
 				{
 					GaugeId: 2,
@@ -181,7 +181,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:              "bad epoch identifier",
-			coins:             sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "thththt",
 			numEpochsPaidOver: 30,
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		},
 		{
 			name:              "bad num of epochs",
-			coins:             sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 0,
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 	}{
 		{
 			name:              "empty initial distr",
-			coins:             sdk.Coins{math.NewInt64Coin("udym", 10)},
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			initialVote:       sponsorshiptypes.MsgVote{},
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 		},
 		{
 			name:            "non-empty initial distr",
-			coins:           sdk.Coins{math.NewInt64Coin("udym", 100000), math.NewInt64Coin("stake", 100000)},
+			coins:           sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("stake", 100000)},
 			distrTo:         defaultDistrInfo,
 			epochIdentifier: "day",
 			initialVote: sponsorshiptypes.MsgVote{
@@ -242,7 +242,7 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 		},
 		{
 			name:  "stream distr info doesn't play any role",
-			coins: sdk.Coins{math.NewInt64Coin("udym", 100000), math.NewInt64Coin("stake", 100000)},
+			coins: sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("stake", 100000)},
 			// Random unrealistic values
 			distrTo: []types.DistrRecord{
 				{

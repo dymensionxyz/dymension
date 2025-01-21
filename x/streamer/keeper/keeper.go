@@ -6,7 +6,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,7 +32,7 @@ type Keeper struct {
 	epochPointers collections.Map[string, types.EpochPointer]
 }
 
-// NewKeeper returns a new instance of the incentive module keeper struct.
+// NewKeeper returns a new instance of the streamer module keeper struct.
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,

@@ -71,7 +71,7 @@ func (s *AnteTestSuite) getMsgSubmitProposal(from sdk.AccAddress) sdk.Msg {
 }
 
 func (s *AnteTestSuite) getMsgGrantAllowance(from sdk.AccAddress) sdk.Msg {
-	spendLimit := sdk.NewCoins(math.NewInt64Coin(params.BaseDenom, 10000000))
+	spendLimit := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 10000000))
 	threeHours := time.Now().Add(3 * time.Hour)
 	basic := &feegrant.BasicAllowance{
 		SpendLimit: spendLimit,

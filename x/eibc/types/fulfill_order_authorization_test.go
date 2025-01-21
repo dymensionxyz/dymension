@@ -28,8 +28,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -38,7 +38,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -51,8 +51,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 1)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 1)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -67,8 +67,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -76,8 +76,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID2,
 						Denoms:              []string{"btc"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("btc", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("btc", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("btc", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("btc", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -86,7 +86,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -99,8 +99,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID2,
 						Denoms:              []string{"btc"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("btc", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("btc", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("btc", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("btc", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -158,8 +158,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -168,7 +168,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.03")},
@@ -184,8 +184,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -194,7 +194,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("btc", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("btc", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -210,8 +210,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -220,7 +220,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "invalid",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -236,8 +236,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -246,7 +246,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         math.LegacyMustNewDecFromStr("0.0014").Mul(math.LegacyNewDec(10000)).String(),
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -262,8 +262,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -272,7 +272,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9986)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9986)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -288,8 +288,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9984)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9984)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -298,7 +298,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -315,8 +315,8 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -325,7 +325,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -341,7 +341,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 					{
 						RollappId:           validRollappID1,
 						Denoms:              []string{"atom"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.0015")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,
@@ -350,7 +350,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 			},
 			msg: &MsgFulfillOrderAuthorized{
 				RollappId:           validRollappID1,
-				Price:               sdk.NewCoins(math.NewInt64Coin("atom", 9985)),
+				Price:               sdk.NewCoins(sdk.NewInt64Coin("atom", 9985)),
 				Amount:              math.IntProto{Int: math.NewInt(10000)},
 				ExpectedFee:         "15",
 				OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
@@ -400,8 +400,8 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 					{
 						RollappId:           validaRollappID,
 						Denoms:              []string{"atom", "btc"},
-						MaxPrice:            sdk.NewCoins(math.NewInt64Coin("atom", 500)),
-						SpendLimit:          sdk.NewCoins(math.NewInt64Coin("atom", 1000)),
+						MaxPrice:            sdk.NewCoins(sdk.NewInt64Coin("atom", 500)),
+						SpendLimit:          sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
 						MinFeePercentage:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.05")},
 						OperatorFeeShare:    math.LegacyDecProto{Dec: math.LegacyMustNewDecFromStr("0.02")},
 						SettlementValidated: true,

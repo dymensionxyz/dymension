@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -44,7 +43,7 @@ type KeeperTestSuite struct {
 // SetupTest sets streamer parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.App = apptesting.Setup(suite.T())
-	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	suite.Ctx = suite.App.BaseApp.NewContext(false)
 	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500000)), sdk.NewCoin("udym", math.NewInt(2500000)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
@@ -152,6 +151,12 @@ func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower ma
 	val1 := suite.CreateValidator()
 	val2 := suite.CreateValidator()
 
+	val1Addr, err := sdk.ValAddressFromBech32(val1.GetOperator())
+	suite.Require().NoError(err)
+
+	val2Addr, err := sdk.ValAddressFromBech32(val2.GetOperator())
+	suite.Require().NoError(err)
+
 	delAddr, err := sdk.AccAddressFromBech32(vote.Voter)
 	suite.Require().NoError(err)
 	initialBalance := sdk.NewCoin(sdk.DefaultBondDenom, votingPower)
@@ -159,8 +164,8 @@ func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower ma
 
 	stake := votingPower.Quo(math.NewInt(2))
 	delegation := sdk.NewCoin(sdk.DefaultBondDenom, stake)
-	suite.Delegate(delAddr, val1.GetOperator(), delegation) // delegator 1 -> validator 1
-	suite.Delegate(delAddr, val2.GetOperator(), delegation) // delegator 1 -> validator 2
+	suite.Delegate(delAddr, val1Addr, delegation) // delegator 1 -> validator 1
+	suite.Delegate(delAddr, val2Addr, delegation) // delegator 1 -> validator 2
 
 	suite.vote(vote)
 }
@@ -183,7 +188,7 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	valAddr := sdk.ValAddress(valAddrs[0].Bytes())
 	privEd := ed25519.GenPrivKey()
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
-		valAddr,
+		valAddr.String(),
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
@@ -198,8 +203,8 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(resp)
 
-	val, found := suite.App.StakingKeeper.GetValidator(suite.Ctx, valAddr)
-	suite.Require().True(found)
+	val, err := suite.App.StakingKeeper.GetValidator(suite.Ctx, valAddr)
+	suite.Require().NoError(err)
 
 	return val
 }
@@ -229,7 +234,7 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 func (suite *KeeperTestSuite) DistributeAllRewards() sdk.Coins {
 	// We must create at least one lock, otherwise distribution won't work
 	lockOwner := apptesting.CreateRandomAccounts(1)[0]
-	suite.LockTokens(lockOwner, sdk.NewCoins(math.NewInt64Coin("stake", 100)))
+	suite.LockTokens(lockOwner, sdk.NewCoins(sdk.NewInt64Coin("stake", 100)))
 
 	err := suite.App.StreamerKeeper.BeforeEpochStart(suite.Ctx, "day")
 	suite.Require().NoError(err)
