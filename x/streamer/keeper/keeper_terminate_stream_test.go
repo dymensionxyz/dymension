@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleToDistributeCoins() {
 	suite.Require().NoError(err)
 
 	toDist = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(sdk.ZeroInt(), toDist.AmountOf("stake"))
+	suite.Require().Equal(math.ZeroInt(), toDist.AmountOf("stake"))
 }
 
 // test GetModuleDistributedCoins
@@ -130,7 +130,7 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
 
 	/* ---------------------- check ModuleToDistributeCoins --------------------- */
 	toDist = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(sdk.ZeroInt(), toDist.AmountOf("stake"))
+	suite.Require().Equal(math.ZeroInt(), toDist.AmountOf("stake"))
 
 	// simulate the epoch end
 	distributed, err := suite.App.StreamerKeeper.AfterEpochEnd(suite.Ctx, "day")

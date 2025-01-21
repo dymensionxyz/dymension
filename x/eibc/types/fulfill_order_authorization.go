@@ -97,7 +97,7 @@ func (a FulfillOrderAuthorization) Accept(
 			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", err)
 	}
 
-	minFee := sdk.NewDecFromInt(mFulfill.Amount.Int).Mul(matchedCriteria.MinFeePercentage.Dec)
+	minFee := math.LegacyNewDecFromInt(mFulfill.Amount.Int).Mul(matchedCriteria.MinFeePercentage.Dec)
 
 	if orderFeeDec.LT(minFee) {
 		return authz.AcceptResponse{},

@@ -57,19 +57,19 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 		{
 			name:       "1% swap fee, no taker fee",
 			swapFee:    math.LegacyNewDecWithPrec(1, 2), // 1%
-			takerFee:   sdk.ZeroDec(),                   // 0%
+			takerFee:   math.LegacyZeroDec(),            // 0%
 			expRevenue: true,
 		},
 		{
 			name:       "0% swap fee, 1% taker fee",
-			swapFee:    sdk.ZeroDec(),                   // 0%
+			swapFee:    math.LegacyZeroDec(),            // 0%
 			takerFee:   math.LegacyNewDecWithPrec(1, 2), // 1%
 			expRevenue: false,
 		},
 		{
 			name:       "0% swap fee, no taker fee",
-			swapFee:    sdk.ZeroDec(), // 0%
-			takerFee:   sdk.ZeroDec(), // 0%
+			swapFee:    math.LegacyZeroDec(), // 0%
+			takerFee:   math.LegacyZeroDec(), // 0%
 			expRevenue: false,
 		},
 	}
@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 			s.FundAcc(apptesting.Sender, apptesting.DefaultAcctFunds.Add(sdk.NewCoin(fooDenom, apptesting.EXP.Mul(math.NewInt(1_000_000)))))
 			poolId := s.PrepareCustomPoolFromCoins(poolCoins, balancer.PoolParams{
 				SwapFee: tc.swapFee,
-				ExitFee: sdk.ZeroDec(),
+				ExitFee: math.LegacyZeroDec(),
 			})
 
 			// join pool
@@ -94,7 +94,7 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 			// check position
 			p, _ := s.App.GAMMKeeper.GetPool(s.Ctx, poolId)
 			pool := p.(*balancer.Pool) // nolint: errcheck
-			position, err := pool.CalcExitPoolCoinsFromShares(s.Ctx, shares, sdk.ZeroDec())
+			position, err := pool.CalcExitPoolCoinsFromShares(s.Ctx, shares, math.LegacyZeroDec())
 			s.Require().NoError(err)
 			liquidity := pool.GetTotalPoolLiquidity(s.Ctx)
 			spot, err := s.App.GAMMKeeper.CalculateSpotPrice(s.Ctx, poolId, fooDenom, "adym")
@@ -109,7 +109,7 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 			p, _ = s.App.GAMMKeeper.GetPool(s.Ctx, poolId)
 			pool = p.(*balancer.Pool) // nolint: errcheck
 			liquidity = pool.GetTotalPoolLiquidity(s.Ctx)
-			positionAfter, err := pool.CalcExitPoolCoinsFromShares(s.Ctx, shares, sdk.ZeroDec())
+			positionAfter, err := pool.CalcExitPoolCoinsFromShares(s.Ctx, shares, math.LegacyZeroDec())
 			s.Require().NoError(err)
 			spot, err = s.App.GAMMKeeper.CalculateSpotPrice(s.Ctx, poolId, fooDenom, "adym")
 			s.Require().NoError(err)

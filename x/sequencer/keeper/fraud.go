@@ -80,7 +80,7 @@ func (k Keeper) livenessSlash(ctx sdk.Context, seq *types.Sequencer) error {
 	tokens := seq.TokensCoin()
 	tokensMul := ucoin.MulDec(mul, tokens)
 	amt := ucoin.SimpleMin(tokens, ucoin.SimpleMax(abs, tokensMul[0]))
-	return errorsmod.Wrap(k.slash(ctx, seq, amt, sdk.ZeroDec(), nil), "slash")
+	return errorsmod.Wrap(k.slash(ctx, seq, amt, math.LegacyZeroDec(), nil), "slash")
 }
 
 func (k Keeper) livenessHonor(ctx sdk.Context, seq *types.Sequencer) {
@@ -98,7 +98,7 @@ func (k Keeper) livenessDishonor(ctx sdk.Context, seq *types.Sequencer) {
 // Currently there is no dishonor penalty (anyway we slash 100%)
 func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.AccAddress) error {
 	var (
-		rewardMul = sdk.ZeroDec()
+		rewardMul = math.LegacyZeroDec()
 		addr      = []byte(nil)
 	)
 
@@ -108,7 +108,7 @@ func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.A
 	}
 
 	if rewardee != nil {
-		rewardMul = sdk.MustNewDecFromStr("0.5") // TODO: parameterise
+		rewardMul = math.LegacyMustNewDecFromStr("0.5") // TODO: parameterise
 		addr = *rewardee
 	}
 

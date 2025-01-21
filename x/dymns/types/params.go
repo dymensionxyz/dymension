@@ -265,7 +265,7 @@ func validatePriceParams(i interface{}) error {
 
 	if err := (sdk.Coin{
 		Denom:  m.PriceDenom,
-		Amount: sdk.ZeroInt(),
+		Amount: math.ZeroInt(),
 	}).Validate(); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid price denom: %s", m.PriceDenom)
 	}

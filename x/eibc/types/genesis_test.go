@@ -32,8 +32,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "invalid params",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TimeoutFee: sdk.NewDec(-1),
-					ErrackFee:  sdk.NewDec(-1),
+					TimeoutFee: math.LegacyNewDec(-1),
+					ErrackFee:  math.LegacyNewDec(-1),
 				},
 			},
 			valid: false,

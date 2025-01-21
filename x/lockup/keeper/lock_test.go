@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 
 	// check balance
 	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, addr1, "stake")
-	suite.Require().Equal(sdk.ZeroInt(), balance.Amount)
+	suite.Require().Equal(math.ZeroInt(), balance.Amount)
 
 	acc := suite.App.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 	balance = suite.App.BankKeeper.GetBalance(suite.Ctx, acc.GetAddress(), "stake")
@@ -544,7 +544,7 @@ func (suite *KeeperTestSuite) TestLock() {
 	suite.Require().Equal(accum.String(), "10")
 
 	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, addr1, "stake")
-	suite.Require().Equal(sdk.ZeroInt(), balance.Amount)
+	suite.Require().Equal(math.ZeroInt(), balance.Amount)
 
 	acc := suite.App.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 	balance = suite.App.BankKeeper.GetBalance(suite.Ctx, acc.GetAddress(), "stake")

@@ -20,8 +20,8 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 
 	validFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(5, 1)} // 0.5
 	nilFeeShare := math.LegacyDecProto{}                                       // nil dec
-	negFeeShare := math.LegacyDecProto{Dec: sdk.NewDec(-1)}                    // negative dec
-	gtOneFeeShare := math.LegacyDecProto{Dec: sdk.NewDec(2)}                   // >1
+	negFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDec(-1)}             // negative dec
+	gtOneFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDec(2)}            // >1
 
 	validBech32 := "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"
 	invalidBech32 := "notanaddress"

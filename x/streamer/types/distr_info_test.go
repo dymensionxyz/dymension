@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -82,7 +81,7 @@ func TestDistrInfoFromDistribution(t *testing.T) {
 				Gauges:      []sponsorshiptypes.Gauge{},
 			},
 			expDistr: types.DistrInfo{
-				TotalWeight: sdk.ZeroInt(),
+				TotalWeight: math.ZeroInt(),
 				Records:     []types.DistrRecord{},
 			},
 		},

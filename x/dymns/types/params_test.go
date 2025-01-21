@@ -7,7 +7,6 @@ import (
 
 	"cosmossdk.io/math"
 	math "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,7 +95,7 @@ func TestParams_Validate(t *testing.T) {
 	require.NoError(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
-	moduleParams.Price.MinOfferPrice = sdk.ZeroInt()
+	moduleParams.Price.MinOfferPrice = math.ZeroInt()
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()

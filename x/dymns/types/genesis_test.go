@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	math "cosmossdk.io/math"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +39,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					Price: sdk.Coin{
 						Denom:  params.BaseDenom,
-						Amount: sdk.OneInt(),
+						Amount: math.OneInt(),
 					},
 				},
 				{
@@ -46,7 +47,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					Price: sdk.Coin{
 						Denom:  params.BaseDenom,
-						Amount: sdk.OneInt(),
+						Amount: math.OneInt(),
 					},
 					Params: []string{"rollapp_1-1"},
 				},
@@ -59,7 +60,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					Buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					OfferPrice: sdk.Coin{
 						Denom:  params.BaseDenom,
-						Amount: sdk.OneInt(),
+						Amount: math.OneInt(),
 					},
 				},
 				{
@@ -70,7 +71,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					Buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					OfferPrice: sdk.Coin{
 						Denom:  params.BaseDenom,
-						Amount: sdk.OneInt(),
+						Amount: math.OneInt(),
 					},
 				},
 			},

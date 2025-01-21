@@ -51,7 +51,7 @@ func (s *eibcSuite) SetupTest() {
 	delayedAckKeeper := s.hubApp().DelayedAckKeeper
 	params := delayedAckKeeper.GetParams(s.hubCtx())
 	params.EpochIdentifier = "month"
-	params.BridgingFee = sdk.ZeroDec()
+	params.BridgingFee = math.LegacyZeroDec()
 	delayedAckKeeper.SetParams(s.hubCtx(), params)
 	// Create path so we'll be using the same channel
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
@@ -490,7 +490,7 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			fee := tc.fee(eibcKeeper.GetParams(s.hubCtx()))
 			amountDec, err := sdk.NewDecFromStr(coinToSendToB.Amount.String())
 			s.Require().NoError(err)
-			expectedPrice := amountDec.Mul(sdk.NewDec(1).Sub(fee)).TruncateInt()
+			expectedPrice := amountDec.Mul(math.LegacyNewDec(1).Sub(fee)).TruncateInt()
 			s.Require().Equal(expectedPrice, lastDemandOrder.Price[0].Amount)
 			s.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
 			// Fulfill the demand order

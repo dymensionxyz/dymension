@@ -117,7 +117,7 @@ func (s *SequencerTestSuite) moduleBalance() sdk.Coin {
 	if cs.Len() == 0 {
 		// coins will be zerod
 		ret := bond
-		ret.Amount = sdk.ZeroInt()
+		ret.Amount = math.ZeroInt()
 		return ret
 	}
 	return cs[0]

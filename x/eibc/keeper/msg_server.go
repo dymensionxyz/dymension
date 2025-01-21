@@ -108,7 +108,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, types.ErrOperatorFeeAccountDoesNotExist
 	}
 
-	fee := sdk.NewDecFromInt(demandOrder.GetFeeAmount())
+	fee := math.LegacyNewDecFromInt(demandOrder.GetFeeAmount())
 	operatorFee := fee.MulTruncate(msg.OperatorFeeShare.Dec).TruncateInt()
 
 	if operatorFee.IsPositive() {
@@ -228,7 +228,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	bridgingFeeMultiplier := m.dack.BridgingFee(ctx)
 	raPacketType := raPacket.GetType()
 	if raPacketType != commontypes.RollappPacket_ON_RECV {
-		bridgingFeeMultiplier = sdk.ZeroDec()
+		bridgingFeeMultiplier = math.LegacyZeroDec()
 	}
 
 	// calculate the new price: transferTotal - newFee - bridgingFee

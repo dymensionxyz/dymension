@@ -28,7 +28,7 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	reservedTokens := plan.SoldAmt
-	s.Assert().True(reservedTokens.GT(sdk.ZeroInt()))
+	s.Assert().True(reservedTokens.GT(math.ZeroInt()))
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	buyer := sample.Acc()
@@ -253,5 +253,5 @@ func (s *KeeperTestSuite) ExtractTakerFeeAmtFromEvents(events []sdk.Event, event
 			return fee, true
 		}
 	}
-	return sdk.ZeroInt(), false
+	return math.ZeroInt(), false
 }

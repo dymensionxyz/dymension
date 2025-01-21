@@ -349,7 +349,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			expireAt: time.Now().Unix(),
 			minPrice: sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "SO min price is invalid",
@@ -372,7 +372,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			minPrice: testCoin(1),
 			sellPrice: &sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "SO sell price is invalid",
@@ -548,7 +548,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price: sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			params:          nil,
 			assetType:       TypeName,

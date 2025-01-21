@@ -27,8 +27,8 @@ var DefaultAcctFunds sdk.Coins = sdk.NewCoins(
 )
 
 var DefaultPoolParams = balancer.PoolParams{
-	SwapFee: sdk.NewDec(0),
-	ExitFee: sdk.NewDec(0),
+	SwapFee: math.LegacyNewDec(0),
+	ExitFee: math.LegacyNewDec(0),
 }
 
 var DefaultPoolAssets = []balancer.PoolAsset{
@@ -60,7 +60,7 @@ func (s *KeeperTestHelper) PrepareDefaultPool() uint64 {
 
 	spotPrice, err := s.App.GAMMKeeper.CalculateSpotPrice(s.Ctx, poolId, "foo", "adym")
 	s.NoError(err)
-	s.Equal(sdk.NewDec(1).String(), spotPrice.String())
+	s.Equal(math.LegacyNewDec(1).String(), spotPrice.String())
 
 	return poolId
 }
@@ -100,7 +100,7 @@ func (s *KeeperTestHelper) RunBasicSwap(poolId uint64, from string, swapIn sdk.C
 		Sender:            from,
 		Routes:            []poolmanagertypes.SwapAmountInRoute{{PoolId: poolId, TokenOutDenom: outDenom}},
 		TokenIn:           swapIn,
-		TokenOutMinAmount: sdk.ZeroInt(),
+		TokenOutMinAmount: math.ZeroInt(),
 	}
 
 	gammMsgServer := gammkeeper.NewMsgServerImpl(s.App.GAMMKeeper)

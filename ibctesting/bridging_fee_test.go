@@ -94,7 +94,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	transferredCoins := sdk.NewCoin(denom, coinToSendToB.Amount)
 	recipient := s.hubChain().SenderAccount.GetAddress()
 	initialBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
-	s.Require().Equal(initialBalance.AmountOf(denom), sdk.ZeroInt())
+	s.Require().Equal(initialBalance.AmountOf(denom), math.ZeroInt())
 
 	// Finalize the rollapp state
 	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
