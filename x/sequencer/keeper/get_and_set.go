@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -204,7 +205,7 @@ func (k Keeper) NoticeQueue(ctx sdk.Context, endTime *time.Time) ([]types.Sequen
 	if endTime != nil {
 		prefix = types.NoticeQueueByTimeKey(*endTime)
 	}
-	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(prefix))
+	iterator := store.Iterator(types.NoticePeriodQueueKey, storetypes.PrefixEndBytes(prefix))
 
 	defer iterator.Close() // nolint: errcheck
 

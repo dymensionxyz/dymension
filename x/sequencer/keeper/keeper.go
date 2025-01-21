@@ -18,7 +18,7 @@ type Keeper struct {
 	authority string // authority is the x/gov module account
 
 	cdc            codec.BinaryCodec
-	storeKey       storetypes.StoreKey
+	storeKey       storetypes.Key
 	bankKeeper     types.BankKeeper
 	accountK       types.AccountKeeper
 	rollappKeeper  types.RollappKeeper
@@ -30,7 +30,7 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	storeKey storetypes.Key,
 	bankKeeper types.BankKeeper,
 	accountK types.AccountKeeper,
 	rollappKeeper types.RollappKeeper,

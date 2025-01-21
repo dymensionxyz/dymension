@@ -16,7 +16,7 @@ import (
 
 // Keeper provides a way to manage incentives module storage.
 type Keeper struct {
-	storeKey   storetypes.StoreKey
+	storeKey   storetypes.Key
 	paramSpace paramtypes.Subspace
 	hooks      types.IncentiveHooks
 	bk         types.BankKeeper
@@ -27,7 +27,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, lk types.LockupKeeper, ek types.EpochKeeper, txfk types.TxFeesKeeper, rk types.RollappKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.Key, paramSpace paramtypes.Subspace, bk types.BankKeeper, lk types.LockupKeeper, ek types.EpochKeeper, txfk types.TxFeesKeeper, rk types.RollappKeeper) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}

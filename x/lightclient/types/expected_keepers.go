@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
+	storetypes "cosmossdk.io/store/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -31,7 +32,7 @@ type RollappKeeperExpected interface {
 type IBCClientKeeperExpected interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
-	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore
 	IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs ibcclienttypes.ConsensusStateWithHeight) bool)
 }
 

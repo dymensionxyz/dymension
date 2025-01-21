@@ -3,7 +3,6 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -12,8 +11,7 @@ const (
 )
 
 var (
-	_ sdk.Msg            = &MsgSetCanonicalClient{}
-	_ legacytx.LegacyMsg = &MsgSetCanonicalClient{}
+	_ sdk.Msg = &MsgSetCanonicalClient{}
 )
 
 func NewMsgUpdateState(signer, client string) *MsgSetCanonicalClient {
@@ -37,11 +35,6 @@ func (msg *MsgSetCanonicalClient) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgSetCanonicalClient) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgSetCanonicalClient) ValidateBasic() error {
