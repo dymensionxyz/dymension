@@ -398,7 +398,8 @@ func (s *RollappTestSuite) TestFinalizeRollapps() {
 				})
 
 				s.Ctx = s.Ctx.WithBlockHeight(getFinalizationHeight(int64(i + 1)))
-				response := s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+				response, err := s.App.EndBlocker(s.Ctx)
+				s.Require().NoError(err)
 
 				numFinalized := countFinalized(response)
 				s.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
@@ -442,7 +443,8 @@ func (s *RollappTestSuite) TestFinalize() {
 	s.Require().Nil(err)
 
 	// Finalize pending queues and check
-	response := s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	response, err := s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
 	actualQueue, err := k.GetEntireFinalizationQueue(*ctx)
 	s.Require().NoError(err)
 	s.Require().Len(actualQueue, 2)
@@ -450,7 +452,8 @@ func (s *RollappTestSuite) TestFinalize() {
 
 	// Finalize pending queues and check
 	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
-	response = s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	response, err = s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
 	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
 	s.Require().NoError(err)
 	s.Require().Len(actualQueue, 1)
@@ -458,7 +461,8 @@ func (s *RollappTestSuite) TestFinalize() {
 
 	// Finalize pending queues and check
 	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
-	response = s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	response, err = s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
 	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
 	s.Require().NoError(err)
 	s.Require().Len(actualQueue, 0)
