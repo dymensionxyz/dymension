@@ -61,7 +61,7 @@ func (k Keeper) RemoveLatestStateInfoIndex(
 // GetAllLatestStateInfoIndex returns latestStateInfoIndex for all rollapps
 func (k Keeper) GetAllLatestStateInfoIndex(ctx sdk.Context) (list []types.StateInfoIndex) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 

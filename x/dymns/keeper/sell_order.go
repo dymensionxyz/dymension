@@ -69,7 +69,7 @@ func (k Keeper) DeleteSellOrder(ctx sdk.Context, assetId string, assetType dymns
 func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixSellOrder)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixSellOrder)
 	defer func() {
 		_ = iterator.Close() // nolint: errcheck
 	}()

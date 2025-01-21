@@ -172,7 +172,7 @@ func (k Keeper) DeleteDymName(ctx sdk.Context, name string) error {
 func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
 	defer func() {
 		_ = iterator.Close()
 	}()
@@ -197,7 +197,7 @@ func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.Dym
 func (k Keeper) GetAllDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
 	defer func() {
 		_ = iterator.Close()
 	}()

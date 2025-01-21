@@ -181,7 +181,7 @@ func (k Keeper) GetRollappByName(
 ) (val types.Rollapp, found bool) {
 	name = name + "_"
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte(name))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(name))
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -282,7 +282,7 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 
 func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
 	var result []types.Rollapp

@@ -187,7 +187,7 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
-		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
+		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
 		sdk.OneInt(),
 	)
 	suite.Require().NoError(err)

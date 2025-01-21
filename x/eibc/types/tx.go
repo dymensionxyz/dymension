@@ -129,7 +129,7 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be empty or negative")
 	}
 
-	if msg.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
+	if msg.OperatorFeeShare.Dec.GT(math.LegacyOneDec()) {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be greater than 1")
 	}
 

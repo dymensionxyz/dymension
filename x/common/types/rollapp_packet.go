@@ -86,6 +86,7 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 	return eventAttributes
 }
 
+// FIXME: codec
 func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacketData, error) {
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Packet.GetData(), &data); err != nil {

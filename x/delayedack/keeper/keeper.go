@@ -22,8 +22,8 @@ type Keeper struct {
 	rollapptypes.StubRollappCreatedHooks
 
 	cdc                   codec.Codec
-	storeKey              storetypes.StoreKey
-	channelKeeperStoreKey storetypes.StoreKey // we need direct access to the IBC channel store
+	storeKey              storetypes.Key
+	channelKeeperStoreKey storetypes.Key // we need direct access to the IBC channel store
 	hooks                 types.MultiDelayedAckHooks
 	paramstore            paramtypes.Subspace
 
@@ -41,8 +41,8 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.Codec,
-	storeKey storetypes.StoreKey,
-	channelKeeperStoreKey storetypes.StoreKey,
+	storeKey storetypes.Key,
+	channelKeeperStoreKey storetypes.Key,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,

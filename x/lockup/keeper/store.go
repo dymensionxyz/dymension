@@ -40,7 +40,7 @@ func lockStoreKey(ID uint64) []byte {
 // nolint: unused
 func (k Keeper) getLockRefs(ctx sdk.Context, key []byte) []uint64 {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, key)
+	iterator := storetypes.KVStorePrefixIterator(store, key)
 	defer iterator.Close() // nolint: errcheck
 
 	lockIDs := []uint64{}

@@ -41,7 +41,7 @@ func (k Keeper) GetRollappApps(ctx sdk.Context, rollappId string) (list []*types
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AppKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, start)
+	iterator := storetypes.KVStorePrefixIterator(store, start)
 
 	defer iterator.Close() // nolint: errcheck
 

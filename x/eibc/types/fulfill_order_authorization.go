@@ -184,12 +184,12 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 		rollappIDSet[criteria.RollappId] = struct{}{}
 
 		// Validate MinFeePercentage
-		if criteria.MinFeePercentage.Dec.IsNil() || criteria.MinFeePercentage.Dec.IsNegative() || criteria.MinFeePercentage.Dec.GT(sdk.OneDec()) {
+		if criteria.MinFeePercentage.Dec.IsNil() || criteria.MinFeePercentage.Dec.IsNegative() || criteria.MinFeePercentage.Dec.GT(math.LegacyOneDec()) {
 			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_fee_percentage must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate OperatorFeeShare
-		if criteria.OperatorFeeShare.Dec.IsNil() || criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(sdk.OneDec()) {
+		if criteria.OperatorFeeShare.Dec.IsNil() || criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(math.LegacyOneDec()) {
 			return errorsmod.Wrapf(errors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 

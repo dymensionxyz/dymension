@@ -12,7 +12,7 @@ import (
 // iterator returns an iterator over all streams in the {prefix} space of state.
 func (k Keeper) iterator(ctx sdk.Context, prefix []byte) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, prefix)
+	return storetypes.KVStorePrefixIterator(store, prefix)
 }
 
 // StreamsIterator returns the iterator for all streams.

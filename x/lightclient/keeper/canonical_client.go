@@ -78,7 +78,7 @@ func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID s
 
 func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.CanonicalClient) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.RollappClientKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.RollappClientKey)
 	defer iterator.Close() // nolint: errcheck
 	for ; iterator.Valid(); iterator.Next() {
 		clients = append(clients, types.CanonicalClient{

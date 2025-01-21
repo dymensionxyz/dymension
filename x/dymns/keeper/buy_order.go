@@ -44,7 +44,7 @@ func (k Keeper) SetCountBuyOrders(ctx sdk.Context, value uint64) {
 func (k Keeper) GetAllBuyOrders(ctx sdk.Context) (list []dymnstypes.BuyOrder) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixBuyOrder)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixBuyOrder)
 	defer func() {
 		_ = iterator.Close() // nolint: errcheck
 	}()

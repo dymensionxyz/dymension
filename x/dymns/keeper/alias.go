@@ -270,7 +270,7 @@ func (k Keeper) SetDefaultAliasForRollApp(ctx sdk.Context, rollAppId, alias stri
 func (k Keeper) GetAllRollAppsWithAliases(ctx sdk.Context) (list []dymnstypes.AliasesOfChainId) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppIdToAliases)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppIdToAliases)
 	defer func() {
 		_ = iterator.Close()
 	}()
