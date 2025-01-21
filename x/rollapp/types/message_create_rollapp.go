@@ -2,14 +2,12 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
 var (
-	_ sdk.Msg            = &MsgCreateRollapp{}
-	_ legacytx.LegacyMsg = &MsgCreateRollapp{}
+	_ sdk.Msg = &MsgCreateRollapp{}
 )
 
 func NewMsgCreateRollapp(
@@ -48,11 +46,6 @@ func (msg *MsgCreateRollapp) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgCreateRollapp) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {

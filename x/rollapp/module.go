@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -24,7 +25,7 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 
-	// FIXME: support endblocker
+	_ appmodule.HasEndBlocker = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -164,8 +165,9 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 
 // EndBlock finalizes states from rollapps (after dispute period) and corresponding packets. It slashes and jails
 // sequencers of inactive rollapps.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	am.keeper.FinalizeRollappStates(ctx)
 	am.keeper.CheckLiveness(ctx)
-	return []abci.ValidatorUpdate{}
+	return nil
 }
