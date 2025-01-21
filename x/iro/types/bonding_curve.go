@@ -164,13 +164,13 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 	// Newton-Raphson iteration
 	epsilonDec := math.LegacyNewDecWithPrec(1, epsilonPrecision)
 	for i := 0; i < maxIterations; i++ {
-		fx := f(x)
+		fx := f(x) // diff between spendTokens and the actual cost to get to x
 		// If the function converges, return the result
 		if fx.Abs().LT(epsilonDec) {
 			return x, i, nil
 		}
 		prevX := x
-		fPrimex := fPrime(x)
+		fPrimex := fPrime(x) // price for new X
 
 		// defensive check to avoid division by zero
 		// not supposed to happen, as spotPriceInternal should never return 0
