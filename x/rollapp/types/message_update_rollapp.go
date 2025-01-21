@@ -6,16 +6,14 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const TypeMsgUpdateRollappInformation = "update_rollapp"
 
 var (
-	_ sdk.Msg            = &MsgUpdateRollappInformation{}
-	_ sdk.Msg            = &MsgForceGenesisInfoChange{}
-	_ legacytx.LegacyMsg = &MsgUpdateRollappInformation{}
+	_ sdk.Msg = &MsgUpdateRollappInformation{}
+	_ sdk.Msg = &MsgForceGenesisInfoChange{}
 )
 
 /* ----------------------- MsgUpdateRollappInformation ---------------------- */
@@ -51,11 +49,6 @@ func (msg *MsgUpdateRollappInformation) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateRollappInformation) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgUpdateRollappInformation) ValidateBasic() error {

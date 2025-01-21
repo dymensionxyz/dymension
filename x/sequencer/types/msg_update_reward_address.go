@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -14,8 +13,7 @@ const (
 )
 
 var (
-	_ sdk.Msg            = (*MsgUpdateRewardAddress)(nil)
-	_ legacytx.LegacyMsg = (*MsgUpdateRewardAddress)(nil)
+	_ sdk.Msg = (*MsgUpdateRewardAddress)(nil)
 )
 
 func (m *MsgUpdateRewardAddress) ValidateBasic() error {
@@ -33,11 +31,6 @@ func (m *MsgUpdateRewardAddress) ValidateBasic() error {
 func (m *MsgUpdateRewardAddress) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{addr}
-}
-
-func (m *MsgUpdateRewardAddress) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateRewardAddress) Route() string {

@@ -5,14 +5,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgRemoveApp = "remove_app"
 
 var (
-	_ sdk.Msg            = &MsgRemoveApp{}
-	_ legacytx.LegacyMsg = &MsgRemoveApp{}
+	_ sdk.Msg = &MsgRemoveApp{}
 )
 
 func NewMsgRemoveApp(creator string, id uint64, rollappId string) *MsgRemoveApp {
@@ -37,11 +35,6 @@ func (msg *MsgRemoveApp) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgRemoveApp) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgRemoveApp) GetApp() App {

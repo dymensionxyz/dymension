@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
@@ -13,8 +12,7 @@ const (
 )
 
 var (
-	_ sdk.Msg            = &MsgUpdateState{}
-	_ legacytx.LegacyMsg = &MsgUpdateState{}
+	_ sdk.Msg = &MsgUpdateState{}
 )
 
 func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks uint64, bDs *BlockDescriptors) *MsgUpdateState {
@@ -42,11 +40,6 @@ func (msg *MsgUpdateState) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateState) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgUpdateState) ValidateBasic() error {

@@ -2,14 +2,12 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgTransferOwnership = "transfer_ownership"
 
 var (
-	_ sdk.Msg            = &MsgTransferOwnership{}
-	_ legacytx.LegacyMsg = &MsgTransferOwnership{}
+	_ sdk.Msg = &MsgTransferOwnership{}
 )
 
 func NewMsgTransferOwnership(
@@ -38,11 +36,6 @@ func (msg *MsgTransferOwnership) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgTransferOwnership) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgTransferOwnership) ValidateBasic() error {

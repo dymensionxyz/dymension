@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -14,8 +13,7 @@ const (
 )
 
 var (
-	_ sdk.Msg            = new(MsgMarkObsoleteRollapps)
-	_ legacytx.LegacyMsg = new(MsgMarkObsoleteRollapps)
+	_ sdk.Msg = new(MsgMarkObsoleteRollapps)
 )
 
 func (m MsgMarkObsoleteRollapps) ValidateBasic() error {
@@ -42,9 +40,4 @@ func (m MsgMarkObsoleteRollapps) Type() string {
 
 func (m MsgMarkObsoleteRollapps) Route() string {
 	return RouterKey
-}
-
-func (m MsgMarkObsoleteRollapps) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
 }

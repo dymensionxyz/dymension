@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,31 +80,6 @@ func TestMsgs_Signers(t *testing.T) {
 			})
 		}
 	})
-}
-
-func TestMsgs_ImplementLegacyMsg(t *testing.T) {
-	//goland:noinspection GoDeprecation
-	msgs := []legacytx.LegacyMsg{
-		&MsgRegisterName{},
-		&MsgRegisterAlias{},
-		&MsgTransferDymNameOwnership{},
-		&MsgSetController{},
-		&MsgUpdateResolveAddress{},
-		&MsgUpdateDetails{},
-		&MsgPlaceSellOrder{},
-		&MsgCancelSellOrder{},
-		&MsgCompleteSellOrder{},
-		&MsgPurchaseOrder{},
-		&MsgPlaceBuyOrder{},
-		&MsgCancelBuyOrder{},
-		&MsgAcceptBuyOrder{},
-	}
-
-	for _, msg := range msgs {
-		require.Equal(t, RouterKey, msg.Route())
-		require.NotEmpty(t, msg.Type())
-		require.NotEmpty(t, msg.GetSignBytes())
-	}
 }
 
 func TestMsgs_Type(t *testing.T) {

@@ -4,14 +4,12 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const TypeMsgAddApp = "add_app"
 
 var (
-	_ sdk.Msg            = &MsgAddApp{}
-	_ legacytx.LegacyMsg = &MsgAddApp{}
+	_ sdk.Msg = &MsgAddApp{}
 )
 
 func NewMsgAddApp(creator, name, rollappId, description, image, url string, order int32) *MsgAddApp {
@@ -40,11 +38,6 @@ func (msg *MsgAddApp) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgAddApp) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgAddApp) GetApp() App {
