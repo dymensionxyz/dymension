@@ -3,6 +3,8 @@ package keeper
 import (
 	"slices"
 
+	storetypes "cosmossdk.io/store/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"

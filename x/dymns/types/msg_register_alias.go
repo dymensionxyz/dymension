@@ -3,15 +3,13 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 var (
-	_ sdk.Msg            = &MsgRegisterAlias{}
-	_ legacytx.LegacyMsg = &MsgRegisterAlias{}
+	_ sdk.Msg = &MsgRegisterAlias{}
 )
 
 // ValidateBasic performs basic validation for the MsgRegisterAlias.
@@ -61,10 +59,4 @@ func (m *MsgRegisterAlias) Route() string {
 // Type returns the message type for the MsgRegisterAlias.
 func (m *MsgRegisterAlias) Type() string {
 	return TypeMsgRegisterAlias
-}
-
-// GetSignBytes returns the raw bytes for the MsgRegisterAlias.
-func (m *MsgRegisterAlias) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }

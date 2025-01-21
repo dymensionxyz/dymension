@@ -4,15 +4,13 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var (
-	_ sdk.Msg            = &MsgUpdateParams{}
-	_ legacytx.LegacyMsg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // ValidateBasic performs basic validation for the MsgUpdateParams.
@@ -76,10 +74,4 @@ func (m *MsgUpdateParams) Route() string {
 // Type returns the message type for the MsgUpdateParams.
 func (m *MsgUpdateParams) Type() string {
 	return TypeMsgUpdateParams
-}
-
-// GetSignBytes returns the raw bytes for the MsgUpdateParams.
-func (m *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }

@@ -17,7 +17,7 @@ type Keeper struct {
 	authority string // authority is the x/gov module account
 
 	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
+	storeKey      storetypes.Key
 	paramStore    paramtypes.Subspace
 	bankKeeper    dymnstypes.BankKeeper
 	rollappKeeper dymnstypes.RollAppKeeper
@@ -26,7 +26,7 @@ type Keeper struct {
 // NewKeeper returns a new instance of the DymNS keeper
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+	key storetypes.Key,
 	ps paramtypes.Subspace,
 	bk dymnstypes.BankKeeper,
 	rk dymnstypes.RollAppKeeper,

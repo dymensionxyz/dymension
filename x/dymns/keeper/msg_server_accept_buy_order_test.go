@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 		wantLaterDymName       *dymnstypes.DymName
 		wantLaterModuleBalance math.Int
 		wantLaterOwnerBalance  math.Int
-		wantMinConsumeGas      sdk.Gas
+		wantMinConsumeGas      storetypes.Gas
 		afterTestFunc          func(s *KeeperTestSuite)
 	}{
 		{
@@ -866,7 +866,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 		wantLaterRollApps      []rollapp
 		wantLaterModuleBalance math.Int
 		wantLaterOwnerBalance  math.Int
-		wantMinConsumeGas      sdk.Gas
+		wantMinConsumeGas      storetypes.Gas
 		afterTestFunc          func(s *KeeperTestSuite)
 	}{
 		{

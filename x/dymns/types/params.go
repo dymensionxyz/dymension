@@ -10,7 +10,6 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	math "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"

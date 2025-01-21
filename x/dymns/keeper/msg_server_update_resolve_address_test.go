@@ -10,7 +10,6 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -115,7 +114,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 		wantErr            bool
 		wantErrContains    string
 		wantDymName        *dymnstypes.DymName
-		wantMinGasConsumed sdk.Gas
+		wantMinGasConsumed storetypes.Gas
 		postTestFunc       func(s *KeeperTestSuite)
 	}{
 		{

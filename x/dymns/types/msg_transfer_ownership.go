@@ -5,15 +5,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 var (
-	_ sdk.Msg            = &MsgTransferDymNameOwnership{}
-	_ legacytx.LegacyMsg = &MsgTransferDymNameOwnership{}
+	_ sdk.Msg = &MsgTransferDymNameOwnership{}
 )
 
 // ValidateBasic performs basic validation for the MsgTransferDymNameOwnership.
@@ -54,10 +52,4 @@ func (m *MsgTransferDymNameOwnership) Route() string {
 // Type returns the message type for the MsgTransferDymNameOwnership.
 func (m *MsgTransferDymNameOwnership) Type() string {
 	return TypeMsgTransferDymNameOwnership
-}
-
-// GetSignBytes returns the raw bytes for the MsgTransferDymNameOwnership.
-func (m *MsgTransferDymNameOwnership) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }

@@ -67,7 +67,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 		wantLaterOffer              *dymnstypes.BuyOrder
 		wantLaterModuleBalance      math.Int
 		wantLaterBuyerBalance       math.Int
-		wantMinConsumeGas           sdk.Gas
+		wantMinConsumeGas           storetypes.Gas
 		afterTestFunc               func(s *KeeperTestSuite)
 	}{
 		{
@@ -975,7 +975,7 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 		wantLaterOffer              *dymnstypes.BuyOrder
 		wantLaterModuleBalance      math.Int
 		wantLaterBuyerBalance       math.Int
-		wantMinConsumeGas           sdk.Gas
+		wantMinConsumeGas           storetypes.Gas
 		afterTestFunc               func(s *KeeperTestSuite)
 	}{
 		{
