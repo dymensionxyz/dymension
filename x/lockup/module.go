@@ -33,6 +33,8 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	// FIXME: support endblocker
 )
 
 // ----------------------------------------------------------------------------
@@ -108,6 +110,12 @@ func NewAppModule(keeper keeper.Keeper) AppModule {
 		keeper:         keeper,
 	}
 }
+
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
 
 // Name returns the capability module's name.
 func (am AppModule) Name() string {

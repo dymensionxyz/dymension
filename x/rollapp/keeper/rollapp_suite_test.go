@@ -40,7 +40,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 func (s *RollappTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
 	s.App = app
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{ChainID: hubChainID})
+	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{ChainID: hubChainID})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	s.Require().NoError(err)

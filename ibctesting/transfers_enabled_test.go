@@ -71,7 +71,7 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 		_, _, err := simapp.SignAndDeliver(
 			s.hubChain().T,
 			s.hubChain().TxConfig,
-			s.hubApp().GetBaseApp(),
+			s.hubApp().BaseApp,
 			s.hubCtx().BlockHeader(),
 			[]sdk.Msg{msg},
 			hubChainID(),

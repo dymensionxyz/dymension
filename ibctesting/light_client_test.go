@@ -345,7 +345,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible()
 	_, _, err = simapp.SignAndDeliver( // Explicitly submitting msg as we expect it to fail
 		s.path.EndpointA.Chain.T,
 		s.path.EndpointA.Chain.TxConfig,
-		s.path.EndpointA.Chain.App.GetBaseApp(),
+		s.path.EndpointA.Chain.App.BaseApp,
 		s.path.EndpointA.Chain.GetContext().BlockHeader(),
 		[]sdk.Msg{msg},
 		s.path.EndpointA.Chain.ChainID,
@@ -567,7 +567,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	_, _, err = simapp.SignAndDeliver(
 		s.path.EndpointA.Chain.T,
 		s.path.EndpointA.Chain.TxConfig,
-		s.path.EndpointA.Chain.App.GetBaseApp(),
+		s.path.EndpointA.Chain.App.BaseApp,
 		s.path.EndpointA.Chain.GetContext().BlockHeader(),
 		[]sdk.Msg{msg},
 		s.path.EndpointA.Chain.ChainID,

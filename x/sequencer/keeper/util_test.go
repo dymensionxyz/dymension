@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -87,7 +86,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 
 func (s *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)

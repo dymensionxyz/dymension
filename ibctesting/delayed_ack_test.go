@@ -325,7 +325,7 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 	_, _, err = simapp.SignAndDeliver(
 		path.EndpointA.Chain.T,
 		path.EndpointA.Chain.TxConfig,
-		path.EndpointA.Chain.App.GetBaseApp(),
+		path.EndpointA.Chain.App.BaseApp,
 		path.EndpointA.Chain.GetContext().BlockHeader(),
 		[]sdk.Msg{timeoutMsg},
 		path.EndpointA.Chain.ChainID,
