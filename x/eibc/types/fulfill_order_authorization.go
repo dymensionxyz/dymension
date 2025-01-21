@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -19,10 +20,10 @@ func NewFulfillOrderAuthorization(rollapps []*RollappCriteria) *FulfillOrderAuth
 func NewRollappCriteria(
 	rollappID string,
 	denoms []string,
-	minFeePercentage math.LegacyDecProto,
+	minFeePercentage math.LegacyDec,
 	maxPrice sdk.Coins,
 	spendLimit sdk.Coins,
-	fulfillerFeePart math.LegacyDecProto,
+	fulfillerFeePart math.LegacyDec,
 	settlementValidated bool,
 ) *RollappCriteria {
 	return &RollappCriteria{
@@ -91,7 +92,7 @@ func (a FulfillOrderAuthorization) Accept(
 	}
 
 	// Check if the order fee meets the minimum LP fee percentage
-	orderFeeDec, err := sdk.NewDecFromStr(mFulfill.ExpectedFee)
+	orderFeeDec, err := math.LegacyNewDecFromStr(mFulfill.ExpectedFee)
 	if err != nil {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", err)

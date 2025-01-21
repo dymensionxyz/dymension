@@ -142,7 +142,7 @@ func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgF
 		return types.ErrRollappIdMismatch
 	}
 
-	if !demandOrder.Price.IsEqual(msg.Price) {
+	if !demandOrder.Price.Equal(msg.Price) {
 		return types.ErrPriceMismatch
 	}
 

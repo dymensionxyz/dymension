@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	math "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -64,11 +65,11 @@ Examples:
 				return fmt.Errorf("failed to get min fee: %w", err)
 			}
 
-			minFeePercDec, err := sdk.NewDecFromStr(minFeeStr)
+			minFeePercDec, err := math.LegacyNewDecFromStr(minFeeStr)
 			if err != nil {
 				return fmt.Errorf("invalid min fee percentage: %w", err)
 			}
-			minFeePercent := math.LegacyDecProto{Dec: minFeePercDec}
+			minFeePercent := minFeePercDec
 
 			maxPriceStr, err := cmd.Flags().GetString(FlagMaxPrice)
 			if err != nil {
@@ -85,11 +86,11 @@ Examples:
 				return fmt.Errorf("failed to get fulfiller fee part: %w", err)
 			}
 
-			fulfillerFeePartDec, err := sdk.NewDecFromStr(fulfillerFeePartStr)
+			fulfillerFeePartDec, err := math.LegacyNewDecFromStr(fulfillerFeePartStr)
 			if err != nil {
 				return fmt.Errorf("failed to parse fulfiller fee part: %w", err)
 			}
-			fulfillerFeePart := math.LegacyDecProto{Dec: fulfillerFeePartDec}
+			fulfillerFeePart := fulfillerFeePartDec
 
 			settlementValidated, err := cmd.Flags().GetBool(FlagSettlementValidated)
 			if err != nil {
