@@ -185,9 +185,14 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 	const Continue = false
 
 	k.stakingKeeper.IterateDelegatorDelegations(ctx, voter, func(d stakingtypes.Delegation) (stop bool) {
-		v, found := k.stakingKeeper.GetValidator(ctx, d.GetValidatorAddr())
+		valAddr, err := sdk.ValAddressFromBech32(d.GetValidatorAddr())
+		if err != nil {
+			err = fmt.Errorf("can't convert validator address %s: %w", d.GetValidatorAddr(), err)
+			return Break
+		}
+		v, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 		if !found {
-			err = fmt.Errorf("can't find validator with address %s", d.GetValidatorAddr())
+			err = fmt.Errorf("can't find validator with address %s", valAddr)
 			return Break
 		}
 
@@ -196,7 +201,7 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 		totalPower = totalPower.Add(votingPower)
 
 		breakdown = append(breakdown, ValidatorPower{
-			ValAddr: d.GetValidatorAddr(),
+			ValAddr: valAddr,
 			Power:   votingPower,
 		})
 

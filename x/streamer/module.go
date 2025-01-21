@@ -26,8 +26,13 @@ import (
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-	// FIXME: support beginBlock
+	_ module.AppModuleBasic = AppModule{}
+
+	// _ module.AppModuleSimulation = AppModule{}
+	// _ module.HasGenesis          = AppModule{}
+	_ module.HasServices   = AppModule{}
+	_ module.HasInvariants = AppModule{}
+
 	_ appmodule.HasEndBlocker = (*AppModule)(nil)
 )
 
