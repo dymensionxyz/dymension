@@ -17,6 +17,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
@@ -43,6 +44,32 @@ func createIRO() sdk.Msg {
 	}
 }
 */
+
+func (s *AnteTestSuite) getMsgGrantEIBC(from sdk.AccAddress) *authz.MsgGrant {
+	privkey2, _ := ethsecp256k1.GenerateKey()
+	to := sdk.AccAddress(privkey2.PubKey().Address())
+
+	crit := eibctypes.NewRollappCriteria(
+		"rollappID",
+		[]string{"denom"},
+		sdk.DecProto{Dec: sdk.NewDec(1)},
+		sdk.Coins{sdk.NewCoin("denom", sdk.NewInt(1))},
+		sdk.Coins{sdk.NewCoin("denom", sdk.NewInt(1))},
+		sdk.DecProto{Dec: sdk.NewDec(1)},
+		true,
+	)
+	expDate := time.Now().Add(1 * time.Hour)
+	msg, err := authz.NewMsgGrant(
+		from,
+		to,
+		eibctypes.NewFulfillOrderAuthorization([]*eibctypes.RollappCriteria{crit}),
+		&expDate,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return msg
+}
 
 func (s *AnteTestSuite) getMsgGrant(msgTypeUrl string, from sdk.AccAddress) *authz.MsgGrant {
 	privkey2, _ := ethsecp256k1.GenerateKey()
@@ -146,6 +173,7 @@ func (s *AnteTestSuite) TestEIP712() {
 		s.getMsgGrant("/dymensionxyz.dymension.gamm.poolmodels.balancer.v1beta1.MsgCreateBalancerPool", from),
 		s.getMsgGrantAllowance(from),
 		s.getMsgSubmitProposal(from),
+		s.getMsgGrantEIBC(from),
 	}
 
 	for _, msg := range msgs {
