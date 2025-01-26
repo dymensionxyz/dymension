@@ -15,6 +15,7 @@ import (
 	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 )
 
+/*
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ethante.NewEthSetUpContextDecorator(options.EvmKeeper),
@@ -41,10 +42,6 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		/*
-			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
-			for an explanation of these message blocking decorators
-		*/
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
 		NewRejectMessagesDecorator().WithPredicate(
 			BlockTypeUrls(
@@ -84,6 +81,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)
 }
+*/
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper, options.FeeMarketKeeper)
