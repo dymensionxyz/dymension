@@ -186,7 +186,7 @@ func (s *AnteTestSuite) TestEIP712() {
 // FIXME: should iterate over all messages
 func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) error {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.DisplayDenom, sdk.NewInt(20))
+	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20).MulRaw(1e18))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
