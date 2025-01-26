@@ -1,4 +1,4 @@
-package keepers
+package app
 
 import (
 	"cosmossdk.io/log"
@@ -165,9 +165,9 @@ type AppKeepers struct {
 	DymNSKeeper dymnskeeper.Keeper
 
 	// keys to access the substores
-	keys  map[string]*storetypes.KVStoreKey
-	tkeys map[string]*storetypes.TransientStoreKey
-	// memKeys map[string]*storetypes.MemoryStoreKey
+	keys    map[string]*storetypes.KVStoreKey
+	tkeys   map[string]*storetypes.TransientStoreKey
+	memKeys map[string]*storetypes.MemoryStoreKey
 }
 
 // InitKeepers initializes all keepers for the app
@@ -197,10 +197,13 @@ func (a *AppKeepers) InitKeepers(
 	bApp.SetParamStore(a.ConsensusParamsKeeper.ParamsStore)
 
 	// grant capabilities for the ibc and ibc-transfer modules
-	// fixme: compare with ibc-go
 	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
 	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+
+	// seal capability keeper after scoping modules
+	// Applications that wish to enforce statically created ScopedKeepers should call `Seal` after creating
+	// their scoped modules in `NewApp` with `ScopeToModule`
 	a.CapabilityKeeper.Seal()
 
 	// set the governance module account as the authority for conducting upgrades
@@ -331,6 +334,7 @@ func (a *AppKeepers) InitKeepers(
 		a.StakingKeeper,
 		a.UpgradeKeeper,
 		a.ScopedIBCKeeper,
+		govModuleAddress,
 	)
 
 	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
@@ -518,7 +522,6 @@ func (a *AppKeepers) InitTransferStack() {
 		a.PacketForwardMiddlewareKeeper,
 		0,
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
@@ -636,7 +639,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName).WithKeyTable(slashingtypes.ParamKeyTable())
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName).WithKeyTable(crisistypes.ParamKeyTable())
-	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
+	// paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable()) // FIXME:?
 	paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)

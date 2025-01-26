@@ -1,4 +1,4 @@
-package keepers
+package app
 
 import (
 	storetypes "cosmossdk.io/store/types"
