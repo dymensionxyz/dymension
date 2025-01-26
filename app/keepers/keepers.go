@@ -126,7 +126,7 @@ type AppKeepers struct {
 	ParamsKeeper                  paramskeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	TransferStack                 ibcporttypes.IBCModule
-	delayedAckMiddleware          *delayedackmodule.IBCMiddleware
+	DelayedAckMiddleware          *delayedackmodule.IBCMiddleware // FIXME: why it needs to be in the keepers??? can't it be part of the IBCModule?
 	EvidenceKeeper                evidencekeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	FeeGrantKeeper                feegrantkeeper.Keeper
@@ -522,12 +522,12 @@ func (a *AppKeepers) InitTransferStack() {
 
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
 	// already instantiated in SetupHooks()
-	a.delayedAckMiddleware.Setup(
+	a.DelayedAckMiddleware.Setup(
 		delayedackmodule.WithIBCModule(a.TransferStack),
 		delayedackmodule.WithKeeper(a.DelayedAckKeeper),
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
-	a.TransferStack = a.delayedAckMiddleware
+	a.TransferStack = a.DelayedAckMiddleware
 	a.TransferStack = genesisbridge.NewIBCModule(a.TransferStack, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -593,7 +593,7 @@ func (a *AppKeepers) SetupHooks() {
 	))
 
 	// dependencies injected in InitTransferStack()
-	a.delayedAckMiddleware = delayedackmodule.NewIBCMiddleware()
+	a.DelayedAckMiddleware = delayedackmodule.NewIBCMiddleware()
 	// register the rollapp hooks
 	a.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here

@@ -31,6 +31,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
+	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
+	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
+	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
+	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 
 	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
@@ -81,6 +85,7 @@ import (
 
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
+	evmclient "github.com/evmos/ethermint/x/evm/client"
 	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
@@ -212,6 +217,16 @@ func New(
 			govtypes.ModuleName: gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
 					paramsclient.ProposalHandler,
+					streamermoduleclient.CreateStreamHandler,
+					streamermoduleclient.TerminateStreamHandler,
+					streamermoduleclient.ReplaceStreamHandler,
+					streamermoduleclient.UpdateStreamHandler,
+					sequencermoduleclient.PunishSequencerHandler,
+					denommetadatamoduleclient.CreateDenomMetadataHandler,
+					denommetadatamoduleclient.UpdateDenomMetadataHandler,
+					dymnsmoduleclient.MigrateChainIdsProposalHandler,
+					dymnsmoduleclient.UpdateAliasesProposalHandler,
+					evmclient.UpdateVirtualFrontierBankContractProposalHandler,
 				},
 			),
 		})

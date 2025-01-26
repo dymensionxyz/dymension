@@ -1,6 +1,7 @@
 package types
 
 import (
+	context "context"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,10 +15,10 @@ import (
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetModuleAccount(ctx sdk.Context, moduleName string) sdk.ModuleAccountI
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 	GetModuleAddress(moduleName string) sdk.AccAddress
-	NewAccount(ctx sdk.Context, acc sdk.AccountI) sdk.AccountI
-	SetModuleAccount(ctx sdk.Context, macc sdk.ModuleAccountI)
+	NewAccount(ctx context.Context, acc sdk.AccountI) sdk.AccountI
+	SetModuleAccount(ctx context.Context, macc sdk.ModuleAccountI)
 }
 
 type DenomMetadataKeeper interface {
