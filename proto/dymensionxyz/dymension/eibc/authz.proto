@@ -38,6 +38,8 @@ message RollappCriteria {
   // willing to get from a demand order
   string min_fee_percentage = 4 [
     (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.LegacyDec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDec"
   ];
 
@@ -45,6 +47,8 @@ message RollappCriteria {
   // operator
   string operator_fee_share = 5 [
     (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.LegacyDec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDec"
   ];
 

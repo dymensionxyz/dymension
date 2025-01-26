@@ -31,7 +31,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "hour",
-					BridgingFee:     math.NewLegacyDecWithPrec(1, 1),
+					BridgingFee:     math.LegacyNewDecWithPrec(1, 1),
 				},
 				RollappPackets: []ctypes.RollappPacket{validRollappPacket},
 			},

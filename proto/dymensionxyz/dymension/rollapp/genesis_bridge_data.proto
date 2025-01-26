@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/bank/v1beta1/bank.proto";
 import "ibc/applications/transfer/v2/packet.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
