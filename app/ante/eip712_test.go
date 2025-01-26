@@ -237,6 +237,6 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 	// Dump the json string to t.log
 	str, err := json.Marshal(data)
 	suite.Assert().NoError(err)
-	suite.T().Logf("typed data: %s", string(str))
+	suite.T().Logf(string(str))
 	return nil
 }
