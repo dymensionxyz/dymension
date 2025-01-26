@@ -17,6 +17,7 @@ import (
 	"cosmossdk.io/x/tx/signing"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -28,9 +29,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
 	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
@@ -102,7 +100,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v4.Upgrade}
+	Upgrades = []Upgrade{} // fixme: add v5
 )
 
 func init() {
@@ -128,7 +126,7 @@ type App struct {
 	interfaceRegistry types.InterfaceRegistry
 
 	// keepers
-	keepers.AppKeepers
+	AppKeepers
 	// the module manager
 	mm                 *module.Manager
 	BasicModuleManager module.BasicManager
@@ -187,12 +185,12 @@ func New(
 		appCodec:          appCodec,
 		txConfig:          txConfig,
 		interfaceRegistry: interfaceRegistry,
-		AppKeepers:        keepers.AppKeepers{},
+		AppKeepers:        AppKeepers{},
 	}
 
-	app.GenerateKeys()
+	app.AppKeepers.GenerateKeys()
 
-	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, app.ModuleAccountAddrs(), appOpts)
+	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
 
@@ -244,13 +242,13 @@ func New(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	// TODO: use "github.com/osmosis-labs/osmosis/osmoutils/partialord" to order modules
-	app.mm.SetOrderBeginBlockers(keepers.BeginBlockers...)
-	app.mm.SetOrderEndBlockers(keepers.EndBlockers...)
+	app.mm.SetOrderBeginBlockers(BeginBlockers...)
+	app.mm.SetOrderEndBlockers(EndBlockers...)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
-	app.mm.SetOrderInitGenesis(keepers.InitGenesis...)
-	app.mm.SetOrderExportGenesis(keepers.InitGenesis...)
+	app.mm.SetOrderInitGenesis(InitGenesis...)
+	app.mm.SetOrderExportGenesis(InitGenesis...)
 
 	// Uncomment if you want to set a custom migration order here.
 	// app.mm.SetOrderMigrations(custom order)
@@ -268,7 +266,7 @@ func New(
 	app.setupUpgradeHandlers()
 
 	// FIXME: review
-	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
+	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
 
 	// FIXME: review
 	reflectionSvc, err := runtimeservices.NewReflectionService()
@@ -285,7 +283,7 @@ func New(
 	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
-	app.MountKVStores(keepers.KVStoreKeys)
+	app.MountKVStores(KVStoreKeys)
 	app.MountTransientStores(app.GetTransientStoreKey())
 	app.MountMemoryStores(app.GetMemoryStoreKey())
 
@@ -421,7 +419,7 @@ func (app *App) AutoCliOpts() autocli.AppOptions {
 
 	return autocli.AppOptions{
 		Modules:               modules,
-		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.ModuleManager.Modules),
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
 		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
 		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
@@ -431,31 +429,6 @@ func (app *App) AutoCliOpts() autocli.AppOptions {
 // DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
 func (a *App) DefaultGenesis() map[string]json.RawMessage {
 	return a.BasicModuleManager.DefaultGenesis(a.appCodec)
-}
-
-// GetKey returns the KVStoreKey for the provided store key.
-//
-// NOTE: This is solely to be used for testing purposes.
-func (app *App) GetKey(storeKey string) *storetypes.KVStoreKey {
-	return app.keys[storeKey]
-}
-
-// GetStoreKeys returns all the stored store keys.
-func (app *App) GetStoreKeys() []storetypes.StoreKey {
-	keys := make([]storetypes.StoreKey, len(app.keys))
-	for _, key := range app.keys {
-		keys = append(keys, key)
-	}
-
-	return keys
-}
-
-// GetSubspace returns a param subspace for a given module name.
-//
-// NOTE: This is solely to be used for testing purposes.
-func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
-	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
-	return subspace
 }
 
 // SimulationManager implements the SimulationApp interface
@@ -498,7 +471,7 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 		clientCtx,
 		app.BaseApp.GRPCQueryRouter(),
 		app.interfaceRegistry,
-		app.Query,
+		cmtApp.Query,
 	)
 }
 
@@ -524,13 +497,12 @@ func (app *App) setupUpgradeHandlers() {
 	}
 }
 
-func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
+func (app *App) setupUpgradeHandler(upgrade Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrade.Name,
 		upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
-			app.BaseApp,
 			&app.AppKeepers,
 		),
 	)
