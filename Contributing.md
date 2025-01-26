@@ -175,7 +175,7 @@ for _, f := range foo {
 
 2. Make use of `/internal` subdirectories in packages to prevent things being exported and to shrink namespaces
 
-### Utilies and shared code
+### Utilities and shared code
 
 It's encouraged to add golang and cosmos utilities and shared code to [dymensionxyz/sdk-utils](https://github.com/dymensionxyz/sdk-utils). Such code should be genuinely general purpose, well tested and documented.
 
