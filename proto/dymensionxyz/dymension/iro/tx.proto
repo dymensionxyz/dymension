@@ -58,7 +58,8 @@ message MsgCreatePlan {
   // The amount of tokens allocated for the plan.
   // NOTE: This amount is expected to be defined on the rollapp genesis info
   string allocated_amount = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
@@ -72,10 +73,11 @@ message MsgCreatePlan {
   google.protobuf.Duration iro_plan_duration = 6
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
-  // The incentive plan parameters for the tokens left after the plan is settled.
-  IncentivePlanParams incentive_plan_params = 7 [ (gogoproto.nullable) = false ];
+  // The incentive plan parameters for the tokens left after the plan is
+  // settled.
+  IncentivePlanParams incentive_plan_params = 7
+      [ (gogoproto.nullable) = false ];
 }
-
 
 message MsgCreatePlanResponse {
   // The ID of the plan.
@@ -93,13 +95,15 @@ message MsgBuy {
 
   // The amount of tokens to buy.
   string amount = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // The maximum cost this buy action can incur.
   string max_cost_amount = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -114,13 +118,15 @@ message MsgBuyExactSpend {
 
   // The amount of DYM to spend.
   string spend = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // The minimum tokens this buy action can provide.
   string min_out_tokens_amount = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -138,13 +144,15 @@ message MsgSell {
 
   // The amount of tokens to sell.
   string amount = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // The minimum income this sell action can incur.
   string min_income_amount = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

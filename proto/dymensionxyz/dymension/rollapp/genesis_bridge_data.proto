@@ -7,7 +7,6 @@ import "ibc/applications/transfer/v2/packet.proto";
 import "dymensionxyz/dymension/rollapp/metadata.proto";
 import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 
-
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 // GenesisBridgeData is the data struct that is passed to the hub for the
@@ -33,7 +32,8 @@ message GenesisBridgeInfo {
   DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // accounts on the Hub to fund with some bootstrapping transfers

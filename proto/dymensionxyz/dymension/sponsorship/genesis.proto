@@ -21,7 +21,8 @@ message VoterInfo {
   string voter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // Vote represents the user's vote.
   Vote vote = 2 [ (gogoproto.nullable) = false ];
-  // Validators is a breakdown of the user's voting power for different validators.
+  // Validators is a breakdown of the user's voting power for different
+  // validators.
   repeated ValidatorVotingPower validators = 3 [ (gogoproto.nullable) = false ];
 }
 
@@ -33,6 +34,7 @@ message ValidatorVotingPower {
   // Power is a total voting power assigned to this validator.
   string power = 2 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
 }
