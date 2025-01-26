@@ -112,27 +112,32 @@ import (
 
 type AppKeepers struct {
 	// keepers
-	AccountKeeper                 authkeeper.AccountKeeper
-	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper
-	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *stakingkeeper.Keeper
-	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
-	GovKeeper                     *govkeeper.Keeper
-	CrisisKeeper                  *crisiskeeper.Keeper
-	UpgradeKeeper                 *upgradekeeper.Keeper
-	ParamsKeeper                  paramskeeper.Keeper
+	AccountKeeper         authkeeper.AccountKeeper
+	BankKeeper            bankkeeper.Keeper
+	StakingKeeper         *stakingkeeper.Keeper
+	SlashingKeeper        slashingkeeper.Keeper
+	MintKeeper            mintkeeper.Keeper
+	DistrKeeper           distrkeeper.Keeper
+	GovKeeper             *govkeeper.Keeper
+	CrisisKeeper          *crisiskeeper.Keeper
+	UpgradeKeeper         *upgradekeeper.Keeper
+	ParamsKeeper          paramskeeper.Keeper
+	AuthzKeeper           authzkeeper.Keeper
+	EvidenceKeeper        evidencekeeper.Keeper
+	FeeGrantKeeper        feegrantkeeper.Keeper
+	GroupKeeper           groupkeeper.Keeper
+	ConsensusParamsKeeper consensusparamkeeper.Keeper
+
+	// IBC keepers (FIXME: review)
 	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	TransferStack                 ibcporttypes.IBCModule
-	DelayedAckMiddleware          *delayedackmodule.IBCMiddleware // FIXME: why it needs to be in the keepers??? can't it be part of the IBCModule?
-	EvidenceKeeper                evidencekeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
-	FeeGrantKeeper                feegrantkeeper.Keeper
+	TransferStack                 ibcporttypes.IBCModule
 	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
-	ConsensusParamsKeeper         consensusparamkeeper.Keeper
-	IROKeeper                     *irokeeper.Keeper
+	CapabilityKeeper              *capabilitykeeper.Keeper
+	DelayedAckMiddleware          *delayedackmodule.IBCMiddleware // FIXME: why it needs to be in the keepers??? can't it be part of the IBCModule?
+	// make scoped keepers public for test purposes
+	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
+	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -146,17 +151,13 @@ type AppKeepers struct {
 	IncentivesKeeper  *incentiveskeeper.Keeper
 	TxFeesKeeper      *txfeeskeeper.Keeper
 
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-
 	RollappKeeper     *rollappmodulekeeper.Keeper
+	IROKeeper         *irokeeper.Keeper
 	SequencerKeeper   *sequencermodulekeeper.Keeper
 	SponsorshipKeeper sponsorshipkeeper.Keeper
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
 	LightClientKeeper lightclientmodulekeeper.Keeper
-	GroupKeeper       groupkeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -164,9 +165,9 @@ type AppKeepers struct {
 	DymNSKeeper dymnskeeper.Keeper
 
 	// keys to access the substores
-	keys    map[string]*storetypes.KVStoreKey
-	tkeys   map[string]*storetypes.TransientStoreKey
-	memKeys map[string]*storetypes.MemoryStoreKey
+	keys  map[string]*storetypes.KVStoreKey
+	tkeys map[string]*storetypes.TransientStoreKey
+	// memKeys map[string]*storetypes.MemoryStoreKey
 }
 
 // InitKeepers initializes all keepers for the app

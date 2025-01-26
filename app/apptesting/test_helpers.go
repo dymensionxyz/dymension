@@ -62,7 +62,7 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 
 	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, InvariantCheckInterval, encCdc,
 		usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
-	defaultGenesisState := app.NewDefaultGenesisState(encCdc.Codec)
+	defaultGenesisState := newApp.DefaultGenesis()
 
 	incentivesGenesisStateJson := defaultGenesisState[incentivestypes.ModuleName]
 	var incentivesGenesisState incentivestypes.GenesisState
