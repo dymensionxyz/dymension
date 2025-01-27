@@ -190,9 +190,10 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 			err = fmt.Errorf("can't convert validator address %s: %w", d.GetValidatorAddr(), err)
 			return Break
 		}
-		v, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-		if !found {
-			err = fmt.Errorf("can't find validator with address %s", valAddr)
+		v, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+		if err != nil {
+			// err = fmt.Errorf("can't find validator with address %s", valAddr)
+			err = fmt.Errorf("get validator %s: %w", valAddr, err)
 			return Break
 		}
 

@@ -177,7 +177,7 @@ func createSequencerMsg(rollapp string, pkCosmos, pkDymint cryptotypes.PubKey) t
 }
 
 func (s *SequencerTestSuite) fundSequencer(pk cryptotypes.PubKey, amt sdk.Coin) {
-	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, pkAcc(pk), sdk.NewCoins(amt))
+	err := bankutil.FundAccount(s.Ctx, s.App.BankKeeper, pkAcc(pk), sdk.NewCoins(amt))
 	s.Require().NoError(err)
 }
 
@@ -220,7 +220,7 @@ func equalSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if !s1.Tokens.IsEqual(s2.Tokens) {
+	if !s1.Tokens.Equal(s2.Tokens) {
 		return false
 	}
 

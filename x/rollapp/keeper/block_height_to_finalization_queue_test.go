@@ -480,7 +480,7 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	return items
 }
 
-func countFinalized(response abci.ResponseEndBlock) int {
+func countFinalized(response sdk.EndBlock) int {
 	count := 0
 	for _, event := range response.Events {
 		if event.Type == types.EventTypeStatusChange {
@@ -490,7 +490,7 @@ func countFinalized(response abci.ResponseEndBlock) int {
 	return count
 }
 
-func findEvent(response abci.ResponseEndBlock, eventType string) bool {
+func findEvent(response sdk.EndBlock, eventType string) bool {
 	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
 }
 

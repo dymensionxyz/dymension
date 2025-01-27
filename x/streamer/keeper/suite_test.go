@@ -221,12 +221,12 @@ func (suite *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAd
 	suite.T().Helper()
 
 	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(suite.App.StakingKeeper)
-	resp, err := stakingMsgSrv.Delegate(suite.Ctx, stakingtypes.NewMsgDelegate(delAddr, valAddr, coin))
+	resp, err := stakingMsgSrv.Delegate(suite.Ctx, stakingtypes.NewMsgDelegate(delAddr.String(), valAddr.String(), coin))
 	suite.Require().NoError(err)
 	suite.Require().NotNil(resp)
 
-	del, found := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr, valAddr)
-	suite.Require().True(found)
+	del, err := suite.App.StakingKeeper.GetDelegation(suite.Ctx, delAddr, valAddr)
+	suite.Require().NoError(err)
 
 	return del
 }
