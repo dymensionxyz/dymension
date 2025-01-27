@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
-	math "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"

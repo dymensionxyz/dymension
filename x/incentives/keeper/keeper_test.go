@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -24,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 // SetupTest sets incentives parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	suite.App = app
 	suite.Ctx = ctx

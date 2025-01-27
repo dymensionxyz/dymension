@@ -1,6 +1,7 @@
 package denommetadata_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -116,7 +117,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			}
 			packetData := packetDataWithMemo(memo)
 			tt.rollappKeeper.packetData = packetData
-			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+			packetDataBytes := transfertypes.ModuleCdc.MustMarshalJSON(&packetData)
 			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
 			got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
 			require.Equal(t, tt.wantAck, got)
@@ -128,7 +129,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 				wantMemo = mustMarshalJSON(tt.wantSentMemoData)
 			}
 			wantPacketData := packetDataWithMemo(wantMemo)
-			wantPacketDataBytes := types.ModuleCdc.MustMarshalJSON(&wantPacketData)
+			wantPacketDataBytes := transfertypes.ModuleCdc.MustMarshalJSON(&wantPacketData)
 			require.Equal(t, string(wantPacketDataBytes), string(app.sentData))
 			require.Equal(t, tt.wantCreated, tt.keeper.created)
 		})
@@ -174,7 +175,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					Denom: "adym",
 				},
 			},
-			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+			wantSentData: transfertypes.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 				Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
 			}),
@@ -200,7 +201,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					Memo:  "thanks for the sweater, grandma!",
 				},
 			},
-			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+			wantSentData: transfertypes.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 				Memo:  addDenomMetadataToPacketData("thanks for the sweater, grandma!", validDenomMetadata),
 			}),
@@ -250,7 +251,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					Memo:  "user memo",
 				},
 			},
-			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+			wantSentData: transfertypes.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 				Memo:  "user memo",
 			}),
@@ -272,7 +273,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					Denom: "transfer/channel-56/alex",
 				},
 			},
-			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+			wantSentData: transfertypes.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "transfer/channel-56/alex",
 			}),
 		}, {
@@ -292,7 +293,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					Denom: "adym",
 				},
 			},
-			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+			wantSentData: transfertypes.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 			}),
 		}, {
@@ -311,7 +312,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					Denom: "adym",
 				},
 			},
-			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+			wantSentData: transfertypes.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 			}),
 		},
@@ -320,7 +321,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := denommetadata.NewICS4Wrapper(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
-			data := types.ModuleCdc.MustMarshalJSON(tt.args.data)
+			data := transfertypes.ModuleCdc.MustMarshalJSON(tt.args.data)
 
 			_, err := m.SendPacket(
 				sdk.Context{},
@@ -530,7 +531,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 
 			if tt.args.packetData != nil {
 				tt.fields.rollappKeeper.packetData = *tt.args.packetData
-				packet.Data = types.ModuleCdc.MustMarshalJSON(tt.args.packetData)
+				packet.Data = transfertypes.ModuleCdc.MustMarshalJSON(tt.args.packetData)
 			}
 
 			err := m.OnAcknowledgementPacket(sdk.Context{}, packet, tt.args.acknowledgement, sdk.AccAddress{})
@@ -642,12 +643,12 @@ type mockIBCModule struct {
 
 func okAck() []byte {
 	ack := channeltypes.NewResultAcknowledgement([]byte{})
-	return types.ModuleCdc.MustMarshalJSON(&ack)
+	return transfertypes.ModuleCdc.MustMarshalJSON(&ack)
 }
 
 func badAck() []byte {
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("unsuccessful"))
-	return types.ModuleCdc.MustMarshalJSON(&ack)
+	return transfertypes.ModuleCdc.MustMarshalJSON(&ack)
 }
 
 func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk.AccAddress) exported.Acknowledgement {
@@ -739,9 +740,9 @@ type mockBankKeeper struct {
 	returnMetadata banktypes.Metadata
 }
 
-func (m mockBankKeeper) SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata) {
+func (m mockBankKeeper) SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata) {
 }
 
-func (m mockBankKeeper) GetDenomMetaData(sdk.Context, string) (banktypes.Metadata, bool) {
+func (m mockBankKeeper) GetDenomMetaData(context.Context, string) (banktypes.Metadata, bool) {
 	return m.returnMetadata, m.returnMetadata.Base != ""
 }

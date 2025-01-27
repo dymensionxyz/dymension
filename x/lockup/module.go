@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -34,7 +35,7 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 
-	// FIXME: support endblocker
+	_ appmodule.HasEndBlocker = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -153,9 +154,10 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	EndBlocker(ctx, am.keeper)
-	return []abci.ValidatorUpdate{}
+	return nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

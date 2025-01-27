@@ -108,15 +108,15 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "price is invalid")
 	}
 
-	if msg.Amount.Int.IsNil() || !msg.Amount.Int.IsPositive() {
+	if msg.Amount.IsNil() || !msg.Amount.IsPositive() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "amount is invalid")
 	}
 
-	if msg.OperatorFeeShare.Dec.IsNil() || msg.OperatorFeeShare.Dec.IsNegative() {
+	if msg.OperatorFeeShare.IsNil() || msg.OperatorFeeShare.IsNegative() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be empty or negative")
 	}
 
-	if msg.OperatorFeeShare.Dec.GT(math.LegacyOneDec()) {
+	if msg.OperatorFeeShare.GT(math.LegacyOneDec()) {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "operator fee share cannot be greater than 1")
 	}
 

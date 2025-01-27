@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -13,15 +14,15 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 	validPrice := sdk.NewCoins(sdk.NewInt64Coin("udenom", 100))
 	negativePrice := sdk.Coins{sdk.Coin{Denom: "udenom", Amount: math.NewInt(-1)}}
 
-	validAmount := math.IntProto{Int: math.NewInt(10)}
-	nilAmount := math.IntProto{}                           // Int is nil
-	zeroAmount := math.IntProto{Int: math.NewInt(0)}       // zero
-	negativeAmount := math.IntProto{Int: math.NewInt(-10)} // negative
+	validAmount := math.NewInt(10)
+	nilAmount := math.Int{}            // Int is nil
+	zeroAmount := math.ZeroInt()       // zero
+	negativeAmount := math.NewInt(-10) // negative
 
-	validFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDecWithPrec(5, 1)} // 0.5
-	nilFeeShare := math.LegacyDecProto{}                                       // nil dec
-	negFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDec(-1)}             // negative dec
-	gtOneFeeShare := math.LegacyDecProto{Dec: math.LegacyNewDec(2)}            // >1
+	validFeeShare := math.LegacyNewDecWithPrec(5, 1) // 0.5
+	nilFeeShare := math.LegacyDec{}                  // nil dec
+	negFeeShare := math.LegacyNewDec(-1)             // negative dec
+	gtOneFeeShare := math.LegacyNewDec(2)            // >1
 
 	validBech32 := "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"
 	invalidBech32 := "notanaddress"

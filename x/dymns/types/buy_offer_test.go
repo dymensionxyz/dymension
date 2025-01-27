@@ -4,6 +4,8 @@ import (
 	"math"
 	"testing"
 
+	cosmos_math "cosmossdk.io/math"
+
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -259,7 +261,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			buyer:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offerPrice: sdk.Coin{
 				Denom:  "-",
-				Amount: math.OneInt(),
+				Amount: cosmos_math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "offer price is invalid",
@@ -306,7 +308,7 @@ func TestBuyOrder_Validate(t *testing.T) {
 			offerPrice: testCoin(1),
 			counterpartyOfferPrice: &sdk.Coin{
 				Denom:  "-",
-				Amount: math.OneInt(),
+				Amount: cosmos_math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "counterparty offer price is invalid",

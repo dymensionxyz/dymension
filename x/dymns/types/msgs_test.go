@@ -10,7 +10,7 @@ import (
 func TestMsgs_Signers(t *testing.T) {
 	t.Run("get signers", func(t *testing.T) {
 		//goland:noinspection GoDeprecation,SpellCheckingInspection
-		msgs := []sdk.Msg{
+		msgs := []sdk.LegacyMsg{
 			&MsgRegisterName{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
@@ -58,7 +58,7 @@ func TestMsgs_Signers(t *testing.T) {
 	})
 
 	t.Run("bad signers should panic", func(t *testing.T) {
-		msgs := []sdk.Msg{
+		msgs := []sdk.LegacyMsg{
 			&MsgRegisterName{},
 			&MsgRegisterAlias{},
 			&MsgTransferDymNameOwnership{},

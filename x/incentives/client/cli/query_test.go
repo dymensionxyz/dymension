@@ -4,11 +4,9 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -52,7 +50,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 
 func (suite *QueryTestSuite) SetupSuite() {
 	suite.App = apptesting.Setup(suite.T())
-	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	suite.Ctx = suite.App.BaseApp.NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(*suite.App.IncentivesKeeper))

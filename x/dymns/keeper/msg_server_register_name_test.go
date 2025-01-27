@@ -6,8 +6,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"cosmossdk.io/math"
-	math "cosmossdk.io/math"
-
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

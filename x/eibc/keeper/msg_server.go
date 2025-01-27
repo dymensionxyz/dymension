@@ -109,7 +109,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	}
 
 	fee := math.LegacyNewDecFromInt(demandOrder.GetFeeAmount())
-	operatorFee := fee.MulTruncate(msg.OperatorFeeShare.Dec).TruncateInt()
+	operatorFee := fee.MulTruncate(msg.OperatorFeeShare).TruncateInt()
 
 	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator

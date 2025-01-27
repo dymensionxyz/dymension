@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	"cosmossdk.io/math"
-	math "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"

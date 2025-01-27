@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	math "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
-	math "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 

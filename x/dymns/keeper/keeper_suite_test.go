@@ -11,8 +11,8 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	tmdb "github.com/cometbft/cometbft-db"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,8 +25,6 @@ import (
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
-
-	math "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -80,14 +78,14 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	{
 		// initialization
-		dymNsStoreKey = sdk.NewKVStoreKey(dymnstypes.StoreKey)
+		dymNsStoreKey = storetypes.NewKVStoreKey(dymnstypes.StoreKey)
 		dymNsMemStoreKey := storetypes.NewMemoryStoreKey(dymnstypes.MemStoreKey)
 
-		authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
+		authStoreKey := storetypes.NewKVStoreKey(authtypes.StoreKey)
 
-		bankStoreKey := sdk.NewKVStoreKey(banktypes.StoreKey)
+		bankStoreKey := storetypes.NewKVStoreKey(banktypes.StoreKey)
 
-		rollappStoreKey = sdk.NewKVStoreKey(rollapptypes.StoreKey)
+		rollappStoreKey = storetypes.NewKVStoreKey(rollapptypes.StoreKey)
 		rollappMemStoreKey := storetypes.NewMemoryStoreKey(rollapptypes.MemStoreKey)
 
 		db := tmdb.NewMemDB()
