@@ -7,7 +7,9 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/rand"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
@@ -15,6 +17,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -31,19 +34,18 @@ func (s *AnteTestSuite) getMsgSend(from sdk.AccAddress) sdk.Msg {
 	return banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(1))))
 }
 
-/*
-func createIRO() sdk.Msg {
-	return &irotypes.MsgCreatePlan{
-		Owner:               "",
-		RollappId:           "",
-		AllocatedAmount:     sdk.Int{},
-		BondingCurve:        irotypes.BondingCurve{},
-		StartTime:           time.Time{},
-		IroPlanDuration:     0,
-		IncentivePlanParams: irotypes.IncentivePlanParams{},
-	}
+func (s *AnteTestSuite) getMsgCreateValidator(from sdk.AccAddress) sdk.Msg {
+	msgCreate, err := stakingtypes.NewMsgCreateValidator(
+		sdk.ValAddress(from),
+		ed25519.GenPrivKey().PubKey(),
+		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000)),
+		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
+		sdk.OneInt(),
+	)
+	s.Assert().NoError(err)
+	return msgCreate
 }
-*/
 
 func (s *AnteTestSuite) getMsgGrantEIBC(from sdk.AccAddress) *authz.MsgGrant {
 	privkey2, _ := ethsecp256k1.GenerateKey()
@@ -71,10 +73,12 @@ func (s *AnteTestSuite) getMsgGrantEIBC(from sdk.AccAddress) *authz.MsgGrant {
 	return msg
 }
 
-func (s *AnteTestSuite) getMsgGrant(msgTypeUrl string, from sdk.AccAddress) *authz.MsgGrant {
+func (s *AnteTestSuite) getMsgGrant(from sdk.AccAddress) *authz.MsgGrant {
 	privkey2, _ := ethsecp256k1.GenerateKey()
 	to := sdk.AccAddress(privkey2.PubKey().Address())
 
+	// msgTypeUrl := sdk.MsgTypeURL(&authz.MsgExec{})
+	msgTypeUrl := "/dymensionxyz.dymension.gamm.poolmodels.balancer.v1beta1.MsgCreateBalancerPool"
 	expDate := time.Now().Add(1 * time.Hour)
 	msg, err := authz.NewMsgGrant(
 		from,
@@ -165,26 +169,37 @@ func (s *AnteTestSuite) TestEIP712() {
 	s.Require().Nil(err)
 
 	from := acc
-
-	msgs := []sdk.Msg{
-		s.getMsgSend(from),
-		s.getMsgCreateRollapp(from.String(), false, nil), // native denom
-		s.getMsgCreateRollapp(from.String(), true, nil),  // tokenless
-		s.getMsgGrant("/dymensionxyz.dymension.gamm.poolmodels.balancer.v1beta1.MsgCreateBalancerPool", from),
-		s.getMsgGrantAllowance(from),
-		s.getMsgSubmitProposal(from),
-		s.getMsgGrantEIBC(from),
+	testCases := []struct {
+		description string
+		msg         sdk.Msg
+		output      bool
+	}{
+		{"MsgSend", s.getMsgSend(from), false},
+		{"MsgCreateRollapp (native denom)", s.getMsgCreateRollapp(from.String(), false, nil), false},
+		{"MsgCreateRollapp (tokenless)", s.getMsgCreateRollapp(from.String(), true, nil), false},
+		{"MsgGrant", s.getMsgGrant(from), false},
+		{"MsgGrantAllowance", s.getMsgGrantAllowance(from), false},
+		{"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
+		{"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
+		{"MsgCreateValidator", s.getMsgCreateValidator(from), false},
 	}
 
-	for _, msg := range msgs {
-		toTest := []sdk.Msg{msg}
-		err = s.DumpEIP712TypedData(from, toTest)
-		s.Require().NoError(err)
+	for _, tc := range testCases {
+		s.Run(tc.description, func() {
+			data, err := s.DumpEIP712TypedData(from, []sdk.Msg{tc.msg})
+			s.Require().NoError(err)
+
+			// Dump the json string to t.log
+			if tc.output {
+				str, err := json.MarshalIndent(data, "", "  ") // Indent with 2 spaces
+				s.Assert().NoError(err)
+				s.T().Log(string(str))
+			}
+		})
 	}
 }
 
-// FIXME: should iterate over all messages
-func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) error {
+func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) (apitypes.TypedData, error) {
 	txConfig := suite.clientCtx.TxConfig
 	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20).MulRaw(1e18))
 	fees := sdk.NewCoins(coinAmount)
@@ -234,9 +249,5 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 	_, _, err = apitypes.TypedDataAndHash(data)
 	suite.Require().NoError(err)
 
-	// Dump the json string to t.log
-	str, err := json.Marshal(data)
-	suite.Assert().NoError(err)
-	suite.T().Logf(string(str))
-	return nil
+	return data, nil
 }
