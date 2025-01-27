@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,8 +9,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
+	address "cosmossdk.io/core/address"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -26,10 +30,13 @@ const (
 	flagVestingStart = "vesting-start-time"
 	flagVestingEnd   = "vesting-end-time"
 	flagVestingAmt   = "vesting-amount"
+	// TODO: needed?
+	// flagAppendMode   = "append"
+	// flagModuleName   = "module-name"
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
-func AddGenesisAccountCmd(defaultNodeHome string) *cobra.Command {
+func AddGenesisAccountCmd(defaultNodeHome string, addressCodec address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account [address_or_key_name] [coin][,[coin]]",
 		Short: "Add a genesis account to genesis.json",
@@ -48,14 +55,22 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 			config.SetRoot(clientCtx.HomeDir)
 
-			coins, err := sdk.ParseCoinsNormalized(args[1])
+			// Init the keyring
+			var kr keyring.Keyring
+			addr, err := addressCodec.StringToBytes(args[0])
 			if err != nil {
-				return fmt.Errorf("failed to parse coins: %w", err)
-			}
+				inBuf := bufio.NewReader(cmd.InOrStdin())
+				keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
+				if keyringBackend != "" && clientCtx.Keyring == nil {
+					var err error
+					kr, err = keyring.New(sdk.KeyringServiceName(), keyringBackend, clientCtx.HomeDir, inBuf, clientCtx.Codec, hd.EthSecp256k1Option())
+					if err != nil {
+						return err
+					}
+				} else {
+					kr = clientCtx.Keyring
+				}
 
-			kr := clientCtx.Keyring
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
 				info, err := kr.Key(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to get address from Keyring: %w", err)
@@ -67,6 +82,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				}
 			}
 
+			// parse vesting flags
 			vestingStart, err := cmd.Flags().GetInt64(flagVestingStart)
 			if err != nil {
 				return fmt.Errorf("failed to parse vesting start: %w", err)
@@ -80,6 +96,11 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to parse vesting amount: %w", err)
 			}
 
+			coins, err := sdk.ParseCoinsNormalized(args[1])
+			if err != nil {
+				return fmt.Errorf("failed to parse coins: %w", err)
+			}
+
 			vestingAmt, err := sdk.ParseCoinsNormalized(vestingAmtStr)
 			if err != nil {
 				return fmt.Errorf("failed to parse vesting amount: %w", err)
@@ -88,11 +109,14 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			// create concrete account type based on input parameters
 			var genAccount authtypes.GenesisAccount
 
-			balances := banktypes.Balance{Address: addr.String(), Coins: coins.Sort()}
+			balances := banktypes.Balance{Address: sdk.AccAddress(addr).String(), Coins: coins.Sort()}
 			baseAccount := authtypes.NewBaseAccount(addr, nil, 0, 0)
 
 			if !vestingAmt.IsZero() {
-				baseVestingAccount := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt.Sort(), vestingEnd)
+				baseVestingAccount, err := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt.Sort(), vestingEnd)
+				if err != nil {
+					return fmt.Errorf("failed to create base vesting account: %w", err)
+				}
 
 				if (balances.Coins.IsZero() && !baseVestingAccount.OriginalVesting.IsZero()) ||
 					baseVestingAccount.OriginalVesting.IsAnyGT(balances.Coins) {
@@ -120,8 +144,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to validate new genesis account: %w", err)
 			}
 
-			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			genFilePath := config.GenesisFile()
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
@@ -133,7 +157,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to get accounts from any: %w", err)
 			}
 
-			if accs.Contains(addr) {
+			if accs.Contains(sdk.AccAddress(addr)) {
 				return fmt.Errorf("cannot add account at existing address %s", addr)
 			}
 
@@ -172,13 +196,13 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
 
-			genDoc.AppState = appStateJSON
-			return genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			return genutil.ExportGenesisFile(appGenesis, genFilePath)
 		},
 	}
 
-	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|kwallet|pass|test)")
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
+	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|kwallet|pass|test)")
 	cmd.Flags().String(flagVestingAmt, "", "amount of coins for vesting accounts")
 	cmd.Flags().Int64(flagVestingStart, 0, "schedule start time (unix epoch) for vesting accounts")
 	cmd.Flags().Int64(flagVestingEnd, 0, "schedule end time (unix epoch) for vesting accounts")
