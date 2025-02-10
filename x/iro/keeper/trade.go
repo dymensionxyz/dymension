@@ -215,14 +215,6 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		return errorsmod.Wrapf(types.ErrInvalidMinCost, "minCost: %s, cost: %s, fee: %s", minIncomeAmt.String(), costAmt.String(), takerFeeAmt.String())
 	}
 
-	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
-	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
-	err = k.chargeTakerFee(ctx, takerFee, seller, &owner)
-	if err != nil {
-		return err
-	}
-
 	// send allocated tokens from seller to the plan
 	err = k.BK.SendCoinsFromAccountToModule(ctx, seller, types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToSell)))
 	if err != nil {
@@ -239,6 +231,14 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	// Update plan
 	plan.SoldAmt = plan.SoldAmt.Sub(amountTokensToSell)
 	k.SetPlan(ctx, *plan)
+
+	// Charge taker fee
+	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
+	err = k.chargeTakerFee(ctx, takerFee, seller, &owner)
+	if err != nil {
+		return err
+	}
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventSell{
