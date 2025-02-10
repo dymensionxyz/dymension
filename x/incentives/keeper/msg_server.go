@@ -43,7 +43,7 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
-	gaugeID, err := server.keeper.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
+	gaugeID, err := server.keeper.CreateGauge(ctx, false, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
 	if err != nil {
 		return nil, fmt.Errorf("create gauge: %w", err)
 	}
