@@ -48,7 +48,6 @@ import (
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
-	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 
@@ -297,22 +296,20 @@ func New(
 	/* ---------------------------- set ante handler ---------------------------- */
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		HandlerOptions: authante.HandlerOptions{
-			AccountKeeper:          app.AccountKeeper,
-			BankKeeper:             app.BankKeeper,
-			ExtensionOptionChecker: nil, // uses default
-			FeegrantKeeper:         app.FeeGrantKeeper,
-			SignModeHandler:        txConfig.SignModeHandler(),
-			SigGasConsumer:         nil,
-			TxFeeChecker:           nil,
-		},
-		IBCKeeper:         app.IBCKeeper,
-		FeeMarketKeeper:   app.FeeMarketKeeper,
-		EvmKeeper:         app.EvmKeeper,
-		TxFeesKeeper:      app.TxFeesKeeper,
-		MaxTxGasWanted:    maxGasWanted,
-		RollappKeeper:     *app.RollappKeeper,
-		LightClientKeeper: &app.LightClientKeeper,
+		AccountKeeper:          app.AccountKeeper,
+		BankKeeper:             app.BankKeeper,
+		ExtensionOptionChecker: nil, // uses default
+		FeegrantKeeper:         app.FeeGrantKeeper,
+		SignModeHandler:        txConfig.SignModeHandler(),
+		SigGasConsumer:         nil,
+		TxFeeChecker:           nil,
+		IBCKeeper:              app.IBCKeeper,
+		FeeMarketKeeper:        app.FeeMarketKeeper,
+		EvmKeeper:              app.EvmKeeper,
+		TxFeesKeeper:           app.TxFeesKeeper,
+		MaxTxGasWanted:         maxGasWanted,
+		RollappKeeper:          *app.RollappKeeper,
+		LightClientKeeper:      &app.LightClientKeeper,
 	})
 	if err != nil {
 		panic(err)

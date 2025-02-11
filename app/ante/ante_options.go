@@ -1,6 +1,8 @@
 package ante
 
 import (
+	storetypes "cosmossdk.io/store/types"
+	txsigning "cosmossdk.io/x/tx/signing"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -12,13 +14,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
-	txsigning "cosmossdk.io/x/tx/signing"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
@@ -32,15 +30,14 @@ type FeeMarketKeeper interface {
 }
 
 type HandlerOptions struct {
-	ante.HandlerOptions
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	FeegrantKeeper         FeegrantKeeper
 	SignModeHandler        *txsigning.HandlerMap
 	SigGasConsumer         func(meter storetypes.GasMeter, sig signing.SignatureV2, params types.Params) error
 	TxFeeChecker           ante.TxFeeChecker
 
-	AccountKeeper     *authkeeper.AccountKeeper
-	BankKeeper        bankkeeper.Keeper
+	AccountKeeper     AccountKeeper
+	BankKeeper        BankKeeper
 	IBCKeeper         *ibckeeper.Keeper
 	FeeMarketKeeper   FeeMarketKeeper
 	EvmKeeper         ethante.EVMKeeper

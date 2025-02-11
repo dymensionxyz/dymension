@@ -3,21 +3,32 @@ package ante
 import (
 	context "context"
 
+	"cosmossdk.io/core/address"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 // AccountKeeper defines the contract needed for AccountKeeper related APIs.
 // Interface provides support to use non-sdk AccountKeeper for AnteHandler's decorators.
 type AccountKeeper interface {
+	AddressCodec() address.Codec
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAddress(moduleName string) sdk.AccAddress
 	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
+	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	IterateAccounts(ctx context.Context, cb func(account sdk.AccountI) bool)
+	SetAccount(ctx context.Context, account sdk.AccountI)
+	RemoveAccount(ctx context.Context, account sdk.AccountI)
+	GetParams(ctx context.Context) (params authtypes.Params)
+	GetSequence(ctx context.Context, account sdk.AccAddress) (uint64, error)
+	GetAllAccounts(ctx context.Context) (accounts []sdk.AccountI)
 }
 
 // FeegrantKeeper defines the expected feegrant keeper.
 type FeegrantKeeper interface {
-	UseGrantedFees(ctx sdk.Context, granter, grantee sdk.AccAddress, fee sdk.Coins, msgs []sdk.Msg) error
+	UseGrantedFees(ctx context.Context, granter, grantee sdk.AccAddress, fee sdk.Coins, msgs []sdk.Msg) error
 }
 
 // BankKeeper defines the contract needed for supply related APIs (noalias)

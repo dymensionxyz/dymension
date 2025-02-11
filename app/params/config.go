@@ -1,13 +1,5 @@
 package params
 
-import (
-	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
-
 const (
 	// DisplayDenom is the denomination used to display the amount of tokens held
 	DisplayDenom = "dym"
@@ -21,50 +13,3 @@ const (
 	AccountAddressPrefix = "dym"
 	Name                 = "dymension"
 )
-
-func init() {
-	SetAddressPrefixes()
-	RegisterDenoms()
-}
-
-// RegisterDenoms registers the base and display denominations to the SDK.
-func RegisterDenoms() {
-	if err := sdk.RegisterDenom(DisplayDenom, math.LegacyNewDecWithPrec(1, 1)); err != nil {
-		panic(err)
-	}
-
-	if err := sdk.RegisterDenom(BaseDenom, math.LegacyNewDecWithPrec(1, BaseDenomUnit)); err != nil {
-		panic(err)
-	}
-}
-
-func SetAddressPrefixes() {
-	// Set prefixes
-	accountPubKeyPrefix := AccountAddressPrefix + "pub"
-	validatorAddressPrefix := AccountAddressPrefix + "valoper"
-	validatorPubKeyPrefix := AccountAddressPrefix + "valoperpub"
-	consNodeAddressPrefix := AccountAddressPrefix + "valcons"
-	consNodePubKeyPrefix := AccountAddressPrefix + "valconspub"
-
-	// Set config
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccountAddressPrefix, accountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
-
-	config.SetAddressVerifier(func(bytes []byte) error {
-		if len(bytes) == 0 {
-			return errorsmod.Wrap(sdkerrors.ErrUnknownAddress, "addresses cannot be empty")
-		}
-
-		if len(bytes) > address.MaxAddrLen {
-			return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "address max length is %d, got %d", address.MaxAddrLen, len(bytes))
-		}
-
-		if len(bytes) != 20 && len(bytes) != 32 {
-			return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "address length must be 20 or 32 bytes, got %d", len(bytes))
-		}
-
-		return nil
-	})
-}

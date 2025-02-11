@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/suite"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -48,9 +47,9 @@ func TestAnteTestSuite(t *testing.T) {
 // SetupTest setups a new test, with new app, context, and anteHandler.
 func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 	s.app = apptesting.Setup(s.T())
-	s.ctx = s.app.BaseApp.NewContext(isCheckTx, cometbftproto.Header{}).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
+	s.ctx = s.app.BaseApp.NewContext(isCheckTx).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
 
-	txConfig := s.app.GetTxConfig()
+	txConfig := s.app.TxConfig()
 	s.clientCtx = client.Context{}.
 		WithTxConfig(txConfig).
 		WithCodec(s.app.AppCodec())
