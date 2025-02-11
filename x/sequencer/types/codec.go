@@ -8,6 +8,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
+var (
+	ModuleCdc2 *codec.ProtoCodec
+)
+
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateSequencer{}, "sequencer/CreateSequencer", nil)
 	cdc.RegisterConcrete(&MsgUnbond{}, "sequencer/Unbond", nil)
@@ -37,4 +41,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*govtypes.Content)(nil), &PunishSequencerProposal{})
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+
+	ModuleCdc2 = codec.NewProtoCodec(registry)
 }

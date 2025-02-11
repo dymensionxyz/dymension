@@ -160,6 +160,7 @@ func (s Sequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 
 // TODO: move these utils to a more suitable package
 
+// FIXME: should get cdc and not use global one
 func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
 	cdc := ModuleCdc2
 	var pubKey cryptotypes.PubKey

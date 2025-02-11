@@ -4,8 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/dymensionxyz/dymension/v3/app/params"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"
@@ -101,8 +99,4 @@ func PossibleAccountRegardlessChain(address string) bool {
 	}
 
 	return true
-}
-
-func init() {
-	params.SetAddressPrefixes()
 }
