@@ -10,6 +10,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
   rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized)
       returns (MsgFulfillOrderAuthorizedResponse) {}

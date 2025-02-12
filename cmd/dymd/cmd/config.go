@@ -4,7 +4,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
-	appconfig "github.com/dymensionxyz/dymension/v3/app/params"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -25,25 +25,25 @@ func initSDKConfig() {
 
 // RegisterDenoms registers the base and display denominations to the SDK.
 func RegisterDenoms() {
-	if err := sdk.RegisterDenom(appconfig.DisplayDenom, math.LegacyNewDecWithPrec(1, 1)); err != nil {
+	if err := sdk.RegisterDenom(appparams.DisplayDenom, math.LegacyNewDecWithPrec(1, 1)); err != nil {
 		panic(err)
 	}
 
-	if err := sdk.RegisterDenom(appconfig.BaseDenom, math.LegacyNewDecWithPrec(1, appconfig.BaseDenomUnit)); err != nil {
+	if err := sdk.RegisterDenom(appparams.BaseDenom, math.LegacyNewDecWithPrec(1, appparams.BaseDenomUnit)); err != nil {
 		panic(err)
 	}
 }
 
 func SetAddressPrefixes(config *sdk.Config) {
 	// Set prefixes
-	accountPubKeyPrefix := appconfig.AccountAddressPrefix + "pub"
-	validatorAddressPrefix := appconfig.AccountAddressPrefix + "valoper"
-	validatorPubKeyPrefix := appconfig.AccountAddressPrefix + "valoperpub"
-	consNodeAddressPrefix := appconfig.AccountAddressPrefix + "valcons"
-	consNodePubKeyPrefix := appconfig.AccountAddressPrefix + "valconspub"
+	accountPubKeyPrefix := appparams.AccountAddressPrefix + "pub"
+	validatorAddressPrefix := appparams.AccountAddressPrefix + "valoper"
+	validatorPubKeyPrefix := appparams.AccountAddressPrefix + "valoperpub"
+	consNodeAddressPrefix := appparams.AccountAddressPrefix + "valcons"
+	consNodePubKeyPrefix := appparams.AccountAddressPrefix + "valconspub"
 
 	// Set config
-	config.SetBech32PrefixForAccount(appconfig.AccountAddressPrefix, accountPubKeyPrefix)
+	config.SetBech32PrefixForAccount(appparams.AccountAddressPrefix, accountPubKeyPrefix)
 	config.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
 	config.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
 

@@ -60,6 +60,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -209,7 +210,7 @@ func (a *AppKeepers) InitKeepers(
 	// set the governance module account as the authority for conducting upgrades
 	a.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(a.keys[upgradetypes.StoreKey]), appCodec, homePath, bApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
-	a.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, runtime.NewKVStoreService(a.keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, authcodec.NewBech32Codec(sdk.Bech32MainPrefix), sdk.Bech32MainPrefix, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	a.AccountKeeper = authkeeper.NewAccountKeeper(appCodec, runtime.NewKVStoreService(a.keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, authcodec.NewBech32Codec(appparams.AccountAddressPrefix), appparams.AccountAddressPrefix, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	a.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
@@ -220,7 +221,7 @@ func (a *AppKeepers) InitKeepers(
 		logger,
 	)
 	a.StakingKeeper = stakingkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(a.keys[stakingtypes.StoreKey]), a.AccountKeeper, a.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(), authcodec.NewBech32Codec(sdk.Bech32PrefixValAddr), authcodec.NewBech32Codec(sdk.Bech32PrefixConsAddr),
+		appCodec, runtime.NewKVStoreService(a.keys[stakingtypes.StoreKey]), a.AccountKeeper, a.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(), authcodec.NewBech32Codec(appparams.Bech32PrefixValAddr), authcodec.NewBech32Codec(appparams.Bech32PrefixConsAddr),
 	)
 	a.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[minttypes.StoreKey]), a.StakingKeeper, a.AccountKeeper, a.BankKeeper, authtypes.FeeCollectorName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 

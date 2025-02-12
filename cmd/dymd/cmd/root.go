@@ -65,6 +65,7 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 
 // NewRootCmd creates a new root command for dymension hub
 func NewRootCmd() *cobra.Command {
+	initSDKConfig()
 	tempApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, EmptyAppOptions{})
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
@@ -185,8 +186,6 @@ func initAppConfig() (string, interface{}) {
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig, basicManager module.BasicManager) {
-	initSDKConfig()
-
 	rootCmd.AddCommand(
 		ethclient.ValidateChainID(
 			genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
