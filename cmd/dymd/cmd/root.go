@@ -55,9 +55,17 @@ var (
 	_ servertypes.AppExporter = appExport
 )
 
+// EmptyAppOptions is a stub implementing AppOptions
+type EmptyAppOptions struct{}
+
+// Get implements AppOptions
+func (ao EmptyAppOptions) Get(o string) interface{} {
+	return nil
+}
+
 // NewRootCmd creates a new root command for dymension hub
-func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
-	tempApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, nil)
+func NewRootCmd() *cobra.Command {
+	tempApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, EmptyAppOptions{})
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
 		Codec:             tempApp.AppCodec(),
@@ -148,7 +156,7 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 
 	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
 
-	return rootCmd, encodingConfig
+	return rootCmd
 }
 
 // initCometBFTConfig helps to override default CometBFT Config values.
