@@ -8,13 +8,16 @@ import (
 	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ethserver "github.com/evmos/ethermint/server"
 
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -141,21 +144,15 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 		},
 	}
 
-	/*
-		initRootCmd(rootCmd, encodingConfig.TxConfig, encodingConfig.InterfaceRegistry, encodingConfig.Codec, tempApp.BasicModuleManager)
-
-		// add keyring to autocli opts
-		autoCliOpts := tempApp.AutoCliOpts()
-		initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
-		autoCliOpts.Keyring = initClientCtx.Keyring
-		autoCliOpts.ClientCtx = &initClientCtx
-
-		if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
-			panic(err)
-		}
-	*/
-
 	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
+
+	autoCliOpts := tempApp.AutoCliOpts()
+	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
+	autoCliOpts.ClientCtx = initClientCtx
+
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
 	return rootCmd
 }
@@ -191,9 +188,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 			genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
 		),
 		debug.Cmd(),
-		// confixcmd.ConfigCommand(), // FIXME: enable? review
+		confixcmd.ConfigCommand(), // FIXME: enable? review
 		pruning.Cmd(newApp, app.DefaultNodeHome),
-		// snapshot.Cmd(newApp), // FIXME: enable? review
+		snapshot.Cmd(newApp), // FIXME: enable? review
 	)
 
 	// add genesis commands
@@ -202,16 +199,17 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 	)
 
 	// // add eth server commands
-	// FIXME: compare and enable!!
-	// ethserver.AddCommands(
-	// 	rootCmd,
-	// 	ethserver.NewDefaultStartOptions(newApp, app.DefaultNodeHome),
-	// 	appExport,
-	// 	addModuleInitFlags,
-	// )
+	ethserver.AddCommands(
+		rootCmd,
+		ethserver.NewDefaultStartOptions(newApp, app.DefaultNodeHome),
+		appExport,
+		addModuleInitFlags,
+	)
 
-	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
+	// adds comet commands, start, rollback, etc..
+	// server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
 
+	// TODO: needed? we can add cometBFT inspect server as well
 	rootCmd.AddCommand(InspectCmd(appExport, newApp, app.DefaultNodeHome))
 
 	// add keybase, auxiliary RPC, query, and tx child commands

@@ -70,10 +70,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
-	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
-	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
-
 	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/server/flags"
@@ -82,11 +78,6 @@ import (
 	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
-	// FIXME: remove
-	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
-	_ = packetforwardmiddleware.AppModule{}
-	_ = packetforwardtypes.ErrIntOverflowGenesis
-
 	_ servertypes.Application = (*App)(nil)
 	_ runtime.AppI            = (*App)(nil)
 	// _ ibctesting.TestingApp   = (*App)(nil)
@@ -95,7 +86,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []Upgrade{} // fixme: add v5
+	Upgrades = []Upgrade{} // FIXME: add v5 upgrade handler
 )
 
 func init() {
@@ -204,7 +195,6 @@ func New(
 			),
 		})
 
-	// FIXME: again??
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 

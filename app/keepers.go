@@ -129,13 +129,13 @@ type AppKeepers struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
-	// IBC keepers (FIXME: review)
-	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	// IBC keepers
+	IBCKeeper                     *ibckeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	TransferStack                 ibcporttypes.IBCModule
 	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	DelayedAckMiddleware          *delayedackmodule.IBCMiddleware // FIXME: why it needs to be in the keepers??? can't it be part of the IBCModule?
+	DelayedAckMiddleware          *delayedackmodule.IBCMiddleware
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -640,7 +640,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName).WithKeyTable(slashingtypes.ParamKeyTable())
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName).WithKeyTable(crisistypes.ParamKeyTable())
-	// paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable()) // FIXME:?
 	paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)

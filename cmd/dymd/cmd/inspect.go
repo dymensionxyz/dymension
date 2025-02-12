@@ -32,7 +32,7 @@ const (
 func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "inspect",
-		Short: "Inspect db state [tendermint]",
+		Short: "Inspect db state",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.OutOrStderr())
