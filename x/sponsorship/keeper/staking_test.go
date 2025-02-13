@@ -15,16 +15,21 @@ import (
 func (s *KeeperTestSuite) TestSponsorshipStakingPower() {
 	// Create a new validator
 	valI := s.CreateValidator()
+	valAddr, err := sdk.ValAddressFromBech32(valI.GetOperator())
 
 	// Create a new delegator
-	delCoin := sdk.NewCoin(s.App.StakingKeeper.BondDenom(s.Ctx), types.DYM.MulRaw(100))
-	delI := s.CreateDelegator(valI.GetOperator(), delCoin)
+	bondDenom, err := s.App.StakingKeeper.BondDenom(s.Ctx)
+	s.Require().NoError(err)
+	delCoin := sdk.NewCoin(bondDenom, types.DYM.MulRaw(100))
+	delI := s.CreateDelegator(valAddr, delCoin)
 
 	// Get the validator and delegator
-	del, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delI.GetDelegatorAddr(), delI.GetValidatorAddr())
-	s.Require().True(found)
-	val, found := s.App.StakingKeeper.GetValidator(s.Ctx, delI.GetValidatorAddr())
-	s.Require().True(found)
+	delAddr := sdk.MustAccAddressFromBech32(delI.GetDelegatorAddr())
+	delValAddr, _ := sdk.ValAddressFromBech32(delI.GetValidatorAddr())
+	del, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delAddr, delValAddr)
+	s.Require().NoError(err)
+	val, err := s.App.StakingKeeper.GetValidator(s.Ctx, delValAddr)
+	s.Require().NoError(err)
 
 	// Modify the validator and delegator shares with specific values from the scenario
 	valTokens, ok := math.NewIntFromString("147832774220793166606172162")
@@ -40,8 +45,8 @@ func (s *KeeperTestSuite) TestSponsorshipStakingPower() {
 	// Query the delegation from x/staking
 	stakingQuerier := stakingkeeper.Querier{Keeper: s.App.StakingKeeper}
 	resp, err := stakingQuerier.Delegation(s.Ctx, &stakingtypes.QueryDelegationRequest{
-		DelegatorAddr: delI.GetDelegatorAddr().String(),
-		ValidatorAddr: delI.GetValidatorAddr().String(),
+		DelegatorAddr: delI.GetDelegatorAddr(),
+		ValidatorAddr: delI.GetValidatorAddr(),
 	})
 	s.Require().NoError(err)
 
@@ -56,15 +61,15 @@ func (s *KeeperTestSuite) TestSponsorshipStakingPower() {
 	// Now compare the values with the sponsorship module
 	s.CreateGauges(1)
 	s.Vote(types.MsgVote{
-		Voter: del.GetDelegatorAddr().String(),
+		Voter: del.GetDelegatorAddr(),
 		Weights: []types.GaugeWeight{
 			{GaugeId: 1, Weight: types.DYM.MulRaw(50)},
 		},
 	})
 
 	// Staking power should be the same as the x/staking module
-	s.AssertVoted(del.GetDelegatorAddr())
-	vote := s.GetVote(del.GetDelegatorAddr().String())
+	s.AssertVoted(sdk.MustAccAddressFromBech32(del.GetDelegatorAddr()))
+	vote := s.GetVote(del.GetDelegatorAddr())
 	s.Require().True(vote.VotingPower.Equal(expectedAmt))
 }
 
