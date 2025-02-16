@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/fs"
-	"net/http"
 	"os"
 	"path/filepath"
 
@@ -37,7 +35,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/cast"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -65,8 +62,6 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 
-	"github.com/dymensionxyz/dymension/v3/docs"
-
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -87,7 +82,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []Upgrade{} // FIXME: add v5 upgrade handler
+	Upgrades = []Upgrade{} // TODO: add v5 upgrade handler
 )
 
 func init() {
@@ -231,10 +226,8 @@ func New(
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
 	app.setupUpgradeHandlers()
 
-	// FIXME: review
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
 
-	// FIXME: review
 	reflectionSvc, err := runtimeservices.NewReflectionService()
 	if err != nil {
 		panic(err)
@@ -441,18 +434,6 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 
 func (app *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
-}
-
-// FIXME: needed?
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
-	staticFS, err := fs.Sub(docs.Docs, "static")
-	if err != nil {
-		panic(err)
-	}
-
-	staticServer := http.FileServer(http.FS(staticFS))
-	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
 }
 
 func (app *App) setupUpgradeHandlers() {

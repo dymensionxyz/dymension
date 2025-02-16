@@ -236,10 +236,6 @@ func (a *AppKeepers) InitKeepers(
 
 	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[feegrant.StoreKey]), a.AccountKeeper)
 
-	// FIXME: needed?
-	// a.CircuitKeeper = circuitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[circuittypes.StoreKey]), authtypes.NewModuleAddress(govtypes.ModuleName).String(), a.AccountKeeper.AddressCodec())
-	// a.BaseApp.SetCircuitBreaker(&a.CircuitKeeper)
-
 	a.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewKVStoreService(a.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), a.AccountKeeper)
 
 	groupConfig := grouptypes.DefaultConfig()

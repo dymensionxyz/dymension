@@ -86,7 +86,7 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 	return eventAttributes
 }
 
-// FIXME: codec
+// TODO: cdc should be provided by caller
 func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacketData, error) {
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Packet.GetData(), &data); err != nil {
@@ -103,6 +103,7 @@ func (r RollappPacket) MustGetTransferPacketData() transfertypes.FungibleTokenPa
 	return data
 }
 
+// TODO: cdc should be provided by caller
 func (r RollappPacket) GetAck() (channeltypes.Acknowledgement, error) {
 	var ack channeltypes.Acknowledgement
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Acknowledgement, &ack); err != nil {

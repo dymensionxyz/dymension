@@ -17,6 +17,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
+/*
+	appBuilder        *runtime.AppBuilder
+*/
+
 type (
 	Network = network.Network
 	Config  = network.Config
@@ -47,7 +51,7 @@ func DefaultConfig() network.Config {
 	cfg := network.DefaultConfig(nil)
 	encoding := params.MakeEncodingConfig()
 
-	// FIXME: add rand tmrand.Uint64() to chainID
+	// TODO: add rand tmrand.Uint64() to chainID
 	cfg.ChainID = "dymension_1000-1"
 	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
 
@@ -59,8 +63,8 @@ func DefaultConfig() network.Config {
 		)
 	}
 
-	// FIXME:
-	// cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
+	// FIXME: set genesisState
+	// cfg.GenesisState = app.DefaultGenesis(encoding.Codec)
 	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
 		// force disable Enable Create of x/evm
 		var evmGenesisState evmtypes.GenesisState

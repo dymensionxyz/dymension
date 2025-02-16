@@ -185,7 +185,7 @@ var PreBlockers = []string{
 	upgradetypes.ModuleName,
 }
 
-// FIXME: can be cleaned up
+// TODO: can be cleaned up. only those modules are needed in BeginBlockers now
 var BeginBlockers = []string{
 	epochstypes.ModuleName,
 	capabilitytypes.ModuleName,

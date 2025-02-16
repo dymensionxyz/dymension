@@ -16,13 +16,9 @@ import (
 )
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
-
-	// TODO: validate options
-
 	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper, options.FeeMarketKeeper)
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
-	// FIXME: add circuit breaker??
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
@@ -55,8 +51,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		types.NewIBCProofHeightDecorator(),
 		lightclientante.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
-
-		// FIXME: review this one:
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	}
 

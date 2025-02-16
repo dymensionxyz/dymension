@@ -110,7 +110,6 @@ func (im IBCModule) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	var ack channeltypes.Acknowledgement
-	// FIXME: shouldn't we use our own cdc?
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
@@ -194,7 +193,6 @@ func (m *ICS4Wrapper) SendPacket(
 	data []byte,
 ) (sequence uint64, err error) {
 	packet := new(transfertypes.FungibleTokenPacketData)
-	// FIXME: shouldn't we use our own cdc?
 	if err = transfertypes.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
@@ -250,7 +248,6 @@ func (m *ICS4Wrapper) SendPacket(
 		return 0, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "add denom metadata to memo: %s", err.Error()) /// TODO: no .Error()
 	}
 
-	// FIXME: shouldn't we use our own cdc?
 	data, err = transfertypes.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error()) /// TODO: no .Error()

@@ -30,7 +30,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
@@ -41,6 +40,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	// this line is used by starport scaffolding # root/moduleImport
 
@@ -48,10 +48,16 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
+	v047 "github.com/cosmos/cosmos-sdk/x/genutil/migrations/v047"
 	ethclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
 	ethservercfg "github.com/evmos/ethermint/server/config"
 )
+
+// MigrationMap is a map of SDK versions to their respective genesis migration functions.
+var MigrationMap = genutiltypes.MigrationMap{
+	"v0.47": v047.Migrate,
+}
 
 var (
 	_ servertypes.AppCreator  = newApp
@@ -83,7 +89,7 @@ func NewRootCmd() *cobra.Command {
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
-		WithAccountRetriever(types.AccountRetriever{}).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithKeyringOptions(hd.EthSecp256k1Option()).
 		WithHomeDir(app.DefaultNodeHome).
 		WithViper("")
@@ -114,8 +120,6 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 			if err != nil {
 				return err
 			}
-
-			// FIXME: review this code
 
 			// This needs to go after ReadFromClientConfig, as that function
 			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
@@ -177,7 +181,6 @@ func initAppConfig() (string, interface{}) {
 		panic(err)
 	}
 
-	// FIXME: review
 	customAppTemplate, customAppConfig := ethservercfg.AppConfig(baseDenom)
 	return customAppTemplate, customAppConfig
 }
@@ -188,9 +191,9 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 			genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
 		),
 		debug.Cmd(),
-		confixcmd.ConfigCommand(), // FIXME: enable? review
+		confixcmd.ConfigCommand(),
 		pruning.Cmd(newApp, app.DefaultNodeHome),
-		snapshot.Cmd(newApp), // FIXME: enable? review
+		snapshot.Cmd(newApp),
 	)
 
 	// add genesis commands
@@ -198,7 +201,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		genesisCommand(encodingConfig.TxConfig, basicManager),
 	)
 
-	// // add eth server commands
+	// add eth server commands
 	ethserver.AddCommands(
 		rootCmd,
 		ethserver.NewDefaultStartOptions(newApp, app.DefaultNodeHome),
@@ -231,11 +234,11 @@ func genesisCommand(txConfig client.TxConfig, moduleBasics module.BasicManager) 
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	gentxModule := moduleBasics[genutiltypes.ModuleName].(genutil.AppModuleBasic)
+	gentxModule, _ := moduleBasics[genutiltypes.ModuleName].(genutil.AppModuleBasic)
 
 	cmd.AddCommand(
 		genutilcli.GenTxCmd(moduleBasics, txConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, txConfig.SigningContext().ValidatorAddressCodec()),
-		// genutilcli.MigrateGenesisCmd(migrationMap), // FIXME: add migration command
+		genutilcli.MigrateGenesisCmd(MigrationMap),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, gentxModule.GenTxValidator, txConfig.SigningContext().ValidatorAddressCodec()),
 		genutilcli.ValidateGenesisCmd(moduleBasics),
 		// custom command to add genesis accounts
