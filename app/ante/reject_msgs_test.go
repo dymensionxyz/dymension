@@ -6,6 +6,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	protov2 "google.golang.org/protobuf/proto"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -211,6 +213,8 @@ func packAuthorization(t *testing.T, authorization authz.Authorization) *codecty
 	return a
 }
 
+var _ sdk.Tx = &mockTx{}
+
 type mockTx struct {
 	msgs []sdk.Msg
 }
@@ -221,6 +225,19 @@ func (tx *mockTx) GetMsgs() []sdk.Msg {
 
 func (tx *mockTx) ValidateBasic() error {
 	return nil
+}
+
+// GetMsgsV2
+func (tx *mockTx) GetMsgsV2() ([]protov2.Message, error) {
+	arr := make([]protov2.Message, len(tx.msgs))
+	for i, msg := range tx.msgs {
+		err := protov2.Unmarshal([]byte(msg.String()), arr[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return arr, nil
 }
 
 func generateDeeplyNestedMsgExec(t *testing.T, depth int) sdk.Msg {

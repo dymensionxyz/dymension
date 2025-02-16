@@ -13,7 +13,8 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-	tmdb "github.com/cometbft/cometbft-db"
+	dbm "github.com/cosmos/cosmos-db"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -36,7 +37,9 @@ import (
 )
 
 func init() {
-	params.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
 }
 
 type KeeperTestSuite struct {
@@ -88,8 +91,8 @@ func (s *KeeperTestSuite) SetupTest() {
 		rollappStoreKey = storetypes.NewKVStoreKey(rollapptypes.StoreKey)
 		rollappMemStoreKey := storetypes.NewMemoryStoreKey(rollapptypes.MemStoreKey)
 
-		db := tmdb.NewMemDB()
-		stateStore := store.NewCommitMultiStore(db)
+		db := dbm.NewMemDB()
+		stateStore := store.NewCommitMultiStore(db, nil, nil)
 		stateStore.MountStoreWithDB(dymNsStoreKey, storetypes.StoreTypeIAVL, db)
 		stateStore.MountStoreWithDB(dymNsMemStoreKey, storetypes.StoreTypeMemory, nil)
 		stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)

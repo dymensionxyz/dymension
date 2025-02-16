@@ -15,7 +15,10 @@ import (
 )
 
 func TestMsgLockTokens(t *testing.T) {
-	appParams.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	appParams.SetAddressPrefixes(config)
+	config.Seal()
+
 	addr1 := apptesting.CreateRandomAccounts(1)[0].String()
 	invalidAddr := sdk.AccAddress("invalid").String()
 

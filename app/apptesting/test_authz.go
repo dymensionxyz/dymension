@@ -26,7 +26,7 @@ func TestMessageAuthzSerialization(t *testing.T, msg sdk.Msg) {
 		mockMsgExec   authz.MsgExec
 	)
 
-	encCdc := app.MakeEncodingConfig()
+	encCdc := app.MakeConfig()
 	amino := encCdc.Amino
 
 	// Authz: Grant Msg

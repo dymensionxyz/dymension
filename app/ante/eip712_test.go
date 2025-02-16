@@ -12,10 +12,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
@@ -134,8 +134,7 @@ func (s *AnteTestSuite) TestEIP712() {
 	acc := sdk.AccAddress(privkey.PubKey().Address())
 
 	amt := math.NewInt(10000).MulRaw(1e18)
-	err := bankutil.FundAccount(s.app.BankKeeper, s.ctx, privkey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)))
-	s.Require().Nil(err)
+	apptesting.FundAccount(s.app, s.ctx, privkey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)))
 
 	from := acc
 
@@ -150,7 +149,7 @@ func (s *AnteTestSuite) TestEIP712() {
 
 	for _, msg := range msgs {
 		toTest := []sdk.Msg{msg}
-		err = s.DumpEIP712TypedData(from, toTest)
+		err := s.DumpEIP712TypedData(from, toTest)
 		s.Require().NoError(err)
 	}
 }
@@ -188,7 +187,7 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 			Amount: fees,
 			Gas:    200000,
 		},
-		msgs, "", nil,
+		msgs, "",
 	)
 
 	feeDelegation := &eip712.FeeDelegationOptions{

@@ -10,9 +10,9 @@ import (
 	usim "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
 
@@ -57,11 +57,13 @@ var InvariantCheckInterval = uint(0) // disabled
 
 func SetupTestingApp() (*app.App, app.GenesisState) {
 	db := dbm.NewMemDB()
-	encCdc := app.MakeEncodingConfig()
-	params.SetAddressPrefixes()
+	encCdc := params.MakeEncodingConfig()
 
-	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, InvariantCheckInterval, encCdc,
-		usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
+
+	newApp := app.New(log.NewNopLogger(), db, nil, true, usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
 	defaultGenesisState := newApp.DefaultGenesis()
 
 	incentivesGenesisStateJson := defaultGenesisState[incentivestypes.ModuleName]
@@ -138,7 +140,7 @@ func genesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), math.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), math.LegacyOneDec()))
 
 	}
 	// set validators and delegations
@@ -183,14 +185,22 @@ func SetupWithGenesisValSet(t *testing.T, valSet *cometbfttypes.ValidatorSet, ge
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	_ = app.InitChain(
-		abci.RequestInitChain{
+	_, err = app.InitChain(
+		&abci.RequestInitChain{
 			ChainId:         TestChainID,
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
+	require.NoError(t, err)
+
+	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             app.LastBlockHeight() + 1,
+		Hash:               app.LastCommitID().Hash,
+		NextValidatorsHash: valSet.Hash(),
+	})
+	require.NoError(t, err)
 
 	return app
 }
@@ -217,7 +227,8 @@ func AddTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int) []
 func addTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 
-	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
+	denom, _ := app.StakingKeeper.BondDenom(ctx)
+	initCoins := sdk.NewCoins(sdk.NewCoin(denom, accAmt))
 
 	for _, addr := range testAddrs {
 		FundAccount(app, ctx, addr, initCoins)

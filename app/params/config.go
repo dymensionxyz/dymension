@@ -1,5 +1,13 @@
 package params
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
+
+	errorsmod "cosmossdk.io/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
+
 const (
 	Name = "dymension"
 
@@ -42,3 +50,33 @@ const (
 	// Bech32PrefixConsPub defines the Bech32 prefix of a consensus node public key
 	Bech32PrefixConsPub = Bech32MainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 )
+
+func SetAddressPrefixes(config *sdk.Config) {
+	// Set prefixes
+	accountPubKeyPrefix := AccountAddressPrefix + "pub"
+	validatorAddressPrefix := AccountAddressPrefix + "valoper"
+	validatorPubKeyPrefix := AccountAddressPrefix + "valoperpub"
+	consNodeAddressPrefix := AccountAddressPrefix + "valcons"
+	consNodePubKeyPrefix := AccountAddressPrefix + "valconspub"
+
+	// Set config
+	config.SetBech32PrefixForAccount(AccountAddressPrefix, accountPubKeyPrefix)
+	config.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
+	config.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
+
+	config.SetAddressVerifier(func(bytes []byte) error {
+		if len(bytes) == 0 {
+			return errorsmod.Wrap(sdkerrors.ErrUnknownAddress, "addresses cannot be empty")
+		}
+
+		if len(bytes) > address.MaxAddrLen {
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "address max length is %d, got %d", address.MaxAddrLen, len(bytes))
+		}
+
+		if len(bytes) != 20 && len(bytes) != 32 {
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "address length must be 20 or 32 bytes, got %d", len(bytes))
+		}
+
+		return nil
+	})
+}

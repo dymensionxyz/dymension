@@ -10,6 +10,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -106,7 +107,9 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 	//goland:noinspection SpellCheckingInspection
 	nonBech32NonHexUpperCaseA := strings.ToUpper("X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5")
 
-	params.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
 
 	tests := []struct {
 		name               string
@@ -1678,7 +1681,9 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 	const name = "my-name"
 	const subName = "sub"
 
-	params.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
 
 	const (
 		tcCfgAddr = iota

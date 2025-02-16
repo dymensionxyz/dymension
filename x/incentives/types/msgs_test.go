@@ -216,7 +216,10 @@ func TestMsgAddToGauge(t *testing.T) {
 
 // // Test authz serialize and de-serializes for incentives msg.
 func TestAuthzMsg(t *testing.T) {
-	appParams.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	appParams.SetAddressPrefixes(config)
+	config.Seal()
+
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pk1.Address()).String()
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1))
