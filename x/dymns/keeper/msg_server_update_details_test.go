@@ -5,6 +5,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -22,7 +23,9 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateDetails() {
 
 	const recordName = "my-name"
 
-	params.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
 
 	tests := []struct {
 		name               string

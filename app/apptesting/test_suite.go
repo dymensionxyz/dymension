@@ -28,7 +28,7 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-var alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+var Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 
 type KeeperTestHelper struct {
 	suite.Suite
@@ -50,7 +50,7 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:          alice,
+		Creator:          Alice,
 		RollappId:        name,
 		InitialSequencer: "*",
 		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,

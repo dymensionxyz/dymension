@@ -3,44 +3,31 @@ package keeper
 import (
 	"testing"
 
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"cosmossdk.io/log"
-	cometbftdb "github.com/cometbft/cometbft-db"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/stretchr/testify/require"
 )
 
 func RollappKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	keys := storetypes.NewKVStoreKeys(types.StoreKey)
+	logger := log.NewNopLogger()
 
-	db := cometbftdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
-	require.NoError(t, stateStore.LoadLatestVersion())
+	stateStore := integration.CreateMultiStore(keys, logger)
+	params := params.MakeEncodingConfig()
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
+	subspace := paramstypes.NewSubspace(params.Codec, params.Amino, keys[paramstypes.StoreKey], nil, "rollapp")
 
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"RollappParams",
-	)
-	k := keeper.NewKeeper(cdc, storeKey, paramsSubspace, nil, nil, nil, nil, authtypes.NewModuleAddress(govtypes.ModuleName).String(), nil)
+	k := keeper.NewKeeper(params.Codec, keys[types.StoreKey], subspace, nil, nil, nil, nil, authtypes.NewModuleAddress(govtypes.ModuleName).String(), nil)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 

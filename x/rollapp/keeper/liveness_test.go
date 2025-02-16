@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/require"
@@ -131,6 +133,16 @@ func TestLivenessEventsStorage(t *testing.T) {
 			},
 		})
 	})
+}
+
+func (s *RollappTestSuite) NextBlock(dt time.Duration) {
+	_, err := s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight()})
+	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
+
+	_, err = s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight()})
+	s.Require().NoError(err)
 }
 
 func (s *RollappTestSuite) TestLivenessEndBlock() {

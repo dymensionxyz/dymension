@@ -4,22 +4,19 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store"
-	cometbftdb "github.com/cometbft/cometbft-db"
+	storetypes "cosmossdk.io/store/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/stretchr/testify/require"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -122,34 +119,25 @@ func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string
 }
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	keys := storetypes.NewKVStoreKeys(types.StoreKey)
 
-	db := cometbftdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
-	require.NoError(t, stateStore.LoadLatestVersion())
+	logger := log.NewNopLogger()
+	stateStore := integration.CreateMultiStore(keys, logger)
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"DelayedackParams",
-	)
+	codec := params.MakeEncodingConfig()
+	registry := codec.InterfaceRegistry
+	cdc := codec.Codec
 
 	k := keeper.NewKeeper(cdc,
-		storeKey,
+		keys[types.StoreKey],
 		nil,
-		paramsSubspace,
+		paramstypes.Subspace{},
 		RollappKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
 		nil,
 	)
+	types.RegisterInterfaces(registry)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 

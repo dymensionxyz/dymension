@@ -8,7 +8,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	app "github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +26,7 @@ func TestMessageAuthzSerialization(t *testing.T, msg sdk.Msg) {
 		mockMsgExec   authz.MsgExec
 	)
 
-	encCdc := app.MakeConfig()
+	encCdc := params.MakeEncodingConfig()
 	amino := encCdc.Amino
 
 	// Authz: Grant Msg

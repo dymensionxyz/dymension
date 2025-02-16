@@ -68,6 +68,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/docs"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
@@ -133,7 +134,7 @@ func New(
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
 
-	encoding := MakeConfig()
+	encoding := params.MakeEncodingConfig()
 	appCodec := encoding.Codec
 	legacyAmino := encoding.Amino
 	txConfig := encoding.TxConfig

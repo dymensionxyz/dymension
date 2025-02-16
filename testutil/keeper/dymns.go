@@ -4,23 +4,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/cosmos/cosmos-sdk/testutil/integration"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store"
-	tmdb "github.com/cometbft/cometbft-db"
+	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
 
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -30,51 +30,24 @@ import (
 )
 
 func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
-	dymNsStoreKey := sdk.NewKVStoreKey(dymnstypes.StoreKey)
-	dymNsMemStoreKey := storetypes.NewMemoryStoreKey(dymnstypes.MemStoreKey)
+	keys := storetypes.NewKVStoreKeys(dymnstypes.StoreKey, authtypes.StoreKey, banktypes.StoreKey, rollapptypes.StoreKey)
 
-	authStoreKey := sdk.NewKVStoreKey(authtypes.StoreKey)
+	logger := log.NewNopLogger()
+	stateStore := integration.CreateMultiStore(keys, logger)
 
-	bankStoreKey := sdk.NewKVStoreKey(banktypes.StoreKey)
-
-	rollappStoreKey := sdk.NewKVStoreKey(rollapptypes.StoreKey)
-	rollappMemStoreKey := storetypes.NewMemoryStoreKey(rollapptypes.MemStoreKey)
-
-	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(dymNsStoreKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(dymNsMemStoreKey, storetypes.StoreTypeMemory, nil)
-	stateStore.MountStoreWithDB(authStoreKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(bankStoreKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(rollappStoreKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(rollappMemStoreKey, storetypes.StoreTypeMemory, nil)
-	require.NoError(t, stateStore.LoadLatestVersion())
-
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-
-	dymNSParamsSubspace := typesparams.NewSubspace(cdc,
-		dymnstypes.Amino,
-		dymNsStoreKey,
-		dymNsMemStoreKey,
-		"DymNSParams",
-	)
-
-	rollappParamsSubspace := typesparams.NewSubspace(cdc,
-		rollapptypes.Amino,
-		rollappStoreKey,
-		rollappMemStoreKey,
-		"RollappParams",
-	)
+	codec := params.MakeEncodingConfig()
+	registry := codec.InterfaceRegistry
+	cdc := codec.Codec
 
 	authKeeper := authkeeper.NewAccountKeeper(
 		cdc,
-		authStoreKey,
+		runtime.NewKVStoreService(keys[authtypes.StoreKey]),
 		authtypes.ProtoBaseAccount,
 		map[string][]string{
 			banktypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
 			dymnstypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		},
+		addresscodec.NewBech32Codec(params.AccountAddressPrefix),
 		params.AccountAddressPrefix,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -82,17 +55,18 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rolla
 
 	bankKeeper := bankkeeper.NewBaseKeeper(
 		cdc,
-		bankStoreKey,
+		runtime.NewKVStoreService(keys[banktypes.StoreKey]),
 		authKeeper,
 		map[string]bool{},
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		logger,
 	)
 	banktypes.RegisterInterfaces(registry)
 
 	rollappKeeper := rollappkeeper.NewKeeper(
 		cdc,
-		rollappStoreKey,
-		rollappParamsSubspace,
+		keys[rollapptypes.StoreKey],
+		paramstypes.Subspace{},
 		nil, nil,
 		bankKeeper,
 		nil,
@@ -101,8 +75,8 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnstypes.BankKeeper, rolla
 	)
 
 	k := dymnskeeper.NewKeeper(cdc,
-		dymNsStoreKey,
-		dymNSParamsSubspace,
+		keys[dymnstypes.StoreKey],
+		paramstypes.Subspace{},
 		bankKeeper,
 		rollappKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),

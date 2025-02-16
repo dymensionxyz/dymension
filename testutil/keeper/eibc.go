@@ -4,49 +4,39 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store"
-	cmetbftdb "github.com/cometbft/cometbft-db"
+	storetypes "cosmossdk.io/store/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/stretchr/testify/require"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func EibcKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	keys := storetypes.NewKVStoreKeys(types.StoreKey)
 
-	db := cmetbftdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
-	require.NoError(t, stateStore.LoadLatestVersion())
+	logger := log.NewNopLogger()
+	stateStore := integration.CreateMultiStore(keys, logger)
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
+	codec := params.MakeEncodingConfig()
+	registry := codec.InterfaceRegistry
+	cdc := codec.Codec
 
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"EibcParams",
-	)
+	storeKey := keys[types.StoreKey]
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
-		paramsSubspace,
+		nil,
+		paramstypes.Subspace{},
 		nil,
 		nil,
 		nil,
 		nil,
 	)
+	types.RegisterInterfaces(registry)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 
