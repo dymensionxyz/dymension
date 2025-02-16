@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
@@ -43,7 +44,7 @@ import (
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -76,7 +77,7 @@ import (
 var (
 	_ servertypes.Application = (*App)(nil)
 	_ runtime.AppI            = (*App)(nil)
-	// _ ibctesting.TestingApp   = (*App)(nil)
+	_ ibctesting.TestingApp   = (*App)(nil)
 
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
@@ -105,7 +106,7 @@ type App struct {
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	txConfig          client.TxConfig
-	interfaceRegistry types.InterfaceRegistry
+	interfaceRegistry codectypes.InterfaceRegistry
 
 	// keepers
 	AppKeepers
@@ -353,7 +354,7 @@ func (app *App) AppCodec() codec.Codec {
 }
 
 // InterfaceRegistry returns an InterfaceRegistry
-func (app *App) InterfaceRegistry() types.InterfaceRegistry {
+func (app *App) InterfaceRegistry() codectypes.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
@@ -461,4 +462,17 @@ func (app *App) setupUpgradeHandler(upgrade Upgrade) {
 		// configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            ibc testing interface                           */
+/* -------------------------------------------------------------------------- */
+
+func (app *App) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
+// GetTxConfig implements ibctesting.TestingApp.
+func (app *App) GetTxConfig() client.TxConfig {
+	return app.txConfig
 }

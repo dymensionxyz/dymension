@@ -21,7 +21,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -29,6 +28,12 @@ import (
 )
 
 var Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+
+func init() {
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
+}
 
 type KeeperTestHelper struct {
 	suite.Suite
@@ -161,23 +166,19 @@ func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
 }
 
 // StateNotAltered validates that app state is not altered. Fails if it is.
+// FIXME: should get a cb function to run between the exports
 func (s *KeeperTestHelper) StateNotAltered() {
 	oldState, err := s.App.ExportAppStateAndValidators(false, []string{}, []string{})
 	s.Require().NoError(err)
 	_, err = s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight() + 1})
+	s.Require().NoError(err)
 	newState, err := s.App.ExportAppStateAndValidators(false, []string{}, []string{})
 	s.Require().NoError(err)
-	s.Require().Equal(oldState, newState)
+	s.Require().Equal(oldState.AppState, newState.AppState)
 }
 
 func (s *KeeperTestHelper) FundForAliasRegistration(msgCreateRollApp rollapptypes.MsgCreateRollapp) {
-	dymNsParams := dymnstypes.DefaultPriceParams()
-	aliasRegistrationCost := sdk.NewCoins(sdk.NewCoin(
-		params.BaseDenom, dymNsParams.GetAliasPrice(msgCreateRollApp.Alias),
-	))
-	FundAccount(
-		s.App, s.Ctx, sdk.MustAccAddressFromBech32(msgCreateRollApp.Creator), aliasRegistrationCost,
-	)
+	FundForAliasRegistration(s.App, s.Ctx, msgCreateRollApp.Alias, msgCreateRollApp.Creator)
 }
 
 func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {

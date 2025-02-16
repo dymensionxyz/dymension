@@ -29,6 +29,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	app "github.com/dymensionxyz/dymension/v3/app"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
@@ -59,10 +60,6 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := params.MakeEncodingConfig()
 
-	config := sdk.GetConfig()
-	params.SetAddressPrefixes(config)
-	config.Seal()
-
 	newApp := app.New(log.NewNopLogger(), db, nil, true, usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
 	defaultGenesisState := newApp.DefaultGenesis()
 
@@ -83,8 +80,14 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
+// Setup initializes a new SimApp with a validator set and genesis accounts
+// that also act as delegators. For simplicity, each validator is bonded with a delegation
+// of one consensus engine unit in the default token of the simapp from first genesis
+// account. A Nop logger is set in SimApp.
 func Setup(t *testing.T) *app.App {
 	t.Helper()
+
+	app, genesisState := SetupTestingApp()
 
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
@@ -97,14 +100,37 @@ func Setup(t *testing.T) *app.App {
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000000000000))),
+	balances := []banktypes.Balance{
+		{
+			Address: acc.GetAddress().String(),
+			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000000000000))),
+		},
 	}
 
-	a := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balances...)
 
-	return a
+	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
+	require.NoError(t, err)
+
+	// init chain will set the validator set and initialize the genesis accounts
+	_, err = app.InitChain(
+		&abci.RequestInitChain{
+			ChainId:         TestChainID,
+			Validators:      []abci.ValidatorUpdate{},
+			ConsensusParams: DefaultConsensusParams,
+			AppStateBytes:   stateBytes,
+		},
+	)
+	require.NoError(t, err)
+
+	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             app.LastBlockHeight() + 1,
+		Hash:               app.LastCommitID().Hash,
+		NextValidatorsHash: valSet.Hash(),
+	})
+	require.NoError(t, err)
+
+	return app
 }
 
 func genesisStateWithValSet(t *testing.T,
@@ -171,40 +197,6 @@ func genesisStateWithValSet(t *testing.T,
 	return genesisState
 }
 
-// SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
-// that also act as delegators. For simplicity, each validator is bonded with a delegation
-// of one consensus engine unit in the default token of the simapp from first genesis
-// account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(t *testing.T, valSet *cometbfttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
-	t.Helper()
-
-	app, genesisState := SetupTestingApp()
-	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, genAccs, balances...)
-
-	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
-	require.NoError(t, err)
-
-	// init chain will set the validator set and initialize the genesis accounts
-	_, err = app.InitChain(
-		&abci.RequestInitChain{
-			ChainId:         TestChainID,
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: DefaultConsensusParams,
-			AppStateBytes:   stateBytes,
-		},
-	)
-	require.NoError(t, err)
-
-	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height:             app.LastBlockHeight() + 1,
-		Hash:               app.LastCommitID().Hash,
-		NextValidatorsHash: valSet.Hash(),
-	})
-	require.NoError(t, err)
-
-	return app
-}
-
 type GenerateAccountStrategy func(int) []sdk.AccAddress
 
 // CreateRandomAccounts is a strategy used by addTestAddrs() in order to generated addresses in random order.
@@ -247,4 +239,18 @@ func FundAccount(app *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.C
 	if err != nil {
 		panic(err)
 	}
+}
+
+func FundForAliasRegistration(app *app.App, ctx sdk.Context, alias, creator string) {
+	if alias == "" {
+		return
+	}
+
+	dymNsParams := dymnstypes.DefaultPriceParams()
+	aliasRegistrationCost := sdk.NewCoins(sdk.NewCoin(
+		params.BaseDenom, dymNsParams.GetAliasPrice(alias),
+	))
+	FundAccount(
+		app, ctx, sdk.MustAccAddressFromBech32(creator), aliasRegistrationCost,
+	)
 }

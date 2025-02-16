@@ -342,16 +342,16 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible()
 
 	// As there was incompatible stateinfo found, should prevent light client update.
 	s.path.EndpointA.Chain.Coordinator.UpdateTimeForChain(s.path.EndpointA.Chain)
-	_, _, err = simapp.SignAndDeliver( // Explicitly submitting msg as we expect it to fail
-		s.path.EndpointA.Chain.T,
+	_, err = simapp.SignAndDeliver( // Explicitly submitting msg as we expect it to fail
+		s.path.EndpointA.Chain.TB,
 		s.path.EndpointA.Chain.TxConfig,
-		s.path.EndpointA.Chain.App.BaseApp,
-		s.path.EndpointA.Chain.GetContext().BlockHeader(),
+		s.path.EndpointA.Chain.App.GetBaseApp(),
 		[]sdk.Msg{msg},
 		s.path.EndpointA.Chain.ChainID,
 		[]uint64{s.path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
 		[]uint64{s.path.EndpointA.Chain.SenderAccount.GetSequence()},
-		true, false, s.path.EndpointA.Chain.SenderPrivKey,
+		true, s.path.EndpointA.Chain.CurrentHeader.GetTime(),
+		s.path.EndpointA.Chain.NextVals.Hash(), s.path.EndpointA.Chain.SenderPrivKey,
 	)
 	s.Error(err)
 	s.True(errorsmod.IsOf(err, types.ErrTimestampMismatch))
@@ -564,16 +564,16 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 		s.path.EndpointA.Chain.SenderAccount.GetAddress().String(),
 	)
 	s.NoError(err)
-	_, _, err = simapp.SignAndDeliver(
-		s.path.EndpointA.Chain.T,
+	_, err = simapp.SignAndDeliver(
+		s.path.EndpointA.Chain.TB,
 		s.path.EndpointA.Chain.TxConfig,
-		s.path.EndpointA.Chain.App.BaseApp,
-		s.path.EndpointA.Chain.GetContext().BlockHeader(),
+		s.path.EndpointA.Chain.App.GetBaseApp(),
 		[]sdk.Msg{msg},
 		s.path.EndpointA.Chain.ChainID,
 		[]uint64{s.path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
 		[]uint64{s.path.EndpointA.Chain.SenderAccount.GetSequence()},
-		true, false, s.path.EndpointA.Chain.SenderPrivKey,
+		true, s.path.EndpointA.Chain.CurrentHeader.GetTime(),
+		s.path.EndpointA.Chain.NextVals.Hash(), s.path.EndpointA.Chain.SenderPrivKey,
 	)
 	s.ErrorIs(err, types.ErrorHardForkInProgress)
 

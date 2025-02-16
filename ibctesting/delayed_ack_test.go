@@ -322,16 +322,17 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 
 	// timeout the packet. we expect for verification error
 	timeoutMsg := getTimeOutPacket(hubEndpoint, packet)
-	_, _, err = simapp.SignAndDeliver(
-		path.EndpointA.Chain.T,
+	_, err = simapp.SignAndDeliver(
+		path.EndpointA.Chain.TB,
 		path.EndpointA.Chain.TxConfig,
-		path.EndpointA.Chain.App.BaseApp,
-		path.EndpointA.Chain.GetContext().BlockHeader(),
+		path.EndpointA.Chain.App.GetBaseApp(),
 		[]sdk.Msg{timeoutMsg},
 		path.EndpointA.Chain.ChainID,
 		[]uint64{path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
 		[]uint64{path.EndpointA.Chain.SenderAccount.GetSequence()},
-		true, false, path.EndpointA.Chain.SenderPrivKey,
+		true,
+		path.EndpointA.Chain.CurrentHeader.GetTime(),
+		path.EndpointA.Chain.NextVals.Hash(), path.EndpointA.Chain.SenderPrivKey,
 	)
 	s.Require().ErrorIs(err, ibcmerkle.ErrInvalidProof)
 }
@@ -341,7 +342,7 @@ func getTimeOutPacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet)
 	counterparty := endpoint.Counterparty
 	proof, proofHeight := counterparty.QueryProof(packetKey)
 	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
-	require.True(endpoint.Chain.T, found)
+	require.True(endpoint.Chain.TB, found)
 
 	timeoutMsg := channeltypes.NewMsgTimeout(
 		packet, nextSeqRecv,

@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -23,7 +22,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/stretchr/testify/require"
@@ -35,7 +33,6 @@ import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -53,7 +50,7 @@ func init() {
 
 func convertToApp(chain *ibctesting.TestChain) *app.App {
 	a, ok := chain.App.(*app.App)
-	require.True(chain.T, ok)
+	require.True(chain.TB, ok)
 
 	return a
 }
@@ -118,10 +115,6 @@ func (s *utilSuite) lightclientMsgServer() lightclienttypes.MsgServer {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (s *utilSuite) SetupTest() {
-	// this is used as default when creating blocks.
-	// set in the block as the revision number
-	simapp.DefaultAppVersion = 0
-
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
 }
@@ -159,12 +152,11 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		},
 	)
 
-	err := apptesting.FundForAliasRegistration(
-		s.hubCtx(), s.hubApp().BankKeeper, *msgCreateRollapp,
+	apptesting.FundForAliasRegistration(
+		s.hubApp(), s.hubCtx(), msgCreateRollapp.Alias, msgCreateRollapp.Creator,
 	)
-	s.Require().NoError(err)
 
-	_, err = s.hubChain().SendMsgs(msgCreateRollapp)
+	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
 		a := s.hubApp()
@@ -199,8 +191,7 @@ func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
 func (s *utilSuite) registerSequencer() {
 	bond := rollapptypes.DefaultMinSequencerBondGlobalCoin
 	// fund account
-	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
-	s.Require().Nil(err)
+	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 
 	// using validator pubkey as the dymint pubkey
 	pk, err := cryptocodec.FromTmPubKeyInterface(s.rollappChain().Vals.Validators[0].PubKey)
@@ -297,7 +288,7 @@ func (s *utilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibcte
 
 func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
 	var data transfertypes.FungibleTokenPacketData
-	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
+	err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	s.Require().NoError(err)
 
 	return denomutils.GetIncomingTransferDenom(packet, data)
@@ -357,7 +348,7 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 
 	// create an account to send transactions from
 	chain := &ibctesting.TestChain{
-		T:              t,
+		TB:             t,
 		Coordinator:    coord,
 		ChainID:        chainID,
 		App:            app,
@@ -387,7 +378,7 @@ func (s *utilSuite) finalizeRollappPacketsByAddress(address string) sdk.Events {
 	})
 	s.Require().NoError(err)
 	// Finalize all packets and collect events
-	events := make(sdk.Events, 0)
+	events := make(sdk.Events, len(resp.RollappPackets))
 	for _, packet := range resp.RollappPackets {
 		k := common.EncodePacketKey(packet.RollappPacketKey())
 		handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacketByPacketKey))

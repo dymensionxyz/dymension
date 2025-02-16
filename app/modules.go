@@ -46,6 +46,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/evmos/ethermint/x/evm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
@@ -117,6 +118,7 @@ func (app *App) SetupModules(
 		ibc.NewAppModule(app.IBCKeeper),
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
+		ibctm.NewAppModule(),
 
 		rollappmodule.NewAppModule(appCodec, app.RollappKeeper),
 		iro.NewAppModule(appCodec, *app.IROKeeper, app.AccountKeeper, app.BankKeeper),
