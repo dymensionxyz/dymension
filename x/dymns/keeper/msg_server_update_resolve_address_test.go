@@ -1681,10 +1681,6 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 	const name = "my-name"
 	const subName = "sub"
 
-	config := sdk.GetConfig()
-	params.SetAddressPrefixes(config)
-	config.Seal()
-
 	const (
 		tcCfgAddr = iota
 		tcFallbackAddr

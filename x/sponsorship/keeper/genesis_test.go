@@ -11,9 +11,9 @@ import (
 
 func (s *KeeperTestSuite) TestGenesis() {
 	val1 := s.CreateValidator()
-	val1Addr := sdk.ValAddress(sdk.MustAccAddressFromBech32(val1.GetOperator()))
+	val1Addr, _ := sdk.ValAddressFromBech32(val1.GetOperator())
 	val2 := s.CreateValidator()
-	val2Addr := sdk.ValAddress(sdk.MustAccAddressFromBech32(val2.GetOperator()))
+	val2Addr, _ := sdk.ValAddressFromBech32(val2.GetOperator())
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
 
 	del11 := s.CreateDelegator(val1Addr, initial) // delegator 1 -> validator 1

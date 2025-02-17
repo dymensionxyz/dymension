@@ -38,7 +38,7 @@ import (
 
 func init() {
 	config := sdk.GetConfig()
-	params.SetAddressPrefixes(config)
+	params.SetAddressPrefixes2(config)
 	config.Seal()
 }
 

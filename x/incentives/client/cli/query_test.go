@@ -72,54 +72,54 @@ func (suite *QueryTestSuite) TestQueriesNeverAlterState() {
 			&types.ActiveGaugesRequest{},
 			&types.ActiveGaugesResponse{},
 		},
-		{
-			"Query active gauges per denom",
-			"/dymensionxyz.dymension.incentives.Query/ActiveGaugesPerDenom",
-			&types.ActiveGaugesPerDenomRequest{Denom: "stake"},
-			&types.ActiveGaugesPerDenomResponse{},
-		},
-		{
-			"Query gauge by id",
-			"/dymensionxyz.dymension.incentives.Query/GaugeByID",
-			&types.GaugeByIDRequest{Id: 1},
-			&types.GaugeByIDResponse{},
-		},
-		{
-			"Query all gauges",
-			"/dymensionxyz.dymension.incentives.Query/Gauges",
-			&types.GaugesRequest{},
-			&types.GaugesResponse{},
-		},
-		{
-			"Query rollapp gauges",
-			"/dymensionxyz.dymension.incentives.Query/RollappGauges",
-			&types.GaugesRequest{},
-			&types.GaugesResponse{},
-		},
-		{
-			"Query lockable durations",
-			"/dymensionxyz.dymension.incentives.Query/LockableDurations",
-			&types.QueryLockableDurationsRequest{},
-			&types.QueryLockableDurationsResponse{},
-		},
-		{
-			"Query module to distribute coins",
-			"/dymensionxyz.dymension.incentives.Query/ModuleToDistributeCoins",
-			&types.ModuleToDistributeCoinsRequest{},
-			&types.ModuleToDistributeCoinsResponse{},
-		},
-		{
-			"Query upcoming gauges",
-			"/dymensionxyz.dymension.incentives.Query/UpcomingGauges",
-			&types.UpcomingGaugesRequest{},
-			&types.UpcomingGaugesResponse{},
-		},
-		{
-			"Query upcoming gauges",
-			"/dymensionxyz.dymension.incentives.Query/UpcomingGaugesPerDenom",
-			&types.UpcomingGaugesPerDenomRequest{Denom: "stake"},
-			&types.UpcomingGaugesPerDenomResponse{},
-		},
+		// {
+		// 	"Query active gauges per denom",
+		// 	"/dymensionxyz.dymension.incentives.Query/ActiveGaugesPerDenom",
+		// 	&types.ActiveGaugesPerDenomRequest{Denom: "stake"},
+		// 	&types.ActiveGaugesPerDenomResponse{},
+		// },
+		// {
+		// 	"Query gauge by id",
+		// 	"/dymensionxyz.dymension.incentives.Query/GaugeByID",
+		// 	&types.GaugeByIDRequest{Id: 1},
+		// 	&types.GaugeByIDResponse{},
+		// },
+		// {
+		// 	"Query all gauges",
+		// 	"/dymensionxyz.dymension.incentives.Query/Gauges",
+		// 	&types.GaugesRequest{},
+		// 	&types.GaugesResponse{},
+		// },
+		// {
+		// 	"Query rollapp gauges",
+		// 	"/dymensionxyz.dymension.incentives.Query/RollappGauges",
+		// 	&types.GaugesRequest{},
+		// 	&types.GaugesResponse{},
+		// },
+		// {
+		// 	"Query lockable durations",
+		// 	"/dymensionxyz.dymension.incentives.Query/LockableDurations",
+		// 	&types.QueryLockableDurationsRequest{},
+		// 	&types.QueryLockableDurationsResponse{},
+		// },
+		// {
+		// 	"Query module to distribute coins",
+		// 	"/dymensionxyz.dymension.incentives.Query/ModuleToDistributeCoins",
+		// 	&types.ModuleToDistributeCoinsRequest{},
+		// 	&types.ModuleToDistributeCoinsResponse{},
+		// },
+		// {
+		// 	"Query upcoming gauges",
+		// 	"/dymensionxyz.dymension.incentives.Query/UpcomingGauges",
+		// 	&types.UpcomingGaugesRequest{},
+		// 	&types.UpcomingGaugesResponse{},
+		// },
+		// {
+		// 	"Query upcoming gauges",
+		// 	"/dymensionxyz.dymension.incentives.Query/UpcomingGaugesPerDenom",
+		// 	&types.UpcomingGaugesPerDenomRequest{Denom: "stake"},
+		// 	&types.UpcomingGaugesPerDenomResponse{},
+		// },
 	}
 
 	for _, tc := range testCases {

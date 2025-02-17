@@ -139,13 +139,15 @@ func (s *RollappTestSuite) NextBlock(dt time.Duration) {
 	_, err := s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight()})
 	s.Require().NoError(err)
 
-	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
-
-	_, err = s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight()})
+	_, err = s.App.Commit()
 	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
 }
 
 func (s *RollappTestSuite) TestLivenessEndBlock() {
+	s.Ctx = s.Ctx.WithBlockHeight(1)
+
 	p := s.k().GetParams(s.Ctx)
 	p.LivenessSlashBlocks = 2
 	s.k().SetParams(s.Ctx, p)
@@ -181,6 +183,7 @@ func (s *RollappTestSuite) TestLivenessFlow() {
 	_ = flag.Set("rapid.steps", "200")
 	rapid.Check(s.T(), func(r *rapid.T) {
 		s.SetupTest()
+		s.Ctx = s.Ctx.WithBlockHeight(1)
 		p := s.k().GetParams(s.Ctx)
 		p.LivenessSlashBlocks = 5
 		p.LivenessSlashInterval = 3

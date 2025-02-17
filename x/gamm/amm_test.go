@@ -79,7 +79,7 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 			params.TakerFee = tc.takerFee
 			s.App.GAMMKeeper.SetParams(s.Ctx, params)
 
-			s.FundAcc(apptesting.Sender, apptesting.DefaultAcctFunds.Add(sdk.NewCoin(fooDenom, apptesting.EXP.Mul(math.NewInt(1_000_000)))))
+			s.FundAcc(sdk.MustAccAddressFromBech32(apptesting.Alice), apptesting.DefaultAcctFunds.Add(sdk.NewCoin(fooDenom, apptesting.EXP.Mul(math.NewInt(1_000_000)))))
 			poolId := s.PrepareCustomPoolFromCoins(poolCoins, balancer.PoolParams{
 				SwapFee: tc.swapFee,
 				ExitFee: math.LegacyZeroDec(),

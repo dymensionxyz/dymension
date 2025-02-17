@@ -71,7 +71,7 @@ func (i IBCMessagesDecorator) HandleMsgUpdateClient(ctx sdk.Context, msg *ibccli
 	// this disallows LC updates from previous revisions but should be fine since new state roots can be used to prove
 	// state older than the one in the current state root.
 	if header.Header.Version.App != rollapp.LatestRevision().Number {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "client update revision mismatch")
+		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "client update revision mismatch (expected: %d , actual: %d)", rollapp.LatestRevision().Number, header.Header.Version.App)
 	}
 
 	h := header.GetHeight().GetRevisionHeight()

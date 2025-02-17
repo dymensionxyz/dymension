@@ -15,14 +15,15 @@ var (
 	_ sdk.Msg = &MsgUpdateState{}
 )
 
-func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks uint64, bDs *BlockDescriptors) *MsgUpdateState {
+func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks, revision uint64, bDs *BlockDescriptors) *MsgUpdateState {
 	return &MsgUpdateState{
-		Creator:     creator,
-		RollappId:   rollappId,
-		StartHeight: startHeight,
-		NumBlocks:   numBlocks,
-		DAPath:      dAPath,
-		BDs:         *bDs,
+		Creator:         creator,
+		RollappId:       rollappId,
+		StartHeight:     startHeight,
+		NumBlocks:       numBlocks,
+		DAPath:          dAPath,
+		BDs:             *bDs,
+		RollappRevision: revision,
 	}
 }
 

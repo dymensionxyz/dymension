@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
@@ -216,10 +215,6 @@ func TestMsgAddToGauge(t *testing.T) {
 
 // // Test authz serialize and de-serializes for incentives msg.
 func TestAuthzMsg(t *testing.T) {
-	config := sdk.GetConfig()
-	appParams.SetAddressPrefixes(config)
-	config.Seal()
-
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pk1.Address()).String()
 	coin := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1))

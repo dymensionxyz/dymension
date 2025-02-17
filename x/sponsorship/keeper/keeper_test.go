@@ -205,13 +205,10 @@ func (s *KeeperTestSuite) Undelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddr
 	s.T().Helper()
 
 	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
-	resp, err := stakingMsgSrv.Undelegate(s.Ctx, stakingtypes.NewMsgUndelegate(delAddr.String(), valAddr.String(), coin))
-	s.Require().NoError(err)
-	s.Require().NotNil(resp)
-
-	del, err := s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valAddr)
+	_, err := stakingMsgSrv.Undelegate(s.Ctx, stakingtypes.NewMsgUndelegate(delAddr.String(), valAddr.String(), coin))
 	s.Require().NoError(err)
 
+	del, _ := s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valAddr)
 	return del
 }
 
@@ -229,12 +226,8 @@ func (s *KeeperTestSuite) BeginRedelegate(
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
-	src, err = s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valSrcAddr)
-	s.Require().NoError(err)
-
-	dst, err = s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valDstAddr)
-	s.Require().NoError(err)
-
+	src, _ = s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valSrcAddr)
+	dst, _ = s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valDstAddr)
 	return src, dst
 }
 

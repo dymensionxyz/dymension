@@ -10,15 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 func TestMsgLockTokens(t *testing.T) {
-	config := sdk.GetConfig()
-	appParams.SetAddressPrefixes(config)
-	config.Seal()
-
 	addr1 := apptesting.CreateRandomAccounts(1)[0].String()
 	invalidAddr := sdk.AccAddress("invalid").String()
 

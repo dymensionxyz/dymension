@@ -116,7 +116,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				})
 
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(800_000))
-				s.Undelegate(delAddr, val1addr, update)
+				del = s.Undelegate(delAddr, val1addr, update)
+				s.NotNil(del) // partial unbonding
 
 				// Check the state
 				s.AssertVoted(delAddr)
@@ -158,7 +159,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				})
 
 				update := sdk.NewCoin(sdk.DefaultBondDenom, initial.Amount)
-				s.Undelegate(delAddr, val1addr, update)
+				del = s.Undelegate(delAddr, val1addr, update)
+				s.Nil(del)
 
 				// Check the state
 				s.AssertVoted(delAddr)
@@ -195,7 +197,8 @@ func (s *KeeperTestSuite) TestHooks() {
 				})
 
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(800_000))
-				s.Undelegate(delAddr, valAddr, update)
+				del = s.Undelegate(delAddr, valAddr, update)
+				s.NotNil(del) // partial unbonding
 
 				// Check the state
 				s.AssertVoted(delAddr)
@@ -233,7 +236,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				// Completely undelegate
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
 				finalDel := s.Undelegate(delAddr, valAddr, update)
-				s.Require().Nil(finalDel)
+				s.Nil(finalDel)
 
 				// Check the state
 				s.AssertNotVoted(delAddr)
@@ -266,7 +269,9 @@ func (s *KeeperTestSuite) TestHooks() {
 				})
 
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(300_000))
-				s.BeginRedelegate(delAddr, val1addr, val2addr, update)
+				src, dst := s.BeginRedelegate(delAddr, val1addr, val2addr, update)
+				s.NotNil(src)
+				s.NotNil(dst)
 
 				// Check the state
 				s.AssertVoted(delAddr)
@@ -307,7 +312,9 @@ func (s *KeeperTestSuite) TestHooks() {
 				})
 
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
-				s.BeginRedelegate(delAddr, val1addr, val2addr, update)
+				src, dst := s.BeginRedelegate(delAddr, val1addr, val2addr, update)
+				s.Nil(src)
+				s.NotNil(dst)
 
 				// Check the state
 				s.AssertNotVoted(delAddr)
@@ -337,6 +344,7 @@ func (s *KeeperTestSuite) TestHooks() {
 					},
 				})
 
+				s.Ctx = s.Ctx.WithBlockHeight(10)
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(800_000))
 				s.Undelegate(delAddr, valAddr, update)
 				s.CancelUnbondingDelegation(delAddr, valAddr, s.Ctx.BlockHeight(), update)
@@ -373,6 +381,8 @@ func (s *KeeperTestSuite) TestHooks() {
 						{GaugeId: 2, Weight: types.DYM.MulRaw(50)},
 					},
 				})
+
+				s.Ctx = s.Ctx.WithBlockHeight(10)
 
 				update := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(800_000))
 				s.Undelegate(delAddr, valAddr, update)
