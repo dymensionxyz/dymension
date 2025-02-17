@@ -168,6 +168,13 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		}
 		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
+
+	// for some reason, the ibctesting frameworks creates headers with App version=2
+	// we use this field as revision number, so it breaks the tests as the expected revision number is 0
+	// this is an hack to fix the tests
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	rollapp.Revisions[0].Number = 2
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }
 
 // method to update the rollapp genesis info
@@ -218,6 +225,7 @@ func (s *utilSuite) registerSequencer() {
 func (s *utilSuite) updateRollappState(endHeight uint64) {
 	// Get the start index and start height based on the latest state info
 	rollappKeeper := s.hubApp().RollappKeeper
+	revision := rollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).Revisions[0].Number
 	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(s.hubCtx(), rollappChainID())
 	stateInfo, found := rollappKeeper.GetStateInfo(s.hubCtx(), rollappChainID(), latestStateInfoIndex.Index)
 	startHeight := uint64(1)
@@ -242,6 +250,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 		"mock-da-path",
 		startHeight,
 		endHeight-startHeight+1, // numBlocks
+		revision,
 		blockDescriptors,
 	)
 	err := msgUpdateState.ValidateBasic()

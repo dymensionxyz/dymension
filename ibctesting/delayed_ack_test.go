@@ -12,7 +12,6 @@ import (
 	ibcmerkle "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -322,19 +321,9 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 
 	// timeout the packet. we expect for verification error
 	timeoutMsg := getTimeOutPacket(hubEndpoint, packet)
-	_, err = simapp.SignAndDeliver(
-		path.EndpointA.Chain.TB,
-		path.EndpointA.Chain.TxConfig,
-		path.EndpointA.Chain.App.GetBaseApp(),
-		[]sdk.Msg{timeoutMsg},
-		path.EndpointA.Chain.ChainID,
-		[]uint64{path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
-		[]uint64{path.EndpointA.Chain.SenderAccount.GetSequence()},
-		true,
-		path.EndpointA.Chain.CurrentHeader.GetTime(),
-		path.EndpointA.Chain.NextVals.Hash(), path.EndpointA.Chain.SenderPrivKey,
-	)
-	s.Require().ErrorIs(err, ibcmerkle.ErrInvalidProof)
+
+	_, err = s.hubChain().SendMsgs(timeoutMsg)
+	s.Require().ErrorContains(err, ibcmerkle.ErrInvalidProof.Error())
 }
 
 func getTimeOutPacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet) *channeltypes.MsgTimeout {
