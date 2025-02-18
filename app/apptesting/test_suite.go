@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -163,18 +162,6 @@ func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
 func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
 	err := bankutil.FundModuleAccount(s.Ctx, s.App.BankKeeper, moduleName, amounts)
 	s.Require().NoError(err)
-}
-
-// StateNotAltered validates that app state is not altered. Fails if it is.
-// FIXME: should get a cb function to run between the exports
-func (s *KeeperTestHelper) StateNotAltered() {
-	oldState, err := s.App.ExportAppStateAndValidators(false, []string{}, []string{})
-	s.Require().NoError(err)
-	_, err = s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight() + 1})
-	s.Require().NoError(err)
-	newState, err := s.App.ExportAppStateAndValidators(false, []string{}, []string{})
-	s.Require().NoError(err)
-	s.Require().Equal(oldState.AppState, newState.AppState)
 }
 
 func (s *KeeperTestHelper) FundForAliasRegistration(msgCreateRollApp rollapptypes.MsgCreateRollapp) {

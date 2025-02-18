@@ -261,6 +261,8 @@ func TestMsgExtendLockup(t *testing.T) {
 
 // // Test authz serialize and de-serializes for lockup msg.
 func TestAuthzMsg(t *testing.T) {
+	app := apptesting.Setup(t)
+
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pk1.Address()).String()
 	coin := sdk.NewCoin("denom", math.NewInt(1))
@@ -294,7 +296,7 @@ func TestAuthzMsg(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apptesting.TestMessageAuthzSerialization(t, tc.msg)
+			apptesting.TestMessageAuthzSerialization(t, app.AppCodec(), tc.msg)
 		})
 	}
 }
