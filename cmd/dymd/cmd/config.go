@@ -22,7 +22,7 @@ func initSDKConfig() {
 
 // RegisterDenoms registers the base and display denominations to the SDK.
 func RegisterDenoms() {
-	if err := sdk.RegisterDenom(appparams.DisplayDenom, math.LegacyNewDecWithPrec(1, 1)); err != nil {
+	if err := sdk.RegisterDenom(appparams.DisplayDenom, math.LegacyOneDec()); err != nil {
 		panic(err)
 	}
 
