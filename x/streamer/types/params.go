@@ -36,7 +36,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-// validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
+// validateMaxIterationsPerBlock validates the DisputePeriodInBlocks param
 func validateMaxIterationsPerBlock(v interface{}) error {
 	_, ok := v.(uint64)
 	if !ok {
