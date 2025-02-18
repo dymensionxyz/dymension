@@ -10,6 +10,6 @@ import (
 )
 
 func RollappKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
-	app := apptesting.Setup(t)
+	app, _ := apptesting.SetupTestingApp()
 	return app.RollappKeeper, app.NewContext(false)
 }

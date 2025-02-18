@@ -12,6 +12,21 @@ import (
 )
 
 func TestGenesisState_Validate(t *testing.T) {
+
+	var validDemandOrder = types.DemandOrder{
+		Id:             "1",
+		Price:          sdk.Coins{sdk.NewInt64Coin("denom", 2)},
+		Fee:            sdk.Coins{sdk.NewInt64Coin("denom", 1)},
+		Recipient:      sample.AccAddress(),
+		CreationHeight: 1,
+	}
+
+	var validParams = types.Params{
+		EpochIdentifier: "hour",
+		TimeoutFee:      math.LegacyNewDecWithPrec(1, 1),
+		ErrackFee:       math.LegacyNewDecWithPrec(1, 1),
+	}
+
 	for _, tc := range []struct {
 		desc     string
 		genState *types.GenesisState
@@ -59,18 +74,4 @@ func TestGenesisState_Validate(t *testing.T) {
 			}
 		})
 	}
-}
-
-var validDemandOrder = types.DemandOrder{
-	Id:             "1",
-	Price:          sdk.Coins{sdk.NewInt64Coin("denom", 2)},
-	Fee:            sdk.Coins{sdk.NewInt64Coin("denom", 1)},
-	Recipient:      sample.AccAddress(),
-	CreationHeight: 1,
-}
-
-var validParams = types.Params{
-	EpochIdentifier: "hour",
-	TimeoutFee:      math.LegacyNewDecWithPrec(1, 1),
-	ErrackFee:       math.LegacyNewDecWithPrec(1, 1),
 }

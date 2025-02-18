@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 
 	"cosmossdk.io/math"
 
@@ -59,7 +60,7 @@ func (m *DemandOrder) ValidateBasic() error {
 	}
 	_, err := sdk.AccAddressFromBech32(m.Recipient)
 	if err != nil {
-		return ErrInvalidRecipientAddress
+		return errors.Join(ErrInvalidRecipientAddress, err)
 	}
 
 	if m.CreationHeight == 0 {
