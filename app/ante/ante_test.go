@@ -12,13 +12,11 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
@@ -121,12 +119,10 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	suite.txBuilder = txConfig.NewTxBuilder()
-	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
-	builder.SetFeeAmount(fees)
-	builder.SetGasLimit(200000)
+	suite.txBuilder.SetFeeAmount(fees)
+	suite.txBuilder.SetGasLimit(200000)
 
-	err = builder.SetMsgs(msgs...)
+	err = suite.txBuilder.SetMsgs(msgs...)
 	suite.Require().NoError(err)
 
 	txBytes := legacytx.StdSignBytes(
@@ -157,31 +153,21 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	keyringSigner := NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signingtypes.SignMode_SIGN_MODE_TEXTUAL)
+	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signingtypes.SignMode_SIGN_MODE_DIRECT)
 	suite.Require().NoError(err)
-
-	signature[crypto.RecoveryIDOffset] += 27
-
-	option, err := codectypes.NewAnyWithValue(&ethermint.ExtensionOptionsWeb3Tx{
-		FeePayer:         from.String(),
-		TypedDataChainID: chainIDNum,
-		FeePayerSig:      signature,
-	})
-	suite.Require().NoError(err)
-
-	builder.SetExtensionOptions(option)
 
 	sigsV2 := signing.SignatureV2{
 		PubKey: pubKey,
 		Data: &signing.SingleSignatureData{
-			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+			SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
+			Signature: signature,
 		},
 		Sequence: nonce,
 	}
-	err = builder.SetSignatures(sigsV2)
+	err = suite.txBuilder.SetSignatures(sigsV2)
 	suite.Require().NoError(err)
 
-	return builder
+	return suite.txBuilder
 }
 
 // Signer defines a type that is used on testing for signing MsgEthereumTx

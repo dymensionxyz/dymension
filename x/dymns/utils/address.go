@@ -4,17 +4,16 @@ import (
 	"regexp"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/ethereum/go-ethereum/common"
 )
-
-var accAddrBech32Prefix = sdk.GetConfig().GetBech32AccountAddrPrefix()
 
 // IsValidBech32AccountAddress returns true if the given string is a valid bech32 account address.
 // Depends on the flag, it will check the prefix of the bech32 account address
 // matches with host chain's account address prefix.
 func IsValidBech32AccountAddress(address string, matchAccountAddressBech32Prefix bool) bool {
+	accAddrBech32Prefix := params.AccountAddressPrefix
 	hrp, bz, err := bech32.DecodeAndConvert(address)
 	if err != nil {
 		return false

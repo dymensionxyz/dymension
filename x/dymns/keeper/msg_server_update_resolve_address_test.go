@@ -10,10 +10,8 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -106,10 +104,6 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 
 	//goland:noinspection SpellCheckingInspection
 	nonBech32NonHexUpperCaseA := strings.ToUpper("X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5")
-
-	config := sdk.GetConfig()
-	params.SetAddressPrefixes(config)
-	config.Seal()
 
 	tests := []struct {
 		name               string

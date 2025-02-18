@@ -84,9 +84,16 @@ func (s *KeeperTestSuite) SetupTest() {
 		logger := log.NewNopLogger()
 		stateStore := integration.CreateMultiStore(keys, logger)
 
+		tkeys := storetypes.NewTransientStoreKeys(dymnstypes.MemStoreKey, rollapptypes.MemStoreKey)
+		for _, key := range tkeys {
+			stateStore.MountStoreWithDB(key, storetypes.StoreTypeTransient, nil)
+		}
+		_ = stateStore.LoadLatestVersion()
+
 		codec := params.MakeEncodingConfig()
 		registry := codec.InterfaceRegistry
 		cdc = codec.Codec
+		legacyAmino := codec.Amino
 
 		authKeeper := authkeeper.NewAccountKeeper(
 			cdc,
@@ -115,7 +122,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		rk = rollappkeeper.NewKeeper(
 			cdc,
 			keys[rollapptypes.StoreKey],
-			paramstypes.Subspace{},
+			paramstypes.NewSubspace(cdc, legacyAmino, keys[rollapptypes.StoreKey], tkeys[rollapptypes.MemStoreKey], "rollapp"),
 			nil, nil,
 			bk,
 			nil,
@@ -125,7 +132,7 @@ func (s *KeeperTestSuite) SetupTest() {
 
 		dk = dymnskeeper.NewKeeper(cdc,
 			keys[dymnstypes.StoreKey],
-			paramstypes.Subspace{},
+			paramstypes.NewSubspace(cdc, legacyAmino, keys[dymnstypes.StoreKey], tkeys[dymnstypes.MemStoreKey], "dymns"),
 			bk,
 			rk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
