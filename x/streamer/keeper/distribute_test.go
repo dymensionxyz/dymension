@@ -5,14 +5,11 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
-
-var _ = suite.TestingSuite(nil)
 
 func (suite *KeeperTestSuite) TestDistribute() {
 	tests := []struct {
@@ -77,6 +74,8 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				}
 			}
 
+			// move all created streams from upcoming to active
+			suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 			// Trigger the distribution
 			suite.DistributeAllRewards()
 
