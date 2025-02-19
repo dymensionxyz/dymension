@@ -170,7 +170,6 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	_, err := s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
 	s.Require().Error(err)
 
-	// FIXME: we have wrapper for this:
 	// Update the rollapp state - this will trigger the check for prospective canonical client
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),

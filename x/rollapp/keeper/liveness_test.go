@@ -146,7 +146,7 @@ func (s *RollappTestSuite) NextBlock(dt time.Duration) {
 }
 
 func (s *RollappTestSuite) TestLivenessEndBlock() {
-	s.T().Skip("FIXME: broken due to v50 upgrade")
+	s.T().Skip("FIXME: broken due to v50 upgrade") // #1740
 
 	s.Ctx = s.Ctx.WithBlockHeight(1)
 
@@ -181,7 +181,7 @@ func (s *RollappTestSuite) checkLiveness(rollappId string, expectClockReset, exp
 
 // The protocol works.
 func (s *RollappTestSuite) TestLivenessFlow() {
-	s.T().Skip("FIXME: broken due to v50 upgrade")
+	s.T().Skip("FIXME: broken due to v50 upgrade") // #1740
 
 	_ = flag.Set("rapid.checks", "400")
 	_ = flag.Set("rapid.steps", "200")

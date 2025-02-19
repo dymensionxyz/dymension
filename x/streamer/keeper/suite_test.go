@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	t.Skip("FIXME: broken due to v50 upgrade")
+	t.Skip("FIXME: broken due to v50 upgrade") // #1739
 	suite.Run(t, new(KeeperTestSuite))
 }
 
