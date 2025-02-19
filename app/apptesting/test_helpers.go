@@ -57,24 +57,22 @@ type SetupOptions struct {
 var InvariantCheckInterval = uint(0) // disabled
 
 func SetupTestingApp() (*app.App, app.GenesisState) {
-	db := dbm.NewMemDB()
-	encCdc := params.MakeEncodingConfig()
-
-	newApp := app.New(log.NewNopLogger(), db, nil, true, usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
+	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
+	encCdc := newApp.AppCodec()
 	defaultGenesisState := newApp.DefaultGenesis()
 
 	incentivesGenesisStateJson := defaultGenesisState[incentivestypes.ModuleName]
 	var incentivesGenesisState incentivestypes.GenesisState
-	encCdc.Codec.MustUnmarshalJSON(incentivesGenesisStateJson, &incentivesGenesisState)
+	encCdc.MustUnmarshalJSON(incentivesGenesisStateJson, &incentivesGenesisState)
 	incentivesGenesisState.LockableDurations = append(incentivesGenesisState.LockableDurations, time.Second*60)
-	defaultGenesisState[incentivestypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&incentivesGenesisState)
+	defaultGenesisState[incentivestypes.ModuleName] = encCdc.MustMarshalJSON(&incentivesGenesisState)
 
 	// force disable EnableCreate of x/evm
 	evmGenesisStateJson := defaultGenesisState[evmtypes.ModuleName]
 	var evmGenesisState evmtypes.GenesisState
-	encCdc.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+	encCdc.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
 	evmGenesisState.Params.EnableCreate = false
-	defaultGenesisState[evmtypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&evmGenesisState)
+	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
 
 	return newApp, defaultGenesisState
 }
