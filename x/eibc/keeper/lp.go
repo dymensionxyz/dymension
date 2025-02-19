@@ -19,9 +19,9 @@ type LPs struct {
 		Ideas
 		<rollapp,denom> ->
 	*/
-	//lps collections.IndexedMap[
+	//LPs collections.IndexedMap[
 	//collections.Triple[rollapp,denom,]
-	m collections.Map[int64, int64]
+	M collections.Map[uint64, uint64]
 }
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
@@ -30,9 +30,9 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 		//	sb, LPsPrefix, "accounts",
 		//	sdk.AccAddressKey, codec.CollValue[authtypes.BaseAccount](cdc),
 		//	NewLPsIndexes(sb),
-		m: collections.NewMap(sb,
-			collections.NewPrefix(1), "m",
-			collections.Int64Key, collections.Int64Value),
+		M: collections.NewMap(sb,
+			collections.NewPrefix(1), "M",
+			collections.Uint64Key, collections.Uint64Value),
 	}
 }
 

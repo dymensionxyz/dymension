@@ -33,7 +33,7 @@ type (
 		rk         types.RollappKeeper
 
 		Schema collections.Schema
-		lps    LPs
+		LPs    LPs
 	}
 )
 
@@ -73,7 +73,7 @@ func NewKeeper(
 		rk:         rk,
 
 		Schema: schema,
-		lps:    lps,
+		LPs:    lps,
 	}
 }
 
