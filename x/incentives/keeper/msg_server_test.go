@@ -353,23 +353,23 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 
 		expectError bool
 	}{
-		"fee + base denom gauge coin == acount balance, success": {
+		"fee + base denom gauge coin == account balance, success": {
 			accountBalanceToFund: sdk.NewCoin("adym", math.NewInt(baseFee)),
 			feeToCharge:          baseFee / 2,
 			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(baseFee/2))),
 		},
-		"fee + base denom gauge coin < acount balance, success": {
+		"fee + base denom gauge coin < account balance, success": {
 			accountBalanceToFund: sdk.NewCoin("adym", math.NewInt(baseFee)),
 			feeToCharge:          baseFee/2 - 1,
 			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(baseFee/2))),
 		},
-		"fee + base denom gauge coin > acount balance, error": {
+		"fee + base denom gauge coin > account balance, error": {
 			accountBalanceToFund: sdk.NewCoin("adym", math.NewInt(baseFee)),
 			feeToCharge:          baseFee/2 + 1,
 			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(baseFee/2))),
 			expectError:          true,
 		},
-		"fee + base denom gauge coin < acount balance, custom values, success": {
+		"fee + base denom gauge coin < account balance, custom values, success": {
 			accountBalanceToFund: sdk.NewCoin("adym", math.NewInt(11793193112)),
 			feeToCharge:          55,
 			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(328812))),

@@ -47,7 +47,7 @@ func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 
 	err := k.validClient(ctx, clientID, clientState, rollappID)
 	if err != nil {
-		return errorsmod.Wrap(err, "unsafe to mark client canonical")
+		return errorsmod.Wrapf(err, "set client canonical")
 	}
 
 	k.SetCanonicalClient(ctx, rollappID, clientID)
@@ -125,8 +125,8 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 			atLeastOneMatch = true
 		}
 
-		// break point with the lowest height of the consensus states
-		if sInfo.StartHeight > baseHeight {
+		// break point when we validate the state info for the first height of the client
+		if sInfo.StartHeight < baseHeight {
 			break
 		}
 	}

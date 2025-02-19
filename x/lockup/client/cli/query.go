@@ -70,7 +70,7 @@ func GetCmdModuleLockedAmount() (*osmocli.QueryDescriptor, *types.ModuleLockedAm
 	}, &types.ModuleLockedAmountRequest{}
 }
 
-// GetCmdAccountUnlockableCoins returns unlockable coins which has finsihed unlocking.
+// GetCmdAccountUnlockableCoins returns unlockable coins which has finished unlocking.
 // TODO: DELETE THIS + Actual query in subsequent PR
 func GetCmdAccountUnlockableCoins() *cobra.Command {
 	cmd := &cobra.Command{
