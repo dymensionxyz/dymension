@@ -1,0 +1,29 @@
+syntax = "proto3";
+package dymensionxyz.dymension.eibc;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/common/status.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
+
+message DemandOrder {
+  string id = 1;
+  uint64 spent = 2;
+
+
+
+  string funds_addr = 3;
+  string rollapp = 4;
+  string denom = 5;
+  uint64 minFee = 6;
+  uint64 minPrice = 7;
+  uint64 spendLimit = 8;
+  uint64 maxHeight = 9;
+  uint64 expiryTime = 10; // unix seconds
+  bool settlementValidated = 11;
+  bool expireOnRotation = 12;
+
+
+}

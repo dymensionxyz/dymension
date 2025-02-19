@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/collections/indexes"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -34,7 +33,7 @@ type (
 		rk         types.RollappKeeper
 
 		Schema collections.Schema
-		X      collections.Item[int64]
+		lps    LPs
 	}
 )
 
@@ -56,12 +55,8 @@ func NewKeeper(
 	service := collcompat.NewKVStoreService(storeKey)
 
 	sb := collections.NewSchemaBuilder(service)
-	x := collections.NewItem(sb, collections.NewPrefix(1), "x", collections.Int64Value)
-	z := collections.NewMap()
-	collections.NewIndexedMap()
-	indexes.NewMulti()
-	collections.Range[]{}
-	collections.New()
+	lps := createLPsStore(sb, cdc)
+
 	schema, err := sb.Build()
 	if err != nil {
 		panic(err)
@@ -78,7 +73,7 @@ func NewKeeper(
 		rk:         rk,
 
 		Schema: schema,
-		X:      x,
+		lps:    lps,
 	}
 }
 
