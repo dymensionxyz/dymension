@@ -714,3 +714,7 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	suite.Assert().Equal(updatedDemandOrder.Fee.AmountOf(denom), newFee)
 	suite.Assert().Equal(updatedDemandOrder.Price.AmountOf(denom), expectedNewPrice)
 }
+
+func (suite *KeeperTestSuite) TestInvoke() {
+
+}

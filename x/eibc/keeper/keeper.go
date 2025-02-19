@@ -3,11 +3,14 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
+
 	"github.com/cosmos/cosmos-sdk/types/query"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -28,6 +31,8 @@ type (
 		bk         types.BankKeeper
 		dack       types.DelayedAckKeeper
 		rk         types.RollappKeeper
+
+		Schema collections.Schema
 	}
 )
 
@@ -46,6 +51,17 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
+	service := collcompat.NewKVStoreService(storeKey)
+
+	sb := collections.NewSchemaBuilder(service)
+	schema, err := sb.Build()
+	rng := new(collections.RangeKey
+	collections.RangeKey[]{}
+	im := collections.NewIndexedMap(sb,)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
@@ -55,8 +71,11 @@ func NewKeeper(
 		bk:         bankKeeper,
 		dack:       delayedAckKeeper,
 		rk:         rk,
+		Schema: schema,
 	}
 }
+
+func (k Keeper)
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
