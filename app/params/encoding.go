@@ -59,11 +59,6 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 
 	// This is needed for the EIP712 txs because currently is using
 	// the deprecated method legacytx.StdSignBytes
-	legacytx.RegressionTestingAminoCodec = cdc
-	eip712.SetEncodingConfig(cdc, interfaceRegistry)
-
-	// This is needed for the EIP712 txs because currently is using
-	// the deprecated method legacytx.StdSignBytes
 	// FIXME: needed??
 	legacytx.RegressionTestingAminoCodec = cdc
 	eip712.SetEncodingConfig(cdc, interfaceRegistry)

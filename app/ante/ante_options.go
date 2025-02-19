@@ -3,7 +3,6 @@ package ante
 import (
 	storetypes "cosmossdk.io/store/types"
 	txsigning "cosmossdk.io/x/tx/signing"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
@@ -13,21 +12,11 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
-	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
-
-// FeeMarketKeeper defines the expected keeper interface used on the AnteHandler
-type FeeMarketKeeper interface {
-	GetParams(ctx sdk.Context) (params feemarkettypes.Params)
-	AddTransientGasWanted(ctx sdk.Context, gasWanted uint64) (uint64, error)
-	GetBaseFeeEnabled(ctx sdk.Context) bool
-	GetMinGasPrice(ctx sdk.Context) (minGasPrice math.LegacyDec)
-}
 
 type HandlerOptions struct {
 	ExtensionOptionChecker ante.ExtensionOptionChecker

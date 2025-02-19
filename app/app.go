@@ -153,6 +153,11 @@ func New(
 
 	app.AppKeepers.GenerateKeys()
 
+	// register streaming services
+	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
+		panic(err)
+	}
+
 	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
@@ -252,7 +257,6 @@ func New(
 	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
-	// app.SetPostHandler()
 
 	/* ---------------------------- set ante handler ---------------------------- */
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
@@ -328,7 +332,10 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	if err != nil {
+		panic(err)
+	}
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 

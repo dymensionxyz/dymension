@@ -17,10 +17,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
-/*
-	appBuilder        *runtime.AppBuilder
-*/
-
 type (
 	Network = network.Network
 	Config  = network.Config

@@ -77,7 +77,6 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	return newApp, defaultGenesisState
 }
 
-// Setup initializes a new SimApp. A Nop logger is set in SimApp.
 // Setup initializes a new SimApp with a validator set and genesis accounts
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis

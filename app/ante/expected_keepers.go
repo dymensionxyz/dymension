@@ -4,9 +4,11 @@ import (
 	context "context"
 
 	"cosmossdk.io/core/address"
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
@@ -38,6 +40,14 @@ type BankKeeper interface {
 	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	BurnCoins(ctx context.Context, name string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+}
+
+// FeeMarketKeeper defines the expected keeper interface used on the AnteHandler
+type FeeMarketKeeper interface {
+	GetParams(ctx sdk.Context) (params feemarkettypes.Params)
+	AddTransientGasWanted(ctx sdk.Context, gasWanted uint64) (uint64, error)
+	GetBaseFeeEnabled(ctx sdk.Context) bool
+	GetMinGasPrice(ctx sdk.Context) (minGasPrice math.LegacyDec)
 }
 
 // TxFeesKeeper defines the expected transaction fee keeper

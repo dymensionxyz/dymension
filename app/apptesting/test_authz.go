@@ -26,7 +26,6 @@ func TestMessageAuthzSerialization(t *testing.T, cdc codec.Codec, msg sdk.Msg) {
 		mockMsgExec   authz.MsgExec
 	)
 
-	// FIXME:
 	// Authz: Grant Msg
 	typeURL := sdk.MsgTypeURL(msg)
 	expDate := someDate.Add(time.Hour)

@@ -30,9 +30,6 @@ const (
 	flagVestingStart = "vesting-start-time"
 	flagVestingEnd   = "vesting-end-time"
 	flagVestingAmt   = "vesting-amount"
-	// TODO: needed?
-	// flagAppendMode   = "append"
-	// flagModuleName   = "module-name"
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
