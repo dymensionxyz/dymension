@@ -55,7 +55,7 @@ func NewKeeper(
 	service := collcompat.NewKVStoreService(storeKey)
 
 	sb := collections.NewSchemaBuilder(service)
-	lps := createLPsStore(sb, cdc)
+	lps := makeLPsStore(sb, cdc)
 
 	schema, err := sb.Build()
 	if err != nil {
