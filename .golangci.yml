@@ -5,16 +5,25 @@ run:
   modules-download-mode: readonly
 
 output:
-  # Format: colored-line-number|line-number|json|colored-tab|tab|checkstyle|code-climate|junit-xml|github-actions|teamcity
-  #
-  # Multiple can be specified by separating them by comma, output can be provided
-  # for each of them by separating format name and path by colon symbol.
+  # The formats used to render issues.
+  # Formats:
+  # - `colored-line-number`
+  # - `line-number`
+  # - `json`
+  # - `colored-tab`
+  # - `tab`
+  # - `html`
+  # - `checkstyle`
+  # - `code-climate`
+  # - `junit-xml`
+  # - `junit-xml-extended`
+  # - `github-actions`
+  # - `teamcity`
+  # - `sarif`
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
-  # Example: "checkstyle:report.xml,json:stdout,colored-line-number"
-  #
-  # Default: colored-line-number
-  formats: colored-line-number
-  # Print lines of code with issue.
+  formats:
+    - format: colored-line-number
+      path: stderr  # Print lines of code with issue.
   # Default: true
   print-issued-lines: true
   # Print linter name in the end of issue text.
