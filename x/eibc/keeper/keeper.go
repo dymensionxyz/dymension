@@ -33,6 +33,7 @@ type (
 		rk         types.RollappKeeper
 
 		Schema collections.Schema
+		X      collections.Item[int64]
 	}
 )
 
@@ -54,10 +55,8 @@ func NewKeeper(
 	service := collcompat.NewKVStoreService(storeKey)
 
 	sb := collections.NewSchemaBuilder(service)
+	x := collections.NewItem(sb, collections.NewPrefix(1), "x", collections.Int64Value)
 	schema, err := sb.Build()
-	rng := new(collections.RangeKey
-	collections.RangeKey[]{}
-	im := collections.NewIndexedMap(sb,)
 	if err != nil {
 		panic(err)
 	}
@@ -71,11 +70,19 @@ func NewKeeper(
 		bk:         bankKeeper,
 		dack:       delayedAckKeeper,
 		rk:         rk,
+
 		Schema: schema,
+		X:      x,
 	}
 }
 
-func (k Keeper)
+///////////// scratch
+
+func (k Keeper) foo() {
+
+}
+
+/////////////
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
