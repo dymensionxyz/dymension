@@ -16,8 +16,30 @@ type LPs struct {
 	//Accounts *collections.IndexedMap[sdk.AccAddress, authtypes.BaseAccount, LPsIndexes]
 
 	/*
-		Ideas
-		<rollapp,denom> ->
+			TODO: where I'm at:
+			Trying to come up with the data scheme that will satisfy all data patterns
+			Ideas
+				1. Keyset(rollapp,denom,id)
+					Allows quickly finding viable set of ids
+				2. Map(id -> full struct)
+					Allows looks up which we will inevitably want for updates/debugging
+				3. Expiry -> id
+					Allows efficient expiration
+
+				Thus
+					find(order):
+						scan keyset for rollapp,denom to get set of ids
+						read full structs by id, iterate through to find match
+		                update the spent total
+						write back in map
+						(*can optionally constant optimize by having price, min fee, proof height as keyset value)
+		            expire
+						scan the expiry range and delete
+					Revoke/update
+						look up full by id then lookup in keyset/expiry
+
+
+
 	*/
 	//LPs collections.IndexedMap[
 	//collections.Triple[rollapp,denom,]
