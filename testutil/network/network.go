@@ -50,7 +50,6 @@ func DefaultConfig() network.Config {
 	// TODO: add rand tmrand.Uint64() to chainID
 	cfg.ChainID = "dymension_1000-1"
 	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
-
 		return app.New(
 			val.GetCtx().Logger, dbm.NewMemDB(), nil, true,
 			sims.EmptyAppOptions{},

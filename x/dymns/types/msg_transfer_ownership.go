@@ -10,9 +10,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var (
-	_ sdk.Msg = &MsgTransferDymNameOwnership{}
-)
+var _ sdk.Msg = &MsgTransferDymNameOwnership{}
 
 // ValidateBasic performs basic validation for the MsgTransferDymNameOwnership.
 func (m *MsgTransferDymNameOwnership) ValidateBasic() error {

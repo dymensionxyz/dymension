@@ -12,9 +12,7 @@ const (
 	TypeMsgUpdateRewardAddress = "update_reward_address"
 )
 
-var (
-	_ sdk.Msg = (*MsgUpdateRewardAddress)(nil)
-)
+var _ sdk.Msg = (*MsgUpdateRewardAddress)(nil)
 
 func (m *MsgUpdateRewardAddress) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)

@@ -8,9 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var (
-	_ sdk.Msg = &MsgUpdateDetails{}
-)
+var _ sdk.Msg = &MsgUpdateDetails{}
 
 // ValidateBasic performs basic validation for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) ValidateBasic() error {

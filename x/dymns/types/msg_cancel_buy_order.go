@@ -6,9 +6,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var (
-	_ sdk.Msg = &MsgCancelBuyOrder{}
-)
+var _ sdk.Msg = &MsgCancelBuyOrder{}
 
 // ValidateBasic performs basic validation for the MsgCancelBuyOrder.
 func (m *MsgCancelBuyOrder) ValidateBasic() error {

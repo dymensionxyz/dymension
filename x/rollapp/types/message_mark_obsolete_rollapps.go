@@ -12,9 +12,7 @@ const (
 	TypeMsgMarkObsoleteRollapps = "mark_obsolete_rollapps"
 )
 
-var (
-	_ sdk.Msg = new(MsgMarkObsoleteRollapps)
-)
+var _ sdk.Msg = new(MsgMarkObsoleteRollapps)
 
 func (m MsgMarkObsoleteRollapps) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)

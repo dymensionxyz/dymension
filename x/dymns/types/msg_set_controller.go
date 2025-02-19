@@ -8,9 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var (
-	_ sdk.Msg = &MsgSetController{}
-)
+var _ sdk.Msg = &MsgSetController{}
 
 // ValidateBasic performs basic validation for the MsgSetController.
 func (m *MsgSetController) ValidateBasic() error {

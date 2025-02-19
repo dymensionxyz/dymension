@@ -6,9 +6,7 @@ import (
 
 const TypeMsgTransferOwnership = "transfer_ownership"
 
-var (
-	_ sdk.Msg = &MsgTransferOwnership{}
-)
+var _ sdk.Msg = &MsgTransferOwnership{}
 
 func NewMsgTransferOwnership(
 	currentOwner,

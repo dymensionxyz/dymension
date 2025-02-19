@@ -8,9 +8,7 @@ import (
 
 const TypeMsgAddApp = "add_app"
 
-var (
-	_ sdk.Msg = &MsgAddApp{}
-)
+var _ sdk.Msg = &MsgAddApp{}
 
 func NewMsgAddApp(creator, name, rollappId, description, image, url string, order int32) *MsgAddApp {
 	return &MsgAddApp{

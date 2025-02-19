@@ -129,7 +129,6 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-
 	encoding := params.MakeEncodingConfig()
 	appCodec := encoding.Codec
 	legacyAmino := encoding.Amino

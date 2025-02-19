@@ -9,9 +9,7 @@ import (
 
 const TypeMsgUpdateApp = "update_app"
 
-var (
-	_ sdk.Msg = &MsgUpdateApp{}
-)
+var _ sdk.Msg = &MsgUpdateApp{}
 
 func NewMsgUpdateApp(creator string, id uint64, name, rollappId, description, image, url string, order int32) *MsgUpdateApp {
 	return &MsgUpdateApp{

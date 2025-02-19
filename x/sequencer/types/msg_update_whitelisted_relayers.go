@@ -16,9 +16,7 @@ const (
 	TypeMsgUpdateWhitelistedRelayers = "update_whitelisted_relayers"
 )
 
-var (
-	_ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
-)
+var _ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
 
 func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)

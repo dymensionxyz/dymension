@@ -6,9 +6,7 @@ import (
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
-var (
-	_ sdk.Msg = &MsgCreateRollapp{}
-)
+var _ sdk.Msg = &MsgCreateRollapp{}
 
 func NewMsgCreateRollapp(
 	creator,

@@ -95,10 +95,8 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule
 // ----------------------------------------------------------------------------
 
-var (
-	// _ module.HasGenesis    = AppModule{}
-	_ module.HasInvariants = AppModule{}
-)
+// _ module.HasGenesis    = AppModule{}
+var _ module.HasInvariants = AppModule{}
 
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {

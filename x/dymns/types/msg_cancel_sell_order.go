@@ -8,9 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var (
-	_ sdk.Msg = &MsgCancelSellOrder{}
-)
+var _ sdk.Msg = &MsgCancelSellOrder{}
 
 // ValidateBasic performs basic validation for the MsgCancelSellOrder.
 func (m *MsgCancelSellOrder) ValidateBasic() error {

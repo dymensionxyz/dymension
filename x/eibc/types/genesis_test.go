@@ -12,8 +12,7 @@ import (
 )
 
 func TestGenesisState_Validate(t *testing.T) {
-
-	var validDemandOrder = types.DemandOrder{
+	validDemandOrder := types.DemandOrder{
 		Id:             "1",
 		Price:          sdk.Coins{sdk.NewInt64Coin("denom", 2)},
 		Fee:            sdk.Coins{sdk.NewInt64Coin("denom", 1)},
@@ -21,7 +20,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		CreationHeight: 1,
 	}
 
-	var validParams = types.Params{
+	validParams := types.Params{
 		EpochIdentifier: "hour",
 		TimeoutFee:      math.LegacyNewDecWithPrec(1, 1),
 		ErrackFee:       math.LegacyNewDecWithPrec(1, 1),

@@ -10,9 +10,7 @@ const (
 	TypeMsgSetCanonicalClient = "set_canonical_client"
 )
 
-var (
-	_ sdk.Msg = &MsgSetCanonicalClient{}
-)
+var _ sdk.Msg = &MsgSetCanonicalClient{}
 
 func NewMsgUpdateState(signer, client string) *MsgSetCanonicalClient {
 	return &MsgSetCanonicalClient{

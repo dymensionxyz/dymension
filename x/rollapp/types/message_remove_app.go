@@ -9,9 +9,7 @@ import (
 
 const TypeMsgRemoveApp = "remove_app"
 
-var (
-	_ sdk.Msg = &MsgRemoveApp{}
-)
+var _ sdk.Msg = &MsgRemoveApp{}
 
 func NewMsgRemoveApp(creator string, id uint64, rollappId string) *MsgRemoveApp {
 	return &MsgRemoveApp{

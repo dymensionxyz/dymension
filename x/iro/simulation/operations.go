@@ -32,7 +32,6 @@ func WeightedOperations(
 	bk dymsimtypes.BankKeeper,
 	k keeper.Keeper,
 ) simulation.WeightedOperations {
-
 	var weightMsgTestBondingCurve int
 	appParams.GetOrGenerate(OpWeightMsgTestBondingCurve, &weightMsgTestBondingCurve, nil,
 		func(_ *rand.Rand) {

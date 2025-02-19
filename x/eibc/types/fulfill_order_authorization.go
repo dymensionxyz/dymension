@@ -11,9 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
-var (
-	_ authz.Authorization = &FulfillOrderAuthorization{}
-)
+var _ authz.Authorization = &FulfillOrderAuthorization{}
 
 // NewFulfillOrderAuthorization creates a new FulfillOrderAuthorization object.
 func NewFulfillOrderAuthorization(rollapps []*RollappCriteria) *FulfillOrderAuthorization {

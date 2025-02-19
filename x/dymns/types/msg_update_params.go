@@ -9,9 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var (
-	_ sdk.Msg = &MsgUpdateParams{}
-)
+var _ sdk.Msg = &MsgUpdateParams{}
 
 // ValidateBasic performs basic validation for the MsgUpdateParams.
 func (m *MsgUpdateParams) ValidateBasic() error {

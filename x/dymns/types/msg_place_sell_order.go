@@ -8,9 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var (
-	_ sdk.Msg = &MsgPlaceSellOrder{}
-)
+var _ sdk.Msg = &MsgPlaceSellOrder{}
 
 // ValidateBasic performs basic validation for the MsgPlaceSellOrder.
 func (m *MsgPlaceSellOrder) ValidateBasic() error {

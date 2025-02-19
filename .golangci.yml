@@ -13,7 +13,7 @@ output:
   # Example: "checkstyle:report.xml,json:stdout,colored-line-number"
   #
   # Default: colored-line-number
-  format: colored-line-number
+  formats: colored-line-number
   # Print lines of code with issue.
   # Default: true
   print-issued-lines: true
