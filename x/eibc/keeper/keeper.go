@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
@@ -29,6 +30,8 @@ type (
 		bk         types.BankKeeper
 		dack       types.DelayedAckKeeper
 		rk         types.RollappKeeper
+		Schema     collections.Schema
+		LPs        LPs
 	}
 )
 
@@ -47,6 +50,16 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
+	service := collections.NewKVStoreService(storeKey)
+
+	sb := collections.NewSchemaBuilder(service)
+	lps := makeLPsStore(sb, cdc)
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+
 	return &Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
@@ -56,6 +69,8 @@ func NewKeeper(
 		bk:         bankKeeper,
 		dack:       delayedAckKeeper,
 		rk:         rk,
+		Schema:     schema,
+		LPs:        lps,
 	}
 }
 
