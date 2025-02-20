@@ -20,10 +20,10 @@ message OnDemandLiquidity {
   uint64 minFee = 6;
   uint64 minPrice = 7;
   uint64 spendLimit = 8;
-  uint64 maxHeight = 9;
-  uint64 expiryTime = 10; // unix seconds
-  bool settlementValidated = 11;
-  bool expireOnRotation = 12;
+//  uint64 maxHeight = 9;
+//  uint64 expiryTime = 10; // unix seconds
+//  bool settlementValidated = 11;
+//  bool expireOnRotation = 12;
 
 
 }

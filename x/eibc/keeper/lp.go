@@ -6,11 +6,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-var LPsPrefix = collections.NewPrefix(0)
-var LPsIndexesAccNumberPrefix = collections.NewPrefix(1)
+var LPsByRollAppDenomPrefix = collections.NewPrefix(0)
+var LPsByIDPrefix = collections.NewPrefix(1)
+
+//var LPsPrefix = collections.NewPrefix(0)
+//var LPsIndexesAccNumberPrefix = collections.NewPrefix(1)
 
 type LPs struct {
 	//Accounts *collections.IndexedMap[sdk.AccAddress, authtypes.BaseAccount, LPsIndexes]
@@ -38,12 +42,19 @@ type LPs struct {
 					Revoke/update
 						look up full by id then lookup in keyset/expiry
 
+			After simplications (omitting fields for mvp):
+				Exactly the same
 
 
 	*/
 	//LPs collections.IndexedMap[
 	//collections.Triple[rollapp,denom,]
-	M collections.Map[uint64, uint64]
+	//byRollAppDenom collections.Map[collections.Triple[string,string,string], uint64]
+	// <rollapp,denom,id>
+	byRollAppDenom collections.KeySet[collections.Triple[string, string, uint64]]
+	// id -> lp
+	byID collections.Map[uint64, types.OnDemandLiquidity]
+	//M collections.Map[uint64, uint64]
 }
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
@@ -52,13 +63,24 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 		//	sb, LPsPrefix, "accounts",
 		//	sdk.AccAddressKey, codec.CollValue[authtypes.BaseAccount](cdc),
 		//	NewLPsIndexes(sb),
-		M: collections.NewMap(sb,
-			collections.NewPrefix(1), "M",
-			collections.Uint64Key, collections.Uint64Value),
+		byRollAppDenom: collections.NewKeySet[collections.Triple[string, string, uint64]](
+			sb, LPsByRollAppDenomPrefix, "byRollAppDenom",
+			collections.TripleKeyCodec[string, string, uint64](
+				collections.StringKey,
+				collections.StringKey,
+				collections.Uint64Key,
+			)),
+		byID: collections.NewMap[uint64, types.OnDemandLiquidity](
+			sb, LPsByIDPrefix, "byID",
+			collections.Uint64Key, collcompat.ProtoValue[types.OnDemandLiquidity](cdc),
+		),
 	}
 }
 
 func (s LPs) findLP(o types.DemandOrder) *types.OnDemandLiquidity {
+	rol := o.RollappId
+	denom := o.D
+
 	return nil
 }
 
