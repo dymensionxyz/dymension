@@ -305,3 +305,18 @@ func (m msgServer) InvokeFullfillment(ctx sdk.Context, orderId string) error {
 	return nil
 
 }
+
+func (m msgServer) FindFulfiller(ctx context.Context, fulfiller *types.MsgFindFulfiller) (*types.MsgFindFulfillerResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m msgServer) CreateOnDemandLP(ctx context.Context, lp *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m msgServer) DeleteOnDemandLP(ctx context.Context, lp *types.MsgDeleteOnDemandLP) (*types.MsgDeleteOnDemandLPResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

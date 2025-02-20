@@ -98,7 +98,7 @@ message QueryOnDemandLPsRequest{
 }
 
 message    QueryOnDemandLPsResponse{
-  repeated OnDemandLP lps = 1;
+  repeated OnDemandLPRecord lps = 1;
 }
 
 message QueryOnDemandLPsByAddrRequest{

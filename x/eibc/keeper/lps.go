@@ -5,7 +5,6 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
@@ -17,7 +16,7 @@ type LPs struct {
 	// <rollapp,denom,id>
 	byRollAppDenom collections.KeySet[collections.Triple[string, string, uint64]]
 	// id -> lp
-	byID   collections.Map[uint64, types.OnDemandLiquidity]
+	byID   collections.Map[uint64, types.OnDemandLPRecord]
 	nextID collections.Sequence
 }
 
@@ -42,21 +41,25 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 				collections.StringKey,
 				collections.Uint64Key,
 			)),
-		byID: collections.NewMap[uint64, types.OnDemandLiquidity](
+		byID: collections.NewMap[uint64, types.OnDemandLPRecord](
 			sb, LPsByIDPrefix, "byID",
-			collections.Uint64Key, collcompat.ProtoValue[types.OnDemandLiquidity](cdc),
+			collections.Uint64Key, codec.CollValue[types.OnDemandLPRecord](cdc),
 		),
 		nextID: collections.NewSequence(sb, LPsNextIDPrefix, "nextID"),
 	}
 }
 
-func (s LPs) UpsertLP(ctx sdk.Context, lp *types.OnDemandLiquidity) (uint64, error) {
+func (s LPs) UpsertLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	id, err := s.nextID.Next(ctx)
 	if err != nil {
 		return 0, err
 	}
-	lp.Id = id
-	err = s.byID.Set(ctx, id, *lp)
+	record := types.OnDemandLPRecord{
+		Id:    id,
+		Lp:    lp,
+		Spent: math.ZeroInt(),
+	}
+	err = s.byID.Set(ctx, id, record)
 	if err != nil {
 		return 0, err
 	}
@@ -67,7 +70,7 @@ func (s LPs) UpsertLP(ctx sdk.Context, lp *types.OnDemandLiquidity) (uint64, err
 	return id, nil
 }
 
-func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnDemandLiquidity, error) {
+func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnDemandLPRecord, error) {
 
 	rol := o.RollappId
 	denom := o.Denom()
@@ -84,13 +87,13 @@ func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnD
 		}
 		id := key.K3()
 
-		lp, err := s.byID.Get(ctx, id)
+		lpr, err := s.byID.Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		if lp.Accepts(o) {
+		if lpr.Accepts(o) {
 			// TODO: just direct fulfill here
-			return &lp, nil
+			return &lpr, nil
 		}
 	}
 	return nil, nil

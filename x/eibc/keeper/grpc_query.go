@@ -132,3 +132,13 @@ func isRecipient(recipient string) filterOption {
 		return order.Recipient == recipient
 	}
 }
+
+func (q Querier) OnDemandLPs(ctx context.Context, request *types.QueryOnDemandLPsRequest) (*types.QueryOnDemandLPsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q Querier) OnDemandLPsByByAddr(ctx context.Context, request *types.QueryOnDemandLPsByAddrRequest) (*types.QueryOnDemandLPsByAddrResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

@@ -4,12 +4,12 @@ import (
 	"cosmossdk.io/math"
 )
 
-func (lp OnDemandLiquidity) MaxSpend() math.Int {
-	return math.MinInt(lp.MaxPrice, lp.SpendLimit.Sub(lp.Spent))
+func (r OnDemandLPRecord) MaxSpend() math.Int {
+	return math.MinInt(r.Lp.MaxPrice, r.Lp.SpendLimit.Sub(r.Spent))
 }
 
-func (lp OnDemandLiquidity) Accepts(o *DemandOrder) bool {
-	priceOK := o.PriceAmount().LTE(lp.MaxSpend())
-	feeOK := lp.MinFee.LTE(o.GetFeeAmount())
+func (r OnDemandLPRecord) Accepts(o *DemandOrder) bool {
+	priceOK := o.PriceAmount().LTE(r.MaxSpend())
+	feeOK := r.Lp.MinFee.LTE(o.GetFeeAmount())
 	return priceOK && feeOK
 }

@@ -10,7 +10,7 @@ import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
-message OnDemandLPBase {
+message OnDemandLP {
   // where funds come from, bech32-encoded
   string funds_addr = 3;
   string rollapp = 4;
@@ -32,7 +32,7 @@ message OnDemandLPBase {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"];
 }
 
-message OnDemandLP {
+message OnDemandLPRecord {
   uint64 id = 1;
 
   // amt spent so far
@@ -40,6 +40,6 @@ message OnDemandLP {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"];
 
-  OnDemandLPBase lp = 3;
+  OnDemandLP lp = 3;
 
 }

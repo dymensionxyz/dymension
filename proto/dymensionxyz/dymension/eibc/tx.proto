@@ -111,7 +111,7 @@ message MsgCreateOnDemandLP{
   option (cosmos.msg.v1.signer) = "signer";
   string signer = 1;  // also funds source
 
-  OnDemandLPBase lp = 2;
+  OnDemandLP lp = 2;
 }
 message MsgCreateOnDemandLPResponse{
   uint64 id = 1;
