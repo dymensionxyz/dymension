@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -207,5 +208,55 @@ func validateRollappID(rollappID string) error {
 		return rollapptypes.ErrInvalidRollappID
 	}
 	_, err := rollapptypes.NewChainID(rollappID)
+	return err
+}
+
+/////////////////////
+
+func (m *MsgFindFulfiller) GetSigners() []sdk.AccAddress {
+	x, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{x}
+}
+
+func (m *MsgFindFulfiller) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		return err
+	}
+	if m.OrderId == "" {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty order id")
+	}
+	return nil
+}
+
+func (m *MsgCreateOnDemandLP) GetSigners() []sdk.AccAddress {
+	a, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{a}
+}
+
+func (m *MsgCreateOnDemandLP) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		return err
+	}
+	return m.Lp.Validate()
+}
+
+func (m *MsgDeleteOnDemandLP) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (m *MsgDeleteOnDemandLP) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Signer)
 	return err
 }
