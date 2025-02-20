@@ -84,8 +84,8 @@ func (suite *KeeperTestSuite) TestLPs() {
 	})
 	suite.Require().NoError(err)
 	o := types.DemandOrder{
-		Price:     sdk.NewCoins(sdk.NewCoin("foo", sdk.NewInt(5))),
-		Fee:       sdk.NewCoins(sdk.NewCoin("foo", sdk.NewInt(7))),
+		Price:     sdk.NewCoins(sdk.NewCoin("bbb", sdk.NewInt(5))),
+		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", sdk.NewInt(7))),
 		RollappId: "2",
 	}
 	lp, err := k.LPs.FindLP(ctx, k, &o)
