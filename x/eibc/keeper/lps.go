@@ -75,7 +75,7 @@ func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	return id, nil
 }
 
-func (s LPs) Delete(ctx sdk.Context, id uint64) error {
+func (s LPs) Del(ctx sdk.Context, id uint64) error {
 	lp, err := s.byID.Get(ctx, id)
 	if err != nil {
 		return err
@@ -126,6 +126,7 @@ func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnD
 }
 
 func (k Keeper) FindOnDemandLP(ctx sdk.Context, order string) error {
+	return nil
 
 }
 
@@ -142,7 +143,7 @@ func (k Keeper) DeleteLP(ctx sdk.Context, owner sdk.AccAddress, id uint64) error
 	if err != nil {
 		return errorsmod.Wrap(err, "get")
 	}
-	if lp.Lp.FundsAddr != owner.String() {
+	if !lp.Lp.MustAddr().Equals(owner) {
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not owner: require %s, got %s", lp.Lp.FundsAddr, owner)
 	}
 	return k.LPs.Del(ctx, id)

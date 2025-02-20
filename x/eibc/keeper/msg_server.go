@@ -343,11 +343,11 @@ func (m msgServer) DeleteOnDemandLP(goCtx context.Context, msg *types.MsgDeleteO
 	}
 
 	for _, id := range msg.Ids {
-		err := m.Keeper.DeleteLP(ctx, msg.Signer, id)
+		err := m.Keeper.DeleteLP(ctx, msg.MustAcc(), id)
 		if err != nil {
-			return nil, errorsmod.Wrap(err, "delete lp")
+			return nil, errorsmod.Wrapf(err, "delete id: %d", id)
 		}
 	}
 
-	return &types.MsgDeleteOnDemandLPResponse{}, m.Keeper.DeleteLP(ctx, msg.Id)
+	return &types.MsgDeleteOnDemandLPResponse{}, nil
 }
