@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/collections"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
@@ -18,6 +19,17 @@ type LPs struct {
 	// id -> lp
 	byID   collections.Map[uint64, types.OnDemandLiquidity]
 	nextID collections.Sequence
+}
+
+type OnDemandLiquidity struct {
+	Id         uint64
+	Spent      math.Int
+	FundsAddr  string
+	Rollapp    string
+	Denom      string
+	MaxPrice   math.Int
+	MinFee     math.Int
+	SpendLimit math.Int
 }
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
