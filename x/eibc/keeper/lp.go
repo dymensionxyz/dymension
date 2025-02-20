@@ -10,6 +10,7 @@ import (
 
 var LPsByRollAppDenomPrefix = collections.NewPrefix(0)
 var LPsByIDPrefix = collections.NewPrefix(1)
+var LPsNextIDPrefix = collections.NewPrefix(2)
 
 //var LPsPrefix = collections.NewPrefix(0)
 //var LPsIndexesAccNumberPrefix = collections.NewPrefix(1)
@@ -52,6 +53,8 @@ type LPs struct {
 	byRollAppDenom collections.KeySet[collections.Triple[string, string, uint64]]
 	// id -> lp
 	byID collections.Map[uint64, types.OnDemandLiquidity]
+
+	nextID collections.Sequence
 	//M collections.Map[uint64, uint64]
 }
 
@@ -72,10 +75,27 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 			sb, LPsByIDPrefix, "byID",
 			collections.Uint64Key, collcompat.ProtoValue[types.OnDemandLiquidity](cdc),
 		),
+		nextID: collections.NewSequence(sb, LPsNextIDPrefix, "nextID"),
 	}
 }
 
-func (s LPs) findLP(ctx sdk.Context, k *Keeper, o *types.DemandOrder) (*types.OnDemandLiquidity, error) {
+func (s LPs) UpsertLP(ctx sdk.Context, lp *types.OnDemandLiquidity) (uint64, error) {
+	id, err := s.nextID.Next(ctx)
+	if err != nil {
+		return 0, err
+	}
+	err = s.byID.Set(ctx, id, *lp)
+	if err != nil {
+		return 0, err
+	}
+	err = s.byRollAppDenom.Set(ctx, collections.Join3(lp.Rollapp, lp.Denom, id))
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnDemandLiquidity, error) {
 
 	rol := o.RollappId
 	denom := o.Denom()
