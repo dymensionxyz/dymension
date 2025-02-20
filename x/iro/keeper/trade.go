@@ -65,7 +65,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// validate the IRO have enough tokens to sell
-	if plan.SoldAmt.Add(amountTokensToBuy).GT(plan.TotalAllocation.Amount) {
+	if plan.SoldAmt.Add(amountTokensToBuy).GT(plan.MaxAmountToSell) {
 		return types.ErrInsufficientTokens
 	}
 
@@ -149,7 +149,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// validate the IRO have enough tokens to sell
-	if plan.SoldAmt.Add(tokensOutAmt).GT(plan.TotalAllocation.Amount) {
+	if plan.SoldAmt.Add(tokensOutAmt).GT(plan.MaxAmountToSell) {
 		return types.ErrInsufficientTokens
 	}
 

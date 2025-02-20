@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
-	// assert initial FUT balance
+	// assert initial IRO balance
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
 	s.Require().Equal(amt, balance.Amount)
 
@@ -43,7 +43,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().Error(err)
 
-	// should succeed after fund
+	// should succeed after fund (mocks the genesis bridge transfer)
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
@@ -52,7 +52,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().Error(err)
 
-	// assert no FUT balance in the account
+	// assert no IRO balance in the account
 	balance = s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
 	s.Require().True(balance.IsZero())
 
@@ -71,6 +71,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	startTime := time.Now()
 	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
+	maxToSell := types.FindEquilibrium(curve, allocation)
 
 	testCases := []struct {
 		name           string
