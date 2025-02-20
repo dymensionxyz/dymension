@@ -8,6 +8,8 @@ import "dymensionxyz/dymension/eibc/params.proto";
 import "dymensionxyz/dymension/eibc/demand_order.proto";
 import "dymensionxyz/dymension/common/status.proto";
 import "dymensionxyz/dymension/common/rollapp_packet.proto";
+import "dymensionxyz/dymension/eibc/lp.proto";
+
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
@@ -18,13 +20,22 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/eibc/params";
   }
   // Queries a Demand Order by id.
-	rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_order/{id}";
-	}
+  rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_order/{id}";
+  }
   // Queries a list of demand orders by status.
   rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_orders/{status}";
   }
+
+  rpc OnDemandLPs(QueryOnDemandLPsRequest) returns (QueryOnDemandLPsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/eibc/on_demand_lps/{ids}";
+  }
+
+  rpc OnDemandLPsByByAddr(QueryOnDemandLPsByAddrRequest) returns (QueryOnDemandLPsByAddrResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/eibc/on_demand_lps_addr/{addr}";
+  }
+
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -80,4 +91,20 @@ message QueryDemandOrdersByStatusResponse {
   // A list of demand orders with the given status
   repeated DemandOrder demand_orders = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryOnDemandLPsRequest{
+  repeated uint64 ids = 1; // can be empty to return all
+}
+
+message    QueryOnDemandLPsResponse{
+  repeated OnDemandLP lps = 1;
+}
+
+message QueryOnDemandLPsByAddrRequest{
+  string addr = 1; // bech32-encoded
+}
+
+message    QueryOnDemandLPsByAddrResponse{
+  string addr = 2;
 }

@@ -5,17 +5,21 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/eibc/lp.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+  rpc FindFulfiller(MsgFindFulfiller) returns (MsgFindFulfillerResponse) {}
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
   rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized)
       returns (MsgFulfillOrderAuthorizedResponse) {}
   rpc UpdateDemandOrder(MsgUpdateDemandOrder)
       returns (MsgUpdateDemandOrderResponse) {}
+  rpc CreateOnDemandLP(MsgCreateOnDemandLP) returns (MsgCreateOnDemandLPResponse) {}
+  rpc DeleteOnDemandLP(MsgDeleteOnDemandLP) returns (MsgDeleteOnDemandLPResponse) {}
 }
 
 // MsgFulfillOrder defines the FulfillOrder request type.
@@ -92,3 +96,32 @@ message MsgUpdateDemandOrder {
 }
 
 message MsgUpdateDemandOrderResponse {}
+
+// try find an on-demand-fulfiller to fulfill the order immediately
+message MsgFindFulfiller{
+  option (cosmos.msg.v1.signer) = "signer";
+  string signer = 2;
+
+  string order_id = 1;
+}
+
+message MsgFindFulfillerResponse{}
+
+message MsgCreateOnDemandLP{
+  option (cosmos.msg.v1.signer) = "signer";
+  string signer = 1;  // also funds source
+
+  OnDemandLPBase lp = 2;
+}
+message MsgCreateOnDemandLPResponse{
+  uint64 id = 1;
+}
+
+message MsgDeleteOnDemandLP{
+  option (cosmos.msg.v1.signer) = "signer";
+  string signer = 1; // must be original creator
+
+  uint64 id = 2;
+}
+
+message MsgDeleteOnDemandLPResponse{}

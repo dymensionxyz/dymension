@@ -10,24 +10,36 @@ import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
-message OnDemandLiquidity {
-  uint64 id = 1;
-  string spent = 2  [    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"];
-
-
-
+message OnDemandLPBase {
+  // where funds come from, bech32-encoded
   string funds_addr = 3;
   string rollapp = 4;
   string denom = 5;
-  string maxPrice = 6 [    (gogoproto.nullable) = false,
+
+  // will not fulfill if price is above this
+  string maxPrice = 6 [(gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"];
-  string minFee = 7 [    (gogoproto.nullable) = false,
+
+  // will not fulfill if fee is below this
+  string minFee = 7 [(gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"];
-  string spendLimit = 8 [    (gogoproto.nullable) = false,
+
+  // will not fulfill if brings spends above limit
+  string spendLimit = 8 [(gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+}
+
+message OnDemandLP {
+  uint64 id = 1;
+
+  // amt spent so far
+  string spent = 2  [(gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+
+  OnDemandLPBase lp = 3;
+
 }

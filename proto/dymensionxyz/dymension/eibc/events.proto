@@ -7,6 +7,8 @@ import "dymensionxyz/dymension/common/status.proto";
 import "dymensionxyz/dymension/eibc/demand_order.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
+import "cosmos/base/v1beta1/coin.proto";
+
 
 // EventDemandOrderCreated is emitted when the demand order is created.
 message EventDemandOrderCreated {
@@ -118,4 +120,21 @@ message EventDemandOrderDeleted {
   string rollapp_id = 4;
   // packet_type is the type of the packet.
   string packet_type = 5;
+}
+
+// normal fulfilled event will be emitted in same tx
+message EventMatchedOnDemandLP {
+  string order_id = 1;
+  uint64 lp_id = 2;
+  string fulfiller = 3;
+}
+
+message EventCreatedOnDemandLP {
+  uint64 id = 1;
+  string funds_addr = 2;
+}
+
+message EventDeletedOnDemandLP {
+  uint64 id = 1;
+  string funds_addr = 2;
 }
