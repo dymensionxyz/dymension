@@ -77,17 +77,39 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	}
 }
 
-func (s LPs) findLP(o types.DemandOrder) *types.OnDemandLiquidity {
+func (s LPs) findLP(ctx sdk.Context, o *types.DemandOrder) (*types.OnDemandLiquidity, error) {
+
 	rol := o.RollappId
-	denom := o.D
+	denom := o.Denom()
+	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](rol, denom)
+	iter, err := s.byRollAppDenom.Iterate(ctx, rng)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		key, err := iter.Key()
+		if err != nil {
+			return nil, err
+		}
+		id := key.K3()
+
+		lp, err := s.byID.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if lp.Match(o) {
+
+		}
+	}
 
 	return nil
 }
 
-type LPsIndexes struct {
-	Number *indexes.Unique[uint64, sdk.AccAddress, authtypes.BaseAccount]
-}
-
+//type LPsIndexes struct {
+//	Number *indexes.Unique[uint64, sdk.AccAddress, authtypes.BaseAccount]
+//}
+//
 //func NewLPsIndexes(sb *collections.SchemaBuilder) LPsIndexes {
 //	return LPsIndexes{
 //		Number: indexes.NewUnique(
@@ -99,7 +121,7 @@ type LPsIndexes struct {
 //		),
 //	}
 //}
-
-func (a LPsIndexes) IndexesList() []collections.Index[sdk.AccAddress, authtypes.BaseAccount] {
-	return []collections.Index[sdk.AccAddress, authtypes.BaseAccount]{a.Number}
-}
+//
+//func (a LPsIndexes) IndexesList() []collections.Index[sdk.AccAddress, authtypes.BaseAccount] {
+//	return []collections.Index[sdk.AccAddress, authtypes.BaseAccount]{a.Number}
+//}
