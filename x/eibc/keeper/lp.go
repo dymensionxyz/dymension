@@ -2,10 +2,8 @@ package keeper
 
 import (
 	"cosmossdk.io/collections"
-	"cosmossdk.io/collections/indexes"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -77,7 +75,7 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	}
 }
 
-func (s LPs) findLP(ctx sdk.Context, o *types.DemandOrder) (*types.OnDemandLiquidity, error) {
+func (s LPs) findLP(ctx sdk.Context, k *Keeper, o *types.DemandOrder) (*types.OnDemandLiquidity, error) {
 
 	rol := o.RollappId
 	denom := o.Denom()
@@ -98,12 +96,12 @@ func (s LPs) findLP(ctx sdk.Context, o *types.DemandOrder) (*types.OnDemandLiqui
 		if err != nil {
 			return nil, err
 		}
-		if lp.Match(o) {
-
+		if lp.Accepts(o) {
+			// TODO: just direct fulfill here
+			return &lp, nil
 		}
 	}
-
-	return nil
+	return nil, nil
 }
 
 //type LPsIndexes struct {
