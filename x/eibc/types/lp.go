@@ -6,7 +6,15 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (r OnDemandLP) Validate() error {
+	// TODO:
+	return nil
+}
+
 func (r OnDemandLPRecord) Validate() error {
+	if r.Lp == nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty lp")
+	}
 	if err := r.Lp.Validate(); err != nil {
 		return errorsmod.Wrap(err, "base")
 	}
@@ -16,11 +24,6 @@ func (r OnDemandLPRecord) Validate() error {
 	if r.Spent.GT(r.Lp.SpendLimit) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spent greater than spend limit")
 	}
-	return nil
-}
-
-func (r OnDemandLP) Validate() error {
-	// TODO:
 	return nil
 }
 

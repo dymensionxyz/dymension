@@ -106,5 +106,5 @@ message QueryOnDemandLPsByAddrRequest{
 }
 
 message    QueryOnDemandLPsByAddrResponse{
-  string addr = 2;
+  repeated OnDemandLPRecord lps = 1;
 }

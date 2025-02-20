@@ -1,11 +1,15 @@
 package keeper
 
 import (
+	"errors"
+
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var LPsByRollAppDenomPrefix = collections.NewPrefix(0)
@@ -49,7 +53,8 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	}
 }
 
-func (s LPs) UpsertLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
+// create a new one
+func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	id, err := s.nextID.Next(ctx)
 	if err != nil {
 		return 0, err
@@ -68,6 +73,27 @@ func (s LPs) UpsertLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func (s LPs) Delete(ctx sdk.Context, id uint64) error {
+	lp, err := s.byID.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	err = s.byID.Remove(ctx, id)
+	if err != nil {
+		return err
+	}
+	err = s.byRollAppDenom.Remove(ctx, collections.Join3(lp.Lp.Rollapp, lp.Lp.Denom, id))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
+	ret, err := s.byID.Get(ctx, id)
+	return &ret, err
 }
 
 func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnDemandLPRecord, error) {
@@ -104,9 +130,20 @@ func (k Keeper) FindOnDemandLP(ctx sdk.Context, order string) error {
 }
 
 func (k Keeper) CreateLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
-
+	id, err := k.LPs.Create(ctx, lp)
+	return id, err
 }
 
-func (k Keeper) DeleteLP(ctx sdk.Context, id uint64) error {
-
+func (k Keeper) DeleteLP(ctx sdk.Context, owner sdk.AccAddress, id uint64) error {
+	lp, err := k.LPs.Get(ctx, id)
+	if errors.Is(err, collections.ErrNotFound) {
+		return nil
+	}
+	if err != nil {
+		return errorsmod.Wrap(err, "get")
+	}
+	if lp.Lp.FundsAddr != owner.String() {
+		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not owner: require %s, got %s", lp.Lp.FundsAddr, owner)
+	}
+	return k.LPs.Del(ctx, id)
 }

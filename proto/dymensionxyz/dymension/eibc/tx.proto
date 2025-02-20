@@ -108,8 +108,7 @@ message MsgFindFulfiller{
 message MsgFindFulfillerResponse{}
 
 message MsgCreateOnDemandLP{
-  option (cosmos.msg.v1.signer) = "signer";
-  string signer = 1;  // also funds source
+  option (cosmos.msg.v1.signer) = "lp.signer"; // TODO: confirm working
 
   OnDemandLP lp = 2;
 }
@@ -121,7 +120,7 @@ message MsgDeleteOnDemandLP{
   option (cosmos.msg.v1.signer) = "signer";
   string signer = 1; // must be original creator
 
-  uint64 id = 2;
+  repeated uint64 ids = 2;
 }
 
 message MsgDeleteOnDemandLPResponse{}

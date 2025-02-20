@@ -233,7 +233,7 @@ func (m *MsgFindFulfiller) ValidateBasic() error {
 }
 
 func (m *MsgCreateOnDemandLP) GetSigners() []sdk.AccAddress {
-	a, err := sdk.AccAddressFromBech32(m.Signer)
+	a, err := sdk.AccAddressFromBech32(m.Lp.FundsAddr)
 	if err != nil {
 		panic(err)
 	}
@@ -241,22 +241,41 @@ func (m *MsgCreateOnDemandLP) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgCreateOnDemandLP) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Signer)
+	if m.Lp == nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty lp")
+	}
+	_, err := sdk.AccAddressFromBech32(m.Lp.FundsAddr)
 	if err != nil {
 		return err
 	}
 	return m.Lp.Validate()
 }
 
-func (m *MsgDeleteOnDemandLP) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(m.Signer)
+func (m *MsgCreateOnDemandLP) MustAcc() sdk.AccAddress {
+	a, err := sdk.AccAddressFromBech32(m.Lp.FundsAddr)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{creator}
+	return a
+}
+
+func (m *MsgDeleteOnDemandLP) GetSigners() []sdk.AccAddress {
+	a, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{a}
 }
 
 func (m *MsgDeleteOnDemandLP) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	return err
+}
+
+func (m *MsgDeleteOnDemandLP) MustAcc() sdk.AccAddress {
+	a, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return a
 }
