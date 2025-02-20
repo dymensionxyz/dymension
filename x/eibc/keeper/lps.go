@@ -98,3 +98,15 @@ func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnD
 	}
 	return nil, nil
 }
+
+func (k Keeper) FindOnDemandLP(ctx sdk.Context, order string) error {
+
+}
+
+func (k Keeper) CreateLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
+
+}
+
+func (k Keeper) DeleteLP(ctx sdk.Context, id uint64) error {
+
+}

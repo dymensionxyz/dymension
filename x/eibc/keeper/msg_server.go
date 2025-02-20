@@ -306,17 +306,41 @@ func (m msgServer) InvokeFullfillment(ctx sdk.Context, orderId string) error {
 
 }
 
-func (m msgServer) FindFulfiller(ctx context.Context, fulfiller *types.MsgFindFulfiller) (*types.MsgFindFulfillerResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (m msgServer) FindFulfiller(goCtx context.Context, msg *types.MsgFindFulfiller) (*types.MsgFindFulfillerResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "vbasic")
+	}
+
+	return &types.MsgFindFulfillerResponse{}, m.Keeper.FindOnDemandLP(ctx, msg.OrderId)
 }
 
-func (m msgServer) CreateOnDemandLP(ctx context.Context, lp *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "vbasic")
+	}
+
+	id, err := m.Keeper.CreateLP(ctx, msg.Lp)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "create lp")
+	}
+
+	return &types.MsgCreateOnDemandLPResponse{Id: id}, nil
+
 }
 
-func (m msgServer) DeleteOnDemandLP(ctx context.Context, lp *types.MsgDeleteOnDemandLP) (*types.MsgDeleteOnDemandLPResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (m msgServer) DeleteOnDemandLP(goCtx context.Context, msg *types.MsgDeleteOnDemandLP) (*types.MsgDeleteOnDemandLPResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "vbasic")
+	}
+
+	return &types.MsgDeleteOnDemandLPResponse{}, m.Keeper.DeleteLP(ctx, msg.Id)
 }
