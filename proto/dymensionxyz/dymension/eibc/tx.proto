@@ -103,6 +103,9 @@ message MsgFindFulfiller{
   string signer = 2;
 
   string order_id = 1;
+
+  // rng to choose fulfiller from eligible randomly
+  string rng = 3;
 }
 
 message MsgFindFulfillerResponse{}
