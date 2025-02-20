@@ -10,7 +10,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 message OnDemandLiquidity {
   string id = 1;
-  uint64 spent = 2  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string spent = 2  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 
 
 
@@ -19,7 +19,7 @@ message OnDemandLiquidity {
   string denom = 5;
   string maxPrice = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   string minFee = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  uint64 spendLimit = 8[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string spendLimit = 8[(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   //  uint64 maxHeight = 9;
   //  uint64 expiryTime = 10; // unix seconds
   //  bool settlementValidated = 11;
