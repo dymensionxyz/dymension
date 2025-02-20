@@ -17,14 +17,14 @@ import (
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
 	defaultTolerance := math.NewInt(1e12) // one hundred-billionth of a dym
 	diff := expected.Sub(actual).Abs()
-	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+	assert.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
 	defaultTolerance := math.LegacyNewDecWithPrec(1, 12) // one hundred-billionth of a dym
 	diff := expected.Sub(actual).Abs()
-	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+	assert.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
 }
 
 func TestBondingCurve_ValidateBasic(t *testing.T) {
@@ -36,14 +36,15 @@ func TestBondingCurve_ValidateBasic(t *testing.T) {
 		expectErr bool
 	}{
 		{"Valid bonding curve", 1, 1, 0, false},
-		{"Valid linear curve", 0.000002, 1, 0.00022, false},
-		{"Valid power curve N>1", 0.1234, 1.23, 0.002, false},
-		{"Valid power curve N<1", 0.1234, 0.76, 0.002, false},
+		{"Valid fixed curve", 0, 1, 0.15, false},
+		{"Valid linear curve", 0.000002, 1, 0, false},
+		{"Valid power curve N>1", 0.1234, 1.23, 0.00, false},
+		{"Valid power curve N<1", 0.1234, 0.76, 0.00, false},
 		{"Invalid C value", 2, 1, -1, true},
-		{"Invalid M value", -2, 1, 3, true},
-		{"Invalid N value", 2, -1, 3, true},
-		{"Too high N value", 2, 11, 3, true},
-		{"Precision check N", 2, 1.2421, 3, true},
+		{"Invalid M value", -2, 1, 0, true},
+		{"Invalid N value", 2, -1, 0, true},
+		{"Too high N value", 2, 11, 0, true},
+		{"Precision check N", 2, 1.2421, 0, true},
 	}
 
 	for _, tt := range tests {
@@ -213,12 +214,12 @@ func TestTokensForDYM(t *testing.T) {
 		{"Square Root", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2.24345436"),
 			math.LegacyMustNewDecFromStr("0.5"),
-			math.LegacyMustNewDecFromStr("10.5443534"),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 		{"Quadratic", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2"),
 			math.LegacyMustNewDecFromStr("1.5"),
-			math.LegacyZeroDec(),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 	}
 
@@ -255,12 +256,12 @@ func TestTokensForDYMApproximation(t *testing.T) {
 		{"Square Root", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2.24345436"),
 			math.LegacyMustNewDecFromStr("0.5"),
-			math.LegacyMustNewDecFromStr("10.5443534"),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 		{"Quadratic", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2"),
 			math.LegacyMustNewDecFromStr("1.5"),
-			math.LegacyZeroDec(),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 	}
 
@@ -311,23 +312,22 @@ func TestTokensForDYMApproximation(t *testing.T) {
 Real world scenario:
 - A project wants to raise 100_000 DYM for 1_000_000 RA tokens
 - N = 1
-- C = 0.001 (1% of the average price)
 
-Expected M value: 0.000000198
+Expected M value: 0.000000200
 */
 func TestUseCaseA(t *testing.T) {
 	// Test case parameters
-	val := math.NewInt(100_000)          // 100,000 DYM to raise
-	z := math.NewInt(1_000_000)          // 1,000,000 RA tokens
-	n := math.LegacyNewDec(1)            // N = 1 (linear curve)
-	c := math.LegacyNewDecWithPrec(1, 3) // C = 0.001 (1% of the average price)
+	val := math.NewInt(100_000) // 100,000 DYM to raise
+	z := math.NewInt(1_000_000) // 1,000,000 RA tokens
+	n := math.LegacyNewDec(1)   // N = 1 (linear curve)
+	c := math.LegacyZeroDec()
 
 	// Expected M calculation:
-	expectedM := math.LegacyMustNewDecFromStr("0.000000198")
+	expectedM := math.LegacyMustNewDecFromStr("0.000000200")
 
 	// Calculate M
 	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, c)
-	require.Equal(t, expectedM, m)
+	assert.Equal(t, expectedM, m)
 
 	curve := types.NewBondingCurve(m, n, c)
 
@@ -354,6 +354,7 @@ func TestUseCaseA(t *testing.T) {
 	require.True(t, costDifference.GT(threshold),
 		"Cost difference (%s) should be greater than threshold (%s)",
 		costDifference, threshold)
+
 }
 
 func TestSpotPrice(t *testing.T) {

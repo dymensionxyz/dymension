@@ -9,6 +9,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+// TestClaim tests that Claim works correctly.
+//
+// It creates a rollapp, then buys some tokens on it. It then tests that Claim fails
+// if the plan is not settled. After settling the plan, it tests that Claim works
+// and that the user gets the correct amount of tokens.
 func (s *KeeperTestSuite) TestClaim() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper

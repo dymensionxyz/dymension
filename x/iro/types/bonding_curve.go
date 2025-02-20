@@ -79,6 +79,11 @@ func (lbc BondingCurve) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "c: %s", lbc.C.String())
 	}
 
+	// positive C is supported only for fixed price for now (due to equilibrium calculation)
+	if !lbc.C.IsZero() && !lbc.M.IsZero() {
+		return errorsmod.Wrapf(ErrInvalidBondingCurve, "m: %s, c: %s", lbc.M.String(), lbc.C.String())
+	}
+
 	if !checkPrecision(lbc.N) {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "N must have at most %d decimal places", MaxNPrecision)
 	}
