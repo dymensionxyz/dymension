@@ -27,29 +27,31 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type OnDemandLiquidity struct {
-	Id         uint64                `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Spent      cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=spent,proto3,customtype=cosmossdk.io/math.Int" json:"spent"`
-	FundsAddr  string                `protobuf:"bytes,3,opt,name=funds_addr,json=fundsAddr,proto3" json:"funds_addr,omitempty"`
-	Rollapp    string                `protobuf:"bytes,4,opt,name=rollapp,proto3" json:"rollapp,omitempty"`
-	Denom      string                `protobuf:"bytes,5,opt,name=denom,proto3" json:"denom,omitempty"`
-	MaxPrice   cosmossdk_io_math.Int `protobuf:"bytes,6,opt,name=maxPrice,proto3,customtype=cosmossdk.io/math.Int" json:"maxPrice"`
-	MinFee     cosmossdk_io_math.Int `protobuf:"bytes,7,opt,name=minFee,proto3,customtype=cosmossdk.io/math.Int" json:"minFee"`
+type OnDemandLPBase struct {
+	// where funds come from, bech32-encoded
+	FundsAddr string `protobuf:"bytes,3,opt,name=funds_addr,json=fundsAddr,proto3" json:"funds_addr,omitempty"`
+	Rollapp   string `protobuf:"bytes,4,opt,name=rollapp,proto3" json:"rollapp,omitempty"`
+	Denom     string `protobuf:"bytes,5,opt,name=denom,proto3" json:"denom,omitempty"`
+	// will not fulfill if price is above this
+	MaxPrice cosmossdk_io_math.Int `protobuf:"bytes,6,opt,name=maxPrice,proto3,customtype=cosmossdk.io/math.Int" json:"maxPrice"`
+	// will not fulfill if fee is below this
+	MinFee cosmossdk_io_math.Int `protobuf:"bytes,7,opt,name=minFee,proto3,customtype=cosmossdk.io/math.Int" json:"minFee"`
+	// will not fulfill if brings spends above limit
 	SpendLimit cosmossdk_io_math.Int `protobuf:"bytes,8,opt,name=spendLimit,proto3,customtype=cosmossdk.io/math.Int" json:"spendLimit"`
 }
 
-func (m *OnDemandLiquidity) Reset()         { *m = OnDemandLiquidity{} }
-func (m *OnDemandLiquidity) String() string { return proto.CompactTextString(m) }
-func (*OnDemandLiquidity) ProtoMessage()    {}
-func (*OnDemandLiquidity) Descriptor() ([]byte, []int) {
+func (m *OnDemandLPBase) Reset()         { *m = OnDemandLPBase{} }
+func (m *OnDemandLPBase) String() string { return proto.CompactTextString(m) }
+func (*OnDemandLPBase) ProtoMessage()    {}
+func (*OnDemandLPBase) Descriptor() ([]byte, []int) {
 	return fileDescriptor_13de3de2ae42eb80, []int{0}
 }
-func (m *OnDemandLiquidity) XXX_Unmarshal(b []byte) error {
+func (m *OnDemandLPBase) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *OnDemandLiquidity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *OnDemandLPBase) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_OnDemandLiquidity.Marshal(b, m, deterministic)
+		return xxx_messageInfo_OnDemandLPBase.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -59,48 +61,96 @@ func (m *OnDemandLiquidity) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *OnDemandLiquidity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OnDemandLiquidity.Merge(m, src)
+func (m *OnDemandLPBase) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OnDemandLPBase.Merge(m, src)
 }
-func (m *OnDemandLiquidity) XXX_Size() int {
+func (m *OnDemandLPBase) XXX_Size() int {
 	return m.Size()
 }
-func (m *OnDemandLiquidity) XXX_DiscardUnknown() {
-	xxx_messageInfo_OnDemandLiquidity.DiscardUnknown(m)
+func (m *OnDemandLPBase) XXX_DiscardUnknown() {
+	xxx_messageInfo_OnDemandLPBase.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_OnDemandLiquidity proto.InternalMessageInfo
+var xxx_messageInfo_OnDemandLPBase proto.InternalMessageInfo
 
-func (m *OnDemandLiquidity) GetId() uint64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *OnDemandLiquidity) GetFundsAddr() string {
+func (m *OnDemandLPBase) GetFundsAddr() string {
 	if m != nil {
 		return m.FundsAddr
 	}
 	return ""
 }
 
-func (m *OnDemandLiquidity) GetRollapp() string {
+func (m *OnDemandLPBase) GetRollapp() string {
 	if m != nil {
 		return m.Rollapp
 	}
 	return ""
 }
 
-func (m *OnDemandLiquidity) GetDenom() string {
+func (m *OnDemandLPBase) GetDenom() string {
 	if m != nil {
 		return m.Denom
 	}
 	return ""
 }
 
+type OnDemandLP struct {
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// amt spent so far
+	Spent cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=spent,proto3,customtype=cosmossdk.io/math.Int" json:"spent"`
+	Lp    *OnDemandLPBase       `protobuf:"bytes,3,opt,name=lp,proto3" json:"lp,omitempty"`
+}
+
+func (m *OnDemandLP) Reset()         { *m = OnDemandLP{} }
+func (m *OnDemandLP) String() string { return proto.CompactTextString(m) }
+func (*OnDemandLP) ProtoMessage()    {}
+func (*OnDemandLP) Descriptor() ([]byte, []int) {
+	return fileDescriptor_13de3de2ae42eb80, []int{1}
+}
+func (m *OnDemandLP) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *OnDemandLP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_OnDemandLP.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *OnDemandLP) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OnDemandLP.Merge(m, src)
+}
+func (m *OnDemandLP) XXX_Size() int {
+	return m.Size()
+}
+func (m *OnDemandLP) XXX_DiscardUnknown() {
+	xxx_messageInfo_OnDemandLP.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_OnDemandLP proto.InternalMessageInfo
+
+func (m *OnDemandLP) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *OnDemandLP) GetLp() *OnDemandLPBase {
+	if m != nil {
+		return m.Lp
+	}
+	return nil
+}
+
 func init() {
-	proto.RegisterType((*OnDemandLiquidity)(nil), "dymensionxyz.dymension.eibc.OnDemandLiquidity")
+	proto.RegisterType((*OnDemandLPBase)(nil), "dymensionxyz.dymension.eibc.OnDemandLPBase")
+	proto.RegisterType((*OnDemandLP)(nil), "dymensionxyz.dymension.eibc.OnDemandLP")
 }
 
 func init() {
@@ -108,35 +158,37 @@ func init() {
 }
 
 var fileDescriptor_13de3de2ae42eb80 = []byte{
-	// 391 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xcb, 0xca, 0x1a, 0x31,
-	0x14, 0x9e, 0xf1, 0x6e, 0x16, 0x85, 0x06, 0x0b, 0xa9, 0xa5, 0xa3, 0x94, 0x2e, 0xa4, 0xa5, 0x13,
-	0xac, 0x4f, 0xa0, 0x2d, 0x2d, 0xa2, 0xd0, 0xe2, 0xb2, 0x1b, 0xc9, 0x4c, 0x52, 0x0d, 0x9a, 0x64,
-	0x3a, 0xc9, 0x88, 0xd3, 0xa7, 0xf0, 0x61, 0xfa, 0x10, 0x2e, 0xa5, 0xab, 0xd2, 0x85, 0x14, 0x7d,
-	0x91, 0x32, 0x93, 0xf9, 0xc5, 0x8d, 0x3f, 0xb8, 0xcb, 0x77, 0xbe, 0x4b, 0xce, 0xe1, 0x1c, 0xf0,
-	0x9a, 0xa6, 0x82, 0x49, 0xcd, 0x95, 0xdc, 0xa6, 0x3f, 0xf1, 0x05, 0x60, 0xc6, 0x83, 0x10, 0xaf,
-	0x23, 0x3f, 0x8a, 0x95, 0x51, 0xf0, 0xc5, 0xb5, 0xca, 0xbf, 0x00, 0x3f, 0x53, 0xb5, 0x5b, 0x0b,
-	0xb5, 0x50, 0xb9, 0x0e, 0x67, 0x2f, 0x6b, 0x69, 0xbf, 0xb9, 0x11, 0x1c, 0x2a, 0x21, 0x94, 0xc4,
-	0xda, 0x10, 0x93, 0xe8, 0x42, 0xfb, 0xfe, 0x71, 0x6d, 0xac, 0xd6, 0x6b, 0x12, 0x45, 0xf3, 0x88,
-	0x84, 0x2b, 0x66, 0x0a, 0x8f, 0x17, 0x2a, 0x2d, 0x94, 0xc6, 0x01, 0xd1, 0x0c, 0x6f, 0xfa, 0x01,
-	0x33, 0xa4, 0x8f, 0x43, 0xc5, 0x65, 0xc1, 0x3f, 0xb7, 0xfc, 0xdc, 0x36, 0x66, 0x81, 0xa5, 0x5e,
-	0xed, 0xca, 0xe0, 0xe9, 0x17, 0xf9, 0x91, 0x09, 0x22, 0xe9, 0x94, 0xff, 0x48, 0x38, 0xe5, 0x26,
-	0x85, 0x4f, 0x40, 0x89, 0x53, 0xe4, 0x76, 0xdd, 0x5e, 0x65, 0x56, 0xe2, 0x14, 0x0e, 0x41, 0x55,
-	0x47, 0x4c, 0x1a, 0x54, 0xea, 0xba, 0xbd, 0xe6, 0xe8, 0xed, 0xfe, 0xd8, 0x71, 0xfe, 0x1e, 0x3b,
-	0xcf, 0x6c, 0x94, 0xa6, 0x2b, 0x9f, 0x2b, 0x2c, 0x88, 0x59, 0xfa, 0x63, 0x69, 0x7e, 0xff, 0x7a,
-	0x07, 0x8a, 0x3f, 0xc6, 0xd2, 0xcc, 0xac, 0x13, 0xbe, 0x04, 0xe0, 0x7b, 0x22, 0xa9, 0x9e, 0x13,
-	0x4a, 0x63, 0x54, 0xce, 0x72, 0x66, 0xcd, 0xbc, 0x32, 0xa4, 0x34, 0x86, 0x08, 0xd4, 0x8b, 0xd1,
-	0x50, 0x25, 0xe7, 0x1e, 0x20, 0x6c, 0x81, 0x2a, 0x65, 0x52, 0x09, 0x54, 0xcd, 0xeb, 0x16, 0xc0,
-	0xcf, 0xa0, 0x21, 0xc8, 0xf6, 0x6b, 0xcc, 0x43, 0x86, 0x6a, 0xf7, 0x37, 0x75, 0x31, 0xc3, 0x0f,
-	0xa0, 0x26, 0xb8, 0xfc, 0xc4, 0x18, 0xaa, 0xdf, 0x1f, 0x53, 0x58, 0xe1, 0x04, 0x80, 0x6c, 0x4a,
-	0x3a, 0xe5, 0x82, 0x1b, 0xd4, 0xb8, 0x3f, 0xe8, 0xca, 0x3e, 0x9a, 0xec, 0x4f, 0x9e, 0x7b, 0x38,
-	0x79, 0xee, 0xbf, 0x93, 0xe7, 0xee, 0xce, 0x9e, 0x73, 0x38, 0x7b, 0xce, 0x9f, 0xb3, 0xe7, 0x7c,
-	0xeb, 0x2f, 0xb8, 0x59, 0x26, 0x81, 0x1f, 0x2a, 0x81, 0x6f, 0x9c, 0xc9, 0x66, 0x80, 0xb7, 0xf6,
-	0x60, 0x4d, 0x1a, 0x31, 0x1d, 0xd4, 0xf2, 0x35, 0x0f, 0xfe, 0x07, 0x00, 0x00, 0xff, 0xff, 0x0b,
-	0xd2, 0xbe, 0x1c, 0xdc, 0x02, 0x00, 0x00,
+	// 424 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xcd, 0x6e, 0xd3, 0x40,
+	0x18, 0xb4, 0x4d, 0x93, 0xb6, 0x1f, 0x52, 0x0f, 0xab, 0x22, 0x2d, 0x45, 0xb8, 0x55, 0xc5, 0xa1,
+	0xa2, 0x62, 0x57, 0x69, 0x8f, 0x9c, 0x1a, 0x10, 0xa8, 0x6a, 0x25, 0x2a, 0x1f, 0xb9, 0x44, 0x6b,
+	0xef, 0x92, 0xae, 0xea, 0xfd, 0x91, 0x77, 0x53, 0x25, 0x3c, 0x05, 0x0f, 0xc0, 0x63, 0x70, 0xe2,
+	0x09, 0x7a, 0xac, 0x38, 0x21, 0x0e, 0x15, 0x4a, 0x5e, 0x04, 0xd9, 0x6b, 0x42, 0x38, 0x24, 0x52,
+	0x6e, 0x9e, 0x6f, 0x66, 0x3e, 0x8f, 0xf6, 0x1b, 0x78, 0xc1, 0x27, 0x4a, 0x68, 0x27, 0x8d, 0x1e,
+	0x4f, 0x3e, 0xd3, 0x39, 0xa0, 0x42, 0xe6, 0x05, 0x2d, 0x2d, 0xb1, 0x95, 0xf1, 0x06, 0x3d, 0x5b,
+	0x54, 0x91, 0x39, 0x20, 0xb5, 0x6a, 0x6f, 0x77, 0x68, 0x86, 0xa6, 0xd1, 0xd1, 0xfa, 0x2b, 0x58,
+	0xf6, 0x5e, 0x2e, 0x59, 0x5c, 0x18, 0xa5, 0x8c, 0xa6, 0xce, 0x33, 0x3f, 0x72, 0xad, 0xf6, 0x64,
+	0xb5, 0xb6, 0x32, 0x65, 0xc9, 0xac, 0x1d, 0x58, 0x56, 0xdc, 0x08, 0xdf, 0x7a, 0xd2, 0xc2, 0x38,
+	0x65, 0x1c, 0xcd, 0x99, 0x13, 0xf4, 0xb6, 0x97, 0x0b, 0xcf, 0x7a, 0xb4, 0x30, 0x52, 0xb7, 0xfc,
+	0xd3, 0xc0, 0x0f, 0x42, 0xb0, 0x00, 0x02, 0x75, 0xf8, 0x3d, 0x81, 0x9d, 0x0f, 0xfa, 0xad, 0x50,
+	0x4c, 0xf3, 0xcb, 0xab, 0x3e, 0x73, 0x02, 0x3d, 0x07, 0xf8, 0x34, 0xd2, 0xdc, 0x0d, 0x18, 0xe7,
+	0x15, 0x7e, 0x74, 0x10, 0x1f, 0x6d, 0x67, 0xdb, 0xcd, 0xe4, 0x8c, 0xf3, 0x0a, 0x61, 0xd8, 0x6c,
+	0x43, 0xe0, 0x8d, 0x86, 0xfb, 0x0b, 0xd1, 0x2e, 0x74, 0xb8, 0xd0, 0x46, 0xe1, 0x4e, 0x33, 0x0f,
+	0x00, 0xbd, 0x87, 0x2d, 0xc5, 0xc6, 0x57, 0x95, 0x2c, 0x04, 0xee, 0xd6, 0x44, 0xff, 0xf8, 0xee,
+	0x61, 0x3f, 0xfa, 0xf5, 0xb0, 0xff, 0x24, 0x24, 0x71, 0xfc, 0x86, 0x48, 0x43, 0x15, 0xf3, 0xd7,
+	0xe4, 0x5c, 0xfb, 0x1f, 0xdf, 0x5e, 0x41, 0x1b, 0xf1, 0x5c, 0xfb, 0x6c, 0x6e, 0x46, 0x6f, 0xa0,
+	0xab, 0xa4, 0x7e, 0x27, 0x04, 0xde, 0x5c, 0x7f, 0x4d, 0x6b, 0x45, 0x17, 0x00, 0xce, 0x0a, 0xcd,
+	0x2f, 0xa5, 0x92, 0x1e, 0x6f, 0xad, 0xbf, 0x68, 0xc1, 0x7e, 0xf8, 0x35, 0x06, 0xf8, 0xf7, 0x78,
+	0x68, 0x07, 0x12, 0xc9, 0x71, 0x7c, 0x10, 0x1f, 0x6d, 0x64, 0x89, 0xe4, 0xe8, 0x0c, 0x3a, 0xb5,
+	0xd8, 0xe3, 0x64, 0xfd, 0xdf, 0x04, 0x27, 0x7a, 0x0d, 0x49, 0x69, 0x9b, 0x1b, 0x3c, 0x3e, 0x39,
+	0x26, 0x2b, 0x9a, 0x47, 0xfe, 0x3f, 0x62, 0x96, 0x94, 0xb6, 0x7f, 0x71, 0x37, 0x4d, 0xe3, 0xfb,
+	0x69, 0x1a, 0xff, 0x9e, 0xa6, 0xf1, 0x97, 0x59, 0x1a, 0xdd, 0xcf, 0xd2, 0xe8, 0xe7, 0x2c, 0x8d,
+	0x3e, 0xf6, 0x86, 0xd2, 0x5f, 0x8f, 0x72, 0x52, 0x18, 0x45, 0x97, 0xf4, 0xed, 0xf6, 0x94, 0x8e,
+	0x43, 0xf3, 0xfd, 0xc4, 0x0a, 0x97, 0x77, 0x9b, 0xbe, 0x9c, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff,
+	0xac, 0xf7, 0x8b, 0xca, 0x25, 0x03, 0x00, 0x00,
 }
 
-func (m *OnDemandLiquidity) Marshal() (dAtA []byte, err error) {
+func (m *OnDemandLPBase) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -146,12 +198,12 @@ func (m *OnDemandLiquidity) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *OnDemandLiquidity) MarshalTo(dAtA []byte) (int, error) {
+func (m *OnDemandLPBase) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *OnDemandLiquidity) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *OnDemandLPBase) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -207,6 +259,41 @@ func (m *OnDemandLiquidity) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
+	return len(dAtA) - i, nil
+}
+
+func (m *OnDemandLP) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *OnDemandLP) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *OnDemandLP) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Lp != nil {
+		{
+			size, err := m.Lp.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintLp(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
 	{
 		size := m.Spent.Size()
 		i -= size
@@ -236,17 +323,12 @@ func encodeVarintLp(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *OnDemandLiquidity) Size() (n int) {
+func (m *OnDemandLPBase) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Id != 0 {
-		n += 1 + sovLp(uint64(m.Id))
-	}
-	l = m.Spent.Size()
-	n += 1 + l + sovLp(uint64(l))
 	l = len(m.FundsAddr)
 	if l > 0 {
 		n += 1 + l + sovLp(uint64(l))
@@ -268,13 +350,31 @@ func (m *OnDemandLiquidity) Size() (n int) {
 	return n
 }
 
+func (m *OnDemandLP) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovLp(uint64(m.Id))
+	}
+	l = m.Spent.Size()
+	n += 1 + l + sovLp(uint64(l))
+	if m.Lp != nil {
+		l = m.Lp.Size()
+		n += 1 + l + sovLp(uint64(l))
+	}
+	return n
+}
+
 func sovLp(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozLp(x uint64) (n int) {
 	return sovLp(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *OnDemandLiquidity) Unmarshal(dAtA []byte) error {
+func (m *OnDemandLPBase) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -297,65 +397,12 @@ func (m *OnDemandLiquidity) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: OnDemandLiquidity: wiretype end group for non-group")
+			return fmt.Errorf("proto: OnDemandLPBase: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: OnDemandLiquidity: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: OnDemandLPBase: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
-			}
-			m.Id = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowLp
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Id |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Spent", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowLp
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthLp
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthLp
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Spent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FundsAddr", wireType)
@@ -551,6 +598,145 @@ func (m *OnDemandLiquidity) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.SpendLimit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipLp(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthLp
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *OnDemandLP) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowLp
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: OnDemandLP: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: OnDemandLP: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Spent", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthLp
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthLp
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Spent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lp", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthLp
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthLp
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Lp == nil {
+				m.Lp = &OnDemandLPBase{}
+			}
+			if err := m.Lp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
