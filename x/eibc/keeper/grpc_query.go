@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -133,12 +135,33 @@ func isRecipient(recipient string) filterOption {
 	}
 }
 
-func (q Querier) OnDemandLPs(ctx context.Context, request *types.QueryOnDemandLPsRequest) (*types.QueryOnDemandLPsResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (q Querier) OnDemandLPs(gctx context.Context, r *types.QueryOnDemandLPsRequest) (*types.QueryOnDemandLPsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(gctx)
+
+	ret := &types.QueryOnDemandLPsResponse{}
+	for _, id := range r.Ids {
+		lp, err := q.LPs.Get(ctx, id)
+		if errorsmod.IsOf(err, collections.ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		ret.Lps = append(ret.Lps, lp)
+	}
+
+	return ret, nil
 }
 
-func (q Querier) OnDemandLPsByByAddr(ctx context.Context, request *types.QueryOnDemandLPsByAddrRequest) (*types.QueryOnDemandLPsByAddrResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (q Querier) OnDemandLPsByByAddr(gctx context.Context, r *types.QueryOnDemandLPsByAddrRequest) (*types.QueryOnDemandLPsByAddrResponse, error) {
+	ctx := sdk.UnwrapSDKContext(gctx)
+	acc, err := sdk.AccAddressFromBech32(r.Addr)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "acc address from bech32")
+	}
+	lps, err := q.LPs.GetByAddr(ctx, acc)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "get by addr")
+	}
+	return &types.QueryOnDemandLPsByAddrResponse{Lps: lps}, nil
 }

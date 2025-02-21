@@ -116,6 +116,11 @@ func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
 	return &ret, err
 }
 
+func (s LPs) GetByAddr(ctx sdk.Context, addr sdk.AccAddress) ([]*types.OnDemandLPRecord, error) {
+	ret, err := s.byID.Get(ctx, id)
+	return &ret, err
+}
+
 func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
 
 	rol := o.RollappId
