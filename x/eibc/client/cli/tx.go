@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	math "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -27,8 +28,9 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(NewFulfillOrderAuthorizedTxCmd())
 	cmd.AddCommand(NewUpdateDemandOrderTxCmd())
 	cmd.AddCommand(NewCmdGrantAuthorization())
-
-	return cmd
+	cmd.AddCommand(NewCmdFindFulfiller())
+	cmd.AddCommand(NewCmdCreateOnDemandLP())
+	cmd.AddCommand(NewCmdDeleteOnDemandLP())
 }
 
 func NewFulfillOrderTxCmd() *cobra.Command {
@@ -167,6 +169,109 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 }
 
 func NewUpdateDemandOrderTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "update-demand-order [order-id] [new-fee-amount]",
+		Short:   "Update a demand order",
+		Example: "dymd tx eibc update-demand-order <order-id> <new-fee-amount>",
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			orderId := args[0]
+			newFee := args[1]
+
+			msg := types.NewMsgUpdateDemandOrder(
+				clientCtx.GetFromAddress().String(),
+				orderId,
+				newFee,
+			)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewCmdFindFulfiller() *cobra.Command {
+
+	short := "Try to find a fulfiller for a given order and fulfill on the spot"
+	cmd := &cobra.Command{
+		Use:   "find-fulfiller [order-id] [rng]",
+		Short: short,
+		Long:  short + " Can provide rng to avoid choosing same fulfiller multiple times (number). ",
+
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			orderId := args[0]
+			rng := 0
+			if len(args) > 1 {
+				rng, err = strconv.Atoi(args[1])
+				if err != nil {
+					return err
+				}
+			}
+
+			msg := &types.MsgFindFulfiller{
+				Signer:  clientCtx.GetFromAddress().String(),
+				OrderId: orderId,
+				Rng:     int64(rng),
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewCmdCreateOnDemandLP() *cobra.Command {
+
+	short := "Create on demand lp - FUNDS AT RISK - use with caution"
+	long := short + "Create on demand lp - anyone can fill and order through your lp with your funds"
+	cmd := &cobra.Command{
+		Use:   "find-fulfiller [order-id] [rng]",
+		Short: short,
+		Long:  long,
+
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			// fill the gap
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewCmdDeleteOnDemandLP() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-demand-order [order-id] [new-fee-amount]",
 		Short:   "Update a demand order",
