@@ -15,10 +15,12 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-var LPsByRollAppDenomPrefix = collections.NewPrefix("lps0")
-var LPsByIDPrefix = collections.NewPrefix("lps1")
-var LPsNextIDPrefix = collections.NewPrefix("lps2")
-var LPsByAddrPrefix = collections.NewPrefix("lps3")
+var (
+	LPsByRollAppDenomPrefix = collections.NewPrefix("lps0")
+	LPsByIDPrefix           = collections.NewPrefix("lps1")
+	LPsNextIDPrefix         = collections.NewPrefix("lps2")
+	LPsByAddrPrefix         = collections.NewPrefix("lps3")
+)
 
 type LPs struct {
 	// <rollapp,denom,id>
@@ -43,7 +45,6 @@ type OnDemandLiquidity struct {
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	return LPs{
-
 		byRollAppDenom: collections.NewKeySet[collections.Triple[string, string, uint64]](
 			sb, LPsByRollAppDenomPrefix, "byRollAppDenom",
 			collections.TripleKeyCodec[string, string, uint64](
@@ -157,7 +158,6 @@ func (s LPs) GetByAddr(ctx sdk.Context, addr sdk.AccAddress) ([]*types.OnDemandL
 }
 
 func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
-
 	rol := o.RollappId
 	denom := o.Denom()
 	ranger := collections.NewSuperPrefixedTripleRange[string, string, uint64](rol, denom)

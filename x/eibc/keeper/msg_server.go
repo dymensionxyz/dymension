@@ -260,7 +260,6 @@ func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateO
 	}
 
 	return &types.MsgCreateOnDemandLPResponse{Id: id}, nil
-
 }
 
 func (m msgServer) DeleteOnDemandLP(goCtx context.Context, msg *types.MsgDeleteOnDemandLP) (*types.MsgDeleteOnDemandLPResponse, error) {

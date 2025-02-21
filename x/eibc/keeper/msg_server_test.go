@@ -820,7 +820,6 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 
 			_, err = k.LPs.Get(suite.Ctx, msgD.Ids[0])
 			suite.Require().True(errorsmod.IsOf(err, collections.ErrNotFound))
-
 		})
 	}
 }

@@ -201,7 +201,6 @@ func NewUpdateDemandOrderTxCmd() *cobra.Command {
 }
 
 func NewCmdFindFulfiller() *cobra.Command {
-
 	short := "Try to find a fulfiller for a given order and fulfill on the spot"
 	cmd := &cobra.Command{
 		Use:   "find-fulfiller [order-id] [rng]",
@@ -242,7 +241,6 @@ func NewCmdFindFulfiller() *cobra.Command {
 }
 
 func NewCmdCreateOnDemandLP() *cobra.Command {
-
 	short := "Create on demand lp - FUNDS AT RISK - use with caution"
 	long := short + "Create on demand lp - anyone can fill and order through your lp with your funds"
 	cmd := &cobra.Command{
@@ -306,7 +304,6 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 }
 
 func NewCmdDeleteOnDemandLP() *cobra.Command {
-
 	short := "Delete on demand lp"
 	cmd := &cobra.Command{
 		Use:   "delete-demand-lp [id]",
