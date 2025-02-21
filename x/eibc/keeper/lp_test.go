@@ -96,6 +96,37 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 	suite.Equal(expect1, lps[1].Id)
 }
 
+// test the order age compatibility
+// not practical due to test in other test as get explosion of combinations
+func (suite *KeeperTestSuite) TestLPCompatibilityHeightAge() {
+	var err error
+	k := suite.App.EIBCKeeper
+	ctx := suite.Ctx
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
+		Rollapp:           "1", // wrong rollup
+		Denom:             "aaa",
+		SpendLimit:        math.NewInt(100),
+		MaxPrice:          math.NewInt(100),
+		OrderMinAgeBlocks: 50, // practical value of 5 mins with 6 secs per block, although doesn't matter for test
+	})
+	suite.Require().NoError(err)
+	o := types.DemandOrder{
+		RollappId:      "1",
+		Price:          sdk.NewCoins(sdk.NewCoin("aaa", math.NewInt(7))),
+		Fee:            sdk.NewCoins(sdk.NewCoin("aaa", math.NewInt(7))),
+		CreationHeight: 20,
+	}
+	for i := 68; i < 72; i++ {
+		lps, err := k.LPs.GetOrderCompatibleLPs(ctx.WithBlockHeight(int64(i)), o)
+		suite.Require().NoError(err)
+		if i < 70 {
+			suite.Empty(lps)
+		} else {
+			suite.NotEmpty(lps)
+		}
+	}
+}
+
 func (suite *KeeperTestSuite) TestLPQueriesByAddr() {
 	var err error
 	k := suite.App.EIBCKeeper
