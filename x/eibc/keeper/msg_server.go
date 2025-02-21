@@ -168,11 +168,7 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 
 	lastHeight := stateInfo.GetLatestHeight()
 
-	// TODO: write oneliner
-	if lastHeight < raPacket.ProofHeight {
-		return false, nil
-	}
-	return true, nil
+	return raPacket.ProofHeight <= lastHeight, nil
 }
 
 // UpdateDemandOrder implements types.MsgServer.
