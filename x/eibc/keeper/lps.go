@@ -96,16 +96,18 @@ func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
 	return &ret, err
 }
 
-func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
+func (s LPs) GetOrderCompatibleLP(ctx sdk.Context, rng uint64, o types.DemandOrder) (*types.OnDemandLPRecord, error) {
 
 	rol := o.RollappId
 	denom := o.Denom()
-	rng := collections.NewSuperPrefixedTripleRange[string, string, uint64](rol, denom)
-	iter, err := s.byRollAppDenom.Iterate(ctx, rng)
+	ranger := collections.NewSuperPrefixedTripleRange[string, string, uint64](rol, denom)
+	iter, err := s.byRollAppDenom.Iterate(ctx, ranger)
 	if err != nil {
 		return nil, err
 	}
 	defer iter.Close()
+
+	var compat []*types.OnDemandLPRecord
 	for ; iter.Valid(); iter.Next() {
 		key, err := iter.Key()
 		if err != nil {
@@ -118,17 +120,31 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 			return nil, err
 		}
 		if lpr.Accepts(o) {
-			// TODO: just direct fulfill here
-			return lpr, nil
+			compat = append(compat, &lpr)
 		}
 	}
-	return nil, nil
+
+	if len(compat) == 0 {
+		return nil, nil
+	}
+
+	return compat[rng%uint64(len(compat))], nil
 }
 
-func (k Keeper) FindOnDemandLP(ctx sdk.Context, order string) error {
+func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {
+	o, err := k.GetOutstandingOrder(ctx, order)
+	if err != nil {
+		return errorsmod.Wrap(err, "get outstanding order")
+	}
+	lpr, err := k.LPs.GetOrderCompatibleLP(ctx, rng, *o)
+	if err != nil {
+		return errorsmod.Wrap(err, "get compatible lp")
+	}
+	if lpr == nil {
+		return errorsmod.Wrap(gerrc.ErrNotFound, "no compatible lp")
+	}
 
 	return nil
-
 }
 
 func (k Keeper) CreateLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {

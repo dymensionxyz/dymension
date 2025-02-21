@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", sdk.NewInt(7))),
 		RollappId: "2",
 	}
-	lp, err := k.LPs.GetOrderCompatibleLPs(ctx, k, &o)
+	lp, err := k.LPs.GetOrderCompatibleLP(ctx, k, &o)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(lp)
 	suite.Equal(expect, lp.Id)

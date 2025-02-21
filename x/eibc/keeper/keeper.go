@@ -165,6 +165,28 @@ func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id st
 	return &order, nil
 }
 
+func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
+	// Check that the order exists in status PENDING
+	demandOrder, err := k.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
+	packet, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// No error means the order is due to be finalized,
+	// in which case the order is not outstanding anymore
+	if err = k.dack.VerifyHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight); err == nil {
+		return nil, types.ErrDemandOrderInactive
+	}
+
+	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
+}
+
 // ListAllDemandOrders returns all demand orders.
 func (k Keeper) ListAllDemandOrders(
 	ctx sdk.Context,
