@@ -15,15 +15,18 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-var LPsByRollAppDenomPrefix = collections.NewPrefix("col0")
-var LPsByIDPrefix = collections.NewPrefix("col1")
-var LPsNextIDPrefix = collections.NewPrefix("col2")
+var LPsByRollAppDenomPrefix = collections.NewPrefix("lps0")
+var LPsByIDPrefix = collections.NewPrefix("lps1")
+var LPsNextIDPrefix = collections.NewPrefix("lps2")
+var LPsByAddrPrefix = collections.NewPrefix("lps3")
 
 type LPs struct {
 	// <rollapp,denom,id>
 	byRollAppDenom collections.KeySet[collections.Triple[string, string, uint64]]
 	// id -> lp
-	byID   collections.Map[uint64, types.OnDemandLPRecord]
+	byID collections.Map[uint64, types.OnDemandLPRecord]
+	// <addr,id>
+	byAddr collections.KeySet[collections.Pair[string, uint64]]
 	nextID collections.Sequence
 }
 
@@ -52,6 +55,13 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 			sb, LPsByIDPrefix, "byID",
 			collections.Uint64Key, codec.CollValue[types.OnDemandLPRecord](cdc),
 		),
+		byAddr: collections.NewKeySet[collections.Pair[string, uint64]](
+			sb, LPsByAddrPrefix, "byAddr",
+			collections.PairKeyCodec[string, uint64](
+				collections.StringKey,
+				collections.Uint64Key,
+			),
+		),
 		nextID: collections.NewSequence(sb, LPsNextIDPrefix, "nextID"),
 	}
 }
@@ -60,7 +70,7 @@ func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	id, err := s.nextID.Next(ctx)
 	if err != nil {
-		return 0, err
+		return 0, errorsmod.Wrap(err, "next id")
 	}
 	if err := uevent.EmitTypedEvent(ctx, &types.EventCreatedOnDemandLP{
 		Id:        id,
@@ -78,28 +88,41 @@ func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 func (s LPs) Set(ctx sdk.Context, lp types.OnDemandLPRecord) error {
 	err := s.byID.Set(ctx, lp.Id, lp)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "set id")
+	}
+	err = s.byAddr.Set(ctx, collections.Join(lp.Lp.FundsAddr, lp.Id))
+	if err != nil {
+		return errorsmod.Wrap(err, "set by addr")
 	}
 	err = s.byRollAppDenom.Set(ctx, collections.Join3(lp.Lp.Rollapp, lp.Lp.Denom, lp.Id))
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "set by rollapp denom")
 	}
 	return nil
+}
+
+func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
+	ret, err := s.byID.Get(ctx, id)
+	return &ret, err
 }
 
 // reason is human-readable string for debugging/ux
 func (s LPs) Del(ctx sdk.Context, id uint64, reason string) error {
 	lp, err := s.byID.Get(ctx, id)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "get id")
 	}
 	err = s.byID.Remove(ctx, id)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "remove id")
 	}
 	err = s.byRollAppDenom.Remove(ctx, collections.Join3(lp.Lp.Rollapp, lp.Lp.Denom, id))
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "remove by rollapp denom")
+	}
+	err = s.byAddr.Remove(ctx, collections.Join(lp.Lp.FundsAddr, lp.Id))
+	if err != nil {
+		return errorsmod.Wrap(err, "remove by addr")
 	}
 	if err := uevent.EmitTypedEvent(ctx, &types.EventDeletedOnDemandLP{
 		Id:        id,
@@ -111,14 +134,26 @@ func (s LPs) Del(ctx sdk.Context, id uint64, reason string) error {
 	return nil
 }
 
-func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
-	ret, err := s.byID.Get(ctx, id)
-	return &ret, err
-}
-
 func (s LPs) GetByAddr(ctx sdk.Context, addr sdk.AccAddress) ([]*types.OnDemandLPRecord, error) {
-	ret, err := s.byID.Get(ctx, id)
-	return &ret, err
+	var ret []*types.OnDemandLPRecord
+	rng := collections.NewPrefixedPairRange[string, uint64](addr.String())
+	iter, err := s.byAddr.Iterate(ctx, rng)
+	if err != nil {
+		return nil, err
+	}
+	for ; iter.Valid(); iter.Next() {
+		key, err := iter.Key()
+		if err != nil {
+			return nil, err
+		}
+		id := key.K2()
+		lp, err := s.byID.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, &lp)
+	}
+	return ret, err
 }
 
 func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
