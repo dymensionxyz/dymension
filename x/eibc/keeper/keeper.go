@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/google/logger"
 
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/codec"

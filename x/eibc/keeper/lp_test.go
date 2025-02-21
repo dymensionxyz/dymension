@@ -10,7 +10,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 	var err error
 	k := suite.App.EIBCKeeper
 	ctx := suite.Ctx
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "1", // wrong rollup
 		Denom:      "aaa",
 		MaxPrice:   math.NewInt(1),
@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "1", // wrong rollup
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(1),
@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "2",
 		Denom:      "aaa", // wrong denom
 		MaxPrice:   math.NewInt(1),
@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(1), // max price too low
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(5),
@@ -50,7 +50,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	expect, err := k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	expect, err := k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(5), // valid
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(6), // also valid, but not first
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "3", // wrong rollup
 		Denom:      "aaa",
 		MaxPrice:   math.NewInt(1),
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestLPs() {
 	})
 	suite.Require().NoError(err)
 
-	_, err = k.LPs.UpsertLP(ctx, &types.OnDemandLiquidity{
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    "3", // wrong rollup
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(1),
@@ -84,12 +84,11 @@ func (suite *KeeperTestSuite) TestLPs() {
 	})
 	suite.Require().NoError(err)
 	o := types.DemandOrder{
-		Price:     sdk.NewCoins(sdk.NewCoin("bbb", sdk.NewInt(5))),
-		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", sdk.NewInt(7))),
+		Price:     sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(5))),
+		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(7))),
 		RollappId: "2",
 	}
-	lp, err := k.LPs.GetOrderCompatibleLP(ctx, k, &o)
+	lps, err := k.LPs.GetOrderCompatibleLPs(ctx, o)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(lp)
-	suite.Equal(expect, lp.Id)
+	suite.Equal(expect, lps[0].Id)
 }
