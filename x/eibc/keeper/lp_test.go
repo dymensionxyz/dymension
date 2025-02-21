@@ -96,6 +96,30 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 	suite.Equal(expect1, lps[1].Id)
 }
 
+// sanity check because another test was failing so wanted to double check
+func (suite *KeeperTestSuite) TestDebug() {
+	var err error
+	k := suite.App.EIBCKeeper
+	ctx := suite.Ctx
+	denom := sdk.DefaultBondDenom
+	rol := "foo_224126-1"
+	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
+		Rollapp:    rol, // wrong rollup
+		Denom:      denom,
+		MaxPrice:   math.NewInt(1),
+		MinFee:     math.NewInt(1),
+		SpendLimit: math.NewInt(100),
+	})
+	suite.Require().NoError(err)
+	compat, err := k.LPs.GetOrderCompatibleLPs(ctx, types.DemandOrder{
+		RollappId: rol,
+		Price:     sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(1))),
+		Fee:       sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(1))),
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(compat, 1)
+}
+
 // test the order age compatibility
 // not practical due to test in other test as get explosion of combinations
 func (suite *KeeperTestSuite) TestLPCompatibilityHeightAge() {

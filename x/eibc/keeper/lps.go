@@ -206,6 +206,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {
 					return errorsmod.Wrapf(err, "delete lp: %d", lp.Id)
 				}
+				ctx.Logger().Error("Fulfill via on demand dlp - insufficient funds.", "lp", lp.Id)
 				continue
 			}
 			return errorsmod.Wrap(err, "fulfill lp")
@@ -221,6 +222,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 		if err = k.LPs.Set(ctx, lp); err != nil {
 			return errorsmod.Wrap(err, "set lp")
 		}
+		return nil
 	}
 	return errorsmod.Wrap(gerrc.ErrNotFound, "no compatible lp")
 }

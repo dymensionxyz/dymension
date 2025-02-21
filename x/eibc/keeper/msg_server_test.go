@@ -724,7 +724,7 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 	largeBalance := math.NewInt(10_000_000)
 	denom := sdk.DefaultBondDenom
-	rol := "rol"
+	rol := "rollapp_1234-1"
 	k := suite.App.EIBCKeeper
 	type Test struct {
 		name                string
@@ -766,7 +766,7 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 			suite.Require().NoError(err)
 
 			orderBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
-			fulfillerBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			fulfillerBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
 
 			msgC := types.MsgCreateOnDemandLP{
 				Lp: &types.OnDemandLP{
@@ -784,6 +784,7 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 
 			suite.Require().Equal(uint64(0), resC.Id)
 
+			suite.Ctx = suite.Ctx.WithBlockHeight(tc.nowHeight)
 			lp, err := k.LPs.Get(suite.Ctx, resC.Id)
 			suite.Require().Equal(msgC.Lp, lp.Lp)
 
@@ -792,14 +793,17 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 				OrderId: order.Id,
 				Rng:     0,
 			}
-			suite.Ctx = suite.Ctx.WithBlockHeight(tc.nowHeight)
 			_, err = suite.msgServer.FindFulfiller(suite.Ctx, msgF)
-			suite.Require().True(errorsmod.IsOf(err, tc.err))
 			orderBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
-			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
 			if tc.err == nil {
-				suite.Require().Equal(orderBalBefore.Add(tc.orderPrice), orderBalAft)
-				suite.Require().Equal(fulfillerBalBefore.Sub(tc.orderPrice), fulfillerBalAft)
+				suite.Require().NoError(err)
+				suite.Require().True(orderBalBefore.Add(tc.orderPrice).Equal(orderBalAft),
+					"order bal before:%s, aft:%s ", orderBalBefore.String(), orderBalAft.String())
+				suite.Require().True(fulfillerBalBefore.Sub(tc.orderPrice).Equal(fulfillerBalAft),
+					"fulfiller bal before:%s, aft:%s ", fulfillerBalBefore.String(), fulfillerBalAft.String())
+			} else {
+				suite.Require().True(errorsmod.IsOf(err, tc.err))
 			}
 
 			resQ, err := keeper.NewQuerier(k).OnDemandLPsByByAddr(suite.Ctx, &types.QueryOnDemandLPsByAddrRequest{Addr: fulfillerAddr.String()})
