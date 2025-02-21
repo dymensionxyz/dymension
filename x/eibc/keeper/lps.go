@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"math/rand"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -10,11 +11,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-var LPsByRollAppDenomPrefix = collections.NewPrefix(0)
-var LPsByIDPrefix = collections.NewPrefix(1)
-var LPsNextIDPrefix = collections.NewPrefix(2)
+var LPsByRollAppDenomPrefix = collections.NewPrefix("col0")
+var LPsByIDPrefix = collections.NewPrefix("col1")
+var LPsNextIDPrefix = collections.NewPrefix("col2")
 
 type LPs struct {
 	// <rollapp,denom,id>
@@ -59,20 +61,23 @@ func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	record := types.OnDemandLPRecord{
+	return id, s.Set(ctx, types.OnDemandLPRecord{
 		Id:    id,
 		Lp:    lp,
 		Spent: math.ZeroInt(),
-	}
-	err = s.byID.Set(ctx, id, record)
+	})
+}
+
+func (s LPs) Set(ctx sdk.Context, lp types.OnDemandLPRecord) error {
+	err := s.byID.Set(ctx, lp.Id, lp)
 	if err != nil {
-		return 0, err
+		return err
 	}
-	err = s.byRollAppDenom.Set(ctx, collections.Join3(lp.Rollapp, lp.Denom, id))
+	err = s.byRollAppDenom.Set(ctx, collections.Join3(lp.Lp.Rollapp, lp.Lp.Denom, lp.Id))
 	if err != nil {
-		return 0, err
+		return err
 	}
-	return id, nil
+	return nil
 }
 
 func (s LPs) Del(ctx sdk.Context, id uint64) error {
@@ -96,7 +101,7 @@ func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
 	return &ret, err
 }
 
-func (s LPs) GetOrderCompatibleLP(ctx sdk.Context, rng uint64, o types.DemandOrder) (*types.OnDemandLPRecord, error) {
+func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
 
 	rol := o.RollappId
 	denom := o.Denom()
@@ -107,7 +112,7 @@ func (s LPs) GetOrderCompatibleLP(ctx sdk.Context, rng uint64, o types.DemandOrd
 	}
 	defer iter.Close()
 
-	var compat []*types.OnDemandLPRecord
+	var compat []types.OnDemandLPRecord
 	for ; iter.Valid(); iter.Next() {
 		key, err := iter.Key()
 		if err != nil {
@@ -120,31 +125,50 @@ func (s LPs) GetOrderCompatibleLP(ctx sdk.Context, rng uint64, o types.DemandOrd
 			return nil, err
 		}
 		if lpr.Accepts(o) {
-			compat = append(compat, &lpr)
+			compat = append(compat, lpr)
 		}
 	}
-
-	if len(compat) == 0 {
-		return nil, nil
-	}
-
-	return compat[rng%uint64(len(compat))], nil
+	return compat, nil
 }
 
-func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {
+func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) error {
 	o, err := k.GetOutstandingOrder(ctx, order)
 	if err != nil {
 		return errorsmod.Wrap(err, "get outstanding order")
 	}
-	lpr, err := k.LPs.GetOrderCompatibleLP(ctx, rng, *o)
+	lps, err := k.LPs.GetOrderCompatibleLPs(ctx, *o)
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
 	}
-	if lpr == nil {
-		return errorsmod.Wrap(gerrc.ErrNotFound, "no compatible lp")
+	r := rand.New(rand.NewSource(rng))
+	r.Shuffle(len(lps), func(i, j int) {
+		lps[i], lps[j] = lps[j], lps[i]
+	})
+	for _, lp := range lps {
+		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
+		if err != nil {
+			var insuf error // TODO: finish
+			if errorsmod.IsOf(err, insuf) {
+				if err := k.LPs.Del(ctx, lp.Id); err != nil {
+					return errorsmod.Wrapf(err, "delete lp: %d", lp.Id)
+				}
+				continue
+			}
+			return errorsmod.Wrap(err, "fulfill lp")
+		}
+		if err = uevent.EmitTypedEvent(ctx, &types.EventMatchedOnDemandLP{
+			OrderId:   o.Id,
+			LpId:      lp.Id,
+			Fulfiller: lp.Lp.MustAddr().String(),
+		}); err != nil {
+			return errorsmod.Wrap(err, "emit event")
+		}
+		lp.Spent = lp.Spent.Add(o.PriceAmount())
+		if err = k.LPs.Set(ctx, lp); err != nil {
+			return errorsmod.Wrap(err, "set lp")
+		}
 	}
-
-	return nil
+	return errorsmod.Wrap(gerrc.ErrNotFound, "no compatible lp")
 }
 
 func (k Keeper) CreateLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {

@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/google/logger"
 
 	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -278,6 +279,31 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 	})
 
 	return
+}
+
+func (k Keeper) Fulfill(ctx sdk.Context,
+	o *types.DemandOrder,
+	fulfiller sdk.AccAddress,
+) error {
+	fulfillerAccount := k.ak.GetAccount(ctx, fulfiller) // TODO: can omit?
+	if fulfillerAccount == nil {
+		return types.ErrFulfillerAddressDoesNotExist
+	}
+
+	err := k.bk.SendCoins(ctx, fulfiller, o.GetRecipientBech32Address(), o.Price)
+	if err != nil {
+		return err
+	}
+
+	if err = k.SetOrderFulfilled(ctx, o, fulfiller, nil); err != nil {
+		return err
+	}
+
+	if err = uevent.EmitTypedEvent(ctx, o.GetFulfilledEvent()); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
+
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */

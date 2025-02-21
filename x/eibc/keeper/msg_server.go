@@ -48,25 +48,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrExpectedFeeNotMet
 	}
 
-	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
-	if fulfillerAccount == nil {
-		return nil, types.ErrFulfillerAddressDoesNotExist
-	}
-
-	// Send the funds from the fulfiller to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.Fulfill(ctx, demandOrder, msg.GetFulfillerBech32Address())
 	if err != nil {
-		logger.Error("Failed to send coins", "error", err)
+		logger.Error("Fulfill order", "error", err)
 		return nil, err
-	}
-
-	// Fulfill the order by updating the order status and underlying packet recipient
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), nil); err != nil {
-		return nil, err
-	}
-
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledEvent()); err != nil {
-		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgFulfillOrderResponse{}, nil
