@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -715,4 +716,87 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	suite.Require().NoError(err)
 	suite.Assert().Equal(updatedDemandOrder.Fee.AmountOf(denom), newFee)
 	suite.Assert().Equal(updatedDemandOrder.Price.AmountOf(denom), expectedNewPrice)
+}
+
+func (suite *KeeperTestSuite) TestMsgOnDemandHappyFlow() {
+	largeBalance := math.NewInt(10_000_000)
+	denom := sdk.DefaultBondDenom
+	rol := "rol"
+	type Test struct {
+		name                string
+		fulfillerBal        math.Int
+		orderCreationHeight uint64
+		orderFee            math.Int
+		orderPrice          math.Int
+		lpMaxPrice          math.Int
+		lpMinFee            math.Int
+		lpSpendLimit        math.Int
+		lpOrderMinAgeBlocks uint64
+		nowHeight           int64
+		err                 error
+	}
+	for _, tc := range []Test{
+		{
+			name:         "happy flow",
+			fulfillerBal: math.NewInt(100),
+			nowHeight:    15,
+
+			orderCreationHeight: 10,
+			orderFee:            math.NewInt(20),
+			orderPrice:          math.NewInt(40),
+
+			lpMaxPrice:          math.NewInt(50),
+			lpMinFee:            math.NewInt(10),
+			lpSpendLimit:        math.NewInt(100),
+			lpOrderMinAgeBlocks: 0,
+		},
+	} {
+		suite.Run(tc.name, func() {
+			addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, largeBalance)
+			orderAddr := addrs[0]
+			fulfillerAddr := addrs[1]
+			rPacket := *rollappPacket
+			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, rPacket)
+			order := types.NewDemandOrder(rPacket, tc.orderPrice, tc.orderFee, denom, orderAddr.String(), tc.orderCreationHeight)
+			err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, order)
+			suite.Require().NoError(err)
+
+			orderBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			fulfillerBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+
+			msgC := types.MsgCreateOnDemandLP{
+				Lp: &types.OnDemandLP{
+					FundsAddr:         fulfillerAddr.String(),
+					Rollapp:           rol,
+					Denom:             denom,
+					MaxPrice:          tc.lpMaxPrice,
+					MinFee:            tc.lpMinFee,
+					SpendLimit:        tc.lpSpendLimit,
+					OrderMinAgeBlocks: tc.lpOrderMinAgeBlocks,
+				},
+			}
+			resC, err := suite.msgServer.CreateOnDemandLP(suite.Ctx, &msgC)
+			suite.Require().NoError(err)
+
+			suite.Require().Equal(uint64(0), resC.Id)
+
+			lp, err := suite.App.EIBCKeeper.LPs.Get(suite.Ctx, resC.Id)
+			suite.Require().Equal(msgC.Lp, lp.Lp)
+
+			msgF := &types.MsgFindFulfiller{
+				Signer:  orderAddr.String(),
+				OrderId: order.Id,
+				Rng:     0,
+			}
+			suite.Ctx = suite.Ctx.WithBlockHeight(tc.nowHeight)
+			_, err = suite.msgServer.FindFulfiller(suite.Ctx, msgF)
+			suite.Require().True(errorsmod.IsOf(err, tc.err))
+			orderBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			if tc.err == nil {
+				suite.Require().Equal(orderBalBefore.Add(tc.orderPrice), orderBalAft)
+				suite.Require().Equal(fulfillerBalAft.Sub(tc.orderPrice), orderBalAft)
+			}
+		})
+	}
 }

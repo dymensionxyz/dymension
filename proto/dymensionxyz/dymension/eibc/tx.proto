@@ -111,7 +111,7 @@ message MsgFindFulfiller{
 message MsgFindFulfillerResponse{}
 
 message MsgCreateOnDemandLP{
-  option (cosmos.msg.v1.signer) = "lp.signer"; // TODO: confirm working
+  option (cosmos.msg.v1.signer) = "lp.funds_addr";
 
   OnDemandLP lp = 2;
 }
