@@ -130,3 +130,21 @@ message GaugeWeight {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
 }
+
+// Endorsement is an info about the endorsement made by users to the RollApp.
+// It stores information about the gauges associated with the RollApp and
+// the total shares endorsers hold.
+//
+// The number of shares if adjusted when someone endorses the RollApp or
+// when voting power of some endorser changes.
+message Endorsement {
+  string rollapp_id = 1;
+  uint64 rollapp_gauge_id = 2;
+  uint64 endorsement_gauge_id = 3;
+  // EndorserShares defines total shares issued to a validator's delegators.
+  string endorser_shares = 4 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+}

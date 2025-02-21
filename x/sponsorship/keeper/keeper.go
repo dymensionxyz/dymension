@@ -4,14 +4,37 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/collections/indexes"
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
+
+type raEndorsementsIndexes struct {
+	// first parameter: uint64 is a RA gauge ID
+	// second parameter: string is a RA ID
+	// third parameter: types.Endorsement is a RA endorsement
+	raGaugeID *indexes.Unique[uint64, string, types.Endorsement]
+}
+
+func newRAEndorsementIndexes(sb *collections.SchemaBuilder) raEndorsementsIndexes {
+	return raEndorsementsIndexes{
+		raGaugeID: indexes.NewUnique(
+			sb, types.RAGaugeIDIndexPrefix(), "endorsements_by_ra_gauge_id",
+			collections.Uint64Key, collections.StringKey,
+			func(_ string, v types.Endorsement) (uint64, error) {
+				return v.RollappGaugeId, nil
+			},
+		),
+	}
+}
+
+func (i raEndorsementsIndexes) IndexesList() []collections.Index[string, types.Endorsement] {
+	return []collections.Index[string, types.Endorsement]{i.raGaugeID}
+}
 
 type Keeper struct {
 	authority string // authority is the x/gov module account
@@ -21,6 +44,9 @@ type Keeper struct {
 	delegatorValidatorPower collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], math.Int]
 	distribution            collections.Item[types.Distribution]
 	votes                   collections.Map[sdk.AccAddress, types.Vote]
+	// rollapp ID -> types.Endorsement mapping
+	// also, it has index for rollapp gauge ID -> types.Endorsement mapping
+	raEndorsements *collections.IndexedMap[string, types.Endorsement, raEndorsementsIndexes]
 
 	stakingKeeper    types.StakingKeeper
 	incentivesKeeper types.IncentivesKeeper
@@ -79,6 +105,14 @@ func NewKeeper(
 			"votes",
 			collcompat.AccAddressKey,
 			collcompat.ProtoValue[types.Vote](cdc),
+		),
+		raEndorsements: collections.NewIndexedMap(
+			sb,
+			types.RAEndorsementsPrefix(),
+			"endorsements",
+			collections.StringKey,
+			codec.CollValue[types.Endorsement](cdc),
+			newRAEndorsementIndexes(sb),
 		),
 		stakingKeeper:    sk,
 		incentivesKeeper: ik,
