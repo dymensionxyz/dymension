@@ -30,6 +30,11 @@ message OnDemandLP {
   string spendLimit = 8 [(gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+
+  // will not fulfill orders which were created fewer than this blocks in the past
+  // e.g. compatibility check occurs at height 7, order existed since block 4,
+  //      then fulfill if this field is 3 or less
+  uint64 orderMinAgeBlocks = 9;
 }
 
 message OnDemandLPRecord {
