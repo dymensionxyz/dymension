@@ -96,7 +96,7 @@ func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
 	return &ret, err
 }
 
-func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnDemandLPRecord, error) {
+func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
 
 	rol := o.RollappId
 	denom := o.Denom()
@@ -119,7 +119,7 @@ func (s LPs) FindLP(ctx sdk.Context, k Keeper, o *types.DemandOrder) (*types.OnD
 		}
 		if lpr.Accepts(o) {
 			// TODO: just direct fulfill here
-			return &lpr, nil
+			return lpr, nil
 		}
 	}
 	return nil, nil
