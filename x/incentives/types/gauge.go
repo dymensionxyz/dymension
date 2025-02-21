@@ -36,6 +36,20 @@ func NewRollappGauge(id uint64, rollappId string) Gauge {
 	}
 }
 
+// NewEndorsementGauge creates a new endorsement gauge to stream rewards to rollapp endorsers.
+func NewEndorsementGauge(id uint64, rollappId string) Gauge {
+	return Gauge{
+		Id:                id,
+		IsPerpetual:       true,
+		DistributeTo:      &Gauge_Endorsement{Endorsement: &EndorsementGauge{RollappId: rollappId}},
+		Coins:             sdk.NewCoins(),
+		StartTime:         time.Time{},
+		NumEpochsPaidOver: 0,
+		FilledEpochs:      0,
+		DistributedCoins:  sdk.NewCoins(),
+	}
+}
+
 // IsActiveGauge returns true if the gauge is in an active state during the provided time.
 func (gauge Gauge) IsActiveGauge(curTime time.Time) bool {
 	if (curTime.After(gauge.StartTime) || curTime.Equal(gauge.StartTime)) && (gauge.IsPerpetual || gauge.FilledEpochs < gauge.NumEpochsPaidOver) {

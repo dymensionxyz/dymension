@@ -146,3 +146,34 @@ func (k Keeper) IterateVotes(
 
 	return nil
 }
+
+func (k Keeper) GetEndorsement(ctx sdk.Context, rollappID string) (types.Endorsement, error) {
+	return k.raEndorsements.Get(ctx, rollappID)
+}
+
+func (k Keeper) SaveEndorsement(ctx sdk.Context, e types.Endorsement) error {
+	return k.raEndorsements.Set(ctx, e.RollappId, e)
+}
+
+func (k Keeper) HasEndorsement(ctx sdk.Context, rollappID string) (bool, error) {
+	return k.raEndorsements.Has(ctx, rollappID)
+}
+
+// UpdateEndorsement updates the endorsement by applying the provided function to the current endorsement.
+// It retrieves the current endorsement from the state, applies the update function to it, saves the updated endorsement
+// back to the state, and returns the updated endorsement. If any error occurs during these steps, it returns an error.
+func (k Keeper) UpdateEndorsement(ctx sdk.Context, rollappID string, fn func(types.Endorsement) types.Endorsement) error {
+	current, err := k.GetEndorsement(ctx, rollappID)
+	if err != nil {
+		return fmt.Errorf("get endorsement: %w", err)
+	}
+
+	result := fn(current)
+
+	err = k.SaveEndorsement(ctx, result)
+	if err != nil {
+		return fmt.Errorf("save endorsement: %w", err)
+	}
+
+	return nil
+}

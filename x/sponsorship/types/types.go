@@ -182,3 +182,12 @@ func (m Gauges) Less(i, j int) bool {
 func (m Gauges) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
+
+// UpdateEndorsementShares updates the shares of the endorsement by adding the given update.
+// Update may be either positive or negative.
+func UpdateEndorsementShares(update math.Int) func(Endorsement) Endorsement {
+	return func(e Endorsement) Endorsement {
+		e.EndorserShares = e.EndorserShares.Add(update)
+		return e
+	}
+}
