@@ -52,7 +52,7 @@ func (msg *MsgFulfillOrder) ValidateBasic() error {
 	return nil
 }
 
-func (msg *MsgFulfillOrder) GetFulfillerBech32Address() sdk.AccAddress {
+func (msg *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
 	return sdk.MustAccAddressFromBech32(msg.FulfillerAddress)
 }
 
