@@ -14,17 +14,16 @@ func CmdQueryOnDemandLPs() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lps-demand [ids]",
 		Short: "Query on demand lps by space separated ids. If no ids are provided, all lps are returned",
-		Args: cobra.MinimumNArgs(0),
+		Args:  cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m := &types.QueryOnDemandLPsRequest{ }
+			m := &types.QueryOnDemandLPsRequest{}
 			ids := args
 			for _, id := range ids {
-				var parse
-				var err error
-				if parse, err = strconv.ParseUint(id, 10, 64); err != nil {
+				parse, err := strconv.ParseUint(id, 10, 64)
+				if err != nil {
 					return err
 				}
-				m.Ids = append(m.Ids,parse)
+				m.Ids = append(m.Ids, parse)
 			}
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -46,7 +45,7 @@ func CmdQueryOnDemandLPsAddr() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lps-demand-addr [addr]",
 		Short: "Query on demand lps by creator addr",
-		Args: cobra.MinimumNArgs(1),
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			m := &types.QueryOnDemandLPsByAddrRequest{Addr: args[0]}
 
