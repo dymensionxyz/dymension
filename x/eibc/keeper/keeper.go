@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
@@ -291,11 +292,11 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 
 	err := k.bk.SendCoins(ctx, fulfiller, o.GetRecipientBech32Address(), o.Price)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "send coins")
 	}
 
 	if err = k.SetOrderFulfilled(ctx, o, fulfiller, nil); err != nil {
-		return err
+		return errorsmod.Wrap(err, "set fulfilled")
 	}
 
 	if err = uevent.EmitTypedEvent(ctx, o.GetFulfilledEvent()); err != nil {

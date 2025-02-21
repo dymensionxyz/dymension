@@ -239,36 +239,6 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-func (m msgServer) InvokeFullfillment(ctx sdk.Context, orderId string) error {
-	// Check that the order exists in status PENDING
-	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
-	if err != nil {
-		return err
-	}
-
-	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
-	packet, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
-	if err != nil {
-		return err
-	}
-
-	// No error means the order is due to be finalized,
-	// in which case the order is not outstanding anymore
-	if err = m.dack.VerifyHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight); err == nil {
-		return types.ErrDemandOrderInactive
-	}
-
-	if err := demandOrder.ValidateOrderIsOutstanding(); err != nil {
-		return err
-	}
-
-	var o *types.DemandOrder
-	_ = o
-
-	return nil
-
-}
-
 func (m msgServer) FindFulfiller(goCtx context.Context, msg *types.MsgFindFulfiller) (*types.MsgFindFulfillerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -306,7 +276,7 @@ func (m msgServer) DeleteOnDemandLP(goCtx context.Context, msg *types.MsgDeleteO
 	}
 
 	for _, id := range msg.Ids {
-		err := m.Keeper.DeleteLP(ctx, msg.MustAcc(), id)
+		err := m.Keeper.DeleteLP(ctx, msg.MustAcc(), id, "user request")
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "delete id: %d", id)
 		}

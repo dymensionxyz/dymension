@@ -9,6 +9,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -61,6 +62,12 @@ func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+	if err := uevent.EmitTypedEvent(ctx, &types.EventCreatedOnDemandLP{
+		Id:        id,
+		FundsAddr: lp.FundsAddr,
+	}); err != nil {
+		return 0, errorsmod.Wrap(err, "event")
+	}
 	return id, s.Set(ctx, types.OnDemandLPRecord{
 		Id:    id,
 		Lp:    lp,
@@ -80,7 +87,8 @@ func (s LPs) Set(ctx sdk.Context, lp types.OnDemandLPRecord) error {
 	return nil
 }
 
-func (s LPs) Del(ctx sdk.Context, id uint64) error {
+// reason is human-readable string for debugging/ux
+func (s LPs) Del(ctx sdk.Context, id uint64, reason string) error {
 	lp, err := s.byID.Get(ctx, id)
 	if err != nil {
 		return err
@@ -92,6 +100,13 @@ func (s LPs) Del(ctx sdk.Context, id uint64) error {
 	err = s.byRollAppDenom.Remove(ctx, collections.Join3(lp.Lp.Rollapp, lp.Lp.Denom, id))
 	if err != nil {
 		return err
+	}
+	if err := uevent.EmitTypedEvent(ctx, &types.EventDeletedOnDemandLP{
+		Id:        id,
+		FundsAddr: lp.Lp.FundsAddr,
+		Reason:    reason,
+	}); err != nil {
+		return errorsmod.Wrap(err, "event")
 	}
 	return nil
 }
@@ -147,9 +162,8 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 	for _, lp := range lps {
 		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
-			var insuf error // TODO: finish
-			if errorsmod.IsOf(err, insuf) {
-				if err := k.LPs.Del(ctx, lp.Id); err != nil {
+			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
+				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {
 					return errorsmod.Wrapf(err, "delete lp: %d", lp.Id)
 				}
 				continue
@@ -176,7 +190,7 @@ func (k Keeper) CreateLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) 
 	return id, err
 }
 
-func (k Keeper) DeleteLP(ctx sdk.Context, owner sdk.AccAddress, id uint64) error {
+func (k Keeper) DeleteLP(ctx sdk.Context, owner sdk.AccAddress, id uint64, reason string) error {
 	lp, err := k.LPs.Get(ctx, id)
 	if errors.Is(err, collections.ErrNotFound) {
 		return nil
@@ -187,5 +201,5 @@ func (k Keeper) DeleteLP(ctx sdk.Context, owner sdk.AccAddress, id uint64) error
 	if !lp.Lp.MustAddr().Equals(owner) {
 		return errorsmod.Wrapf(gerrc.ErrPermissionDenied, "not owner: require %s, got %s", lp.Lp.FundsAddr, owner)
 	}
-	return k.LPs.Del(ctx, id)
+	return k.LPs.Del(ctx, id, reason)
 }

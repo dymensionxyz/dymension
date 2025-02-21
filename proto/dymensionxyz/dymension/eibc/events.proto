@@ -137,4 +137,7 @@ message EventCreatedOnDemandLP {
 message EventDeletedOnDemandLP {
   uint64 id = 1;
   string funds_addr = 2;
+
+  // human readable
+  string reason = 3;
 }
