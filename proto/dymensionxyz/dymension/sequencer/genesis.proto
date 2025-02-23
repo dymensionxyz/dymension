@@ -7,7 +7,6 @@ import "dymensionxyz/dymension/sequencer/sequencer.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
-
 // GenesisState defines the sequencer module's genesis state.
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
@@ -27,4 +26,3 @@ message GenesisProposer {
   string address = 1;
   string rollappId = 2;
 }
-

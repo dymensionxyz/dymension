@@ -43,7 +43,8 @@ type Stream struct {
 	Coins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=coins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"coins"`
 	// start_time is the distribution start time
 	StartTime time.Time `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time" yaml:"start_time"`
-	// distr_epoch_identifier is what epoch type di-stribution will be triggered by
+	// distr_epoch_identifier is what epoch type di-stribution will be triggered
+	// by
 	// (day, week, etc.)
 	DistrEpochIdentifier string `protobuf:"bytes,5,opt,name=distr_epoch_identifier,json=distrEpochIdentifier,proto3" json:"distr_epoch_identifier,omitempty" yaml:"distr_epoch_identifier"`
 	// num_epochs_paid_over is the number of total epochs distribution will be

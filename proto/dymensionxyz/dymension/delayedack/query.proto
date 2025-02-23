@@ -12,20 +12,24 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
 // Query defines the gRPC querier service.
 service Query {
-	// Parameters queries the parameters of the module.
-	rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/params";
-	}
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/delayedack/params";
+  }
 
-	// Queries a list of RollappPacket items by rollappID.
-	rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}";
-	}
+  // Queries a list of RollappPacket items by rollappID.
+  rpc GetPackets(QueryRollappPacketsRequest)
+      returns (QueryRollappPacketListResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}";
+  }
 
-	// Queries a list of pending RollappPacket items by rollappID and receiver.
-	rpc GetPendingPacketsByAddress(QueryPendingPacketsByAddressRequest) returns (QueryPendingPacketByAddressListResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}";
-	}
+  // Queries a list of pending RollappPacket items by rollappID and receiver.
+  rpc GetPendingPacketsByAddress(QueryPendingPacketsByAddressRequest)
+      returns (QueryPendingPacketByAddressListResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/delayedack/pending-receiver-packets/{address}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -34,27 +38,29 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryRollappPacketsRequest {
-	string rollappId = 1;
-	common.Status status = 2;
-	common.RollappPacket.Type type = 3;
-	cosmos.base.query.v1beta1.PageRequest pagination = 4;
+  string rollappId = 1;
+  common.Status status = 2;
+  common.RollappPacket.Type type = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 message QueryRollappPacketListResponse {
-	repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated common.RollappPacket rollappPackets = 1
+      [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryPendingPacketsByAddressRequest {
-	string address = 1;
-	cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  string address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryPendingPacketByAddressListResponse {
-	repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated common.RollappPacket rollappPackets = 1
+      [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
