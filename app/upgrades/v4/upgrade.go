@@ -307,7 +307,7 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 			Base:     "aden", // placeholder data
 			Exponent: 18,     // placeholder data
 		},
-		InitialSupply: sdk.NewInt(100000), // placeholder data
+		InitialSupply: math.NewInt(100000), // placeholder data
 		Sealed:        true,
 	}
 

@@ -57,17 +57,22 @@ service Query {
   }
 
   // Queries a list of registered denoms for the rollapp.
-  rpc RegisteredDenoms(QueryRegisteredDenomsRequest) returns (QueryRegisteredDenomsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/registered_denoms";
+  rpc RegisteredDenoms(QueryRegisteredDenomsRequest)
+      returns (QueryRegisteredDenomsResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/registered_denoms";
   }
 
   // Queries a list of obsolete DRS versions.
-  rpc ObsoleteDRSVersions(QueryObsoleteDRSVersionsRequest) returns (QueryObsoleteDRSVersionsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/obsolete_drs_versions";
+  rpc ObsoleteDRSVersions(QueryObsoleteDRSVersionsRequest)
+      returns (QueryObsoleteDRSVersionsResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/obsolete_drs_versions";
   }
 
   // Validates provided genesis bridge data against the hub.
-  rpc ValidateGenesisBridge(QueryValidateGenesisBridgeRequest) returns (QueryValidateGenesisBridgeResponse);
+  rpc ValidateGenesisBridge(QueryValidateGenesisBridgeRequest)
+      returns (QueryValidateGenesisBridgeResponse);
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -150,9 +155,7 @@ message QueryRegisteredDenomsResponse {
 
 message QueryObsoleteDRSVersionsRequest {}
 
-message QueryObsoleteDRSVersionsResponse {
-  repeated uint32 drs_versions = 1;
-}
+message QueryObsoleteDRSVersionsResponse { repeated uint32 drs_versions = 1; }
 
 message QueryValidateGenesisBridgeRequest {
   string rollappId = 1;

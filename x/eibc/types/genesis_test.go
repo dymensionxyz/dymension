@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -31,8 +32,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "invalid params",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TimeoutFee: sdk.NewDec(-1),
-					ErrackFee:  sdk.NewDec(-1),
+					TimeoutFee: math.LegacyNewDec(-1),
+					ErrackFee:  math.LegacyNewDec(-1),
 				},
 			},
 			valid: false,
@@ -70,6 +71,6 @@ var validDemandOrder = types.DemandOrder{
 
 var validParams = types.Params{
 	EpochIdentifier: "hour",
-	TimeoutFee:      sdk.NewDecWithPrec(1, 1),
-	ErrackFee:       sdk.NewDecWithPrec(1, 1),
+	TimeoutFee:      math.LegacyNewDecWithPrec(1, 1),
+	ErrackFee:       math.LegacyNewDecWithPrec(1, 1),
 }

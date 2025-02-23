@@ -3,6 +3,7 @@ package keeper
 import (
 	"sort"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -54,7 +55,7 @@ func (k Keeper) UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []t
 
 	newRecords := []types.DistrRecord{}
 	for _, val := range recordsMap {
-		if !val.Weight.Equal(sdk.ZeroInt()) {
+		if !val.Weight.Equal(math.ZeroInt()) {
 			newRecords = append(newRecords, val)
 		}
 	}

@@ -10,7 +10,6 @@ import "dymensionxyz/dymension/streamer/stream.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
-
 // Query defines the gRPC querier service
 service Query {
   // ModuleToDistributeCoins returns coins that are going to be distributed
@@ -31,10 +30,12 @@ service Query {
   }
   // ActiveStreams returns active streams
   rpc ActiveStreams(ActiveStreamsRequest) returns (ActiveStreamsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/streamer/active_streams";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/active_streams";
   }
   // Returns scheduled streams that have not yet occurred
-  rpc UpcomingStreams(UpcomingStreamsRequest) returns (UpcomingStreamsResponse) {
+  rpc UpcomingStreams(UpcomingStreamsRequest)
+      returns (UpcomingStreamsResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/upcoming_streams";
   }

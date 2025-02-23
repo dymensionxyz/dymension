@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -24,7 +23,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-				InitialSupply:   sdk.NewInt(1000),
+				InitialSupply:   math.NewInt(1000),
 			},
 			err: nil,
 		},
@@ -35,7 +34,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: strings.Repeat("a", maxGenesisChecksumLength+1),
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-				InitialSupply:   sdk.NewInt(1000),
+				InitialSupply:   math.NewInt(1000),
 			},
 			err: ErrInvalidGenesisChecksum,
 		},
@@ -46,7 +45,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 2},
-				InitialSupply:   sdk.NewInt(1000),
+				InitialSupply:   math.NewInt(1000),
 			},
 			err: ErrInvalidMetadata,
 		},
@@ -57,7 +56,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-				InitialSupply:   sdk.NewInt(-1),
+				InitialSupply:   math.NewInt(-1),
 			},
 			err: ErrInvalidInitialSupply,
 		},
@@ -83,7 +82,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 			msg: GenesisInfo{
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
-				InitialSupply:   sdk.NewInt(1),
+				InitialSupply:   math.NewInt(1),
 			},
 			err: ErrNoNativeTokenRollapp,
 		},
@@ -102,7 +101,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-				InitialSupply:   sdk.NewInt(1),
+				InitialSupply:   math.NewInt(1),
 				GenesisAccounts: createManyGenesisAccounts(100),
 			},
 			err: ErrInvalidInitialSupply,
@@ -115,8 +114,8 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-				InitialSupply:   sdk.NewInt(1000),
-				GenesisAccounts: &GenesisAccounts{Accounts: []GenesisAccount{{Address: "invalid", Amount: sdk.NewInt(100)}}},
+				InitialSupply:   math.NewInt(1000),
+				GenesisAccounts: &GenesisAccounts{Accounts: []GenesisAccount{{Address: "invalid", Amount: math.NewInt(100)}}},
 			},
 			err: gerrc.ErrInvalidArgument,
 		},
@@ -126,7 +125,7 @@ func TestGenesisInfo_ValidateBasic(t *testing.T) {
 				Bech32Prefix:    bech32Prefix,
 				GenesisChecksum: "checksum",
 				NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-				InitialSupply:   sdk.NewInt(1000),
+				InitialSupply:   math.NewInt(1000),
 				GenesisAccounts: createManyGenesisAccounts(maxAllowedGenesisAccounts + 1),
 			},
 			err: ErrTooManyGenesisAccounts,
@@ -149,7 +148,7 @@ func createManyGenesisAccounts(n int) *GenesisAccounts {
 	for i := 0; i < n; i++ {
 		accounts[i] = GenesisAccount{
 			Address: sample.AccAddress(),
-			Amount:  sdk.NewInt(100),
+			Amount:  math.NewInt(100),
 		}
 	}
 	return &GenesisAccounts{Accounts: accounts}

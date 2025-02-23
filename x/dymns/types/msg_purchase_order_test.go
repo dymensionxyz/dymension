@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
@@ -147,7 +148,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			assetType: TypeName,
 			offer: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,

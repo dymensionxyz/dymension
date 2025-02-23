@@ -5,6 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdkmath "cosmossdk.io/math"
@@ -232,7 +233,7 @@ func EstimateRegisterName(
 	if existingDymName != nil && existingDymName.Owner == newOwner {
 		// Dym-Name exists and just renew or extends by the same owner
 
-		newFirstYearPrice = sdk.ZeroInt() // regardless of expired or not, we don't charge this
+		newFirstYearPrice = math.ZeroInt() // regardless of expired or not, we don't charge this
 		extendsPrice = priceParams.PriceExtends.Mul(
 			sdkmath.NewInt(duration),
 		)
@@ -244,7 +245,7 @@ func EstimateRegisterName(
 				sdkmath.NewInt(duration - 1), // subtract first year, which has different price
 			)
 		} else {
-			extendsPrice = sdk.ZeroInt()
+			extendsPrice = math.ZeroInt()
 		}
 	}
 

@@ -62,9 +62,9 @@ func (Rollapp_VMType) EnumDescriptor() ([]byte, []int) {
 // rollapp to be in upon genesis
 type RollappGenesisState struct {
 	// 0 means unpopulated
-	// If populated, it's the proof height that the hub received the genesis transfer
-	// packet from the rollapp. If populated, the bridge is considered open. It's not allowed
-	// to fork to a height prior to this height.
+	// If populated, it's the proof height that the hub received the genesis
+	// transfer packet from the rollapp. If populated, the bridge is considered
+	// open. It's not allowed to fork to a height prior to this height.
 	TransferProofHeight uint64 `protobuf:"varint,3,opt,name=transfer_proof_height,json=transferProofHeight,proto3" json:"transfer_proof_height,omitempty"`
 }
 
@@ -132,8 +132,8 @@ type Rollapp struct {
 	// to register. if set to "*" any sequencer can register.
 	InitialSequencer string `protobuf:"bytes,13,opt,name=initial_sequencer,json=initialSequencer,proto3" json:"initial_sequencer,omitempty"`
 	// How much a sequencer needs to have at stake to be proposer be proposer.
-	// Denom is dym. It is empty or ONE coin only. Coins is just a convenience to avoid
-	// marshalling issues.
+	// Denom is dym. It is empty or ONE coin only. Coins is just a convenience to
+	// avoid marshalling issues.
 	MinSequencerBond github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,20,rep,name=min_sequencer_bond,json=minSequencerBond,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"min_sequencer_bond" yaml:"min_sequencer_bond"`
 	// vm_type is the type of rollapp machine: EVM or WASM
 	VmType Rollapp_VMType `protobuf:"varint,14,opt,name=vm_type,json=vmType,proto3,enum=dymensionxyz.dymension.rollapp.Rollapp_VMType" json:"vm_type,omitempty"`
@@ -144,11 +144,12 @@ type Rollapp struct {
 	// rollapp cannot be started.
 	// Set when creating IRO plan for the rollapp
 	PreLaunchTime *time.Time `protobuf:"bytes,16,opt,name=pre_launch_time,json=preLaunchTime,proto3,stdtime" json:"pre_launch_time,omitempty"`
-	// LivenessEventHeight is the height on the HUB of an upcoming liveness event (slash or
-	// jail against the rollapp). 0 means not set
+	// LivenessEventHeight is the height on the HUB of an upcoming liveness event
+	// (slash or jail against the rollapp). 0 means not set
 	LivenessEventHeight int64 `protobuf:"varint,17,opt,name=liveness_event_height,json=livenessEventHeight,proto3" json:"liveness_event_height,omitempty"`
-	// The height on the HUB that we start counting liveness from. If the rollapp is not active
-	// for a long time after this height, a liveness event will happen.
+	// The height on the HUB that we start counting liveness from. If the rollapp
+	// is not active for a long time after this height, a liveness event will
+	// happen.
 	LivenessCountdownStartHeight int64 `protobuf:"varint,18,opt,name=liveness_countdown_start_height,json=livenessCountdownStartHeight,proto3" json:"liveness_countdown_start_height,omitempty"`
 	// Revisions is a list of all the rollapp revisions.
 	Revisions []Revision `protobuf:"bytes,19,rep,name=revisions,proto3" json:"revisions"`

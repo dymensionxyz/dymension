@@ -6,6 +6,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -203,7 +204,7 @@ func (k Keeper) GetLocksDenom(ctx sdk.Context, denom string) []types.PeriodLock 
 }
 
 // GetLockedDenom Returns the total amount of denom that are locked.
-func (k Keeper) GetLockedDenom(ctx sdk.Context, denom string, duration time.Duration) sdk.Int {
+func (k Keeper) GetLockedDenom(ctx sdk.Context, denom string, duration time.Duration) math.Int {
 	totalAmtLocked := k.GetPeriodLocksAccumulation(ctx, types.QueryCondition{
 		LockQueryType: types.ByDuration,
 		Denom:         denom,

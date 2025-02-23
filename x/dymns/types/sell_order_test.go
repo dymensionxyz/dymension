@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -349,7 +350,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			expireAt: time.Now().Unix(),
 			minPrice: sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "SO min price is invalid",
@@ -372,7 +373,7 @@ func TestSellOrder_Validate(t *testing.T) {
 			minPrice: testCoin(1),
 			sellPrice: &sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "SO sell price is invalid",
@@ -536,7 +537,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			params:          nil,
 			assetType:       TypeName,
@@ -548,7 +549,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price: sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			params:          nil,
 			assetType:       TypeName,
@@ -699,6 +700,6 @@ func requireEventEquals(t *testing.T, event sdk.Event, wantType string, wantAttr
 func testCoin(amount int64) sdk.Coin {
 	return sdk.Coin{
 		Denom:  params.BaseDenom,
-		Amount: sdk.NewInt(amount),
+		Amount: math.NewInt(amount),
 	}
 }

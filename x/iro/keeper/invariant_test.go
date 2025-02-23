@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -18,7 +19,7 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 
 	startTime := time.Now()
 	endTime := startTime.Add(time.Hour)
-	amt := sdk.NewInt(1_000_000).MulRaw(1e18)
+	amt := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "test_rollapp_denom"
 
 	// Create a plan
@@ -30,7 +31,7 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 
 	// Buy some tokens to create a non-zero sold amount
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-	soldAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	soldAmt := math.NewInt(1_000).MulRaw(1e18)
 	buyer := sample.Acc()
 	s.BuySomeTokens(planId, buyer, soldAmt)
 
@@ -57,7 +58,7 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 	s.Require().NoError(err)
 
 	// Artificially break invariant by minting IRO tokens to module
-	err = s.App.BankKeeper.MintCoins(s.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(planDenom, sdk.NewInt(1))))
+	err = s.App.BankKeeper.MintCoins(s.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(planDenom, math.NewInt(1))))
 	s.Require().NoError(err)
 
 	// Check invariant - should be broken due to IRO tokens in module after settlement
@@ -65,6 +66,6 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 	s.Require().Error(err)
 
 	// Clean up minted tokens
-	err = s.App.BankKeeper.BurnCoins(s.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(planDenom, sdk.NewInt(1))))
+	err = s.App.BankKeeper.BurnCoins(s.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(planDenom, math.NewInt(1))))
 	s.Require().NoError(err)
 }

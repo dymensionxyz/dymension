@@ -29,8 +29,8 @@ type GenesisState struct {
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	// dym_names defines all the dym names in the genesis state.
 	DymNames []DymName `protobuf:"bytes,2,rep,name=dym_names,json=dymNames,proto3" json:"dym_names"`
-	// sell_order_bids are records which used to refund the bid amount to the bidder
-	// of the Sell-Orders which was not finished during genesis export
+	// sell_order_bids are records which used to refund the bid amount to the
+	// bidder of the Sell-Orders which was not finished during genesis export
 	SellOrderBids []SellOrderBid `protobuf:"bytes,3,rep,name=sell_order_bids,json=sellOrderBids,proto3" json:"sell_order_bids"`
 	// buy_orders are records which used to refund the bid amount to the bidder
 	// of the Buy-Order which was not finished during genesis export

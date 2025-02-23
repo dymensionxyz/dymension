@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -13,7 +12,7 @@ import (
 func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
-	allocation := sdk.NewInt(100).MulRaw(1e18)
+	allocation := math.NewInt(100).MulRaw(1e18)
 
 	s.Run("MissingGenesisChecksum", func() {
 		s.SetupTest()
@@ -64,7 +63,7 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	k := s.App.IROKeeper
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
-	allocation := sdk.NewInt(100).MulRaw(1e18)
+	allocation := math.NewInt(100).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
@@ -112,7 +111,7 @@ func (s *KeeperTestSuite) TestMintAllocation() {
 
 	k := s.App.IROKeeper
 
-	allocatedAmount := sdk.NewInt(10).MulRaw(1e18)
+	allocatedAmount := math.NewInt(10).MulRaw(1e18)
 	expectedBaseDenom := types.IRODenom(rollappId)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)

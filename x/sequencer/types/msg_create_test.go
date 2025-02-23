@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -31,7 +32,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 	pkInvalid, err := codectypes.NewAnyWithValue(invalidpk)
 	require.NoError(t, err)
 
-	bond := sdk.NewCoin("stake", sdk.NewInt(100))
+	bond := sdk.NewCoin("stake", math.NewInt(100))
 
 	tests := []struct {
 		name string
@@ -157,7 +158,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
-				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
+				Bond:         sdk.Coin{Denom: "k", Amount: math.NewInt(0)},
 				Metadata: SequencerMetadata{
 					Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"},
 					EvmRpcs:     []string{"https://rpc.wpd.evm.evm.noisnemyd.xyz:443"},

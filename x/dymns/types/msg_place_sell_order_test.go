@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -128,7 +129,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			assetType: TypeName,
 			minPrice: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -140,7 +141,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			assetType: TypeName,
 			minPrice: sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -163,7 +164,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			minPrice:  testCoin(1),
 			sellPrice: &sdk.Coin{
 				Denom:  "-",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -184,7 +185,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			assetId:         "my-name",
 			assetType:       TypeName,
 			minPrice:        testCoin(2),
-			sellPrice:       uptr.To(sdk.NewCoin("u"+params.BaseDenom, sdk.OneInt())),
+			sellPrice:       uptr.To(sdk.NewCoin("u"+params.BaseDenom, math.OneInt())),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "SO sell price denom is different from min price denom",
@@ -308,7 +309,7 @@ func TestMsgPlaceSellOrder_ToSellOrder(t *testing.T) {
 			assetId:   "my-name",
 			assetType: TypeName,
 			minPrice:  validMinPrice,
-			sellPrice: uptr.To(sdk.NewCoin(validMinPrice.Denom, sdk.ZeroInt())),
+			sellPrice: uptr.To(sdk.NewCoin(validMinPrice.Denom, math.ZeroInt())),
 			Owner:     "",
 			want: SellOrder{
 				AssetId:   "my-name",

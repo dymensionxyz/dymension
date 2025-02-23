@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -22,12 +23,12 @@ func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
 	return
 }
 
-func (k Keeper) BridgingFee(ctx sdk.Context) (res sdk.Dec) {
+func (k Keeper) BridgingFee(ctx sdk.Context) (res math.LegacyDec) {
 	k.paramstore.Get(ctx, types.KeyBridgeFee, &res)
 	return
 }
 
-func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt sdk.Int) (res sdk.Int) {
+func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt math.Int) (res math.Int) {
 	return k.BridgingFee(ctx).MulInt(amt).TruncateInt()
 }
 

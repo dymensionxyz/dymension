@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -53,7 +53,7 @@ func CmdCreateRollapp() *cobra.Command {
 			if minSeqBondS == "" {
 				minSeqBondS = types.DefaultMinSequencerBondGlobalCoin.Amount.String()
 			}
-			minSeqBond, ok := sdk.NewIntFromString(minSeqBondS)
+			minSeqBond, ok := math.NewIntFromString(minSeqBondS)
 			if !ok {
 				return fmt.Errorf("invalid min sequencer bond: %s", minSeqBondS)
 			}
@@ -128,7 +128,7 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 	}
 
 	if initialSupplyFlag != "" {
-		genesisInfo.InitialSupply, ok = sdk.NewIntFromString(initialSupplyFlag)
+		genesisInfo.InitialSupply, ok = math.NewIntFromString(initialSupplyFlag)
 		if !ok {
 			return nil, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
 		}
@@ -152,7 +152,7 @@ func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
 			}
 
 			accAddr, accAmt := accParts[0], accParts[1]
-			amt, ok := sdk.NewIntFromString(accAmt)
+			amt, ok := math.NewIntFromString(accAmt)
 			if !ok {
 				return nil, fmt.Errorf("invalid genesis account amount: %s", accAmt)
 			}

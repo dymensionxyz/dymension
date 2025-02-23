@@ -13,6 +13,7 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
@@ -20,7 +21,7 @@ import (
 // FeeMarketKeeper defines the expected keeper interface used on the AnteHandler
 type FeeMarketKeeper interface {
 	ethante.FeeMarketKeeper
-	GetMinGasPrice(ctx sdk.Context) (minGasPrice sdk.Dec)
+	GetMinGasPrice(ctx sdk.Context) (minGasPrice math.LegacyDec)
 }
 
 type HandlerOptions struct {

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strings"
 
+	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cometbft/cometbft/libs/rand"
@@ -255,5 +256,5 @@ var mockGenesisInfo = &types.GenesisInfo{
 		Base:     "aden",
 		Exponent: 18,
 	},
-	InitialSupply: sdk.NewInt(100000000),
+	InitialSupply: math.NewInt(100000000),
 }

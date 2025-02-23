@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -24,12 +25,12 @@ func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
 	return
 }
 
-func (k Keeper) TimeoutFee(ctx sdk.Context) (res sdk.Dec) {
+func (k Keeper) TimeoutFee(ctx sdk.Context) (res math.LegacyDec) {
 	k.paramstore.Get(ctx, types.KeyTimeoutFee, &res)
 	return
 }
 
-func (k Keeper) ErrAckFee(ctx sdk.Context) (res sdk.Dec) {
+func (k Keeper) ErrAckFee(ctx sdk.Context) (res math.LegacyDec) {
 	k.paramstore.Get(ctx, types.KeyErrAckFee, &res)
 	return
 }

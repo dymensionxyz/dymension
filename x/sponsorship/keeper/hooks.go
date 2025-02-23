@@ -242,7 +242,7 @@ func (h Hooks) AfterValidatorBeginUnbonding(sdk.Context, sdk.ConsAddress, sdk.Va
 
 func (h Hooks) AfterValidatorBonded(sdk.Context, sdk.ConsAddress, sdk.ValAddress) error { return nil }
 
-func (h Hooks) BeforeValidatorSlashed(sdk.Context, sdk.ValAddress, sdk.Dec) error { return nil }
+func (h Hooks) BeforeValidatorSlashed(sdk.Context, sdk.ValAddress, math.LegacyDec) error { return nil }
 
 func (Hooks) AfterValidatorCreated(sdk.Context, sdk.ValAddress) error { return nil }
 

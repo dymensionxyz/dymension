@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -98,7 +99,7 @@ func (s *SequencerTestSuite) TestCreateSequencerRestrictions() {
 		s.fundSequencer(alice, bond)
 		msg := createSequencerMsgOnePubkey(ra.RollappId, alice)
 		msg.Bond = bond
-		msg.Bond.Amount = msg.Bond.Amount.Sub(sdk.OneInt())
+		msg.Bond.Amount = msg.Bond.Amount.Sub(math.OneInt())
 		_, err := s.msgServer.CreateSequencer(s.Ctx, &msg)
 		utest.IsErr(s.Require(), err, gerrc.ErrOutOfRange)
 	})

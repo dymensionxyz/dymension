@@ -48,7 +48,7 @@ func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *type
 func (suite *QueryTestSuite) SetupSuite() {
 	suite.App = apptesting.Setup(suite.T())
 	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
-	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500)), sdk.NewCoin("udym", sdk.NewInt(2500)))
+	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500)), sdk.NewCoin("udym", math.NewInt(2500)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.queryClient = types.NewQueryClient(&baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: suite.App.GRPCQueryRouter(),
@@ -105,7 +105,7 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 
 		s.Run(tc.name, func() {
 			s.SetupSuite()
-			s.CreateDefaultStream(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500))))
+			s.CreateDefaultStream(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500))))
 			queryHelper := &baseapp.QueryServiceTestHelper{
 				GRPCQueryRouter: s.App.GRPCQueryRouter(),
 				Ctx:             s.Ctx,

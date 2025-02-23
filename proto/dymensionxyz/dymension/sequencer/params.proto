@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sequencer;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/duration.proto";
 
@@ -14,9 +15,6 @@ message Params {
 
   reserved 1;
 
-
-
-
   reserved 5;
   reserved 2;
 
@@ -25,10 +23,12 @@ message Params {
   // unbonding starting. the proposer is still bonded during this period.
   google.protobuf.Duration notice_period = 3
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
-      
-  // liveness_slash_min_multiplier multiplies with the tokens of the slashed sequencer to compute the burn amount.
+
+  // liveness_slash_min_multiplier multiplies with the tokens of the slashed
+  // sequencer to compute the burn amount.
   string liveness_slash_min_multiplier = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"",
     (gogoproto.nullable) = false
   ];
