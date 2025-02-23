@@ -195,7 +195,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 	tests := []struct {
 		name                              string
 		orderPrice                        sdk.Coin
-		orderFee                          sdk.Int
+		orderFee                          math.Int
 		orderRecipient                    string
 		msg                               *types.MsgFulfillOrderAuthorized
 		lpAccountBalance                  sdk.Coins
@@ -211,14 +211,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Successful fulfillment",
 			orderPrice:     sdk.NewInt64Coin("adym", 90),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(100)},
+				Amount:              math.NewInt(100),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
@@ -233,14 +233,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Successful fulfillment with settlement",
 			orderPrice:     sdk.NewInt64Coin("adym", 90),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(100)},
+				Amount:              math.NewInt(100),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: true,
@@ -269,14 +269,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to mismatched rollapp ID",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           "rollapp_2345-1", // Mismatched Rollapp ID
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
+				Amount:              math.NewInt(110),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
@@ -290,14 +290,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to mismatched price",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 110)), // Mismatched Price
-				Amount:              sdk.IntProto{Int: sdk.NewInt(120)},
+				Amount:              math.NewInt(120),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
@@ -311,14 +311,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to mismatched expected fee",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(115)},
-				ExpectedFee:         "15",                                        // Mismatched Expected Fee
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				Amount:              math.NewInt(115),
+				ExpectedFee:         "15",                            // Mismatched Expected Fee
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
@@ -332,14 +332,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to LP account not existing",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
+				Amount:              math.NewInt(110),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(), // Non-existent LP account
 				SettlementValidated: false,
@@ -352,15 +352,15 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to operator fee account not existing",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
+				Amount:              math.NewInt(110),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
-				OperatorFeeAddress:  sample.AccAddress(),                         // Non-existent operator account
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
+				OperatorFeeAddress:  sample.AccAddress(),             // Non-existent operator account
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
 			},
@@ -373,14 +373,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to insufficient funds in LP account",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
+				Amount:              math.NewInt(110),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
@@ -394,14 +394,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to not settlement validated",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 100)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(110)},
+				Amount:              math.NewInt(110),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: true,
@@ -429,14 +429,14 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 		{
 			name:           "Failure due to finalization status",
 			orderPrice:     sdk.NewInt64Coin("adym", 90),
-			orderFee:       sdk.NewInt(10),
+			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),
 			msg: &types.MsgFulfillOrderAuthorized{
 				RollappId:           rollappPacket.RollappId,
 				Price:               sdk.NewCoins(sdk.NewInt64Coin("adym", 90)),
-				Amount:              sdk.IntProto{Int: sdk.NewInt(100)},
+				Amount:              math.NewInt(100),
 				ExpectedFee:         "10",
-				OperatorFeeShare:    sdk.DecProto{Dec: sdk.NewDecWithPrec(2, 1)}, // 0.2
+				OperatorFeeShare:    math.LegacyNewDecWithPrec(2, 1), // 0.2
 				OperatorFeeAddress:  sample.AccAddress(),
 				LpAddress:           sample.AccAddress(),
 				SettlementValidated: false,
@@ -531,7 +531,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 // TestFulfillOrderEvent tests the event upon fulfilling a demand order
 func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	// Create and fund the account
-	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(1000))
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(1000))
 	eibcSupplyAddr := testAddresses[0]
 	eibcDemandAddr := testAddresses[1]
 	// Set the rollapp packet
@@ -607,49 +607,49 @@ func getEventAttributes(event sdk.Event) []sdk.Attribute {
 
 func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	// Create and fund the account
-	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
 
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
+	dackParams := dacktypes.NewParams("hour", math.LegacyNewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
 
 	// Set a rollapp packet with 1000 amount
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 	// Set the initial price and fee for total amount 1000 and 1% bridge fee
-	initialFee := sdk.NewInt(100)
-	initialPrice := sdk.NewInt(890) // 1000 - 100 fee - 10 bridging fee
+	initialFee := math.NewInt(100)
+	initialPrice := math.NewInt(890) // 1000 - 100 fee - 10 bridging fee
 
 	testCases := []struct {
 		name          string
-		newFee        sdk.Int
+		newFee        math.Int
 		submittedBy   string
 		expectError   bool
-		expectedPrice sdk.Int
+		expectedPrice math.Int
 	}{
 		{
 			name:          "happy case",
-			newFee:        sdk.NewInt(400),
+			newFee:        math.NewInt(400),
 			submittedBy:   eibcSupplyAddr.String(),
 			expectError:   false,
-			expectedPrice: sdk.NewInt(590),
+			expectedPrice: math.NewInt(590),
 		},
 		{
 			name:          "happy case - zero eibc fee",
-			newFee:        sdk.NewInt(0),
+			newFee:        math.NewInt(0),
 			submittedBy:   eibcSupplyAddr.String(),
 			expectError:   false,
-			expectedPrice: sdk.NewInt(990),
+			expectedPrice: math.NewInt(990),
 		},
 		{
 			name:        "wrong owner",
-			newFee:      sdk.NewInt(400),
+			newFee:      math.NewInt(400),
 			submittedBy: testAddresses[1].String(),
 			expectError: true,
 		},
 		{
 			name:        "too high fee",
-			newFee:      sdk.NewInt(1001),
+			newFee:      math.NewInt(1001),
 			submittedBy: eibcSupplyAddr.String(),
 			expectError: true,
 		},
@@ -679,10 +679,10 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 
 func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	// Create and fund the account
-	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
 
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
+	dackParams := dacktypes.NewParams("hour", math.LegacyNewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
@@ -696,15 +696,15 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, onAckRollappPkt)
 
 	// Set the initial price and fee for total amount 1000
-	initialFee := sdk.NewInt(100)
-	initialPrice := sdk.NewInt(900)
+	initialFee := math.NewInt(100)
+	initialPrice := math.NewInt(900)
 	demandOrder := types.NewDemandOrder(onAckRollappPkt, initialPrice, initialFee, denom, eibcSupplyAddr.String(), 1)
 	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 
 	// try to update the demand order
-	newFee := sdk.NewInt(400)
-	expectedNewPrice := sdk.NewInt(600)
+	newFee := math.NewInt(400)
+	expectedNewPrice := math.NewInt(600)
 	msg := types.NewMsgUpdateDemandOrder(eibcSupplyAddr.String(), demandOrder.Id, newFee.String())
 	_, err = suite.msgServer.UpdateDemandOrder(suite.Ctx, msg)
 	suite.Require().NoError(err)

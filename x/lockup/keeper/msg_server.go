@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -226,7 +227,7 @@ func (server msgServer) ForceUnlock(goCtx context.Context, msg *types.MsgForceUn
 // ChargeLockFee deducts a fee in the base denom from the specified address. The total cost is calculated as the sum
 // of the fee and the amount of the base denom coin from lockCoins. If the account's balance is less than the total
 // cost, the error is returned. Otherwise, the fee is charged from the payer and sent to x/txfees to be burned.
-func (k Keeper) ChargeLockFee(ctx sdk.Context, payer sdk.AccAddress, fee sdk.Int, lockCoins sdk.Coins) (err error) {
+func (k Keeper) ChargeLockFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int, lockCoins sdk.Coins) (err error) {
 	var feeDenom string
 	if k.tk == nil {
 		feeDenom, err = sdk.GetBaseDenom()

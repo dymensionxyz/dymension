@@ -6,20 +6,21 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
-
 // BlockDescriptor defines a single rollapp chain block description.
 message BlockDescriptor {
   // height is the height of the block
-  uint64 height = 1; 
-  // stateRoot is a 32 byte array of the hash of the block (state root of the block)
-  bytes stateRoot = 2; 
+  uint64 height = 1;
+  // stateRoot is a 32 byte array of the hash of the block (state root of the
+  // block)
+  bytes stateRoot = 2;
   // timestamp is the time from the block header
-  google.protobuf.Timestamp timestamp = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp timestamp = 3
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
   // DrsVersion is a DRS version used by the rollapp.
   uint32 drs_version = 4;
 }
 
 // BlockDescriptors defines list of BlockDescriptor.
 message BlockDescriptors {
-  repeated BlockDescriptor BD = 1 [(gogoproto.nullable) = false];
+  repeated BlockDescriptor BD = 1 [ (gogoproto.nullable) = false ];
 }

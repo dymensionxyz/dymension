@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -41,7 +42,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Check that the fulfiller expected fee is equal to the demand order fee
-	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	expectedFee, _ := math.NewIntFromString(msg.ExpectedFee)
 	orderFee := demandOrder.GetFeeAmount()
 	if !orderFee.Equal(expectedFee) {
 		return nil, types.ErrExpectedFeeNotMet
@@ -107,8 +108,8 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, types.ErrOperatorFeeAccountDoesNotExist
 	}
 
-	fee := sdk.NewDecFromInt(demandOrder.GetFeeAmount())
-	operatorFee := fee.MulTruncate(msg.OperatorFeeShare.Dec).TruncateInt()
+	fee := math.LegacyNewDecFromInt(demandOrder.GetFeeAmount())
+	operatorFee := fee.MulTruncate(msg.OperatorFeeShare).TruncateInt()
 
 	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator
@@ -146,7 +147,7 @@ func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgF
 	}
 
 	// Check that the expected fee is equal to the demand order fee
-	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	expectedFee, _ := math.NewIntFromString(msg.ExpectedFee)
 	orderFee := demandOrder.GetFeeAmount()
 	if !orderFee.Equal(expectedFee) {
 		return types.ErrExpectedFeeNotMet
@@ -227,12 +228,12 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	bridgingFeeMultiplier := m.dack.BridgingFee(ctx)
 	raPacketType := raPacket.GetType()
 	if raPacketType != commontypes.RollappPacket_ON_RECV {
-		bridgingFeeMultiplier = sdk.ZeroDec()
+		bridgingFeeMultiplier = math.LegacyZeroDec()
 	}
 
 	// calculate the new price: transferTotal - newFee - bridgingFee
-	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
-	transferTotal, _ := sdk.NewIntFromString(data.Amount)
+	newFeeInt, _ := math.NewIntFromString(msg.NewFee)
+	transferTotal, _ := math.NewIntFromString(data.Amount)
 	newPrice, err := types.CalcPriceWithBridgingFee(transferTotal, newFeeInt, bridgingFeeMultiplier)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.lockup;
 
 import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
 import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/lockup/lock.proto";
@@ -10,6 +11,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/lockup/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // LockTokens lock tokens
   rpc LockTokens(MsgLockTokens) returns (MsgLockTokensResponse);
   // BeginUnlockingAll begin unlocking all tokens

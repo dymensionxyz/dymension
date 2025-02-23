@@ -35,7 +35,8 @@ type RollappMetadata struct {
 	X string `protobuf:"bytes,5,opt,name=x,proto3" json:"x,omitempty"`
 	// genesis_url has the genesis file
 	GenesisUrl string `protobuf:"bytes,6,opt,name=genesis_url,json=genesisUrl,proto3" json:"genesis_url,omitempty"`
-	// display_name is a non semantic name for displaying on gui etc. Size limited.
+	// display_name is a non semantic name for displaying on gui etc. Size
+	// limited.
 	DisplayName string `protobuf:"bytes,7,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	// tagline is a non semantic tagline/catch-phrase. Size limited.
 	Tagline string `protobuf:"bytes,8,opt,name=tagline,proto3" json:"tagline,omitempty"`

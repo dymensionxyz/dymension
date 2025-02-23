@@ -5,6 +5,7 @@ import (
 
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -25,7 +26,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	const gracePeriod = 30
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()
@@ -33,13 +34,13 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 		moduleParams.Price.NamePriceSteps = []sdkmath.Int{
-			sdk.NewInt(firstYearPrice1L).Mul(priceMultiplier),
-			sdk.NewInt(firstYearPrice2L).Mul(priceMultiplier),
-			sdk.NewInt(firstYearPrice3L).Mul(priceMultiplier),
-			sdk.NewInt(firstYearPrice4L).Mul(priceMultiplier),
-			sdk.NewInt(firstYearPrice5PlusL).Mul(priceMultiplier),
+			math.NewInt(firstYearPrice1L).Mul(priceMultiplier),
+			math.NewInt(firstYearPrice2L).Mul(priceMultiplier),
+			math.NewInt(firstYearPrice3L).Mul(priceMultiplier),
+			math.NewInt(firstYearPrice4L).Mul(priceMultiplier),
+			math.NewInt(firstYearPrice5PlusL).Mul(priceMultiplier),
 		}
-		moduleParams.Price.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+		moduleParams.Price.PriceExtends = math.NewInt(extendsPrice).Mul(priceMultiplier)
 		moduleParams.Price.PriceDenom = denom
 		// misc
 		moduleParams.Misc.GracePeriodDuration = gracePeriod * 24 * time.Hour
@@ -556,10 +557,10 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 		s.Run(tt.name, func() {
 			s.RefreshContext()
 
-			s.mintToModuleAccount2(sdk.NewInt(originalModuleBalance).Mul(priceMultiplier))
+			s.mintToModuleAccount2(math.NewInt(originalModuleBalance).Mul(priceMultiplier))
 
 			if tt.originalBalance > 0 {
-				s.mintToAccount2(tt.buyer, sdk.NewInt(tt.originalBalance).Mul(priceMultiplier))
+				s.mintToAccount2(tt.buyer, math.NewInt(tt.originalBalance).Mul(priceMultiplier))
 			}
 
 			useRecordName := "my-name"
@@ -616,7 +617,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			defer func() {
 				laterBalance := s.balance2(tt.buyer)
 				s.Equal(
-					sdk.NewInt(tt.wantLaterBalance).Mul(priceMultiplier).String(),
+					math.NewInt(tt.wantLaterBalance).Mul(priceMultiplier).String(),
 					laterBalance.String(),
 				)
 			}()
@@ -628,7 +629,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 				defer func() {
 					laterModuleBalance := s.moduleBalance2()
 					s.Equal(
-						sdk.NewInt(originalModuleBalance).Mul(priceMultiplier).String(),
+						math.NewInt(originalModuleBalance).Mul(priceMultiplier).String(),
 						laterModuleBalance.String(),
 						"module account balance should not be changed",
 					)
@@ -658,7 +659,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			defer func() {
 				laterModuleBalance := s.moduleBalance2()
 				s.Equal(
-					sdk.NewInt(originalModuleBalance).Mul(priceMultiplier).AddRaw(tt.offsetModuleBalLater).String(), laterModuleBalance.String(),
+					math.NewInt(originalModuleBalance).Mul(priceMultiplier).AddRaw(tt.offsetModuleBalLater).String(), laterModuleBalance.String(),
 					"token should be burned",
 				)
 			}()
@@ -726,18 +727,18 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 	const extendsPrice int64 = 4
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	priceParams := dymnstypes.DefaultPriceParams()
 	priceParams.PriceDenom = denom
 	priceParams.NamePriceSteps = []sdkmath.Int{
-		sdk.NewInt(price1L).Mul(priceMultiplier),
-		sdk.NewInt(price2L).Mul(priceMultiplier),
-		sdk.NewInt(price3L).Mul(priceMultiplier),
-		sdk.NewInt(price4L).Mul(priceMultiplier),
-		sdk.NewInt(price5PlusL).Mul(priceMultiplier),
+		math.NewInt(price1L).Mul(priceMultiplier),
+		math.NewInt(price2L).Mul(priceMultiplier),
+		math.NewInt(price3L).Mul(priceMultiplier),
+		math.NewInt(price4L).Mul(priceMultiplier),
+		math.NewInt(price5PlusL).Mul(priceMultiplier),
 	}
-	priceParams.PriceExtends = sdk.NewInt(extendsPrice).Mul(priceMultiplier)
+	priceParams.PriceExtends = math.NewInt(extendsPrice).Mul(priceMultiplier)
 
 	buyerA := testAddr(1).bech32()
 	previousOwnerA := testAddr(2).bech32()

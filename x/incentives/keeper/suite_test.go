@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -224,7 +225,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 				Base:     "aden",
 				Exponent: 18,
 			},
-			InitialSupply: sdk.NewInt(1000),
+			InitialSupply: math.NewInt(1000),
 		},
 	}
 

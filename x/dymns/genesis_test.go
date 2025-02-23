@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
@@ -463,6 +464,6 @@ func TestExportThenInitGenesis(t *testing.T) {
 func testCoin(amount int64) sdk.Coin {
 	return sdk.Coin{
 		Denom:  params.BaseDenom,
-		Amount: sdk.NewInt(amount),
+		Amount: math.NewInt(amount),
 	}
 }

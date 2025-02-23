@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 	"github.com/spf13/cobra"
@@ -279,7 +279,7 @@ $ %s query lockup output-all-locks <max lock ID>
 				Id            int
 				Status        int // one of {doesnt_exist, }
 				Denom         string
-				Amount        sdk.Int
+				Amount        math.Int
 				Address       string
 				UnbondEndTime time.Time
 			}

@@ -31,17 +31,17 @@ import (
 func (s *AnteTestSuite) getMsgSend(from sdk.AccAddress) sdk.Msg {
 	privkey2, _ := ethsecp256k1.GenerateKey()
 	to := sdk.AccAddress(privkey2.PubKey().Address())
-	return banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(1))))
+	return banktypes.NewMsgSend(from, to, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, math.NewInt(1))))
 }
 
 func (s *AnteTestSuite) getMsgCreateValidator(from sdk.AccAddress) sdk.Msg {
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		sdk.ValAddress(from),
 		ed25519.GenPrivKey().PubKey(),
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000)),
+		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
-		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(),
+		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
+		math.OneInt(),
 	)
 	s.Assert().NoError(err)
 	return msgCreate
@@ -54,10 +54,10 @@ func (s *AnteTestSuite) getMsgGrantEIBC(from sdk.AccAddress) *authz.MsgGrant {
 	crit := eibctypes.NewRollappCriteria(
 		"rollappID",
 		[]string{"denom"},
-		sdk.DecProto{Dec: sdk.NewDec(1)},
-		sdk.Coins{sdk.NewCoin("denom", sdk.NewInt(1))},
-		sdk.Coins{sdk.NewCoin("denom", sdk.NewInt(1))},
-		sdk.DecProto{Dec: sdk.NewDec(1)},
+		math.LegacyNewDec(1),
+		sdk.Coins{sdk.NewCoin("denom", math.NewInt(1))},
+		sdk.Coins{sdk.NewCoin("denom", math.NewInt(1))},
+		math.LegacyNewDec(1),
 		true,
 	)
 	expDate := time.Now().Add(1 * time.Hour)
@@ -95,7 +95,7 @@ func (s *AnteTestSuite) getMsgGrant(from sdk.AccAddress) *authz.MsgGrant {
 func (s *AnteTestSuite) getMsgSubmitProposal(from sdk.AccAddress) sdk.Msg {
 	proposal, ok := govtypes.ContentFromProposalType("My proposal", "My description", govtypes.ProposalTypeText)
 	s.Require().True(ok)
-	deposit := sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(10)))
+	deposit := sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, math.NewInt(10)))
 	msgSubmit, err := govtypes.NewMsgSubmitProposal(proposal, deposit, from)
 	s.Require().NoError(err)
 	return msgSubmit
@@ -120,7 +120,7 @@ func (s *AnteTestSuite) getMsgCreateRollapp(from string, tokenless bool, metadat
 	genesisInfo := &rollapptypes.GenesisInfo{
 		Bech32Prefix:    strings.ToLower(rand.Str(3)),
 		GenesisChecksum: "1234567890abcdefg",
-		InitialSupply:   sdk.NewInt(1000),
+		InitialSupply:   math.NewInt(1000),
 		NativeDenom: rollapptypes.DenomMetadata{
 			Display:  "DEN",
 			Base:     "aden",
@@ -164,7 +164,7 @@ func (s *AnteTestSuite) TestEIP712() {
 	privkey, _ := ethsecp256k1.GenerateKey()
 	acc := sdk.AccAddress(privkey.PubKey().Address())
 
-	amt := sdk.NewInt(10000).MulRaw(1e18)
+	amt := math.NewInt(10000).MulRaw(1e18)
 	err := bankutil.FundAccount(s.app.BankKeeper, s.ctx, privkey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)))
 	s.Require().Nil(err)
 
@@ -201,7 +201,7 @@ func (s *AnteTestSuite) TestEIP712() {
 
 func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) (apitypes.TypedData, error) {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20).MulRaw(1e18))
+	coinAmount := sdk.NewCoin(params.BaseDenom, math.NewInt(20).MulRaw(1e18))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())

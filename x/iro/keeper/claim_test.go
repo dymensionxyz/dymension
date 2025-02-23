@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -16,7 +17,7 @@ func (s *KeeperTestSuite) TestClaim() {
 	rollappDenom := "dasdasdasdasdsa"
 
 	startTime := time.Now()
-	amt := sdk.NewInt(1_000_000).MulRaw(1e18)
+	amt := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
@@ -28,7 +29,7 @@ func (s *KeeperTestSuite) TestClaim() {
 	claimer := sample.Acc()
 	// buy some tokens
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-	soldAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	soldAmt := math.NewInt(1_000).MulRaw(1e18)
 	s.BuySomeTokens(planId, claimer, soldAmt)
 
 	// claim should fail as not settled

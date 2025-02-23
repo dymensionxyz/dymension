@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/rand"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -68,7 +69,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		GenesisInfo: &rollapptypes.GenesisInfo{
 			Bech32Prefix:    strings.ToLower(rand.Str(3)),
 			GenesisChecksum: "1234567890abcdefg",
-			InitialSupply:   sdk.NewInt(1000),
+			InitialSupply:   math.NewInt(1000),
 			NativeDenom: rollapptypes.DenomMetadata{
 				Display:  "DEN",
 				Base:     "aden",

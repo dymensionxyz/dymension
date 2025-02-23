@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +23,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 	const price5PlusL = 2
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	rollApp1 := *newRollApp("rollapp_1-1").WithOwner(testAddr(1).bech32()).WithBech32("one").WithAlias("one")
 	rollApp2 := *newRollApp("rollapp_2-2").WithOwner(testAddr(2).bech32()).WithBech32("two").WithAlias("two")
@@ -42,11 +43,11 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
 		moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
-			sdk.NewInt(price1L).Mul(priceMultiplier),
-			sdk.NewInt(price2L).Mul(priceMultiplier),
-			sdk.NewInt(price3L).Mul(priceMultiplier),
-			sdk.NewInt(price4L).Mul(priceMultiplier),
-			sdk.NewInt(price5PlusL).Mul(priceMultiplier),
+			math.NewInt(price1L).Mul(priceMultiplier),
+			math.NewInt(price2L).Mul(priceMultiplier),
+			math.NewInt(price3L).Mul(priceMultiplier),
+			math.NewInt(price4L).Mul(priceMultiplier),
+			math.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
 		moduleParams.Price.PriceDenom = denom
 		// reserved
@@ -95,7 +96,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          freeAlias8L,
 				RollappId:      rollApp1.rollAppId,
 				Owner:          rollApp1.owner,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price5PlusL)),
 			},
 			buyerBalance:                   price5PlusL + 1,
 			wantErr:                        false,
@@ -109,7 +110,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          "oh",
 				RollappId:      rollApp1.rollAppId,
 				Owner:          rollApp1.owner,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price2L)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price2L)),
 			},
 			buyerBalance:                   price2L + 1,
 			wantErr:                        false,
@@ -123,7 +124,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          "oh",
 				RollappId:      rollApp3WithoutAlias.rollAppId,
 				Owner:          rollApp3WithoutAlias.owner,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price2L)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price2L)),
 			},
 			buyerBalance:                   price2L + 1,
 			wantErr:                        false,
@@ -137,7 +138,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          "oh",
 				RollappId:      rollApp3WithoutAlias.rollAppId,
 				Owner:          rollApp3WithoutAlias.owner,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price2L)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price2L)),
 			},
 			buyerBalance:                   price1L,
 			wantErr:                        false,
@@ -151,7 +152,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          freeAlias8L,
 				RollappId:      rollApp1.rollAppId,
 				Owner:          rollApp1.owner,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price5PlusL)),
 			},
 			buyerBalance:                   price5PlusL - 1,
 			wantErr:                        true,
@@ -202,7 +203,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          freeAlias8L,
 				RollappId:      "nah_0-0",
 				Owner:          buyerNotOwnedAnyRollApp,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price5PlusL)),
 			},
 			buyerBalance:                   price1L,
 			wantErr:                        true,
@@ -217,7 +218,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          freeAlias8L,
 				RollappId:      "nah_0-0",
 				Owner:          buyerNotOwnedAnyRollApp,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price5PlusL)),
 			},
 			buyerBalance:          price1L,
 			wantErr:               true,
@@ -230,7 +231,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          freeAlias8L,
 				RollappId:      rollApp1.rollAppId,
 				Owner:          buyerNotOwnedAnyRollApp,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price5PlusL)),
 			},
 			buyerBalance:                   price1L,
 			wantErr:                        true,
@@ -245,7 +246,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				Alias:          freeAlias8L,
 				RollappId:      rollApp1.rollAppId,
 				Owner:          rollApp1.owner,
-				ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price1L)),
+				ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price1L)),
 			},
 			buyerBalance:                   price1L,
 			wantErr:                        true,
@@ -261,7 +262,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 
 			if tt.buyerBalance > 0 {
 				s.Require().NotEmpty(tt.msg.Owner)
-				s.mintToAccount2(tt.msg.Owner, sdk.NewInt(tt.buyerBalance).Mul(priceMultiplier))
+				s.mintToAccount2(tt.msg.Owner, math.NewInt(tt.buyerBalance).Mul(priceMultiplier))
 			}
 
 			if tt.preRunSetup != nil {
@@ -269,7 +270,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 			}
 
 			if !tt.msg.ConfirmPayment.IsNil() {
-				tt.msg.ConfirmPayment = sdk.NewCoin(denom, sdk.NewInt(tt.msg.ConfirmPayment.Amount.Int64()).Mul(priceMultiplier))
+				tt.msg.ConfirmPayment = sdk.NewCoin(denom, math.NewInt(tt.msg.ConfirmPayment.Amount.Int64()).Mul(priceMultiplier))
 			}
 			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).RegisterAlias(s.ctx, &tt.msg)
 
@@ -283,7 +284,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 				if tt.msg.Owner != "" && dymnsutils.IsValidBech32AccountAddress(tt.msg.Owner, true) {
 					laterBuyerBalance := s.balance2(tt.msg.Owner)
 					s.Equal(
-						sdk.NewInt(tt.wantLaterBuyerBalance).Mul(priceMultiplier).String(),
+						math.NewInt(tt.wantLaterBuyerBalance).Mul(priceMultiplier).String(),
 						laterBuyerBalance.String(),
 					)
 				}
@@ -335,13 +336,13 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 	s.Run("pass - new alias should be appended to the tails of the list", func() {
 		s.RefreshContext()
 
-		s.mintToAccount2(rollApp1.owner, sdk.NewInt(price1L).Mul(priceMultiplier))
+		s.mintToAccount2(rollApp1.owner, math.NewInt(price1L).Mul(priceMultiplier))
 
 		_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).RegisterAlias(s.ctx, &dymnstypes.MsgRegisterAlias{
 			Alias:          freeAlias8L,
 			RollappId:      rollApp1.rollAppId,
 			Owner:          rollApp1.owner,
-			ConfirmPayment: sdk.NewCoin(denom, sdk.NewInt(price5PlusL).Mul(priceMultiplier)),
+			ConfirmPayment: sdk.NewCoin(denom, math.NewInt(price5PlusL).Mul(priceMultiplier)),
 		})
 		s.Require().NoError(err)
 
@@ -358,16 +359,16 @@ func (s *KeeperTestSuite) TestEstimateRegisterAlias() {
 	const price5PlusL int64 = 5
 
 	// the number values used in this test will be multiplied by this value
-	priceMultiplier := sdk.NewInt(1e18)
+	priceMultiplier := math.NewInt(1e18)
 
 	priceParams := dymnstypes.DefaultPriceParams()
 	priceParams.PriceDenom = denom
 	priceParams.AliasPriceSteps = []sdkmath.Int{
-		sdk.NewInt(price1L).Mul(priceMultiplier),
-		sdk.NewInt(price2L).Mul(priceMultiplier),
-		sdk.NewInt(price3L).Mul(priceMultiplier),
-		sdk.NewInt(price4L).Mul(priceMultiplier),
-		sdk.NewInt(price5PlusL).Mul(priceMultiplier),
+		math.NewInt(price1L).Mul(priceMultiplier),
+		math.NewInt(price2L).Mul(priceMultiplier),
+		math.NewInt(price3L).Mul(priceMultiplier),
+		math.NewInt(price4L).Mul(priceMultiplier),
+		math.NewInt(price5PlusL).Mul(priceMultiplier),
 	}
 
 	tests := []struct {

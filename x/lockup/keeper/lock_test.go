@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
@@ -328,11 +329,11 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 
 	// check balance
 	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, addr1, "stake")
-	suite.Require().Equal(sdk.ZeroInt(), balance.Amount)
+	suite.Require().Equal(math.ZeroInt(), balance.Amount)
 
 	acc := suite.App.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 	balance = suite.App.BankKeeper.GetBalance(suite.Ctx, acc.GetAddress(), "stake")
-	suite.Require().Equal(sdk.NewInt(30), balance.Amount)
+	suite.Require().Equal(math.NewInt(30), balance.Amount)
 }
 
 func (suite *KeeperTestSuite) TestAddTokensToLock() {
@@ -368,13 +369,13 @@ func (suite *KeeperTestSuite) TestAddTokensToLock() {
 		},
 		{
 			name:           "lock invalid tokens",
-			tokenToAdd:     sdk.NewCoin("unknown", sdk.NewInt(10)),
+			tokenToAdd:     sdk.NewCoin("unknown", math.NewInt(10)),
 			duration:       time.Second,
 			lockingAddress: addr1,
 		},
 		{
 			name:           "token to add exceeds balance",
-			tokenToAdd:     sdk.NewCoin("stake", sdk.NewInt(20)),
+			tokenToAdd:     sdk.NewCoin("stake", math.NewInt(20)),
 			duration:       time.Second,
 			lockingAddress: addr1,
 		},
@@ -544,11 +545,11 @@ func (suite *KeeperTestSuite) TestLock() {
 	suite.Require().Equal(accum.String(), "10")
 
 	balance := suite.App.BankKeeper.GetBalance(suite.Ctx, addr1, "stake")
-	suite.Require().Equal(sdk.ZeroInt(), balance.Amount)
+	suite.Require().Equal(math.ZeroInt(), balance.Amount)
 
 	acc := suite.App.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 	balance = suite.App.BankKeeper.GetBalance(suite.Ctx, acc.GetAddress(), "stake")
-	suite.Require().Equal(sdk.NewInt(10), balance.Amount)
+	suite.Require().Equal(math.NewInt(10), balance.Amount)
 }
 
 func (suite *KeeperTestSuite) TestEndblockerWithdrawAllMaturedLockups() {
@@ -758,7 +759,7 @@ func (suite *KeeperTestSuite) TestForceUnlock() {
 	for _, tc := range testCases {
 		// set up test and create default lock
 		suite.SetupTest()
-		coinsToLock := sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(10000000)))
+		coinsToLock := sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(10000000)))
 		suite.FundAcc(addr1, sdk.NewCoins(coinsToLock...))
 		lock, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr1, coinsToLock, time.Minute)
 		suite.Require().NoError(err)
@@ -793,7 +794,7 @@ func (suite *KeeperTestSuite) TestPartialForceUnlock() {
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
 
 	defaultDenomToLock := "stake"
-	defaultAmountToLock := sdk.NewInt(10000000)
+	defaultAmountToLock := math.NewInt(10000000)
 
 	testCases := []struct {
 		name               string
@@ -807,12 +808,12 @@ func (suite *KeeperTestSuite) TestPartialForceUnlock() {
 		},
 		{
 			name:               "partial unlock",
-			coinsToForceUnlock: sdk.Coins{sdk.NewCoin(defaultDenomToLock, defaultAmountToLock.Quo(sdk.NewInt(2)))},
+			coinsToForceUnlock: sdk.Coins{sdk.NewCoin(defaultDenomToLock, defaultAmountToLock.Quo(math.NewInt(2)))},
 			expectedPass:       true,
 		},
 		{
 			name:               "unlock more than locked",
-			coinsToForceUnlock: sdk.Coins{sdk.NewCoin(defaultDenomToLock, defaultAmountToLock.Add(sdk.NewInt(2)))},
+			coinsToForceUnlock: sdk.Coins{sdk.NewCoin(defaultDenomToLock, defaultAmountToLock.Add(math.NewInt(2)))},
 			expectedPass:       false,
 		},
 		{
@@ -847,7 +848,7 @@ func (suite *KeeperTestSuite) TestPartialForceUnlock() {
 
 			// check balance
 			balanceAfterForceUnlock := suite.App.BankKeeper.GetBalance(suite.Ctx, addr1, "stake")
-			suite.Require().Equal(sdk.NewInt(0), balanceAfterForceUnlock.Amount)
+			suite.Require().Equal(math.NewInt(0), balanceAfterForceUnlock.Amount)
 		}
 	}
 }

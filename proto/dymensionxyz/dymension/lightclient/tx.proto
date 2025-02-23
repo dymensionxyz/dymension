@@ -9,7 +9,9 @@ import "google/protobuf/any.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
 
 service Msg {
-  rpc SetCanonicalClient(MsgSetCanonicalClient) returns (MsgSetCanonicalClientResponse);
+  option (cosmos.msg.v1.service) = true;
+  rpc SetCanonicalClient(MsgSetCanonicalClient)
+      returns (MsgSetCanonicalClientResponse);
 }
 
 // verify a client state and its consensus states against the rollapp
@@ -22,6 +24,4 @@ message MsgSetCanonicalClient {
   string client_id = 2;
 }
 
-message MsgSetCanonicalClientResponse {
-}
-
+message MsgSetCanonicalClientResponse {}

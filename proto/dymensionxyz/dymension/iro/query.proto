@@ -42,16 +42,20 @@ service Query {
         "/dymensionxyz/dymension/iro/price/{plan_id}";
   }
 
-  // QueryCost retrieves the expected cost for buying or selling the specified amount of shares.
+  // QueryCost retrieves the expected cost for buying or selling the specified
+  // amount of shares.
   rpc QueryCost(QueryCostRequest) returns (QueryCostResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/iro/cost/{plan_id}";
   }
 
-  rpc QueryTokensForDYM(QueryTokensForDYMRequest) returns (QueryTokensForDYMResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/iro/tokens_for_dym/{plan_id}";
+  rpc QueryTokensForDYM(QueryTokensForDYMRequest)
+      returns (QueryTokensForDYMResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/iro/tokens_for_dym/{plan_id}";
   }
 
-  // QueryClaimed retrieves the claimed amount thus far for the specified plan ID.
+  // QueryClaimed retrieves the claimed amount thus far for the specified plan
+  // ID.
   rpc QueryClaimed(QueryClaimedRequest) returns (QueryClaimedResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/iro/claimed/{plan_id}";
@@ -69,7 +73,8 @@ message QueryParamsResponse {
 
 // QueryPlanRequest is the request type for the Query/QueryPlan RPC method.
 message QueryPlansRequest {
-  // non_settled_only is an optional flag to filter out plans that are already settled.
+  // non_settled_only is an optional flag to filter out plans that are already
+  // settled.
   bool non_settled_only = 1;
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
@@ -94,13 +99,16 @@ message QueryPlanByRollappRequest { string rollapp_id = 1; }
 // Query/QueryPlanByRollapp RPC method.
 message QueryPlanByRollappResponse { Plan plan = 1; }
 
-// QuerySpotPriceRequest is the request type for the Query/QuerySpotPrice RPC method.
+// QuerySpotPriceRequest is the request type for the Query/QuerySpotPrice RPC
+// method.
 message QuerySpotPriceRequest { string plan_id = 1; }
 
-// QuerySpotPriceResponse is the response type for the Query/QuerySpotPrice RPC method.
+// QuerySpotPriceResponse is the response type for the Query/QuerySpotPrice RPC
+// method.
 message QuerySpotPriceResponse {
   string price = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
@@ -109,7 +117,8 @@ message QuerySpotPriceResponse {
 message QueryCostRequest {
   string plan_id = 1;
   string amt = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   bool sell = 3;
@@ -118,19 +127,20 @@ message QueryCostRequest {
 // QueryCostResponse is the response type for the Query/QueryCost RPC method.
 message QueryCostResponse { cosmos.base.v1beta1.Coin cost = 1; }
 
-
-// QueryTokensForDYMRequest is the request type for the Query/QueryTokensForDYM RPC method.
+// QueryTokensForDYMRequest is the request type for the Query/QueryTokensForDYM
+// RPC method.
 message QueryTokensForDYMRequest {
   string plan_id = 1;
   string amt = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
 
-// QueryTokensForDYMResponse is the response type for the Query/QueryTokensForDYM RPC method.
+// QueryTokensForDYMResponse is the response type for the
+// Query/QueryTokensForDYM RPC method.
 message QueryTokensForDYMResponse { cosmos.base.v1beta1.Coin tokens = 1; }
-
 
 // QueryClaimedRequest is the request type for the Query/QueryClaimed RPC
 // method.
@@ -139,6 +149,8 @@ message QueryClaimedRequest { string plan_id = 1; }
 // QueryClaimedResponse is the response type for the Query/QueryClaimed RPC
 // method.
 message QueryClaimedResponse {
-  string claimed_amt = 1
-      [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int" ];
+  string claimed_amt = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }

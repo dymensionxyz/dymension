@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -16,17 +16,17 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 		Bech32Prefix:    bech32Prefix,
 		GenesisChecksum: "checksum",
 		NativeDenom:     DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
-		InitialSupply:   sdk.NewInt(1000),
+		InitialSupply:   math.NewInt(1000),
 	}
 
 	// valid modified genesis info
 	gInfo2 := gInfo
-	gInfo2.InitialSupply = sdk.NewInt(2000)
+	gInfo2.InitialSupply = math.NewInt(2000)
 	gInfo2.GenesisAccounts = createManyGenesisAccounts(10)
 
 	// invalid modified genesis info
 	gInfo3 := gInfo
-	gInfo3.InitialSupply = sdk.NewInt(20000000000000)
+	gInfo3.InitialSupply = math.NewInt(20000000000000)
 	gInfo3.GenesisAccounts = createManyGenesisAccounts(200)
 
 	tests := []struct {

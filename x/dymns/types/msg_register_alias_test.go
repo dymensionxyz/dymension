@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -139,7 +140,7 @@ func TestMsgRegisterAlias_ValidateBasic(t *testing.T) {
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			confirmPayment: sdk.Coin{
 				Denom:  "",
-				Amount: sdk.OneInt(),
+				Amount: math.OneInt(),
 			},
 			wantErr:         true,
 			wantErrContains: "invalid denom",

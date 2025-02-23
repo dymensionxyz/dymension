@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -507,7 +508,7 @@ func (suite *KeeperTestSuite) TestLockedDenom() {
 			sdk.WrapSDKContext(suite.Ctx),
 			&types.LockedDenomRequest{Denom: "stake", Duration: duration})
 		suite.Require().NoError(err)
-		suite.Require().Equal(res.Amount, sdk.NewInt(expectedAmount))
+		suite.Require().Equal(res.Amount, math.NewInt(expectedAmount))
 	}
 
 	// lock coins

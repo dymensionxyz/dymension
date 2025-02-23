@@ -27,9 +27,9 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// EpochPointer is a special object used for the streamer pagination. It helps iterate over
-// streams with the specified epoch identifier within one epoch. Additionally, holds coins
-// that must be distributed in this epoch.
+// EpochPointer is a special object used for the streamer pagination. It helps
+// iterate over streams with the specified epoch identifier within one epoch.
+// Additionally, holds coins that must be distributed in this epoch.
 type EpochPointer struct {
 	// StreamID is the ID of a stream.
 	StreamId uint64 `protobuf:"varint,1,opt,name=stream_id,json=streamId,proto3" json:"stream_id,omitempty"`
@@ -37,8 +37,8 @@ type EpochPointer struct {
 	GaugeId uint64 `protobuf:"varint,2,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
 	// EpochIdentifier is a unique reference to this particular timer.
 	EpochIdentifier string `protobuf:"bytes,3,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty"`
-	// EpochDuration is the time in between epoch ticks. It is stored in order to have
-	// an ability to sort the EpochPointer slice.
+	// EpochDuration is the time in between epoch ticks. It is stored in order to
+	// have an ability to sort the EpochPointer slice.
 	EpochDuration time.Duration `protobuf:"bytes,4,opt,name=epoch_duration,json=epochDuration,proto3,stdduration" json:"epoch_duration"`
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -99,7 +100,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 // balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
 // gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
 // The fee is sent to the txfees module, to be burned.
-func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
+func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int, gaugeCoins sdk.Coins) (err error) {
 	var feeDenom string
 	if k.tk == nil {
 		feeDenom, err = sdk.GetBaseDenom()

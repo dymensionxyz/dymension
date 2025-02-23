@@ -15,10 +15,10 @@ func TestIsUpdateMinSeqBond(t *testing.T) {
 		coin sdk.Coin
 		want bool
 	}{
-		{"valid coin", sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(100)), true},
-		{"zero amount", sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(0)), false},
-		{"wrong denom", sdk.NewCoin("wrongdenom", sdk.NewInt(100)), false},
-		{"empty denom", sdk.Coin{Denom: "", Amount: sdk.NewInt(100)}, false},
+		{"valid coin", sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(100)), true},
+		{"zero amount", sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(0)), false},
+		{"wrong denom", sdk.NewCoin("wrongdenom", math.NewInt(100)), false},
+		{"empty denom", sdk.Coin{Denom: "", Amount: math.NewInt(100)}, false},
 		{"zero type", sdk.Coin{}, false},
 	}
 
@@ -36,10 +36,10 @@ func TestValidateBasicMinSeqBond(t *testing.T) {
 		coin    sdk.Coin
 		wantErr bool
 	}{
-		{"valid coin", sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(100)), false},
-		{"zero amount", sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(0)), true},
-		{"wrong denom", sdk.NewCoin("wrongdenom", sdk.NewInt(100)), true},
-		{"empty denom", sdk.Coin{Denom: "", Amount: sdk.NewInt(100)}, true},
+		{"valid coin", sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(100)), false},
+		{"zero amount", sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(0)), true},
+		{"wrong denom", sdk.NewCoin("wrongdenom", math.NewInt(100)), true},
+		{"empty denom", sdk.Coin{Denom: "", Amount: math.NewInt(100)}, true},
 		{"zero type", sdk.Coin{}, true},
 	}
 
@@ -61,13 +61,13 @@ func TestValidateBasicMinSeqBondCoins(t *testing.T) {
 		coins   sdk.Coins
 		wantErr bool
 	}{
-		{"valid coins", sdk.NewCoins(sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(100))), false},
-		{"zero amount", sdk.NewCoins(sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(0))), true},
-		{"wrong denom", sdk.NewCoins(sdk.NewCoin("wrongdenom", sdk.NewInt(100))), true},
-		{"empty denom", sdk.Coins{sdk.Coin{Denom: "", Amount: sdk.NewInt(100)}}, true},
+		{"valid coins", sdk.NewCoins(sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(100))), false},
+		{"zero amount", sdk.NewCoins(sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(0))), true},
+		{"wrong denom", sdk.NewCoins(sdk.NewCoin("wrongdenom", math.NewInt(100))), true},
+		{"empty denom", sdk.Coins{sdk.Coin{Denom: "", Amount: math.NewInt(100)}}, true},
 		{"multiple coins", sdk.NewCoins(
-			sdk.NewCoin(commontypes.DYMCoin.Denom, sdk.NewInt(100)),
-			sdk.NewCoin("anotherdenom", sdk.NewInt(50)),
+			sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(100)),
+			sdk.NewCoin("anotherdenom", math.NewInt(50)),
 		), true},
 		{"zero type", sdk.Coins{}, true},
 		{"zero type alt", sdk.Coins{sdk.Coin{

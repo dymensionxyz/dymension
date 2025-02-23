@@ -4,6 +4,7 @@ import (
 	_ "strconv"
 	"testing"
 
+	"cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,7 +49,7 @@ func (s *RollappTestSuite) SetupTest() {
 	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
 	s.k().SetParams(ctx, types.DefaultParams().WithDisputePeriodInBlocks(2))
 
-	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(50))))
+	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(math.NewInt(50))))
 	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())

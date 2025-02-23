@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -76,14 +77,14 @@ func NewPlaceAliasSellOrderTxCmd() *cobra.Command {
 			if sellPriceDym > 0 {
 				sellPrice = &sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
-					Amount: sdk.NewInt(int64(sellPriceDym)).MulRaw(adymToDymMultiplier),
+					Amount: math.NewInt(int64(sellPriceDym)).MulRaw(adymToDymMultiplier),
 				}
 			}
 
 			msg := &dymnstypes.MsgPlaceSellOrder{
 				AssetId:   alias,
 				AssetType: dymnstypes.TypeAlias,
-				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(adymToDymMultiplier)),
+				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, math.NewInt(int64(minPriceDym)).MulRaw(adymToDymMultiplier)),
 				SellPrice: sellPrice,
 				Owner:     seller,
 			}

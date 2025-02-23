@@ -4,6 +4,7 @@ package dymensionxyz.dymension.rollapp;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/msg/v1/msg.proto";
 
@@ -18,7 +19,8 @@ message GenesisInfo {
   DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
@@ -32,12 +34,12 @@ message GenesisAccounts {
   repeated GenesisAccount accounts = 1 [ (gogoproto.nullable) = false ];
 }
 
-
 // GenesisAccount is a struct for the genesis account for the rollapp
 message GenesisAccount {
   // amount of coins to be sent to the genesis address
   string amount = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // address is a bech-32 address of the genesis account
