@@ -118,8 +118,8 @@ func (k Keeper) CalculateGaugeRewards(ctx sdk.Context, coins sdk.Coins, record t
 		return nil, fmt.Errorf("distribution total weight cannot be zero")
 	}
 
-	weightDec := sdk.NewDecFromInt(record.Weight)
-	totalDec := sdk.NewDecFromInt(totalWeight)
+	weightDec := math.LegacyNewDecFromInt(record.Weight)
+	totalDec := math.LegacyNewDecFromInt(totalWeight)
 	rewards := sdk.NewCoins()
 
 	for _, coin := range coins {
@@ -127,7 +127,7 @@ func (k Keeper) CalculateGaugeRewards(ctx sdk.Context, coins sdk.Coins, record t
 			continue
 		}
 
-		assetAmountDec := sdk.NewDecFromInt(coin.Amount)
+		assetAmountDec := math.LegacyNewDecFromInt(coin.Amount)
 		allocatingAmount := assetAmountDec.Mul(weightDec.Quo(totalDec)).TruncateInt()
 
 		// when weight is too small and no amount is allocated, just skip this to avoid zero coin send issues

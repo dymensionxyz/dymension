@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,13 +53,13 @@ func TestDefaultPriceParams(t *testing.T) {
 	require.NoError(t, priceParams.Validate())
 
 	t.Run("ensure setting is correct", func(t *testing.T) {
-		i, ok := sdk.NewIntFromString("5" + "000000000000000000")
+		i, ok := math.NewIntFromString("5" + "000000000000000000")
 		require.True(t, ok)
 		require.Equal(t, i, priceParams.NamePriceSteps[4])
 	})
 
 	t.Run("ensure price setting is at least 1 DYM", func(t *testing.T) {
-		oneDym, ok := sdk.NewIntFromString("1" + "000000000000000000")
+		oneDym, ok := math.NewIntFromString("1" + "000000000000000000")
 		require.True(t, ok)
 		if oneDym.GT(priceParams.NamePriceSteps[4]) {
 			require.Fail(t, "price should be at least 1 DYM")
@@ -95,7 +95,7 @@ func TestParams_Validate(t *testing.T) {
 	require.NoError(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
-	moduleParams.Price.MinOfferPrice = sdk.ZeroInt()
+	moduleParams.Price.MinOfferPrice = math.ZeroInt()
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
@@ -149,7 +149,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		for size := 0; size <= (MinDymNamePriceStepsCount+MinAliasPriceStepsCount)*2; size++ {
 			priceSteps := make([]sdkmath.Int, size)
 			for i := 0; i < size; i++ {
-				priceSteps[i] = sdk.NewInt(int64(1000 - i)).MulRaw(1e18)
+				priceSteps[i] = math.NewInt(int64(1000 - i)).MulRaw(1e18)
 			}
 
 			m1 := defaultPriceParams

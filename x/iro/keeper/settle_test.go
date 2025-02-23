@@ -22,7 +22,7 @@ func (s *KeeperTestSuite) TestSettle() {
 
 	startTime := time.Now()
 	endTime := startTime.Add(time.Hour)
-	amt := sdk.NewInt(1_000_000).MulRaw(1e18)
+	amt := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
@@ -36,7 +36,7 @@ func (s *KeeperTestSuite) TestSettle() {
 
 	// buy some tokens
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-	soldAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	soldAmt := math.NewInt(1_000).MulRaw(1e18)
 	s.BuySomeTokens(planId, sample.Acc(), soldAmt)
 
 	// settle should fail as no rollappDenom balance available
@@ -69,7 +69,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	}
 
 	startTime := time.Now()
-	allocation := sdk.NewInt(1_000_000).MulRaw(1e18)
+	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
 
 	testCases := []struct {

@@ -12,24 +12,29 @@ import "dymensionxyz/dymension/rollapp/app.proto";
 
 // GenesisState defines the rollapp module's genesis state.
 message GenesisState {
-  Params params = 1 [(gogoproto.nullable) = false];
-  repeated Rollapp rollappList = 2 [(gogoproto.nullable) = false];
-  repeated StateInfo stateInfoList = 3 [(gogoproto.nullable) = false];
-  repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
-  repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
-  repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  repeated Rollapp rollappList = 2 [ (gogoproto.nullable) = false ];
+  repeated StateInfo stateInfoList = 3 [ (gogoproto.nullable) = false ];
+  repeated StateInfoIndex latestStateInfoIndexList = 4
+      [ (gogoproto.nullable) = false ];
+  repeated StateInfoIndex latestFinalizedStateIndexList = 5
+      [ (gogoproto.nullable) = false ];
+  repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6
+      [ (gogoproto.nullable) = false ];
   // LivenessEvents are scheduled upcoming liveness events
-  repeated LivenessEvent livenessEvents = 7 [(gogoproto.nullable) = false];
-  repeated App appList = 8 [(gogoproto.nullable) = false];
-  repeated RollappRegisteredDenoms registeredDenoms = 9 [(gogoproto.nullable) = false];
-  repeated SequencerHeightPair sequencerHeightPairs = 10 [(gogoproto.nullable) = false];
+  repeated LivenessEvent livenessEvents = 7 [ (gogoproto.nullable) = false ];
+  repeated App appList = 8 [ (gogoproto.nullable) = false ];
+  repeated RollappRegisteredDenoms registeredDenoms = 9
+      [ (gogoproto.nullable) = false ];
+  repeated SequencerHeightPair sequencerHeightPairs = 10
+      [ (gogoproto.nullable) = false ];
   // ObsoleteDrsVersions is a list of DRS versions that are marked obsolete
   repeated uint32 obsolete_drs_versions = 11;
 }
 
 message SequencerHeightPair {
   string sequencer = 1; // sequencer addr to lookup in x/sequencer
-  uint64 height = 2; // rollapp chain height
+  uint64 height = 2;    // rollapp chain height
 }
 
 message RollappRegisteredDenoms {

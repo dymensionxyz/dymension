@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -47,7 +48,7 @@ func (s *delayedAckSuite) TestTransferCosmosToHub() {
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -76,7 +77,7 @@ func (s *delayedAckSuite) TestTransferHubToCosmos() {
 	cosmosIBCKeeper := s.cosmosChain().App.GetIBCKeeper()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -109,7 +110,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -154,7 +155,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -203,7 +204,7 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(s.rollappCtx())
-	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
+	amount, ok := math.NewIntFromString("1000000000000000000") // 1DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	// Setup accounts
@@ -256,7 +257,7 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 		senderAccount   = s.hubChain().SenderAccount.GetAddress()
 		receiverAccount = s.rollappChain().SenderAccount.GetAddress()
 
-		amount, _     = sdk.NewIntFromString("1000000000000000000") // 1DYM
+		amount, _     = math.NewIntFromString("1000000000000000000") // 1DYM
 		coinToSendToB = sdk.NewCoin(sdk.DefaultBondDenom, amount)
 		timeoutHeight = clienttypes.Height{RevisionNumber: 1, RevisionHeight: 50}
 	)

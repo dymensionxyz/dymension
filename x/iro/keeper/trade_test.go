@@ -18,8 +18,8 @@ func (s *KeeperTestSuite) TestBuy() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
-	maxAmt := sdk.NewInt(1_000_000_000).MulRaw(1e18)
-	totalAllocation := sdk.NewInt(1_000_000).MulRaw(1e18)
+	maxAmt := math.NewInt(1_000_000_000).MulRaw(1e18)
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
@@ -28,14 +28,14 @@ func (s *KeeperTestSuite) TestBuy() {
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	reservedTokens := plan.SoldAmt
-	s.Assert().True(reservedTokens.GT(sdk.ZeroInt()))
+	s.Assert().True(reservedTokens.GT(math.ZeroInt()))
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	buyer := sample.Acc()
-	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000).MulRaw(1e18)))
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
 	s.FundAcc(buyer, buyersFunds)
 
-	buyAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 	expectedCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(buyAmt))
 
 	// buy before plan start - should fail
@@ -47,11 +47,11 @@ func (s *KeeperTestSuite) TestBuy() {
 	s.Require().Error(err)
 
 	// buy more than user's balance - should fail
-	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(100_000).MulRaw(1e18), maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, math.NewInt(100_000).MulRaw(1e18), maxAmt)
 	s.Require().Error(err)
 
 	// buy very small amount - should fail (as cost ~= 0)
-	err = k.Buy(s.Ctx, planId, buyer, sdk.NewInt(100), maxAmt)
+	err = k.Buy(s.Ctx, planId, buyer, math.NewInt(100), maxAmt)
 	s.Require().Error(err)
 
 	// assert nothing sold
@@ -95,18 +95,18 @@ func (s *KeeperTestSuite) TestTradeAfterSettled() {
 
 	startTime := time.Now()
 	endTime := startTime.Add(time.Hour)
-	maxAmt := sdk.NewInt(1_000_000_000).MulRaw(1e18)
-	totalAllocation := sdk.NewInt(1_000_000).MulRaw(1e18)
+	maxAmt := math.NewInt(1_000_000_000).MulRaw(1e18)
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, endTime, rollapp, curve, incentives)
 	s.Require().NoError(err)
 
 	buyer := sample.Acc()
-	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000).MulRaw(1e18)))
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
 	s.FundAcc(buyer, buyersFunds)
 
-	buyAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 
 	// Buy before settlement
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
@@ -136,7 +136,7 @@ func (s *KeeperTestSuite) TestTakerFee() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
-	totalAllocation := sdk.NewInt(1_000_000).MulRaw(1e18)
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
@@ -144,10 +144,10 @@ func (s *KeeperTestSuite) TestTakerFee() {
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	buyer := sample.Acc()
-	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000).MulRaw(1e18)))
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
 	s.FundAcc(buyer, buyersFunds)
 
-	buyAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 
 	// Attempt to buy while ignoring taker fee - should fail
 	err = k.Buy(s.Ctx, planId, buyer, buyAmt, buyAmt)
@@ -172,8 +172,8 @@ func (s *KeeperTestSuite) TestSell() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
-	maxAmt := sdk.NewInt(1_000_000_000).MulRaw(1e18)
-	totalAllocation := sdk.NewInt(1_000_000).MulRaw(1e18)
+	maxAmt := math.NewInt(1_000_000_000).MulRaw(1e18)
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
@@ -182,10 +182,10 @@ func (s *KeeperTestSuite) TestSell() {
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
 	buyer := sample.Acc()
-	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", sdk.NewInt(100_000).MulRaw(1e18)))
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
 	s.FundAcc(buyer, buyersFunds)
 
-	buyAmt := sdk.NewInt(1_000).MulRaw(1e18)
+	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 
 	// Buy tokens first
 	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
@@ -195,8 +195,8 @@ func (s *KeeperTestSuite) TestSell() {
 	takerFeeAmtBuy := s.TakerFeeAmtAfterBuy()
 
 	// Sell tokens
-	sellAmt := sdk.NewInt(500).MulRaw(1e18)
-	minReceive := sdk.NewInt(1) // Set a very low minReceive for testing purposes
+	sellAmt := math.NewInt(500).MulRaw(1e18)
+	minReceive := math.NewInt(1) // Set a very low minReceive for testing purposes
 	err = k.Sell(s.Ctx, planId, buyer, sellAmt, minReceive)
 	s.Require().NoError(err)
 
@@ -224,7 +224,7 @@ func (s *KeeperTestSuite) TestSell() {
 	s.Require().Error(err)
 }
 
-func (s *KeeperTestSuite) TakerFeeAmtAfterSell() sdk.Int {
+func (s *KeeperTestSuite) TakerFeeAmtAfterSell() math.Int {
 	// Extract taker fee from event
 	eventName := proto.MessageName(new(types.EventSell))
 	takerFeeAmt, found := s.ExtractTakerFeeAmtFromEvents(s.Ctx.EventManager().Events(), eventName)
@@ -232,7 +232,7 @@ func (s *KeeperTestSuite) TakerFeeAmtAfterSell() sdk.Int {
 	return takerFeeAmt
 }
 
-func (s *KeeperTestSuite) TakerFeeAmtAfterBuy() sdk.Int {
+func (s *KeeperTestSuite) TakerFeeAmtAfterBuy() math.Int {
 	// Extract taker fee from event
 	eventName := proto.MessageName(new(types.EventBuy))
 	takerFeeAmt, found := s.ExtractTakerFeeAmtFromEvents(s.Ctx.EventManager().Events(), eventName)
@@ -240,18 +240,18 @@ func (s *KeeperTestSuite) TakerFeeAmtAfterBuy() sdk.Int {
 	return takerFeeAmt
 }
 
-func (s *KeeperTestSuite) ExtractTakerFeeAmtFromEvents(events []sdk.Event, eventName string) (sdk.Int, bool) {
+func (s *KeeperTestSuite) ExtractTakerFeeAmtFromEvents(events []sdk.Event, eventName string) (math.Int, bool) {
 	event, found := s.FindLastEventOfType(events, eventName)
 	if !found {
-		return sdk.Int{}, false
+		return math.Int{}, false
 	}
 	attrs := s.ExtractAttributes(event)
 	for key, value := range attrs {
 		if key == "taker_fee" {
-			fee, ok := sdk.NewIntFromString(value)
+			fee, ok := math.NewIntFromString(value)
 			s.Require().True(ok)
 			return fee, true
 		}
 	}
-	return sdk.ZeroInt(), false
+	return math.ZeroInt(), false
 }

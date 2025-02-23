@@ -6,6 +6,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -51,29 +52,29 @@ func DefaultParams() Params {
 func DefaultPriceParams() PriceParams {
 	return PriceParams{
 		NamePriceSteps: []sdkmath.Int{
-			sdk.NewInt(5000 /* DYM */).MulRaw(1e18), // 1 letter
-			sdk.NewInt(2500 /* DYM */).MulRaw(1e18), // 2 letters
-			sdk.NewInt(1000 /* DYM */).MulRaw(1e18), // 3 letters
-			sdk.NewInt(100 /* DYM */).MulRaw(1e18),  // 4 letters
-			sdk.NewInt(5 /* DYM */).MulRaw(1e18),    // 5+ letters
+			math.NewInt(5000 /* DYM */).MulRaw(1e18), // 1 letter
+			math.NewInt(2500 /* DYM */).MulRaw(1e18), // 2 letters
+			math.NewInt(1000 /* DYM */).MulRaw(1e18), // 3 letters
+			math.NewInt(100 /* DYM */).MulRaw(1e18),  // 4 letters
+			math.NewInt(5 /* DYM */).MulRaw(1e18),    // 5+ letters
 		},
 
 		AliasPriceSteps: []sdkmath.Int{
-			sdk.NewInt(6000 /* DYM */).MulRaw(1e18), // 1 letter
-			sdk.NewInt(3000 /* DYM */).MulRaw(1e18), // 2 letters
-			sdk.NewInt(1500 /* DYM */).MulRaw(1e18), // 3 letters
-			sdk.NewInt(500 /* DYM */).MulRaw(1e18),  // 4 letters
-			sdk.NewInt(250 /* DYM */).MulRaw(1e18),  // 5 letters
-			sdk.NewInt(100 /* DYM */).MulRaw(1e18),  // 6 letters
-			sdk.NewInt(50 /* DYM */).MulRaw(1e18),   // 7 letters
-			sdk.NewInt(20 /* DYM */).MulRaw(1e18),   // 8 letters
-			sdk.NewInt(10 /* DYM */).MulRaw(1e18),   // 9 letters
-			sdk.NewInt(5 /* DYM */).MulRaw(1e18),    // 10+ letters
+			math.NewInt(6000 /* DYM */).MulRaw(1e18), // 1 letter
+			math.NewInt(3000 /* DYM */).MulRaw(1e18), // 2 letters
+			math.NewInt(1500 /* DYM */).MulRaw(1e18), // 3 letters
+			math.NewInt(500 /* DYM */).MulRaw(1e18),  // 4 letters
+			math.NewInt(250 /* DYM */).MulRaw(1e18),  // 5 letters
+			math.NewInt(100 /* DYM */).MulRaw(1e18),  // 6 letters
+			math.NewInt(50 /* DYM */).MulRaw(1e18),   // 7 letters
+			math.NewInt(20 /* DYM */).MulRaw(1e18),   // 8 letters
+			math.NewInt(10 /* DYM */).MulRaw(1e18),   // 9 letters
+			math.NewInt(5 /* DYM */).MulRaw(1e18),    // 10+ letters
 		},
 
-		PriceExtends:           sdk.NewInt(5 /* DYM */).MulRaw(1e18),
+		PriceExtends:           math.NewInt(5 /* DYM */).MulRaw(1e18),
 		PriceDenom:             params.BaseDenom,
-		MinOfferPrice:          sdk.NewInt(10 /* DYM */).MulRaw(1e18),
+		MinOfferPrice:          math.NewInt(10 /* DYM */).MulRaw(1e18),
 		MinBidIncrementPercent: 1,
 	}
 }
@@ -264,7 +265,7 @@ func validatePriceParams(i interface{}) error {
 
 	if err := (sdk.Coin{
 		Denom:  m.PriceDenom,
-		Amount: sdk.ZeroInt(),
+		Amount: math.ZeroInt(),
 	}).Validate(); err != nil {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid price denom: %s", m.PriceDenom)
 	}

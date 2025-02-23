@@ -18,14 +18,20 @@ message QueryGetLightClientResponse {
 
 // Query defines the gRPC querier service.
 service Query {
-  rpc LightClient(QueryGetLightClientRequest) returns (QueryGetLightClientResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/lightclient/lightclient/{rollapp_id}";
+  rpc LightClient(QueryGetLightClientRequest)
+      returns (QueryGetLightClientResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/lightclient/lightclient/{rollapp_id}";
   }
-  rpc ExpectedClientState(QueryExpectedClientStateRequest) returns (QueryExpectedClientStateResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/lightclient/expectedclientstate";
+  rpc ExpectedClientState(QueryExpectedClientStateRequest)
+      returns (QueryExpectedClientStateResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/lightclient/expectedclientstate";
   }
-  rpc RollappCanonChannel(QueryRollappCanonChannelRequest) returns (QueryRollappCanonChannelResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/lightclient/canon_channel/{rollappId}";
+  rpc RollappCanonChannel(QueryRollappCanonChannelRequest)
+      returns (QueryRollappCanonChannelResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/lightclient/canon_channel/{rollappId}";
   }
 }
 
@@ -33,12 +39,11 @@ message QueryExpectedClientStateRequest {}
 
 message QueryExpectedClientStateResponse {
   // client state
-  google.protobuf.Any client_state = 2 [(gogoproto.moretags) = "yaml:\"client_state\""];
+  google.protobuf.Any client_state = 2
+      [ (gogoproto.moretags) = "yaml:\"client_state\"" ];
 }
 
-message QueryRollappCanonChannelRequest {
-  string rollappId = 1;
-}
+message QueryRollappCanonChannelRequest { string rollappId = 1; }
 
 message QueryRollappCanonChannelResponse {
   // hub side

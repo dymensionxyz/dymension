@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -26,8 +27,8 @@ var (
 
 	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
 
-	DefaultAppRegistrationFee         = commontypes.Dym(sdk.NewInt(1))
-	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(sdk.NewInt(100))
+	DefaultAppRegistrationFee         = commontypes.Dym(math.NewInt(1))
+	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(math.NewInt(100))
 )
 
 const (

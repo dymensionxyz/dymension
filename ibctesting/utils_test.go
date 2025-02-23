@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
@@ -154,7 +155,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 				Base:     "aden",
 				Exponent: 18,
 			},
-			InitialSupply: sdk.NewInt(1_000_000_000).MulRaw(1e18),
+			InitialSupply: math.NewInt(1_000_000_000).MulRaw(1e18),
 		},
 	)
 
@@ -316,7 +317,7 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	amount, ok := math.NewIntFromString("10000000000000000000")
 	s.Require().True(ok)
 
 	// add sender account

@@ -3,6 +3,7 @@ package apptesting
 import (
 	"math/big"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
@@ -12,32 +13,32 @@ import (
 )
 
 // 10^18 multiplier
-var EXP = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+var EXP = math.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 
 // Default Sender for amm messages
 var Sender = sdk.MustAccAddressFromBech32(alice)
 
 var DefaultAcctFunds sdk.Coins = sdk.NewCoins(
-	sdk.NewCoin("adym", EXP.Mul(sdk.NewInt(1_000_000))),
-	sdk.NewCoin("foo", EXP.Mul(sdk.NewInt(1_000_000))),
-	sdk.NewCoin("bar", EXP.Mul(sdk.NewInt(1_000_000))),
-	sdk.NewCoin("baz", EXP.Mul(sdk.NewInt(1_000_000))),
-	sdk.NewCoin("stake", EXP.Mul(sdk.NewInt(1_000_000_000_000))),
+	sdk.NewCoin("adym", EXP.Mul(math.NewInt(1_000_000))),
+	sdk.NewCoin("foo", EXP.Mul(math.NewInt(1_000_000))),
+	sdk.NewCoin("bar", EXP.Mul(math.NewInt(1_000_000))),
+	sdk.NewCoin("baz", EXP.Mul(math.NewInt(1_000_000))),
+	sdk.NewCoin("stake", EXP.Mul(math.NewInt(1_000_000_000_000))),
 )
 
 var DefaultPoolParams = balancer.PoolParams{
-	SwapFee: sdk.NewDec(0),
-	ExitFee: sdk.NewDec(0),
+	SwapFee: math.LegacyNewDec(0),
+	ExitFee: math.LegacyNewDec(0),
 }
 
 var DefaultPoolAssets = []balancer.PoolAsset{
 	{
-		Weight: sdk.NewInt(100),
-		Token:  sdk.NewCoin("foo", EXP.Mul(sdk.NewInt(500))),
+		Weight: math.NewInt(100),
+		Token:  sdk.NewCoin("foo", EXP.Mul(math.NewInt(500))),
 	},
 	{
-		Weight: sdk.NewInt(100),
-		Token:  sdk.NewCoin("adym", EXP.Mul(sdk.NewInt(500))),
+		Weight: math.NewInt(100),
+		Token:  sdk.NewCoin("adym", EXP.Mul(math.NewInt(500))),
 	},
 }
 
@@ -59,7 +60,7 @@ func (s *KeeperTestHelper) PrepareDefaultPool() uint64 {
 
 	spotPrice, err := s.App.GAMMKeeper.CalculateSpotPrice(s.Ctx, poolId, "foo", "adym")
 	s.NoError(err)
-	s.Equal(sdk.NewDec(1).String(), spotPrice.String())
+	s.Equal(math.LegacyNewDec(1).String(), spotPrice.String())
 
 	return poolId
 }
@@ -86,7 +87,7 @@ func coinsToAssets(coins sdk.Coins) []balancer.PoolAsset {
 	var poolAssets []balancer.PoolAsset
 	for _, coin := range coins {
 		poolAsset := balancer.PoolAsset{
-			Weight: sdk.NewInt(1),
+			Weight: math.NewInt(1),
 			Token:  coin,
 		}
 		poolAssets = append(poolAssets, poolAsset)
@@ -99,7 +100,7 @@ func (s *KeeperTestHelper) RunBasicSwap(poolId uint64, from string, swapIn sdk.C
 		Sender:            from,
 		Routes:            []poolmanagertypes.SwapAmountInRoute{{PoolId: poolId, TokenOutDenom: outDenom}},
 		TokenIn:           swapIn,
-		TokenOutMinAmount: sdk.ZeroInt(),
+		TokenOutMinAmount: math.ZeroInt(),
 	}
 
 	gammMsgServer := gammkeeper.NewMsgServerImpl(s.App.GAMMKeeper)
@@ -107,7 +108,7 @@ func (s *KeeperTestHelper) RunBasicSwap(poolId uint64, from string, swapIn sdk.C
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestHelper) RunBasicExit(poolId uint64, shares sdk.Int, from string) (out sdk.Coins) {
+func (s *KeeperTestHelper) RunBasicExit(poolId uint64, shares math.Int, from string) (out sdk.Coins) {
 	msg := gammtypes.MsgExitPool{
 		Sender:        from,
 		PoolId:        poolId,
@@ -122,7 +123,7 @@ func (s *KeeperTestHelper) RunBasicExit(poolId uint64, shares sdk.Int, from stri
 }
 
 // RunBasicJoin joins the pool with 10% of the total pool shares
-func (s *KeeperTestHelper) RunBasicJoin(poolId uint64, from string) (shares sdk.Int, cost sdk.Coins) {
+func (s *KeeperTestHelper) RunBasicJoin(poolId uint64, from string) (shares math.Int, cost sdk.Coins) {
 	pool, err := s.App.GAMMKeeper.GetPoolAndPoke(s.Ctx, poolId)
 	s.Require().NoError(err)
 
@@ -130,7 +131,7 @@ func (s *KeeperTestHelper) RunBasicJoin(poolId uint64, from string) (shares sdk.
 	msg := gammtypes.MsgJoinPool{
 		Sender:         from,
 		PoolId:         poolId,
-		ShareOutAmount: totalPoolShare.Quo(sdk.NewInt(10)),
+		ShareOutAmount: totalPoolShare.Quo(math.NewInt(10)),
 		TokenInMaxs:    sdk.NewCoins(),
 	}
 

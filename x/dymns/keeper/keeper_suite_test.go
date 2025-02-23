@@ -25,6 +25,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -224,7 +225,7 @@ func (s *KeeperTestSuite) priceDenom() string {
 func (s *KeeperTestSuite) mintToModuleAccount(amount int64) {
 	err := s.bankKeeper.MintCoins(s.ctx,
 		dymnstypes.ModuleName,
-		sdk.Coins{sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))},
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), math.NewInt(amount))},
 	)
 	s.Require().NoError(err)
 }
@@ -242,7 +243,7 @@ func (s *KeeperTestSuite) mintToAccount(bech32Account string, amount int64) {
 	err := s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
 		dymnstypes.ModuleName,
 		sdk.MustAccAddressFromBech32(bech32Account),
-		sdk.Coins{sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))},
+		sdk.Coins{sdk.NewCoin(s.priceDenom(), math.NewInt(amount))},
 	)
 	s.Require().NoError(err)
 }
@@ -360,7 +361,7 @@ func (s *KeeperTestSuite) requireDymNameList(dymNames []dymnstypes.DymName, want
 }
 
 func (s *KeeperTestSuite) coin(amount int64) sdk.Coin {
-	return sdk.NewCoin(s.priceDenom(), sdk.NewInt(amount))
+	return sdk.NewCoin(s.priceDenom(), math.NewInt(amount))
 }
 
 //

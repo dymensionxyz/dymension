@@ -13,7 +13,8 @@ service Msg {
   // FinalizePacket finalizes a singe packet.
   rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
 
-  rpc FinalizePacketByPacketKey(MsgFinalizePacketByPacketKey) returns (MsgFinalizePacketByPacketKeyResponse);
+  rpc FinalizePacketByPacketKey(MsgFinalizePacketByPacketKey)
+      returns (MsgFinalizePacketByPacketKeyResponse);
 }
 
 // MsgFinalizePacket finalizes a single packet.

@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 
 				// Calculate expected rewards
 				for _, coin := range stream.coins {
-					epochAmt := coin.Amount.Quo(sdk.NewInt(int64(stream.numOfEpochs)))
+					epochAmt := coin.Amount.Quo(math.NewInt(int64(stream.numOfEpochs)))
 					if !epochAmt.IsPositive() {
 						continue
 					}

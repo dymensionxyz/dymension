@@ -124,10 +124,10 @@ func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		valAddr,
 		privEd.PubKey(),
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000)),
+		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
-		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(),
+		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
+		math.OneInt(),
 	)
 	s.Require().NoError(err)
 
@@ -158,8 +158,8 @@ func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance
 		privEd.PubKey(),
 		initCoin,
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
-		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(),
+		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
+		math.OneInt(),
 	)
 	s.Require().NoError(err)
 

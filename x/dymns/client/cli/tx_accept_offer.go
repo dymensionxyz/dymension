@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -66,7 +67,7 @@ func NewAcceptBuyOrderTxCmd() *cobra.Command {
 				Owner:   owner,
 				MinAccept: sdk.Coin{
 					Denom:  resParams.Params.Price.PriceDenom,
-					Amount: sdk.NewInt(amount).MulRaw(adymToDymMultiplier),
+					Amount: math.NewInt(amount).MulRaw(adymToDymMultiplier),
 				},
 			}
 

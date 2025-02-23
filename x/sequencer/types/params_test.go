@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +33,7 @@ func TestValidateBasic(t *testing.T) {
 			"invalid liveness slash multiplier",
 			Params{
 				NoticePeriod:               params.NoticePeriod,
-				LivenessSlashMinMultiplier: sdk.NewDec(-1),
+				LivenessSlashMinMultiplier: math.LegacyNewDec(-1),
 				LivenessSlashMinAbsolute:   params.LivenessSlashMinAbsolute,
 			},
 			true,

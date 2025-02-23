@@ -10,20 +10,25 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
-    rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
-    rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized) returns (MsgFulfillOrderAuthorizedResponse) {}
-    rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
+  option (cosmos.msg.v1.service) = true;
+  rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
+  rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized)
+      returns (MsgFulfillOrderAuthorizedResponse) {}
+  rpc UpdateDemandOrder(MsgUpdateDemandOrder)
+      returns (MsgUpdateDemandOrderResponse) {}
 }
 
 // MsgFulfillOrder defines the FulfillOrder request type.
 message MsgFulfillOrder {
-    option (cosmos.msg.v1.signer) = "fulfiller_address";
-    // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
-    string fulfiller_address = 1;
-    // order_id is the unique identifier of the order to be fulfilled.
-    string order_id = 2;
-    // expected_fee is the nominal fee set in the order. Fulfiller will generally make less profit (after deducting bridge fee)
-    string expected_fee = 3;
+  option (cosmos.msg.v1.signer) = "fulfiller_address";
+  // fulfiller_address is the bech32-encoded address of the account which the
+  // message was sent from.
+  string fulfiller_address = 1;
+  // order_id is the unique identifier of the order to be fulfilled.
+  string order_id = 2;
+  // expected_fee is the nominal fee set in the order. Fulfiller will generally
+  // make less profit (after deducting bridge fee)
+  string expected_fee = 3;
 }
 
 // MsgFulfillOrderResponse defines the FulfillOrder response type.
@@ -31,50 +36,59 @@ message MsgFulfillOrderResponse {}
 
 // MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
 message MsgFulfillOrderAuthorized {
-    option (cosmos.msg.v1.signer) = "lp_address";
-    // order_id is the unique identifier of the order to be fulfilled.
-    string order_id = 1;
-    // rollapp_id is the unique identifier of the rollapp that the order is associated with.
-    string rollapp_id = 2;
-    // price is the price of the demand order
-    repeated cosmos.base.v1beta1.Coin price = 3 [
-        (gogoproto.nullable)     = false,
-        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-    ];
-    // amount is the amount of the IBC transfer
-    cosmos.base.v1beta1.IntProto amount = 4 [
-        (gogoproto.nullable)     = false,
-        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.IntProto"
-    ];
-    // lp_address is the bech32-encoded address of the account which the authorization was granted from.
-    // This account will receive the price amount at the finalization phase.
-    string lp_address = 5;
-    // operator_fee_address is an optional bech32-encoded address of an account that would collect the operator_fee_part
-    // if it's empty, the operator_fee_part will go to the operator_address
-    string operator_fee_address = 6;
-    // expected_fee is the nominal fee set in the order.
-    string expected_fee = 7;
-    // operator_fee_share is the share of the fee earnings that goes to the operator
-    // it will be deduced from the fee of the demand order and paid out immediately
-    cosmos.base.v1beta1.DecProto operator_fee_share = 8 [
-        (gogoproto.nullable)     = false,
-        (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecProto"
-    ];
-    // settlement_validated signals if the block behind the demand order needs to be "settlement validated" or not
-    bool settlement_validated = 9;
+  option (cosmos.msg.v1.signer) = "lp_address";
+  // order_id is the unique identifier of the order to be fulfilled.
+  string order_id = 1;
+  // rollapp_id is the unique identifier of the rollapp that the order is
+  // associated with.
+  string rollapp_id = 2;
+  // price is the price of the demand order
+  repeated cosmos.base.v1beta1.Coin price = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // amount is the amount of the IBC transfer
+  string amount = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "cosmossdk.io/math.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+  // lp_address is the bech32-encoded address of the account which the
+  // authorization was granted from. This account will receive the price amount
+  // at the finalization phase.
+  string lp_address = 5;
+  // operator_fee_address is an optional bech32-encoded address of an account
+  // that would collect the operator_fee_part if it's empty, the
+  // operator_fee_part will go to the operator_address
+  string operator_fee_address = 6;
+  // expected_fee is the nominal fee set in the order.
+  string expected_fee = 7;
+  // operator_fee_share is the share of the fee earnings that goes to the
+  // operator it will be deduced from the fee of the demand order and paid out
+  // immediately
+  string operator_fee_share = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
+  ];
+  // settlement_validated signals if the block behind the demand order needs to
+  // be "settlement validated" or not
+  bool settlement_validated = 9;
 }
 
 message MsgFulfillOrderAuthorizedResponse {}
 
 message MsgUpdateDemandOrder {
-    option (cosmos.msg.v1.signer) = "owner_address";
-    // owner_address is the bech32-encoded address of the account owns the order.
-    // This is expected to be the address of the order recipient.
-    string owner_address = 1;
-    // order_id is the unique identifier of the order to be updated.
-    string order_id = 2;
-    // new_fee is the new fee amount to be set in the order.
-    string new_fee = 3;
+  option (cosmos.msg.v1.signer) = "owner_address";
+  // owner_address is the bech32-encoded address of the account owns the order.
+  // This is expected to be the address of the order recipient.
+  string owner_address = 1;
+  // order_id is the unique identifier of the order to be updated.
+  string order_id = 2;
+  // new_fee is the new fee amount to be set in the order.
+  string new_fee = 3;
 }
 
 message MsgUpdateDemandOrderResponse {}

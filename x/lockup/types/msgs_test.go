@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,7 @@ func TestMsgLockTokens(t *testing.T) {
 			msg: types.MsgLockTokens{
 				Owner:    addr1,
 				Duration: time.Hour,
-				Coins:    sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
 			},
 			expectPass: true,
 		},
@@ -37,7 +38,7 @@ func TestMsgLockTokens(t *testing.T) {
 			msg: types.MsgLockTokens{
 				Owner:    invalidAddr,
 				Duration: time.Hour,
-				Coins:    sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
 			},
 		},
 		{
@@ -45,7 +46,7 @@ func TestMsgLockTokens(t *testing.T) {
 			msg: types.MsgLockTokens{
 				Owner:    addr1,
 				Duration: -1,
-				Coins:    sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
 			},
 		},
 		{
@@ -53,7 +54,7 @@ func TestMsgLockTokens(t *testing.T) {
 			msg: types.MsgLockTokens{
 				Owner:    addr1,
 				Duration: time.Hour,
-				Coins:    sdk.NewCoins(sdk.NewCoin("test1", sdk.NewInt(100000)), sdk.NewCoin("test2", sdk.NewInt(100000))),
+				Coins:    sdk.NewCoins(sdk.NewCoin("test1", math.NewInt(100000)), sdk.NewCoin("test2", math.NewInt(100000))),
 			},
 		},
 		{
@@ -61,7 +62,7 @@ func TestMsgLockTokens(t *testing.T) {
 			msg: types.MsgLockTokens{
 				Owner:    addr1,
 				Duration: time.Hour,
-				Coins:    sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(0))),
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(0))),
 			},
 		},
 	}
@@ -136,7 +137,7 @@ func TestMsgBeginUnlocking(t *testing.T) {
 			msg: types.MsgBeginUnlocking{
 				Owner: addr1,
 				ID:    1,
-				Coins: sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				Coins: sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
 			},
 			expectPass: true,
 		},
@@ -145,7 +146,7 @@ func TestMsgBeginUnlocking(t *testing.T) {
 			msg: types.MsgBeginUnlocking{
 				Owner: invalidAddr,
 				ID:    1,
-				Coins: sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				Coins: sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
 			},
 		},
 		{
@@ -153,7 +154,7 @@ func TestMsgBeginUnlocking(t *testing.T) {
 			msg: types.MsgBeginUnlocking{
 				Owner: addr1,
 				ID:    0,
-				Coins: sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(100))),
+				Coins: sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
 			},
 		},
 		{
@@ -161,7 +162,7 @@ func TestMsgBeginUnlocking(t *testing.T) {
 			msg: types.MsgBeginUnlocking{
 				Owner: addr1,
 				ID:    1,
-				Coins: sdk.NewCoins(sdk.NewCoin("test1", sdk.NewInt(100000)), sdk.NewCoin("test2", sdk.NewInt(100000))),
+				Coins: sdk.NewCoins(sdk.NewCoin("test1", math.NewInt(100000)), sdk.NewCoin("test2", math.NewInt(100000))),
 			},
 		},
 		{
@@ -169,7 +170,7 @@ func TestMsgBeginUnlocking(t *testing.T) {
 			msg: types.MsgBeginUnlocking{
 				Owner: addr1,
 				ID:    1,
-				Coins: sdk.NewCoins(sdk.NewCoin("test1", sdk.NewInt(0))),
+				Coins: sdk.NewCoins(sdk.NewCoin("test1", math.NewInt(0))),
 			},
 			expectPass: true,
 		},
@@ -264,7 +265,7 @@ func TestMsgExtendLockup(t *testing.T) {
 func TestAuthzMsg(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pk1.Address()).String()
-	coin := sdk.NewCoin("denom", sdk.NewInt(1))
+	coin := sdk.NewCoin("denom", math.NewInt(1))
 
 	testCases := []struct {
 		name string

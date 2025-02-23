@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -31,7 +32,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, timeoutFee sdk.Dec, errAckFee sdk.Dec) Params {
+func NewParams(epochIdentifier string, timeoutFee math.LegacyDec, errAckFee math.LegacyDec) Params {
 	return Params{
 		EpochIdentifier: epochIdentifier,
 		TimeoutFee:      timeoutFee,
@@ -85,7 +86,7 @@ func validateEpochIdentifier(i interface{}) error {
 }
 
 func validateTimeoutFee(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -96,7 +97,7 @@ func validateTimeoutFee(i interface{}) error {
 		return ErrNegativeFee
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(math.LegacyOneDec()) {
 		return ErrFeeTooHigh
 	}
 
@@ -104,7 +105,7 @@ func validateTimeoutFee(i interface{}) error {
 }
 
 func validateErrAckFee(i any) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -115,7 +116,7 @@ func validateErrAckFee(i any) error {
 		return ErrNegativeFee
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(math.LegacyOneDec()) {
 		return ErrFeeTooHigh
 	}
 

@@ -13,14 +13,18 @@ import "cosmos/base/v1beta1/coin.proto";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
-  rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
+  rpc UpdateRollappInformation(MsgUpdateRollappInformation)
+      returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-  rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
+  rpc TransferOwnership(MsgTransferOwnership)
+      returns (MsgTransferOwnershipResponse);
   rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
   rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
   rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
-  rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps) returns (MsgMarkObsoleteRollappsResponse);
+  rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps)
+      returns (MsgMarkObsoleteRollappsResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -32,8 +36,8 @@ message MsgCreateRollapp {
   // The rollapp_id follows the same standard as cosmos chain_id
   string rollapp_id = 2;
   reserved 3 to 10;
-  // initial_sequencer takes one or more coma-separated bech32-encoded addresses of the
-  // sequencer(s) that are allowed to initially serve this rollappId.
+  // initial_sequencer takes one or more coma-separated bech32-encoded addresses
+  // of the sequencer(s) that are allowed to initially serve this rollappId.
   string initial_sequencer = 11;
   // see Rollapp for more details
   cosmos.base.v1beta1.Coin min_sequencer_bond = 16 [
@@ -45,13 +49,12 @@ message MsgCreateRollapp {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 13;
   // genesis_info is the genesis information
-  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = true ];
+  GenesisInfo genesis_info = 14 [ (gogoproto.nullable) = true ];
   // vm_type is the type of rollapp machine: EVM or WASM
   Rollapp.VMType vm_type = 15;
 }
 
-message MsgCreateRollappResponse {
-}
+message MsgCreateRollappResponse {}
 
 // MsgUpdateRollappInformation updates the rollapp information.
 message MsgUpdateRollappInformation {
@@ -70,13 +73,12 @@ message MsgUpdateRollappInformation {
     (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
   ];
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
+  RollappMetadata metadata = 5 [ (gogoproto.nullable) = true ];
   // genesis_info is the genesis information
-  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = true ];
+  GenesisInfo genesis_info = 6 [ (gogoproto.nullable) = true ];
 }
 
-message MsgUpdateRollappInformationResponse {
-}
+message MsgUpdateRollappInformationResponse {}
 
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
@@ -96,18 +98,20 @@ message MsgUpdateState {
 
   reserved 6;
   // BDs is a list of block description objects (one per block)
-  // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+  // the list must be ordered by height, starting from startHeight to
+  // startHeight+numBlocks-1
+  BlockDescriptors BDs = 7 [ (gogoproto.nullable) = false ];
   // last is true if this is the last batch of the sequencer
   bool last = 8;
-  // rollapp_revision is the revision of the rollapp chain. increases after hard fork  
+  // rollapp_revision is the revision of the rollapp chain. increases after hard
+  // fork
   uint64 rollapp_revision = 9;
 }
 
-message MsgUpdateStateResponse {
-}
+message MsgUpdateStateResponse {}
 
-// MsgTransferOwnership transfers the ownership of a rollapp chain to a new owner.
+// MsgTransferOwnership transfers the ownership of a rollapp chain to a new
+// owner.
 message MsgTransferOwnership {
   option (cosmos.msg.v1.signer) = "current_owner";
   // current_owner is the bech32-encoded address of the current owner
@@ -118,8 +122,7 @@ message MsgTransferOwnership {
   string rollapp_id = 3;
 }
 
-message MsgTransferOwnershipResponse {
-}
+message MsgTransferOwnershipResponse {}
 
 // MsgAddApp adds an app to the rollapp.
 message MsgAddApp {
@@ -140,8 +143,7 @@ message MsgAddApp {
   int32 order = 7;
 }
 
-message MsgAddAppResponse {
-}
+message MsgAddAppResponse {}
 
 // MsgUpdateApp updates the app information.
 message MsgUpdateApp {
@@ -164,8 +166,7 @@ message MsgUpdateApp {
   int32 order = 8;
 }
 
-message MsgUpdateAppResponse {
-}
+message MsgUpdateAppResponse {}
 
 // MsgRemoveApp removes an app from the rollapp.
 message MsgRemoveApp {
@@ -178,8 +179,7 @@ message MsgRemoveApp {
   string rollapp_id = 3;
 }
 
-message MsgRemoveAppResponse {
-}
+message MsgRemoveAppResponse {}
 
 // MsgMarkObsoleteRollapps marks specified versions as obsolete as well as
 // all corresponding rollapps. Must be called by the governance.

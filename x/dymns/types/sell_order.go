@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -154,7 +155,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 	if m.HasSetSellPrice() {
 		sellPrice = *m.SellPrice
 	} else {
-		sellPrice = sdk.NewCoin(m.MinPrice.Denom, sdk.ZeroInt())
+		sellPrice = sdk.NewCoin(m.MinPrice.Denom, math.ZeroInt())
 	}
 
 	var attrHighestBidder, attrHighestBidPrice sdk.Attribute
@@ -163,7 +164,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 		attrHighestBidPrice = sdk.NewAttribute(AttributeKeySoHighestBidPrice, m.HighestBid.Price.String())
 	} else {
 		attrHighestBidder = sdk.NewAttribute(AttributeKeySoHighestBidder, "")
-		attrHighestBidPrice = sdk.NewAttribute(AttributeKeySoHighestBidPrice, sdk.NewCoin(m.MinPrice.Denom, sdk.ZeroInt()).String())
+		attrHighestBidPrice = sdk.NewAttribute(AttributeKeySoHighestBidPrice, sdk.NewCoin(m.MinPrice.Denom, math.ZeroInt()).String())
 	}
 
 	return sdk.NewEvent(

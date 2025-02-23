@@ -26,6 +26,4 @@ message EventEpochEnd {
   ];
 }
 
-message EventEpochStart {
-  uint64 active_streams_num = 1;
-}
+message EventEpochStart { uint64 active_streams_num = 1; }

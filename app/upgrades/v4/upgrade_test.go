@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -57,7 +58,7 @@ const (
 	expectDisputePeriodInBlocks = 3
 )
 
-var expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)
+var expectDelayedackBridgingFee = math.LegacyNewDecWithPrec(1, 3)
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
 func (s *UpgradeTestSuite) TestUpgrade() {

@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sponsorship;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 
@@ -9,8 +10,8 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 message Params {
   // MinAllocationWeight is a minimum portion of the user's voting power that
   // one can allocate to a single gauge. The value is measured in percentages
-  // and must fall between 1 and 100 * 10^18, inclusive. The base unit is 10^-18%,
-  // so
+  // and must fall between 1 and 100 * 10^18, inclusive. The base unit is
+  // 10^-18%, so
   //  * 1 --> 10^-18%
   //  * 10^18 --> 1%
   //  * 100 * 10^18 --> 100%.
@@ -20,13 +21,15 @@ message Params {
   // 100 / 20 = 5.
   string min_allocation_weight = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   // MinVotingPower is a minimum voting power a user must have in order to be
   // able to vote. Denominated in aDYM.
   string min_voting_power = 2 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
 }
 
@@ -80,7 +83,8 @@ message Distribution {
   // VotingPower is the total voting power that the distribution holds.
   string voting_power = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   // Gauges is a breakdown of the voting power for different gauges.
   repeated Gauge gauges = 2 [ (gogoproto.nullable) = false ];
@@ -93,7 +97,8 @@ message Gauge {
   // Power is a total voting power distributed to this gauge.
   string power = 2 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
 }
 
@@ -102,7 +107,8 @@ message Vote {
   // Voting power is a total voting power of the vote.
   string voting_power = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   // Weights is a breakdown of the vote for different gauges.
   repeated GaugeWeight weights = 2 [ (gogoproto.nullable) = false ];
@@ -112,14 +118,15 @@ message Vote {
 message GaugeWeight {
   // GaugeID is the ID of the gauge.
   uint64 gauge_id = 1;
-  // Weight is a portion of the voting power that is allocated for the given gauge.
-  // The value is measured in percentages and must fall between 1 and 100 * 10^18,
-  // inclusive. The base unit is 10^-18%, so 
+  // Weight is a portion of the voting power that is allocated for the given
+  // gauge. The value is measured in percentages and must fall between 1 and 100
+  // * 10^18, inclusive. The base unit is 10^-18%, so
   //	* 1 --> 10^-18%
   //	* 10^18 --> 1%
   //	* 100 * 10^18 --> 100%.
   string weight = 2 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
 }

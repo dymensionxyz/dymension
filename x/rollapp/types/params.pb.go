@@ -30,9 +30,11 @@ type Params struct {
 	// to change a status of a state from received to finalized.
 	// during that period, any user could submit fraud proof
 	DisputePeriodInBlocks uint64 `protobuf:"varint,1,opt,name=dispute_period_in_blocks,json=disputePeriodInBlocks,proto3" json:"dispute_period_in_blocks,omitempty" yaml:"dispute_period_in_blocks"`
-	// The time (num hub blocks) a sequencer has to post a block, before he will be slashed
+	// The time (num hub blocks) a sequencer has to post a block, before he will
+	// be slashed
 	LivenessSlashBlocks uint64 `protobuf:"varint,4,opt,name=liveness_slash_blocks,json=livenessSlashBlocks,proto3" json:"liveness_slash_blocks,omitempty" yaml:"liveness_slash_blocks"`
-	// The min gap (num hub blocks) between a sequence of slashes if the sequencer continues to be down
+	// The min gap (num hub blocks) between a sequence of slashes if the sequencer
+	// continues to be down
 	LivenessSlashInterval uint64 `protobuf:"varint,5,opt,name=liveness_slash_interval,json=livenessSlashInterval,proto3" json:"liveness_slash_interval,omitempty" yaml:"liveness_slash_interval"`
 	// app_registration_fee is the fee for registering an App
 	AppRegistrationFee types.Coin `protobuf:"bytes,7,opt,name=app_registration_fee,json=appRegistrationFee,proto3" json:"app_registration_fee" yaml:"app_registration_fee"`

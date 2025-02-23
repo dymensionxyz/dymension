@@ -31,15 +31,18 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // StateInfoIndex is the data used for indexing and retrieving a StateInfo
 // it updated and saved with every UpdateState in StateInfo.
 // We use the this structure also for:
-// 1. LatestStateInfoIndex which defines the rollapps' current (latest) index of the last UpdateState
-// 2. LatestFinalizedStateIndex which defines the rollapps' current (latest) index of the latest StateInfo that was finalized
+// 1. LatestStateInfoIndex which defines the rollapps' current (latest) index of
+// the last UpdateState
+// 2. LatestFinalizedStateIndex which defines the rollapps' current (latest)
+// index of the latest StateInfo that was finalized
 type StateInfoIndex struct {
 	// rollappId is the rollapp that the sequencer belongs to and asking to update
 	// it used to identify the what rollapp a StateInfo belongs
 	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	// index is a sequential increasing number, updating on each
-	// state update used for indexing to a specific state info, the first index is 1
+	// state update used for indexing to a specific state info, the first index is
+	// 1
 	Index uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
 }
 
@@ -108,12 +111,14 @@ type StateInfo struct {
 	// status is the status of the state update
 	Status types.Status `protobuf:"varint,8,opt,name=status,proto3,enum=dymensionxyz.dymension.common.Status" json:"status,omitempty"`
 	// BDs is a list of block description objects (one per block)
-	// the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+	// the list must be ordered by height, starting from startHeight to
+	// startHeight+numBlocks-1
 	BDs BlockDescriptors `protobuf:"bytes,9,opt,name=BDs,proto3" json:"BDs"`
 	// created_at is the timestamp at which the StateInfo was created
 	CreatedAt time.Time `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3,stdtime" json:"created_at" yaml:"created_at"`
-	// NextProposer is the bech32-encoded address of the proposer that we expect to see in the next state info.
-	// Most of the time NextProposer is the current proposer. In case of rotation it is changed to the successor.
+	// NextProposer is the bech32-encoded address of the proposer that we expect
+	// to see in the next state info. Most of the time NextProposer is the current
+	// proposer. In case of rotation it is changed to the successor.
 	NextProposer string `protobuf:"bytes,11,opt,name=nextProposer,proto3" json:"nextProposer,omitempty"`
 }
 
@@ -285,7 +290,8 @@ func (m *StateInfoSummary) GetCreationHeight() uint64 {
 	return 0
 }
 
-// BlockHeightToFinalizationQueue defines a map from block height to list of states to finalized
+// BlockHeightToFinalizationQueue defines a map from block height to list of
+// states to finalized
 type BlockHeightToFinalizationQueue struct {
 	// CreationHeight is the block height that the state should be finalized
 	CreationHeight uint64 `protobuf:"varint,1,opt,name=creationHeight,proto3" json:"creationHeight,omitempty"`

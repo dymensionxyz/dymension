@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -68,7 +69,7 @@ func TestInitGenesis(t *testing.T) {
 		Denom:    "foo",
 		Duration: time.Second,
 	})
-	require.Equal(t, sdk.NewInt(30000000), acc)
+	require.Equal(t, math.NewInt(30000000), acc)
 }
 
 func TestExportGenesis(t *testing.T) {

@@ -45,7 +45,7 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.App = apptesting.Setup(suite.T())
 	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
-	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500000)), sdk.NewCoin("udym", sdk.NewInt(2500000)))
+	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500000)), sdk.NewCoin("udym", math.NewInt(2500000)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 
@@ -177,7 +177,7 @@ func (suite *KeeperTestSuite) vote(vote sponsorshiptypes.MsgVote) {
 func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	suite.T().Helper()
 
-	valAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, sdk.NewInt(1_000_000_000))
+	valAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1_000_000_000))
 
 	// Build MsgCreateValidator
 	valAddr := sdk.ValAddress(valAddrs[0].Bytes())
@@ -185,10 +185,10 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		valAddr,
 		privEd.PubKey(),
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000)),
+		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
-		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(),
+		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
+		math.OneInt(),
 	)
 	suite.Require().NoError(err)
 
@@ -207,7 +207,7 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
 	suite.T().Helper()
 
-	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, sdk.NewInt(1_000_000_000))
+	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1_000_000_000))
 	delAddr := delAddrs[0]
 	return suite.Delegate(delAddr, valAddr, coin)
 }
