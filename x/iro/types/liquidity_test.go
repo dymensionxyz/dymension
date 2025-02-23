@@ -74,11 +74,6 @@ func TestFindEquilibrium(t *testing.T) {
 	}
 }
 
-var (
-	defaultToleranceInt = sdkmath.NewIntWithDecimal(1, 12)    // one millionth of a dym
-	defaultToleranceDec = sdkmath.LegacyNewDecWithPrec(1, 12) // one millionth of a dym
-)
-
 // approxEqual checks if two values of different types are approximately equal
 func approxEqual(expected, actual, tolerance interface{}) error {
 	switch e := expected.(type) {

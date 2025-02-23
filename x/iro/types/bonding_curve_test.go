@@ -13,18 +13,21 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+var (
+	defaultToleranceInt = math.NewIntWithDecimal(1, 12)    // one millionth of a dym
+	defaultToleranceDec = math.LegacyNewDecWithPrec(1, 12) // one millionth of a dym
+)
+
 // approxEqualInt checks if two math.Ints are approximately equal
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
-	defaultTolerance := math.NewInt(1e12) // one hundred-billionth of a dym
-	diff := expected.Sub(actual).Abs()
-	assert.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+	err := approxEqual(expected, actual, defaultToleranceInt)
+	assert.NoError(t, err)
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
-	defaultTolerance := math.LegacyNewDecWithPrec(1, 12) // one hundred-billionth of a dym
-	diff := expected.Sub(actual).Abs()
-	assert.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+	err := approxEqual(expected, actual, defaultToleranceDec)
+	assert.NoError(t, err)
 }
 
 func TestBondingCurve_ValidateBasic(t *testing.T) {
