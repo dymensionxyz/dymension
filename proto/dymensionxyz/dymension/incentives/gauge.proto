@@ -60,8 +60,4 @@ message LockableDurationsInfo {
   ];
 }
 
-
-message RollappGauge {
-    string rollapp_id = 1;
-}
-
+message RollappGauge { string rollapp_id = 1; }

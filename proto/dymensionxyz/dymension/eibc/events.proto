@@ -20,7 +20,7 @@ message EventDemandOrderCreated {
   string fee = 3;
   // Deprecated: orders cannot be created and fulfilled at the same time
   // is_fulfilled is the flag indicating whether the order is fulfilled.
-  bool is_fulfilled = 4 [deprecated = true];
+  bool is_fulfilled = 4 [ deprecated = true ];
   // packet_status is the status of the packet.
   string packet_status = 5;
   // packet_key is the base64 encoded key of the packet.
@@ -37,7 +37,8 @@ message EventDemandOrderCreated {
   string amount = 11;
 }
 
-// EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
+// EventDemandOrderPacketStatusUpdate is emitted when the status of the related
+// packet is updated.
 message EventDemandOrderPacketStatusUpdated {
   // order_id is the unique identifier of the demand order.
   string order_id = 1;
@@ -47,7 +48,8 @@ message EventDemandOrderPacketStatusUpdated {
   bool is_fulfilled = 3;
 }
 
-// EventDemandOrderFeeUpdate is emitted when the fee of the demand order is updated.
+// EventDemandOrderFeeUpdate is emitted when the fee of the demand order is
+// updated.
 message EventDemandOrderFeeUpdated {
   // order_id is the unique identifier of the demand order.
   string order_id = 1;
@@ -83,7 +85,8 @@ message EventDemandOrderFulfilled {
   string packet_type = 10;
 }
 
-// EventDemandOrderFulfilledAuthorized is emitted when the demand order is fulfilled from an authorization.
+// EventDemandOrderFulfilledAuthorized is emitted when the demand order is
+// fulfilled from an authorization.
 message EventDemandOrderFulfilledAuthorized {
   // order_id is the unique identifier of the demand order.
   string order_id = 1;

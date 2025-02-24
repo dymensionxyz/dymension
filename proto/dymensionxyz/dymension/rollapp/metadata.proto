@@ -16,7 +16,8 @@ message RollappMetadata {
   string x = 5;
   // genesis_url has the genesis file
   string genesis_url = 6;
-  // display_name is a non semantic name for displaying on gui etc. Size limited.
+  // display_name is a non semantic name for displaying on gui etc. Size
+  // limited.
   string display_name = 7;
   // tagline is a non semantic tagline/catch-phrase. Size limited.
   string tagline = 8;

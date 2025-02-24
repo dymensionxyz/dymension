@@ -147,7 +147,8 @@ func (m *EventUpdateRewardAddress) GetRewardAddr() string {
 type EventUpdateWhitelistedRelayers struct {
 	// Operator is the bech32-encoded address of the actor sending the update
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	// Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	// Relayers is an array of the whitelisted relayer addresses. Addresses are
+	// bech32-encoded strings.
 	Relayers []string `protobuf:"bytes,2,rep,name=relayers,proto3" json:"relayers,omitempty"`
 }
 
@@ -201,7 +202,8 @@ func (m *EventUpdateWhitelistedRelayers) GetRelayers() []string {
 // On a sequencer kicking the incumbent proposer
 type EventKickedProposer struct {
 	Rollapp string `protobuf:"bytes,3,opt,name=rollapp,proto3" json:"rollapp,omitempty"`
-	// Kicker is the bech32-encoded address of the sequencer who triggered the kick
+	// Kicker is the bech32-encoded address of the sequencer who triggered the
+	// kick
 	Kicker string `protobuf:"bytes,1,opt,name=kicker,proto3" json:"kicker,omitempty"`
 	// Proposer is the bech32-encoded address of the proposer who was kicked
 	Proposer string `protobuf:"bytes,2,opt,name=proposer,proto3" json:"proposer,omitempty"`

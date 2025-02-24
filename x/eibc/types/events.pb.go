@@ -163,7 +163,8 @@ func (m *EventDemandOrderCreated) GetAmount() string {
 	return ""
 }
 
-// EventDemandOrderPacketStatusUpdate is emitted when the status of the related packet is updated.
+// EventDemandOrderPacketStatusUpdate is emitted when the status of the related
+// packet is updated.
 type EventDemandOrderPacketStatusUpdated struct {
 	// order_id is the unique identifier of the demand order.
 	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -227,7 +228,8 @@ func (m *EventDemandOrderPacketStatusUpdated) GetIsFulfilled() bool {
 	return false
 }
 
-// EventDemandOrderFeeUpdate is emitted when the fee of the demand order is updated.
+// EventDemandOrderFeeUpdate is emitted when the fee of the demand order is
+// updated.
 type EventDemandOrderFeeUpdated struct {
 	// order_id is the unique identifier of the demand order.
 	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -427,7 +429,8 @@ func (m *EventDemandOrderFulfilled) GetPacketType() string {
 	return ""
 }
 
-// EventDemandOrderFulfilledAuthorized is emitted when the demand order is fulfilled from an authorization.
+// EventDemandOrderFulfilledAuthorized is emitted when the demand order is
+// fulfilled from an authorization.
 type EventDemandOrderFulfilledAuthorized struct {
 	// order_id is the unique identifier of the demand order.
 	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`

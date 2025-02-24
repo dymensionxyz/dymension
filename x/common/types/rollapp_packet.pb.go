@@ -66,7 +66,8 @@ type RollappPacket struct {
 	Type            RollappPacket_Type `protobuf:"varint,7,opt,name=type,proto3,enum=dymensionxyz.dymension.common.RollappPacket_Type" json:"type,omitempty"`
 	// stores the result of onAck, onTimeout or onRecv/writeAck
 	Error string `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
-	// who was the original person who gets the money (recipient of ics20 transfer) of the packet?
+	// who was the original person who gets the money (recipient of ics20
+	// transfer) of the packet?
 	OriginalTransferTarget string `protobuf:"bytes,9,opt,name=original_transfer_target,json=originalTransferTarget,proto3" json:"original_transfer_target,omitempty"`
 }
 

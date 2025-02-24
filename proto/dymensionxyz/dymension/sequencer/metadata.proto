@@ -52,7 +52,7 @@ message SnapshotInfo {
   // The snapshot height
   uint64 height = 2;
   // sha-256 checksum value for the snapshot file
-  string checksum=3;
+  string checksum = 3;
 }
 
 message DenomMetadata {

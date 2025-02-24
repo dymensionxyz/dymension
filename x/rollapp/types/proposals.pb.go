@@ -157,11 +157,14 @@ var xxx_messageInfo_MsgRollappFraudProposalResponse proto.InternalMessageInfo
 
 // MsgForceGenesisInfoChange defines the Msg/ForceGenesisInfoChange request type
 type MsgForceGenesisInfoChange struct {
-	// Authority is the address that controls the module (defaults to x/gov unless overwritten).
+	// Authority is the address that controls the module (defaults to x/gov unless
+	// overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	// RollappID is the unique identifier of the rollapp whose genesis info will be changed
+	// RollappID is the unique identifier of the rollapp whose genesis info will
+	// be changed
 	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	// NewGenesisInfo contains the new genesis information that will replace the existing one
+	// NewGenesisInfo contains the new genesis information that will replace the
+	// existing one
 	NewGenesisInfo GenesisInfo `protobuf:"bytes,3,opt,name=new_genesis_info,json=newGenesisInfo,proto3" json:"new_genesis_info"`
 }
 
@@ -219,7 +222,8 @@ func (m *MsgForceGenesisInfoChange) GetNewGenesisInfo() GenesisInfo {
 	return GenesisInfo{}
 }
 
-// MsgForceGenesisInfoChangeResponse defines the Msg/ForceGenesisInfoChange response type
+// MsgForceGenesisInfoChangeResponse defines the Msg/ForceGenesisInfoChange
+// response type
 type MsgForceGenesisInfoChangeResponse struct {
 }
 

@@ -16,46 +16,48 @@ import "dymensionxyz/dymension/sequencer/operating_status.proto";
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
 message Sequencer {
-  reserved 5,9,10;
+  reserved 5, 9, 10;
 
-  // Address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  // Address is the bech32-encoded address of the sequencer account which is the
+  // account that the message was sent from.
   string address = 1;
-  // DymintPubKey is the public key of the sequencers' dymint client, as a Protobuf Any.
-  google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  // DymintPubKey is the public key of the sequencers' dymint client, as a
+  // Protobuf Any.
+  google.protobuf.Any dymintPubKey = 2
+      [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey" ];
   // RollappId defines the rollapp to which the sequencer belongs.
   string rollappId = 3;
   // SequencerMetadata defines the extra information for the sequencer.
-  SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
+  SequencerMetadata metadata = 4 [ (gogoproto.nullable) = false ];
 
-  bool proposer = 6 [deprecated = true];
-  
+  bool proposer = 6 [ deprecated = true ];
+
   // OperatingStatus is the sequencer status (bonded/unbonded).
   OperatingStatus status = 7;
 
-  // OptedIn : when true and bonded, the sequencer can be chosen as proposer or successor
-  // has no effect if already proposer or successor
+  // OptedIn : when true and bonded, the sequencer can be chosen as proposer or
+  // successor has no effect if already proposer or successor
   bool opted_in = 14;
 
-  // Tokens: A coins which should always be one dym coin. It's the amount of tokens the sequencer has given to the module.
+  // Tokens: A coins which should always be one dym coin. It's the amount of
+  // tokens the sequencer has given to the module.
   repeated cosmos.base.v1beta1.Coin tokens = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-
-
-  // NoticePeriodTime defines the time when the sequencer will finish it's notice period. Zero means not started.
+  // NoticePeriodTime defines the time when the sequencer will finish it's
+  // notice period. Zero means not started.
   google.protobuf.Timestamp notice_period_time = 11
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 
   // RewardAddr is a bech32 encoded sdk acc address
   string reward_addr = 12;
-  // WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+  // WhitelistedRelayers is an array of the whitelisted relayer addresses.
+  // Addresses are bech32-encoded strings.
   repeated string whitelisted_relayers = 13;
-
 
   // how badly behaved sequencer is, can incur penalties (kicking) when high
   // 0 is good/default, more is worse
   uint64 dishonor = 15;
 }
-

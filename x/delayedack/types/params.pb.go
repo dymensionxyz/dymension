@@ -29,13 +29,14 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Params struct {
 	EpochIdentifier string                      `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
 	BridgingFee     cosmossdk_io_math.LegacyDec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"bridging_fee" yaml:"bridging_fee"`
-	// `delete_packets_epoch_limit` is the hard limit of the number of finalized rollapp packets
-	// that will be deleted from the store on every epoch end.
-	// As deleting finalized rollapp packets is meant to keep the store from growing,
+	// `delete_packets_epoch_limit` is the hard limit of the number of finalized
+	// rollapp packets that will be deleted from the store on every epoch end. As
+	// deleting finalized rollapp packets is meant to keep the store from growing,
 	// it is more of a "nice to have" rather than a "must have" feature,
 	// this is a way to limit the time it takes to do so,
-	// even if it means potentially causing the store to temporarily grow by piling up packets
-	// that weren't deleted but rather "postponed", to subsequent epochs.
+	// even if it means potentially causing the store to temporarily grow by
+	// piling up packets that weren't deleted but rather "postponed", to
+	// subsequent epochs.
 	DeletePacketsEpochLimit int32 `protobuf:"varint,3,opt,name=delete_packets_epoch_limit,json=deletePacketsEpochLimit,proto3" json:"delete_packets_epoch_limit,omitempty" yaml:"delete_packets_epoch_limit"`
 }
 

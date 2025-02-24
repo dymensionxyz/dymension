@@ -8,8 +8,10 @@ import "dymensionxyz/dymension/rollapp/genesis_info.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 service ProposalMsg {
-  rpc SubmitRollappFraud(MsgRollappFraudProposal) returns (MsgRollappFraudProposalResponse);
-  rpc ForceGenesisInfoChange(MsgForceGenesisInfoChange) returns (MsgForceGenesisInfoChangeResponse);
+  rpc SubmitRollappFraud(MsgRollappFraudProposal)
+      returns (MsgRollappFraudProposalResponse);
+  rpc ForceGenesisInfoChange(MsgForceGenesisInfoChange)
+      returns (MsgForceGenesisInfoChangeResponse);
 }
 
 message MsgRollappFraudProposal {
@@ -33,25 +35,27 @@ message MsgRollappFraudProposal {
   string rewardee = 7;
 }
 
-message MsgRollappFraudProposalResponse {
-}
+message MsgRollappFraudProposalResponse {}
 
 // MsgForceGenesisInfoChange defines the Msg/ForceGenesisInfoChange request type
 message MsgForceGenesisInfoChange {
   option (cosmos.msg.v1.signer) = "authority";
 
-  // Authority is the address that controls the module (defaults to x/gov unless overwritten).
+  // Authority is the address that controls the module (defaults to x/gov unless
+  // overwritten).
   string authority = 1;
 
-  // RollappID is the unique identifier of the rollapp whose genesis info will be changed
+  // RollappID is the unique identifier of the rollapp whose genesis info will
+  // be changed
   string rollapp_id = 2;
 
-  // NewGenesisInfo contains the new genesis information that will replace the existing one
-  GenesisInfo new_genesis_info = 3 [(gogoproto.nullable) = false];
+  // NewGenesisInfo contains the new genesis information that will replace the
+  // existing one
+  GenesisInfo new_genesis_info = 3 [ (gogoproto.nullable) = false ];
 }
 
-// MsgForceGenesisInfoChangeResponse defines the Msg/ForceGenesisInfoChange response type
-message MsgForceGenesisInfoChangeResponse {
-}
+// MsgForceGenesisInfoChangeResponse defines the Msg/ForceGenesisInfoChange
+// response type
+message MsgForceGenesisInfoChangeResponse {}
 
 // TODO: add slashing only proposal (e.g for double signing)
