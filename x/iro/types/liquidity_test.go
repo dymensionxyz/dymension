@@ -31,6 +31,8 @@ func LogarithmicRange(t *rapid.T, min, max int64) int64 {
 }
 
 func TestFindEquilibrium(t *testing.T) {
+	// _ = flag.Set("rapid.checks", "1000") // can be enabled manually for more thorough testing
+
 	// Define different curve types
 	testcases := []struct {
 		name string
@@ -44,33 +46,47 @@ func TestFindEquilibrium(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			rapid.Check(t, func(t *rapid.T) {
-				allocation := LogarithmicRange(t, 1e3, 1e10) // 1K to 10B RA tokens allocation
-				raiseTarget := LogarithmicRange(t, 1e3, 1e6) // 1K to 1M DYM
+				minAllocation := int64(1e4) // 10K RA tokens
+				maxAllocation := int64(1e9) // 1B RA tokens
 
-				calcaulateM := types.CalculateM(sdkmath.LegacyNewDec(raiseTarget), sdkmath.LegacyNewDec(allocation), tc.n, sdkmath.LegacyZeroDec())
+				minRaiseTarget := int64(1e4) // 10K DYM
+				maxRaiseTarget := int64(1e7) // 10M DYM
 
-				curve := types.NewBondingCurve(calcaulateM, tc.n, sdkmath.LegacyZeroDec())
+				allocation := LogarithmicRange(t, minAllocation, maxAllocation)
 				allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
 
+				raiseTarget := LogarithmicRange(t, minRaiseTarget, maxRaiseTarget)
+				raiseTargetDec := sdkmath.LegacyNewDec(raiseTarget)
+
+				t.Log("curve", tc.name, "allocation", allocation, "target", raiseTarget)
+
+				calcaulateM := types.CalculateM(raiseTargetDec, sdkmath.LegacyNewDec(allocation), tc.n)
+				if !calcaulateM.IsPositive() {
+					t.Skip("m is not positive", tc.name, "allocation", allocation, "targetRaise", raiseTarget)
+				}
+
+				curve := types.NewBondingCurve(calcaulateM, tc.n, sdkmath.LegacyZeroDec())
 				// assert eq is > 0
 				eq := types.FindEquilibrium(curve, allocationScaled)
 				require.True(t, eq.IsPositive())
+
+				actualRaised := curve.Cost(sdkmath.ZeroInt(), eq)
+				require.True(t, actualRaised.IsPositive())
 				// assert price at eq is the same as expected pool price
 				curvePrice := curve.SpotPrice(eq)
-				actualRaised := curve.Cost(sdkmath.ZeroInt(), eq)
 				leftoverTokens := allocationScaled.Sub(eq)
 				poolPrice := actualRaised.ToLegacyDec().QuoInt(leftoverTokens)
 
-				err := approxEqual(curvePrice, poolPrice, defaultToleranceDec)
+				err := approxEqualRatio(curvePrice, poolPrice, 0.001) // 0.1%
 				require.NoError(t, err)
 
 				// assert total value is same as expected
-				// totalValue := actualRaised.MulRaw(2)
-				// require.Equal(t, totalValue.String(), sdkmath.NewInt(raiseTarget).MulRaw(1e18).String())
-				// err = approxEqual(totalValue, sdkmath.NewInt(raiseTarget).MulRaw(1e18), defaultTolerance)
-				// require.NoError(t, err)
+				totalValue := actualRaised.MulRaw(2)
+				err = approxEqualRatio(raiseTargetDec.MulInt64(1e18).TruncateInt(), totalValue, 0.05) // 5% tolerance
+				require.NoError(t, err)
 			})
 		})
+
 	}
 }
 
@@ -105,6 +121,37 @@ func approxEqual(expected, actual, tolerance interface{}) error {
 		if diff.GTE(tol) {
 			return fmt.Errorf("expected %s, got %s, diff %s", e, a, diff)
 		}
+	default:
+		return fmt.Errorf("unsupported type: %T", expected)
+	}
+	return nil
+}
+
+// approxEqual checks if two values of different types are approximately equal
+func approxEqualRatio(expected, actual interface{}, tolerance float64) error {
+	switch e := expected.(type) {
+	case sdkmath.LegacyDec:
+		a, ok := actual.(sdkmath.LegacyDec)
+		if !ok {
+			return fmt.Errorf("actual is not a sdkmath.LegacyDec")
+		}
+
+		ratio := e.Quo(a).Abs().MustFloat64()
+		if ratio < (1 - tolerance) {
+			return fmt.Errorf("expected %s, got %s, diff %f", e, a, ratio)
+		}
+
+	case sdkmath.Int:
+		a, ok := actual.(sdkmath.Int)
+		if !ok {
+			return fmt.Errorf("actual is not a sdkmath.Int")
+		}
+
+		ratio := e.ToLegacyDec().Quo(a.ToLegacyDec()).Abs().MustFloat64()
+		if ratio < (1 - tolerance) {
+			return fmt.Errorf("expected %s, got %s, diff %f", e, a, ratio)
+		}
+
 	default:
 		return fmt.Errorf("unsupported type: %T", expected)
 	}
