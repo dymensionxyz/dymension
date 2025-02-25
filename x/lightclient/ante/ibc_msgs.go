@@ -42,13 +42,7 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				return ctx, errorsmod.Wrap(err, "handle MsgSubmitMisbehaviour")
 			}
 		case *ibcclienttypes.MsgUpdateClient:
-			h := keeper.PreUpdateClientHandler{
-				IbcClientKeeper:  i.ibcClientKeeper,
-				IbcChannelKeeper: i.ibcChannelKeeper,
-				RaK:              i.raK,
-				K:                i.k,
-			}
-			if err := h.HandleMsgUpdateClient(ctx, msg); err != nil {
+			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
 				return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
 			}
 		case *ibcchanneltypes.MsgChannelOpenAck:
