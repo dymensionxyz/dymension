@@ -8,6 +8,7 @@ import "dymensionxyz/dymension/iro/iro.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/iro/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
 
