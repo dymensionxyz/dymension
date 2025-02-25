@@ -173,7 +173,6 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	SetCanonicalClient(ctx context.Context, in *MsgSetCanonicalClient, opts ...grpc.CallOption) (*MsgSetCanonicalClientResponse, error)
-	// wrapper around ibc.core.client.v1.MsgUpdateClient to allow authz safely
 	UpdateClient(ctx context.Context, in *types.MsgUpdateClient, opts ...grpc.CallOption) (*types.MsgUpdateClientResponse, error)
 }
 
@@ -206,7 +205,6 @@ func (c *msgClient) UpdateClient(ctx context.Context, in *types.MsgUpdateClient,
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	SetCanonicalClient(context.Context, *MsgSetCanonicalClient) (*MsgSetCanonicalClientResponse, error)
-	// wrapper around ibc.core.client.v1.MsgUpdateClient to allow authz safely
 	UpdateClient(context.Context, *types.MsgUpdateClient) (*types.MsgUpdateClientResponse, error)
 }
 
