@@ -18,7 +18,7 @@ service Msg {
 
   // wraps normal ibc update client to allow authz
   // note: cannot be named UpdateClient
-  rpc WrappedUpdateClient(ibc.core.client.v1.MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
+  rpc UpdateClient(MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
 }
 
 // verify a client state and its consensus states against the rollapp
@@ -32,3 +32,7 @@ message MsgSetCanonicalClient {
 }
 
 message MsgSetCanonicalClientResponse {}
+
+message MsgUpdateClient {
+  ibc.core.client.v1.MsgUpdateClient inner = 1;
+}
