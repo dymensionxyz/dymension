@@ -45,10 +45,12 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 		Denom:  baseDenom,
 		Amount: allocatedAmount,
 	}
+	// TODO: generate random liquidity part
+	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	// Generate random bonding curve
-	curve := generateRandomBondingCurve(r, allocatedAmount)
-	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams())
+	curve := generateRandomBondingCurve(r, allocatedAmount, liquidityPart)
+	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams(), liquidityPart)
 
 	// randomize starting sold amount
 	// minSoldAmt < soldAmt < allocatedAmount - minUnsoldAmt
@@ -60,7 +62,7 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 	return plan
 }
 
-func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int) types.BondingCurve {
+func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int, liquidityPart math.LegacyDec) types.BondingCurve {
 	// Generate 0.5 < N < 1.5 with maximum precision of 3
 	nInt := r.Int63n(1000)                     // Generate a random integer between 0 and 999
 	n := math.LegacyNewDecWithPrec(nInt, 3)    // Convert to decimal with 3 decimal places
@@ -76,6 +78,7 @@ func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int) types.Bo
 		math.LegacyNewDecFromInt(targetRaiseDYM),
 		allocatedTokens,
 		n,
+		liquidityPart,
 	)
 
 	return types.BondingCurve{

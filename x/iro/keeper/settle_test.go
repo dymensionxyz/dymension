@@ -24,9 +24,10 @@ func (s *KeeperTestSuite) TestSettle() {
 	endTime := startTime.Add(time.Hour)
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
+	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives, liquidityPart)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
@@ -71,7 +72,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	startTime := time.Now()
 	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
-	maxToSell := types.FindEquilibrium(curve, allocation)
+	liquidityPart := types.DefaultParams().MinLiquidityPart
+	maxToSell := types.FindEquilibrium(curve, allocation, liquidityPart)
 
 	testCases := []struct {
 		name           string
@@ -79,21 +81,18 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 		expectedDYM    math.Int
 		expectedTokens math.Int
 	}{
-		// for small purchases, the raised dym is the limiting factor:
 		// - the expected DYM in the pool is the buy amount * 0.1 (fixed price) + 0.1 DYM creation fee
-		// for large purchases, the left tokens are the limiting factor:
-		// - the expected DYM in the pool is the left tokens / 0.1 (fixed price)
 		{
 			name:           "Small purchase",
-			buyAmt:         math.NewInt(1_000).MulRaw(1e18),
-			expectedDYM:    math.NewInt(1001).MulRaw(1e17), // 100.1 DYM
-			expectedTokens: math.NewInt(1_001).MulRaw(1e18),
+			buyAmt:         math.NewInt(999).MulRaw(1e18),
+			expectedDYM:    math.NewInt(100).MulRaw(1e18),   // 100 DYM
+			expectedTokens: math.NewInt(1_000).MulRaw(1e18), // 1000 tokens
 		},
 		{
 			name:           "Nothing sold - pool contains only creation fee",
 			buyAmt:         math.NewInt(0),
-			expectedDYM:    math.NewInt(1).MulRaw(1e17), // creation fee
-			expectedTokens: math.NewInt(1).MulRaw(1e18),
+			expectedDYM:    math.NewInt(1).MulRaw(1e17), // 0.1 dym creation fee
+			expectedTokens: math.NewInt(1).MulRaw(1e18), // 1 token
 		},
 		{
 			name:           "Large purchase",
@@ -104,8 +103,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 		{
 			name:           "All available tokens",
 			buyAmt:         maxToSell.SubRaw(1e18), // 500_000 - 1
-			expectedDYM:    math.NewInt(50_000).MulRaw(1e18),
-			expectedTokens: math.NewInt(500_000).MulRaw(1e18),
+			expectedDYM:    maxToSell.ToLegacyDec().Mul(curve.C).TruncateInt(),
+			expectedTokens: allocation.Sub(maxToSell),
 		},
 	}
 
@@ -118,7 +117,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 			// Create IRO plan
 			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, k.GetParams(s.Ctx).CreationFee)))
-			planId, err := k.CreatePlan(s.Ctx, allocation, startTime, startTime.Add(time.Hour), rollapp, curve, types.DefaultIncentivePlanParams())
+			planId, err := k.CreatePlan(s.Ctx, allocation, startTime, startTime.Add(time.Hour), rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart)
 			s.Require().NoError(err)
 			reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
 
@@ -131,6 +130,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 			plan := k.MustGetPlan(s.Ctx, planId)
 			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), appparams.BaseDenom)
+			s.Require().Equal(tc.expectedDYM.String(), raisedDYM.Amount.String())
+
 			unallocatedTokensAmt := allocation.Sub(plan.SoldAmt).Add(reservedTokens)
 
 			// Settle
@@ -139,13 +140,16 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			s.Require().NoError(err)
 
 			// Assert liquidity pool
+			expectedDYMInPool := tc.expectedDYM.ToLegacyDec().Mul(liquidityPart).TruncateInt()
+			expectedTokensInPool := expectedDYMInPool.ToLegacyDec().Quo(curve.C).TruncateInt()
+
 			poolId := uint64(1)
 			pool, err := s.App.GAMMKeeper.GetPool(s.Ctx, poolId)
 			s.Require().NoError(err)
 
 			poolCoins := pool.GetTotalPoolLiquidity(s.Ctx)
-			s.Require().Equal(tc.expectedDYM, poolCoins.AmountOf("adym"))
-			s.Require().Equal(tc.expectedTokens, poolCoins.AmountOf(rollappDenom))
+			s.Require().Equal(expectedDYMInPool.String(), poolCoins.AmountOf("adym").String())
+			s.Require().Equal(expectedTokensInPool, poolCoins.AmountOf(rollappDenom))
 
 			// Assert pool price
 			lastIROPrice := plan.SpotPrice()
@@ -172,6 +176,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			// 		unallocatedTokens - poolCoins
 			expectedIncentives := sdk.NewCoins(raisedDYM, sdk.NewCoin(rollappDenom, unallocatedTokensAmt)).Sub(poolCoins...)
 			s.Assert().Equal(expectedIncentives, gauge.Coins)
+
+			// FIXME: assert founder's funds
 		})
 	}
 }
