@@ -17,7 +17,7 @@ import (
 // wraps the normal ibc client keeper update client message but routes it through our ante
 // Now we have two ways to update: direct through normal pathway or here, which is messy.
 // We can improve in SDK v0.52+ with pre/post message hooks.
-func (m msgServer) UpdateClient(goCtx context.Context, msg *ibcclienttypes.MsgUpdateClient) (*ibcclienttypes.MsgUpdateClientResponse, error) {
+func (m msgServer) WrappedUpdateClient(goCtx context.Context, msg *ibcclienttypes.MsgUpdateClient) (*ibcclienttypes.MsgUpdateClientResponse, error) {
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
