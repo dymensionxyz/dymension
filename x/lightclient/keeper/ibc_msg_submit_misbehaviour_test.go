@@ -1,4 +1,4 @@
-package ante_test
+package keeper_test
 
 import (
 	"testing"
@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +25,7 @@ func TestHandleMsgSubmitMisbehaviour(t *testing.T) {
 	ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)
 	keeper.SetCanonicalClient(ctx, keepertest.DefaultRollapp, keepertest.CanonClientID)
-	ibcMsgDecorator := ante.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
+	ibcMsgDecorator := keeper.NewIBCMessagesDecorator(*keeper, ibcclientKeeper, ibcchannelKeeper, rollappKeeper)
 	testCases := []struct {
 		name     string
 		inputMsg ibcclienttypes.MsgSubmitMisbehaviour

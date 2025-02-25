@@ -1,7 +1,8 @@
-package ante
+package keeper
 
 import (
 	"bytes"
+	"context"
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
@@ -12,6 +13,24 @@ import (
 
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
+
+// wraps the normal ibc client keeper update client message but routes it through our ante
+// Now we have two ways to update: direct through normal pathway or here, which is messy.
+// We can improve in SDK v0.52+ with pre/post message hooks.
+func (m msgServer) UpdateClient(goCtx context.Context, msg *ibcclienttypes.MsgUpdateClient) (*ibcclienttypes.MsgUpdateClientResponse, error) {
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	d := NewIBCMessagesDecorator(*m.Keeper, m.ibcClientKeeper, m.ibcChannelK, m.rollappKeeper)
+
+	err := d.HandleMsgUpdateClient(ctx, msg)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return m.ibcKeeper.UpdateClient(ctx, msg)
+}
 
 var (
 	errIsMisbehaviour   = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "misbehavior evidence is disabled for canonical clients")

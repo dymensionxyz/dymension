@@ -1,11 +1,10 @@
-package ante
+package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
@@ -15,11 +14,11 @@ type IBCMessagesDecorator struct {
 	ibcClientKeeper  types.IBCClientKeeperExpected
 	ibcChannelKeeper types.IBCChannelKeeperExpected
 	raK              types.RollappKeeperExpected
-	k                keeper.Keeper
+	k                Keeper
 }
 
 func NewIBCMessagesDecorator(
-	k keeper.Keeper,
+	k Keeper,
 	ibcClient types.IBCClientKeeperExpected,
 	ibcChannel types.IBCChannelKeeperExpected,
 	rk types.RollappKeeperExpected,

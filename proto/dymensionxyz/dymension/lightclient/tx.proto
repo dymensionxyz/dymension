@@ -16,7 +16,9 @@ service Msg {
   rpc SetCanonicalClient(MsgSetCanonicalClient)
       returns (MsgSetCanonicalClientResponse);
 
-  rpc UpdateClient(ibc.core.client.v1.MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
+  // wraps normal ibc update client to allow authz
+  // note: cannot be named UpdateClient
+  rpc WrappedUpdateClient(ibc.core.client.v1.MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
 }
 
 // verify a client state and its consensus states against the rollapp
