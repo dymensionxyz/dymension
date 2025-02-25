@@ -6,12 +6,19 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 
+import "ibc/core/client/v1/tx.proto";
+//import = "github.com/cosmos/ibc-go/v7/modules/core/02-client/types";
+
+
 option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
 
 service Msg {
   option (cosmos.msg.v1.service) = true;
   rpc SetCanonicalClient(MsgSetCanonicalClient)
       returns (MsgSetCanonicalClientResponse);
+
+  // wrapper around ibc.core.client.v1.MsgUpdateClient to allow authz safely
+  rpc UpdateClient(ibc.core.client.v1.MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
 }
 
 // verify a client state and its consensus states against the rollapp
