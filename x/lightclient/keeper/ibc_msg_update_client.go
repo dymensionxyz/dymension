@@ -19,7 +19,6 @@ import (
 // Now we have two ways to update: direct through normal pathway or here, which is messy.
 // We can improve in SDK v0.52+ with pre/post message hooks.
 func (m msgServer) UpdateClient(goCtx context.Context, msg *types.MsgUpdateClient) (*ibcclienttypes.MsgUpdateClientResponse, error) {
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	payload := msg.Inner
@@ -27,7 +26,6 @@ func (m msgServer) UpdateClient(goCtx context.Context, msg *types.MsgUpdateClien
 	d := NewIBCMessagesDecorator(*m.Keeper, m.ibcClientKeeper, m.ibcChannelK, m.rollappKeeper)
 
 	err := d.HandleMsgUpdateClient(ctx, payload)
-
 	if err != nil {
 		return nil, err
 	}

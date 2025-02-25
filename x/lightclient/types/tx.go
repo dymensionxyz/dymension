@@ -11,8 +11,10 @@ const (
 	TypeMsgUpdateClient       = "update_client"
 )
 
-var _ sdk.Msg = &MsgSetCanonicalClient{}
-var _ sdk.Msg = &MsgUpdateClient{}
+var (
+	_ sdk.Msg = &MsgSetCanonicalClient{}
+	_ sdk.Msg = &MsgUpdateClient{}
+)
 
 func (msg *MsgSetCanonicalClient) Route() string {
 	return ModuleName
