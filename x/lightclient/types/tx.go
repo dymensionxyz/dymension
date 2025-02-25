@@ -8,16 +8,11 @@ import (
 
 const (
 	TypeMsgSetCanonicalClient = "set_canonical_client"
+	TypeMsgUpdateClient       = "update_client"
 )
 
 var _ sdk.Msg = &MsgSetCanonicalClient{}
-
-func NewMsgUpdateState(signer, client string) *MsgSetCanonicalClient {
-	return &MsgSetCanonicalClient{
-		Signer:   signer,
-		ClientId: client,
-	}
-}
+var _ sdk.Msg = &MsgUpdateClient{}
 
 func (msg *MsgSetCanonicalClient) Route() string {
 	return ModuleName
@@ -44,4 +39,23 @@ func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 		return gerrc.ErrInvalidArgument.Wrap("empty client id")
 	}
 	return nil
+}
+
+func (msg *MsgUpdateClient) Route() string {
+	return ModuleName
+}
+
+func (msg *MsgUpdateClient) Type() string {
+	return TypeMsgUpdateClient
+}
+
+func (msg *MsgUpdateClient) GetSigners() []sdk.AccAddress {
+	return msg.Inner.GetSigners()
+}
+
+func (msg *MsgUpdateClient) ValidateBasic() error {
+	if msg.Inner == nil {
+		return gerrc.ErrInvalidArgument.Wrap("inner is nil")
+	}
+	return msg.Inner.ValidateBasic()
 }
