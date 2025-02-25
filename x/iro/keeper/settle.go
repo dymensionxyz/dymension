@@ -100,8 +100,12 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID
 		return 0, 0, err
 	}
 
+	// FIXME: send funds to owner
+
+	poolTokens := raisedDYM.Amount.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
+
 	// find the tokens needed to bootstrap the pool, to fulfill last price
-	tokens, dym := types.CalcLiquidityPoolTokens(unallocatedTokens, raisedDYM.Amount, plan.SpotPrice())
+	tokens, dym := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
 	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
 

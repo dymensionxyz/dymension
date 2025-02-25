@@ -23,9 +23,8 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams) Plan {
-	// calculate the max sell amount
-	sellAmt := FindEquilibrium(curve, allocation.Amount)
+func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec) Plan {
+	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
 	plan := Plan{
 		Id:                  id,
 		RollappId:           rollappId,
@@ -36,7 +35,8 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		SoldAmt:             math.ZeroInt(),
 		ClaimedAmt:          math.ZeroInt(),
 		IncentivePlanParams: incentivesParams,
-		MaxAmountToSell:     sellAmt,
+		MaxAmountToSell:     eq,
+		LiquidityPart:       liquidityPart,
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
 	return plan
