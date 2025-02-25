@@ -272,6 +272,32 @@ func CalculateM(val, t, n, c math.LegacyDec) math.LegacyDec {
 	return m.SDKDec()
 }
 
+func CalculateMNew(val, t, n math.LegacyDec) math.LegacyDec {
+	valBig := osmomath.BigDecFromSDKDec(val)
+	tBig := osmomath.BigDecFromSDKDec(t)
+	nBig := osmomath.BigDecFromSDKDec(n)
+
+	// Calculate N + 1
+	nPlusOne := nBig.Add(osmomath.OneDec())
+	nPlusTwo := nPlusOne.Add(osmomath.OneDec())
+
+	// log(val) + log(N + 1) + (N+1)log(N + 2)
+	lognum := valBig.LogBase2().Add(nPlusOne.LogBase2()).Add(nPlusOne.Mul(nPlusTwo.LogBase2()))
+
+	// log(N + 1) + (N+1)log(T) + 1
+	logdenom := nPlusOne.LogBase2().Add(nPlusOne.Mul(tBig.LogBase2())).Add(osmomath.OneDec())
+
+	logm := lognum.Sub(logdenom)
+	m := osmomath.Exp2(logm.Abs())
+
+	if logm.IsNegative() {
+		m = osmomath.OneDec().Quo(m)
+	}
+
+	// Convert back to math.LegacyDec and return
+	return m.SDKDec()
+}
+
 /* ---------------------------- helper functions ---------------------------- */
 // Scales x from it's base denomination to a decimal representation (e.g 1500000000000000 to 1.5)
 // This is used to scale X before passing it to the bonding curve functions
