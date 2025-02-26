@@ -14,6 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// TODO: still necessary? Now there is native support for collections
+
 func NewKVStoreService(storeKey storetypes.Key) store.KVStoreService {
 	return &kvStoreService{key: storeKey}
 }
@@ -79,6 +81,7 @@ type protoMessage[T any] interface {
 	codec.ProtoMarshaler
 }
 
+// TODO: delete, can use codec lib
 // ProtoValue inits a collections.ValueCodec for a generic gogo protobuf message.
 func ProtoValue[T any, PT protoMessage[T]](cdc codec.BinaryCodec) collcodec.ValueCodec[T] {
 	return &collValue[T, PT]{cdc.(codec.Codec), proto.MessageName(PT(new(T)))}
