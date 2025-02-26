@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
-	// assert initial FUT balance
+	// assert initial IRO balance
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
 	s.Require().Equal(amt, balance.Amount)
 
@@ -43,7 +43,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().Error(err)
 
-	// should succeed after fund
+	// should succeed after fund (mocks the genesis bridge transfer)
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
@@ -52,7 +52,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().Error(err)
 
-	// assert no FUT balance in the account
+	// assert no IRO balance in the account
 	balance = s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
 	s.Require().True(balance.IsZero())
 
@@ -71,6 +71,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	startTime := time.Now()
 	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
+	maxToSell := types.FindEquilibrium(curve, allocation)
 
 	testCases := []struct {
 		name           string
@@ -89,22 +90,22 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			expectedTokens: math.NewInt(1_001).MulRaw(1e18),
 		},
 		{
-			name:           "Large purchase - left tokens are limiting factor",
-			buyAmt:         math.NewInt(800_000).MulRaw(1e18),
-			expectedDYM:    math.NewInt(20_000).MulRaw(1e18),
-			expectedTokens: math.NewInt(200_000).MulRaw(1e18),
-		},
-		{
 			name:           "Nothing sold - pool contains only creation fee",
 			buyAmt:         math.NewInt(0),
 			expectedDYM:    math.NewInt(1).MulRaw(1e17), // creation fee
 			expectedTokens: math.NewInt(1).MulRaw(1e18),
 		},
 		{
-			name:           "All sold - pool contains only reserved tokens",
-			buyAmt:         math.NewInt(999_999).MulRaw(1e18),
-			expectedDYM:    math.NewInt(1).MulRaw(1e17), // 0.1 DYM
-			expectedTokens: math.NewInt(1).MulRaw(1e18), // reserved tokens
+			name:           "Large purchase",
+			buyAmt:         math.NewInt(399_999).MulRaw(1e18),
+			expectedDYM:    math.NewInt(40_000).MulRaw(1e18),
+			expectedTokens: math.NewInt(400_000).MulRaw(1e18),
+		},
+		{
+			name:           "All available tokens",
+			buyAmt:         maxToSell.SubRaw(1e18), // 500_000 - 1
+			expectedDYM:    math.NewInt(50_000).MulRaw(1e18),
+			expectedTokens: math.NewInt(500_000).MulRaw(1e18),
 		},
 	}
 

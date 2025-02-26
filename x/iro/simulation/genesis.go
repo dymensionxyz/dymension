@@ -76,7 +76,6 @@ func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int) types.Bo
 		math.LegacyNewDecFromInt(targetRaiseDYM),
 		allocatedTokens,
 		n,
-		math.LegacyZeroDec(),
 	)
 
 	return types.BondingCurve{

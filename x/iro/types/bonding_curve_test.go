@@ -13,18 +13,21 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+var (
+	defaultToleranceInt = math.NewIntWithDecimal(1, 12)    // one millionth of a dym
+	defaultToleranceDec = math.LegacyNewDecWithPrec(1, 12) // one millionth of a dym
+)
+
 // approxEqualInt checks if two math.Ints are approximately equal
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
-	defaultTolerance := math.NewInt(1e12) // one hundred-billionth of a dym
-	diff := expected.Sub(actual).Abs()
-	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+	err := approxEqual(expected, actual, defaultToleranceInt)
+	assert.NoError(t, err)
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
-	defaultTolerance := math.LegacyNewDecWithPrec(1, 12) // one hundred-billionth of a dym
-	diff := expected.Sub(actual).Abs()
-	require.True(t, diff.LTE(defaultTolerance), fmt.Sprintf("expected %s, got %s, diff %s", expected, actual, diff))
+	err := approxEqual(expected, actual, defaultToleranceDec)
+	assert.NoError(t, err)
 }
 
 func TestBondingCurve_ValidateBasic(t *testing.T) {
@@ -36,14 +39,15 @@ func TestBondingCurve_ValidateBasic(t *testing.T) {
 		expectErr bool
 	}{
 		{"Valid bonding curve", 1, 1, 0, false},
-		{"Valid linear curve", 0.000002, 1, 0.00022, false},
-		{"Valid power curve N>1", 0.1234, 1.23, 0.002, false},
-		{"Valid power curve N<1", 0.1234, 0.76, 0.002, false},
+		{"Valid fixed curve", 0, 1, 0.15, false},
+		{"Valid linear curve", 0.000002, 1, 0, false},
+		{"Valid power curve N>1", 0.1234, 1.23, 0.00, false},
+		{"Valid power curve N<1", 0.1234, 0.76, 0.00, false},
 		{"Invalid C value", 2, 1, -1, true},
-		{"Invalid M value", -2, 1, 3, true},
-		{"Invalid N value", 2, -1, 3, true},
-		{"Too high N value", 2, 11, 3, true},
-		{"Precision check N", 2, 1.2421, 3, true},
+		{"Invalid M value", -2, 1, 0, true},
+		{"Invalid N value", 2, -1, 0, true},
+		{"Too high N value", 2, 11, 0, true},
+		{"Precision check N", 2, 1.2421, 0, true},
 	}
 
 	for _, tt := range tests {
@@ -213,12 +217,12 @@ func TestTokensForDYM(t *testing.T) {
 		{"Square Root", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2.24345436"),
 			math.LegacyMustNewDecFromStr("0.5"),
-			math.LegacyMustNewDecFromStr("10.5443534"),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 		{"Quadratic", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2"),
 			math.LegacyMustNewDecFromStr("1.5"),
-			math.LegacyZeroDec(),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 	}
 
@@ -255,12 +259,12 @@ func TestTokensForDYMApproximation(t *testing.T) {
 		{"Square Root", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2.24345436"),
 			math.LegacyMustNewDecFromStr("0.5"),
-			math.LegacyMustNewDecFromStr("10.5443534"),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 		{"Quadratic", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2"),
 			math.LegacyMustNewDecFromStr("1.5"),
-			math.LegacyZeroDec(),
+			math.LegacyMustNewDecFromStr("0.0"),
 		)},
 	}
 
@@ -311,49 +315,64 @@ func TestTokensForDYMApproximation(t *testing.T) {
 Real world scenario:
 - A project wants to raise 100_000 DYM for 1_000_000 RA tokens
 - N = 1
-- C = 0.001 (1% of the average price)
 
-Expected M value: 0.000000198
+Expected M value: 0.000000224999999999
 */
 func TestUseCaseA(t *testing.T) {
 	// Test case parameters
-	val := math.NewInt(100_000)          // 100,000 DYM to raise
-	z := math.NewInt(1_000_000)          // 1,000,000 RA tokens
-	n := math.LegacyNewDec(1)            // N = 1 (linear curve)
-	c := math.LegacyNewDecWithPrec(1, 3) // C = 0.001 (1% of the average price)
-
-	// Expected M calculation:
-	expectedM := math.LegacyMustNewDecFromStr("0.000000198")
+	val := math.NewInt(100_000) // 100,000 DYM to raise
+	z := math.NewInt(1_000_000) // 1,000,000 RA tokens
+	n := math.LegacyNewDec(1)   // N = 1 (linear curve)
+	c := math.LegacyZeroDec()
 
 	// Calculate M
-	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, c)
-	require.Equal(t, expectedM, m)
+	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n)
+	require.True(t, m.IsPositive())
+
+	expectedM := math.LegacyMustNewDecFromStr("0.000000224999999999")
+	assert.Equal(t, expectedM, m)
 
 	curve := types.NewBondingCurve(m, n, c)
 
-	// Verify that the cost of the curve at Z equals VAL
-	cost := curve.Cost(math.LegacyZeroDec().RoundInt(), z.MulRaw(1e18))
-	approxEqualInt(t, val.MulRaw(1e18), cost)
+	// find eq
+	eq := types.FindEquilibrium(curve, z.MulRaw(1e18))
 
 	// verify that the cost early is lower than the cost later
 	// test for buying 1000 RA tokens
 	averagePrice := math.LegacyNewDecFromInt(val).QuoInt(z)
-	costA := curve.Cost(math.ZeroInt(), math.NewInt(1000).MulRaw(1e18))
-	costB := curve.Cost(math.NewInt(900_000).MulRaw(1e18), math.NewInt(901_000).MulRaw(1e18))
+	costFirst := curve.Cost(math.ZeroInt(), math.NewInt(10_000).MulRaw(1e18))                   // first 10K tokens
+	costEarly := curve.Cost(math.NewInt(10_000).MulRaw(1e18), math.NewInt(20_000).MulRaw(1e18)) // next 10K tokens
+	costLast := curve.Cost(eq.Sub(math.NewInt(10_000).MulRaw(1e18)), eq)                        // last 10K tokens
 	t.Logf(
-		"Average Price: %s DYM\nCost for 1k Tokens:\n  Yearly: %s DYM\n  90%%: %s DYM",
-		averagePrice,
-		costA.QuoRaw(1e18),
-		costB.QuoRaw(1e18),
+		"Average Cost: %s DYM\nCost for 1k Tokens:\n, first: %s DYM\n  early: %s DYM\n  last: %s DYM",
+		averagePrice.MulInt64(10_000),
+		costFirst.ToLegacyDec().QuoInt64(1e18),
+		costEarly.ToLegacyDec().QuoInt64(1e18),
+		costLast.ToLegacyDec().QuoInt64(1e18),
 	)
-	// Define a threshold for the cost difference (e.g., 5% of costA)
-	threshold := costA.MulRaw(5).QuoRaw(100)
 
-	// Assert that the cost difference is greater than the threshold
-	costDifference := costB.Sub(costA)
-	require.True(t, costDifference.GT(threshold),
-		"Cost difference (%s) should be greater than threshold (%s)",
-		costDifference, threshold)
+	// Define a threshold for the minimum price increase (10%)
+	increaseFactor := math.LegacyMustNewDecFromStr("1.10")
+
+	// Assert that each price is at least 10% higher than the previous
+	require.True(t, costEarly.GTE(costFirst.ToLegacyDec().Mul(increaseFactor).TruncateInt()),
+		"Early cost (%s) should be at least 10%% higher than first cost (%s)",
+		costEarly, costFirst)
+
+	increaseFactor = math.LegacyMustNewDecFromStr("1.50")
+	require.True(t, costLast.GTE(costEarly.ToLegacyDec().Mul(increaseFactor).TruncateInt()),
+		"Last cost (%s) should be at least 10%% higher than early cost (%s)",
+		costLast, costEarly)
+
+	// Validate that the TVL in the pool is correct
+	fullRaise := curve.Cost(math.ZeroInt(), eq)
+	unsoldRATokens := z.MulRaw(1e18).Sub(eq)
+	unsoldValue := curve.SpotPrice(eq).MulInt(unsoldRATokens).TruncateInt()
+	totalValue := fullRaise.Add(unsoldValue)
+
+	// assert the TVL in eq point is as expected
+	err := approxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
+	require.NoError(t, err)
 }
 
 func TestSpotPrice(t *testing.T) {

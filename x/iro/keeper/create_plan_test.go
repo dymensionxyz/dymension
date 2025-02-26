@@ -9,6 +9,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+// TestValidateRollappPreconditions tests the validation of rollapp preconditions in the CreatePlan function.
+// It covers the following cases:
+// - Rollapp is missing genesis checksum
+// - Rollapp is already launched
+// - Happy path with valid rollapp
 func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
@@ -56,6 +61,14 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 	})
 }
 
+// TestCreatePlan tests the CreatePlan method of the keeper.
+// It creates a plan for a given rollapp, tests that creating a plan for the same rollapp fails,
+// creates a plan for a different rollapp and tests that the plan IDs increase.
+//
+// It also tests that the plan exists, that the plan can be retrieved by ID, and that the
+// module account has the expected creation fee.
+//
+// Finally, it tests that the genesis info is sealed after creating a plan.
 func (s *KeeperTestSuite) TestCreatePlan() {
 	rollappId := s.CreateDefaultRollapp()
 	rollappId2 := s.CreateDefaultRollapp()
@@ -106,6 +119,11 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	s.Require().True(rollapp.GenesisInfo.Sealed)
 }
 
+// TestMintAllocation tests that MintAllocation works correctly.
+//
+// It creates a rollapp and then uses MintAllocation to mint a certain amount of
+// tokens. It then asserts that the denom metadata is registered, the virtual
+// frontier bank contract is created and the coins have been minted.
 func (s *KeeperTestSuite) TestMintAllocation() {
 	rollappId := s.CreateDefaultRollapp()
 

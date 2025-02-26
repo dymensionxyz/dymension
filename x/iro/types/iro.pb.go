@@ -170,6 +170,9 @@ type Plan struct {
 	// The incentive plan parameters for the tokens left after the plan is
 	// settled.
 	IncentivePlanParams IncentivePlanParams `protobuf:"bytes,11,opt,name=incentive_plan_params,json=incentivePlanParams,proto3" json:"incentive_plan_params"`
+	// The maximum amount of tokens that can be sold for the plan.
+	// This ensures we'll have enough tokens to bootstrap liquidity
+	MaxAmountToSell cosmossdk_io_math.Int `protobuf:"bytes,12,opt,name=max_amount_to_sell,json=maxAmountToSell,proto3,customtype=cosmossdk.io/math.Int" json:"max_amount_to_sell"`
 }
 
 func (m *Plan) Reset()         { *m = Plan{} }
@@ -529,6 +532,16 @@ func (m *Plan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	{
+		size := m.MaxAmountToSell.Size()
+		i -= size
+		if _, err := m.MaxAmountToSell.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintIro(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x62
+	{
 		size, err := m.IncentivePlanParams.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
@@ -739,6 +752,8 @@ func (m *Plan) Size() (n int) {
 	l = m.ClaimedAmt.Size()
 	n += 1 + l + sovIro(uint64(l))
 	l = m.IncentivePlanParams.Size()
+	n += 1 + l + sovIro(uint64(l))
+	l = m.MaxAmountToSell.Size()
 	n += 1 + l + sovIro(uint64(l))
 	return n
 }
@@ -1492,6 +1507,40 @@ func (m *Plan) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.IncentivePlanParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaxAmountToSell", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowIro
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthIro
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthIro
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MaxAmountToSell.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

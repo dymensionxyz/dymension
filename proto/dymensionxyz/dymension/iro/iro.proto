@@ -110,6 +110,15 @@ message Plan {
   // settled.
   IncentivePlanParams incentive_plan_params = 11
       [ (gogoproto.nullable) = false ];
+
+
+  // The maximum amount of tokens that can be sold for the plan.
+  // This ensures we'll have enough tokens to bootstrap liquidity
+  string max_amount_to_sell = 12 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message IncentivePlanParams {

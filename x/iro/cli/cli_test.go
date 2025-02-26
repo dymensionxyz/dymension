@@ -117,7 +117,7 @@ func TestParseBondingCurve(t *testing.T) {
 		wantErr  bool
 	}{
 		{"Valid curve", "1.2,0.4,0", false},
-		{"Valid curve Ints", "2,1,1", false},
+		{"Valid curve Ints", "2,1,0", false},
 		{"Invalid params count", "1.2,0.4", true},
 		{"Invalid params count - too much", "1.2,0.4,0.1,0.2", true},
 		{"Invalid M", "invalid,0.4,0", true},
