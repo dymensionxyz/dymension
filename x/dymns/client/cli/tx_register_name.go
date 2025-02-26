@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -135,7 +135,7 @@ func NewRegisterDymNameTxCmd() *cobra.Command {
 	return cmd
 }
 
-func toEstimatedAmount(amount sdkmath.Int) string {
+func toEstimatedAmount(amount math.Int) string {
 	return fmt.Sprintf("%s %s", amount.QuoRaw(adymToDymMultiplier), strings.ToUpper(params.DisplayDenom))
 }
 

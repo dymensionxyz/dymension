@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uaddr"
 )
@@ -17,10 +16,7 @@ const (
 	TypeMsgUpdateWhitelistedRelayers = "update_whitelisted_relayers"
 )
 
-var (
-	_ sdk.Msg            = new(MsgUpdateWhitelistedRelayers)
-	_ legacytx.LegacyMsg = new(MsgUpdateWhitelistedRelayers)
-)
+var _ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
 
 func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)
@@ -60,11 +56,6 @@ func ValidateWhitelistedRelayers(wr []string) error {
 func (m *MsgUpdateWhitelistedRelayers) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{addr}
-}
-
-func (m *MsgUpdateWhitelistedRelayers) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateWhitelistedRelayers) Route() string {

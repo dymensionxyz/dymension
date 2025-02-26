@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -9,8 +11,8 @@ import (
 
 // BankKeeper defines the expected interface needed
 type BankKeeper interface {
-	GetDenomMetaData(ctx sdk.Context, denom string) (types.Metadata, bool)
-	SetDenomMetaData(ctx sdk.Context, denomMetaData types.Metadata)
+	GetDenomMetaData(ctx context.Context, denom string) (types.Metadata, bool)
+	SetDenomMetaData(ctx context.Context, denomMetaData types.Metadata)
 }
 
 type DenomMetadataKeeper interface {

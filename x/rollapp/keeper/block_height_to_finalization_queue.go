@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"slices"
 
+	storetypes "cosmossdk.io/store/types"
+
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
@@ -287,7 +289,7 @@ func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []ty
 // Deprecated: only used in GetAllFinalizationQueueUntilHeightInclusive and GetAllBlockHeightToFinalizationQueue
 func (k Keeper) getFinalizationQueue(ctx sdk.Context, endHeightNonInclusive *uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {

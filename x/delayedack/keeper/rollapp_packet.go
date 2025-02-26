@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -222,7 +223,7 @@ outer:
 			pref.Start = commontypes.AllRollappPacketKeyPrefix
 		}
 		if len(pref.End) == 0 {
-			pref.End = sdk.PrefixEndBytes(pref.Start)
+			pref.End = storetypes.PrefixEndBytes(pref.Start)
 		}
 		iterator := store.Iterator(pref.Start, pref.End)
 		for ; iterator.Valid(); iterator.Next() {
@@ -249,7 +250,7 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 	store := ctx.KVStore(k.storeKey)
 
 	// Iterate over the range from lastProofHeight to proofHeight
-	iterator := sdk.KVStorePrefixIterator(store, commontypes.AllRollappPacketKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, commontypes.AllRollappPacketKeyPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {

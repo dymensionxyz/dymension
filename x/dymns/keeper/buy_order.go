@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -44,7 +45,7 @@ func (k Keeper) SetCountBuyOrders(ctx sdk.Context, value uint64) {
 func (k Keeper) GetAllBuyOrders(ctx sdk.Context) (list []dymnstypes.BuyOrder) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixBuyOrder)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixBuyOrder)
 	defer func() {
 		_ = iterator.Close() // nolint: errcheck
 	}()

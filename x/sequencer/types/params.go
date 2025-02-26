@@ -15,7 +15,7 @@ var (
 	// DefaultNoticePeriod is the time duration for notice period
 	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
 	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
-	DefaultLivenessSlashMultiplier = sdk.MustNewDecFromStr("0.01")
+	DefaultLivenessSlashMultiplier = math.LegacyMustNewDecFromStr("0.01")
 	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
 	DefaultLivenessSlashMinAbsolute = commontypes.DYMCoin
 

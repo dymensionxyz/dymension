@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -30,7 +31,8 @@ type processHookResult struct {
 	vpDiff, newTotal math.Int
 }
 
-func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h Hooks) AfterDelegationModified(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	err := h.afterDelegationModified(ctx, delAddr, valAddr)
 	if err != nil {
 		return fmt.Errorf("sponsorship: AfterDelegationModified: delegator '%s', validator '%s': %w", delAddr, valAddr, err)
@@ -41,7 +43,8 @@ func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 // afterDelegationModified handles the AfterDelegationModified staking hook. It checks if the delegator has a vote,
 // gets the current delegator's voting power gained from the specified validator, gets the x/staking voting power for
 // this validator and calls a generic processHook method.
-func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h Hooks) afterDelegationModified(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	voted, err := h.k.Voted(ctx, delAddr)
 	if err != nil {
 		return fmt.Errorf("cannot verify if the delegator voted: %w", err)
@@ -52,14 +55,14 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 		return nil
 	}
 
-	v, found := h.k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
-		return fmt.Errorf("validator not found")
+	v, err := h.k.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
+		return fmt.Errorf("get validator: %w", err)
 	}
 
-	d, found := h.k.stakingKeeper.GetDelegation(ctx, delAddr, valAddr)
-	if !found {
-		return fmt.Errorf("delegation not found")
+	d, err := h.k.stakingKeeper.GetDelegation(ctx, delAddr, valAddr)
+	if err != nil {
+		return fmt.Errorf("get delegation: %w", err)
 	}
 
 	// Calculate a staking voting power
@@ -95,7 +98,8 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 	return nil
 }
 
-func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h Hooks) BeforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	err := h.beforeDelegationRemoved(ctx, delAddr, valAddr)
 	if err != nil {
 		return fmt.Errorf("sponsorship: BeforeDelegationRemoved: delegator '%s', validator '%s': %w", delAddr, valAddr, err)
@@ -106,7 +110,8 @@ func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 // beforeDelegationRemoved handles the BeforeDelegationRemoved staking hook. It checks if the delegator has a vote,
 // gets the current delegator's voting power gained from the specified validator, and calls a generic processHook
 // method assuming that the x/staking voting power for this validator is zero.
-func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h Hooks) beforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	voted, err := h.k.Voted(ctx, delAddr)
 	if err != nil {
 		return fmt.Errorf("cannot verify if the delegator voted: %w", err)
@@ -236,24 +241,32 @@ func (h Hooks) processHook(
 	}, nil
 }
 
-func (h Hooks) AfterValidatorBeginUnbonding(sdk.Context, sdk.ConsAddress, sdk.ValAddress) error {
+func (h Hooks) AfterValidatorBeginUnbonding(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
 	return nil
 }
 
-func (h Hooks) AfterValidatorBonded(sdk.Context, sdk.ConsAddress, sdk.ValAddress) error { return nil }
+func (h Hooks) AfterValidatorBonded(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
+	return nil
+}
 
-func (h Hooks) BeforeValidatorSlashed(sdk.Context, sdk.ValAddress, math.LegacyDec) error { return nil }
+func (h Hooks) BeforeValidatorSlashed(context.Context, sdk.ValAddress, math.LegacyDec) error {
+	return nil
+}
 
-func (Hooks) AfterValidatorCreated(sdk.Context, sdk.ValAddress) error { return nil }
+func (Hooks) AfterValidatorCreated(context.Context, sdk.ValAddress) error { return nil }
 
-func (Hooks) BeforeValidatorModified(sdk.Context, sdk.ValAddress) error { return nil }
+func (Hooks) BeforeValidatorModified(context.Context, sdk.ValAddress) error { return nil }
 
-func (Hooks) AfterValidatorRemoved(sdk.Context, sdk.ConsAddress, sdk.ValAddress) error { return nil }
+func (Hooks) AfterValidatorRemoved(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
+	return nil
+}
 
-func (Hooks) BeforeDelegationCreated(sdk.Context, sdk.AccAddress, sdk.ValAddress) error { return nil }
+func (Hooks) BeforeDelegationCreated(context.Context, sdk.AccAddress, sdk.ValAddress) error {
+	return nil
+}
 
-func (Hooks) AfterUnbondingInitiated(sdk.Context, uint64) error { return nil }
+func (Hooks) AfterUnbondingInitiated(context.Context, uint64) error { return nil }
 
-func (Hooks) BeforeDelegationSharesModified(sdk.Context, sdk.AccAddress, sdk.ValAddress) error {
+func (Hooks) BeforeDelegationSharesModified(context.Context, sdk.AccAddress, sdk.ValAddress) error {
 	return nil
 }

@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -42,7 +40,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 	const originalModuleBalance int64 = 88
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-		moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
+		moduleParams.Price.AliasPriceSteps = []math.Int{
 			math.NewInt(price1L).Mul(priceMultiplier),
 			math.NewInt(price2L).Mul(priceMultiplier),
 			math.NewInt(price3L).Mul(priceMultiplier),
@@ -363,7 +361,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterAlias() {
 
 	priceParams := dymnstypes.DefaultPriceParams()
 	priceParams.PriceDenom = denom
-	priceParams.AliasPriceSteps = []sdkmath.Int{
+	priceParams.AliasPriceSteps = []math.Int{
 		math.NewInt(price1L).Mul(priceMultiplier),
 		math.NewInt(price2L).Mul(priceMultiplier),
 		math.NewInt(price3L).Mul(priceMultiplier),
@@ -419,7 +417,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterAlias() {
 				priceParams,
 			)
 			s.Equal(
-				sdkmath.NewInt(tt.wantPrice).Mul(priceMultiplier).String(),
+				math.NewInt(tt.wantPrice).Mul(priceMultiplier).String(),
 				got.Price.Amount.String(),
 			)
 			s.Equal(denom, got.Price.Denom)

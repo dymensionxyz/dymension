@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -20,8 +19,6 @@ const (
 var (
 	_ sdk.Msg                            = &MsgUpdateSequencerInformation{}
 	_ sdk.Msg                            = &MsgUpdateOptInStatus{}
-	_ legacytx.LegacyMsg                 = &MsgUpdateSequencerInformation{}
-	_ legacytx.LegacyMsg                 = &MsgUpdateOptInStatus{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateSequencerInformation)(nil)
 )
 
@@ -49,11 +46,6 @@ func (msg *MsgUpdateSequencerInformation) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateSequencerInformation) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgUpdateSequencerInformation) ValidateBasic() error {
@@ -101,11 +93,6 @@ func NewMsgUpdateOptInStatus(creator string, optIn bool) *MsgUpdateOptInStatus {
 		Creator: creator,
 		OptedIn: optIn,
 	}
-}
-
-func (m *MsgUpdateOptInStatus) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateOptInStatus) Route() string {

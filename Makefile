@@ -159,10 +159,9 @@ release:
 # NOTE: Link to the tendermintdev/sdk-proto-gen docker images:
 #       https://hub.docker.com/r/tendermintdev/sdk-proto-gen/tags
 #
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
-containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
+protoVer=0.14.0
+protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 # ------
 # NOTE: cosmos/proto-builder image is needed because clang-format is not installed
 #       on the tendermintdev/sdk-proto-gen docker image.
@@ -175,7 +174,7 @@ protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --wor
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	$(protoCosmosImage) sh ./scripts/protocgen.sh
+	$(protoImage) sh ./scripts/protocgen.sh
 	@go mod tidy
 
 proto-swagger-gen:

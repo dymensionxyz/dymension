@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -15,12 +14,9 @@ import (
 )
 
 var (
-	_ sdk.Msg            = &MsgFulfillOrder{}
-	_ sdk.Msg            = &MsgFulfillOrderAuthorized{}
-	_ sdk.Msg            = &MsgUpdateDemandOrder{}
-	_ legacytx.LegacyMsg = &MsgFulfillOrder{}
-	_ legacytx.LegacyMsg = &MsgFulfillOrderAuthorized{}
-	_ legacytx.LegacyMsg = &MsgUpdateDemandOrder{}
+	_ sdk.Msg = &MsgFulfillOrder{}
+	_ sdk.Msg = &MsgFulfillOrderAuthorized{}
+	_ sdk.Msg = &MsgUpdateDemandOrder{}
 )
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {
@@ -45,11 +41,6 @@ func (msg *MsgFulfillOrder) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgFulfillOrder) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgFulfillOrder) ValidateBasic() error {
@@ -102,11 +93,6 @@ func (msg *MsgFulfillOrderAuthorized) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgFulfillOrderAuthorized) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
@@ -172,11 +158,6 @@ func (m *MsgUpdateDemandOrder) ValidateBasic() error {
 
 func (m *MsgUpdateDemandOrder) GetSignerAddr() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.OwnerAddress)
-}
-
-func (m *MsgUpdateDemandOrder) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateDemandOrder) Route() string {

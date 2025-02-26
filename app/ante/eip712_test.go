@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	feegrant "cosmossdk.io/x/feegrant"
 	"github.com/cometbft/cometbft/libs/rand"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,12 +14,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -36,7 +36,7 @@ func (s *AnteTestSuite) getMsgSend(from sdk.AccAddress) sdk.Msg {
 
 func (s *AnteTestSuite) getMsgCreateValidator(from sdk.AccAddress) sdk.Msg {
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
-		sdk.ValAddress(from),
+		sdk.ValAddress(from).String(),
 		ed25519.GenPrivKey().PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
@@ -165,8 +165,7 @@ func (s *AnteTestSuite) TestEIP712() {
 	acc := sdk.AccAddress(privkey.PubKey().Address())
 
 	amt := math.NewInt(10000).MulRaw(1e18)
-	err := bankutil.FundAccount(s.app.BankKeeper, s.ctx, privkey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)))
-	s.Require().Nil(err)
+	apptesting.FundAccount(s.app, s.ctx, privkey.PubKey().Address().Bytes(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)))
 
 	from := acc
 	testCases := []struct {
@@ -201,7 +200,7 @@ func (s *AnteTestSuite) TestEIP712() {
 
 func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) (apitypes.TypedData, error) {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.BaseDenom, math.NewInt(20).MulRaw(1e18))
+	coinAmount := sdk.NewCoin(params.DisplayDenom, math.NewInt(20))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
@@ -231,7 +230,7 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 			Amount: fees,
 			Gas:    200000,
 		},
-		msgs, "", nil,
+		msgs, "",
 	)
 
 	feeDelegation := &eip712.FeeDelegationOptions{

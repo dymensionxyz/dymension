@@ -1,7 +1,6 @@
 package types
 
 import (
-	govcdc "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -18,13 +17,13 @@ var (
 	_ v1beta1.Content = &UpdateAliasesProposal{}
 )
 
-func init() {
-	v1beta1.RegisterProposalType(ProposalTypeMigrateChainIdsProposal)
-	govcdc.ModuleCdc.Amino.RegisterConcrete(&MigrateChainIdsProposal{}, "dymns/"+ProposalTypeMigrateChainIdsProposal, nil)
+// func init() {
+// 	v1beta1.RegisterProposalType(ProposalTypeMigrateChainIdsProposal)
+// 	govcdc.ModuleCdc.Amino.RegisterConcrete(&MigrateChainIdsProposal{}, "dymns/"+ProposalTypeMigrateChainIdsProposal, nil)
 
-	v1beta1.RegisterProposalType(ProposalTypeUpdateAliasesProposal)
-	govcdc.ModuleCdc.Amino.RegisterConcrete(&UpdateAliasesProposal{}, "dymns/"+ProposalTypeUpdateAliasesProposal, nil)
-}
+// 	v1beta1.RegisterProposalType(ProposalTypeUpdateAliasesProposal)
+// 	govcdc.ModuleCdc.Amino.RegisterConcrete(&UpdateAliasesProposal{}, "dymns/"+ProposalTypeUpdateAliasesProposal, nil)
+// }
 
 // NewMigrateChainIdsProposal returns new instance of MigrateChainIdsProposal
 func NewMigrateChainIdsProposal(title, description string, replacement ...MigrateChainId) v1beta1.Content {

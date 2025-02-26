@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -42,7 +41,7 @@ func NewParams(epochIdentifier string, timeoutFee math.LegacyDec, errAckFee math
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(defaultEpochIdentifier, sdk.MustNewDecFromStr(defaultTimeoutFee), sdk.MustNewDecFromStr(defaultErrAckFee))
+	return NewParams(defaultEpochIdentifier, math.LegacyMustNewDecFromStr(defaultTimeoutFee), math.LegacyMustNewDecFromStr(defaultErrAckFee))
 }
 
 // ParamSetPairs get the params.ParamSet

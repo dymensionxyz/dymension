@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
-	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 func init() {
@@ -94,22 +93,7 @@ func TestFullAppSimulation(t *testing.T) {
 	types.DefaultBondDenom = "adym"
 	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
 
-	encoding := app.MakeEncodingConfig()
-
-	appParams.SetAddressPrefixes()
-
-	dymdApp := app.New(
-		logger,
-		db,
-		nil,
-		true,
-		map[int64]bool{},
-		app.DefaultNodeHome,
-		0,
-		encoding,
-		appOptions,
-		baseapp.SetChainID(SimulationAppChainID),
-	)
+	dymdApp := app.New(logger, db, nil, true, appOptions, baseapp.SetChainID(SimulationAppChainID))
 	require.Equal(t, "dymension", dymdApp.Name())
 
 	genesis, err := prepareGenesis(dymdApp.AppCodec())
@@ -123,7 +107,7 @@ func TestFullAppSimulation(t *testing.T) {
 		simtestutil.AppStateFn(dymdApp.AppCodec(), dymdApp.SimulationManager(), genesis),
 		simulationtypes.RandomAccounts,
 		simtestutil.SimulationOperations(dymdApp, dymdApp.AppCodec(), config),
-		dymdApp.ModuleAccountAddrs(),
+		app.ModuleAccountAddrs(),
 		config,
 		dymdApp.AppCodec(),
 	)
@@ -178,8 +162,6 @@ func TestAppStateDeterminism(t *testing.T) {
 	types.DefaultBondDenom = "adym"
 	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
 
-	encoding := app.MakeEncodingConfig()
-
 	for i := 0; i < numSeeds; i++ {
 		if config.Seed == simcli.DefaultSeedValue {
 			// overwrite default seed
@@ -194,18 +176,7 @@ func TestAppStateDeterminism(t *testing.T) {
 			db, _, logger, _, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
 			require.NoError(t, err, "simulation setup failed")
 
-			dymdApp := app.New(
-				logger,
-				db,
-				nil,
-				true,
-				map[int64]bool{},
-				app.DefaultNodeHome,
-				0,
-				encoding,
-				appOptions,
-				baseapp.SetChainID(SimulationAppChainID),
-			)
+			dymdApp := app.New(logger, db, nil, true, appOptions, baseapp.SetChainID(SimulationAppChainID))
 			require.Equal(t, "dymension", dymdApp.Name())
 
 			fmt.Printf(
@@ -223,7 +194,7 @@ func TestAppStateDeterminism(t *testing.T) {
 				simtestutil.AppStateFn(dymdApp.AppCodec(), dymdApp.SimulationManager(), genesis),
 				simulationtypes.RandomAccounts,
 				simtestutil.SimulationOperations(dymdApp, dymdApp.AppCodec(), config),
-				dymdApp.ModuleAccountAddrs(),
+				app.ModuleAccountAddrs(),
 				config,
 				dymdApp.AppCodec(),
 			)

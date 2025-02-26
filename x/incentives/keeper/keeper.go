@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cometbft/cometbft/libs/log"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -16,7 +16,7 @@ import (
 
 // Keeper provides a way to manage incentives module storage.
 type Keeper struct {
-	storeKey   storetypes.StoreKey
+	storeKey   storetypes.Key
 	paramSpace paramtypes.Subspace
 	hooks      types.IncentiveHooks
 	bk         types.BankKeeper
@@ -27,7 +27,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, lk types.LockupKeeper, ek types.EpochKeeper, txfk types.TxFeesKeeper, rk types.RollappKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.Key, paramSpace paramtypes.Subspace, bk types.BankKeeper, lk types.LockupKeeper, ek types.EpochKeeper, txfk types.TxFeesKeeper, rk types.RollappKeeper) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}

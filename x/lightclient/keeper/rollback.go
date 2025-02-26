@@ -2,14 +2,15 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
 func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
@@ -97,7 +98,7 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) freezeClient(clientStore sdk.KVStore, heightI exported.Height) error {
+func (k Keeper) freezeClient(clientStore storetypes.KVStore, heightI exported.Height) error {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// It's not fundamentally important to have a consensus state for the latest height (since
@@ -117,7 +118,7 @@ func (k Keeper) freezeClient(clientStore sdk.KVStore, heightI exported.Height) e
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) unfreezeClient(clientStore sdk.KVStore, height uint64) {
+func (k Keeper) unfreezeClient(clientStore storetypes.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// unfreeze the client and set the latest height

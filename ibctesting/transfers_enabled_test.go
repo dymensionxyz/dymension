@@ -3,13 +3,11 @@ package ibctesting_test
 import (
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
 
@@ -64,28 +62,13 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 	shouldFail := true
 
-	for i := range 2 {
-
+	for range 2 {
 		apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 
-		_, _, err := simapp.SignAndDeliver(
-			s.hubChain().T,
-			s.hubChain().TxConfig,
-			s.hubApp().GetBaseApp(),
-			s.hubCtx().BlockHeader(),
-			[]sdk.Msg{msg},
-			hubChainID(),
-			[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
-			// TODO: not sure why, but the simapp doesn't seem to properly update the sequence after a failed tx
-			[]uint64{s.hubChain().SenderAccount.GetSequence() + uint64(i)},
-			true,
-			!shouldFail,
-			s.hubChain().SenderPrivKey,
-		)
-
+		_, err := s.hubChain().SendMsgs([]sdk.Msg{msg}...)
 		if shouldFail {
 			shouldFail = false
-			s.Require().True(errorsmod.IsOf(err, gerrc.ErrFailedPrecondition))
+			s.Require().ErrorContains(err, gerrc.ErrFailedPrecondition.Error())
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
 			ra.GenesisState.TransferProofHeight = 1 // enable

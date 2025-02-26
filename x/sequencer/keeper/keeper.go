@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 
+	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -18,7 +18,7 @@ type Keeper struct {
 	authority string // authority is the x/gov module account
 
 	cdc            codec.BinaryCodec
-	storeKey       storetypes.StoreKey
+	storeKey       storetypes.Key
 	bankKeeper     types.BankKeeper
 	accountK       types.AccountKeeper
 	rollappKeeper  types.RollappKeeper
@@ -30,7 +30,7 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	storeKey storetypes.Key,
 	bankKeeper types.BankKeeper,
 	accountK types.AccountKeeper,
 	rollappKeeper types.RollappKeeper,

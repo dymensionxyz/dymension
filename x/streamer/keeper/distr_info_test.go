@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	math "cosmossdk.io/math"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -22,9 +22,9 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 		// With minting 15000 stake to module, after AllocateAsset we get:
 		// expectedCommunityPool = 0 (All reward will be transferred to the gauges)
 		// 	expectedGaugesBalances in order:
-		//    gaue1_balance = 15000 * 100/(100+200+300) = 2500
-		//    gaue2_balance = 15000 * 200/(100+200+300) = 5000 (using the formula in the function gives the exact result 4999,9999999999995000. But TruncateInt return 4999. Is this the issue?)
-		//    gaue3_balance = 15000 * 300/(100+200+300) = 7500
+		//    gauge1_balance = 15000 * 100/(100+200+300) = 2500
+		//    gauge2_balance = 15000 * 200/(100+200+300) = 5000 (using the formula in the function gives the exact result 4999,9999999999995000. But TruncateInt return 4999. Is this the issue?)
+		//    gauge3_balance = 15000 * 300/(100+200+300) = 7500
 		{
 			name: "Allocated to the gauges proportionally",
 			testingDistrRecord: []types.DistrRecord{
@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 			suite.CreateGauges(3)
 
 			// create a stream
-			suite.CreateStream(test.testingDistrRecord, sdk.NewCoins(test.mintedCoins), time.Now(), "day", 1)
+			suite.CreateStream(test.testingDistrRecord, sdk.NewCoins(test.mintedCoins), time.Now().Add(-1*time.Hour), "day", 1)
 
 			// move all created streams from upcoming to active
 			suite.Ctx = suite.Ctx.WithBlockTime(time.Now())

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,7 +41,7 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 		newConfig.Value = strings.ToLower(newConfig.Value)
 	}
 
-	var minimumTxGasRequired sdk.Gas
+	var minimumTxGasRequired storetypes.Gas
 
 	existingConfigCount := len(dymName.Configs)
 	if newConfig.IsDelete() {

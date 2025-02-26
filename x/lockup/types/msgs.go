@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
@@ -19,16 +18,11 @@ const (
 )
 
 var (
-	_ sdk.Msg            = &MsgLockTokens{}
-	_ sdk.Msg            = &MsgBeginUnlockingAll{}
-	_ sdk.Msg            = &MsgBeginUnlocking{}
-	_ sdk.Msg            = &MsgExtendLockup{}
-	_ sdk.Msg            = &MsgForceUnlock{}
-	_ legacytx.LegacyMsg = &MsgLockTokens{}
-	_ legacytx.LegacyMsg = &MsgBeginUnlockingAll{}
-	_ legacytx.LegacyMsg = &MsgBeginUnlocking{}
-	_ legacytx.LegacyMsg = &MsgExtendLockup{}
-	_ legacytx.LegacyMsg = &MsgForceUnlock{}
+	_ sdk.Msg = &MsgLockTokens{}
+	_ sdk.Msg = &MsgBeginUnlockingAll{}
+	_ sdk.Msg = &MsgBeginUnlocking{}
+	_ sdk.Msg = &MsgExtendLockup{}
+	_ sdk.Msg = &MsgForceUnlock{}
 )
 
 // NewMsgLockTokens creates a message to lock tokens.
@@ -64,10 +58,6 @@ func (m MsgLockTokens) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgLockTokens) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
-}
-
 func (m MsgLockTokens) GetSigners() []sdk.AccAddress {
 	owner, _ := sdk.AccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{owner}
@@ -90,10 +80,6 @@ func (m MsgBeginUnlockingAll) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid owner address (%s)", err)
 	}
 	return nil
-}
-
-func (m MsgBeginUnlockingAll) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
 }
 
 func (m MsgBeginUnlockingAll) GetSigners() []sdk.AccAddress {
@@ -136,10 +122,6 @@ func (m MsgBeginUnlocking) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgBeginUnlocking) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
-}
-
 func (m MsgBeginUnlocking) GetSigners() []sdk.AccAddress {
 	owner, _ := sdk.AccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{owner}
@@ -168,10 +150,6 @@ func (m MsgExtendLockup) ValidateBasic() error {
 		return fmt.Errorf("duration should be positive: %d < 0", m.Duration)
 	}
 	return nil
-}
-
-func (m MsgExtendLockup) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON((&m)))
 }
 
 func (m MsgExtendLockup) GetSigners() []sdk.AccAddress {
@@ -206,10 +184,6 @@ func (m MsgForceUnlock) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, m.Coins.String())
 	}
 	return nil
-}
-
-func (m MsgForceUnlock) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
 }
 
 func (m MsgForceUnlock) GetSigners() []sdk.AccAddress {

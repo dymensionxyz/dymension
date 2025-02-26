@@ -1,6 +1,7 @@
 package types
 
 import (
+	context "context"
 	time "time"
 
 	"cosmossdk.io/math"
@@ -13,15 +14,10 @@ import (
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
 type BankKeeper interface {
-	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
-
-	HasSupply(ctx sdk.Context, denom string) bool
-
-	SendCoinsFromModuleToAccount(
-		ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins,
-	) error
-
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	HasSupply(ctx context.Context, denom string) bool
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
 
 // LockupKeeper defines the expected interface needed to retrieve locks.

@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
@@ -18,7 +17,7 @@ type TestSuite struct {
 
 func (s *TestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	s.App = app
 	s.Ctx = ctx

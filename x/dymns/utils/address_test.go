@@ -6,12 +6,15 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/stretchr/testify/require"
 )
 
 func init() {
-	params.SetAddressPrefixes()
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
 }
 
 func TestIsValidBech32AccountAddress(t *testing.T) {

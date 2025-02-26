@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -57,17 +57,17 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_DymName() {
 		buyer                       string
 		offer                       sdk.Coin
 		existingBuyOrderId          string
-		originalModuleBalance       sdkmath.Int
-		originalBuyerBalance        sdkmath.Int
-		originalAnotherBuyerBalance sdkmath.Int
+		originalModuleBalance       math.Int
+		originalBuyerBalance        math.Int
+		originalAnotherBuyerBalance math.Int
 		preRunSetupFunc             func(s *KeeperTestSuite)
 		wantErr                     bool
 		wantErrContains             string
 		wantBuyOrderId              string
 		wantLaterOffer              *dymnstypes.BuyOrder
-		wantLaterModuleBalance      sdkmath.Int
-		wantLaterBuyerBalance       sdkmath.Int
-		wantMinConsumeGas           sdk.Gas
+		wantLaterModuleBalance      math.Int
+		wantLaterBuyerBalance       math.Int
+		wantMinConsumeGas           storetypes.Gas
 		afterTestFunc               func(s *KeeperTestSuite)
 	}{
 		{
@@ -965,17 +965,17 @@ func (s *KeeperTestSuite) Test_msgServer_PlaceBuyOrder_Alias() {
 		dstRollAppId                string // destination RollApp ID
 		offer                       sdk.Coin
 		existingBuyOrderId          string
-		originalModuleBalance       sdkmath.Int
-		originalBuyerBalance        sdkmath.Int
-		originalAnotherBuyerBalance sdkmath.Int
+		originalModuleBalance       math.Int
+		originalBuyerBalance        math.Int
+		originalAnotherBuyerBalance math.Int
 		preRunSetupFunc             func(s *KeeperTestSuite)
 		wantErr                     bool
 		wantErrContains             string
 		wantBuyOrderId              string
 		wantLaterOffer              *dymnstypes.BuyOrder
-		wantLaterModuleBalance      sdkmath.Int
-		wantLaterBuyerBalance       sdkmath.Int
-		wantMinConsumeGas           sdk.Gas
+		wantLaterModuleBalance      math.Int
+		wantLaterBuyerBalance       math.Int
+		wantMinConsumeGas           storetypes.Gas
 		afterTestFunc               func(s *KeeperTestSuite)
 	}{
 		{

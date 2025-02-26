@@ -5,26 +5,23 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
 	TypeMsgUpdateState = "update_state"
 )
 
-var (
-	_ sdk.Msg            = &MsgUpdateState{}
-	_ legacytx.LegacyMsg = &MsgUpdateState{}
-)
+var _ sdk.Msg = &MsgUpdateState{}
 
-func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks uint64, bDs *BlockDescriptors) *MsgUpdateState {
+func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks, revision uint64, bDs *BlockDescriptors) *MsgUpdateState {
 	return &MsgUpdateState{
-		Creator:     creator,
-		RollappId:   rollappId,
-		StartHeight: startHeight,
-		NumBlocks:   numBlocks,
-		DAPath:      dAPath,
-		BDs:         *bDs,
+		Creator:         creator,
+		RollappId:       rollappId,
+		StartHeight:     startHeight,
+		NumBlocks:       numBlocks,
+		DAPath:          dAPath,
+		BDs:             *bDs,
+		RollappRevision: revision,
 	}
 }
 
@@ -42,11 +39,6 @@ func (msg *MsgUpdateState) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateState) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgUpdateState) ValidateBasic() error {

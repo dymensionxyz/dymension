@@ -10,12 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 func TestMsgLockTokens(t *testing.T) {
-	appParams.SetAddressPrefixes()
 	addr1 := apptesting.CreateRandomAccounts(1)[0].String()
 	invalidAddr := sdk.AccAddress("invalid").String()
 
@@ -263,6 +261,8 @@ func TestMsgExtendLockup(t *testing.T) {
 
 // // Test authz serialize and de-serializes for lockup msg.
 func TestAuthzMsg(t *testing.T) {
+	app := apptesting.Setup(t)
+
 	pk1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pk1.Address()).String()
 	coin := sdk.NewCoin("denom", math.NewInt(1))
@@ -296,7 +296,7 @@ func TestAuthzMsg(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apptesting.TestMessageAuthzSerialization(t, tc.msg)
+			apptesting.TestMessageAuthzSerialization(t, app.AppCodec(), tc.msg)
 		})
 	}
 }

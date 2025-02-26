@@ -323,6 +323,8 @@ func (s *KeeperTestSuite) TestMsgVote() {
 
 			// Create a validator
 			val := s.CreateValidator()
+			valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+			s.Require().NoError(err)
 
 			// Fund voter addresses and delegate to the validator
 			for _, d := range tc.delegations {
@@ -330,11 +332,11 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				apptesting.FundAccount(s.App, s.Ctx, d.delegator, sdk.Coins{d.delegation})
 
 				// Delegate to the validator
-				_ = s.Delegate(d.delegator, val.GetOperator(), d.delegation)
+				_ = s.Delegate(d.delegator, valAddr, d.delegation)
 			}
 
 			// Set the initial distribution
-			err := s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, tc.initialDistr)
+			err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, tc.initialDistr)
 			s.Require().NoError(err)
 
 			// Set module params
@@ -403,11 +405,14 @@ func (s *KeeperTestSuite) TestMsgVoteRollAppGaugeBondedSequencer() {
 	// create a validator and a delegator
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
 	val := s.CreateValidator()
-	del := s.CreateDelegator(val.GetOperator(), initial)
+	valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+	s.Require().NoError(err)
+
+	del := s.CreateDelegator(valAddr, initial)
 
 	// case a vote to the rollapp gauge created above
 	voteResp, err := s.msgServer.Vote(s.Ctx, &types.MsgVote{
-		Voter: del.GetDelegatorAddr().String(),
+		Voter: del.GetDelegatorAddr(),
 		Weights: []types.GaugeWeight{
 			{GaugeId: 1, Weight: types.DYM.MulRaw(20)},
 		},
@@ -462,11 +467,14 @@ func (s *KeeperTestSuite) TestMsgRevokeVote() {
 
 			// Delegate to the validator
 			val := s.CreateValidator()
+			valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+			s.Require().NoError(err)
+
 			delAddr, err := sdk.AccAddressFromBech32(tc.vote.Voter)
 			s.Require().NoError(err)
 			initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
 			apptesting.FundAccount(s.App, s.Ctx, delAddr, sdk.NewCoins(initial))
-			_ = s.Delegate(delAddr, val.GetOperator(), initial)
+			_ = s.Delegate(delAddr, valAddr, initial)
 
 			// Set tne initial distribution
 			err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, types.NewDistribution())

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,7 +36,7 @@ type KeeperTestSuite struct {
 // SetupTest sets streamer parameters from the suite's context.
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	ctx := app.BaseApp.NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQueryServer(app.SponsorshipKeeper))
@@ -122,7 +121,7 @@ func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	valAddr := sdk.ValAddress(valAddrs[0].Bytes())
 	privEd := ed25519.GenPrivKey()
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
-		valAddr,
+		valAddr.String(),
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
@@ -137,8 +136,8 @@ func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
-	val, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
-	s.Require().True(found)
+	val, err := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().NoError(err)
 
 	return val
 }
@@ -146,7 +145,10 @@ func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance math.Int) stakingtypes.ValidatorI {
 	s.T().Helper()
 
-	initCoin := sdk.NewCoin(s.App.StakingKeeper.BondDenom(s.Ctx), balance)
+	bondDenom, err := s.App.StakingKeeper.BondDenom(s.Ctx)
+	s.Require().NoError(err)
+
+	initCoin := sdk.NewCoin(bondDenom, balance)
 	initCoins := sdk.NewCoins(initCoin)
 	apptesting.FundAccount(s.App, s.Ctx, acc, initCoins)
 
@@ -154,7 +156,7 @@ func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance
 	valAddr := sdk.ValAddress(acc)
 	privEd := ed25519.GenPrivKey()
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
-		valAddr,
+		valAddr.String(),
 		privEd.PubKey(),
 		initCoin,
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
@@ -169,8 +171,8 @@ func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
-	val, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
-	s.Require().True(found)
+	val, err := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().NoError(err)
 
 	return val
 }
@@ -187,12 +189,12 @@ func (s *KeeperTestSuite) Delegate(delAddr sdk.AccAddress, valAddr sdk.ValAddres
 	s.T().Helper()
 
 	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
-	resp, err := stakingMsgSrv.Delegate(s.Ctx, stakingtypes.NewMsgDelegate(delAddr, valAddr, coin))
+	resp, err := stakingMsgSrv.Delegate(s.Ctx, stakingtypes.NewMsgDelegate(delAddr.String(), valAddr.String(), coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
-	del, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delAddr, valAddr)
-	s.Require().True(found)
+	del, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delAddr, valAddr)
+	s.Require().NoError(err)
 
 	return del
 }
@@ -203,11 +205,11 @@ func (s *KeeperTestSuite) Undelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddr
 	s.T().Helper()
 
 	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
-	resp, err := stakingMsgSrv.Undelegate(s.Ctx, stakingtypes.NewMsgUndelegate(delAddr, valAddr, coin))
+	_, err := stakingMsgSrv.Undelegate(s.Ctx, stakingtypes.NewMsgUndelegate(delAddr.String(), valAddr.String(), coin))
 	s.Require().NoError(err)
-	s.Require().NotNil(resp)
 
-	return s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valAddr)
+	del, _ := s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valAddr)
+	return del
 }
 
 // Undelegate sends MsgUndelegate and returns the delegation object. Src return value might me nil in case if
@@ -220,12 +222,13 @@ func (s *KeeperTestSuite) BeginRedelegate(
 	s.T().Helper()
 
 	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
-	resp, err := stakingMsgSrv.BeginRedelegate(s.Ctx, stakingtypes.NewMsgBeginRedelegate(delAddr, valSrcAddr, valDstAddr, coin))
+	resp, err := stakingMsgSrv.BeginRedelegate(s.Ctx, stakingtypes.NewMsgBeginRedelegate(delAddr.String(), valSrcAddr.String(), valDstAddr.String(), coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
-	return s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valSrcAddr),
-		s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valDstAddr)
+	src, _ = s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valSrcAddr)
+	dst, _ = s.App.StakingKeeper.Delegation(s.Ctx, delAddr, valDstAddr)
+	return src, dst
 }
 
 func (s *KeeperTestSuite) CancelUnbondingDelegation(
@@ -237,12 +240,12 @@ func (s *KeeperTestSuite) CancelUnbondingDelegation(
 	s.T().Helper()
 
 	stakingMsgSrv := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper)
-	resp, err := stakingMsgSrv.CancelUnbondingDelegation(s.Ctx, stakingtypes.NewMsgCancelUnbondingDelegation(delAddr, valAddr, creationHeight, coin))
+	resp, err := stakingMsgSrv.CancelUnbondingDelegation(s.Ctx, stakingtypes.NewMsgCancelUnbondingDelegation(delAddr.String(), valAddr.String(), creationHeight, coin))
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 
-	src, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delAddr, valAddr)
-	s.Require().True(found)
+	src, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delAddr, valAddr)
+	s.Require().NoError(err)
 
 	return src
 }

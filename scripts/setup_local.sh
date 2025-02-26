@@ -109,15 +109,15 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   "$SETTLEMENT_EXECUTABLE" keys add user --keyring-backend test
 
   # Add genesis accounts and provide coins to the accounts
-  "$SETTLEMENT_EXECUTABLE" add-genesis-account "$(dymd keys show pools --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom,500000000000uusd
+  "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account pools 1000000000000000000000000adym,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  "$SETTLEMENT_EXECUTABLE" add-genesis-account "$(dymd keys show user --keyring-backend test -a)" 1000000000000000000000000adym,10000000000uatom
+  "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account user 1000000000000000000000000adym,10000000000uatom
 fi
 
 echo "$MNEMONIC" | "$SETTLEMENT_EXECUTABLE" keys add "$KEY_NAME" --recover --keyring-backend test
-"$SETTLEMENT_EXECUTABLE" add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+"$SETTLEMENT_EXECUTABLE" genesis add-genesis-account "$KEY_NAME" "$TOKEN_AMOUNT" --keyring-backend test
 
-"$SETTLEMENT_EXECUTABLE" gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-"$SETTLEMENT_EXECUTABLE" collect-gentxs
+"$SETTLEMENT_EXECUTABLE" genesis gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+"$SETTLEMENT_EXECUTABLE" genesis collect-gentxs
 
-"$SETTLEMENT_EXECUTABLE" validate-genesis
+"$SETTLEMENT_EXECUTABLE" genesis validate-genesis

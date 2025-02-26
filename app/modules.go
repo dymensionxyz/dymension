@@ -1,6 +1,12 @@
-package keepers
+package app
 
 import (
+	"cosmossdk.io/x/evidence"
+	evidencetypes "cosmossdk.io/x/evidence/types"
+	"cosmossdk.io/x/feegrant"
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
+	"cosmossdk.io/x/upgrade"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -12,50 +18,36 @@ import (
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/capability"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/cosmos/cosmos-sdk/x/evidence"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	groupmodule "github.com/cosmos/cosmos-sdk/x/group/module"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
-	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	"github.com/cosmos/ibc-go/modules/capability"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/evmos/ethermint/x/evm"
-	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -69,10 +61,8 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
-	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
@@ -81,157 +71,82 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
-	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
-	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	"github.com/dymensionxyz/dymension/v3/x/eibc"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lightclientmodule "github.com/dymensionxyz/dymension/v3/x/lightclient"
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer"
-	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
-// ModuleBasics defines the module BasicManager is in charge of setting up basic,
-// non-dependant module elements, such as codec registration
-// and genesis verification.
-var ModuleBasics = module.NewBasicManager(
-	auth.AppModuleBasic{},
-	authzmodule.AppModuleBasic{},
-	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	bank.AppModuleBasic{},
-	capability.AppModuleBasic{},
-	consensus.AppModuleBasic{},
-	staking.AppModuleBasic{},
-	mint.AppModuleBasic{},
-	distribution.AppModuleBasic{},
-	gov.NewAppModuleBasic([]client.ProposalHandler{
-		paramsclient.ProposalHandler,
-		upgradeclient.LegacyProposalHandler,
-		upgradeclient.LegacyCancelProposalHandler,
-		ibcclientclient.UpdateClientProposalHandler,
-		ibcclientclient.UpgradeProposalHandler,
-		streamermoduleclient.CreateStreamHandler,
-		streamermoduleclient.TerminateStreamHandler,
-		streamermoduleclient.ReplaceStreamHandler,
-		streamermoduleclient.UpdateStreamHandler,
-		sequencermoduleclient.PunishSequencerHandler,
-		denommetadatamoduleclient.CreateDenomMetadataHandler,
-		denommetadatamoduleclient.UpdateDenomMetadataHandler,
-		dymnsmoduleclient.MigrateChainIdsProposalHandler,
-		dymnsmoduleclient.UpdateAliasesProposalHandler,
-		evmclient.UpdateVirtualFrontierBankContractProposalHandler,
-	}),
-	params.AppModuleBasic{},
-	crisis.AppModuleBasic{},
-	slashing.AppModuleBasic{},
-	feegrantmodule.AppModuleBasic{},
-	ibc.AppModuleBasic{},
-	ibctm.AppModuleBasic{},
-	upgrade.AppModuleBasic{},
-	evidence.AppModuleBasic{},
-	transfer.AppModuleBasic{},
-	vesting.AppModuleBasic{},
-	rollapp.AppModuleBasic{},
-	sponsorship.AppModuleBasic{},
-	sequencer.AppModuleBasic{},
-	streamer.AppModuleBasic{},
-	denommetadata.AppModuleBasic{},
-	packetforward.AppModuleBasic{},
-	iro.AppModuleBasic{},
-	delayedack.AppModuleBasic{},
-	eibc.AppModuleBasic{},
-	dymnsmodule.AppModuleBasic{},
-	lightclientmodule.AppModuleBasic{},
-	groupmodule.AppModuleBasic{},
-
-	// Ethermint modules
-	evm.AppModuleBasic{},
-	feemarket.AppModuleBasic{},
-
-	// Osmosis modules
-	lockup.AppModuleBasic{},
-	epochs.AppModuleBasic{},
-	gamm.AppModuleBasic{},
-	poolmanager.AppModuleBasic{},
-	incentives.AppModuleBasic{},
-	txfees.AppModuleBasic{},
-)
-
-func (a *AppKeepers) SetupModules(
+func (app *App) SetupModules(
 	appCodec codec.Codec,
 	bApp *baseapp.BaseApp,
-	encodingConfig appparams.EncodingConfig,
 	skipGenesisInvariants bool,
 ) []module.AppModule {
 	return []module.AppModule{
 		genutil.NewAppModule(
-			a.AccountKeeper, a.StakingKeeper, bApp.DeliverTx,
-			encodingConfig.TxConfig,
+			app.AccountKeeper, app.StakingKeeper, app, app.txConfig,
 		),
-		auth.NewAppModule(appCodec, a.AccountKeeper, nil, a.GetSubspace(authtypes.ModuleName)),
-		authzmodule.NewAppModule(appCodec, a.AuthzKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
-		vesting.NewAppModule(a.AccountKeeper, a.BankKeeper),
-		bank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
-		capability.NewAppModule(appCodec, *a.CapabilityKeeper, false),
-		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
-		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
-		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
-		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
-		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
-		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
-		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
-		staking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(a.UpgradeKeeper),
-		evidence.NewAppModule(a.EvidenceKeeper),
-		ibc.NewAppModule(a.IBCKeeper),
-		params.NewAppModule(a.ParamsKeeper),
-		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
-		ibctransfer.NewAppModule(a.TransferKeeper),
-		rollappmodule.NewAppModule(appCodec, a.RollappKeeper),
-		iro.NewAppModule(appCodec, *a.IROKeeper, a.AccountKeeper, a.BankKeeper),
+		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
+		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
+		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
+		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
+		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
+		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
+		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
+		evidence.NewAppModule(app.EvidenceKeeper),
+		params.NewAppModule(app.ParamsKeeper),
+		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 
-		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper),
-		sponsorship.NewAppModule(a.SponsorshipKeeper, a.AccountKeeper, a.BankKeeper, a.IncentivesKeeper, a.StakingKeeper),
-		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
-		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper, a.delayedAckMiddleware),
-		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
-		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
-		dymnsmodule.NewAppModule(appCodec, a.DymNSKeeper),
-		lightclientmodule.NewAppModule(appCodec, a.LightClientKeeper),
-		groupmodule.NewAppModule(appCodec, a.GroupKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
+		ibc.NewAppModule(app.IBCKeeper),
+		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		ibctransfer.NewAppModule(app.TransferKeeper),
+		ibctm.NewAppModule(),
+
+		rollappmodule.NewAppModule(appCodec, app.RollappKeeper),
+		iro.NewAppModule(appCodec, *app.IROKeeper, app.AccountKeeper, app.BankKeeper),
+		sequencermodule.NewAppModule(appCodec, app.SequencerKeeper),
+		sponsorship.NewAppModule(app.SponsorshipKeeper, app.AccountKeeper, app.BankKeeper, app.IncentivesKeeper, app.StakingKeeper),
+		streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
+		delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper, app.DelayedAckMiddleware),
+		denommetadatamodule.NewAppModule(app.DenomMetadataKeeper, *app.EvmKeeper, app.BankKeeper),
+		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
+		dymnsmodule.NewAppModule(appCodec, app.DymNSKeeper),
+		lightclientmodule.NewAppModule(appCodec, app.LightClientKeeper),
 
 		// Ethermint app modules
-		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName)),
-		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName)),
+		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName)),
+		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 
 		// osmosis modules
-		lockup.NewAppModule(*a.LockupKeeper),
-		epochs.NewAppModule(*a.EpochsKeeper),
-		gamm.NewAppModule(appCodec, *a.GAMMKeeper, a.AccountKeeper, a.BankKeeper),
-		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
-		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
-		txfees.NewAppModule(*a.TxFeesKeeper),
+		lockup.NewAppModule(*app.LockupKeeper),
+		epochs.NewAppModule(*app.EpochsKeeper),
+		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
+		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
+		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
+		txfees.NewAppModule(*app.TxFeesKeeper),
 	}
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
+func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -268,8 +183,12 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 }
 
-var BeginBlockers = []string{
+var PreBlockers = []string{
 	upgradetypes.ModuleName,
+}
+
+// TODO: can be cleaned up. only those modules are needed in BeginBlockers now
+var BeginBlockers = []string{
 	epochstypes.ModuleName,
 	capabilitytypes.ModuleName,
 	minttypes.ModuleName,

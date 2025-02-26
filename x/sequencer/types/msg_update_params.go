@@ -4,17 +4,13 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
 	TypeMsgUpdateParams = "update_params"
 )
 
-var (
-	_ sdk.Msg            = &MsgUpdateParams{}
-	_ legacytx.LegacyMsg = &MsgUpdateParams{}
-)
+var _ sdk.Msg = &MsgUpdateParams{}
 
 // GetSigners implements types.Msg.
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
@@ -33,11 +29,6 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (m *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateParams) Route() string {

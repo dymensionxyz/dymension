@@ -10,7 +10,7 @@ import (
 	types "github.com/cosmos/cosmos-sdk/x/bank/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types1 "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	types1 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"

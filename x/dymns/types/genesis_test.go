@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	math "cosmossdk.io/math"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

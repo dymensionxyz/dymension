@@ -15,9 +15,6 @@ import (
 // 10^18 multiplier
 var EXP = math.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 
-// Default Sender for amm messages
-var Sender = sdk.MustAccAddressFromBech32(alice)
-
 var DefaultAcctFunds sdk.Coins = sdk.NewCoins(
 	sdk.NewCoin("adym", EXP.Mul(math.NewInt(1_000_000))),
 	sdk.NewCoin("foo", EXP.Mul(math.NewInt(1_000_000))),
@@ -46,9 +43,9 @@ var DefaultPoolAssets = []balancer.PoolAsset{
 // This is the generic method called by other PreparePool wrappers
 // It funds the sender account with DefaultAcctFunds
 func (s *KeeperTestHelper) PrepareCustomPool(assets []balancer.PoolAsset, params balancer.PoolParams) uint64 {
-	s.FundAcc(Sender, DefaultAcctFunds)
+	s.FundAcc(sdk.MustAccAddressFromBech32(Alice), DefaultAcctFunds)
 
-	msg := balancer.NewMsgCreateBalancerPool(Sender, params, assets, "")
+	msg := balancer.NewMsgCreateBalancerPool(sdk.MustAccAddressFromBech32(Alice), params, assets, "")
 	poolId, err := s.App.PoolManagerKeeper.CreatePool(s.Ctx, msg)
 	s.NoError(err)
 	return poolId

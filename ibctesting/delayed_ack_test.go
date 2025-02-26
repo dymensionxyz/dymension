@@ -6,13 +6,12 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibcmerkle "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibcmerkle "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -322,18 +321,9 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 
 	// timeout the packet. we expect for verification error
 	timeoutMsg := getTimeOutPacket(hubEndpoint, packet)
-	_, _, err = simapp.SignAndDeliver(
-		path.EndpointA.Chain.T,
-		path.EndpointA.Chain.TxConfig,
-		path.EndpointA.Chain.App.GetBaseApp(),
-		path.EndpointA.Chain.GetContext().BlockHeader(),
-		[]sdk.Msg{timeoutMsg},
-		path.EndpointA.Chain.ChainID,
-		[]uint64{path.EndpointA.Chain.SenderAccount.GetAccountNumber()},
-		[]uint64{path.EndpointA.Chain.SenderAccount.GetSequence()},
-		true, false, path.EndpointA.Chain.SenderPrivKey,
-	)
-	s.Require().ErrorIs(err, ibcmerkle.ErrInvalidProof)
+
+	_, err = s.hubChain().SendMsgs(timeoutMsg)
+	s.Require().ErrorContains(err, ibcmerkle.ErrInvalidProof.Error())
 }
 
 func getTimeOutPacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet) *channeltypes.MsgTimeout {
@@ -341,7 +331,7 @@ func getTimeOutPacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet)
 	counterparty := endpoint.Counterparty
 	proof, proofHeight := counterparty.QueryProof(packetKey)
 	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
-	require.True(endpoint.Chain.T, found)
+	require.True(endpoint.Chain.TB, found)
 
 	timeoutMsg := channeltypes.NewMsgTimeout(
 		packet, nextSeqRecv,

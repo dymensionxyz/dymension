@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"reflect"
 
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -15,7 +15,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateParams() {
 
 	updatedPriceParams := func() dymnstypes.PriceParams {
 		updated := dymnstypes.DefaultPriceParams()
-		updated.AliasPriceSteps = append([]sdkmath.Int{
+		updated.AliasPriceSteps = append([]math.Int{
 			updated.AliasPriceSteps[0].AddRaw(1),
 		}, updated.AliasPriceSteps...)
 		return updated

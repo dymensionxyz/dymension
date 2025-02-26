@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
+
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -20,6 +23,8 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	usim "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/dymensionxyz/dymension/v3/app"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -28,8 +33,8 @@ import (
 )
 
 func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
-	genesis := app.NewDefaultGenesisState(cdc)
-
+	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.EmptyAppOptions{}, baseapp.SetChainID(SimulationAppChainID))
+	genesis := newApp.DefaultGenesis()
 	// Modify gov params
 	govGenesis := govtypes1.DefaultGenesisState()
 	govGenesis.Params.MinDeposit[0].Amount = math.NewInt(10000000000)

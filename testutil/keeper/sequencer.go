@@ -3,18 +3,14 @@ package keeper
 import (
 	"testing"
 
-	cometbftdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/stretchr/testify/require"
 
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -22,22 +18,15 @@ import (
 )
 
 func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.StoreKey + "_transient")
+	keys := storetypes.NewKVStoreKeys(types.StoreKey)
+	logger := log.NewNopLogger()
 
-	db := cometbftdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
-	require.NoError(t, stateStore.LoadLatestVersion())
-
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-	cryptocodec.RegisterInterfaces(registry)
+	stateStore := integration.CreateMultiStore(keys, logger)
+	params := params.MakeEncodingConfig()
 
 	k := keeper.NewKeeper(
-		cdc,
-		storeKey,
+		params.Codec,
+		keys[types.StoreKey],
 		nil,
 		&authkeeper.AccountKeeper{},
 		&rollappkeeper.Keeper{},

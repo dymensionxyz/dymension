@@ -7,7 +7,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
@@ -187,7 +188,7 @@ func (k Keeper) beginUnlock(ctx sdk.Context, lock types.PeriodLock, coins sdk.Co
 	// If the amount were unlocking is empty, or the entire coins amount, unlock the entire lock.
 	// Otherwise, split the lock into two locks, and fully unlock the newly created lock.
 	// (By virtue, the newly created lock we split into should have the unlock amount)
-	if len(coins) != 0 && !coins.IsEqual(lock.Coins) {
+	if len(coins) != 0 && !coins.Equal(lock.Coins) {
 		splitLock, err := k.splitLock(ctx, lock, coins, false)
 		if err != nil {
 			return 0, err
@@ -227,7 +228,7 @@ func (k Keeper) beginUnlock(ctx sdk.Context, lock types.PeriodLock, coins sdk.Co
 
 func (k Keeper) clearKeysByPrefix(ctx sdk.Context, prefix []byte) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -305,7 +306,7 @@ func (k Keeper) PartialForceUnlock(ctx sdk.Context, lock types.PeriodLock, coins
 
 	// split lock to support partial force unlock.
 	// (By virtue, the newly created lock we split into should have the unlock amount)
-	if len(coins) != 0 && !coins.IsEqual(lock.Coins) {
+	if len(coins) != 0 && !coins.Equal(lock.Coins) {
 		splitLock, err := k.splitLock(ctx, lock, coins, true)
 		if err != nil {
 			return err

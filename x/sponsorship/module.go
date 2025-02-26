@@ -23,7 +23,9 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleSimulation = AppModule{}
+
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
@@ -93,10 +95,8 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule
 // ----------------------------------------------------------------------------
 
-var (
-	_ module.HasGenesis    = AppModule{}
-	_ module.HasInvariants = AppModule{}
-)
+// _ module.HasGenesis    = AppModule{}
+var _ module.HasInvariants = AppModule{}
 
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
@@ -128,6 +128,12 @@ func NewAppModule(
 		stakingKeeper:    stakingKeeper,
 	}
 }
+
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
 
 // Name returns the module's name.
 func (am AppModule) Name() string {
@@ -166,15 +172,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 		panic(err)
 	}
 	return cdc.MustMarshalJSON(&gs)
-}
-
-// BeginBlock executes all ABCI BeginBlock logic respective to the module.
-func (am AppModule) BeginBlock(sdk.Context, abci.RequestBeginBlock) {}
-
-// EndBlock executes all ABCI EndBlock logic respective to the module.
-// Returns a nil validatorUpdate struct array.
-func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

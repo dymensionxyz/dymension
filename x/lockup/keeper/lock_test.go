@@ -401,11 +401,11 @@ func (suite *KeeperTestSuite) TestAddTokensToLock() {
 			suite.Require().NoError(err)
 
 			// check that tokens have been added successfully to the lock
-			suite.Require().True(sdk.Coins{initialLockCoin.Add(tc.tokenToAdd)}.IsEqual(lock.Coins))
+			suite.Require().True(sdk.Coins{initialLockCoin.Add(tc.tokenToAdd)}.Equal(lock.Coins))
 
 			// check balance has decreased
 			balanceAfterLock := suite.App.BankKeeper.GetAllBalances(suite.Ctx, tc.lockingAddress)
-			suite.Require().True(balanceBeforeLock.IsEqual(balanceAfterLock.Add(tc.tokenToAdd)))
+			suite.Require().True(balanceBeforeLock.Equal(balanceAfterLock.Add(tc.tokenToAdd)))
 
 			// check accumulation store
 			accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
@@ -422,7 +422,7 @@ func (suite *KeeperTestSuite) TestAddTokensToLock() {
 			suite.Require().NoError(err)
 
 			// check that locked coins haven't changed
-			suite.Require().True(lock.Coins.IsEqual(sdk.Coins{initialLockCoin}))
+			suite.Require().True(lock.Coins.Equal(sdk.Coins{initialLockCoin}))
 
 			// check accumulation store didn't change
 			accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{

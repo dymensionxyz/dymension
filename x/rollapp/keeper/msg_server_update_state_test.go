@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -76,7 +75,8 @@ func (s *RollappTestSuite) TestUpdateState() {
 		s.Require().Nil(err)
 
 		// end block
-		s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		_, err = s.App.EndBlocker(s.Ctx)
+		s.Require().NoError(err)
 
 		if uint64(s.Ctx.BlockHeight()) > disputePeriodInBlocks {
 			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {

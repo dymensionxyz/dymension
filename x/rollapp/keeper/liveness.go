@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
@@ -107,7 +108,7 @@ func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.Livene
 	if height != nil {
 		key = types.LivenessEventQueueIterHeightKey(*height)
 	}
-	iterator := sdk.KVStorePrefixIterator(store, key)
+	iterator := storetypes.KVStorePrefixIterator(store, key)
 	defer iterator.Close() // nolint: errcheck
 
 	ret := []types.LivenessEvent{}

@@ -3,25 +3,18 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 const (
 	TypeMsgSetCanonicalClient = "set_canonical_client"
+	TypeMsgUpdateClient       = "update_client"
 )
 
 var (
-	_ sdk.Msg            = &MsgSetCanonicalClient{}
-	_ legacytx.LegacyMsg = &MsgSetCanonicalClient{}
+	_ sdk.Msg = &MsgSetCanonicalClient{}
+	_ sdk.Msg = &MsgUpdateClient{}
 )
-
-func NewMsgUpdateState(signer, client string) *MsgSetCanonicalClient {
-	return &MsgSetCanonicalClient{
-		Signer:   signer,
-		ClientId: client,
-	}
-}
 
 func (msg *MsgSetCanonicalClient) Route() string {
 	return ModuleName
@@ -39,11 +32,6 @@ func (msg *MsgSetCanonicalClient) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgSetCanonicalClient) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -53,4 +41,23 @@ func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 		return gerrc.ErrInvalidArgument.Wrap("empty client id")
 	}
 	return nil
+}
+
+func (msg *MsgUpdateClient) Route() string {
+	return ModuleName
+}
+
+func (msg *MsgUpdateClient) Type() string {
+	return TypeMsgUpdateClient
+}
+
+func (msg *MsgUpdateClient) GetSigners() []sdk.AccAddress {
+	return msg.Inner.GetSigners()
+}
+
+func (msg *MsgUpdateClient) ValidateBasic() error {
+	if msg.Inner == nil {
+		return gerrc.ErrInvalidArgument.Wrap("inner is nil")
+	}
+	return msg.Inner.ValidateBasic()
 }

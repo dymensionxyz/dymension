@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -117,7 +117,7 @@ func (s *SequencerTestSuite) TestDecreaseBondRestrictions() {
 		utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 	})
 	s.Run("fall below min", func() {
-		currBond := ucoin.MulDec(sdk.MustNewDecFromStr("1.5"), bond)[0]
+		currBond := ucoin.MulDec(math.LegacyMustNewDecFromStr("1.5"), bond)[0]
 		seq := s.createSequencerWithBond(s.Ctx, ra.RollappId, pks[3], currBond)
 		m := &types.MsgDecreaseBond{
 			Creator:        seq.Address,

@@ -3,7 +3,6 @@ package hooks_test
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
 )
@@ -18,7 +17,7 @@ func TestHooksTestSuite(t *testing.T) {
 
 func (suite *HooksTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	suite.App = app
 	suite.Ctx = ctx

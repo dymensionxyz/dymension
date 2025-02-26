@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
-	"strconv"
 	"testing"
 	"unsafe"
 
 	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
@@ -21,11 +19,7 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
 func (s *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
-	s.SetupTest()
 	initialHeight := uint64(10)
 	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight))
 	ctx := &s.Ctx
@@ -56,8 +50,9 @@ func (s *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	}
 }
 
-func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueGet() {
+	k := s.k()
+	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
 		item := item
@@ -66,16 +61,17 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 			item.CreationHeight,
 			item.RollappId,
 		)
-		require.True(t, found)
-		require.Equal(t,
+		s.True(found)
+		s.Equal(
 			nullify.Fill(&item),
 			nullify.Fill(&rst),
 		)
 	}
 }
 
-func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueRemove() {
+	k := s.k()
+	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
 		err := k.RemoveFinalizationQueue(
@@ -83,29 +79,31 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 			item.CreationHeight,
 			item.RollappId,
 		)
-		require.NoError(t, err)
+		s.NoError(err)
 		_, found := k.GetFinalizationQueue(
 			ctx,
 			item.CreationHeight,
 			item.RollappId,
 		)
-		require.False(t, found)
+		s.False(found)
 	}
 }
 
-func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueGetAll() {
+	k := s.k()
+	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	queue, err := k.GetEntireFinalizationQueue(ctx)
-	require.NoError(t, err)
-	require.ElementsMatch(t,
+	s.NoError(err)
+	s.ElementsMatch(
 		nullify.Fill(items),
 		nullify.Fill(queue),
 	)
 }
 
-func TestGetFinalizationQueueByRollapp(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestGetFinalizationQueueByRollapp() {
+	k := s.k()
+	ctx := s.Ctx
 
 	q1 := types.BlockHeightToFinalizationQueue{CreationHeight: 1, RollappId: "rollapp_1234-1"}
 	q2 := types.BlockHeightToFinalizationQueue{CreationHeight: 2, RollappId: "rollapp_1234-1"}
@@ -117,33 +115,33 @@ func TestGetFinalizationQueueByRollapp(t *testing.T) {
 
 	// Check all queues
 	q, err := k.GetEntireFinalizationQueue(ctx)
-	require.NoError(t, err)
-	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
 
 	// Get all queues from different heights associated with a given rollapp
 	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
-	require.NoError(t, err)
-	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
 
 	// Remove one of the queues
 	k.MustRemoveFinalizationQueue(ctx, 2, "rollapp_1234-1")
 
 	// Verify the index is updated
 	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
-	require.NoError(t, err)
-	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q3}, q)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q3}, q)
 
 	// Verify height 2 is empty
 
 	// Check all queues until height 3
 	q, err = k.GetFinalizationQueueUntilHeightInclusive(ctx, 3)
-	require.NoError(t, err)
-	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q3}, q)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q3}, q)
 
 	// Check all queues
 	q, err = k.GetEntireFinalizationQueue(ctx)
-	require.NoError(t, err)
-	require.Equal(t, []types.BlockHeightToFinalizationQueue{q1, q3}, q)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q3}, q)
 }
 
 //nolint:gofumpt
@@ -398,7 +396,8 @@ func (s *RollappTestSuite) TestFinalizeRollapps() {
 				})
 
 				s.Ctx = s.Ctx.WithBlockHeight(getFinalizationHeight(int64(i + 1)))
-				response := s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+				response, err := s.App.EndBlocker(s.Ctx)
+				s.Require().NoError(err)
 
 				numFinalized := countFinalized(response)
 				s.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
@@ -442,7 +441,8 @@ func (s *RollappTestSuite) TestFinalize() {
 	s.Require().Nil(err)
 
 	// Finalize pending queues and check
-	response := s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	response, err := s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
 	actualQueue, err := k.GetEntireFinalizationQueue(*ctx)
 	s.Require().NoError(err)
 	s.Require().Len(actualQueue, 2)
@@ -450,7 +450,8 @@ func (s *RollappTestSuite) TestFinalize() {
 
 	// Finalize pending queues and check
 	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
-	response = s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	response, err = s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
 	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
 	s.Require().NoError(err)
 	s.Require().Len(actualQueue, 1)
@@ -458,7 +459,8 @@ func (s *RollappTestSuite) TestFinalize() {
 
 	// Finalize pending queues and check
 	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
-	response = s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	response, err = s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
 	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
 	s.Require().NoError(err)
 	s.Require().Len(actualQueue, 0)
@@ -476,7 +478,7 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	return items
 }
 
-func countFinalized(response abci.ResponseEndBlock) int {
+func countFinalized(response sdk.EndBlock) int {
 	count := 0
 	for _, event := range response.Events {
 		if event.Type == types.EventTypeStatusChange {
@@ -486,7 +488,7 @@ func countFinalized(response abci.ResponseEndBlock) int {
 	return count
 }
 
-func findEvent(response abci.ResponseEndBlock, eventType string) bool {
+func findEvent(response sdk.EndBlock, eventType string) bool {
 	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
 }
 
@@ -875,40 +877,41 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 	return
 }
 
-func TestUnbondConditionFlow(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestUnbondConditionFlow() {
+	k := s.k()
+	ctx := s.Ctx
 
 	seq := keepertest.Alice
 
 	err := k.CanUnbond(ctx, seq)
-	require.NoError(t, err)
+	s.NoError(err)
 
 	for h := range 10 {
 		err := k.SaveSequencerHeight(ctx, seq.Address, uint64(h))
-		require.NoError(t, err)
+		s.NoError(err)
 	}
 
 	pairs, err := k.AllSequencerHeightPairs(ctx)
-	require.NoError(t, err)
-	require.Len(t, pairs, 10)
+	s.NoError(err)
+	s.Len(pairs, 10)
 
 	err = k.CanUnbond(ctx, seq)
-	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
+	s.True(errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
 
 	err = k.PruneSequencerHeights(ctx, []string{seq.Address}, 6)
-	require.NoError(t, err)
+	s.NoError(err)
 	pairs, err = k.AllSequencerHeightPairs(ctx)
-	require.NoError(t, err)
-	require.Len(t, pairs, 7) // removed heights above 6
+	s.NoError(err)
+	s.Len(pairs, 7) // removed heights above 6
 
 	err = k.CanUnbond(ctx, seq)
-	require.True(t, errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
+	s.True(errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
 
 	for h := range 7 {
 		err := k.DelSequencerHeight(ctx, seq.Address, uint64(h))
-		require.NoError(t, err)
+		s.NoError(err)
 	}
 
 	err = k.CanUnbond(ctx, seq)
-	require.NoError(t, err)
+	s.NoError(err)
 }

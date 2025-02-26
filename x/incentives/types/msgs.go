@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
@@ -16,8 +15,8 @@ const (
 )
 
 var (
-	_ sdk.Msg            = &MsgCreateGauge{}
-	_ legacytx.LegacyMsg = &MsgCreateGauge{}
+	_ sdk.Msg = &MsgCreateGauge{}
+	_ sdk.Msg = &MsgAddToGauge{}
 )
 
 // NewMsgCreateGauge creates a message to create a gauge with the provided parameters.
@@ -66,21 +65,11 @@ func (m MsgCreateGauge) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes takes a create gauge message and turns it into a byte array.
-func (m MsgCreateGauge) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
-}
-
 // GetSigners takes a create gauge message and returns the owner in a byte array.
 func (m MsgCreateGauge) GetSigners() []sdk.AccAddress {
 	owner, _ := sdk.AccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{owner}
 }
-
-var (
-	_ sdk.Msg            = &MsgAddToGauge{}
-	_ legacytx.LegacyMsg = &MsgAddToGauge{}
-)
 
 // NewMsgAddToGauge creates a message to add rewards to a specific gauge.
 func NewMsgAddToGauge(owner sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) *MsgAddToGauge {
@@ -107,11 +96,6 @@ func (m MsgAddToGauge) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSignBytes takes an add to gauge message and turns it into a byte array.
-func (m MsgAddToGauge) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
 }
 
 // GetSigners takes an add to gauge message and returns the owner in a byte array.

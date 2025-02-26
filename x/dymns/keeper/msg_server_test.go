@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stretchr/testify/require"
@@ -51,7 +53,7 @@ func Test_consumeMinimumGas(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := sdk.Context{}.WithGasMeter(sdk.NewInfiniteGasMeter())
+			ctx := sdk.Context{}.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 			originalConsumedGas := tt.originalConsumedGas
 			if tt.overrideConsumedGas != nil {

@@ -3,10 +3,11 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
+
+	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -153,7 +154,7 @@ func (k Keeper) ListAllDemandOrders(
 	ctx sdk.Context,
 ) (list []*types.DemandOrder, err error) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.AllDemandOrdersKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.AllDemandOrdersKeyPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -178,7 +179,7 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 		return nil, fmt.Errorf("invalid packet status: %s", status)
 	}
 
-	iterator := sdk.KVStorePrefixIterator(store, statusPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, statusPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 outer:

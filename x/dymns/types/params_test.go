@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 )
 
@@ -147,7 +146,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		defaultPriceParams := DefaultPriceParams()
 
 		for size := 0; size <= (MinDymNamePriceStepsCount+MinAliasPriceStepsCount)*2; size++ {
-			priceSteps := make([]sdkmath.Int, size)
+			priceSteps := make([]math.Int, size)
 			for i := 0; i < size; i++ {
 				priceSteps[i] = math.NewInt(int64(1000 - i)).MulRaw(1e18)
 			}
@@ -190,20 +189,20 @@ func TestPriceParams_Validate(t *testing.T) {
 
 		type tc struct {
 			name     string
-			modifier func(PriceParams, sdkmath.Int) PriceParams
+			modifier func(PriceParams, math.Int) PriceParams
 		}
 
 		tests := []tc{
 			{
 				name: "price extends",
-				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+				modifier: func(p PriceParams, v math.Int) PriceParams {
 					p.PriceExtends = v
 					return p
 				},
 			},
 			{
 				name: "min offer price",
-				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+				modifier: func(p PriceParams, v math.Int) PriceParams {
 					p.MinOfferPrice = v
 					return p
 				},
@@ -213,7 +212,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		for i := 0; i < len(defaultPriceParams.NamePriceSteps); i++ {
 			tests = append(tests, tc{
 				name: fmt.Sprintf("name price steps [%d]", i),
-				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+				modifier: func(p PriceParams, v math.Int) PriceParams {
 					p.NamePriceSteps[i] = v
 					return p
 				},
@@ -223,7 +222,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		for i := 0; i < len(defaultPriceParams.AliasPriceSteps); i++ {
 			tests = append(tests, tc{
 				name: fmt.Sprintf("alias price steps [%d]", i),
-				modifier: func(p PriceParams, v sdkmath.Int) PriceParams {
+				modifier: func(p PriceParams, v math.Int) PriceParams {
 					p.AliasPriceSteps[i] = v
 					return p
 				},
@@ -231,7 +230,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			for _, badPrice := range []sdkmath.Int{{}, sdkmath.NewInt(-1), sdkmath.ZeroInt(), MinPriceValue.Sub(sdkmath.NewInt(1))} {
+			for _, badPrice := range []math.Int{{}, math.NewInt(-1), math.ZeroInt(), MinPriceValue.Sub(math.NewInt(1))} {
 				t.Run(fmt.Sprintf("%s with v = %v", test.name, badPrice), func(t *testing.T) {
 					p := test.modifier(DefaultPriceParams(), badPrice)
 					err := (&p).Validate()

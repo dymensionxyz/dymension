@@ -159,9 +159,8 @@ func (s Sequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 }
 
 // TODO: move these utils to a more suitable package
-
 func PubKey(pk *codectypes.Any) (cryptotypes.PubKey, error) {
-	cdc := ModuleCdc2
+	cdc := ModuleCdc
 	var pubKey cryptotypes.PubKey
 	err := cdc.UnpackAny(pk, &pubKey)
 	return pubKey, err

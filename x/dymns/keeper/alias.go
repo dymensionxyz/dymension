@@ -3,6 +3,8 @@ package keeper
 import (
 	"slices"
 
+	storetypes "cosmossdk.io/store/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -270,7 +272,7 @@ func (k Keeper) SetDefaultAliasForRollApp(ctx sdk.Context, rollAppId, alias stri
 func (k Keeper) GetAllRollAppsWithAliases(ctx sdk.Context) (list []dymnstypes.AliasesOfChainId) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppIdToAliases)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixRollAppIdToAliases)
 	defer func() {
 		_ = iterator.Close()
 	}()

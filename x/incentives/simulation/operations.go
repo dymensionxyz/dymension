@@ -6,10 +6,10 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -31,6 +31,8 @@ const (
 func WeightedOperations(
 	appParams simtypes.AppParams,
 	cdc codec.JSONCodec,
+	txCfg client.TxConfig,
+
 	ak dymsimtypes.AccountKeeper,
 	bk dymsimtypes.BankKeeper,
 	ek types.EpochKeeper,
@@ -41,27 +43,24 @@ func WeightedOperations(
 		weightMsgAddToGauge  int
 	)
 
-	interfaceRegistry := codectypes.NewInterfaceRegistry()
-	protoCdc := codec.NewProtoCodec(interfaceRegistry)
-
 	appParams.GetOrGenerate(
-		cdc, OpWeightMsgCreateGauge, &weightMsgCreateGauge, nil,
+		OpWeightMsgCreateGauge, &weightMsgCreateGauge, nil,
 		func(*rand.Rand) { weightMsgCreateGauge = DefaultWeightMsgCreateGauge },
 	)
 
 	appParams.GetOrGenerate(
-		cdc, OpWeightMsgAddToGauge, &weightMsgAddToGauge, nil,
+		OpWeightMsgAddToGauge, &weightMsgAddToGauge, nil,
 		func(*rand.Rand) { weightMsgAddToGauge = DefaultWeightMsgAddToGauge },
 	)
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgCreateGauge,
-			SimulateMsgCreateGauge(protoCdc, ak, bk, ek, k),
+			SimulateMsgCreateGauge(txCfg, ak, bk, ek, k),
 		),
 		simulation.NewWeightedOperation(
 			weightMsgAddToGauge,
-			SimulateMsgAddToGauge(protoCdc, ak, bk, k),
+			SimulateMsgAddToGauge(txCfg, ak, bk, k),
 		),
 	}
 }
@@ -111,7 +110,7 @@ func genQueryCondition(r *rand.Rand, blocktime time.Time, coins sdk.Coins, durat
 
 // SimulateMsgCreateGauge generates and executes a MsgCreateGauge with random parameters
 func SimulateMsgCreateGauge(
-	cdc *codec.ProtoCodec,
+	txConfig client.TxConfig,
 	ak dymsimtypes.AccountKeeper,
 	bk dymsimtypes.BankKeeper,
 	ek types.EpochKeeper,
@@ -147,10 +146,9 @@ func SimulateMsgCreateGauge(
 		txCtx := simulation.OperationInput{
 			R:               r,
 			App:             app,
-			TxGen:           moduletestutil.MakeTestEncodingConfig().TxConfig,
-			Cdc:             cdc,
+			TxGen:           txConfig,
+			Cdc:             nil,
 			Msg:             msg,
-			MsgType:         msg.Type(),
 			CoinsSpentInMsg: rewards.Add(feeCoin),
 			Context:         ctx,
 			SimAccount:      simAccount,
@@ -165,7 +163,7 @@ func SimulateMsgCreateGauge(
 
 // SimulateMsgAddToGauge generates and executes a MsgAddToGauge with random parameters
 func SimulateMsgAddToGauge(
-	cdc *codec.ProtoCodec,
+	txConfig client.TxConfig,
 	ak dymsimtypes.AccountKeeper,
 	bk dymsimtypes.BankKeeper,
 	k keeper.Keeper,
@@ -201,10 +199,9 @@ func SimulateMsgAddToGauge(
 		txCtx := simulation.OperationInput{
 			R:               r,
 			App:             app,
-			TxGen:           moduletestutil.MakeTestEncodingConfig().TxConfig,
-			Cdc:             cdc,
+			TxGen:           txConfig,
+			Cdc:             nil,
 			Msg:             msg,
-			MsgType:         msg.Type(),
 			CoinsSpentInMsg: rewards.Add(feeCoin),
 			Context:         ctx,
 			SimAccount:      simAccount,

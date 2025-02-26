@@ -3,7 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "cosmossdk.io/store/types"
+
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -83,7 +85,7 @@ func (k Keeper) RemoveStateInfo(
 // GetAllStateInfo returns all stateInfo
 func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 

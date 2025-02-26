@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -67,15 +67,15 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_DymName() {
 		existingOffer          *dymnstypes.BuyOrder
 		buyOrderId             string
 		buyer                  string
-		originalModuleBalance  sdkmath.Int
-		originalBuyerBalance   sdkmath.Int
+		originalModuleBalance  math.Int
+		originalBuyerBalance   math.Int
 		preRunSetupFunc        func(s *KeeperTestSuite)
 		wantErr                bool
 		wantErrContains        string
 		wantLaterOffer         *dymnstypes.BuyOrder
-		wantLaterModuleBalance sdkmath.Int
-		wantLaterBuyerBalance  sdkmath.Int
-		wantMinConsumeGas      sdk.Gas
+		wantLaterModuleBalance math.Int
+		wantLaterBuyerBalance  math.Int
+		wantMinConsumeGas      storetypes.Gas
 		afterTestFunc          func(s *KeeperTestSuite)
 	}{
 		{
@@ -412,15 +412,15 @@ func (s *KeeperTestSuite) Test_msgServer_CancelBuyOrder_Alias() {
 		existingOffer          *dymnstypes.BuyOrder
 		buyOrderId             string
 		buyer                  string
-		originalModuleBalance  sdkmath.Int
-		originalBuyerBalance   sdkmath.Int
+		originalModuleBalance  math.Int
+		originalBuyerBalance   math.Int
 		preRunSetupFunc        func(s *KeeperTestSuite)
 		wantErr                bool
 		wantErrContains        string
 		wantLaterOffer         *dymnstypes.BuyOrder
-		wantLaterModuleBalance sdkmath.Int
-		wantLaterBuyerBalance  sdkmath.Int
-		wantMinConsumeGas      sdk.Gas
+		wantLaterModuleBalance math.Int
+		wantLaterBuyerBalance  math.Int
+		wantMinConsumeGas      storetypes.Gas
 		afterTestFunc          func(s *KeeperTestSuite)
 	}{
 		{

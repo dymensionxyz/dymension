@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -17,11 +15,6 @@ import (
 const (
 	TypeMsgFinalizedPacket            = "finalized_packet"
 	TypeMsgFinalizedPacketByPacketKey = "finalized_packet_by_packet_key"
-)
-
-var (
-	_ legacytx.LegacyMsg = &MsgFinalizePacket{}
-	_ legacytx.LegacyMsg = &MsgFinalizePacketByPacketKey{}
 )
 
 func (m MsgFinalizePacket) ValidateBasic() error {
@@ -88,22 +81,12 @@ func (m MsgFinalizePacketByPacketKey) MustDecodePacketKey() []byte {
 	return packetKey
 }
 
-func (m *MsgFinalizePacket) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
 func (m *MsgFinalizePacket) Route() string {
 	return RouterKey
 }
 
 func (m *MsgFinalizePacket) Type() string {
 	return TypeMsgFinalizedPacket
-}
-
-func (m *MsgFinalizePacketByPacketKey) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgFinalizePacketByPacketKey) Route() string {

@@ -6,8 +6,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,7 +31,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 	anotherA := testAddr(3).bech32()
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-		moduleParams.Price.NamePriceSteps = []sdkmath.Int{
+		moduleParams.Price.NamePriceSteps = []math.Int{
 			math.NewInt(firstYearPrice1L).Mul(priceMultiplier),
 			math.NewInt(firstYearPrice2L).Mul(priceMultiplier),
 			math.NewInt(firstYearPrice3L).Mul(priceMultiplier),
@@ -731,7 +729,7 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 
 	priceParams := dymnstypes.DefaultPriceParams()
 	priceParams.PriceDenom = denom
-	priceParams.NamePriceSteps = []sdkmath.Int{
+	priceParams.NamePriceSteps = []math.Int{
 		math.NewInt(price1L).Mul(priceMultiplier),
 		math.NewInt(price2L).Mul(priceMultiplier),
 		math.NewInt(price3L).Mul(priceMultiplier),
@@ -1007,15 +1005,15 @@ func (s *KeeperTestSuite) TestEstimateRegisterName() {
 				tt.duration,
 			)
 			s.Equal(
-				sdkmath.NewInt(tt.wantFirstYearPrice).Mul(priceMultiplier).String(),
+				math.NewInt(tt.wantFirstYearPrice).Mul(priceMultiplier).String(),
 				got.FirstYearPrice.Amount.String(),
 			)
 			s.Equal(
-				sdkmath.NewInt(tt.wantExtendPrice).Mul(priceMultiplier).String(),
+				math.NewInt(tt.wantExtendPrice).Mul(priceMultiplier).String(),
 				got.ExtendPrice.Amount.String(),
 			)
 			s.Equal(
-				sdkmath.NewInt(tt.wantFirstYearPrice+tt.wantExtendPrice).Mul(priceMultiplier).String(),
+				math.NewInt(tt.wantFirstYearPrice+tt.wantExtendPrice).Mul(priceMultiplier).String(),
 				got.TotalPrice.Amount.String(),
 				"total price must be equals to sum of first year and extend price",
 			)

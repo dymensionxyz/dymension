@@ -5,24 +5,22 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/suite"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
-	"github.com/evmos/ethermint/testutil"
+
 	ethermint "github.com/evmos/ethermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -48,9 +46,9 @@ func TestAnteTestSuite(t *testing.T) {
 // SetupTest setups a new test, with new app, context, and anteHandler.
 func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 	s.app = apptesting.Setup(s.T())
-	s.ctx = s.app.BaseApp.NewContext(isCheckTx, cometbftproto.Header{}).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
+	s.ctx = s.app.BaseApp.NewContext(isCheckTx).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
 
-	txConfig := s.app.GetTxConfig()
+	txConfig := s.app.TxConfig()
 	s.clientCtx = client.Context{}.
 		WithTxConfig(txConfig).
 		WithCodec(s.app.AppCodec())
@@ -81,8 +79,8 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 
 	amt := math.NewInt(100)
-	err = testutil.FundAccount(
-		suite.app.BankKeeper,
+	apptesting.FundAccount(
+		suite.app,
 		suite.ctx,
 		privkey.PubKey().Address().Bytes(),
 		sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, amt)),
@@ -121,12 +119,10 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	suite.txBuilder = txConfig.NewTxBuilder()
-	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
-	builder.SetFeeAmount(fees)
-	builder.SetGasLimit(200000)
+	suite.txBuilder.SetFeeAmount(fees)
+	suite.txBuilder.SetGasLimit(200000)
 
-	err = builder.SetMsgs(msgs...)
+	err = suite.txBuilder.SetMsgs(msgs...)
 	suite.Require().NoError(err)
 
 	txBytes := legacytx.StdSignBytes(
@@ -138,7 +134,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 			Amount: fees,
 			Gas:    200000,
 		},
-		msgs, "", nil,
+		msgs, "",
 	)
 
 	feeDelegation := &eip712.FeeDelegationOptions{
@@ -157,31 +153,21 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	keyringSigner := NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
+	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signingtypes.SignMode_SIGN_MODE_DIRECT)
 	suite.Require().NoError(err)
-
-	signature[crypto.RecoveryIDOffset] += 27
-
-	option, err := codectypes.NewAnyWithValue(&ethermint.ExtensionOptionsWeb3Tx{
-		FeePayer:         from.String(),
-		TypedDataChainID: chainIDNum,
-		FeePayerSig:      signature,
-	})
-	suite.Require().NoError(err)
-
-	builder.SetExtensionOptions(option)
 
 	sigsV2 := signing.SignatureV2{
 		PubKey: pubKey,
 		Data: &signing.SingleSignatureData{
-			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+			SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
+			Signature: signature,
 		},
 		Sequence: nonce,
 	}
-	err = builder.SetSignatures(sigsV2)
+	err = suite.txBuilder.SetSignatures(sigsV2)
 	suite.Require().NoError(err)
 
-	return builder
+	return suite.txBuilder
 }
 
 // Signer defines a type that is used on testing for signing MsgEthereumTx
@@ -196,7 +182,7 @@ func NewSigner(sk cryptotypes.PrivKey) keyring.Signer {
 }
 
 // Sign signs the message using the underlying private key
-func (s Signer) Sign(_ string, msg []byte) ([]byte, cryptotypes.PubKey, error) {
+func (s Signer) Sign(uid string, msg []byte, signMode signing.SignMode) ([]byte, cryptotypes.PubKey, error) {
 	if s.privKey.Type() != ethsecp256k1.KeyType {
 		return nil, nil, fmt.Errorf(
 			"invalid private key type for signing ethereum tx; expected %s, got %s",
@@ -214,11 +200,11 @@ func (s Signer) Sign(_ string, msg []byte) ([]byte, cryptotypes.PubKey, error) {
 }
 
 // SignByAddress sign byte messages with a user key providing the address.
-func (s Signer) SignByAddress(address sdk.Address, msg []byte) ([]byte, cryptotypes.PubKey, error) {
+func (s Signer) SignByAddress(address sdk.Address, msg []byte, signMode signing.SignMode) ([]byte, cryptotypes.PubKey, error) {
 	signer := sdk.AccAddress(s.privKey.PubKey().Address())
 	if !signer.Equals(address) {
 		return nil, nil, fmt.Errorf("address mismatch: signer %s ≠ given address %s", signer, address)
 	}
 
-	return s.Sign("", msg)
+	return s.Sign("", msg, signMode)
 }

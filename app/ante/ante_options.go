@@ -1,42 +1,39 @@
 package ante
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "cosmossdk.io/store/types"
+	txsigning "cosmossdk.io/x/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
+	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
 
-// FeeMarketKeeper defines the expected keeper interface used on the AnteHandler
-type FeeMarketKeeper interface {
-	ethante.FeeMarketKeeper
-	GetMinGasPrice(ctx sdk.Context) (minGasPrice math.LegacyDec)
-}
-
 type HandlerOptions struct {
-	AccountKeeper          *authkeeper.AccountKeeper
-	BankKeeper             bankkeeper.Keeper
-	IBCKeeper              *ibckeeper.Keeper
-	FeeMarketKeeper        FeeMarketKeeper
-	EvmKeeper              ethante.EVMKeeper
-	FeegrantKeeper         ante.FeegrantKeeper
-	TxFeesKeeper           *txfeeskeeper.Keeper
-	SignModeHandler        authsigning.SignModeHandler
-	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
-	RollappKeeper          rollappkeeper.Keeper
-	LightClientKeeper      *lightclientkeeper.Keeper
+	FeegrantKeeper         FeegrantKeeper
+	SignModeHandler        *txsigning.HandlerMap
+	SigGasConsumer         func(meter storetypes.GasMeter, sig signing.SignatureV2, params types.Params) error
+	TxFeeChecker           ante.TxFeeChecker
+
+	AccountKeeper     AccountKeeper
+	BankKeeper        BankKeeper
+	IBCKeeper         *ibckeeper.Keeper
+	FeeMarketKeeper   FeeMarketKeeper
+	EvmKeeper         ethante.EVMKeeper
+	TxFeesKeeper      *txfeeskeeper.Keeper
+	MaxTxGasWanted    uint64
+	RollappKeeper     rollappkeeper.Keeper
+	LightClientKeeper *lightclientkeeper.Keeper
 }
 
 func (options HandlerOptions) validate() error {

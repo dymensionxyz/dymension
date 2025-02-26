@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -128,7 +127,7 @@ func TestMsgRegisterAlias_ValidateBasic(t *testing.T) {
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			confirmPayment: sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdkmath.NewInt(-1),
+				Amount: math.NewInt(-1),
 			},
 			wantErr:         true,
 			wantErrContains: "negative coin amount",
