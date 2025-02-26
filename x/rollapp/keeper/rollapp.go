@@ -40,10 +40,11 @@ func (k Keeper) CheckAndUpdateRollappFields(ctx sdk.Context, update *types.MsgUp
 	}
 
 	if types.IsUpdateMinSeqBond(update.MinSequencerBond) {
-		if err := k.validMinBond(ctx, update.MinSequencerBond); err != nil {
+		minSeqBond := *update.MinSequencerBond
+		if err := k.validMinBond(ctx, minSeqBond); err != nil {
 			return current, errorsmod.Wrap(err, "valid min bond")
 		}
-		current.MinSequencerBond = sdk.NewCoins(update.MinSequencerBond)
+		current.MinSequencerBond = sdk.NewCoins(minSeqBond)
 	}
 
 	if update.GenesisInfo != nil {
