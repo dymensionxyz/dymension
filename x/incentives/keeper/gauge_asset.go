@@ -182,6 +182,9 @@ func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, l
 	for _, lock := range locks {
 		distrCoins := sdk.Coins{}
 		for _, coin := range remainCoins {
+			// TODO: optimize this to avoid division in the loop:
+			// 	gauge_size / (total_denom_lock_amount * remain_epochs) is const and may be precomputed
+			//
 			// distribution amount = gauge_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
 			denomLockAmt := lock.Coins.AmountOfNoDenomValidation(denom)
 			amt := coin.Amount.Mul(denomLockAmt).Quo(lockSum.Mul(math.NewInt(int64(remainEpochs))))

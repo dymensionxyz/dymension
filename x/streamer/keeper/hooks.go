@@ -158,15 +158,10 @@ func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId u
 
 // RollappCreated implements types.RollappHooks.
 func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAddress) error {
-	err := h.k.CreateRollappGauge(ctx, rollappID)
+	rollappGaugeId, err := h.k.ik.CreateRollappGauge(ctx, rollappID)
 	if err != nil {
 		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)
 		return fmt.Errorf("create rollapp gauge: %w", err)
-	}
-	err = h.k.CreateEndorsementGauge(ctx, rollappID)
-	if err != nil {
-		ctx.Logger().Error("Failed to create endorsement gauge", "error", err)
-		return fmt.Errorf("create endorsement gauge: %w", err)
 	}
 	// TODO: create sponsorship endorsement
 	return nil

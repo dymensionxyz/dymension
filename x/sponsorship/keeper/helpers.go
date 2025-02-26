@@ -162,15 +162,17 @@ func (k Keeper) HasEndorsement(ctx sdk.Context, rollappID string) (bool, error) 
 // UpdateEndorsement updates the endorsement by applying the provided function to the current endorsement.
 // It retrieves the current endorsement from the state, applies the update function to it, saves the updated endorsement
 // back to the state, and returns the updated endorsement. If any error occurs during these steps, it returns an error.
-func (k Keeper) UpdateEndorsement(ctx sdk.Context, rollappID string, fn func(types.Endorsement) types.Endorsement) error {
+func (k Keeper) UpdateEndorsement(ctx sdk.Context, rollappID string, updates ...types.EndorsementUpdateFn) error {
 	current, err := k.GetEndorsement(ctx, rollappID)
 	if err != nil {
 		return fmt.Errorf("get endorsement: %w", err)
 	}
 
-	result := fn(current)
+	for _, update := range updates {
+		current = update(current)
+	}
 
-	err = k.SaveEndorsement(ctx, result)
+	err = k.SaveEndorsement(ctx, current)
 	if err != nil {
 		return fmt.Errorf("save endorsement: %w", err)
 	}

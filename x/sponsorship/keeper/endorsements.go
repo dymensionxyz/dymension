@@ -22,7 +22,7 @@ func (k Keeper) UpdateEndorsements(ctx sdk.Context, update types.Distribution) e
 			continue
 		}
 
-		err := k.UpdateEndorsement(ctx, raGauge.Rollapp.RollappId, types.UpdateEndorsementShares(weight.Power))
+		err := k.UpdateEndorsement(ctx, raGauge.Rollapp.RollappId, types.UpdateTotalShares(weight.Power))
 		if err != nil {
 			return fmt.Errorf("update endorsement shares: rollapp %s: %w", raGauge.Rollapp.RollappId, err)
 		}

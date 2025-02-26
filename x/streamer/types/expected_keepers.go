@@ -34,7 +34,6 @@ type AccountKeeper interface {
 type IncentivesKeeper interface {
 	CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
 	CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, error)
-	CreateEndorsementGauge(ctx sdk.Context, rollappId string) (uint64, error)
 	GetLockableDurations(ctx sdk.Context) []time.Duration
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
 	Distribute(ctx sdk.Context, gauges []incentivestypes.Gauge, cache incentivestypes.DenomLocksCache, epochEnd bool) (sdk.Coins, error)

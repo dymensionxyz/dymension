@@ -139,10 +139,18 @@ message GaugeWeight {
 // when voting power of some endorser changes.
 message Endorsement {
   string rollapp_id = 1;
+  // RollappGaugeId is a rollapp gauge associated with the given rollapp.
   uint64 rollapp_gauge_id = 2;
-  uint64 endorsement_gauge_id = 3;
-  // EndorserShares defines total shares issued to a validator's delegators.
-  string endorser_shares = 4 [
+  // EndorsementGaugeIds are endorsement gauges associated with the given rollapp.
+  repeated uint64 endorsement_gauge_ids = 3;
+  // TotalShares defines total shares issued to a validator's delegators.
+  string total_shares = 4 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+  // EpochShares defines shares issued to this epoch.
+  string epoch_shares = 5 [
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"

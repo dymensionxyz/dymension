@@ -14,15 +14,15 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
-var _ stakingtypes.StakingHooks = Hooks{}
+var _ stakingtypes.StakingHooks = StakingHooks{}
 
-// Hooks wrapper struct for slashing keeper
-type Hooks struct {
+// StakingHooks wrapper struct for slashing keeper
+type StakingHooks struct {
 	k Keeper
 }
 
-func (k Keeper) Hooks() Hooks {
-	return Hooks{k: k}
+func (k Keeper) StakingHooks() StakingHooks {
+	return StakingHooks{k: k}
 }
 
 type processHookResult struct {
@@ -31,7 +31,7 @@ type processHookResult struct {
 	vpDiff, newTotal math.Int
 }
 
-func (h Hooks) AfterDelegationModified(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h StakingHooks) AfterDelegationModified(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	err := h.afterDelegationModified(ctx, delAddr, valAddr)
 	if err != nil {
@@ -43,7 +43,7 @@ func (h Hooks) AfterDelegationModified(goCtx context.Context, delAddr sdk.AccAdd
 // afterDelegationModified handles the AfterDelegationModified staking hook. It checks if the delegator has a vote,
 // gets the current delegator's voting power gained from the specified validator, gets the x/staking voting power for
 // this validator and calls a generic processHook method.
-func (h Hooks) afterDelegationModified(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h StakingHooks) afterDelegationModified(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	voted, err := h.k.Voted(ctx, delAddr)
 	if err != nil {
@@ -98,7 +98,7 @@ func (h Hooks) afterDelegationModified(goCtx context.Context, delAddr sdk.AccAdd
 	return nil
 }
 
-func (h Hooks) BeforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h StakingHooks) BeforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	err := h.beforeDelegationRemoved(ctx, delAddr, valAddr)
 	if err != nil {
@@ -110,7 +110,7 @@ func (h Hooks) BeforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAdd
 // beforeDelegationRemoved handles the BeforeDelegationRemoved staking hook. It checks if the delegator has a vote,
 // gets the current delegator's voting power gained from the specified validator, and calls a generic processHook
 // method assuming that the x/staking voting power for this validator is zero.
-func (h Hooks) beforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h StakingHooks) beforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	voted, err := h.k.Voted(ctx, delAddr)
 	if err != nil {
@@ -162,8 +162,8 @@ func (h Hooks) beforeDelegationRemoved(goCtx context.Context, delAddr sdk.AccAdd
 // The method finally returns a struct containing the new distribution, a flag indicating if the vote
 // was pruned (revoked), the difference in voting power and the new total voting power.
 //
-// This function is expected to be used internally by the Hooks type methods.
-func (h Hooks) processHook(
+// This function is expected to be used internally by the StakingHooks type methods.
+func (h StakingHooks) processHook(
 	ctx sdk.Context,
 	delAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
@@ -247,32 +247,32 @@ func (h Hooks) processHook(
 	}, nil
 }
 
-func (h Hooks) AfterValidatorBeginUnbonding(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
+func (h StakingHooks) AfterValidatorBeginUnbonding(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
 	return nil
 }
 
-func (h Hooks) AfterValidatorBonded(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
+func (h StakingHooks) AfterValidatorBonded(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
 	return nil
 }
 
-func (h Hooks) BeforeValidatorSlashed(context.Context, sdk.ValAddress, math.LegacyDec) error {
+func (h StakingHooks) BeforeValidatorSlashed(context.Context, sdk.ValAddress, math.LegacyDec) error {
 	return nil
 }
 
-func (Hooks) AfterValidatorCreated(context.Context, sdk.ValAddress) error { return nil }
+func (StakingHooks) AfterValidatorCreated(context.Context, sdk.ValAddress) error { return nil }
 
-func (Hooks) BeforeValidatorModified(context.Context, sdk.ValAddress) error { return nil }
+func (StakingHooks) BeforeValidatorModified(context.Context, sdk.ValAddress) error { return nil }
 
-func (Hooks) AfterValidatorRemoved(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
+func (StakingHooks) AfterValidatorRemoved(context.Context, sdk.ConsAddress, sdk.ValAddress) error {
 	return nil
 }
 
-func (Hooks) BeforeDelegationCreated(context.Context, sdk.AccAddress, sdk.ValAddress) error {
+func (StakingHooks) BeforeDelegationCreated(context.Context, sdk.AccAddress, sdk.ValAddress) error {
 	return nil
 }
 
-func (Hooks) AfterUnbondingInitiated(context.Context, uint64) error { return nil }
+func (StakingHooks) AfterUnbondingInitiated(context.Context, uint64) error { return nil }
 
-func (Hooks) BeforeDelegationSharesModified(context.Context, sdk.AccAddress, sdk.ValAddress) error {
+func (StakingHooks) BeforeDelegationSharesModified(context.Context, sdk.AccAddress, sdk.ValAddress) error {
 	return nil
 }

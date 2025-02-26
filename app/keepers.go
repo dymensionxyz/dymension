@@ -542,7 +542,7 @@ func (a *AppKeepers) SetupHooks() {
 		stakingtypes.NewMultiStakingHooks(
 			a.DistrKeeper.Hooks(),
 			a.SlashingKeeper.Hooks(),
-			a.SponsorshipKeeper.Hooks(),
+			a.SponsorshipKeeper.StakingHooks(),
 		),
 	)
 

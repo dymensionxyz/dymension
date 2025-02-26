@@ -35,13 +35,3 @@ func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 
 	return nil
 }
-
-func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappID string) error {
-	_, err := k.ik.CreateRollappGauge(ctx, rollappID)
-	return err
-}
-
-func (k Keeper) CreateEndorsementGauge(ctx sdk.Context, rollappID string) error {
-	_, err := k.ik.CreateEndorsementGauge(ctx, rollappID)
-	return err
-}

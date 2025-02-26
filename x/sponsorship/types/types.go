@@ -183,11 +183,46 @@ func (m Gauges) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-// UpdateEndorsementShares updates the shares of the endorsement by adding the given update.
-// Update may be either positive or negative.
-func UpdateEndorsementShares(update math.Int) func(Endorsement) Endorsement {
+func NewEndorsement(rollappId string, rollappGaugeId uint64) Endorsement {
+	return Endorsement{
+		RollappId:           rollappId,
+		RollappGaugeId:      rollappGaugeId,
+		EndorsementGaugeIds: nil,
+		TotalShares:         math.ZeroInt(),
+		EpochShares:         math.ZeroInt(),
+	}
+}
+
+type EndorsementUpdateFn func(Endorsement) Endorsement
+
+func AddEndorsementGauge(gaugeId uint64) EndorsementUpdateFn {
 	return func(e Endorsement) Endorsement {
-		e.EndorserShares = e.EndorserShares.Add(update)
+		e.EndorsementGaugeIds = append(e.EndorsementGaugeIds, gaugeId)
+		return e
+	}
+}
+
+func RemoveEndorsementGauge(gaugeId uint64) EndorsementUpdateFn {
+	return func(e Endorsement) Endorsement {
+		e.EndorsementGaugeIds = slices.DeleteFunc(e.EndorsementGaugeIds, func(i uint64) bool { return i == gaugeId })
+		return e
+	}
+}
+
+// UpdateTotalShares updates total shares of the endorsement by adding the given update.
+// Update may be either positive or negative.
+func UpdateTotalShares(update math.Int) EndorsementUpdateFn {
+	return func(e Endorsement) Endorsement {
+		e.TotalShares = e.TotalShares.Add(update)
+		return e
+	}
+}
+
+// UpdateEpochShares updates total shares of the endorsement by adding the given update.
+// Update may be either positive or negative.
+func UpdateEpochShares(update math.Int) EndorsementUpdateFn {
+	return func(e Endorsement) Endorsement {
+		e.EpochShares = e.EpochShares.Add(update)
 		return e
 	}
 }
