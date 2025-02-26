@@ -20,12 +20,13 @@ func (s *KeeperTestSuite) TestClaim() {
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
 	rollappDenom := "dasdasdasdasdsa"
+	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	startTime := time.Now()
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives, liquidityPart)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)

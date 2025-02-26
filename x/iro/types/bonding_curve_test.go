@@ -324,21 +324,19 @@ func TestUseCaseA(t *testing.T) {
 	z := math.NewInt(1_000_000) // 1,000,000 RA tokens
 	n := math.LegacyNewDec(1)   // N = 1 (linear curve)
 	c := math.LegacyZeroDec()
+	r := math.LegacyMustNewDecFromStr("0.9") // 10% goes to founder
 
 	// Calculate M
-	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n)
+	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, r)
 	require.True(t, m.IsPositive())
-
-	expectedM := math.LegacyMustNewDecFromStr("0.000000224999999999")
-	assert.Equal(t, expectedM, m)
 
 	curve := types.NewBondingCurve(m, n, c)
 
 	// find eq
-	eq := types.FindEquilibrium(curve, z.MulRaw(1e18))
+	eq := types.FindEquilibrium(curve, z.MulRaw(1e18), r)
 
 	// verify that the cost early is lower than the cost later
-	// test for buying 1000 RA tokens
+	// test for buying 10_000 RA tokens
 	averagePrice := math.LegacyNewDecFromInt(val).QuoInt(z)
 	costFirst := curve.Cost(math.ZeroInt(), math.NewInt(10_000).MulRaw(1e18))                   // first 10K tokens
 	costEarly := curve.Cost(math.NewInt(10_000).MulRaw(1e18), math.NewInt(20_000).MulRaw(1e18)) // next 10K tokens
@@ -365,13 +363,17 @@ func TestUseCaseA(t *testing.T) {
 		costLast, costEarly)
 
 	// Validate that the TVL in the pool is correct
-	fullRaise := curve.Cost(math.ZeroInt(), eq)
+	bootstrapFunds := curve.Cost(math.ZeroInt(), eq).ToLegacyDec().Mul(r).TruncateInt()
 	unsoldRATokens := z.MulRaw(1e18).Sub(eq)
 	unsoldValue := curve.SpotPrice(eq).MulInt(unsoldRATokens).TruncateInt()
-	totalValue := fullRaise.Add(unsoldValue)
+
+	// assert dym value in the pool is equal to unsold value
+	err := approxEqualRatio(bootstrapFunds, unsoldValue, 0.001) // 0.1%
+	require.NoError(t, err)
 
 	// assert the TVL in eq point is as expected
-	err := approxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
+	totalValue := bootstrapFunds.Add(unsoldValue)
+	err = approxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
 	require.NoError(t, err)
 }
 

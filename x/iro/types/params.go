@@ -15,16 +15,18 @@ var (
 	DefaultMinPlanDuration                              = 0 * time.Hour               // no enforced minimum by default
 	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(364)                 // default: min 364 days (based on 1 day distribution epoch)
 	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute            // default: min 1 hour after settlement
+	DefaultMinLiquidityPart                             = "0.4"                       // default: at least 40% goes to the liquidity pool
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams) Params {
+func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams) Params {
 	return Params{
 		TakerFee:                              takerFee,
 		CreationFee:                           creationFee,
 		MinPlanDuration:                       minPlanDuration,
 		IncentivesMinStartTimeAfterSettlement: minIncentivePlanParams.StartTimeAfterSettlement,
 		IncentivesMinNumEpochsPaidOver:        minIncentivePlanParams.NumEpochsPaidOver,
+		MinLiquidityPart:                      liquidityPart,
 	}
 }
 
@@ -36,6 +38,7 @@ func DefaultParams() Params {
 		MinPlanDuration:                       DefaultMinPlanDuration,
 		IncentivesMinStartTimeAfterSettlement: DefaultIncentivePlanMinimumStartTimeAfterSettlement,
 		IncentivesMinNumEpochsPaidOver:        DefaultIncentivePlanMinimumNumEpochsPaidOver,
+		MinLiquidityPart:                      math.LegacyMustNewDecFromStr(DefaultMinLiquidityPart),
 	}
 }
 
@@ -59,6 +62,10 @@ func (p Params) Validate() error {
 
 	if p.IncentivesMinStartTimeAfterSettlement <= 0 {
 		return fmt.Errorf("incentive plan start time after settlement must be greater than 0: %v", p.IncentivesMinStartTimeAfterSettlement)
+	}
+
+	if !p.MinLiquidityPart.IsPositive() {
+		return fmt.Errorf("min liquidity part must be positive: %s", p.MinLiquidityPart)
 	}
 
 	return nil

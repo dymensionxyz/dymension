@@ -6,6 +6,7 @@ import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "dymensionxyz/dymension/iro/iro.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/iro/params.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";

@@ -138,7 +138,7 @@ func (s *transferGenesisSuite) TestIRO() {
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 
 	// create IRO plan
-	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Now(), time.Now().Add(time.Hour), rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams())
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), amt, time.Now(), time.Now().Add(time.Hour), rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams(), irotypes.DefaultParams().MinLiquidityPart)
 	s.Require().NoError(err)
 
 	// create the expected genesis bridge packet

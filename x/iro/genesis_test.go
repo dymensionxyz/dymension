@@ -14,12 +14,16 @@ import (
 )
 
 var (
-	amt   = sdk.NewCoin("foo", math.NewInt(100))
-	plans = []types.Plan{
-		types.NewPlan(1, "rollapp1", amt, types.DefaultBondingCurve(), time.Time{}, time.Time{}, types.DefaultIncentivePlanParams()),
-		types.NewPlan(2, "rollapp2", amt, types.DefaultBondingCurve(), time.Time{}, time.Time{}, types.DefaultIncentivePlanParams()),
-	}
+	fooCoin              = sdk.NewCoin("foo", math.NewInt(100))
+	defaultCurve         = types.DefaultBondingCurve()
+	defaultIncentives    = types.DefaultIncentivePlanParams()
+	defaultLiquidityPart = types.DefaultParams().MinLiquidityPart
 )
+
+var plans = []types.Plan{
+	types.NewPlan(1, "rollapp1", fooCoin, defaultCurve, time.Time{}, time.Time{}, defaultIncentives, defaultLiquidityPart),
+	types.NewPlan(2, "rollapp2", fooCoin, defaultCurve, time.Time{}, time.Time{}, defaultIncentives, defaultLiquidityPart),
+}
 
 func TestGenesis(t *testing.T) {
 	t.Skip("skipped as it requires working auth keeper")
