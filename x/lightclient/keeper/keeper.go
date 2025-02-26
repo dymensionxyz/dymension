@@ -36,6 +36,7 @@ type Keeper struct {
 
 	cdc             codec.BinaryCodec
 	storeKey        storetypes.Key
+	ibcKeeper       types.IBCKeeperExpected
 	ibcClientKeeper types.IBCClientKeeperExpected
 	ibcChannelK     types.IBCChannelKeeperExpected
 	SeqK            types.SequencerKeeperExpected
@@ -58,7 +59,8 @@ func (k Keeper) SetEnabled(b bool) {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.Key,
-	ibcKeeper types.IBCClientKeeperExpected,
+	ibcKeeper types.IBCKeeperExpected,
+	ibcClientKeeper types.IBCClientKeeperExpected,
 	ibcChannelK types.IBCChannelKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
@@ -69,7 +71,8 @@ func NewKeeper(
 		enabled:         &enabled{true},
 		cdc:             cdc,
 		storeKey:        storeKey,
-		ibcClientKeeper: ibcKeeper,
+		ibcKeeper:       ibcKeeper,
+		ibcClientKeeper: ibcClientKeeper,
 		ibcChannelK:     ibcChannelK,
 		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,

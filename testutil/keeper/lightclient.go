@@ -73,6 +73,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k := keeper.NewKeeper(
 		params.Codec,
 		keys[types.StoreKey],
+		nil,
 		mockIBCKeeper,
 		nil,
 		mockSequencerKeeper,

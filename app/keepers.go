@@ -360,6 +360,7 @@ func (a *AppKeepers) InitKeepers(
 	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[lightclientmoduletypes.StoreKey],
+		a.IBCKeeper,
 		a.IBCKeeper.ClientKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.SequencerKeeper,
