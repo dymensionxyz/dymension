@@ -16,8 +16,12 @@ service Msg {
   rpc SetCanonicalClient(MsgSetCanonicalClient)
       returns (MsgSetCanonicalClientResponse);
 
-  // wraps normal ibc update client to allow authz
-  // note: cannot be named UpdateClient
+  // The normal IBC update client msg needs to go through our ante handler, which
+  // means we block authz wrapping of it, but we still need a way to do it via authz
+  // (for portal self-relaying). So, we add a new wrapper message here, and route it
+  // through the ante handler logic explicitly.
+  //
+  // note: cannot reuse already-registered ibc request msg type
   rpc UpdateClient(MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
 }
 
