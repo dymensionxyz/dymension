@@ -32,17 +32,6 @@ type LPs struct {
 	nextID collections.Sequence
 }
 
-type OnDemandLiquidity struct {
-	Id         uint64
-	Spent      math.Int
-	FundsAddr  string
-	Rollapp    string
-	Denom      string
-	MaxPrice   math.Int
-	MinFee     math.Int
-	SpendLimit math.Int
-}
-
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	return LPs{
 		byRollAppDenom: collections.NewKeySet[collections.Triple[string, string, uint64]](
