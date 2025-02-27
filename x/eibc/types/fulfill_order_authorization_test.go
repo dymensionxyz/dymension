@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	math "cosmossdk.io/math"
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -450,6 +450,19 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectedError: "spend_limit is invalid",
+		},
+		{
+			name: "No SpendLimit Provided",
+			authorization: FulfillOrderAuthorization{
+				Rollapps: []*RollappCriteria{
+					{
+						RollappId:        validaRollappID,
+						MinFeePercentage: sdk.MustNewDecFromStr("0.01"),
+						OperatorFeeShare: sdk.MustNewDecFromStr("0.1"),
+					},
+				},
+			},
+			expectedError: "",
 		},
 		{
 			name: "Duplicate Rollapp IDs",
