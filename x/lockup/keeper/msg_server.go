@@ -40,7 +40,7 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 	}
 
 	// Charge fess for locking tokens
-	if err = server.keeper.ChargeLockFee(ctx, owner, types.DefaultLockFee, msg.Coins); err != nil {
+	if err = server.keeper.ChargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx), msg.Coins); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
