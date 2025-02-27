@@ -237,6 +237,8 @@ require (
 replace (
 	// for collections
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
+	//github.com/cosmos/ibc-go/v7  => /Users/danwt/Documents/dym/d-ibc-go
+	github.com/cosmos/ibc-go/v7 => github.com/dymensionxyz/ibc-go-fork/v7 v7.5.2-0.20250227164142-17bec9c9321e
 
 	// use dymension forks
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01
