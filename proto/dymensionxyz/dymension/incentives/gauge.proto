@@ -68,8 +68,8 @@ message RollappGauge {
 
 message EndorsementGauge {
   string rollapp_id = 1;
-  // unlocked_rewards are coins that have been unlocked and can be claimed
-  repeated cosmos.base.v1beta1.Coin unlocked_rewards = 2 [
+  // epoch_rewards are coins that have been unlocked and can be claimed during this epoch
+  repeated cosmos.base.v1beta1.Coin epoch_rewards = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];

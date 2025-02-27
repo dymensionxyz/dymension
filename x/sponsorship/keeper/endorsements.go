@@ -29,3 +29,7 @@ func (k Keeper) UpdateEndorsements(ctx sdk.Context, update types.Distribution) e
 	}
 	return nil
 }
+
+func (k Keeper) Claim(ctx sdk.Context, sender sdk.AccAddress, gaugeId uint64) error {
+	return nil
+}
