@@ -11,8 +11,10 @@ import (
 
 func (k Keeper) ReadAck(bz []byte) (*channeltypes.Acknowledgement, error) {
 
-	// TODO: use 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	//  types.ModuleCdc.UnmarshalJSO
+	// TODO: maybe use 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	//  types.ModuleCdc.UnmarshalJSO ... maybe??
+	//  official suggestion is to use ibc 10 codec
+
 	var ack channeltypes.Acknowledgement
 	if err := k.Cdc().UnmarshalJSON(bz, &ack); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
