@@ -29,19 +29,6 @@ func TestLockTokensCmd(t *testing.T) {
 	osmocli.RunTxTestCases(t, desc, tcs)
 }
 
-func TestBeginUnlockingAllCmd(t *testing.T) {
-	desc, _ := cli.NewBeginUnlockingAllCmd()
-	tcs := map[string]osmocli.TxCliTestCase[*types.MsgBeginUnlockingAll]{
-		"basic test": {
-			Cmd: "--from=" + testAddresses[0].String(),
-			ExpectedMsg: &types.MsgBeginUnlockingAll{
-				Owner: testAddresses[0].String(),
-			},
-		},
-	}
-	osmocli.RunTxTestCases(t, desc, tcs)
-}
-
 func TestBeginUnlockingByIDCmd(t *testing.T) {
 	desc, _ := cli.NewBeginUnlockByIDCmd()
 	tcs := map[string]osmocli.TxCliTestCase[*types.MsgBeginUnlocking]{

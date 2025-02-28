@@ -108,38 +108,6 @@ func (server msgServer) BeginUnlocking(goCtx context.Context, msg *types.MsgBegi
 	return &types.MsgBeginUnlockingResponse{Success: true, UnlockingLockID: unlockingLock}, nil
 }
 
-// BeginUnlockingAll begins unlocking for all the locks that the account has by iterating all the not-unlocking locks the account holds.
-func (server msgServer) BeginUnlockingAll(goCtx context.Context, msg *types.MsgBeginUnlockingAll) (*types.MsgBeginUnlockingAllResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		return nil, err
-	}
-
-	unlocks, err := server.keeper.BeginUnlockAllNotUnlockings(ctx, owner)
-	if err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	// Create the events for this message
-	unlockedCoins := server.keeper.getCoinsFromLocks(unlocks)
-	events := sdk.Events{
-		sdk.NewEvent(
-			types.TypeEvtBeginUnlockAll,
-			sdk.NewAttribute(types.AttributePeriodLockOwner, msg.Owner),
-			sdk.NewAttribute(types.AttributeUnlockedCoins, unlockedCoins.String()),
-		),
-	}
-	for _, lock := range unlocks {
-		lock := lock
-		events = events.AppendEvent(createBeginUnlockEvent(&lock))
-	}
-	ctx.EventManager().EmitEvents(events)
-
-	return &types.MsgBeginUnlockingAllResponse{}, nil
-}
-
 func createBeginUnlockEvent(lock *types.PeriodLock) sdk.Event {
 	return sdk.NewEvent(
 		types.TypeEvtBeginUnlock,

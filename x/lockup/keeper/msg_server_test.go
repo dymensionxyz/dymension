@@ -189,54 +189,6 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgBeginUnlockingAll() {
-	type param struct {
-		coinsToLock         sdk.Coins
-		lockOwner           sdk.AccAddress
-		duration            time.Duration
-		coinsInOwnerAddress sdk.Coins
-	}
-
-	tests := []struct {
-		name       string
-		param      param
-		expectPass bool
-	}{
-		{
-			name: "unlock all lockups",
-			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
-				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
-			},
-			expectPass: true,
-		},
-	}
-
-	for _, test := range tests {
-		suite.SetupTest()
-
-		suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
-		// fund address with lock fee
-		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
-		suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
-
-		msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
-		c := sdk.WrapSDKContext(suite.Ctx)
-		_, err := msgServer.LockTokens(c, types.NewMsgLockTokens(test.param.lockOwner, test.param.duration, test.param.coinsToLock))
-		suite.Require().NoError(err)
-
-		_, err = msgServer.BeginUnlockingAll(c, types.NewMsgBeginUnlockingAll(test.param.lockOwner))
-
-		if test.expectPass {
-			suite.Require().NoError(err)
-		} else {
-			suite.Require().Error(err)
-		}
-	}
-}
-
 func (suite *KeeperTestSuite) TestMsgEditLockup() {
 	type param struct {
 		coinsToLock       sdk.Coins
