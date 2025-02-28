@@ -34,9 +34,8 @@ func (s *DelayedAckTestSuite) TestWiz() {
 	_ = ctx
 	for range 100 {
 		ack, err := Demo(k.Cdc(), bz)
-		s.T().Log(ack.Success(), err)
+		s.T().Log(ack.Success(), err) // sometimes true, sometimes false
 	}
-
 }
 
 func (s *DelayedAckTestSuite) TestFoo() {
