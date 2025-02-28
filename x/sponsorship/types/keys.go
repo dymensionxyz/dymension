@@ -22,6 +22,7 @@ const (
 	VoteByte                           // User's vote: Vote
 	RAEndorsementsByte                 // RA endorsement: Endorsement
 	RAGaugeIDIndexByte                 // RA endorsement by RA gauge ID index: Endorsement
+	ClaimBlacklistIndexByte            // Claim blacklist: sdk.AccAddress
 )
 
 func ParamsPrefix() collections.Prefix {
@@ -46,4 +47,8 @@ func RAEndorsementsPrefix() collections.Prefix {
 
 func RAGaugeIDIndexPrefix() collections.Prefix {
 	return collections.NewPrefix(RAGaugeIDIndexByte)
+}
+
+func ClaimBlacklistPrefix() collections.Prefix {
+	return collections.NewPrefix(ClaimBlacklistIndexByte)
 }

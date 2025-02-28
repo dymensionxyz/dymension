@@ -47,10 +47,13 @@ type Keeper struct {
 	// rollapp ID -> types.Endorsement mapping
 	// also, it has index for rollapp gauge ID -> types.Endorsement mapping
 	raEndorsements *collections.IndexedMap[string, types.Endorsement, raEndorsementsIndexes]
+	// the list of the users who do not have the right to claim rewards on this epoch
+	// the index is refreshed every epoch
+	claimBlacklist collections.KeySet[sdk.AccAddress]
 
 	stakingKeeper    types.StakingKeeper
 	incentivesKeeper types.IncentivesKeeper
-	sequencerKeeper  types.SequencerKeeper
+	bankKeeper       types.BankKeeper
 }
 
 // NewKeeper returns a new instance of the x/sponsorship keeper.
@@ -60,7 +63,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
 	ik types.IncentivesKeeper,
-	sqk types.SequencerKeeper,
+	bk types.BankKeeper,
 	authority string,
 ) Keeper {
 	// ensure the module account is set
@@ -114,9 +117,15 @@ func NewKeeper(
 			codec.CollValue[types.Endorsement](cdc),
 			newRAEndorsementIndexes(sb),
 		),
+		claimBlacklist: collections.NewKeySet(
+			sb,
+			types.ClaimBlacklistPrefix(),
+			"claim_blacklist",
+			sdk.AccAddressKey,
+		),
 		stakingKeeper:    sk,
 		incentivesKeeper: ik,
-		sequencerKeeper:  sqk,
+		bankKeeper:       bk,
 	}
 
 	// SchemaBuilder CANNOT be used after Build is called,

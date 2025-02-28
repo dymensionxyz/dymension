@@ -42,4 +42,5 @@ type IncentivesKeeper interface {
 
 type SponsorshipKeeper interface {
 	GetDistribution(ctx sdk.Context) (types.Distribution, error)
+	SaveEndorsement(ctx sdk.Context, e types.Endorsement) error
 }

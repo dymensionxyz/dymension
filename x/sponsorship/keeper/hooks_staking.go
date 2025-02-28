@@ -210,7 +210,7 @@ func (h StakingHooks) processHook(
 	}
 
 	// Adjust RA endorsement shares with the updated voting power
-	err = h.k.UpdateEndorsements(ctx, update)
+	err = h.k.UpdateTotalSharesWithDistribution(ctx, update)
 	if err != nil {
 		return nil, fmt.Errorf("update endorsements: %w", err)
 	}

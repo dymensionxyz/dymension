@@ -28,3 +28,7 @@ type IncentivesKeeper interface {
 type SequencerKeeper interface {
 	RollappSequencersByStatus(ctx sdk.Context, rollappId string, status sequencertypes.OperatingStatus) []sequencertypes.Sequencer
 }
+
+type BankKeeper interface {
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+}

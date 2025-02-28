@@ -179,3 +179,24 @@ func (k Keeper) UpdateEndorsement(ctx sdk.Context, rollappID string, updates ...
 
 	return nil
 }
+
+func (k Keeper) GetAllEndorsements(ctx sdk.Context) ([]types.Endorsement, error) {
+	iterator, err := k.raEndorsements.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer iterator.Close() // nolint: errcheck
+	return iterator.Values()
+}
+
+func (k Keeper) CanClaim(ctx sdk.Context, addr sdk.AccAddress) (bool, error) {
+	return k.claimBlacklist.Has(ctx, addr)
+}
+
+func (k Keeper) BlacklistClaim(ctx sdk.Context, addr sdk.AccAddress) error {
+	return k.claimBlacklist.Set(ctx, addr)
+}
+
+func (k Keeper) RefreshClaimBlacklist(ctx sdk.Context) error {
+	return k.claimBlacklist.Clear(ctx, nil)
+}

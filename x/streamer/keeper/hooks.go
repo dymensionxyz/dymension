@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
@@ -163,6 +164,10 @@ func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAdd
 		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)
 		return fmt.Errorf("create rollapp gauge: %w", err)
 	}
-	// TODO: create sponsorship endorsement
+	err = h.k.sk.SaveEndorsement(ctx, sponsorshiptypes.NewEndorsement(rollappID, rollappGaugeId))
+	if err != nil {
+		ctx.Logger().Error("Failed to save endorsement", "error", err)
+		return fmt.Errorf("save endorsement: %w", err)
+	}
 	return nil
 }

@@ -32,31 +32,20 @@ func (k Keeper) CreateEndorsementGauge(ctx sdk.Context, rollappId string) (uint6
 	return gauge.Id, nil
 }
 
-func (k Keeper) DistributeEndorsementGaugeRewards(ctx sdk.Context, gaugeId uint64, portion math.LegacyDec) (sdk.Coins, error) {
-	gauge, err := k.GetGaugeByID(ctx, gaugeId)
-	if err != nil {
-		return sdk.Coins{}, err
+// CONTRACT: the gauge must be an endorsement gauge
+// CONTRACT: the gauge must exist
+// CONTRACT: this must be called on epoch end
+func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Gauge) error {
+	gaugeBalance := gauge.Coins.Sub(gauge.DistributedCoins...)
+	epochRewards := gaugeBalance.QuoInt(math.NewIntFromUint64(gauge.NumEpochsPaidOver - gauge.FilledEpochs))
+
+	endorsement := gauge.DistributeTo.(*types.Gauge_Endorsement).Endorsement
+	endorsement.EpochRewards = epochRewards // we operate a pointer
+	gauge.FilledEpochs += 1
+
+	if err := k.setGauge(ctx, &gauge); err != nil {
+		return err
 	}
 
-	// Get the rollapp owner
-	rollapp, found := k.rk.GetRollapp(ctx, gauge.GetRollapp().RollappId)
-	if !found {
-		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
-	}
-	// Ignore the error since the owner must always be valid in x/rollapp
-	owner := rollapp.Owner
-
-	totalDistrCoins := gauge.Coins.Sub(gauge.DistributedCoins...) // distribute all remaining coins
-	if totalDistrCoins.Empty() {
-		ctx.Logger().Debug(fmt.Sprintf("gauge %d is empty, skipping", gauge.Id))
-		return sdk.Coins{}, nil
-	}
-
-	// Add rewards to the tracker
-	err := tracker.addLockRewards(owner, gauge.Id, totalDistrCoins)
-	if err != nil {
-		return sdk.Coins{}, err
-	}
-
-	return totalDistrCoins, nil
+	return nil
 }
