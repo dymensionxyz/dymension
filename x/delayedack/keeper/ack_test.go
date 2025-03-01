@@ -12,7 +12,6 @@ import (
 )
 
 func testNonDetAck(cdc codec.Codec, bz []byte) (*chantypes.Acknowledgement, error) {
-
 	var ack chantypes.Acknowledgement
 	if err := cdc.UnmarshalJSON(bz, &ack); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
@@ -89,5 +88,4 @@ func (s *DelayedAckTestSuite) TestVerifiesAck() {
 		_ = ctx
 		_ = ack
 	}
-
 }
