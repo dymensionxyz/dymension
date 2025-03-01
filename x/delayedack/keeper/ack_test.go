@@ -11,7 +11,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-func Demo(cdc codec.Codec, bz []byte) (*chantypes.Acknowledgement, error) {
+func testNonDetAck(cdc codec.Codec, bz []byte) (*chantypes.Acknowledgement, error) {
 
 	var ack chantypes.Acknowledgement
 	if err := cdc.UnmarshalJSON(bz, &ack); err != nil {
@@ -21,7 +21,9 @@ func Demo(cdc codec.Codec, bz []byte) (*chantypes.Acknowledgement, error) {
 	return &ack, nil
 }
 
-func (s *DelayedAckTestSuite) TestWiz() {
+// demonstrate unexpected behaviour of ack json
+func (s *DelayedAckTestSuite) TestNonDetAck() {
+	s.T().Skip()
 	k, ctx := s.App.DelayedAckKeeper, s.Ctx
 	j := `
 	{
@@ -33,12 +35,13 @@ func (s *DelayedAckTestSuite) TestWiz() {
 	s.True(json.Valid(bz))
 	_ = ctx
 	for range 100 {
-		ack, err := Demo(k.Cdc(), bz)
+		ack, err := testNonDetAck(k.Cdc(), bz)
 		s.T().Log(ack.Success(), err) // sometimes true, sometimes false
 	}
 }
 
-func (s *DelayedAckTestSuite) TestFoo() {
+// make sure ack is properly parsed
+func (s *DelayedAckTestSuite) TestVerifiesAck() {
 	k, ctx := s.App.DelayedAckKeeper, s.Ctx
 
 	example := chantypes.NewErrorAcknowledgement(errors.New("new example"))
