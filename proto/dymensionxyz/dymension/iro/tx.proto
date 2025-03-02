@@ -33,7 +33,7 @@ service Msg {
   // Claim is used to claim tokens after the plan is settled.
   rpc Claim(MsgClaim) returns (MsgClaimResponse);
 
-  rpc ClaimVested(MsgClaim) returns (MsgClaimResponse);
+  rpc ClaimVested(MsgClaimVested) returns (MsgClaimVestedResponse);
 }
 
 // MsgUpdateParams allows to update module params.
@@ -187,3 +187,15 @@ message MsgClaim {
 }
 
 message MsgClaimResponse {}
+
+// MsgClaimVested defines a message to claim funds as a rollapp owner
+message MsgClaimVested {
+  option (cosmos.msg.v1.signer) = "claimer";
+
+  string claimer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // The ID of the plan.
+  string plan_id = 2;
+}
+
+message MsgClaimVestedResponse {}

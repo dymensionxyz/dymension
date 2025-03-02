@@ -24,6 +24,7 @@ var (
 	_ sdk.Msg            = &MsgBuyExactSpend{}
 	_ sdk.Msg            = &MsgSell{}
 	_ sdk.Msg            = &MsgClaim{}
+	_ sdk.Msg            = &MsgClaimVested{}
 	_ sdk.Msg            = &MsgUpdateParams{}
 	_ legacytx.LegacyMsg = &MsgCreatePlan{}
 	_ legacytx.LegacyMsg = &MsgBuy{}
@@ -211,6 +212,22 @@ func (m *MsgClaim) ValidateBasic() error {
 func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Claimer)
 	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgClaimVested) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Claimer)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic implements types.Msg.
+func (m *MsgClaimVested) ValidateBasic() error {
+	// claimer bech32
+	_, err := sdk.AccAddressFromBech32(m.Claimer)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid claimer address: %s", err)
+	}
+
+	return nil
 }
 
 func (m *MsgUpdateParams) ValidateBasic() error {

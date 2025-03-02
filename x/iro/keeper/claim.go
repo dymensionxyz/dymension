@@ -24,14 +24,14 @@ func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgCl
 	return &types.MsgClaimResponse{}, nil
 }
 
-func (m msgServer) ClaimVested(ctx context.Context, req *types.MsgClaim) (*types.MsgClaimResponse, error) {
+func (m msgServer) ClaimVested(ctx context.Context, req *types.MsgClaimVested) (*types.MsgClaimVestedResponse, error) {
 	claimerAddr := sdk.MustAccAddressFromBech32(req.Claimer)
 	err := m.Keeper.ClaimVested(sdk.UnwrapSDKContext(ctx), req.PlanId, claimerAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgClaimResponse{}, nil
+	return &types.MsgClaimVestedResponse{}, nil
 }
 
 // Claim claims the FUT token for the real RA token
