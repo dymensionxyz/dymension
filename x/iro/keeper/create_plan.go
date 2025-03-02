@@ -84,7 +84,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no genesis account for iro module account")
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, preLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart)
+	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, preLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +102,13 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 // 4. Creates a new module account for the IRO plan.
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
-func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration time.Duration) (string, error) {
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams, liquidityPart)
+	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams, liquidityPart, vestingDuration)
 	if err := plan.ValidateBasic(); err != nil {
 		return "", errors.Join(gerrc.ErrInvalidArgument, err)
 	}

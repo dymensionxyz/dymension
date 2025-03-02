@@ -23,7 +23,7 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec) Plan {
+func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration time.Duration) Plan {
 	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
 	plan := Plan{
 		Id:                  id,
@@ -39,6 +39,7 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		LiquidityPart:       liquidityPart,
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
+	plan.VestingPlan.VestingDuration = vestingDuration
 	return plan
 }
 
@@ -73,6 +74,18 @@ func (p Plan) ValidateBasic() error {
 
 	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
+	}
+
+	if p.VestingPlan.VestingDuration < 0 {
+		return errors.New("vesting duration cannot be negative")
+	}
+
+	if !p.LiquidityPart.IsPositive() || p.LiquidityPart.GT(math.LegacyOneDec()) {
+		return errors.New("liquidity part must be between 0 and 1")
+	}
+
+	if p.VestingPlan.VestingDuration < 0 {
+		return errors.New("vesting duration cannot be negative")
 	}
 
 	return nil
