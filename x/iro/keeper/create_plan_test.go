@@ -29,7 +29,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.GenesisInfo.GenesisChecksum = ""
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart, time.Hour)
 		s.Require().Error(err)
 	})
 
@@ -43,7 +43,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.Launched = true
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart, time.Hour)
 		s.Require().Error(err)
 	})
 
@@ -57,7 +57,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.Launched = false
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart, time.Hour)
 		s.Require().NoError(err)
 	})
 }
@@ -81,16 +81,16 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart, time.Hour)
 	s.Require().NoError(err)
 
 	// creating a a plan for same rollapp should fail
-	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
+	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart, time.Hour)
 	s.Require().Error(err)
 
 	// create plan for different rollappID. test last planId increases
 	rollapp2, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId2)
-	planId2, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives, liquidityPart)
+	planId2, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives, liquidityPart, time.Hour)
 	s.Require().NoError(err)
 	s.Require().Greater(planId2, planId)
 

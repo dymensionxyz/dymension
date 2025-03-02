@@ -26,7 +26,7 @@ func (s *KeeperTestSuite) TestClaim() {
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, amt, startTime, startTime.Add(time.Hour), rollapp, curve, incentives, liquidityPart, time.Hour)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)

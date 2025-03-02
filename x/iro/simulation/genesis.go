@@ -50,7 +50,7 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 
 	// Generate random bonding curve
 	curve := generateRandomBondingCurve(r, allocatedAmount, liquidityPart)
-	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams(), liquidityPart)
+	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour)
 
 	// randomize starting sold amount
 	// minSoldAmt < soldAmt < allocatedAmount - minUnsoldAmt
