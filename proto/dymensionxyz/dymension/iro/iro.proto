@@ -95,6 +95,8 @@ message Plan {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  IROVestingPlan vesting_plan = 14 [ (gogoproto.nullable) = false ];
 }
 
 message IncentivePlanParams {
@@ -105,4 +107,34 @@ message IncentivePlanParams {
   // num_epochs_paid_over is the number of total epochs distribution will be
   // completed over
   uint64 num_epochs_paid_over = 2;
+}
+
+message IROVestingPlan {
+  option (gogoproto.goproto_getters) = false;
+
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  string claimed = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  google.protobuf.Duration vesting_duration = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"vesting_duration\""
+  ];
+
+  // Vesting start time (set on IRO settlement)
+  google.protobuf.Timestamp start_time = 4
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // Vesting end time (set on IRO settlement)
+  google.protobuf.Timestamp end_time = 5
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }

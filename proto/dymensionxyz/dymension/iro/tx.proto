@@ -32,6 +32,8 @@ service Msg {
 
   // Claim is used to claim tokens after the plan is settled.
   rpc Claim(MsgClaim) returns (MsgClaimResponse);
+
+  rpc ClaimVested(MsgClaim) returns (MsgClaimResponse);
 }
 
 // MsgUpdateParams allows to update module params.
@@ -85,6 +87,12 @@ message MsgCreatePlan {
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
+  ];
+
+  google.protobuf.Duration vesting_duration = 14 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"vesting_duration\""
   ];
 }
 
