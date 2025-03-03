@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,48 +13,34 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-// Buy implements types.MsgServer.
-func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {
-	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
-	if err != nil {
-		return nil, err
+// EnableTrading enables trading for a given plan.
+// It checks that the plan exists, it is not already enabled, the submitter is the owner of the RollApp
+// and the plan is not settled.
+// If all preconditions are met, it sets the TradingEnabled flag to true and stores the plan back in the
+// store.
+func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccAddress) error {
+	plan, ok := k.GetPlan(ctx, planId)
+	if !ok {
+		return types.ErrPlanNotFound
 	}
 
-	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
-	if err != nil {
-		return nil, err
+	if plan.TradingEnabled {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "trading already enabled")
 	}
 
-	return &types.MsgBuyResponse{}, nil
-}
-
-// BuyExactSpend implements types.MsgServer.
-func (m msgServer) BuyExactSpend(ctx context.Context, req *types.MsgBuyExactSpend) (*types.MsgBuyResponse, error) {
-	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
-	if err != nil {
-		return nil, err
+	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
+	if !owner.Equals(submitter) {
+		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
 
-	err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
-	if err != nil {
-		return nil, err
+	if plan.IsSettled() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "plan already settled")
 	}
 
-	return &types.MsgBuyResponse{}, nil
-}
+	plan.TradingEnabled = true
+	k.SetPlan(ctx, plan)
 
-// Sell implements types.MsgServer.
-func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSellResponse, error) {
-	seller, err := sdk.AccAddressFromBech32(req.Seller)
-	if err != nil {
-		return nil, err
-	}
-	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount, req.MinIncomeAmount)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgSellResponse{}, nil
+	return nil
 }
 
 // Buy buys fixed amount of allocation with price according to the price curve
