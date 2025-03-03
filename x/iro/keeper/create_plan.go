@@ -52,16 +52,16 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 
 	// check minimal liquidity part
 	if req.LiquidityPart.LT(m.Keeper.GetParams(ctx).MinLiquidityPart) {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, fmt.Sprintf("liquidity part must be at least %s", m.Keeper.GetParams(ctx).MinLiquidityPart))
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "liquidity part must be at least %s", m.Keeper.GetParams(ctx).MinLiquidityPart)
 	}
 
 	// check vesting params
 	if req.VestingDuration < m.Keeper.GetParams(ctx).MinVestingDuration {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, fmt.Sprintf("vesting duration must be at least %s", m.Keeper.GetParams(ctx).MinVestingDuration))
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting duration must be at least %s", m.Keeper.GetParams(ctx).MinVestingDuration)
 	}
 
 	if req.VestingStartTimeAfterSettlement < m.Keeper.GetParams(ctx).MinVestingStartTimeAfterSettlement {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, fmt.Sprintf("vesting start time after settlement must be at least %s", m.Keeper.GetParams(ctx).MinVestingStartTimeAfterSettlement))
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting start time after settlement must be at least %s", m.Keeper.GetParams(ctx).MinVestingStartTimeAfterSettlement)
 	}
 
 	// validate incentive plan params
