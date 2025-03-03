@@ -786,7 +786,12 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 
 			suite.Ctx = suite.Ctx.WithBlockHeight(tc.nowHeight)
 			lp, err := k.LPs.Get(suite.Ctx, resC.Id)
+			suite.Require().NoError(err)
 			suite.Require().Equal(msgC.Lp, lp.Lp)
+
+			lps, err := k.LPs.GetAll(suite.Ctx)
+			suite.Require().NoError(err)
+			suite.Require().Equal(msgC.Lp, lps[0].Lp)
 
 			msgF := &types.MsgFindFulfiller{
 				Signer:  orderAddr.String(),

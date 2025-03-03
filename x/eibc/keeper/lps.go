@@ -99,8 +99,20 @@ func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
 	return &ret, err
 }
 
-func (s LPs) GetAll(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
-	panic("impl")
+func (s LPs) GetAll(ctx sdk.Context) ([]*types.OnDemandLPRecord, error) {
+	it, err := s.byID.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	var ret []*types.OnDemandLPRecord
+	for ; it.Valid(); it.Next() {
+		v, err := it.Value()
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, &v)
+	}
+	return ret, nil
 }
 
 // reason is human-readable string for debugging/ux
@@ -224,8 +236,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 }
 
 func (k Keeper) CreateLP(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
-	id, err := k.LPs.Create(ctx, lp)
-	return id, err
+	return k.LPs.Create(ctx, lp)
 }
 
 func (k Keeper) DeleteLP(ctx sdk.Context, owner sdk.AccAddress, id uint64, reason string) error {

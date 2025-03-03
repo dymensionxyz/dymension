@@ -31,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(NewCmdFindFulfiller())
 	cmd.AddCommand(NewCmdCreateOnDemandLP())
 	cmd.AddCommand(NewCmdDeleteOnDemandLP())
+	return cmd
 }
 
 func NewFulfillOrderTxCmd() *cobra.Command {

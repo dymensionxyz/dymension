@@ -139,6 +139,16 @@ func (q Querier) OnDemandLPs(gctx context.Context, r *types.QueryOnDemandLPsRequ
 	ctx := sdk.UnwrapSDKContext(gctx)
 
 	ret := &types.QueryOnDemandLPsResponse{}
+
+	if len(r.Ids) == 0 {
+		lps, err := q.LPs.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		ret.Lps = lps
+		return ret, nil
+	}
+
 	for _, id := range r.Ids {
 		lp, err := q.LPs.Get(ctx, id)
 		if errorsmod.IsOf(err, collections.ErrNotFound) {
