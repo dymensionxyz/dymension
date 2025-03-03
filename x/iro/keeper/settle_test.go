@@ -176,8 +176,6 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			// 		unallocatedTokens - actual poolCoins
 			expectedIncentives := sdk.NewCoins(sdk.NewCoin("adym", expectedDYMInPool), sdk.NewCoin(rollappDenom, unallocatedTokensAmt)).Sub(poolCoins...)
 			s.Assert().Equal(expectedIncentives.String(), gauge.Coins.String())
-
-			// FIXME: assert founder's funds
 		})
 	}
 }
