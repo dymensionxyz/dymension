@@ -6,7 +6,7 @@ import "cosmossdk.io/math"
 //
 // This function calculates the required DYM based on the settled token price and compares it with the raised DYM.
 // It returns the amount of RA tokens and DYM to be used for bootstrapping the liquidity pool so it fulfills the last price.
-// We expect all the raised dym to be used for liquidity pool, so incentives will consist of the remaining tokens.s
+// We expect all the raised dym to be used for liquidity pool, so incentives will consist of the remaining tokens.
 func CalcLiquidityPoolTokens(unsoldRATokens, raisedDYM math.Int, settledTokenPrice math.LegacyDec) (RATokens, dym math.Int) {
 	requiredDYM := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
 
