@@ -119,7 +119,7 @@ func (k Keeper) ClaimVested(ctx sdk.Context, planId string, claimer sdk.AccAddre
 
 	// send the vested funds to the claimer
 	vestedCoins := sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, amt))
-	err := k.BK.SendCoinsFromModuleToAccount(ctx, plan.ModuleAccName(), claimer, vestedCoins)
+	err := k.BK.SendCoins(ctx, plan.GetAddress(), claimer, vestedCoins)
 	if err != nil {
 		return err
 	}
