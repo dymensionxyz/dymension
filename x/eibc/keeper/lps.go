@@ -99,6 +99,10 @@ func (s LPs) Get(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
 	return &ret, err
 }
 
+func (s LPs) GetAll(ctx sdk.Context, id uint64) (*types.OnDemandLPRecord, error) {
+	panic("impl")
+}
+
 // reason is human-readable string for debugging/ux
 func (s LPs) Del(ctx sdk.Context, id uint64, reason string) error {
 	lp, err := s.byID.Get(ctx, id)
