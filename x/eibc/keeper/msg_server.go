@@ -235,7 +235,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-func (m msgServer) FindFulfiller(goCtx context.Context, msg *types.MsgFindFulfiller) (*types.MsgFindFulfillerResponse, error) {
+func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFulfillOnDemand) (*types.MsgTryFulfillOnDemandResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	err := msg.ValidateBasic()
@@ -243,7 +243,7 @@ func (m msgServer) FindFulfiller(goCtx context.Context, msg *types.MsgFindFulfil
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	return &types.MsgFindFulfillerResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
+	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
 }
 
 func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {

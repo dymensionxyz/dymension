@@ -12,7 +12,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  rpc FindFulfiller(MsgFindFulfiller) returns (MsgFindFulfillerResponse) {}
+  rpc TryFulfillOnDemand(MsgTryFulfillOnDemand) returns (MsgTryFulfillOnDemandResponse) {}
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
   rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized)
       returns (MsgFulfillOrderAuthorizedResponse) {}
@@ -98,7 +98,7 @@ message MsgUpdateDemandOrder {
 message MsgUpdateDemandOrderResponse {}
 
 // try find an on-demand-fulfiller to fulfill the order immediately
-message MsgFindFulfiller{
+message MsgTryFulfillOnDemand{
   option (cosmos.msg.v1.signer) = "signer";
   string signer = 2;
 
@@ -108,7 +108,7 @@ message MsgFindFulfiller{
   int64 rng = 3;
 }
 
-message MsgFindFulfillerResponse{}
+message MsgTryFulfillOnDemandResponse{}
 
 message MsgCreateOnDemandLP{
   option (cosmos.msg.v1.signer) = "lp.funds_addr";

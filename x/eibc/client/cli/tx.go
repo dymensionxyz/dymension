@@ -28,7 +28,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(NewFulfillOrderAuthorizedTxCmd())
 	cmd.AddCommand(NewUpdateDemandOrderTxCmd())
 	cmd.AddCommand(NewCmdGrantAuthorization())
-	cmd.AddCommand(NewCmdFindFulfiller())
+	cmd.AddCommand(NewCmdTryFulfillOnDemand())
 	cmd.AddCommand(NewCmdCreateOnDemandLP())
 	cmd.AddCommand(NewCmdDeleteOnDemandLP())
 	return cmd
@@ -201,10 +201,10 @@ func NewUpdateDemandOrderTxCmd() *cobra.Command {
 	return cmd
 }
 
-func NewCmdFindFulfiller() *cobra.Command {
+func NewCmdTryFulfillOnDemand() *cobra.Command {
 	short := "Try to find a fulfiller for a given order and fulfill on the spot"
 	cmd := &cobra.Command{
-		Use:   "find-fulfiller [order-id] [rng]",
+		Use:   "try-fulfill-on-demand [order-id] [rng]",
 		Short: short,
 		Long:  short + " Can provide rng to avoid choosing same fulfiller multiple times (number). ",
 
@@ -223,7 +223,7 @@ func NewCmdFindFulfiller() *cobra.Command {
 				}
 			}
 
-			msg := &types.MsgFindFulfiller{
+			msg := &types.MsgTryFulfillOnDemand{
 				Signer:  clientCtx.GetFromAddress().String(),
 				OrderId: orderId,
 				Rng:     int64(rng),

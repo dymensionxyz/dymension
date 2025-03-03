@@ -18,6 +18,7 @@ var (
 	_ sdk.Msg = &MsgFulfillOrder{}
 	_ sdk.Msg = &MsgFulfillOrderAuthorized{}
 	_ sdk.Msg = &MsgUpdateDemandOrder{}
+	_ sdk.Msg = &MsgTryFulfillOnDemand{}
 )
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {
@@ -213,7 +214,7 @@ func validateRollappID(rollappID string) error {
 
 /////////////////////
 
-func (m *MsgFindFulfiller) GetSigners() []sdk.AccAddress {
+func (m *MsgTryFulfillOnDemand) GetSigners() []sdk.AccAddress {
 	x, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		panic(err)
@@ -221,7 +222,7 @@ func (m *MsgFindFulfiller) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{x}
 }
 
-func (m *MsgFindFulfiller) ValidateBasic() error {
+func (m *MsgTryFulfillOnDemand) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		return err
