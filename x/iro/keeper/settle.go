@@ -75,11 +75,12 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventSettle{
-		PlanId:    fmt.Sprintf("%d", plan.Id),
-		RollappId: rollappId,
-		IBCDenom:  rollappIBCDenom,
-		PoolId:    poolID,
-		GaugeId:   gaugeID,
+		PlanId:        fmt.Sprintf("%d", plan.Id),
+		RollappId:     rollappId,
+		IBCDenom:      rollappIBCDenom,
+		PoolId:        poolID,
+		GaugeId:       gaugeID,
+		VestingAmount: ownerTokens,
 	})
 	if err != nil {
 		return err

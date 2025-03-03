@@ -128,7 +128,15 @@ func (k Keeper) ClaimVested(ctx sdk.Context, planId string, claimer sdk.AccAddre
 	plan.VestingPlan.Claimed = plan.VestingPlan.Claimed.Add(amt)
 	k.SetPlan(ctx, plan)
 
-	// FIXME: emit event
+	unvested := plan.VestingPlan.Amount.Sub(plan.VestingPlan.Claimed)
+	uevent.EmitTypedEvent(ctx, &types.EventClaimVested{
+		Claimer:        claimer.String(),
+		PlanId:         planId,
+		RollappId:      plan.RollappId,
+		ClaimAmount:    amt,
+		VestedAmount:   plan.VestingPlan.Claimed,
+		UnvestedAmount: unvested,
+	})
 
 	return nil
 }
