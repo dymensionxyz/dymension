@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -274,8 +275,17 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 
 	// Validate start time started (unless the trader is the owner)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
-	if ctx.BlockTime().Before(plan.StartTime) && !owner.Equals(trader) {
+	if owner.Equals(trader) {
+		return &plan, nil
+	}
+
+	if ctx.BlockTime().Before(plan.StartTime) {
 		return nil, errorsmod.Wrapf(types.ErrPlanNotStarted, "planId: %d", plan.Id)
+	}
+
+	// validate trading enabled
+	if !plan.TradingEnabled {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading disabled")
 	}
 
 	return &plan, nil
