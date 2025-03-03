@@ -112,7 +112,7 @@ func (k Keeper) ClaimVested(ctx sdk.Context, planId string, claimer sdk.AccAddre
 	}
 
 	// check for vested funds
-	amt := plan.VestingPlan.VestedAmt(ctx)
+	amt := plan.VestingPlan.VestedAmt(ctx.BlockTime())
 	if amt.IsZero() {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no vested funds")
 	}

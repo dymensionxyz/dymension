@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -84,8 +85,8 @@ func (p Plan) ValidateBasic() error {
 		return errors.New("liquidity part must be between 0 and 1")
 	}
 
-	if p.VestingPlan.VestingDuration < 0 {
-		return errors.New("vesting duration cannot be negative")
+	if err := p.VestingPlan.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "vesting plan")
 	}
 
 	return nil
