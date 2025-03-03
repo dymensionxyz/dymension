@@ -1,4 +1,4 @@
-package ante
+package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"

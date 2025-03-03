@@ -6,13 +6,12 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
+	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	lightclientante "github.com/dymensionxyz/dymension/v3/x/lightclient/ante"
 )
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -49,7 +48,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		types.NewIBCProofHeightDecorator(),
-		lightclientante.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
+		lightclientkeeper.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	}
