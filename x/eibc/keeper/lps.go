@@ -62,17 +62,20 @@ func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "next id")
 	}
+	if err := s.Set(ctx, types.OnDemandLPRecord{
+		Id:    id,
+		Lp:    lp,
+		Spent: math.ZeroInt(),
+	}); err != nil {
+		return 0, errorsmod.Wrap(err, "set")
+	}
 	if err := uevent.EmitTypedEvent(ctx, &types.EventCreatedOnDemandLP{
 		Id:        id,
 		FundsAddr: lp.FundsAddr,
 	}); err != nil {
 		return 0, errorsmod.Wrap(err, "event")
 	}
-	return id, s.Set(ctx, types.OnDemandLPRecord{
-		Id:    id,
-		Lp:    lp,
-		Spent: math.ZeroInt(),
-	})
+	return id, nil
 }
 
 func (s LPs) Set(ctx sdk.Context, lp types.OnDemandLPRecord) error {
