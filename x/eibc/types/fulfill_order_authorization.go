@@ -92,7 +92,7 @@ func (a FulfillOrderAuthorization) Accept(
 	}
 
 	// Check if the order fee meets the minimum LP fee percentage
-	orderFeeDec, ok := math.NewIntFromString(mFulfill.ExpectedFee)
+	orderFee, ok := math.NewIntFromString(mFulfill.ExpectedFee)
 	if !ok {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", mFulfill.ExpectedFee)
