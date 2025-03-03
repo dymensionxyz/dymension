@@ -24,7 +24,7 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration time.Duration) Plan {
+func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
 	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
 	plan := Plan{
 		Id:                  id,
@@ -38,9 +38,14 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		IncentivePlanParams: incentivesParams,
 		MaxAmountToSell:     eq,
 		LiquidityPart:       liquidityPart,
+		VestingPlan: IROVestingPlan{
+			Amount:                   math.ZeroInt(),
+			Claimed:                  math.ZeroInt(),
+			VestingDuration:          vestingDuration,
+			StartTimeAfterSettlement: vestingStartTimeAfterSettlement,
+		},
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
-	plan.VestingPlan.VestingDuration = vestingDuration
 	return plan
 }
 

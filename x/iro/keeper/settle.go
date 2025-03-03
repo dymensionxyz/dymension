@@ -60,8 +60,8 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 	// start the vesting schedule for the owner tokens
 	plan.VestingPlan.Amount = ownerTokens
-	plan.VestingPlan.StartTime = ctx.BlockHeader().Time
-	plan.VestingPlan.EndTime = ctx.BlockHeader().Time.Add(plan.VestingPlan.VestingDuration)
+	plan.VestingPlan.StartTime = ctx.BlockHeader().Time.Add(plan.VestingPlan.StartTimeAfterSettlement)
+	plan.VestingPlan.EndTime = plan.VestingPlan.StartTime.Add(plan.VestingPlan.VestingDuration)
 
 	// mark the plan as `settled`, allowing users to claim tokens
 	plan.SettledDenom = rollappIBCDenom

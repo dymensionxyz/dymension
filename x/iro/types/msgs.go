@@ -65,6 +65,14 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return fmt.Errorf("liquidity part must be positive: %s", m.LiquidityPart)
 	}
 
+	if m.VestingDuration < 0 {
+		return fmt.Errorf("vesting duration must be non-negative: %v", m.VestingDuration)
+	}
+
+	if m.VestingStartTimeAfterSettlement < 0 {
+		return fmt.Errorf("vesting start time after settlement must be non-negative: %v", m.VestingStartTimeAfterSettlement)
+	}
+
 	return nil
 }
 

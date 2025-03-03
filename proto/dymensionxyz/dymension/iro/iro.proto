@@ -130,11 +130,14 @@ message IROVestingPlan {
     (gogoproto.moretags) = "yaml:\"vesting_duration\""
   ];
 
+  google.protobuf.Duration start_time_after_settlement = 4
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
   // Vesting start time (set on IRO settlement)
-  google.protobuf.Timestamp start_time = 4
+  google.protobuf.Timestamp start_time = 5
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // Vesting end time (set on IRO settlement)
-  google.protobuf.Timestamp end_time = 5
+  google.protobuf.Timestamp end_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }

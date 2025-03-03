@@ -94,6 +94,12 @@ message MsgCreatePlan {
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"vesting_duration\""
   ];
+
+  google.protobuf.Duration vesting_start_time_after_settlement = 15 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"vesting_start_time_after_settlement\""
+  ];
 }
 
 message MsgCreatePlanResponse {
