@@ -100,11 +100,11 @@ func (a FulfillOrderAuthorization) Accept(
 
 	minFee := matchedCriteria.MinFeePercentage.MulInt(mFulfill.Amount).TruncateInt()
 
-	if orderFeeDec.LT(minFee) {
+	if orderFee.LT(minFee) {
 		return authz.AcceptResponse{},
 			errorsmod.Wrapf(errors.ErrUnauthorized,
 				"order fee %s is less than minimum fee %s",
-				orderFeeDec.String(), minFee.String())
+				orderFee.String(), minFee.String())
 	}
 
 	// Check if the order price does not exceed the max price
