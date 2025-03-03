@@ -97,6 +97,10 @@ message Plan {
   ];
 
   IROVestingPlan vesting_plan = 14 [ (gogoproto.nullable) = false ];
+
+  // Whether trading is enabled for the plan. default to true
+  // can be set to false initially, to require EnableTrading tx for this IRO
+  bool trading_enabled = 15;
 }
 
 message IncentivePlanParams {

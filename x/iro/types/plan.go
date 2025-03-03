@@ -31,6 +31,7 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		RollappId:           rollappId,
 		TotalAllocation:     allocation,
 		BondingCurve:        curve,
+		TradingEnabled:      true, // true by default. can be set to false on creation
 		StartTime:           start,
 		PreLaunchTime:       end,
 		SoldAmt:             math.ZeroInt(),

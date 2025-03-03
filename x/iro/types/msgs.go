@@ -26,6 +26,7 @@ var (
 	_ sdk.Msg            = &MsgClaim{}
 	_ sdk.Msg            = &MsgClaimVested{}
 	_ sdk.Msg            = &MsgUpdateParams{}
+	_ sdk.Msg            = &MsgEnableTrading{}
 	_ legacytx.LegacyMsg = &MsgCreatePlan{}
 	_ legacytx.LegacyMsg = &MsgBuy{}
 	_ legacytx.LegacyMsg = &MsgBuyExactSpend{}
@@ -284,4 +285,20 @@ func (m *MsgBuyExactSpend) ValidateBasic() error {
 func (m *MsgBuyExactSpend) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Buyer)
 	return []sdk.AccAddress{addr}
+}
+
+// GetSigners implements types.Msg.
+func (m *MsgEnableTrading) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Owner)
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgEnableTrading) ValidateBasic() error {
+	// owner bech32
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
+	}
+
+	return nil
 }
