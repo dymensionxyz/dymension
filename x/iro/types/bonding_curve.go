@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -129,12 +130,12 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, e
 
 	// If the current supply is less than 1, return 0
 	if startingX.LT(math.LegacyOneDec()) {
-		return math.ZeroInt(), fmt.Errorf("current supply is less than 1")
+		return math.ZeroInt(), errors.New("current supply is less than 1")
 	}
 
 	// If the spend amount is not positive, return 0
 	if !spendAmt.IsPositive() {
-		return math.ZeroInt(), fmt.Errorf("spend amount is not positive")
+		return math.ZeroInt(), errors.New("spend amount is not positive")
 	}
 
 	tokens, _, err := lbc.TokensApproximation(startingX, spendTokens)
@@ -179,7 +180,7 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 		// defensive check to avoid division by zero
 		// not supposed to happen, as spotPriceInternal should never return 0
 		if fPrimex.IsZero() {
-			return math.LegacyDec{}, i, fmt.Errorf("division by zero")
+			return math.LegacyDec{}, i, errors.New("division by zero")
 		}
 		x = x.Sub(fx.Quo(fPrimex))
 
@@ -193,7 +194,7 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 			x = math.LegacyOneDec()
 		}
 	}
-	return math.LegacyDec{}, maxIterations, fmt.Errorf("solution did not converge")
+	return math.LegacyDec{}, maxIterations, errors.New("solution did not converge")
 }
 
 // spotPriceInternal returns the spot price at x

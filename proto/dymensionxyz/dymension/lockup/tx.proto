@@ -14,9 +14,6 @@ service Msg {
   option (cosmos.msg.v1.service) = true;
   // LockTokens lock tokens
   rpc LockTokens(MsgLockTokens) returns (MsgLockTokensResponse);
-  // BeginUnlockingAll begin unlocking all tokens
-  rpc BeginUnlockingAll(MsgBeginUnlockingAll)
-      returns (MsgBeginUnlockingAllResponse);
   // MsgBeginUnlocking begins unlocking tokens by lock ID
   rpc BeginUnlocking(MsgBeginUnlocking) returns (MsgBeginUnlockingResponse);
   // MsgEditLockup edits the existing lockups by lock ID
@@ -38,11 +35,6 @@ message MsgLockTokens {
   ];
 }
 message MsgLockTokensResponse { uint64 ID = 1; }
-
-message MsgBeginUnlockingAll {
-  string owner = 1 [ (gogoproto.moretags) = "yaml:\"owner\"" ];
-}
-message MsgBeginUnlockingAllResponse { repeated PeriodLock unlocks = 1; }
 
 message MsgBeginUnlocking {
   string owner = 1 [ (gogoproto.moretags) = "yaml:\"owner\"" ];

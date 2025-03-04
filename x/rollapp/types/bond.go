@@ -5,12 +5,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-func IsUpdateMinSeqBond(c sdk.Coin) bool {
-	return ValidateBasicMinSeqBond(c) == nil
+func IsUpdateMinSeqBond(c *sdk.Coin) bool {
+	return c != nil && !c.IsNil() && ValidateBasicMinSeqBond(*c) == nil
 }
 
 func ValidateBasicMinSeqBond(c sdk.Coin) error {
