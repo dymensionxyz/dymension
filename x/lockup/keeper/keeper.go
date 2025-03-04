@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	stroretypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -53,6 +54,10 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 func (k Keeper) GetForceUnlockAllowedAddresses(ctx sdk.Context) (forceUnlockAllowedAddresses []string) {
 	return k.GetParams(ctx).ForceUnlockAllowedAddresses
+}
+
+func (k Keeper) GetLockCreationFee(ctx sdk.Context) math.Int {
+	return k.GetParams(ctx).LockCreationFee
 }
 
 // Logger returns a logger instance.

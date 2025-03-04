@@ -24,6 +24,8 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
 func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams) Plan {
+	// calculate the max sell amount
+	sellAmt := FindEquilibrium(curve, allocation.Amount)
 	plan := Plan{
 		Id:                  id,
 		RollappId:           rollappId,
@@ -31,9 +33,10 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		BondingCurve:        curve,
 		StartTime:           start,
 		PreLaunchTime:       end,
-		IncentivePlanParams: incentivesParams,
 		SoldAmt:             math.ZeroInt(),
 		ClaimedAmt:          math.ZeroInt(),
+		IncentivePlanParams: incentivesParams,
+		MaxAmountToSell:     sellAmt,
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
 	return plan
@@ -53,13 +56,19 @@ func (p Plan) ValidateBasic() error {
 		return ErrInvalidEndTime
 	}
 	if p.ModuleAccAddress == "" {
-		return fmt.Errorf("module account address cannot be empty")
+		return errors.New("module account address cannot be empty")
 	}
 	if p.SoldAmt.IsNegative() {
 		return fmt.Errorf("sold amount cannot be negative: %s", p.SoldAmt.String())
 	}
 	if p.ClaimedAmt.IsNegative() {
 		return fmt.Errorf("claimed amount cannot be negative: %s", p.ClaimedAmt.String())
+	}
+	if !p.MaxAmountToSell.IsPositive() {
+		return fmt.Errorf("max amount to sell must be positive: %s", p.MaxAmountToSell.String())
+	}
+	if p.MaxAmountToSell.GT(p.TotalAllocation.Amount) {
+		return fmt.Errorf("max amount to sell must be less than or equal to the total allocation: %s > %s", p.MaxAmountToSell.String(), p.TotalAllocation.Amount.String())
 	}
 
 	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
@@ -101,7 +110,7 @@ func DefaultIncentivePlanParams() IncentivePlanParams {
 
 func (i IncentivePlanParams) ValidateBasic() error {
 	if i.NumEpochsPaidOver == 0 {
-		return fmt.Errorf("number of epochs paid over cannot be zero")
+		return errors.New("number of epochs paid over cannot be zero")
 	}
 	return nil
 }

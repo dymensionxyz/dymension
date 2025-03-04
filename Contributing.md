@@ -11,7 +11,7 @@ Note: you should defer to the [Uber Go Style Guide](https://github.com/uber-go/g
 
 **Guidelines**
 
-1. Error strings should not interpolate data. Errors should have a CTRL+F'able prefix followed by colon seperated key value pairs of data.
+1. Error strings should not interpolate data. Errors should have a CTRL+F'able prefix followed by colon separated key value pairs of data.
 
 ```go
 // bad
@@ -38,7 +38,7 @@ fmt.Errorf("failed to find foo")
 fmt.Errorf("find foo")
 ```
 
-4. Error strings should be for humans and logs. Do not embed large amounts of data in strings. If the error needs to be handled programatically it should be a struct and details can be obtained with `errors.As`. Never parse errors strings. Avoid converting errors to strings with .Error(). This includes when testing errors.
+4. Error strings should be for humans and logs. Do not embed large amounts of data in strings. If the error needs to be handled programmatically it should be a struct and details can be obtained with `errors.As`. Never parse errors strings. Avoid converting errors to strings with .Error(). This includes when testing errors.
 
 
 
@@ -139,7 +139,7 @@ Avoid go channels which do not have size 0 or 1. A valid use case for another si
 
 ### Micro-optimization
 
-Don't (micro) optimize code unless it's a proven bottleneck. Favour terseness and readabilty.
+Don't (micro) optimize code unless it's a proven bottleneck. Favour terseness and readability.
 
 ```go
 // bad
@@ -157,7 +157,7 @@ for _, f := range foo {
 
 ### Interfaces
 
-1. Interfaces should always be defined in the package of the API consumer. Ubiquitious interfaces likes std `Stringer` are exceptions.
+1. Interfaces should always be defined in the package of the API consumer. Ubiquitous interfaces likes std `Stringer` are exceptions.
 
 
 2. Interfaces should be named with verbs, not with `*I` suffix.
@@ -175,7 +175,7 @@ for _, f := range foo {
 
 2. Make use of `/internal` subdirectories in packages to prevent things being exported and to shrink namespaces
 
-### Utilies and shared code
+### Utilities and shared code
 
 It's encouraged to add golang and cosmos utilities and shared code to [dymensionxyz/sdk-utils](https://github.com/dymensionxyz/sdk-utils). Such code should be genuinely general purpose, well tested and documented.
 

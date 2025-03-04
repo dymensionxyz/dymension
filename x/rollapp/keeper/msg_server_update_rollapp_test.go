@@ -9,6 +9,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/ucoin"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -55,7 +56,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				Owner:            alice,
 				RollappId:        rollappId,
 				InitialSequencer: initialSequencerAddress,
-				MinSequencerBond: ucoin.SimpleMul(types.DefaultMinSequencerBondGlobalCoin, 3),
+				MinSequencerBond: uptr.To(ucoin.SimpleMul(types.DefaultMinSequencerBondGlobalCoin, 3)),
 				Metadata:         &mockRollappMetadata,
 				GenesisInfo: &types.GenesisInfo{
 					Bech32Prefix:    "new",
@@ -103,7 +104,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 				alice,
 				rollappId,
 				"",
-				sdk.Coin{},
+				nil,
 				&mockRollappMetadata,
 				nil,
 			),
@@ -178,7 +179,7 @@ func (s *RollappTestSuite) TestUpdateRollapp() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin.SubAmount(math.NewInt(1)),
+				MinSequencerBond: uptr.To(types.DefaultMinSequencerBondGlobalCoin.SubAmount(math.NewInt(1))),
 			},
 			expError: gerrc.ErrInvalidArgument,
 		},
@@ -402,7 +403,7 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				MinSequencerBond: types.DefaultMinSequencerBondGlobalCoin,
+				MinSequencerBond: &types.DefaultMinSequencerBondGlobalCoin,
 			},
 			expError: types.ErrImmutableFieldUpdateAfterLaunched,
 		},
@@ -424,7 +425,7 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 			update: &types.MsgUpdateRollappInformation{
 				Owner:            alice,
 				RollappId:        rollappId,
-				MinSequencerBond: sdk.Coin{Denom: "no_valid_1243", Amount: math.NewInt(100)},
+				MinSequencerBond: uptr.To(sdk.Coin{Denom: "no_valid_1243", Amount: math.NewInt(100)}),
 			},
 			mallete:  func(expected *types.Rollapp) {},
 			expError: nil,
