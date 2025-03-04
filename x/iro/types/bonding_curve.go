@@ -80,6 +80,11 @@ func (lbc BondingCurve) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "c: %s", lbc.C.String())
 	}
 
+	// positive C is supported only for fixed price for now (due to equilibrium calculation)
+	if !lbc.C.IsZero() && !lbc.M.IsZero() {
+		return errorsmod.Wrapf(ErrInvalidBondingCurve, "m: %s, c: %s", lbc.M.String(), lbc.C.String())
+	}
+
 	if !checkPrecision(lbc.N) {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "N must have at most %d decimal places", MaxNPrecision)
 	}
@@ -238,31 +243,34 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 // val: total value to be raised (in DYM, not adym)
 // t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
-// c: constant term
-// M = (VAL - C * T) * (N + 1) / T^(N+1)
-func CalculateM(val, t, n, c math.LegacyDec) math.LegacyDec {
+//
+// we use the eq point (eq = ((N+1) * T) / (N+2)) to calculate M
+// The total value at the eq, which consists of raised dym and unsold tokens, should equal val
+// solving the equation for M gives:
+// M = (VAL * (N+1) * (N+2)^(N+1)) / (2 * ((N+1) * T)^(N+1))
+func CalculateM(val, t, n math.LegacyDec) math.LegacyDec {
 	valBig := osmomath.BigDecFromSDKDec(val)
 	tBig := osmomath.BigDecFromSDKDec(t)
 	nBig := osmomath.BigDecFromSDKDec(n)
-	cBig := osmomath.BigDecFromSDKDec(c)
 
 	// Calculate N + 1
 	nPlusOne := nBig.Add(osmomath.OneDec())
+	nPlusTwo := nPlusOne.Add(osmomath.OneDec())
 
-	// Calculate T^(N+1)
-	tPowNPlusOne := tBig.Power(nPlusOne)
+	// we solve the equation logarithmically, as T^(N+1) can cause truncations
 
-	// Calculate C * T
-	cTimesT := cBig.Mul(tBig)
+	// log(nominator) = log(val) + log(N + 1) + (N+1)log(N + 2)
+	lognum := valBig.LogBase2().Add(nPlusOne.LogBase2()).Add(nPlusOne.Mul(nPlusTwo.LogBase2()))
 
-	// Calculate VAL - C * Z
-	numerator := valBig.Sub(cTimesT)
+	// log(denominator) = (N+1)*log(T*(N+1)) + log(2)
+	logdenom := (nPlusOne.Mul((tBig.Mul(nPlusOne)).LogBase2())).Add(osmomath.OneDec())
 
-	// Calculate (VAL - C * Z) * (N + 1)
-	numerator = numerator.Mul(nPlusOne)
+	logm := lognum.Sub(logdenom)
+	m := osmomath.Exp2(logm.Abs())
 
-	// Calculate M = numerator / Z^(N+1)
-	m := numerator.Quo(tPowNPlusOne)
+	if logm.IsNegative() {
+		m = osmomath.OneDec().Quo(m)
+	}
 
 	// Convert back to math.LegacyDec and return
 	return m.SDKDec()
