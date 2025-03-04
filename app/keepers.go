@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"cosmossdk.io/log"
 
 	flags "github.com/cosmos/cosmos-sdk/client/flags"
@@ -456,7 +458,7 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
-		a.BankKeeper,
+		BankKeeperWithoutMetadata{a.BankKeeper},
 		a.ScopedTransferKeeper,
 		govModuleAddress,
 	)
@@ -658,4 +660,16 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	return paramsKeeper
+}
+
+// this is a workaround to get rid of the denommetadata set automaticlly by ibc-go v8.x
+// it has 2 issues:
+// - it's not valid metadata struct
+// - it has no exponent
+// we disable this feature by providing bank keeper that does nothing on SetDenomMetaData
+type BankKeeperWithoutMetadata struct {
+	ibctransfertypes.BankKeeper
+}
+
+func (bk BankKeeperWithoutMetadata) SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata) {
 }
