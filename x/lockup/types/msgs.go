@@ -20,12 +20,10 @@ const (
 
 var (
 	_ sdk.Msg            = &MsgLockTokens{}
-	_ sdk.Msg            = &MsgBeginUnlockingAll{}
 	_ sdk.Msg            = &MsgBeginUnlocking{}
 	_ sdk.Msg            = &MsgExtendLockup{}
 	_ sdk.Msg            = &MsgForceUnlock{}
 	_ legacytx.LegacyMsg = &MsgLockTokens{}
-	_ legacytx.LegacyMsg = &MsgBeginUnlockingAll{}
 	_ legacytx.LegacyMsg = &MsgBeginUnlocking{}
 	_ legacytx.LegacyMsg = &MsgExtendLockup{}
 	_ legacytx.LegacyMsg = &MsgForceUnlock{}
@@ -69,34 +67,6 @@ func (m MsgLockTokens) GetSignBytes() []byte {
 }
 
 func (m MsgLockTokens) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
-}
-
-var _ sdk.Msg = &MsgBeginUnlockingAll{}
-
-// NewMsgBeginUnlockingAll creates a message to begin unlocking tokens.
-func NewMsgBeginUnlockingAll(owner sdk.AccAddress) *MsgBeginUnlockingAll {
-	return &MsgBeginUnlockingAll{
-		Owner: owner.String(),
-	}
-}
-
-func (m MsgBeginUnlockingAll) Route() string { return RouterKey }
-func (m MsgBeginUnlockingAll) Type() string  { return TypeMsgBeginUnlockingAll }
-func (m MsgBeginUnlockingAll) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Owner)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid owner address (%s)", err)
-	}
-	return nil
-}
-
-func (m MsgBeginUnlockingAll) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
-}
-
-func (m MsgBeginUnlockingAll) GetSigners() []sdk.AccAddress {
 	owner, _ := sdk.AccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{owner}
 }
