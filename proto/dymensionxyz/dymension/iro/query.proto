@@ -61,6 +61,46 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/iro/claimed/{plan_id}";
   }
+
+  // QueryVesting queries the claimable and vested amount for
+  // the specified plan ID.
+  rpc QueryVesting(QueryVestingRequest) returns (QueryVestingResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/iro/vesting/{plan_id}";
+  }
+}
+
+// QueryVestingRequest is the request type for the
+// Query/QueryVesting RPC method.
+message QueryVestingRequest {
+  // plan_id is the ID of the plan.
+  string plan_id = 1;
+}
+
+// QueryVestingResponse is the response type for the
+// Query/QueryVesting RPC method.
+message QueryVestingResponse {
+  string owner = 1;
+
+  string total = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // vested_amount is the amount of tokens that are vested.
+  string vested_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // claimable_amount is the amount of tokens that are claimable.
+  string claimable_amount = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

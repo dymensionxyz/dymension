@@ -94,10 +94,40 @@ message EventClaim {
   string denom = 5;
 }
 
+message EventClaimVested {
+  string claimer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string plan_id = 2;
+  string rollapp_id = 3;
+  string claim_amount = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // vested_amount is the amount of tokens that are vested.
+  string vested_amount = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // claimable_amount is the amount of tokens that are claimable.
+  string unvested_amount = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
 message EventSettle {
   string plan_id = 1;
   string rollapp_id = 2;
   string IBC_denom = 3;
   uint64 pool_id = 4;
   uint64 gauge_id = 5;
+  string vesting_amount = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }

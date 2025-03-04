@@ -54,23 +54,33 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return err
 	}
 
+	raisedDYMAmt := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom).Amount
+	poolTokens := raisedDYMAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
+	ownerTokens := raisedDYMAmt.Sub(poolTokens)
+
+	// start the vesting schedule for the owner tokens
+	plan.VestingPlan.Amount = ownerTokens
+	plan.VestingPlan.StartTime = ctx.BlockHeader().Time.Add(plan.VestingPlan.StartTimeAfterSettlement)
+	plan.VestingPlan.EndTime = plan.VestingPlan.StartTime.Add(plan.VestingPlan.VestingDuration)
+
 	// mark the plan as `settled`, allowing users to claim tokens
 	plan.SettledDenom = rollappIBCDenom
 	k.SetPlan(ctx, plan)
 
 	// uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool
-	poolID, gaugeID, err := k.bootstrapLiquidityPool(ctx, plan)
+	poolID, gaugeID, err := k.bootstrapLiquidityPool(ctx, plan, poolTokens)
 	if err != nil {
 		return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventSettle{
-		PlanId:    fmt.Sprintf("%d", plan.Id),
-		RollappId: rollappId,
-		IBCDenom:  rollappIBCDenom,
-		PoolId:    poolID,
-		GaugeId:   gaugeID,
+		PlanId:        fmt.Sprintf("%d", plan.Id),
+		RollappId:     rollappId,
+		IBCDenom:      rollappIBCDenom,
+		PoolId:        poolID,
+		GaugeId:       gaugeID,
+		VestingAmount: ownerTokens,
 	})
 	if err != nil {
 		return err
@@ -86,24 +96,15 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 // - Determines the required pool liquidity amounts to fulfill the last price.
 // - Creates a balancer pool with the determined tokens and DYM.
 // - Uses leftover tokens as incentives to the pool LP token holders.
-func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID, gaugeID uint64, err error) {
+func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTokens math.Int) (poolID, gaugeID uint64, err error) {
 	// claimable amount is kept in the module account and used for user's claims
 	claimableAmt := plan.SoldAmt.Sub(plan.ClaimedAmt)
 
 	// the remaining tokens are used to bootstrap the liquidity pool
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(claimableAmt)
 
-	raisedDYMAmt := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom).Amount
-	poolTokens := raisedDYMAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
 	// send the raised DYM to the iro module as it will be used as the pool creator
 	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, poolTokens)))
-	if err != nil {
-		return 0, 0, err
-	}
-
-	// send rest of funds to rollapp owner
-	ownerTokens := raisedDYMAmt.Sub(poolTokens)
-	err = k.BK.SendCoins(ctx, plan.GetAddress(), k.rk.MustGetRollappOwner(ctx, plan.RollappId), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, ownerTokens)))
 	if err != nil {
 		return 0, 0, err
 	}

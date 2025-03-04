@@ -16,10 +16,12 @@ var (
 	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(364)                 // default: min 364 days (based on 1 day distribution epoch)
 	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute            // default: min 1 hour after settlement
 	DefaultMinLiquidityPart                             = "0.4"                       // default: at least 40% goes to the liquidity pool
+	DefaultMinVestingDuration                           = 100 * 24 * time.Hour        // default: min 100 days
+	DefaultMinVestingStartTimeAfterSettlement           = 0 * time.Minute             // default: no enforced minimum by default
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams) Params {
+func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams, minVestingDuration, minVestingStartTimeAfterSettlement time.Duration) Params {
 	return Params{
 		TakerFee:                              takerFee,
 		CreationFee:                           creationFee,
@@ -27,6 +29,8 @@ func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, min
 		IncentivesMinStartTimeAfterSettlement: minIncentivePlanParams.StartTimeAfterSettlement,
 		IncentivesMinNumEpochsPaidOver:        minIncentivePlanParams.NumEpochsPaidOver,
 		MinLiquidityPart:                      liquidityPart,
+		MinVestingDuration:                    minVestingDuration,
+		MinVestingStartTimeAfterSettlement:    minVestingStartTimeAfterSettlement,
 	}
 }
 
@@ -39,6 +43,8 @@ func DefaultParams() Params {
 		IncentivesMinStartTimeAfterSettlement: DefaultIncentivePlanMinimumStartTimeAfterSettlement,
 		IncentivesMinNumEpochsPaidOver:        DefaultIncentivePlanMinimumNumEpochsPaidOver,
 		MinLiquidityPart:                      math.LegacyMustNewDecFromStr(DefaultMinLiquidityPart),
+		MinVestingDuration:                    DefaultMinVestingDuration,
+		MinVestingStartTimeAfterSettlement:    DefaultMinVestingStartTimeAfterSettlement,
 	}
 }
 
@@ -66,6 +72,10 @@ func (p Params) Validate() error {
 
 	if !p.MinLiquidityPart.IsPositive() {
 		return fmt.Errorf("min liquidity part must be positive: %s", p.MinLiquidityPart)
+	}
+
+	if p.MinVestingDuration < 0 {
+		return fmt.Errorf("minimum vesting duration must be non-negative: %v", p.MinVestingDuration)
 	}
 
 	return nil
