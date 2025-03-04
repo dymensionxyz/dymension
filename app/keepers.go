@@ -458,7 +458,7 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
-		BankKeeperWithoutMetadata{a.BankKeeper},
+		BankKeeperWithoutSetMetadata{a.BankKeeper},
 		a.ScopedTransferKeeper,
 		govModuleAddress,
 	)
@@ -667,9 +667,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // - it's not valid metadata struct
 // - it has no exponent
 // we disable this feature by providing bank keeper that does nothing on SetDenomMetaData
-type BankKeeperWithoutMetadata struct {
+type BankKeeperWithoutSetMetadata struct {
 	ibctransfertypes.BankKeeper
 }
 
-func (bk BankKeeperWithoutMetadata) SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata) {
+func (bk BankKeeperWithoutSetMetadata) SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata) {
 }
