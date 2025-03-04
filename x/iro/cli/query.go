@@ -11,6 +11,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+const FlagNonSettledOnly = "non-settled"
+
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
 	iroQueryCmd := &cobra.Command{

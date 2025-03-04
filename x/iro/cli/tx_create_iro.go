@@ -26,15 +26,24 @@ func CmdCreateIRO() *cobra.Command {
 Parameters:
   [rollapp-id]  : The unique identifier of the RollApp for which the IRO is being created.
   [allocation]  : The total amount of tokens to be allocated for the IRO.
-  [duration] 	: The duration of the IRO plan in seconds.
+  [duration]    : The duration of the IRO plan (e.g., "24h", "30m", "1h30m").
 
 Required Flags:
   --curve           : The bonding curve parameters in the format "M,N,C" where the curve is defined as p(x) = M * x^N + C.
 
 Optional Flags:
-  --start-time      : The time when the IRO will start. If not provided, it starts immediately after creation.
+  --start-time      : The time when the IRO will start. Can be Unix timestamp or RFC3339 format (e.g., "2023-10-01T00:00:00Z").
+                      Default: Current time
   --incentives-start: The duration after settlement when incentives distribution starts.
-  --incentives-epochs: The number of epochs over which incentives will be distributed. (1 minute epoch)
+                      Default: 7 days (168h)
+  --incentives-epochs: The number of epochs over which incentives will be distributed (1 minute per epoch).
+                      Default: 3000
+  --liquidity-part  : The part of the total liquidity to allocate to the plan (0.0 to 1.0).
+                      Default: 1.0
+  --vesting-duration: The duration of the vesting period.
+                      Default: 100 days (2400h)
+  --vesting-start-time: The start time of the vesting period after settlement.
+                      Default: 0m
 
 Examples:
   dymd tx iro create-iro myrollapp1 1000000000 24h --curve "1.2,0.4,0" --from mykey
@@ -93,6 +102,21 @@ Examples:
 				return err
 			}
 
+			liquidityPart, err := cmd.Flags().GetFloat64(FlagLiquidityPart)
+			if err != nil {
+				return err
+			}
+
+			vestingDuration, err := cmd.Flags().GetDuration(FlagVestingDuration)
+			if err != nil {
+				return err
+			}
+
+			vestingStartTimeAfterSettlement, err := cmd.Flags().GetDuration(FlagVestingStartTimeAfterSettlement)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -109,6 +133,9 @@ Examples:
 					StartTimeAfterSettlement: incentivesStart,
 					NumEpochsPaidOver:        incentivesEpochs,
 				},
+				LiquidityPart:                   math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", liquidityPart)),
+				VestingDuration:                 vestingDuration,
+				VestingStartTimeAfterSettlement: vestingStartTimeAfterSettlement,
 			}
 			if err := msg.ValidateBasic(); err != nil {
 				return err

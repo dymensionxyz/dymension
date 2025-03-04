@@ -16,6 +16,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreatePlan{}, "iro/CreatePlan", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "iro/UpdateParams", nil)
 	cdc.RegisterConcrete(&MsgBuyExactSpend{}, "iro/BuyExactSpend", nil)
+	cdc.RegisterConcrete(&MsgEnableTrading{}, "iro/EnableTrading", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -25,6 +26,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSell{},
 		&MsgClaim{},
 		&MsgClaimVested{},
+		&MsgEnableTrading{},
 		&MsgCreatePlan{},
 		&MsgUpdateParams{},
 	)

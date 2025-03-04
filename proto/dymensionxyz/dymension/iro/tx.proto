@@ -22,6 +22,8 @@ service Msg {
   // CreatePlan is used to create a new plan.
   rpc CreatePlan(MsgCreatePlan) returns (MsgCreatePlanResponse);
 
+  rpc EnableTrading(MsgEnableTrading) returns (MsgEnableTradingResponse);
+
   // Buy is used to buy allocation.
   rpc Buy(MsgBuy) returns (MsgBuyResponse);
 
@@ -68,34 +70,38 @@ message MsgCreatePlan {
 
   BondingCurve bonding_curve = 4 [ (gogoproto.nullable) = false ];
 
+  // Whether trading is enabled for the plan. default to true
+  // can be set to false initially, to require EnableTrading tx for this IRO
+  bool tradingEnabled = 5;
+
   // The start time of the plan.
-  google.protobuf.Timestamp start_time = 5
+  google.protobuf.Timestamp start_time = 6
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The duration of the plan.
-  google.protobuf.Duration iro_plan_duration = 6
+  google.protobuf.Duration iro_plan_duration = 7
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
   // The incentive plan parameters for the tokens left after the plan is
   // settled.
-  IncentivePlanParams incentive_plan_params = 7
+  IncentivePlanParams incentive_plan_params = 8
       [ (gogoproto.nullable) = false ];
 
   // The part of the liquidity that will be used for liquidity pool
   // liquidity_part = 0.9 means 90% of the funds will go to the liquidity pool
-  string liquidity_part = 13 [
+  string liquidity_part = 9 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 
-  google.protobuf.Duration vesting_duration = 14 [
+  google.protobuf.Duration vesting_duration = 10 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"vesting_duration\""
   ];
 
-  google.protobuf.Duration vesting_start_time_after_settlement = 15 [
+  google.protobuf.Duration vesting_start_time_after_settlement = 11 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"vesting_start_time_after_settlement\""
@@ -106,6 +112,18 @@ message MsgCreatePlanResponse {
   // The ID of the plan.
   string plan_id = 1;
 }
+
+message MsgEnableTrading {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  // The address of the plan owner.
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // The ID of the plan.
+  string plan_id = 2;
+}
+
+message MsgEnableTradingResponse {}
 
 // MsgBuy defines a message to buy allocation.
 message MsgBuy {
