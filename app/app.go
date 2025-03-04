@@ -154,7 +154,7 @@ func New(
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
 	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
@@ -224,7 +224,7 @@ func New(
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	err := app.mm.RegisterServices(app.configurator)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to register services: %w", err))
 	}
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
@@ -235,7 +235,7 @@ func New(
 
 	reflectionSvc, err := runtimeservices.NewReflectionService()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create reflection service: %w", err))
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
@@ -276,12 +276,12 @@ func New(
 		LightClientKeeper:      &app.LightClientKeeper,
 	})
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create ante handler: %w", err))
 	}
 
 	app.SetAnteHandler(anteHandler)
 
-	// At startup, after all modules have been registered, check that all prot
+	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
 	protoFiles, err := proto.MergedRegistry()
 	if err != nil {

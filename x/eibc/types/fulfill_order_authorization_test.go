@@ -22,11 +22,11 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 	validRollappID1 := "rollappa_1234-1"
 	validRollappID2 := "rollappb_2345-1"
 
-	amount := sdk.MustNewDecFromStr("71548801319254940000000").TruncateInt()
-	minFeePercentage := sdk.MustNewDecFromStr("0.0015")
+	amount := math.LegacyMustNewDecFromStr("71548801319254940000000").TruncateInt()
+	minFeePercentage := math.LegacyMustNewDecFromStr("0.0015")
 	fee := minFeePercentage.MulInt(amount).TruncateInt()
 	price := amount.Sub(fee)
-	operatorFeeShare := sdk.MustNewDecFromStr("0.02")
+	operatorFeeShare := math.LegacyMustNewDecFromStr("0.02")
 	maxPrice := sdk.NewCoins(sdk.NewCoin("atom", price))
 	spendLimit := sdk.NewCoins(sdk.NewCoin("atom", amount))
 
@@ -181,7 +181,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 				Price:               sdk.NewCoins(sdk.NewCoin("atom", price)),
 				Amount:              amount,
 				ExpectedFee:         fee.String(),
-				OperatorFeeShare:    sdk.MustNewDecFromStr("0.03"),
+				OperatorFeeShare:    math.LegacyMustNewDecFromStr("0.03"),
 				SettlementValidated: true,
 			},
 			expectedAccept: false,
@@ -258,7 +258,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 				RollappId:           validRollappID1,
 				Price:               maxPrice,
 				Amount:              amount,
-				ExpectedFee:         sdk.MustNewDecFromStr("0.001499999999999999").MulInt(amount).TruncateInt().String(),
+				ExpectedFee:         math.LegacyMustNewDecFromStr("0.001499999999999999").MulInt(amount).TruncateInt().String(),
 				OperatorFeeShare:    operatorFeeShare,
 				SettlementValidated: true,
 			},
@@ -465,8 +465,8 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 				Rollapps: []*RollappCriteria{
 					{
 						RollappId:        validaRollappID,
-						MinFeePercentage: sdk.MustNewDecFromStr("0.01"),
-						OperatorFeeShare: sdk.MustNewDecFromStr("0.1"),
+						MinFeePercentage: math.LegacyMustNewDecFromStr("0.01"),
+						OperatorFeeShare: math.LegacyMustNewDecFromStr("0.1"),
 					},
 				},
 			},
