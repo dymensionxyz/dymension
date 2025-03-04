@@ -56,7 +56,7 @@ func (p Plan) ValidateBasic() error {
 		return ErrInvalidEndTime
 	}
 	if p.ModuleAccAddress == "" {
-		return fmt.Errorf("module account address cannot be empty")
+		return errors.New("module account address cannot be empty")
 	}
 	if p.SoldAmt.IsNegative() {
 		return fmt.Errorf("sold amount cannot be negative: %s", p.SoldAmt.String())
@@ -110,7 +110,7 @@ func DefaultIncentivePlanParams() IncentivePlanParams {
 
 func (i IncentivePlanParams) ValidateBasic() error {
 	if i.NumEpochsPaidOver == 0 {
-		return fmt.Errorf("number of epochs paid over cannot be zero")
+		return errors.New("number of epochs paid over cannot be zero")
 	}
 	return nil
 }

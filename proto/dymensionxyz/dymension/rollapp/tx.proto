@@ -69,7 +69,7 @@ message MsgUpdateRollappInformation {
   string initial_sequencer = 3;
   // see Rollapp for more details
   cosmos.base.v1beta1.Coin min_sequencer_bond = 7 [
-    (gogoproto.nullable) = false,
+    (gogoproto.nullable) = true,
     (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
   ];
   // metadata is the rollapp metadata
