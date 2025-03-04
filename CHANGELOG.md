@@ -12,6 +12,7 @@
 * **iro:** missing `StartTimeAfterSettlement` in IRO default params ([#1704](https://github.com/dymensionxyz/dymension/issues/1704)) ([10edf97](https://github.com/dymensionxyz/dymension/commit/10edf973bf95cd8a28d8af1cd312c3e4e9939f6e))
 * **lightclient:** fixed consensus states iterator ([#1715](https://github.com/dymensionxyz/dymension/issues/1715)) ([6b68cb0](https://github.com/dymensionxyz/dymension/commit/6b68cb0d2c046c9714519b8686141a45447584a6))
 * linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([109d4d3](https://github.com/dymensionxyz/dymension/commit/109d4d310518dfc8132751b2597e622460a02df9))
+* **lockup:** remove logic to unlock all locks at end blocker, or from tx ([#1764](https://github.com/dymensionxyz/dymension/issues/1764)) ([a8d5cbc](https://github.com/dymensionxyz/dymension/commit/a8d5cbc197d77635a2f8ad89f9c0998a7260955f))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
 * **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
 * **rollapp:** cli update only metadata ([#1708](https://github.com/dymensionxyz/dymension/issues/1708)) ([942c868](https://github.com/dymensionxyz/dymension/commit/942c8683b6aed177088eac49bb8703d83fadb210))
