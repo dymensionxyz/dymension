@@ -82,3 +82,34 @@ func createBuySellCmd(use string, short string, isBuy bool) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
+
+func CmdEnableTrading() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "enable-trading [plan-id]",
+		Short: "Enable trading for an IRO plan",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			planID := args[0]
+
+			msg := types.MsgEnableTrading{
+				PlanId: planID,
+				Owner:  clientCtx.GetFromAddress().String(),
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
