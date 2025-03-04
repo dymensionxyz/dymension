@@ -11,6 +11,57 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+func (s *KeeperTestSuite) TestTradeDisabled() {
+	rollappId := s.CreateDefaultRollapp()
+	owner := s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId)
+
+	k := s.App.IROKeeper
+	curve := types.DefaultBondingCurve()
+	incentives := types.DefaultIncentivePlanParams()
+
+	startTime := time.Now()
+	maxAmt := math.NewInt(1_000_000_000).MulRaw(1e18)
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
+
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	planId, err := k.CreatePlan(s.Ctx, totalAllocation, startTime, startTime.Add(time.Hour), false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+
+	plan := k.MustGetPlan(s.Ctx, planId)
+	s.Assert().False(plan.TradingEnabled)
+
+	buyer := sample.Acc()
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
+	s.FundAcc(buyer, buyersFunds)
+	s.FundAcc(owner, buyersFunds)
+
+	buyAmt := math.NewInt(1_000).MulRaw(1e18)
+
+	// buy before plan start - should fail
+	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, buyer, buyAmt, maxAmt)
+	s.Require().Error(err)
+
+	// Plan is not yet enabled - should fail
+	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(time.Minute)), planId, buyer, buyAmt, maxAmt)
+	s.Require().Error(err)
+
+	// owner can still buy
+	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, owner, buyAmt, maxAmt)
+	s.Require().NoError(err)
+
+	// Enable trading not as owner - should fail
+	err = s.App.IROKeeper.EnableTrading(s.Ctx, planId, buyer)
+	s.Require().Error(err)
+
+	// Enable trading by owner
+	err = s.App.IROKeeper.EnableTrading(s.Ctx, planId, owner)
+	s.Require().NoError(err)
+
+	// Buy should now succeed
+	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)
+	s.Require().NoError(err)
+}
+
 func (s *KeeperTestSuite) TestBuy() {
 	rollappId := s.CreateDefaultRollapp()
 	k := s.App.IROKeeper
