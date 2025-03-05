@@ -23,6 +23,7 @@ type StakingKeeper interface {
 
 type IncentivesKeeper interface {
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
+	DistributeEndorsementRewards(ctx sdk.Context, user sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) error
 }
 
 type SequencerKeeper interface {

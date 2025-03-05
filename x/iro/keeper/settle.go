@@ -136,7 +136,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID
 		Denom:         poolDenom,
 		Duration:      k.ik.GetLockableDurations(ctx)[0],
 	}
-	gaugeID, err = k.ik.CreateGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(plan.IncentivePlanParams.StartTimeAfterSettlement), plan.IncentivePlanParams.NumEpochsPaidOver)
+	gaugeID, err = k.ik.CreateAssetGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(plan.IncentivePlanParams.StartTimeAfterSettlement), plan.IncentivePlanParams.NumEpochsPaidOver)
 	if err != nil {
 		return 0, 0, err
 	}

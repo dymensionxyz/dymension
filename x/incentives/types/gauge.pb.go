@@ -43,8 +43,7 @@ type Gauge struct {
 	// at a single time and only distribute their tokens again once the gauge is
 	// refilled, Intended for use with incentives that get refilled daily.
 	IsPerpetual bool `protobuf:"varint,2,opt,name=is_perpetual,json=isPerpetual,proto3" json:"is_perpetual,omitempty"`
-	// distribute_to is where the gauge rewards are distributed to.
-	// This is queried via lock duration or by timestamp
+	// distribute_to is where the gauge rewards are distributed to
 	//
 	// Types that are valid to be assigned to DistributeTo:
 	//	*Gauge_Asset

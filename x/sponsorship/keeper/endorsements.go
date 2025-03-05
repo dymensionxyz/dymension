@@ -41,19 +41,22 @@ func (k Keeper) UpdateTotalSharesWithDistribution(ctx sdk.Context, update types.
 // 7. Update the endorsement epoch shares
 // 8. Blacklist the user from claiming rewards in this epoch
 func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) error {
+	ok, err := k.CanClaim(ctx, claimer)
+	if err != nil {
+		return fmt.Errorf("can claim: %w", err)
+	}
+	if !ok {
+		return fmt.Errorf("user is not allowed to claim: %s", claimer)
+	}
+
 	result, err := k.EstimateClaim(ctx, claimer, gaugeId)
 	if err != nil {
 		return fmt.Errorf("estimate claim: %w", err)
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, incentivestypes.ModuleName, claimer, result.Rewards)
+	err = k.incentivesKeeper.DistributeEndorsementRewards(ctx, claimer, gaugeId, result.Rewards)
 	if err != nil {
-		return fmt.Errorf("send coins from x/incentives to user: %w", err)
-	}
-
-	err = k.UpdateEndorsement(ctx, result.RollappId, types.AddEpochShares(result.EndorsedAmount.Neg()))
-	if err != nil {
-		return fmt.Errorf("update endorsement epoch shares: %w", err)
+		return fmt.Errorf("distribute rewards: %w", err)
 	}
 
 	err = k.BlacklistClaim(ctx, claimer)
@@ -73,14 +76,6 @@ type EstimateClaimResult struct {
 // EstimateClaim estimates the rewards for the user from the provided endorsement gauge.
 // Does not change the state.
 func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) (EstimateClaimResult, error) {
-	ok, err := k.CanClaim(ctx, claimer)
-	if err != nil {
-		return EstimateClaimResult{}, fmt.Errorf("can claim: %w", err)
-	}
-	if !ok {
-		return EstimateClaimResult{}, fmt.Errorf("user is not allowed to claim: %s", claimer)
-	}
-
 	gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, gaugeId)
 	if err != nil {
 		return EstimateClaimResult{}, fmt.Errorf("get gauge: %w", err)
@@ -106,14 +101,11 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 		return EstimateClaimResult{}, fmt.Errorf("user does not endorse respective RA gauge: %d", gaugeId)
 	}
 
-	// Which portion of the rewards the user is entitled to
-	userPortion := power.Quo(endorsement.EpochShares)
-
 	var userRewards sdk.Coins
 	for _, reward := range eGauge.Endorsement.EpochRewards {
 		userRewards = append(userRewards, sdk.Coin{
 			Denom:  reward.Denom,
-			Amount: userPortion.Mul(reward.Amount),
+			Amount: power.Mul(reward.Amount).Quo(endorsement.EpochShares),
 		})
 	}
 

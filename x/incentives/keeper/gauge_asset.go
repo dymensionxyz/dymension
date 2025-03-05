@@ -11,6 +11,51 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
+// CreateAssetGauge creates a gauge and sends coins to the gauge.
+func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error) {
+	// Ensure that this gauge's duration is one of the allowed durations on chain
+	durations := k.GetLockableDurations(ctx)
+	if distrTo.LockQueryType == lockuptypes.ByDuration {
+		durationOk := false
+		for _, duration := range durations {
+			if duration == distrTo.Duration {
+				durationOk = true
+				break
+			}
+		}
+		if !durationOk {
+			return 0, fmt.Errorf("invalid duration: %d", distrTo.Duration)
+		}
+	}
+
+	// Ensure that the denom this gauge pays out to exists on-chain
+	if !k.bk.HasSupply(ctx, distrTo.Denom) {
+		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
+	}
+
+	gauge := types.NewAssetGauge(k.GetLastGaugeID(ctx)+1, isPerpetual, distrTo, coins, startTime, numEpochsPaidOver)
+
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
+		return 0, err
+	}
+
+	err := k.setGauge(ctx, &gauge)
+	if err != nil {
+		return 0, err
+	}
+	k.SetLastGaugeID(ctx, gauge.Id)
+
+	combinedKeys := combineKeys(types.KeyPrefixUpcomingGauges, getTimeKey(gauge.StartTime))
+	activeOrUpcomingGauge := true
+
+	err = k.CreateGaugeRefKeys(ctx, &gauge, combinedKeys, activeOrUpcomingGauge)
+	if err != nil {
+		return 0, err
+	}
+	k.hooks.AfterCreateGauge(ctx, gauge.Id)
+	return gauge.Id, nil
+}
+
 // RewardDistributionTracker maintains the state of pending reward distributions,
 // tracking both total rewards and per-gauge rewards for each recipient.
 // It uses array-based storage for better cache locality during distribution.

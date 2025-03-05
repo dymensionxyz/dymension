@@ -37,14 +37,14 @@ func NewRollappGauge(id uint64, rollappId string) Gauge {
 }
 
 // NewEndorsementGauge creates a new endorsement gauge to stream rewards to rollapp endorsers.
-func NewEndorsementGauge(id uint64, rollappId string) Gauge {
+func NewEndorsementGauge(id uint64, isPerpetual bool, rollappId string, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) Gauge {
 	return Gauge{
 		Id:                id,
-		IsPerpetual:       true,
+		IsPerpetual:       isPerpetual,
 		DistributeTo:      &Gauge_Endorsement{Endorsement: &EndorsementGauge{RollappId: rollappId}},
-		Coins:             sdk.NewCoins(),
-		StartTime:         time.Time{},
-		NumEpochsPaidOver: 0,
+		Coins:             coins,
+		StartTime:         startTime,
+		NumEpochsPaidOver: numEpochsPaidOver,
 		FilledEpochs:      0,
 		DistributedCoins:  sdk.NewCoins(),
 	}

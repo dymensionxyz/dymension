@@ -19,12 +19,12 @@ var (
 	_ sdk.Msg = &MsgAddToGauge{}
 )
 
-// NewMsgCreateGauge creates a message to create a gauge with the provided parameters.
-func NewMsgCreateGauge(isPerpetual bool, owner sdk.AccAddress, distributeTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) *MsgCreateGauge {
+// NewMsgCreateAssetGauge creates a message to create a gauge with the provided parameters.
+func NewMsgCreateAssetGauge(isPerpetual bool, owner sdk.AccAddress, distributeTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) *MsgCreateGauge {
 	return &MsgCreateGauge{
 		IsPerpetual:       isPerpetual,
 		Owner:             owner.String(),
-		DistributeTo:      distributeTo,
+		DistributeTo:      &MsgCreateGauge_Asset{Asset: &distributeTo},
 		Coins:             coins,
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,
@@ -42,12 +42,6 @@ func (m MsgCreateGauge) ValidateBasic() error {
 	if m.Owner == "" {
 		return errors.New("owner should be set")
 	}
-	if sdk.ValidateDenom(m.DistributeTo.Denom) != nil {
-		return errors.New("denom should be valid for the condition")
-	}
-	if lockuptypes.LockQueryType_name[int32(m.DistributeTo.LockQueryType)] == "" {
-		return errors.New("lock query type is invalid")
-	}
 	if m.StartTime.Equal(time.Time{}) {
 		return errors.New("distribution start time should be set")
 	}
@@ -58,8 +52,21 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		return errors.New("distribution period should be 1 epoch for perpetual gauge")
 	}
 
-	if lockuptypes.LockQueryType_name[int32(m.DistributeTo.LockQueryType)] != "ByDuration" {
-		return errors.New("only duration query condition is allowed. Start time distr conditions is an obsolete codepath slated for deletion")
+	switch distr := m.DistributeTo.(type) {
+	case *MsgCreateGauge_Asset:
+		if sdk.ValidateDenom(distr.Asset.Denom) != nil {
+			return errors.New("denom should be valid for the condition")
+		}
+		if lockuptypes.LockQueryType_name[int32(distr.Asset.LockQueryType)] == "" {
+			return errors.New("lock query type is invalid")
+		}
+		if lockuptypes.LockQueryType_name[int32(distr.Asset.LockQueryType)] != "ByDuration" {
+			return errors.New("only duration query condition is allowed. Start time distr conditions is an obsolete codepath slated for deletion")
+		}
+	case *MsgCreateGauge_Endorsement:
+		if distr.Endorsement.RollappId == "" {
+			return errors.New("rollapp id should be set")
+		}
 	}
 
 	return nil

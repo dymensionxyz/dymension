@@ -71,7 +71,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to save vote: %w", err)
 	}
-	
+
 	// The user can't claim rewards in this epoch
 	err = k.BlacklistClaim(ctx, voter)
 	if err != nil {
@@ -118,8 +118,8 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 		return types.Distribution{}, fmt.Errorf("failed to update distribution: %w", err)
 	}
 
-	// Subtract voter's shares from RA endorsement shares
-	err = k.UpdateTotalSharesWithDistribution(ctx, update.Negate())
+	// Subtract voter's shares from RA endorsement shares (update is already negated)
+	err = k.UpdateTotalSharesWithDistribution(ctx, update)
 	if err != nil {
 		return types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
 	}

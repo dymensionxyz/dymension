@@ -190,7 +190,15 @@ func (k Keeper) GetAllEndorsements(ctx sdk.Context) ([]types.Endorsement, error)
 }
 
 func (k Keeper) CanClaim(ctx sdk.Context, addr sdk.AccAddress) (bool, error) {
-	return k.claimBlacklist.Has(ctx, addr)
+	blacklisted, err := k.claimBlacklist.Has(ctx, addr)
+	if err != nil {
+		return false, fmt.Errorf("check claim blacklist: %w", err)
+	}
+	voted, err := k.votes.Has(ctx, addr)
+	if err != nil {
+		return false, fmt.Errorf("check vote: %w", err)
+	}
+	return !blacklisted && voted, err
 }
 
 func (k Keeper) BlacklistClaim(ctx sdk.Context, addr sdk.AccAddress) error {
