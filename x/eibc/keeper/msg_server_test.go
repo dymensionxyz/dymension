@@ -793,12 +793,12 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(msgC.Lp, lps[0].Lp)
 
-			msgF := &types.MsgFindFulfiller{
+			msgF := &types.MsgTryFulfillOnDemand{
 				Signer:  orderAddr.String(),
 				OrderId: order.Id,
 				Rng:     0,
 			}
-			_, err = suite.msgServer.FindFulfiller(suite.Ctx, msgF)
+			_, err = suite.msgServer.TryFulfillOnDemand(suite.Ctx, msgF)
 			orderBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
 			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
 			if tc.err == nil {
