@@ -3,14 +3,10 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var (
-	_ sdk.Msg            = &MsgAcceptBuyOrder{}
-	_ legacytx.LegacyMsg = &MsgAcceptBuyOrder{}
-)
+var _ sdk.Msg = &MsgAcceptBuyOrder{}
 
 // ValidateBasic performs basic validation for the MsgAcceptBuyOrder.
 func (m *MsgAcceptBuyOrder) ValidateBasic() error {
@@ -48,10 +44,4 @@ func (m *MsgAcceptBuyOrder) Route() string {
 // Type returns the message type for the MsgAcceptBuyOrder.
 func (m *MsgAcceptBuyOrder) Type() string {
 	return TypeMsgAcceptBuyOrder
-}
-
-// GetSignBytes returns the raw bytes for the MsgAcceptBuyOrder.
-func (m *MsgAcceptBuyOrder) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }

@@ -5,10 +5,8 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -28,7 +26,7 @@ const (
 // WeightedOperations returns all the operations from the module with their respective weights.
 func WeightedOperations(
 	appParams simtypes.AppParams,
-	cdc codec.JSONCodec,
+	txConfig client.TxConfig,
 	ak dymsimtypes.AccountKeeper,
 	bk dymsimtypes.BankKeeper,
 	ik dymsimtypes.IncentivesKeeper,
@@ -38,16 +36,15 @@ func WeightedOperations(
 	var weightMsgVote int
 
 	appParams.GetOrGenerate(
-		cdc, OpWeightMsgVote, &weightMsgVote, nil,
-		func(*rand.Rand) { weightMsgVote = DefaultWeightMsgVote },
+		OpWeightMsgVote, &weightMsgVote, nil, func(*rand.Rand) {
+			weightMsgVote = DefaultWeightMsgVote
+		},
 	)
-
-	protoCdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgVote,
-			SimulateMsgVote(protoCdc, ak, bk, ik, sk, s),
+			SimulateMsgVote(txConfig, ak, bk, ik, sk, s),
 		),
 	}
 }
@@ -60,7 +57,7 @@ func getAllocationWeight(r *rand.Rand, minAllocationWeight math.Int) math.Int {
 
 // SimulateMsgVote generates and executes a MsgVote with random parameters
 func SimulateMsgVote(
-	cdc *codec.ProtoCodec,
+	txConfig client.TxConfig,
 	ak dymsimtypes.AccountKeeper,
 	bk dymsimtypes.BankKeeper,
 	ik dymsimtypes.IncentivesKeeper,
@@ -75,7 +72,8 @@ func SimulateMsgVote(
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "No delegation available"), nil, nil
 		}
 
-		b, err := k.GetValidatorBreakdown(ctx, delegation.GetDelegatorAddr())
+		delAcc := sdk.MustAccAddressFromBech32(delegation.GetDelegatorAddr())
+		b, err := k.GetValidatorBreakdown(ctx, delAcc)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "Failed to get validator breakdown"), nil, err
 		}
@@ -115,7 +113,7 @@ func SimulateMsgVote(
 		}
 
 		msg := &types.MsgVote{
-			Voter:   delegation.GetDelegatorAddr().String(),
+			Voter:   delAcc.String(),
 			Weights: gaugeWeights,
 		}
 
@@ -123,7 +121,7 @@ func SimulateMsgVote(
 		var simAccount simtypes.Account
 
 		for _, simAcc := range accs {
-			if simAcc.Address.Equals(delegation.GetDelegatorAddr()) {
+			if simAcc.Address.Equals(delAcc) {
 				simAccount = simAcc
 				break
 			}
@@ -136,10 +134,9 @@ func SimulateMsgVote(
 		txCtx := simulation.OperationInput{
 			R:               r,
 			App:             app,
-			TxGen:           moduletestutil.MakeTestEncodingConfig().TxConfig,
-			Cdc:             cdc,
+			TxGen:           txConfig,
+			Cdc:             nil,
 			Msg:             msg,
-			MsgType:         msg.Type(),
 			CoinsSpentInMsg: nil,
 			Context:         ctx,
 			SimAccount:      simAccount,

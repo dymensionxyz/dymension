@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -151,7 +151,7 @@ func CreateBuyOrderId(_type AssetType, i uint64) string {
 		panic(fmt.Sprintf("unknown buy asset type: %d", _type))
 	}
 
-	buyOrderId := prefix + sdkmath.NewIntFromUint64(i).String()
+	buyOrderId := prefix + math.NewIntFromUint64(i).String()
 
 	if !IsValidBuyOrderId(buyOrderId) {
 		panic("bad input parameters for creating buy order id")

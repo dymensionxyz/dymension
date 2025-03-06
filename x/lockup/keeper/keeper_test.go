@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -20,13 +19,15 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	suite.App = app
 	suite.Ctx = ctx
 
 	suite.querier = keeper.NewQuerier(*suite.App.LockupKeeper)
-	unbondingDuration := suite.App.StakingKeeper.GetParams(suite.Ctx).UnbondingTime
+	params, err := suite.App.StakingKeeper.GetParams(suite.Ctx)
+	suite.Require().NoError(err)
+	unbondingDuration := params.UnbondingTime
 	suite.App.IncentivesKeeper.SetLockableDurations(suite.Ctx, []time.Duration{
 		time.Hour * 24 * 14,
 		time.Hour,

@@ -554,7 +554,7 @@ func (suite *KeeperTestSuite) TestParams() {
 
 	// Set new params & query
 	testAccs := apptesting.CreateRandomAccounts(1)
-	testLockFee := sdk.NewInt(100)
+	testLockFee := math.NewInt(100)
 	suite.App.LockupKeeper.SetParams(suite.Ctx, types.NewParams([]string{testAccs[0].String()}, testLockFee))
 	res, err = suite.querier.Params(sdk.WrapSDKContext(suite.Ctx), &types.QueryParamsRequest{})
 	suite.Require().NoError(err)

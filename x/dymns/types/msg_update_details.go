@@ -3,16 +3,12 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-var (
-	_ sdk.Msg            = &MsgUpdateDetails{}
-	_ legacytx.LegacyMsg = &MsgUpdateDetails{}
-)
+var _ sdk.Msg = &MsgUpdateDetails{}
 
 // ValidateBasic performs basic validation for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) ValidateBasic() error {
@@ -54,10 +50,4 @@ func (m *MsgUpdateDetails) Route() string {
 // Type returns the message type for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) Type() string {
 	return TypeMsgUpdateDetails
-}
-
-// GetSignBytes returns the raw bytes for the MsgUpdateDetails.
-func (m *MsgUpdateDetails) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
