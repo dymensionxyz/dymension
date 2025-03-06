@@ -123,7 +123,6 @@ func Setup(t *testing.T) *app.App {
 	return app
 }
 
-// CreateTestContext creates a test context.
 func (s *KeeperTestHelper) Commit() {
 	_, err := s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime()})
 	if err != nil {
