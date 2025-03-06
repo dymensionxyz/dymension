@@ -1,9 +1,11 @@
-package app
+package upgrades
 
 import (
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 )
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal
@@ -18,9 +20,13 @@ type Upgrade struct {
 	CreateHandler func(
 		mm *module.Manager,
 		configurator module.Configurator,
-		appKeepers *AppKeepers,
+		appKeepers *UpgradeKeepers,
 	) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
 	StoreUpgrades storetypes.StoreUpgrades
+}
+
+type UpgradeKeepers struct {
+	LockupKeeper *lockupkeeper.Keeper
 }
