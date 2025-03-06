@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -50,6 +51,10 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 
 	if err := m.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
+	}
+
+	if !m.LiquidityPart.IsPositive() {
+		return fmt.Errorf("liquidity part must be positive: %s", m.LiquidityPart)
 	}
 
 	return nil

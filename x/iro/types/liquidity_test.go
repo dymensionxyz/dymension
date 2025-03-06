@@ -52,6 +52,9 @@ func TestFindEquilibrium(t *testing.T) {
 				minRaiseTarget := int64(1e4) // 10K DYM
 				maxRaiseTarget := int64(1e7) // 10M DYM
 
+				rFloat := rapid.Float64Range(0.1, 1).Draw(t, "bootstrap ratio")
+				r := sdkmath.LegacyMustNewDecFromStr(fmt.Sprintf("%f", rFloat))
+
 				allocation := LogarithmicRange(t, minAllocation, maxAllocation)
 				allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
 
@@ -60,29 +63,37 @@ func TestFindEquilibrium(t *testing.T) {
 
 				t.Log("curve", tc.name, "allocation", allocation, "target", raiseTarget)
 
-				calcaulateM := types.CalculateM(raiseTargetDec, sdkmath.LegacyNewDec(allocation), tc.n)
+				calcaulateM := types.CalculateM(raiseTargetDec, sdkmath.LegacyNewDec(allocation), tc.n, r)
 				if !calcaulateM.IsPositive() {
 					t.Skip("m is not positive", tc.name, "allocation", allocation, "targetRaise", raiseTarget)
 				}
 
 				curve := types.NewBondingCurve(calcaulateM, tc.n, sdkmath.LegacyZeroDec())
 				// assert eq is > 0
-				eq := types.FindEquilibrium(curve, allocationScaled)
+				eq := types.FindEquilibrium(curve, allocationScaled, r)
 				require.True(t, eq.IsPositive())
 
 				actualRaised := curve.Cost(sdkmath.ZeroInt(), eq)
 				require.True(t, actualRaised.IsPositive())
+
+				bootstrapFunds := actualRaised.ToLegacyDec().Mul(r).TruncateInt()
+				require.True(t, bootstrapFunds.IsPositive())
+
 				// assert price at eq is the same as expected pool price
 				curvePrice := curve.SpotPrice(eq)
 				leftoverTokens := allocationScaled.Sub(eq)
-				poolPrice := actualRaised.ToLegacyDec().QuoInt(leftoverTokens)
+				poolPrice := bootstrapFunds.ToLegacyDec().QuoInt(leftoverTokens)
 
 				err := approxEqualRatio(curvePrice, poolPrice, 0.001) // 0.1%
 				require.NoError(t, err)
 
+				unsoldValue := curvePrice.MulInt(leftoverTokens).TruncateInt()
+				err = approxEqualRatio(bootstrapFunds, unsoldValue, 0.001) // 0.1%
+				require.NoError(t, err)
+
 				// assert total value is same as expected
-				totalValue := actualRaised.MulRaw(2)
-				err = approxEqualRatio(raiseTargetDec.MulInt64(1e18).TruncateInt(), totalValue, 0.05) // 5% tolerance
+				totalValue := bootstrapFunds.Add(unsoldValue)
+				err = approxEqualRatio(raiseTargetDec.MulInt64(1e18).TruncateInt(), totalValue, 0.01) // 5% tolerance
 				require.NoError(t, err)
 			})
 		})

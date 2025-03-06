@@ -6,7 +6,7 @@ import "cosmossdk.io/math"
 //
 // This function calculates the required DYM based on the settled token price and compares it with the raised DYM.
 // It returns the amount of RA tokens and DYM to be used for bootstrapping the liquidity pool so it fulfills the last price.
-// We expect all the raised dym to be used for liquidity pool, so incentives will consist of the remaining tokens.
+// We expect all the raised dym to be used for liquidity pool, so incentives will consist of the remaining tokens.s
 func CalcLiquidityPoolTokens(unsoldRATokens, raisedDYM math.Int, settledTokenPrice math.LegacyDec) (RATokens, dym math.Int) {
 	requiredDYM := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
 
@@ -37,8 +37,8 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedDYM math.Int, settledTokenPri
 // find equilibrium amount that will satisfy:
 // curve price (x) = balancer pool price (y/x)
 // for p(x) = mx^N
-// eq = ((N+1) / (N+2)) * T
-func FindEquilibrium(curve BondingCurve, totalAllocation math.Int) math.Int {
+// eq = ((N+1) * T) / (R + N + 1)
+func FindEquilibrium(curve BondingCurve, totalAllocation math.Int, r math.LegacyDec) math.Int {
 	n := curve.N
 
 	// hack for fixed price (as we set N=1 with M=0 instead of N=0)
@@ -46,9 +46,9 @@ func FindEquilibrium(curve BondingCurve, totalAllocation math.Int) math.Int {
 		n = math.LegacyZeroDec()
 	}
 
-	n1 := n.Add(math.LegacyOneDec())                       // N + 1
-	n2 := n1.Add(math.LegacyOneDec())                      // N + 2
-	eq := n1.Quo(n2).MulInt(totalAllocation).TruncateInt() // ((N+1) / (N+2)) * T
+	n1 := n.Add(math.LegacyOneDec())                         // N + 1
+	n2 := n1.Add(r)                                          // N + 1 + R
+	eq := (n1.Quo(n2)).MulInt(totalAllocation).TruncateInt() // ((N+1) / (N+1+R)) * T
 
 	return eq
 }
