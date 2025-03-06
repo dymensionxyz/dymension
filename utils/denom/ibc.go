@@ -41,6 +41,7 @@ func SourcePortChanFromTracePath(tracePath string) (sourcePort, sourceChannel st
 // GetIncomingTransferDenom returns the denom that will be credited on the hub.
 // The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
 // based on the original chain it was sent from.
+// (this function also does the same thing as PFM::getDenomForThisChain)
 func GetIncomingTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
 	var denom string
 

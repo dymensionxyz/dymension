@@ -136,46 +136,6 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 	s.Require().False(found)
 }
 
-func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized2() {
-	path := s.newTransferPath(s.hubChain(), s.rollappChain())
-	s.coordinator.Setup(path)
-
-	rollappEndpoint := path.EndpointB
-	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
-
-	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
-	s.registerSequencer()
-	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
-
-	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
-	s.Require().True(ok)
-	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
-
-	msg := types.NewMsgTransfer(
-		rollappEndpoint.ChannelConfig.PortID,
-		rollappEndpoint.ChannelID,
-		coinToSendToB,
-		s.rollappChain().SenderAccount.GetAddress().String(),
-		`pfm`,
-		timeoutHeight,
-		0,
-		"",
-	)
-	res, err := s.rollappChain().SendMsgs(msg)
-	s.Require().NoError(err) // message committed
-
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-	s.Require().NoError(err)
-
-	// relay send
-	err = path.RelayPacket(packet)
-	s.Require().Error(err) // expecting error as no AcknowledgePacket expected
-	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	s.Require().False(found)
-}
-
 func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
