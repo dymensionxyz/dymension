@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/cometbft/cometbft/libs/math"
@@ -125,10 +126,8 @@ func EqualICS23ProofSpecs(proofSpecs1, proofSpecs2 ics23.ProofSpec) bool {
 	if len(proofSpecs1.InnerSpec.ChildOrder) != len(proofSpecs2.InnerSpec.ChildOrder) {
 		return false
 	}
-	for i, childOrder := range proofSpecs1.InnerSpec.ChildOrder {
-		if childOrder != proofSpecs2.InnerSpec.ChildOrder[i] {
-			return false
-		}
+	if !slices.Equal(proofSpecs1.InnerSpec.ChildOrder, proofSpecs2.InnerSpec.ChildOrder) {
+		return false
 	}
 	if proofSpecs1.InnerSpec.ChildSize != proofSpecs2.InnerSpec.ChildSize {
 		return false
