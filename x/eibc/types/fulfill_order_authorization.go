@@ -1,6 +1,7 @@
 package types
 
 import (
+	context "context"
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
@@ -9,6 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
+
+var _ authz.Authorization = &FulfillOrderAuthorization{}
 
 // NewFulfillOrderAuthorization creates a new FulfillOrderAuthorization object.
 func NewFulfillOrderAuthorization(rollapps []*RollappCriteria) *FulfillOrderAuthorization {
@@ -44,7 +47,7 @@ func (a FulfillOrderAuthorization) MsgTypeURL() string {
 
 // Accept implements Authorization.Accept.
 func (a FulfillOrderAuthorization) Accept(
-	_ sdk.Context,
+	_ context.Context,
 	msg sdk.Msg,
 ) (authz.AcceptResponse, error) {
 	mFulfill, ok := msg.(*MsgFulfillOrderAuthorized)

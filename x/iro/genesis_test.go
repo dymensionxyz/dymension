@@ -22,8 +22,6 @@ var (
 )
 
 func TestGenesis(t *testing.T) {
-	t.Skip("skipped as it requires working auth keeper")
-
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 		Plans:  plans,

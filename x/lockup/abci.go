@@ -13,10 +13,10 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) []abci.ValidatorUpdate {
 	// it is actually for testing with legacy
 	MinBlockHeightToBeginAutoWithdrawing := int64(6)
 	if ctx.BlockHeight() < MinBlockHeightToBeginAutoWithdrawing {
-		return []abci.ValidatorUpdate{}
+		return nil
 	}
 
 	// withdraw and delete locks
 	k.WithdrawAllMaturedLocks(ctx)
-	return []abci.ValidatorUpdate{}
+	return nil
 }

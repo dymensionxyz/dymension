@@ -5,10 +5,11 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transferTypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	udenom "github.com/dymensionxyz/dymension/v3/utils/denom"
@@ -182,7 +183,7 @@ func (k Keeper) GetRollappByName(
 ) (val types.Rollapp, found bool) {
 	name = name + "_"
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte(name))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(name))
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -283,7 +284,7 @@ func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 
 func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []types.Rollapp {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
 	var result []types.Rollapp

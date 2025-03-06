@@ -11,11 +11,17 @@ import (
 
 func (s *KeeperTestSuite) TestGenesis() {
 	val1 := s.CreateValidator()
+	val1Addr, _ := sdk.ValAddressFromBech32(val1.GetOperator())
 	val2 := s.CreateValidator()
+	val2Addr, _ := sdk.ValAddressFromBech32(val2.GetOperator())
 	initial := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
-	del11 := s.CreateDelegator(val1.GetOperator(), initial)           // delegator 1 -> validator 1
-	s.Delegate(del11.GetDelegatorAddr(), val2.GetOperator(), initial) // delegator 1 -> validator 2
-	del22 := s.CreateDelegator(val2.GetOperator(), initial)           // delegator 2 -> validator 2
+
+	del11 := s.CreateDelegator(val1Addr, initial) // delegator 1 -> validator 1
+	del1Addr := sdk.MustAccAddressFromBech32(del11.GetDelegatorAddr())
+	s.Delegate(del1Addr, val2Addr, initial) // delegator 1 -> validator 2
+
+	del22 := s.CreateDelegator(val2Addr, initial) // delegator 2 -> validator 2
+	del2Addr := sdk.MustAccAddressFromBech32(del22.GetDelegatorAddr())
 
 	testCases := []struct {
 		name          string
@@ -28,7 +34,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 				Params: types.DefaultParams(),
 				VoterInfos: []types.VoterInfo{
 					{
-						Voter: del11.GetDelegatorAddr().String(),
+						Voter: del1Addr.String(),
 						Vote: types.Vote{
 							VotingPower: math.NewInt(600),
 							Weights: []types.GaugeWeight{
@@ -36,12 +42,12 @@ func (s *KeeperTestSuite) TestGenesis() {
 							},
 						},
 						Validators: []types.ValidatorVotingPower{
-							{Validator: val1.GetOperator().String(), Power: math.NewInt(400)},
-							{Validator: val2.GetOperator().String(), Power: math.NewInt(200)},
+							{Validator: val1Addr.String(), Power: math.NewInt(400)},
+							{Validator: val2Addr.String(), Power: math.NewInt(200)},
 						},
 					},
 					{
-						Voter: del22.GetDelegatorAddr().String(),
+						Voter: del2Addr.String(),
 						Vote: types.Vote{
 							VotingPower: math.NewInt(400),
 							Weights: []types.GaugeWeight{
@@ -49,7 +55,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 							},
 						},
 						Validators: []types.ValidatorVotingPower{
-							{Validator: val2.GetOperator().String(), Power: math.NewInt(400)},
+							{Validator: val2Addr.String(), Power: math.NewInt(400)},
 						},
 					},
 				},

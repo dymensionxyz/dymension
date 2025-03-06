@@ -4,11 +4,12 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
@@ -59,7 +60,7 @@ func (m *DemandOrder) ValidateBasic() error {
 	}
 	_, err := sdk.AccAddressFromBech32(m.Recipient)
 	if err != nil {
-		return ErrInvalidRecipientAddress
+		return errors.Join(ErrInvalidRecipientAddress, err)
 	}
 
 	if m.CreationHeight == 0 {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/stretchr/testify/require"
@@ -20,7 +19,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 	genesis := app.IncentivesKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params.DistrEpochIdentifier, "week")
 	require.Len(t, genesis.Gauges, 0)
@@ -28,7 +27,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	// create an address and fund with coins
 	addr := sdk.AccAddress([]byte("addr1---------------"))
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
-	err := bankutil.FundAccount(app.BankKeeper, ctx, addr, coins)
+	err := bankutil.FundAccount(ctx, app.BankKeeper, addr, coins)
 	require.NoError(t, err)
 
 	// mints LP tokens and send to address created earlier
@@ -39,7 +38,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 		Duration:      time.Second,
 	}
 	mintLPtokens := sdk.Coins{sdk.NewInt64Coin(distrTo.Denom, 200)}
-	err = bankutil.FundAccount(app.BankKeeper, ctx, addr, mintLPtokens)
+	err = bankutil.FundAccount(ctx, app.BankKeeper, addr, mintLPtokens)
 	require.NoError(t, err)
 
 	// create a gauge that distributes coins to earlier created LP token and duration
@@ -69,7 +68,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 // TestIncentivesInitGenesis takes a genesis state and tests initializing that genesis for the incentives module.
 func TestIncentivesInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.Validate()

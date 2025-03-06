@@ -33,21 +33,22 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	suite.Require().Len(streams, 0)
 
 	// setup streams
+	startTime := time.Now()
 
 	// daily stream, 30 epochs
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 30000)}
-	_, _ = suite.CreateStream(singleDistrInfo, coins, time.Now(), "day", 30)
+	_, _ = suite.CreateStream(singleDistrInfo, coins, startTime, "day", 30)
 
 	// daily stream, 2 epochs
 	coins2 := sdk.Coins{sdk.NewInt64Coin("stake", 2000)}
-	_, _ = suite.CreateStream(singleDistrInfo, coins2, time.Now(), "day", 2)
+	_, _ = suite.CreateStream(singleDistrInfo, coins2, startTime, "day", 2)
 
 	// weekly stream
 	coins3 := sdk.Coins{sdk.NewInt64Coin("stake", 5000)}
-	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now(), "week", 5)
+	_, _ = suite.CreateStream(singleDistrInfo, coins3, startTime, "week", 5)
 
 	// future stream - non-active
-	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now().Add(10*time.Minute), "day", 5)
+	_, _ = suite.CreateStream(singleDistrInfo, coins3, startTime.Add(10*time.Minute), "day", 5)
 
 	// check streams
 	streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
@@ -61,13 +62,13 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
 	suite.Require().Len(streams, 0)
 
-	/* ----------- call the epoch hook with month (no stream related) ----------- */
-	ctx := suite.Ctx.WithBlockTime(time.Now())
+	/* ----------- call the epoch hook with hour (no stream related) ----------- */
+	ctx := suite.Ctx.WithBlockTime(startTime.Add(1 * time.Second))
 
-	err = suite.App.StreamerKeeper.Hooks().BeforeEpochStart(ctx, "month", 0)
+	err = suite.App.StreamerKeeper.Hooks().BeforeEpochStart(ctx, "hour", 0)
 	suite.Require().NoError(err)
 
-	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "month", 0)
+	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "hour", 0)
 	suite.Require().NoError(err)
 
 	// check active streams - all 3 but the future are active
