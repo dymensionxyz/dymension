@@ -247,23 +247,25 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 // we use the eq point (eq = ((N+1) * T) / (N+2)) to calculate M
 // The total value at the eq, which consists of raised dym and unsold tokens, should equal val
 // solving the equation for M gives:
-// M = (VAL * (N+1) * (N+2)^(N+1)) / (2 * ((N+1) * T)^(N+1))
-func CalculateM(val, t, n math.LegacyDec) math.LegacyDec {
+// M = (VAL * (N+1) * (R + N + 1)^(N+1)) / (2 * R * ((N+1) * T)^(N+1))
+
+func CalculateM(val, t, n, r math.LegacyDec) math.LegacyDec {
 	valBig := osmomath.BigDecFromSDKDec(val)
 	tBig := osmomath.BigDecFromSDKDec(t)
 	nBig := osmomath.BigDecFromSDKDec(n)
+	rBig := osmomath.BigDecFromSDKDec(r)
 
 	// Calculate N + 1
 	nPlusOne := nBig.Add(osmomath.OneDec())
-	nPlusTwo := nPlusOne.Add(osmomath.OneDec())
+	nPlusTwo := nPlusOne.Add(rBig)
 
 	// we solve the equation logarithmically, as T^(N+1) can cause truncations
 
-	// log(nominator) = log(val) + log(N + 1) + (N+1)log(N + 2)
+	// log(nominator) = log(val) + log(N + 1) + (N+1)log(N + 1 + R)
 	lognum := valBig.LogBase2().Add(nPlusOne.LogBase2()).Add(nPlusOne.Mul(nPlusTwo.LogBase2()))
 
-	// log(denominator) = (N+1)*log(T*(N+1)) + log(2)
-	logdenom := (nPlusOne.Mul((tBig.Mul(nPlusOne)).LogBase2())).Add(osmomath.OneDec())
+	// log(denominator) = (N+1)*log(T*(N+1)) + log(2) + log(R)
+	logdenom := (nPlusOne.Mul((tBig.Mul(nPlusOne)).LogBase2())).Add(osmomath.OneDec()).Add(rBig.LogBase2())
 
 	logm := lognum.Sub(logdenom)
 	m := osmomath.Exp2(logm.Abs())
