@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	coreheader "cosmossdk.io/core/header"
 	"cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	usim "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -119,15 +120,30 @@ func Setup(t *testing.T) *app.App {
 		},
 	)
 	require.NoError(t, err)
-
-	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height:             app.LastBlockHeight() + 1,
-		Hash:               app.LastCommitID().Hash,
-		NextValidatorsHash: valSet.Hash(),
-	})
-	require.NoError(t, err)
-
 	return app
+}
+
+// CreateTestContext creates a test context.
+func (s *KeeperTestHelper) Commit() {
+	_, err := s.App.FinalizeBlock(&abci.RequestFinalizeBlock{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime()})
+	if err != nil {
+		panic(err)
+	}
+	_, err = s.App.Commit()
+	if err != nil {
+		panic(err)
+	}
+
+	newBlockTime := s.Ctx.BlockTime().Add(time.Second)
+
+	header := s.Ctx.BlockHeader()
+	header.Time = newBlockTime
+	header.Height++
+
+	s.Ctx = s.App.BaseApp.NewUncachedContext(false, header).WithHeaderInfo(coreheader.Info{
+		Height: header.Height,
+		Time:   header.Time,
+	})
 }
 
 func genesisStateWithValSet(t *testing.T,
