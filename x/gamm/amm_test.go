@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
 	"github.com/stretchr/testify/suite"
@@ -24,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	// set txfees basedenom
 	err := app.TxFeesKeeper.SetBaseDenom(ctx, "adym")
@@ -80,7 +79,7 @@ func (s *KeeperTestSuite) TestSwapsRevenue() {
 			params.TakerFee = tc.takerFee
 			s.App.GAMMKeeper.SetParams(s.Ctx, params)
 
-			s.FundAcc(apptesting.Sender, apptesting.DefaultAcctFunds.Add(sdk.NewCoin(fooDenom, apptesting.EXP.Mul(math.NewInt(1_000_000)))))
+			s.FundAcc(sdk.MustAccAddressFromBech32(apptesting.Alice), apptesting.DefaultAcctFunds.Add(sdk.NewCoin(fooDenom, apptesting.EXP.Mul(math.NewInt(1_000_000)))))
 			poolId := s.PrepareCustomPoolFromCoins(poolCoins, balancer.PoolParams{
 				SwapFee: tc.swapFee,
 				ExitFee: math.LegacyZeroDec(),

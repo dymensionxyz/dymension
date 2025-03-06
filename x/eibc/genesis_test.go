@@ -39,7 +39,7 @@ func TestInitGenesis(t *testing.T) {
 		},
 	}
 
-	k, ctx := keepertest.EibcKeeper(t)
+	k, ctx := keepertest.EIBCKeeper(t)
 	eibc.InitGenesis(ctx, *k, genesisState)
 	got := eibc.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
@@ -52,7 +52,7 @@ func TestInitGenesis(t *testing.T) {
 }
 
 func TestExportGenesis(t *testing.T) {
-	k, ctx := keepertest.EibcKeeper(t)
+	k, ctx := keepertest.EIBCKeeper(t)
 	params := types.Params{
 		EpochIdentifier: "week",
 		TimeoutFee:      math.LegacyNewDecWithPrec(4, 1),

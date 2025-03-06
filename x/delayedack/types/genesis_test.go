@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	chantypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	chantypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -17,6 +18,10 @@ import (
 const _ = appparams.BaseDenom
 
 func TestGenesisState_Validate(t *testing.T) {
+	config := sdk.GetConfig()
+	appparams.SetAddressPrefixes(config)
+	config.Seal()
+
 	for _, tc := range []struct {
 		desc     string
 		genState *types.GenesisState

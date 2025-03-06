@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
@@ -69,7 +70,7 @@ func (k Keeper) DeleteSellOrder(ctx sdk.Context, assetId string, assetType dymns
 func (k Keeper) GetAllSellOrders(ctx sdk.Context) (list []dymnstypes.SellOrder) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixSellOrder)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixSellOrder)
 	defer func() {
 		_ = iterator.Close() // nolint: errcheck
 	}()

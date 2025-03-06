@@ -3,13 +3,12 @@ package cli
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cobra"
-
+	math "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -116,19 +115,22 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 				return fmt.Errorf("amount is required")
 			}
 
-			amount, ok := math.NewIntFromString(amountStr)
+			amountInt, ok := math.NewIntFromString(amountStr)
 			if !ok {
 				return fmt.Errorf("invalid amount")
 			}
+
+			amount := amountInt
 
 			oepratorFeeShareStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
 			if err != nil {
 				return fmt.Errorf("fulfiller fee part is required")
 			}
-			operatorFeeShare, err := math.LegacyNewDecFromStr(oepratorFeeShareStr)
+			operatorFeeShareDec, err := math.LegacyNewDecFromStr(oepratorFeeShareStr)
 			if err != nil {
 				return fmt.Errorf("invalid fulfiller fee part: %w", err)
 			}
+			operatorFeeShare := operatorFeeShareDec
 
 			settlementValidated, err := cmd.Flags().GetBool(FlagSettlementValidated)
 			if err != nil {

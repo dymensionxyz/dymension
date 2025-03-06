@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"

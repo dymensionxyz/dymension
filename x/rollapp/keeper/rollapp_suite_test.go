@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -40,9 +39,9 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 func (s *RollappTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
 	s.App = app
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{ChainID: hubChainID})
+	ctx := app.BaseApp.NewContext(false)
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	err := app.AccountKeeper.Params.Set(ctx, authtypes.DefaultParams())
 	s.Require().NoError(err)
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)

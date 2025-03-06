@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -745,6 +746,10 @@ func TestDymNameConfig_IsDelete(t *testing.T) {
 
 //goland:noinspection SpellCheckingInspection
 func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
+	config := sdk.GetConfig()
+	appparams.SetAddressPrefixes(config)
+	config.Seal()
+
 	const dymName = "a"
 	const ownerBech32 = "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
 	const ownerBech32AtNim = "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9"

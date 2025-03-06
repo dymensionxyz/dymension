@@ -7,11 +7,11 @@ import (
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -35,7 +35,8 @@ type Keeper struct {
 	enabled *enabled
 
 	cdc             codec.BinaryCodec
-	storeKey        storetypes.StoreKey
+	storeKey        storetypes.Key
+	ibcKeeper       types.IBCKeeperExpected
 	ibcClientKeeper types.IBCClientKeeperExpected
 	ibcChannelK     types.IBCChannelKeeperExpected
 	SeqK            types.SequencerKeeperExpected
@@ -57,8 +58,9 @@ func (k Keeper) SetEnabled(b bool) {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
-	ibcKeeper types.IBCClientKeeperExpected,
+	storeKey storetypes.Key,
+	ibcKeeper types.IBCKeeperExpected,
+	ibcClientKeeper types.IBCClientKeeperExpected,
 	ibcChannelK types.IBCChannelKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
@@ -69,7 +71,8 @@ func NewKeeper(
 		enabled:         &enabled{true},
 		cdc:             cdc,
 		storeKey:        storeKey,
-		ibcClientKeeper: ibcKeeper,
+		ibcKeeper:       ibcKeeper,
+		ibcClientKeeper: ibcClientKeeper,
 		ibcChannelK:     ibcChannelK,
 		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,

@@ -5,15 +5,12 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	dymapp "github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/lockup"
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
@@ -51,7 +48,7 @@ var (
 
 func TestInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 	ctx = ctx.WithBlockTime(now.Add(time.Second))
 	genesis := testGenesis
 	app.LockupKeeper.InitGenesis(ctx, genesis)
@@ -74,12 +71,12 @@ func TestInitGenesis(t *testing.T) {
 
 func TestExportGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 	ctx = ctx.WithBlockTime(now.Add(time.Second))
 	genesis := testGenesis
 	app.LockupKeeper.InitGenesis(ctx, genesis)
 
-	err := bankutil.FundAccount(app.BankKeeper, ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
+	err := bankutil.FundAccount(ctx, app.BankKeeper, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
 	require.NoError(t, err)
 	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)}, time.Second*5)
 	require.NoError(t, err)
@@ -123,24 +120,20 @@ func TestExportGenesis(t *testing.T) {
 
 func TestMarshalUnmarshalGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
-	ctx = ctx.WithBlockTime(now.Add(time.Second))
+	ctx := app.BaseApp.NewContext(false).WithBlockTime(now.Add(time.Second))
 
-	encodingConfig := dymapp.MakeEncodingConfig()
-	appCodec := encodingConfig.Codec
-	am := lockup.NewAppModule(*app.LockupKeeper)
-
-	err := bankutil.FundAccount(app.BankKeeper, ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
+	keeper := app.LockupKeeper
+	err := bankutil.FundAccount(ctx, app.BankKeeper, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
 	require.NoError(t, err)
 	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)}, time.Second*5)
 	require.NoError(t, err)
 
-	genesisExported := am.ExportGenesis(ctx, appCodec)
+	genesisExported := keeper.ExportGenesis(ctx)
 	assert.NotPanics(t, func() {
 		app = apptesting.Setup(t)
-		ctx = app.BaseApp.NewContext(false, tmproto.Header{})
+		ctx = app.BaseApp.NewContext(false)
 		ctx = ctx.WithBlockTime(now.Add(time.Second))
-		am = lockup.NewAppModule(*app.LockupKeeper)
-		am.InitGenesis(ctx, appCodec, genesisExported)
+		keeper := app.LockupKeeper
+		keeper.InitGenesis(ctx, *genesisExported)
 	})
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,7 +41,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 	}
 
 	// compute protocol fee and charge
-	var minimumTxGasRequired sdk.Gas
+	var minimumTxGasRequired storetypes.Gas
 	if msg.ContinueOrderId != "" {
 		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOrder
 	} else {

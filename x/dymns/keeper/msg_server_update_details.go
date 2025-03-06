@@ -4,6 +4,7 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +22,7 @@ func (k msgServer) UpdateDetails(goCtx context.Context, msg *dymnstypes.MsgUpdat
 		return nil, err
 	}
 
-	var minimumTxGasRequired sdk.Gas
+	var minimumTxGasRequired storetypes.Gas
 
 	if msg.Contact == dymnstypes.DoNotModifyDesc {
 		minimumTxGasRequired = 0

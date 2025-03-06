@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -23,7 +22,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 	priceMultiplier := math.NewInt(1e18)
 
 	s.updateModuleParams(func(moduleParams dymnstypes.Params) dymnstypes.Params {
-		moduleParams.Price.AliasPriceSteps = []sdkmath.Int{
+		moduleParams.Price.AliasPriceSteps = []math.Int{
 			math.NewInt(price1L).Mul(priceMultiplier),
 			math.NewInt(price2L).Mul(priceMultiplier),
 			math.NewInt(price3L).Mul(priceMultiplier),
