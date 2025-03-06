@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/core/header"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -29,7 +30,7 @@ type UpgradeTestSuite struct {
 // SetupTest initializes the necessary items for each test
 func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
 	s.App = apptesting.Setup(t)
-	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeader(cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()}).WithChainID("dymension_100-1")
 }
 
 // TestUpgradeTestSuite runs the suite of tests for the upgrade handler
@@ -43,7 +44,11 @@ const (
 
 var (
 	expectLockupCreationFee                 = types.DYM.QuoRaw(20)
-	expectLockupForceUnlockAllowedAddresses = []string{"dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa", "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw", "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"}
+	expectLockupForceUnlockAllowedAddresses = []string{
+		"dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
+		"dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
+		"dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
+	}
 )
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
@@ -68,10 +73,10 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 				s.Require().NoError(err)
-				_, exists := s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
-				s.Require().True(exists)
+				_, err = s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
+				s.Require().NoError(err)
 
-				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight)
+				s.Ctx = s.Ctx.WithHeaderInfo(header.Info{Height: dummyUpgradeHeight, Time: s.Ctx.BlockTime().Add(time.Second)}).WithBlockHeight(dummyUpgradeHeight)
 				// simulate the upgrade process not panic.
 				s.Require().NotPanics(func() {
 					defer func() {
@@ -80,7 +85,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 						}
 					}()
 					// simulate the upgrade process.
-					s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{})
+					_, err = s.App.PreBlocker(s.Ctx, &abci.RequestFinalizeBlock{})
+					s.Require().NoError(err)
 				})
 			},
 			postUpgrade: func() (err error) {

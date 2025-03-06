@@ -1,7 +1,7 @@
 package v5
 
 import (
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 )

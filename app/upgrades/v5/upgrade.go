@@ -1,11 +1,12 @@
 package v5
 
 import (
+	"context"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
@@ -15,10 +16,10 @@ import (
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
-	_ upgrades.BaseAppParamManager,
-	keepers *keepers.AppKeepers,
+	keepers *upgrades.UpgradeKeepers,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+	return func(goCtx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
 		// Run migrations before applying any other state changes.
@@ -28,7 +29,6 @@ func CreateUpgradeHandler(
 		if err != nil {
 			return nil, err
 		}
-		keepers.MigrateModuleAccountPerms(ctx)
 
 		migrateLockupParams(ctx, keepers.LockupKeeper)
 

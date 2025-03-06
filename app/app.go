@@ -26,6 +26,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
 	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
@@ -85,7 +86,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []Upgrade{v5.Upgrade}
+	Upgrades = []upgrades.Upgrade{v5.Upgrade}
 )
 
 func init() {
@@ -202,9 +203,7 @@ func New(
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 
 	// NOTE: upgrade module is required to be prioritized
-	app.mm.SetOrderPreBlockers(
-		upgradetypes.ModuleName,
-	)
+	app.mm.SetOrderPreBlockers(PreBlockers...)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
@@ -451,13 +450,15 @@ func (app *App) setupUpgradeHandlers() {
 	}
 }
 
-func (app *App) setupUpgradeHandler(upgrade Upgrade) {
+func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrade.Name,
 		upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
-			&app.AppKeepers,
+			&upgrades.UpgradeKeepers{
+				LockupKeeper: app.AppKeepers.LockupKeeper,
+			},
 		),
 	)
 
