@@ -216,7 +216,7 @@ func (k Keeper) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, denom
 		}
 		return true, nil
 	})
-	return pageRes, gauges, err
+	return pageRes, gauges, nil
 }
 
 // filterRollappGauges
@@ -240,5 +240,5 @@ func (k Keeper) filterRollappGauges(ctx sdk.Context, pagination *query.PageReque
 		}
 		return true, nil
 	})
-	return pageRes, gauges, err
+	return pageRes, gauges, nil
 }
