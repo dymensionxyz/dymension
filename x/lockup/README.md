@@ -12,7 +12,7 @@ This module provides interfaces for other modules to iterate the locks efficient
 
 ## Contents
 
-1. **[Concept](#concepts)**
+1. **[Concepts](#concepts)**
 2. **[State](#state)**
 3. **[Messages](#messages)**
 4. **[Events](#events)**
