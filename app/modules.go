@@ -164,6 +164,7 @@ func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
+	// TODO: need HL?
 	return modAccAddrs
 }
 
