@@ -220,8 +220,12 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	SetCanonicalClient(ctx context.Context, in *MsgSetCanonicalClient, opts ...grpc.CallOption) (*MsgSetCanonicalClientResponse, error)
-	// wraps normal ibc update client to allow authz
-	// note: cannot be named UpdateClient
+	// The normal IBC update client msg needs to go through our ante handler, which
+	// means we block authz wrapping of it, but we still need a way to do it via authz
+	// (for portal self-relaying). So, we add a new wrapper message here, and route it
+	// through the ante handler logic explicitly.
+	//
+	// note: cannot reuse already-registered ibc request msg type
 	UpdateClient(ctx context.Context, in *MsgUpdateClient, opts ...grpc.CallOption) (*types.MsgUpdateClientResponse, error)
 }
 
@@ -254,8 +258,12 @@ func (c *msgClient) UpdateClient(ctx context.Context, in *MsgUpdateClient, opts 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	SetCanonicalClient(context.Context, *MsgSetCanonicalClient) (*MsgSetCanonicalClientResponse, error)
-	// wraps normal ibc update client to allow authz
-	// note: cannot be named UpdateClient
+	// The normal IBC update client msg needs to go through our ante handler, which
+	// means we block authz wrapping of it, but we still need a way to do it via authz
+	// (for portal self-relaying). So, we add a new wrapper message here, and route it
+	// through the ante handler logic explicitly.
+	//
+	// note: cannot reuse already-registered ibc request msg type
 	UpdateClient(context.Context, *MsgUpdateClient) (*types.MsgUpdateClientResponse, error)
 }
 
