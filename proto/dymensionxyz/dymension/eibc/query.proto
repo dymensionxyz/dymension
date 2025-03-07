@@ -10,7 +10,6 @@ import "dymensionxyz/dymension/common/status.proto";
 import "dymensionxyz/dymension/common/rollapp_packet.proto";
 import "dymensionxyz/dymension/eibc/lp.proto";
 
-
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Query defines the gRPC querier service.
@@ -33,15 +32,15 @@ service Query {
   }
 
   rpc OnDemandLPs(QueryOnDemandLPsRequest) returns (QueryOnDemandLPsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/eibc/on_demand_lps/{ids}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/eibc/on_demand_lps/{ids}";
   }
 
-  rpc OnDemandLPsByByAddr(QueryOnDemandLPsByAddrRequest) returns (QueryOnDemandLPsByAddrResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/eibc/on_demand_lps_addr/{addr}";
+  rpc OnDemandLPsByByAddr(QueryOnDemandLPsByAddrRequest)
+      returns (QueryOnDemandLPsByAddrResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/eibc/on_demand_lps_addr/{addr}";
   }
-
-
-
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -103,18 +102,14 @@ message QueryDemandOrdersByStatusResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryOnDemandLPsRequest{
+message QueryOnDemandLPsRequest {
   repeated uint64 ids = 1; // can be empty to return all
 }
 
-message    QueryOnDemandLPsResponse{
-  repeated OnDemandLPRecord lps = 1;
-}
+message QueryOnDemandLPsResponse { repeated OnDemandLPRecord lps = 1; }
 
-message QueryOnDemandLPsByAddrRequest{
+message QueryOnDemandLPsByAddrRequest {
   string addr = 1; // bech32-encoded
 }
 
-message    QueryOnDemandLPsByAddrResponse{
-  repeated OnDemandLPRecord lps = 1;
-}
+message QueryOnDemandLPsByAddrResponse { repeated OnDemandLPRecord lps = 1; }

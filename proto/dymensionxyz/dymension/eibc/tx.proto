@@ -12,14 +12,17 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  rpc TryFulfillOnDemand(MsgTryFulfillOnDemand) returns (MsgTryFulfillOnDemandResponse) {}
+  rpc TryFulfillOnDemand(MsgTryFulfillOnDemand)
+      returns (MsgTryFulfillOnDemandResponse) {}
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
   rpc FulfillOrderAuthorized(MsgFulfillOrderAuthorized)
       returns (MsgFulfillOrderAuthorizedResponse) {}
   rpc UpdateDemandOrder(MsgUpdateDemandOrder)
       returns (MsgUpdateDemandOrderResponse) {}
-  rpc CreateOnDemandLP(MsgCreateOnDemandLP) returns (MsgCreateOnDemandLPResponse) {}
-  rpc DeleteOnDemandLP(MsgDeleteOnDemandLP) returns (MsgDeleteOnDemandLPResponse) {}
+  rpc CreateOnDemandLP(MsgCreateOnDemandLP)
+      returns (MsgCreateOnDemandLPResponse) {}
+  rpc DeleteOnDemandLP(MsgDeleteOnDemandLP)
+      returns (MsgDeleteOnDemandLPResponse) {}
 }
 
 // MsgFulfillOrder defines the FulfillOrder request type.
@@ -98,7 +101,7 @@ message MsgUpdateDemandOrder {
 message MsgUpdateDemandOrderResponse {}
 
 // try find an on-demand-fulfiller to fulfill the order immediately
-message MsgTryFulfillOnDemand{
+message MsgTryFulfillOnDemand {
   option (cosmos.msg.v1.signer) = "signer";
   string signer = 2;
 
@@ -108,22 +111,20 @@ message MsgTryFulfillOnDemand{
   int64 rng = 3;
 }
 
-message MsgTryFulfillOnDemandResponse{}
+message MsgTryFulfillOnDemandResponse {}
 
-message MsgCreateOnDemandLP{
+message MsgCreateOnDemandLP {
   option (cosmos.msg.v1.signer) = "lp.funds_addr";
 
   OnDemandLP lp = 2;
 }
-message MsgCreateOnDemandLPResponse{
-  uint64 id = 1;
-}
+message MsgCreateOnDemandLPResponse { uint64 id = 1; }
 
-message MsgDeleteOnDemandLP{
+message MsgDeleteOnDemandLP {
   option (cosmos.msg.v1.signer) = "signer";
   string signer = 1; // must be original creator
 
   repeated uint64 ids = 2;
 }
 
-message MsgDeleteOnDemandLPResponse{}
+message MsgDeleteOnDemandLPResponse {}

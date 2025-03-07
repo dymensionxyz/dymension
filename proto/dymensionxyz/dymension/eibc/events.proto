@@ -9,7 +9,6 @@ import "dymensionxyz/dymension/eibc/demand_order.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 import "cosmos/base/v1beta1/coin.proto";
 
-
 // EventDemandOrderCreated is emitted when the demand order is created.
 message EventDemandOrderCreated {
   // order_id is the unique identifier of the demand order.

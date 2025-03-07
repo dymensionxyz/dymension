@@ -7,7 +7,6 @@ import "dymensionxyz/dymension/common/rollapp_packet.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
-
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 message OnDemandLP {
@@ -17,22 +16,29 @@ message OnDemandLP {
   string denom = 3;
 
   // will not fulfill if price is above this
-  string maxPrice = 4 [(gogoproto.nullable) = false,
+  string maxPrice = 4 [
+    (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 
   // will not fulfill if fee is below this
-  string minFee = 5 [(gogoproto.nullable) = false,
+  string minFee = 5 [
+    (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 
   // will not fulfill if brings amt spent above limit
-  string spendLimit = 6 [(gogoproto.nullable) = false,
+  string spendLimit = 6 [
+    (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 
-  // will not fulfill orders which were created fewer than this blocks in the past
-  // e.g. compatibility check occurs at height 7, order existed since block 4,
+  // will not fulfill orders which were created fewer than this blocks in the
+  // past e.g. compatibility check occurs at height 7, order existed since block
+  // 4,
   //      then fulfill if this field is 3 or less
   uint64 orderMinAgeBlocks = 7;
 }
@@ -41,10 +47,11 @@ message OnDemandLPRecord {
   uint64 id = 1;
 
   // amt spent so far
-  string spent = 2  [(gogoproto.nullable) = false,
+  string spent = 2 [
+    (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"];
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 
   OnDemandLP lp = 3;
-
 }

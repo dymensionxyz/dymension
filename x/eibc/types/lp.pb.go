@@ -38,8 +38,9 @@ type OnDemandLP struct {
 	MinFee cosmossdk_io_math.Int `protobuf:"bytes,5,opt,name=minFee,proto3,customtype=cosmossdk.io/math.Int" json:"minFee"`
 	// will not fulfill if brings amt spent above limit
 	SpendLimit cosmossdk_io_math.Int `protobuf:"bytes,6,opt,name=spendLimit,proto3,customtype=cosmossdk.io/math.Int" json:"spendLimit"`
-	// will not fulfill orders which were created fewer than this blocks in the past
-	// e.g. compatibility check occurs at height 7, order existed since block 4,
+	// will not fulfill orders which were created fewer than this blocks in the
+	// past e.g. compatibility check occurs at height 7, order existed since block
+	// 4,
 	//      then fulfill if this field is 3 or less
 	OrderMinAgeBlocks uint64 `protobuf:"varint,7,opt,name=orderMinAgeBlocks,proto3" json:"orderMinAgeBlocks,omitempty"`
 }
