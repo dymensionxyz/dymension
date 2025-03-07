@@ -470,6 +470,14 @@ func (app *App) setupUpgradeHandler(upgrade Upgrade) {
 	}
 }
 
+func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
+	export, err := app.mm.ExportGenesis(ctx, app.AppCodec())
+	if err != nil {
+		panic(err)
+	}
+	return export
+}
+
 /* -------------------------------------------------------------------------- */
 /*                            ibc testing interface                           */
 /* -------------------------------------------------------------------------- */

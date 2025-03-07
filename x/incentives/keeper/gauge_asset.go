@@ -44,7 +44,8 @@ func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo l
 		duration := min(distrTo.Duration, minDuration)
 		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, duration)
 	case lockuptypes.ByTime:
-		panic("Gauge by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
+		k.Logger(ctx).Error("Gauge by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
+		return []lockuptypes.PeriodLock{}
 	default:
 	}
 	return []lockuptypes.PeriodLock{}
