@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	math "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -27,7 +28,9 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(NewFulfillOrderAuthorizedTxCmd())
 	cmd.AddCommand(NewUpdateDemandOrderTxCmd())
 	cmd.AddCommand(NewCmdGrantAuthorization())
-
+	cmd.AddCommand(NewCmdTryFulfillOnDemand())
+	cmd.AddCommand(NewCmdCreateOnDemandLP())
+	cmd.AddCommand(NewCmdDeleteOnDemandLP())
 	return cmd
 }
 
@@ -185,6 +188,144 @@ func NewUpdateDemandOrderTxCmd() *cobra.Command {
 				orderId,
 				newFee,
 			)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewCmdTryFulfillOnDemand() *cobra.Command {
+	short := "Try to find a fulfiller for a given order and fulfill on the spot"
+	cmd := &cobra.Command{
+		Use:   "try-fulfill-on-demand [order-id] [rng]",
+		Short: short,
+		Long:  short + " Can provide rng to avoid choosing same fulfiller multiple times (number). ",
+
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			orderId := args[0]
+			rng := 0
+			if len(args) > 1 {
+				rng, err = strconv.Atoi(args[1])
+				if err != nil {
+					return err
+				}
+			}
+
+			msg := &types.MsgTryFulfillOnDemand{
+				Signer:  clientCtx.GetFromAddress().String(),
+				OrderId: orderId,
+				Rng:     int64(rng),
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewCmdCreateOnDemandLP() *cobra.Command {
+	short := "Create on demand lp - FUNDS AT RISK - use with caution"
+	long := short + "Create on demand lp - anyone can fill and order through your lp with your funds"
+	cmd := &cobra.Command{
+		Use:     "create-demand-lp [rollapp] [denom] [max-price] [min-fee] [spend-limit] [order-min-age-blocks]",
+		Short:   short,
+		Long:    long,
+		Example: "dymd tx eibc create-on-demand-lp rollapp1 token 1000 10 500 100",
+
+		Args: cobra.ExactArgs(6),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			rollapp := args[0]
+			denom := args[1]
+
+			maxPrice, ok := math.NewIntFromString(args[2])
+			if !ok {
+				return fmt.Errorf("invalid max price")
+			}
+
+			minFee, ok := math.NewIntFromString(args[3])
+			if !ok {
+				return fmt.Errorf("invalid min fee")
+			}
+
+			spendLimit, ok := math.NewIntFromString(args[4])
+			if !ok {
+				return fmt.Errorf("invalid spend limit")
+			}
+
+			orderMinAgeBlocks, err := strconv.ParseUint(args[5], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid order min age blocks: %w", err)
+			}
+
+			msg := &types.MsgCreateOnDemandLP{
+				Lp: &types.OnDemandLP{
+					FundsAddr:         clientCtx.GetFromAddress().String(),
+					Rollapp:           rollapp,
+					Denom:             denom,
+					MaxPrice:          maxPrice,
+					MinFee:            minFee,
+					SpendLimit:        spendLimit,
+					OrderMinAgeBlocks: orderMinAgeBlocks,
+				},
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewCmdDeleteOnDemandLP() *cobra.Command {
+	short := "Delete on demand lp"
+	cmd := &cobra.Command{
+		Use:   "delete-demand-lp [id]",
+		Short: short,
+
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			parse, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := &types.MsgDeleteOnDemandLP{
+				Signer: clientCtx.GetFromAddress().String(),
+				Ids:    []uint64{parse},
+			}
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

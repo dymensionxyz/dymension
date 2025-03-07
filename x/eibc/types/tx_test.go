@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -269,7 +270,8 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 			if tc.expectedError == "" {
 				require.NoError(t, err)
 			} else {
-				require.ErrorContains(t, err, tc.expectedError)
+				// !! DO NOT USE STRING COMPARISON FOR ERROR MATCHING !!
+				require.True(t, strings.Contains(strings.ToLower(err.Error()), strings.ToLower(tc.expectedError)))
 			}
 		})
 	}

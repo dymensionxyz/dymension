@@ -48,25 +48,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrExpectedFeeNotMet
 	}
 
-	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
-	if fulfillerAccount == nil {
-		return nil, types.ErrFulfillerAddressDoesNotExist
-	}
-
-	// Send the funds from the fulfiller to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.Fulfill(ctx, demandOrder, msg.GetFulfillerBech32Address())
 	if err != nil {
-		logger.Error("Failed to send coins", "error", err)
+		logger.Error("Fulfill order", "error", err)
 		return nil, err
-	}
-
-	// Fulfill the order by updating the order status and underlying packet recipient
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress(), nil); err != nil {
-		return nil, err
-	}
-
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledEvent()); err != nil {
-		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgFulfillOrderResponse{}, nil
@@ -183,11 +168,7 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 
 	lastHeight := stateInfo.GetLatestHeight()
 
-	// TODO: write oneliner
-	if lastHeight < raPacket.ProofHeight {
-		return false, nil
-	}
-	return true, nil
+	return raPacket.ProofHeight <= lastHeight, nil
 }
 
 // UpdateDemandOrder implements types.MsgServer.
@@ -254,24 +235,47 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-func (m msgServer) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
-	// Check that the order exists in status PENDING
-	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
+func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFulfillOnDemand) (*types.MsgTryFulfillOnDemandResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.ValidateBasic()
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
-	packet, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
+}
+
+func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.ValidateBasic()
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	// No error means the order is due to be finalized,
-	// in which case the order is not outstanding anymore
-	if err = m.dack.VerifyHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight); err == nil {
-		return nil, types.ErrDemandOrderInactive
+	id, err := m.Keeper.CreateLP(ctx, msg.Lp)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "create lp")
 	}
 
-	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
+	return &types.MsgCreateOnDemandLPResponse{Id: id}, nil
+}
+
+func (m msgServer) DeleteOnDemandLP(goCtx context.Context, msg *types.MsgDeleteOnDemandLP) (*types.MsgDeleteOnDemandLPResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "vbasic")
+	}
+
+	for _, id := range msg.Ids {
+		err := m.Keeper.DeleteLP(ctx, msg.MustAcc(), id, "user request")
+		if err != nil {
+			return nil, errorsmod.Wrapf(err, "delete id: %d", id)
+		}
+	}
+
+	return &types.MsgDeleteOnDemandLPResponse{}, nil
 }
