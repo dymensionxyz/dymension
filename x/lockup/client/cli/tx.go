@@ -12,7 +12,6 @@ import (
 func GetTxCmd() *cobra.Command {
 	cmd := osmocli.TxIndexCmd(types.ModuleName)
 	osmocli.AddTxCmd(cmd, NewLockTokensCmd)
-	osmocli.AddTxCmd(cmd, NewBeginUnlockingAllCmd)
 	osmocli.AddTxCmd(cmd, NewBeginUnlockByIDCmd)
 	osmocli.AddTxCmd(cmd, NewForceUnlockByIdCmd)
 
@@ -28,14 +27,6 @@ func NewLockTokensCmd() (*osmocli.TxCliDesc, *types.MsgLockTokens) {
 		},
 		Flags: osmocli.FlagDesc{RequiredFlags: []*pflag.FlagSet{FlagSetLockTokens()}},
 	}, &types.MsgLockTokens{}
-}
-
-// TODO: We should change the Use string to be unlock-all
-func NewBeginUnlockingAllCmd() (*osmocli.TxCliDesc, *types.MsgBeginUnlockingAll) {
-	return &osmocli.TxCliDesc{
-		Use:   "begin-unlock-tokens",
-		Short: "begin unlock not unlocking tokens from lockup pool for sender",
-	}, &types.MsgBeginUnlockingAll{}
 }
 
 // NewBeginUnlockByIDCmd unlocks individual period lock by ID.

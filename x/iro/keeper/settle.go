@@ -93,15 +93,23 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID
 	// the remaining tokens are used to bootstrap the liquidity pool
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(claimableAmt)
 
+	raisedDYMAmt := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom).Amount
+	poolTokens := raisedDYMAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
 	// send the raised DYM to the iro module as it will be used as the pool creator
-	raisedDYM := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
-	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(raisedDYM))
+	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, poolTokens)))
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// send rest of funds to rollapp owner
+	ownerTokens := raisedDYMAmt.Sub(poolTokens)
+	err = k.BK.SendCoins(ctx, plan.GetAddress(), k.rk.MustGetRollappOwner(ctx, plan.RollappId), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, ownerTokens)))
 	if err != nil {
 		return 0, 0, err
 	}
 
 	// find the tokens needed to bootstrap the pool, to fulfill last price
-	tokens, dym := calcLiquidityPoolTokens(unallocatedTokens, raisedDYM.Amount, plan.SpotPrice())
+	tokens, dym := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
 	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
 
@@ -128,7 +136,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID
 	// Add incentives
 	poolDenom := gammtypes.GetPoolShareDenom(poolId)
 	incentives := sdk.NewCoins(
-		sdk.NewCoin(dymLiquidityCoin.Denom, raisedDYM.Amount.Sub(dymLiquidityCoin.Amount)),
+		sdk.NewCoin(dymLiquidityCoin.Denom, poolTokens.Sub(dymLiquidityCoin.Amount)),
 		sdk.NewCoin(rollappLiquidityCoin.Denom, unallocatedTokens.Sub(rollappLiquidityCoin.Amount)),
 	)
 	distrTo := lockuptypes.QueryCondition{
@@ -142,35 +150,4 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan) (poolID
 	}
 
 	return poolID, gaugeID, nil
-}
-
-// calcLiquidityPoolTokens determines the tokens and DYM to be used for bootstrapping the liquidity pool.
-//
-// This function calculates the required DYM based on the settled token price and compares it with the raised DYM.
-// It returns the amount of RA tokens and DYM to be used for bootstrapping the liquidity pool so it fulfills the last price.
-func calcLiquidityPoolTokens(unsoldRATokens, raisedDYM math.Int, settledTokenPrice math.LegacyDec) (RATokens, dym math.Int) {
-	requiredDYM := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
-
-	// if raisedDYM is less than requiredDYM, than DYM is the limiting factor
-	// we use all the raisedDYM, and the corresponding amount of tokens
-	if raisedDYM.LT(requiredDYM) {
-		dym = raisedDYM
-		RATokens = raisedDYM.ToLegacyDec().Quo(settledTokenPrice).TruncateInt()
-	} else {
-		// if raisedDYM is more than requiredDYM, than tokens are the limiting factor
-		// we use all the unsold tokens, and the corresponding amount of DYM
-		RATokens = unsoldRATokens
-		dym = requiredDYM
-	}
-
-	// for the edge cases where required liquidity truncated to 0
-	// we use what we have as it guaranteed to be more than 0
-	if dym.IsZero() {
-		dym = raisedDYM
-	}
-	if RATokens.IsZero() {
-		RATokens = unsoldRATokens
-	}
-
-	return
 }

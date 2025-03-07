@@ -9,10 +9,16 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
+// TestValidateRollappPreconditions tests the validation of rollapp preconditions in the CreatePlan function.
+// It covers the following cases:
+// - Rollapp is missing genesis checksum
+// - Rollapp is already launched
+// - Happy path with valid rollapp
 func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
 	allocation := math.NewInt(100).MulRaw(1e18)
+	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	s.Run("MissingGenesisChecksum", func() {
 		s.SetupTest()
@@ -23,7 +29,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.GenesisInfo.GenesisChecksum = ""
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
 		s.Require().Error(err)
 	})
 
@@ -37,7 +43,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.Launched = true
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
 		s.Require().Error(err)
 	})
 
@@ -51,11 +57,19 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.Launched = false
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+		_, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
 		s.Require().NoError(err)
 	})
 }
 
+// TestCreatePlan tests the CreatePlan method of the keeper.
+// It creates a plan for a given rollapp, tests that creating a plan for the same rollapp fails,
+// creates a plan for a different rollapp and tests that the plan IDs increase.
+//
+// It also tests that the plan exists, that the plan can be retrieved by ID, and that the
+// module account has the expected creation fee.
+//
+// Finally, it tests that the genesis info is sealed after creating a plan.
 func (s *KeeperTestSuite) TestCreatePlan() {
 	rollappId := s.CreateDefaultRollapp()
 	rollappId2 := s.CreateDefaultRollapp()
@@ -64,18 +78,19 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	curve := types.DefaultBondingCurve()
 	incentives := types.DefaultIncentivePlanParams()
 	allocation := math.NewInt(100).MulRaw(1e18)
+	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	planId, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
 	s.Require().NoError(err)
 
 	// creating a a plan for same rollapp should fail
-	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives)
+	_, err = k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp, curve, incentives, liquidityPart)
 	s.Require().Error(err)
 
 	// create plan for different rollappID. test last planId increases
 	rollapp2, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId2)
-	planId2, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives)
+	planId2, err := k.CreatePlan(s.Ctx, allocation, time.Now(), time.Now().Add(time.Hour), rollapp2, curve, incentives, liquidityPart)
 	s.Require().NoError(err)
 	s.Require().Greater(planId2, planId)
 
@@ -106,6 +121,11 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	s.Require().True(rollapp.GenesisInfo.Sealed)
 }
 
+// TestMintAllocation tests that MintAllocation works correctly.
+//
+// It creates a rollapp and then uses MintAllocation to mint a certain amount of
+// tokens. It then asserts that the denom metadata is registered, the virtual
+// frontier bank contract is created and the coins have been minted.
 func (s *KeeperTestSuite) TestMintAllocation() {
 	rollappId := s.CreateDefaultRollapp()
 

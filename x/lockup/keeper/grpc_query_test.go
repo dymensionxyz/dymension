@@ -550,11 +550,14 @@ func (suite *KeeperTestSuite) TestParams() {
 	res, err := suite.querier.Params(sdk.WrapSDKContext(suite.Ctx), &types.QueryParamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal([]string(nil), res.Params.ForceUnlockAllowedAddresses)
+	suite.Require().Equal(types.DefaultLockFee, res.Params.LockCreationFee)
 
 	// Set new params & query
 	testAccs := apptesting.CreateRandomAccounts(1)
-	suite.App.LockupKeeper.SetParams(suite.Ctx, types.NewParams([]string{testAccs[0].String()}))
+	testLockFee := math.NewInt(100)
+	suite.App.LockupKeeper.SetParams(suite.Ctx, types.NewParams([]string{testAccs[0].String()}, testLockFee))
 	res, err = suite.querier.Params(sdk.WrapSDKContext(suite.Ctx), &types.QueryParamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal([]string{testAccs[0].String()}, res.Params.ForceUnlockAllowedAddresses)
+	suite.Require().Equal(testLockFee, res.Params.LockCreationFee)
 }

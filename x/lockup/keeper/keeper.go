@@ -55,6 +55,10 @@ func (k Keeper) GetForceUnlockAllowedAddresses(ctx sdk.Context) (forceUnlockAllo
 	return k.GetParams(ctx).ForceUnlockAllowedAddresses
 }
 
+func (k Keeper) GetLockCreationFee(ctx sdk.Context) math.Int {
+	return k.GetParams(ctx).LockCreationFee
+}
+
 // Logger returns a logger instance.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))

@@ -39,7 +39,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // MsgUpdateParams is the Msg/UpdateParams request type.
 // Since: cosmos-sdk 0.47
 type MsgUpdateParams struct {
-	// authority is the address that controls the module (defaults to x/gov unless overwritten).
+	// authority is the address that controls the module (defaults to x/gov unless
+	// overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// NOTE: All parameters must be supplied.
 	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
@@ -133,9 +134,11 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
 type MsgCreateSequencer struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	// pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
+	// pubkey is the public key of the sequencers' dymint client, as a Protobuf
+	// Any.
 	DymintPubKey *types.Any `protobuf:"bytes,2,opt,name=dymintPubKey,proto3" json:"dymintPubKey,omitempty"`
 	// rollapp_id defines the rollapp to which the sequencer belongs.
 	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
@@ -143,10 +146,11 @@ type MsgCreateSequencer struct {
 	Metadata SequencerMetadata `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata"`
 	// entry bond for the sequencer.
 	Bond types1.Coin `protobuf:"bytes,5,opt,name=bond,proto3" json:"bond"`
-	// RewardAddr is the bech32-encoded sequencer's reward address. Empty is valid.
-	// If empty, the creator address is used.
+	// RewardAddr is the bech32-encoded sequencer's reward address. Empty is
+	// valid. If empty, the creator address is used.
 	RewardAddr string `protobuf:"bytes,6,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
-	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	// WhitelistedRelayers is an array of the whitelisted relayer addresses.
+	// Addresses are bech32-encoded strings.
 	WhitelistedRelayers []string `protobuf:"bytes,7,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3" json:"whitelisted_relayers,omitempty"`
 }
 
@@ -270,7 +274,8 @@ var xxx_messageInfo_MsgCreateSequencerResponse proto.InternalMessageInfo
 
 // Try to kick the current proposer whose bond is below kick threshold
 type MsgKickProposer struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 }
 
@@ -351,7 +356,8 @@ func (m *MsgKickProposerResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgKickProposerResponse proto.InternalMessageInfo
 
 type MsgUpdateSequencerInformation struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// metadata defines the extra information for the sequencer.
 	Metadata SequencerMetadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata"`
@@ -533,7 +539,8 @@ var xxx_messageInfo_MsgUpdateRewardAddressResponse proto.InternalMessageInfo
 type MsgUpdateWhitelistedRelayers struct {
 	// Creator is the bech32-encoded address of the actor sending the update
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	// Relayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	// Relayers is an array of the whitelisted relayer addresses. Addresses are
+	// bech32-encoded strings.
 	Relayers []string `protobuf:"bytes,2,rep,name=relayers,proto3" json:"relayers,omitempty"`
 }
 
@@ -621,7 +628,8 @@ func (m *MsgUpdateWhitelistedRelayersResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgUpdateWhitelistedRelayersResponse proto.InternalMessageInfo
 
 type MsgUpdateOptInStatus struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// OptedIn : the new value
 	OptedIn bool `protobuf:"varint,2,opt,name=opted_in,json=optedIn,proto3" json:"opted_in,omitempty"`
@@ -830,9 +838,11 @@ func (*MsgUnbondResponse) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-// MsgIncreaseBond defines a SDK message for increasing the bond amount of a sequencer.
+// MsgIncreaseBond defines a SDK message for increasing the bond amount of a
+// sequencer.
 type MsgIncreaseBond struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// add_amount is the amount of coins to be added to the sequencer's bond.
 	AddAmount types1.Coin `protobuf:"bytes,2,opt,name=add_amount,json=addAmount,proto3" json:"add_amount"`
@@ -924,7 +934,8 @@ var xxx_messageInfo_MsgIncreaseBondResponse proto.InternalMessageInfo
 
 // MsgDecreaseBond defines a SDK message for decreasing the bond of a sequencer.
 type MsgDecreaseBond struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// decrease_amount is the amount of coins to decrease the bond by.
 	DecreaseAmount types1.Coin `protobuf:"bytes,2,opt,name=decrease_amount,json=decreaseAmount,proto3" json:"decrease_amount"`
@@ -1127,15 +1138,18 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// CreateSequencer defines a method for creating a new sequencer.
 	CreateSequencer(ctx context.Context, in *MsgCreateSequencer, opts ...grpc.CallOption) (*MsgCreateSequencerResponse, error)
-	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
+	// UpdateSequencerInformation defines a method for updating the sequencer's
+	// metadata.
 	UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error)
-	// UpdateRewardAddress defines a method for updating the sequencer's reward address.
+	// UpdateRewardAddress defines a method for updating the sequencer's reward
+	// address.
 	UpdateRewardAddress(ctx context.Context, in *MsgUpdateRewardAddress, opts ...grpc.CallOption) (*MsgUpdateRewardAddressResponse, error)
-	// UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
+	// UpdateWhitelistedRelayers defines a method for updating the sequencer's
+	// whitelisted relater list.
 	UpdateWhitelistedRelayers(ctx context.Context, in *MsgUpdateWhitelistedRelayers, opts ...grpc.CallOption) (*MsgUpdateWhitelistedRelayersResponse, error)
 	// UpdateOptInStatus allows toggling optedIn bool
-	// NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
-	// frontends last minute.
+	// NOTE: arguably should have just used UpdateSequencerInformation instead of
+	// having a new message, but want to avoid changing frontends last minute.
 	UpdateOptInStatus(ctx context.Context, in *MsgUpdateOptInStatus, opts ...grpc.CallOption) (*MsgUpdateOptInStatus, error)
 	KickProposer(ctx context.Context, in *MsgKickProposer, opts ...grpc.CallOption) (*MsgKickProposerResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
@@ -1144,8 +1158,8 @@ type MsgClient interface {
 	IncreaseBond(ctx context.Context, in *MsgIncreaseBond, opts ...grpc.CallOption) (*MsgIncreaseBondResponse, error)
 	// DecreaseBond defines a method for decreasing the bond of a sequencer.
 	DecreaseBond(ctx context.Context, in *MsgDecreaseBond, opts ...grpc.CallOption) (*MsgDecreaseBondResponse, error)
-	// UpdateParams defines a (governance) operation for updating the module parameters.
-	// Since: cosmos-sdk 0.47
+	// UpdateParams defines a (governance) operation for updating the module
+	// parameters. Since: cosmos-sdk 0.47
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 }
 
@@ -1251,15 +1265,18 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 type MsgServer interface {
 	// CreateSequencer defines a method for creating a new sequencer.
 	CreateSequencer(context.Context, *MsgCreateSequencer) (*MsgCreateSequencerResponse, error)
-	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
+	// UpdateSequencerInformation defines a method for updating the sequencer's
+	// metadata.
 	UpdateSequencerInformation(context.Context, *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error)
-	// UpdateRewardAddress defines a method for updating the sequencer's reward address.
+	// UpdateRewardAddress defines a method for updating the sequencer's reward
+	// address.
 	UpdateRewardAddress(context.Context, *MsgUpdateRewardAddress) (*MsgUpdateRewardAddressResponse, error)
-	// UpdateWhitelistedRelayers defines a method for updating the sequencer's whitelisted relater list.
+	// UpdateWhitelistedRelayers defines a method for updating the sequencer's
+	// whitelisted relater list.
 	UpdateWhitelistedRelayers(context.Context, *MsgUpdateWhitelistedRelayers) (*MsgUpdateWhitelistedRelayersResponse, error)
 	// UpdateOptInStatus allows toggling optedIn bool
-	// NOTE: arguably should have just used UpdateSequencerInformation instead of having a new message, but want to avoid changing
-	// frontends last minute.
+	// NOTE: arguably should have just used UpdateSequencerInformation instead of
+	// having a new message, but want to avoid changing frontends last minute.
 	UpdateOptInStatus(context.Context, *MsgUpdateOptInStatus) (*MsgUpdateOptInStatus, error)
 	KickProposer(context.Context, *MsgKickProposer) (*MsgKickProposerResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
@@ -1268,8 +1285,8 @@ type MsgServer interface {
 	IncreaseBond(context.Context, *MsgIncreaseBond) (*MsgIncreaseBondResponse, error)
 	// DecreaseBond defines a method for decreasing the bond of a sequencer.
 	DecreaseBond(context.Context, *MsgDecreaseBond) (*MsgDecreaseBondResponse, error)
-	// UpdateParams defines a (governance) operation for updating the module parameters.
-	// Since: cosmos-sdk 0.47
+	// UpdateParams defines a (governance) operation for updating the module
+	// parameters. Since: cosmos-sdk 0.47
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 }
 

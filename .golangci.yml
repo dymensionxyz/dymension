@@ -23,7 +23,7 @@ output:
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
   formats:
     - format: colored-line-number
-      path: stderr  # Print lines of code with issue.
+      path: stdout  # Print lines of code with issue.
   # Default: true
   print-issued-lines: true
   # Print linter name in the end of issue text.

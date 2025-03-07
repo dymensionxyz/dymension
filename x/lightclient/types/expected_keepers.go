@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -39,4 +41,8 @@ type IBCClientKeeperExpected interface {
 type IBCChannelKeeperExpected interface {
 	GetChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool)
 	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
+}
+
+type IBCKeeperExpected interface {
+	UpdateClient(goCtx context.Context, msg *ibcclienttypes.MsgUpdateClient) (*ibcclienttypes.MsgUpdateClientResponse, error)
 }

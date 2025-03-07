@@ -8,6 +8,7 @@ import "dymensionxyz/dymension/iro/iro.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/iro/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
 
@@ -77,6 +78,14 @@ message MsgCreatePlan {
   // settled.
   IncentivePlanParams incentive_plan_params = 7
       [ (gogoproto.nullable) = false ];
+
+  // The part of the liquidity that will be used for liquidity pool
+  // liquidity_part = 0.9 means 90% of the funds will go to the liquidity pool
+  string liquidity_part = 13 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgCreatePlanResponse {

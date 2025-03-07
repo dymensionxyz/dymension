@@ -259,7 +259,8 @@ type QueryAliasResponse struct {
 	FoundSellOrder bool `protobuf:"varint,2,opt,name=found_sell_order,json=foundSellOrder,proto3" json:"found_sell_order,omitempty"`
 	// buy_order_ids is the list of Buy-Order IDs for the alias.
 	BuyOrderIds []string `protobuf:"bytes,3,rep,name=buy_order_ids,json=buyOrderIds,proto3" json:"buy_order_ids,omitempty"`
-	// same_chain_aliases is the list of aliases for the same chain that associated with the alias.
+	// same_chain_aliases is the list of aliases for the same chain that
+	// associated with the alias.
 	SameChainAliases []string `protobuf:"bytes,4,rep,name=same_chain_aliases,json=sameChainAliases,proto3" json:"same_chain_aliases,omitempty"`
 }
 
@@ -414,7 +415,8 @@ func (m *QueryAliasesResponse) GetAliasesByChainId() map[string]MultipleAliases 
 	return nil
 }
 
-// ResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
+// ResolveDymNameAddressesRequest is the request type for the
+// Query/ResolveDymNameAddresses RPC method.
 type ResolveDymNameAddressesRequest struct {
 	// addresses defines the Dym-Name addresses to resolve.
 	Addresses []string `protobuf:"bytes,1,rep,name=addresses,proto3" json:"addresses,omitempty"`
@@ -460,7 +462,8 @@ func (m *ResolveDymNameAddressesRequest) GetAddresses() []string {
 	return nil
 }
 
-// ResultDymNameAddress defines the result of a single Dym-Name address resolution.
+// ResultDymNameAddress defines the result of a single Dym-Name address
+// resolution.
 type ResultDymNameAddress struct {
 	// address is the input Dym-Name address to resolve.
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
@@ -524,9 +527,11 @@ func (m *ResultDymNameAddress) GetError() string {
 	return ""
 }
 
-// ResolveDymNameAddressesResponse is the response type for the Query/ResolveDymNameAddresses RPC method.
+// ResolveDymNameAddressesResponse is the response type for the
+// Query/ResolveDymNameAddresses RPC method.
 type ResolveDymNameAddressesResponse struct {
-	// resolved_addresses defines the resolved addresses for each input Dym-Name address.
+	// resolved_addresses defines the resolved addresses for each input Dym-Name
+	// address.
 	ResolvedAddresses []ResultDymNameAddress `protobuf:"bytes,1,rep,name=resolved_addresses,json=resolvedAddresses,proto3" json:"resolved_addresses"`
 }
 
@@ -570,7 +575,8 @@ func (m *ResolveDymNameAddressesResponse) GetResolvedAddresses() []ResultDymName
 	return nil
 }
 
-// QueryDymNamesOwnedByAccountRequest is the request type for the Query/DymNamesOwnedByAccount RPC method.
+// QueryDymNamesOwnedByAccountRequest is the request type for the
+// Query/DymNamesOwnedByAccount RPC method.
 type QueryDymNamesOwnedByAccountRequest struct {
 	// owner defines the address of the owner of the Dym-Names to query for.
 	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -616,7 +622,8 @@ func (m *QueryDymNamesOwnedByAccountRequest) GetOwner() string {
 	return ""
 }
 
-// QueryDymNamesOwnedByAccountResponse is the response type for the Query/DymNamesOwnedByAccount RPC method.
+// QueryDymNamesOwnedByAccountResponse is the response type for the
+// Query/DymNamesOwnedByAccount RPC method.
 type QueryDymNamesOwnedByAccountResponse struct {
 	// dym_names defines the Dym-Names owned by the input account.
 	DymNames []DymName `protobuf:"bytes,1,rep,name=dym_names,json=dymNames,proto3" json:"dym_names"`
@@ -717,7 +724,8 @@ func (m *QuerySellOrderRequest) GetAssetType() string {
 	return ""
 }
 
-// QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.
+// QuerySellOrderResponse is the response type for the Query/SellOrder RPC
+// method.
 type QuerySellOrderResponse struct {
 	// result is the active Sell-Order for the Dym-Name/Alias.
 	Result SellOrder `protobuf:"bytes,1,opt,name=result,proto3" json:"result"`
@@ -763,7 +771,8 @@ func (m *QuerySellOrderResponse) GetResult() SellOrder {
 	return SellOrder{}
 }
 
-// EstimateRegisterNameRequest is the request type for the Query/EstimateRegisterName RPC method.
+// EstimateRegisterNameRequest is the request type for the
+// Query/EstimateRegisterName RPC method.
 type EstimateRegisterNameRequest struct {
 	// name is the Dym-Name to be registered.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -827,13 +836,16 @@ func (m *EstimateRegisterNameRequest) GetOwner() string {
 	return ""
 }
 
-// EstimateRegisterNameResponse is the response type for the Query/EstimateRegisterName RPC method.
+// EstimateRegisterNameResponse is the response type for the
+// Query/EstimateRegisterName RPC method.
 type EstimateRegisterNameResponse struct {
 	// first_year_price is the price to register the Dym-Name for the first year.
 	FirstYearPrice types.Coin `protobuf:"bytes,1,opt,name=first_year_price,json=firstYearPrice,proto3" json:"first_year_price"`
-	// extend_price is the price to extend the Dym-Name registration for another year.
+	// extend_price is the price to extend the Dym-Name registration for another
+	// year.
 	ExtendPrice types.Coin `protobuf:"bytes,2,opt,name=extend_price,json=extendPrice,proto3" json:"extend_price"`
-	// total_price is the total price to register the Dym-Name for the specified duration.
+	// total_price is the total price to register the Dym-Name for the specified
+	// duration.
 	TotalPrice types.Coin `protobuf:"bytes,3,opt,name=total_price,json=totalPrice,proto3" json:"total_price"`
 }
 
@@ -891,7 +903,8 @@ func (m *EstimateRegisterNameResponse) GetTotalPrice() types.Coin {
 	return types.Coin{}
 }
 
-// EstimateRegisterAliasRequest is the request type for the Query/EstimateRegisterAlias RPC method.
+// EstimateRegisterAliasRequest is the request type for the
+// Query/EstimateRegisterAlias RPC method.
 type EstimateRegisterAliasRequest struct {
 	// alias to be registered.
 	Alias string `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
@@ -955,7 +968,8 @@ func (m *EstimateRegisterAliasRequest) GetOwner() string {
 	return ""
 }
 
-// EstimateRegisterAliasResponse is the response type for the Query/EstimateRegisterAlias RPC method.
+// EstimateRegisterAliasResponse is the response type for the
+// Query/EstimateRegisterAlias RPC method.
 type EstimateRegisterAliasResponse struct {
 	// price is the price to register the alias.
 	Price types.Coin `protobuf:"bytes,1,opt,name=price,proto3" json:"price"`
@@ -1001,9 +1015,11 @@ func (m *EstimateRegisterAliasResponse) GetPrice() types.Coin {
 	return types.Coin{}
 }
 
-// ReverseResolveAddressRequest is the request type for the Query/ReverseResolveAddress RPC method.
+// ReverseResolveAddressRequest is the request type for the
+// Query/ReverseResolveAddress RPC method.
 type ReverseResolveAddressRequest struct {
-	// addresses defines the addresses to reverse resolve. Can be both bech32 and hex addresses.
+	// addresses defines the addresses to reverse resolve. Can be both bech32 and
+	// hex addresses.
 	Addresses []string `protobuf:"bytes,1,rep,name=addresses,proto3" json:"addresses,omitempty"`
 	// working_chain_id defines the chain id to use for the reverse resolution.
 	// Leave empty to use the host chain id.
@@ -1057,7 +1073,8 @@ func (m *ReverseResolveAddressRequest) GetWorkingChainId() string {
 	return ""
 }
 
-// ReverseResolveAddressResponse is the response type for the Query/ReverseResolveAddress RPC method.
+// ReverseResolveAddressResponse is the response type for the
+// Query/ReverseResolveAddress RPC method.
 type ReverseResolveAddressResponse struct {
 	// result defines the reverse resolution result for each input address.
 	Result map[string]ReverseResolveAddressResult `protobuf:"bytes,1,rep,name=result,proto3" json:"result" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
@@ -1113,7 +1130,8 @@ func (m *ReverseResolveAddressResponse) GetWorkingChainId() string {
 }
 
 type ReverseResolveAddressResult struct {
-	// candidates are the Dym-Name addresses that the input address resolves to. Take one of them.
+	// candidates are the Dym-Name addresses that the input address resolves to.
+	// Take one of them.
 	Candidates []string `protobuf:"bytes,1,rep,name=candidates,proto3" json:"candidates,omitempty"`
 	// error is the error that occurred during the resolution.
 	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
@@ -1166,7 +1184,8 @@ func (m *ReverseResolveAddressResult) GetError() string {
 	return ""
 }
 
-// QueryTranslateAliasOrChainIdToChainIdRequest is the request type for the Query/TranslateAliasOrChainIdToChainId RPC method.
+// QueryTranslateAliasOrChainIdToChainIdRequest is the request type for the
+// Query/TranslateAliasOrChainIdToChainId RPC method.
 type QueryTranslateAliasOrChainIdToChainIdRequest struct {
 	// alias_or_chain_id is the alias or chain id to translate.
 	AliasOrChainId string `protobuf:"bytes,1,opt,name=alias_or_chain_id,json=aliasOrChainId,proto3" json:"alias_or_chain_id,omitempty"`
@@ -1216,7 +1235,8 @@ func (m *QueryTranslateAliasOrChainIdToChainIdRequest) GetAliasOrChainId() strin
 	return ""
 }
 
-// QueryTranslateAliasOrChainIdToChainIdResponse is the response type for the Query/TranslateAliasOrChainIdToChainId RPC method.
+// QueryTranslateAliasOrChainIdToChainIdResponse is the response type for the
+// Query/TranslateAliasOrChainIdToChainId RPC method.
 type QueryTranslateAliasOrChainIdToChainIdResponse struct {
 	// chain_id is the chain id that the alias or chain id translates to.
 	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
@@ -1266,7 +1286,8 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) GetChainId() string {
 	return ""
 }
 
-// QueryBuyOrderByIdRequest is the request type for the Query/BuyOrderById RPC method.
+// QueryBuyOrderByIdRequest is the request type for the Query/BuyOrderById RPC
+// method.
 type QueryBuyOrderByIdRequest struct {
 	// id of buy offer to query.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1312,7 +1333,8 @@ func (m *QueryBuyOrderByIdRequest) GetId() string {
 	return ""
 }
 
-// QueryBuyOrderByIdResponse is the response type for the Query/BuyOrderById RPC method.
+// QueryBuyOrderByIdResponse is the response type for the Query/BuyOrderById RPC
+// method.
 type QueryBuyOrderByIdResponse struct {
 	// buy_order is the result.
 	BuyOrder BuyOrder `protobuf:"bytes,1,opt,name=buy_order,json=buyOrder,proto3" json:"buy_order"`
@@ -1358,7 +1380,8 @@ func (m *QueryBuyOrderByIdResponse) GetBuyOrder() BuyOrder {
 	return BuyOrder{}
 }
 
-// QueryBuyOrdersByAccountRequest is the request type for the Query/BuyOrdersPlacedByAccount RPC method.
+// QueryBuyOrdersByAccountRequest is the request type for the
+// Query/BuyOrdersPlacedByAccount RPC method.
 type QueryBuyOrdersPlacedByAccountRequest struct {
 	// account is the account address to query the placed buy offers.
 	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
@@ -1404,7 +1427,8 @@ func (m *QueryBuyOrdersPlacedByAccountRequest) GetAccount() string {
 	return ""
 }
 
-// QueryBuyOrdersByAccountResponse is the response type for the Query/BuyOrdersPlacedByAccount RPC method.
+// QueryBuyOrdersByAccountResponse is the response type for the
+// Query/BuyOrdersPlacedByAccount RPC method.
 type QueryBuyOrdersPlacedByAccountResponse struct {
 	// offers are the Buy-Orders placed by the account.
 	BuyOrders []BuyOrder `protobuf:"bytes,1,rep,name=buy_orders,json=buyOrders,proto3" json:"buy_orders"`
@@ -1450,7 +1474,8 @@ func (m *QueryBuyOrdersPlacedByAccountResponse) GetBuyOrders() []BuyOrder {
 	return nil
 }
 
-// QueryBuyOrdersByDymNameRequest is the request type for the Query/BuyOrdersByDymName RPC method.
+// QueryBuyOrdersByDymNameRequest is the request type for the
+// Query/BuyOrdersByDymName RPC method.
 type QueryBuyOrdersByDymNameRequest struct {
 	// name is the Dym-Name to query the buy offers placed for it.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -1496,7 +1521,8 @@ func (m *QueryBuyOrdersByDymNameRequest) GetName() string {
 	return ""
 }
 
-// QueryBuyOrdersByDymNameResponse is the response type for the Query/BuyOrdersByDymName RPC method.
+// QueryBuyOrdersByDymNameResponse is the response type for the
+// Query/BuyOrdersByDymName RPC method.
 type QueryBuyOrdersByDymNameResponse struct {
 	// buy_orders placed for the Dym-Name.
 	BuyOrders []BuyOrder `protobuf:"bytes,1,rep,name=buy_orders,json=buyOrders,proto3" json:"buy_orders"`
@@ -1542,9 +1568,11 @@ func (m *QueryBuyOrdersByDymNameResponse) GetBuyOrders() []BuyOrder {
 	return nil
 }
 
-// QueryBuyOrdersOfDymNamesOwnedByAccountRequest is the request type for the Query/BuyOrdersOfDymNamesOwnedByAccount RPC method.
+// QueryBuyOrdersOfDymNamesOwnedByAccountRequest is the request type for the
+// Query/BuyOrdersOfDymNamesOwnedByAccount RPC method.
 type QueryBuyOrdersOfDymNamesOwnedByAccountRequest struct {
-	// account is the account address to query all the buy offers of the Dym-Names owned by it.
+	// account is the account address to query all the buy offers of the Dym-Names
+	// owned by it.
 	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
@@ -1592,7 +1620,8 @@ func (m *QueryBuyOrdersOfDymNamesOwnedByAccountRequest) GetAccount() string {
 	return ""
 }
 
-// QueryBuyOrdersOfDymNamesOwnedByAccountResponse is the response type for the Query/BuyOrdersOfDymNamesOwnedByAccount RPC method.
+// QueryBuyOrdersOfDymNamesOwnedByAccountResponse is the response type for the
+// Query/BuyOrdersOfDymNamesOwnedByAccount RPC method.
 type QueryBuyOrdersOfDymNamesOwnedByAccountResponse struct {
 	// buy_orders of all the Dym-Names owned by the input account.
 	BuyOrders []BuyOrder `protobuf:"bytes,1,rep,name=buy_orders,json=buyOrders,proto3" json:"buy_orders"`
@@ -1642,7 +1671,8 @@ func (m *QueryBuyOrdersOfDymNamesOwnedByAccountResponse) GetBuyOrders() []BuyOrd
 	return nil
 }
 
-// QueryBuyOrdersByAliasRequest is the request type for the Query/BuyOrdersByAlias RPC method.
+// QueryBuyOrdersByAliasRequest is the request type for the
+// Query/BuyOrdersByAlias RPC method.
 type QueryBuyOrdersByAliasRequest struct {
 	// alias is the alias to query the buy offers placed for it.
 	Alias string `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
@@ -1688,7 +1718,8 @@ func (m *QueryBuyOrdersByAliasRequest) GetAlias() string {
 	return ""
 }
 
-// QueryBuyOrdersByAliasResponse is the response type for the Query/BuyOrdersByAlias RPC method.
+// QueryBuyOrdersByAliasResponse is the response type for the
+// Query/BuyOrdersByAlias RPC method.
 type QueryBuyOrdersByAliasResponse struct {
 	// buy_orders of the input alias.
 	BuyOrders []BuyOrder `protobuf:"bytes,1,rep,name=buy_orders,json=buyOrders,proto3" json:"buy_orders"`
@@ -1734,9 +1765,11 @@ func (m *QueryBuyOrdersByAliasResponse) GetBuyOrders() []BuyOrder {
 	return nil
 }
 
-// QueryBuyOrdersOfAliasesLinkedToRollAppRequest is the request type for the Query/BuyOrdersOfAliasesLinkedToRollApp RPC method.
+// QueryBuyOrdersOfAliasesLinkedToRollAppRequest is the request type for the
+// Query/BuyOrdersOfAliasesLinkedToRollApp RPC method.
 type QueryBuyOrdersOfAliasesLinkedToRollAppRequest struct {
-	// rollapp_id is the rollapp to query all the buy offers of the aliases linked to it
+	// rollapp_id is the rollapp to query all the buy offers of the aliases linked
+	// to it
 	RollappId string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 }
 
@@ -1784,9 +1817,11 @@ func (m *QueryBuyOrdersOfAliasesLinkedToRollAppRequest) GetRollappId() string {
 	return ""
 }
 
-// QueryBuyOrdersOfAliasesLinkedToRollAppResponse is the response type for the Query/BuyOrdersOfAliasesLinkedToRollApp RPC method.
+// QueryBuyOrdersOfAliasesLinkedToRollAppResponse is the response type for the
+// Query/BuyOrdersOfAliasesLinkedToRollApp RPC method.
 type QueryBuyOrdersOfAliasesLinkedToRollAppResponse struct {
-	// buy_orders are all the buy orders of the aliases linked to the input rollapp.
+	// buy_orders are all the buy orders of the aliases linked to the input
+	// rollapp.
 	BuyOrders []BuyOrder `protobuf:"bytes,1,rep,name=buy_orders,json=buyOrders,proto3" json:"buy_orders"`
 }
 
@@ -2018,11 +2053,13 @@ type QueryClient interface {
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// DymName queries a Dym-Name by its name.
 	DymName(ctx context.Context, in *QueryDymNameRequest, opts ...grpc.CallOption) (*QueryDymNameResponse, error)
-	// Alias queries the chain_id associated as well as the Sell-Order and Buy-Order IDs relates to the alias.
+	// Alias queries the chain_id associated as well as the Sell-Order and
+	// Buy-Order IDs relates to the alias.
 	Alias(ctx context.Context, in *QueryAliasRequest, opts ...grpc.CallOption) (*QueryAliasResponse, error)
 	// Aliases queries all the aliases for a chain id or all chains.
 	Aliases(ctx context.Context, in *QueryAliasesRequest, opts ...grpc.CallOption) (*QueryAliasesResponse, error)
-	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
+	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account
+	// address of each pointing to.
 	//
 	// For example:
 	//   - "my-name@dym" => "dym1a..."
@@ -2039,26 +2076,31 @@ type QueryClient interface {
 	EstimateRegisterName(ctx context.Context, in *EstimateRegisterNameRequest, opts ...grpc.CallOption) (*EstimateRegisterNameResponse, error)
 	// EstimateRegisterAlias estimates the cost to register an Alias.
 	EstimateRegisterAlias(ctx context.Context, in *EstimateRegisterAliasRequest, opts ...grpc.CallOption) (*EstimateRegisterAliasResponse, error)
-	// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
-	// This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
+	// ReverseResolveAddress resolves multiple account addresses to Dym-Name
+	// Addresses which point to each. This function may return multiple possible
+	// Dym-Name-Addresses those point to each of the input address.
 	//
 	// For example: when we have "my-name@dym" resolves to "dym1a..."
 	// so reverse resolve will return "my-name@dym" when input is "dym1a..."
 	ReverseResolveAddress(ctx context.Context, in *ReverseResolveAddressRequest, opts ...grpc.CallOption) (*ReverseResolveAddressResponse, error)
-	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
-	// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
+	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a
+	// chain id. If an alias/handle can not be translated to chain-id, it is
+	// treated as a chain-id and returns.
 	TranslateAliasOrChainIdToChainId(ctx context.Context, in *QueryTranslateAliasOrChainIdToChainIdRequest, opts ...grpc.CallOption) (*QueryTranslateAliasOrChainIdToChainIdResponse, error)
 	// BuyOrderById queries a Buy-Order by its id.
 	BuyOrderById(ctx context.Context, in *QueryBuyOrderByIdRequest, opts ...grpc.CallOption) (*QueryBuyOrderByIdResponse, error)
-	// BuyOrdersPlacedByAccount queries the all the buy orders placed by an account.
+	// BuyOrdersPlacedByAccount queries the all the buy orders placed by an
+	// account.
 	BuyOrdersPlacedByAccount(ctx context.Context, in *QueryBuyOrdersPlacedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOrdersPlacedByAccountResponse, error)
 	// BuyOrdersByDymName queries all the buy orders of a Dym-Name.
 	BuyOrdersByDymName(ctx context.Context, in *QueryBuyOrdersByDymNameRequest, opts ...grpc.CallOption) (*QueryBuyOrdersByDymNameResponse, error)
-	// BuyOrdersOfDymNamesOwnedByAccount queries all the buy orders of all Dym-Names owned by an account.
+	// BuyOrdersOfDymNamesOwnedByAccount queries all the buy orders of all
+	// Dym-Names owned by an account.
 	BuyOrdersOfDymNamesOwnedByAccount(ctx context.Context, in *QueryBuyOrdersOfDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOrdersOfDymNamesOwnedByAccountResponse, error)
 	// BuyOrdersByAlias queries all the buy orders of an Alias.
 	BuyOrdersByAlias(ctx context.Context, in *QueryBuyOrdersByAliasRequest, opts ...grpc.CallOption) (*QueryBuyOrdersByAliasResponse, error)
-	// BuyOrdersOfAliasesLinkedToRollApp queries all the buy orders of all Aliases linked to a RollApp.
+	// BuyOrdersOfAliasesLinkedToRollApp queries all the buy orders of all Aliases
+	// linked to a RollApp.
 	BuyOrdersOfAliasesLinkedToRollApp(ctx context.Context, in *QueryBuyOrdersOfAliasesLinkedToRollAppRequest, opts ...grpc.CallOption) (*QueryBuyOrdersOfAliasesLinkedToRollAppResponse, error)
 }
 
@@ -2229,11 +2271,13 @@ type QueryServer interface {
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// DymName queries a Dym-Name by its name.
 	DymName(context.Context, *QueryDymNameRequest) (*QueryDymNameResponse, error)
-	// Alias queries the chain_id associated as well as the Sell-Order and Buy-Order IDs relates to the alias.
+	// Alias queries the chain_id associated as well as the Sell-Order and
+	// Buy-Order IDs relates to the alias.
 	Alias(context.Context, *QueryAliasRequest) (*QueryAliasResponse, error)
 	// Aliases queries all the aliases for a chain id or all chains.
 	Aliases(context.Context, *QueryAliasesRequest) (*QueryAliasesResponse, error)
-	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
+	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account
+	// address of each pointing to.
 	//
 	// For example:
 	//   - "my-name@dym" => "dym1a..."
@@ -2250,26 +2294,31 @@ type QueryServer interface {
 	EstimateRegisterName(context.Context, *EstimateRegisterNameRequest) (*EstimateRegisterNameResponse, error)
 	// EstimateRegisterAlias estimates the cost to register an Alias.
 	EstimateRegisterAlias(context.Context, *EstimateRegisterAliasRequest) (*EstimateRegisterAliasResponse, error)
-	// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
-	// This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
+	// ReverseResolveAddress resolves multiple account addresses to Dym-Name
+	// Addresses which point to each. This function may return multiple possible
+	// Dym-Name-Addresses those point to each of the input address.
 	//
 	// For example: when we have "my-name@dym" resolves to "dym1a..."
 	// so reverse resolve will return "my-name@dym" when input is "dym1a..."
 	ReverseResolveAddress(context.Context, *ReverseResolveAddressRequest) (*ReverseResolveAddressResponse, error)
-	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
-	// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
+	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a
+	// chain id. If an alias/handle can not be translated to chain-id, it is
+	// treated as a chain-id and returns.
 	TranslateAliasOrChainIdToChainId(context.Context, *QueryTranslateAliasOrChainIdToChainIdRequest) (*QueryTranslateAliasOrChainIdToChainIdResponse, error)
 	// BuyOrderById queries a Buy-Order by its id.
 	BuyOrderById(context.Context, *QueryBuyOrderByIdRequest) (*QueryBuyOrderByIdResponse, error)
-	// BuyOrdersPlacedByAccount queries the all the buy orders placed by an account.
+	// BuyOrdersPlacedByAccount queries the all the buy orders placed by an
+	// account.
 	BuyOrdersPlacedByAccount(context.Context, *QueryBuyOrdersPlacedByAccountRequest) (*QueryBuyOrdersPlacedByAccountResponse, error)
 	// BuyOrdersByDymName queries all the buy orders of a Dym-Name.
 	BuyOrdersByDymName(context.Context, *QueryBuyOrdersByDymNameRequest) (*QueryBuyOrdersByDymNameResponse, error)
-	// BuyOrdersOfDymNamesOwnedByAccount queries all the buy orders of all Dym-Names owned by an account.
+	// BuyOrdersOfDymNamesOwnedByAccount queries all the buy orders of all
+	// Dym-Names owned by an account.
 	BuyOrdersOfDymNamesOwnedByAccount(context.Context, *QueryBuyOrdersOfDymNamesOwnedByAccountRequest) (*QueryBuyOrdersOfDymNamesOwnedByAccountResponse, error)
 	// BuyOrdersByAlias queries all the buy orders of an Alias.
 	BuyOrdersByAlias(context.Context, *QueryBuyOrdersByAliasRequest) (*QueryBuyOrdersByAliasResponse, error)
-	// BuyOrdersOfAliasesLinkedToRollApp queries all the buy orders of all Aliases linked to a RollApp.
+	// BuyOrdersOfAliasesLinkedToRollApp queries all the buy orders of all Aliases
+	// linked to a RollApp.
 	BuyOrdersOfAliasesLinkedToRollApp(context.Context, *QueryBuyOrdersOfAliasesLinkedToRollAppRequest) (*QueryBuyOrdersOfAliasesLinkedToRollAppResponse, error)
 }
 

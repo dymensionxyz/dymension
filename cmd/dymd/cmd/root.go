@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	ethserver "github.com/evmos/ethermint/server"
 
 	confixcmd "cosmossdk.io/tools/confix/cmd"
@@ -153,6 +154,19 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 	autoCliOpts := tempApp.AutoCliOpts()
 	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
 	autoCliOpts.ClientCtx = initClientCtx
+
+	// a workaround to wire the legacy proposals to the cli
+	// autoCli uses AppModule, while the legacy proposals registered on the AppModuleBasic
+	govModule, ok := autoCliOpts.Modules["gov"].(gov.AppModule)
+	if !ok {
+		panic("gov module not found")
+	}
+	govBasicModule, ok := tempApp.BasicModuleManager["gov"].(gov.AppModuleBasic)
+	if !ok {
+		panic("gov module basic not found")
+	}
+	govModule.AppModuleBasic = govBasicModule
+	autoCliOpts.Modules["gov"] = govModule
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
 		panic(err)

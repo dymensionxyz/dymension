@@ -21,7 +21,7 @@ func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
 	initSequencer string,
-	minSeqBond sdk.Coin,
+	minSeqBond *sdk.Coin,
 	metadata *RollappMetadata,
 	genesisInfo *GenesisInfo,
 ) *MsgUpdateRollappInformation {

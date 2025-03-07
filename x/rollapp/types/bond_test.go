@@ -5,21 +5,24 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 	"github.com/stretchr/testify/require"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 func TestIsUpdateMinSeqBond(t *testing.T) {
 	tests := []struct {
 		name string
-		coin sdk.Coin
+		coin *sdk.Coin
 		want bool
 	}{
-		{"valid coin", sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(100)), true},
-		{"zero amount", sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(0)), false},
-		{"wrong denom", sdk.NewCoin("wrongdenom", math.NewInt(100)), false},
-		{"empty denom", sdk.Coin{Denom: "", Amount: math.NewInt(100)}, false},
-		{"zero type", sdk.Coin{}, false},
+		{"valid coin", uptr.To(sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(100))), true},
+		{"zero amount", uptr.To(sdk.NewCoin(commontypes.DYMCoin.Denom, math.NewInt(0))), false},
+		{"wrong denom", uptr.To(sdk.NewCoin("wrongdenom", math.NewInt(100))), false},
+		{"empty denom", uptr.To(sdk.Coin{Denom: "", Amount: math.NewInt(100)}), false},
+		{"zero type", &sdk.Coin{}, false},
+		{"nil", nil, false},
 	}
 
 	for _, tt := range tests {

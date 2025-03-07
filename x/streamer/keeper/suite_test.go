@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sd
 	return streamID, stream
 }
 
-// CreateStream creates a sponsored stream struct given the required params.
+// CreateSponsoredStream creates a sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored)
 	suite.Require().NoError(err)

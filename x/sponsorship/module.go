@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"cosmossdk.io/core/appmodule"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -23,10 +23,13 @@ import (
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleSimulation = AppModule{}
-
+	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasGenesis     = AppModule{}
+	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -95,9 +98,6 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule
 // ----------------------------------------------------------------------------
 
-// _ module.HasGenesis    = AppModule{}
-var _ module.HasInvariants = AppModule{}
-
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
 	AppModuleBasic
@@ -153,7 +153,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(gs, &genState)
 
@@ -161,8 +161,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	if err != nil {
 		panic(err)
 	}
-
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.

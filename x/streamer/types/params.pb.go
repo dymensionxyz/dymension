@@ -25,8 +25,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params holds parameters for the streamer module
 type Params struct {
-	// MaxIterationPerBlock defines the maximum number of gauges that could be processed in a single block.
-	// This param is used during the pagination process.
+	// MaxIterationPerBlock defines the maximum number of gauges that could be
+	// processed in a single block. This param is used during the pagination
+	// process.
 	MaxIterationsPerBlock uint64 `protobuf:"varint,1,opt,name=max_iterations_per_block,json=maxIterationsPerBlock,proto3" json:"max_iterations_per_block,omitempty"`
 }
 

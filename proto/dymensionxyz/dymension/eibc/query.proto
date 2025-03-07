@@ -18,12 +18,16 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/eibc/params";
   }
   // Queries a Demand Order by id.
-	rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_order/{id}";
-	}
+  rpc DemandOrderById(QueryGetDemandOrderRequest)
+      returns (QueryGetDemandOrderResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/eibc/demand_order/{id}";
+  }
   // Queries a list of demand orders by status.
-  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_orders/{status}";
+  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest)
+      returns (QueryDemandOrdersByStatusResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/eibc/demand_orders/{status}";
   }
 }
 
@@ -33,16 +37,18 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-// QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder RPC method.
+// QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder
+// RPC method.
 message QueryGetDemandOrderRequest {
   // id of the demand order to get
   string id = 1;
 }
 
-// QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method.
+// QueryDemandOrdersByStatusRequest is the request type for the
+// Query/GetDemandOrdersByStatus RPC method.
 message QueryDemandOrdersByStatusRequest {
   // status of the demand order
   common.Status status = 1;
@@ -69,13 +75,15 @@ enum FulfillmentState {
   UNFULFILLED = 2;
 }
 
-// QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method.
+// QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder
+// RPC method.
 message QueryGetDemandOrderResponse {
   // demand order with the given id
   DemandOrder demand_order = 1;
 }
 
-// QueryDemandOrdersByStatusResponse is the response type for the Query/GetDemandOrdersByStatus RPC method.
+// QueryDemandOrdersByStatusResponse is the response type for the
+// Query/GetDemandOrdersByStatus RPC method.
 message QueryDemandOrdersByStatusResponse {
   // A list of demand orders with the given status
   repeated DemandOrder demand_orders = 1;

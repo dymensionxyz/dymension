@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 
@@ -54,7 +55,7 @@ func SimulateTestBondingCurve(k keeper.Keeper) simtypes.Operation {
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		plans := k.GetAllPlans(ctx, true)
 		if len(plans) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", ""), nil, fmt.Errorf("no plans found")
+			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", ""), nil, errors.New("no plans found")
 		}
 
 		// Randomly select a plan

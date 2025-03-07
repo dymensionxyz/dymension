@@ -5,9 +5,10 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
-// MigrateChainIdsProposal defines a proposal to replace chain-id in module params and configurations.
-// This proposal is used when the chain-id of a connected network changes.
-// It will look up and replace the chain-id in module params and all configurations of all non-expired Dym-Names.
+// MigrateChainIdsProposal defines a proposal to replace chain-id in module
+// params and configurations. This proposal is used when the chain-id of a
+// connected network changes. It will look up and replace the chain-id in module
+// params and all configurations of all non-expired Dym-Names.
 message MigrateChainIdsProposal {
   // title of the proposal
   string title = 1;
@@ -16,7 +17,7 @@ message MigrateChainIdsProposal {
   string description = 2;
 
   // replacements is set of chain-id replacements
-  repeated MigrateChainId replacement = 3 [(gogoproto.nullable) = false];
+  repeated MigrateChainId replacement = 3 [ (gogoproto.nullable) = false ];
 }
 
 // MigrateChainId defines a chain-id replacement.
@@ -28,7 +29,8 @@ message MigrateChainId {
   string new_chain_id = 2;
 }
 
-// UpdateAliasesProposal defines a proposal to update the aliases associated with chain-ids in module params.
+// UpdateAliasesProposal defines a proposal to update the aliases associated
+// with chain-ids in module params.
 message UpdateAliasesProposal {
   // title of the proposal
   string title = 1;
@@ -37,10 +39,10 @@ message UpdateAliasesProposal {
   string description = 2;
 
   // add is set of aliases to be mapped to chain-ids
-  repeated UpdateAlias add = 3 [(gogoproto.nullable) = false];
+  repeated UpdateAlias add = 3 [ (gogoproto.nullable) = false ];
 
   // remove is set of aliases to remove mapping from chain-ids
-  repeated UpdateAlias remove = 4 [(gogoproto.nullable) = false];
+  repeated UpdateAlias remove = 4 [ (gogoproto.nullable) = false ];
 }
 
 // UpdateAlias defines an alias to chain-id mapping.
