@@ -294,61 +294,6 @@ func New(
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 
-	/****  Simulations ****/
-	overrideModules := map[string]module.AppModuleSimulation{
-		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
-	}
-	app.sm = module.NewSimulationManagerFromAppModules(app.mm.Modules, overrideModules)
-	app.sm.RegisterStoreDecoders()
-
-	// initialize stores
-	app.MountKVStores(KVStoreKeys)
-	app.MountTransientStores(app.GetTransientStoreKey())
-	app.MountMemoryStores(app.GetMemoryStoreKey())
-
-	// initialize BaseApp
-	app.SetInitChainer(app.InitChainer)
-	app.SetPreBlocker(app.PreBlocker)
-	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetEndBlocker(app.EndBlocker)
-
-	/* ---------------------------- set ante handler ---------------------------- */
-	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
-	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:          app.AccountKeeper,
-		BankKeeper:             app.BankKeeper,
-		ExtensionOptionChecker: nil, // uses default
-		FeegrantKeeper:         app.FeeGrantKeeper,
-		SignModeHandler:        txConfig.SignModeHandler(),
-		SigGasConsumer:         nil,
-		TxFeeChecker:           nil,
-		IBCKeeper:              app.IBCKeeper,
-		FeeMarketKeeper:        app.FeeMarketKeeper,
-		EvmKeeper:              app.EvmKeeper,
-		TxFeesKeeper:           app.TxFeesKeeper,
-		MaxTxGasWanted:         maxGasWanted,
-		RollappKeeper:          *app.RollappKeeper,
-		LightClientKeeper:      &app.LightClientKeeper,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	app.SetAnteHandler(anteHandler)
-
-	// At startup, after all modules have been registered, check that all prot
-	// annotations are correct.
-	protoFiles, err := proto.MergedRegistry()
-	if err != nil {
-		panic(err)
-	}
-	err = msgservice.ValidateProtoAnnotations(protoFiles)
-	if err != nil {
-		// Once we switch to using protoreflect-based antehandlers, we might
-		// want to panic here instead of logging a warning.
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
-
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			panic(fmt.Errorf("error loading last version: %w", err))
