@@ -14,8 +14,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// TODO: still necessary? Now there is native support for collections
-
 func NewKVStoreService(storeKey storetypes.Key) store.KVStoreService {
 	return &kvStoreService{key: storeKey}
 }

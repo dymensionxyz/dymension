@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -18,7 +17,6 @@ var (
 	_ sdk.Msg = &MsgFulfillOrder{}
 	_ sdk.Msg = &MsgFulfillOrderAuthorized{}
 	_ sdk.Msg = &MsgUpdateDemandOrder{}
-	_ sdk.Msg = &MsgTryFulfillOnDemand{}
 )
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {

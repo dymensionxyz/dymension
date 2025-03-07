@@ -154,7 +154,7 @@ func New(
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
 	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
@@ -224,7 +224,7 @@ func New(
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	err := app.mm.RegisterServices(app.configurator)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to register services: %w", err))
 	}
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
@@ -235,9 +235,64 @@ func New(
 
 	reflectionSvc, err := runtimeservices.NewReflectionService()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create reflection service: %w", err))
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+
+	/****  Simulations ****/
+	overrideModules := map[string]module.AppModuleSimulation{
+		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+	}
+	app.sm = module.NewSimulationManagerFromAppModules(app.mm.Modules, overrideModules)
+	app.sm.RegisterStoreDecoders()
+
+	// initialize stores
+	app.MountKVStores(KVStoreKeys)
+	app.MountTransientStores(app.GetTransientStoreKey())
+	app.MountMemoryStores(app.GetMemoryStoreKey())
+
+	// initialize BaseApp
+	app.SetInitChainer(app.InitChainer)
+	app.SetPreBlocker(app.PreBlocker)
+	app.SetBeginBlocker(app.BeginBlocker)
+	app.SetEndBlocker(app.EndBlocker)
+
+	/* ---------------------------- set ante handler ---------------------------- */
+	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
+	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
+		AccountKeeper:          app.AccountKeeper,
+		BankKeeper:             app.BankKeeper,
+		ExtensionOptionChecker: nil, // uses default
+		FeegrantKeeper:         app.FeeGrantKeeper,
+		SignModeHandler:        txConfig.SignModeHandler(),
+		SigGasConsumer:         nil,
+		TxFeeChecker:           nil,
+		IBCKeeper:              app.IBCKeeper,
+		FeeMarketKeeper:        app.FeeMarketKeeper,
+		EvmKeeper:              app.EvmKeeper,
+		TxFeesKeeper:           app.TxFeesKeeper,
+		MaxTxGasWanted:         maxGasWanted,
+		RollappKeeper:          *app.RollappKeeper,
+		LightClientKeeper:      &app.LightClientKeeper,
+	})
+	if err != nil {
+		panic(fmt.Errorf("failed to create ante handler: %w", err))
+	}
+
+	app.SetAnteHandler(anteHandler)
+
+	// At startup, after all modules have been registered, check that all proto
+	// annotations are correct.
+	protoFiles, err := proto.MergedRegistry()
+	if err != nil {
+		panic(err)
+	}
+	err = msgservice.ValidateProtoAnnotations(protoFiles)
+	if err != nil {
+		// Once we switch to using protoreflect-based antehandlers, we might
+		// want to panic here instead of logging a warning.
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
 
 	/****  Simulations ****/
 	overrideModules := map[string]module.AppModuleSimulation{
@@ -468,6 +523,14 @@ func (app *App) setupUpgradeHandler(upgrade Upgrade) {
 		// configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
+}
+
+func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
+	export, err := app.mm.ExportGenesis(ctx, app.AppCodec())
+	if err != nil {
+		panic(err)
+	}
+	return export
 }
 
 /* -------------------------------------------------------------------------- */

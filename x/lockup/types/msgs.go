@@ -10,16 +10,14 @@ import (
 )
 
 const (
-	TypeMsgLockTokens        = "lock_tokens"
-	TypeMsgBeginUnlockingAll = "begin_unlocking_all"
-	TypeMsgBeginUnlocking    = "begin_unlocking"
-	TypeMsgExtendLockup      = "edit_lockup"
-	TypeForceUnlock          = "force_unlock"
+	TypeMsgLockTokens     = "lock_tokens"
+	TypeMsgBeginUnlocking = "begin_unlocking"
+	TypeMsgExtendLockup   = "edit_lockup"
+	TypeForceUnlock       = "force_unlock"
 )
 
 var (
 	_ sdk.Msg = &MsgLockTokens{}
-	_ sdk.Msg = &MsgBeginUnlockingAll{}
 	_ sdk.Msg = &MsgBeginUnlocking{}
 	_ sdk.Msg = &MsgExtendLockup{}
 	_ sdk.Msg = &MsgForceUnlock{}
@@ -59,30 +57,6 @@ func (m MsgLockTokens) ValidateBasic() error {
 }
 
 func (m MsgLockTokens) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
-}
-
-var _ sdk.Msg = &MsgBeginUnlockingAll{}
-
-// NewMsgBeginUnlockingAll creates a message to begin unlocking tokens.
-func NewMsgBeginUnlockingAll(owner sdk.AccAddress) *MsgBeginUnlockingAll {
-	return &MsgBeginUnlockingAll{
-		Owner: owner.String(),
-	}
-}
-
-func (m MsgBeginUnlockingAll) Route() string { return RouterKey }
-func (m MsgBeginUnlockingAll) Type() string  { return TypeMsgBeginUnlockingAll }
-func (m MsgBeginUnlockingAll) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(m.Owner)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid owner address (%s)", err)
-	}
-	return nil
-}
-
-func (m MsgBeginUnlockingAll) GetSigners() []sdk.AccAddress {
 	owner, _ := sdk.AccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{owner}
 }
