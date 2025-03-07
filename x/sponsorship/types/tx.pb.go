@@ -295,8 +295,8 @@ func (m *MsgRevokeVoteResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgRevokeVoteResponse proto.InternalMessageInfo
 
 // MsgClaimRewards defines a message to claim rewards.
-// The provided gauge must be an endorsement gauge, and the user must have a vote
-// with non-zero weight for the respective rollapp gauge.
+// The provided gauge must be an endorsement gauge, and the user must have a
+// vote with non-zero weight for the respective rollapp gauge.
 type MsgClaimRewards struct {
 	// Sender is the bech32 encoded address of the user claiming rewards.
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`

@@ -12,6 +12,9 @@ import (
 )
 
 func (s *KeeperTestSuite) TestEndorsements() {
+	// Begin the very first epoch
+	s.BeginEpoch(incentivestypes.DefaultDistrEpochIdentifier)
+
 	/** Create a rollapp and an additional gauge **/
 
 	// This automatically creates a rollapp gauge with ID 1
@@ -80,6 +83,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	})
 
 	/** Test cases **/
+
+	params := s.App.IncentivesKeeper.GetParams(s.Ctx)
+	_ = params
 
 	type endorser struct {
 		votingPower      math.Int

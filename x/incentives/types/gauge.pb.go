@@ -295,7 +295,8 @@ func (m *RollappGauge) GetRollappId() string {
 
 type EndorsementGauge struct {
 	RollappId string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	// epoch_rewards are coins that have been unlocked and can be claimed during this epoch
+	// epoch_rewards are coins that have been unlocked and can be claimed during
+	// this epoch
 	EpochRewards github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=epoch_rewards,json=epochRewards,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"epoch_rewards"`
 }
 

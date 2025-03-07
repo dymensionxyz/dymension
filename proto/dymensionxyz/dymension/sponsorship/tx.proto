@@ -60,8 +60,8 @@ message MsgRevokeVote {
 message MsgRevokeVoteResponse {}
 
 // MsgClaimRewards defines a message to claim rewards.
-// The provided gauge must be an endorsement gauge, and the user must have a vote
-// with non-zero weight for the respective rollapp gauge.
+// The provided gauge must be an endorsement gauge, and the user must have a
+// vote with non-zero weight for the respective rollapp gauge.
 message MsgClaimRewards {
   option (cosmos.msg.v1.signer) = "sender";
 
