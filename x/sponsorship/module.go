@@ -161,8 +161,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	if err != nil {
 		panic(err)
 	}
-
-	return
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.
