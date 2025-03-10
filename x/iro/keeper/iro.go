@@ -3,7 +3,8 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -68,7 +69,7 @@ func (k Keeper) MustGetPlanByRollapp(ctx sdk.Context, rollappId string) types.Pl
 // GetAllPlans returns plans sorted lexically by ID e.g. 1,10,100...
 func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Plan) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 

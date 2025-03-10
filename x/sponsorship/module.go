@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"cosmossdk.io/core/appmodule"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -25,6 +25,11 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasGenesis     = AppModule{}
+	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -93,11 +98,6 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule
 // ----------------------------------------------------------------------------
 
-var (
-	_ module.HasGenesis    = AppModule{}
-	_ module.HasInvariants = AppModule{}
-)
-
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
 	AppModuleBasic
@@ -129,6 +129,12 @@ func NewAppModule(
 	}
 }
 
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
+
 // Name returns the module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
@@ -147,7 +153,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(gs, &genState)
 
@@ -155,8 +161,6 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	if err != nil {
 		panic(err)
 	}
-
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.
@@ -166,15 +170,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 		panic(err)
 	}
 	return cdc.MustMarshalJSON(&gs)
-}
-
-// BeginBlock executes all ABCI BeginBlock logic respective to the module.
-func (am AppModule) BeginBlock(sdk.Context, abci.RequestBeginBlock) {}
-
-// EndBlock executes all ABCI EndBlock logic respective to the module.
-// Returns a nil validatorUpdate struct array.
-func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

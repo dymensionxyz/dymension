@@ -4,80 +4,77 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/fs"
-	"net/http"
 	"os"
 	"path/filepath"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
+
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
-	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
+	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
+	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
+	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
+	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
+
 	abci "github.com/cometbft/cometbft/abci/types"
-	cometbftjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
-	cometbftos "github.com/cometbft/cometbft/libs/os"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/cast"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/store/streaming"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	"github.com/dymensionxyz/dymension/v3/docs"
-
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-
-	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
-	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
-	"github.com/evmos/ethermint/ethereum/eip712"
-
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
+	evmclient "github.com/evmos/ethermint/x/evm/client"
 	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
-	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
-	_ = packetforwardmiddleware.AppModule{}
-	_ = packetforwardtypes.ErrIntOverflowGenesis
-
 	_ servertypes.Application = (*App)(nil)
 	_ runtime.AppI            = (*App)(nil)
 	_ ibctesting.TestingApp   = (*App)(nil)
@@ -86,7 +83,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v4.Upgrade}
+	Upgrades = []Upgrade{} // TODO: add v5 upgrade handler
 )
 
 func init() {
@@ -106,14 +103,17 @@ func init() {
 type App struct {
 	*baseapp.BaseApp
 
-	cdc               *codec.LegacyAmino
+	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
-	interfaceRegistry types.InterfaceRegistry
+	txConfig          client.TxConfig
+	interfaceRegistry codectypes.InterfaceRegistry
 
 	// keepers
-	keepers.AppKeepers
+	AppKeepers
 	// the module manager
-	mm *module.Manager
+	mm                 *module.Manager
+	BasicModuleManager module.BasicManager
+
 	// module configurator
 	configurator module.Configurator
 	// simulation manager
@@ -126,48 +126,38 @@ func New(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	skipUpgradeHeights map[int64]bool,
-	homePath string,
-	invCheckPeriod uint,
-	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	appCodec := encodingConfig.Codec
-	cdc := encodingConfig.Amino
-	interfaceRegistry := encodingConfig.InterfaceRegistry
+	encoding := params.MakeEncodingConfig()
+	appCodec := encoding.Codec
+	legacyAmino := encoding.Amino
+	txConfig := encoding.TxConfig
+	interfaceRegistry := encoding.InterfaceRegistry
 
-	eip712.SetEncodingConfig(simappparams.EncodingConfig{
-		InterfaceRegistry: interfaceRegistry,
-		Codec:             appCodec,
-		TxConfig:          encodingConfig.TxConfig,
-		Amino:             encodingConfig.Amino,
-	})
-
-	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
-	bApp.SetTxEncoder(encodingConfig.TxConfig.TxEncoder())
+	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	app := &App{
 		BaseApp:           bApp,
-		cdc:               cdc,
+		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
+		txConfig:          txConfig,
 		interfaceRegistry: interfaceRegistry,
-		AppKeepers:        keepers.AppKeepers{},
+		AppKeepers:        AppKeepers{},
 	}
 
-	app.GenerateKeys()
+	app.AppKeepers.GenerateKeys()
 
-	// load state streaming if enabled
-	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, logger, keepers.KVStoreKeys); err != nil {
-		panic("failed to load state streaming services: " + err.Error())
+	// register streaming services
+	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
+		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
-	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
-
-	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath)
+	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
 
@@ -179,26 +169,75 @@ func New(
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
-	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
+	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, skipGenesisInvariants)...)
 
+	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
+	// non-dependant module elements, such as codec registration and genesis verification.
+	// By default it is composed of all the module from the module manager.
+	// Additionally, app module basics can be overwritten by passing them as argument.
+	app.BasicModuleManager = module.NewBasicManagerFromManager(
+		app.mm,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+			govtypes.ModuleName: gov.NewAppModuleBasic(
+				[]govclient.ProposalHandler{
+					paramsclient.ProposalHandler,
+					streamermoduleclient.CreateStreamHandler,
+					streamermoduleclient.TerminateStreamHandler,
+					streamermoduleclient.ReplaceStreamHandler,
+					streamermoduleclient.UpdateStreamHandler,
+					sequencermoduleclient.PunishSequencerHandler,
+					denommetadatamoduleclient.CreateDenomMetadataHandler,
+					denommetadatamoduleclient.UpdateDenomMetadataHandler,
+					dymnsmoduleclient.MigrateChainIdsProposalHandler,
+					dymnsmoduleclient.UpdateAliasesProposalHandler,
+					evmclient.UpdateVirtualFrontierBankContractProposalHandler,
+				},
+			),
+		})
+
+	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
+	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
+
+	// NOTE: upgrade module is required to be prioritized
+	app.mm.SetOrderPreBlockers(
+		upgradetypes.ModuleName,
+	)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	// TODO: use "github.com/osmosis-labs/osmosis/osmoutils/partialord" to order modules
-	app.mm.SetOrderBeginBlockers(keepers.BeginBlockers...)
-	app.mm.SetOrderEndBlockers(keepers.EndBlockers...)
+	app.mm.SetOrderBeginBlockers(BeginBlockers...)
+	app.mm.SetOrderEndBlockers(EndBlockers...)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
-	// NOTE: Capability module must occur first so that it can initialize any capabilities
-	// so that other modules that want to create or claim capabilities afterwards in InitChain
-	// can do so safely.
-	app.mm.SetOrderInitGenesis(keepers.InitGenesis...)
+	app.mm.SetOrderInitGenesis(InitGenesis...)
+	app.mm.SetOrderExportGenesis(InitGenesis...)
+
+	// Uncomment if you want to set a custom migration order here.
+	// app.mm.SetOrderMigrations(custom order)
+
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	err := app.mm.RegisterServices(app.configurator)
+	if err != nil {
+		panic(fmt.Errorf("failed to register services: %w", err))
+	}
+
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	app.setupUpgradeHandlers()
+
+	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
+
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(fmt.Errorf("failed to create reflection service: %w", err))
+	}
+	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
 	/****  Simulations ****/
 	overrideModules := map[string]module.AppModuleSimulation{
@@ -208,55 +247,56 @@ func New(
 	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
-	app.MountKVStores(keepers.KVStoreKeys)
+	app.MountKVStores(KVStoreKeys)
 	app.MountTransientStores(app.GetTransientStoreKey())
 	app.MountMemoryStores(app.GetMemoryStoreKey())
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
+	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
+	app.SetEndBlocker(app.EndBlocker)
 
+	/* ---------------------------- set ante handler ---------------------------- */
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:          &app.AccountKeeper,
+		AccountKeeper:          app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
+		ExtensionOptionChecker: nil, // uses default
+		FeegrantKeeper:         app.FeeGrantKeeper,
+		SignModeHandler:        txConfig.SignModeHandler(),
+		SigGasConsumer:         nil,
+		TxFeeChecker:           nil,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		EvmKeeper:              app.EvmKeeper,
-		FeegrantKeeper:         app.FeeGrantKeeper,
 		TxFeesKeeper:           app.TxFeesKeeper,
-		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
-		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
 		LightClientKeeper:      &app.LightClientKeeper,
 	})
 	if err != nil {
-		panic(err)
-	}
-	postHandler, err := posthandler.NewPostHandler(
-		posthandler.HandlerOptions{},
-	)
-	if err != nil {
-		panic(fmt.Errorf("failed to create PostHandler: %w", err))
+		panic(fmt.Errorf("failed to create ante handler: %w", err))
 	}
 
 	app.SetAnteHandler(anteHandler)
-	app.SetEndBlocker(app.EndBlocker)
-	app.SetPostHandler(postHandler)
-	app.setupUpgradeHandlers()
 
-	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
-
-	reflectionSvc, err := runtimeservices.NewReflectionService()
+	// At startup, after all modules have been registered, check that all proto
+	// annotations are correct.
+	protoFiles, err := proto.MergedRegistry()
 	if err != nil {
 		panic(err)
 	}
-	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+	err = msgservice.ValidateProtoAnnotations(protoFiles)
+	if err != nil {
+		// Once we switch to using protoreflect-based antehandlers, we might
+		// want to panic here instead of logging a warning.
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
-			cometbftos.Exit(err.Error())
+			panic(fmt.Errorf("error loading last version: %w", err))
 		}
 	}
 
@@ -266,26 +306,35 @@ func New(
 // Name returns the name of the App
 func (app *App) Name() string { return app.BaseApp.Name() }
 
-// GetBaseApp returns the base app of the application
-func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
+// PreBlocker application updates every pre block
+func (app *App) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+	return app.mm.PreBlock(ctx)
+}
 
 // BeginBlocker application updates every begin block
-func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.mm.BeginBlock(ctx, req)
+func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	return app.mm.BeginBlock(ctx)
 }
 
 // EndBlocker application updates every end block
-func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return app.mm.EndBlock(ctx)
+}
+
+func (a *App) Configurator() module.Configurator {
+	return a.configurator
 }
 
 // InitChainer application update at chain initialization
-func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
-	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	if err != nil {
+		panic(err)
+	}
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
@@ -299,7 +348,7 @@ func (app *App) LoadHeight(height int64) error {
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
-	return app.cdc
+	return app.legacyAmino
 }
 
 // AppCodec returns an app codec.
@@ -311,29 +360,65 @@ func (app *App) AppCodec() codec.Codec {
 }
 
 // InterfaceRegistry returns an InterfaceRegistry
-func (app *App) InterfaceRegistry() types.InterfaceRegistry {
+func (app *App) InterfaceRegistry() codectypes.InterfaceRegistry {
 	return app.interfaceRegistry
+}
+
+// TxConfig returns SimApp's TxConfig
+func (app *App) TxConfig() client.TxConfig {
+	return app.txConfig
+}
+
+// AutoCliOpts returns the autocli options for the app.
+func (app *App) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.mm.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
+		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+	}
+}
+
+// DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
+func (a *App) DefaultGenesis() map[string]json.RawMessage {
+	return a.BasicModuleManager.DefaultGenesis(a.appCodec)
+}
+
+// SimulationManager implements the SimulationApp interface
+func (app *App) SimulationManager() *module.SimulationManager {
+	return app.sm
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
-
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-	// Register new tendermint queries routes from grpc-gateway.
-	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
+	// Register new CometBFT queries routes from grpc-gateway.
+	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register node gRPC service for grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
-	keepers.ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
-	if apiConfig.Swagger {
-		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
+		panic(err)
 	}
 	HealthcheckRegister(clientCtx, apiSvr.Router)
 }
@@ -345,41 +430,17 @@ func (app *App) RegisterTxService(clientCtx client.Context) {
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *App) RegisterTendermintService(clientCtx client.Context) {
-	tmservice.RegisterTendermintService(
+	cmtApp := server.NewCometABCIWrapper(app)
+	cmtservice.RegisterTendermintService(
 		clientCtx,
 		app.BaseApp.GRPCQueryRouter(),
 		app.interfaceRegistry,
-		app.Query,
+		cmtApp.Query,
 	)
 }
 
-func (app *App) RegisterNodeService(clientCtx client.Context) {
-	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
-}
-
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
-	staticFS, err := fs.Sub(docs.Docs, "static")
-	if err != nil {
-		panic(err)
-	}
-
-	staticServer := http.FileServer(http.FS(staticFS))
-	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
-}
-
-// SimulationManager implements the SimulationApp interface
-func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
-}
-
-// GetTxConfig implements ibctesting.TestingApp
-func (app *App) GetTxConfig() client.TxConfig {
-	return moduletestutil.MakeTestEncodingConfig().TxConfig
-}
-
-func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
-	return app.mm.ExportGenesis(ctx, app.AppCodec())
+func (app *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 func (app *App) setupUpgradeHandlers() {
@@ -388,13 +449,12 @@ func (app *App) setupUpgradeHandlers() {
 	}
 }
 
-func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
+func (app *App) setupUpgradeHandler(upgrade Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrade.Name,
 		upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
-			app.BaseApp,
 			&app.AppKeepers,
 		),
 	)
@@ -408,4 +468,25 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 		// configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
+}
+
+func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
+	export, err := app.mm.ExportGenesis(ctx, app.AppCodec())
+	if err != nil {
+		panic(err)
+	}
+	return export
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            ibc testing interface                           */
+/* -------------------------------------------------------------------------- */
+
+func (app *App) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
+// GetTxConfig implements ibctesting.TestingApp.
+func (app *App) GetTxConfig() client.TxConfig {
+	return app.txConfig
 }

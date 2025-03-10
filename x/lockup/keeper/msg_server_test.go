@@ -230,7 +230,7 @@ func (suite *KeeperTestSuite) TestMsgEditLockup() {
 	for _, test := range tests {
 		suite.SetupTest()
 
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, test.param.lockOwner, test.param.coinsToLock)
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, test.param.lockOwner, test.param.coinsToLock)
 		suite.Require().NoError(err)
 		// fund address with lock fee
 		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
@@ -322,7 +322,9 @@ func (suite *KeeperTestSuite) TestMsgForceUnlock() {
 		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
 		suite.FundAcc(addr1, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
-		unbondingDuration := suite.App.StakingKeeper.GetParams(suite.Ctx).UnbondingTime
+		params, err := suite.App.StakingKeeper.GetParams(suite.Ctx)
+		suite.Require().NoError(err)
+		unbondingDuration := params.UnbondingTime
 		resp, err := msgServer.LockTokens(c, types.NewMsgLockTokens(addr1, unbondingDuration, coinsToLock))
 		suite.Require().NoError(err)
 

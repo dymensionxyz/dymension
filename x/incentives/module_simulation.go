@@ -1,7 +1,6 @@
 package incentives
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -18,9 +17,9 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RegisterStoreDecoder registers a decoder for supply module's types.
-func (AppModule) RegisterStoreDecoder(sdk.StoreDecoderRegistry) {}
+func (AppModule) RegisterStoreDecoder(simtypes.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the module's operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.bankKeeper, am.epochKeeper, am.keeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, simState.TxConfig, am.accountKeeper, am.bankKeeper, am.epochKeeper, am.keeper)
 }

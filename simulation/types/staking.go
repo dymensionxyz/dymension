@@ -10,15 +10,18 @@ import (
 
 // RandomDelegation returns a random delegation from a random validator.
 func RandomDelegation(ctx sdk.Context, r *rand.Rand, k StakingKeeper) *stakingtypes.Delegation {
-	allVals := k.GetAllValidators(ctx)
+	allVals, err := k.GetAllValidators(ctx)
+	if err != nil {
+		return nil
+	}
 	srcVal, ok := testutil.RandSliceElem(r, allVals)
 	if !ok {
 		return nil
 	}
 
-	srcAddr := srcVal.GetOperator()
-	delegations := k.GetValidatorDelegations(ctx, srcAddr)
-	if delegations == nil {
+	srcAddr := sdk.MustAccAddressFromBech32(srcVal.GetOperator())
+	delegations, err := k.GetValidatorDelegations(ctx, sdk.ValAddress(srcAddr))
+	if delegations == nil || err != nil {
 		return nil
 	}
 

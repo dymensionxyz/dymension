@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -172,7 +173,7 @@ func (k Keeper) DeleteDymName(ctx sdk.Context, name string) error {
 func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
 	defer func() {
 		_ = iterator.Close()
 	}()
@@ -197,7 +198,7 @@ func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.Dym
 func (k Keeper) GetAllDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
+	iterator := storetypes.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
 	defer func() {
 		_ = iterator.Close()
 	}()

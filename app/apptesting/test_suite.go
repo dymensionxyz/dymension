@@ -5,15 +5,12 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/sdk-utils/utils/urand"
@@ -23,26 +20,24 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-var alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+var Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+
+func init() {
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+	config.Seal()
+}
 
 type KeeperTestHelper struct {
 	suite.Suite
 	App *app.App
 	Ctx sdk.Context
-}
-
-func (s *KeeperTestHelper) NextBlock(dt time.Duration) {
-	s.App.EndBlocker(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
-	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(dt)).WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	h := tmproto.Header{Height: s.Ctx.BlockHeight(), Time: s.Ctx.BlockTime(), ChainID: s.Ctx.ChainID()}
-	s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{Header: h})
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
@@ -59,7 +54,7 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:          alice,
+		Creator:          Alice,
 		RollappId:        name,
 		InitialSequencer: "*",
 		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,
@@ -102,8 +97,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
 	addr := sdk.AccAddress(pubKey.Address())
 	// fund account
-	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin))
-	s.Require().Nil(err)
+	FundAccount(s.App, ctx, addr, sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin))
 
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	s.Require().Nil(err)
@@ -160,44 +154,18 @@ func (s *KeeperTestHelper) PostStateUpdateWithOptions(ctx sdk.Context, rollappId
 
 // FundAcc funds target address with specified amount.
 func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
-	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, acc, amounts)
+	err := bankutil.FundAccount(s.Ctx, s.App.BankKeeper, acc, amounts)
 	s.Require().NoError(err)
 }
 
 // FundModuleAcc funds target modules with specified amount.
 func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
-	err := bankutil.FundModuleAccount(s.App.BankKeeper, s.Ctx, moduleName, amounts)
+	err := bankutil.FundModuleAccount(s.Ctx, s.App.BankKeeper, moduleName, amounts)
 	s.Require().NoError(err)
-}
-
-// StateNotAltered validates that app state is not altered. Fails if it is.
-func (s *KeeperTestHelper) StateNotAltered() {
-	oldState := s.App.ExportState(s.Ctx)
-	s.App.Commit()
-	newState := s.App.ExportState(s.Ctx)
-	s.Require().Equal(oldState, newState)
 }
 
 func (s *KeeperTestHelper) FundForAliasRegistration(msgCreateRollApp rollapptypes.MsgCreateRollapp) {
-	err := FundForAliasRegistration(s.Ctx, s.App.BankKeeper, msgCreateRollApp)
-	s.Require().NoError(err)
-}
-
-func FundForAliasRegistration(
-	ctx sdk.Context,
-	bankKeeper bankkeeper.Keeper,
-	msgCreateRollApp rollapptypes.MsgCreateRollapp,
-) error {
-	if msgCreateRollApp.Alias == "" {
-		return nil
-	}
-	dymNsParams := dymnstypes.DefaultPriceParams()
-	aliasRegistrationCost := sdk.NewCoins(sdk.NewCoin(
-		params.BaseDenom, dymNsParams.GetAliasPrice(msgCreateRollApp.Alias),
-	))
-	return bankutil.FundAccount(
-		bankKeeper, ctx, sdk.MustAccAddressFromBech32(msgCreateRollApp.Creator), aliasRegistrationCost,
-	)
+	FundForAliasRegistration(s.App, s.Ctx, msgCreateRollApp.Alias, msgCreateRollApp.Creator)
 }
 
 func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
@@ -221,4 +189,13 @@ func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
 		s.Require().NotNil(resp)
 	}
 	return len(packets)
+}
+
+// StateNotAltered validates that app state is not altered. Fails if it is.
+func (s *KeeperTestHelper) StateNotAltered() {
+	oldState := s.App.ExportState(s.Ctx)
+	_, err := s.App.Commit()
+	s.Require().NoError(err)
+	newState := s.App.ExportState(s.Ctx)
+	s.Require().Equal(oldState, newState)
 }

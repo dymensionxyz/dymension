@@ -8,7 +8,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -142,7 +142,7 @@ func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgF
 		return types.ErrRollappIdMismatch
 	}
 
-	if !demandOrder.Price.IsEqual(msg.Price) {
+	if !demandOrder.Price.Equal(msg.Price) {
 		return types.ErrPriceMismatch
 	}
 

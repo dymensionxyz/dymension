@@ -165,9 +165,9 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 	return fmt.Sprintf("%d", plan.Id), nil
 }
 
-func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (authtypes.ModuleAccountI, error) {
+func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (sdk.ModuleAccountI, error) {
 	moduleAccount := authtypes.NewEmptyModuleAccount(plan.ModuleAccName())
-	moduleAccountI, ok := (k.AK.NewAccount(ctx, moduleAccount)).(authtypes.ModuleAccountI)
+	moduleAccountI, ok := (k.AK.NewAccount(ctx, moduleAccount)).(sdk.ModuleAccountI)
 	if !ok {
 		return nil, errorsmod.Wrap(gerrc.ErrInternal, "failed to create module account")
 	}

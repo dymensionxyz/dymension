@@ -108,7 +108,7 @@ func (k Keeper) PunishSequencer(ctx sdk.Context, seqAddr string, rewardee *sdk.A
 	}
 
 	if rewardee != nil {
-		rewardMul = sdk.MustNewDecFromStr("0.5") // TODO: parameterise
+		rewardMul = math.LegacyMustNewDecFromStr("0.5") // TODO: parameterise
 		addr = *rewardee
 	}
 

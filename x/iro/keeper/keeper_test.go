@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -29,7 +28,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQueryServer(*app.IROKeeper))
 	queryClient := types.NewQueryClient(queryHelper)

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -87,7 +86,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 
 func (s *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)
@@ -178,7 +177,7 @@ func createSequencerMsg(rollapp string, pkCosmos, pkDymint cryptotypes.PubKey) t
 }
 
 func (s *SequencerTestSuite) fundSequencer(pk cryptotypes.PubKey, amt sdk.Coin) {
-	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, pkAcc(pk), sdk.NewCoins(amt))
+	err := bankutil.FundAccount(s.Ctx, s.App.BankKeeper, pkAcc(pk), sdk.NewCoins(amt))
 	s.Require().NoError(err)
 }
 
@@ -221,7 +220,7 @@ func equalSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if !s1.Tokens.IsEqual(s2.Tokens) {
+	if !s1.Tokens.Equal(s2.Tokens) {
 		return false
 	}
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetParams(t *testing.T) {
-	k, ctx := testkeeper.EibcKeeper(t)
+	k, ctx := testkeeper.EIBCKeeper(t)
 	params := types.DefaultParams()
 
 	k.SetParams(ctx, params)

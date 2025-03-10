@@ -5,8 +5,9 @@ import (
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -90,7 +91,7 @@ func (k Keeper) AllSequencers(ctx sdk.Context) []types.Sequencer {
 
 func (k Keeper) prefixSequencers(ctx sdk.Context, prefixKey []byte) []types.Sequencer {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
-	it := sdk.KVStorePrefixIterator(store, []byte{})
+	it := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer it.Close() // nolint: errcheck
 
@@ -167,7 +168,7 @@ func (k Keeper) AllSuccessors(ctx sdk.Context) []types.Sequencer {
 
 func (k Keeper) prefixSequencerAddrs(ctx sdk.Context, pref []byte) []types.Sequencer {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), pref)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 	ret := []types.Sequencer{}
 	for ; iterator.Valid(); iterator.Next() {
@@ -204,7 +205,7 @@ func (k Keeper) NoticeQueue(ctx sdk.Context, endTime *time.Time) ([]types.Sequen
 	if endTime != nil {
 		prefix = types.NoticeQueueByTimeKey(*endTime)
 	}
-	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(prefix))
+	iterator := store.Iterator(types.NoticePeriodQueueKey, storetypes.PrefixEndBytes(prefix))
 
 	defer iterator.Close() // nolint: errcheck
 

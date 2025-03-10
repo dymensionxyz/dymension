@@ -8,7 +8,7 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	types "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
