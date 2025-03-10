@@ -264,15 +264,14 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 		return &plan, nil
 	}
 
-	if ctx.BlockTime().Before(plan.StartTime) {
-		return nil, errorsmod.Wrapf(types.ErrPlanNotStarted, "planId: %d", plan.Id)
-	}
-
 	// validate trading enabled
 	if !plan.TradingEnabled {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading disabled")
 	}
 
+	if ctx.BlockTime().Before(plan.StartTime) {
+		return nil, errorsmod.Wrapf(types.ErrPlanNotStarted, "planId: %d", plan.Id)
+	}
 	return &plan, nil
 }
 

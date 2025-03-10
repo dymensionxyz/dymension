@@ -21,13 +21,12 @@ func (s *KeeperTestSuite) TestSettle() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
-	endTime := startTime.Add(time.Hour)
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, amt, time.Hour, startTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
@@ -117,7 +116,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 			// Create IRO plan
 			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, k.GetParams(s.Ctx).CreationFee)))
-			planId, err := k.CreatePlan(s.Ctx, allocation, startTime, startTime.Add(time.Hour), true, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+			planId, err := k.CreatePlan(s.Ctx, allocation, time.Hour, startTime, true, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 			s.Require().NoError(err)
 			reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
 

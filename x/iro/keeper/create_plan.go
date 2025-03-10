@@ -108,23 +108,18 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
 func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
-	// if trading enabled initially, set start time and pre-launch time
-	var preLaunchTime time.Time
-	if tradingEnabled {
-		// FIXME: wrap into SetPlanTradeEnable
-		if startTime.Before(ctx.BlockTime()) {
-			startTime = ctx.BlockTime()
-		}
-		preLaunchTime = startTime.Add(planDuration)
-	}
-
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, planDuration, startTime, preLaunchTime, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
+	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, planDuration, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
+
+	// if trading enabled initially, set start time and pre-launch time
 	if tradingEnabled {
+		if startTime.Before(ctx.BlockTime()) {
+			startTime = ctx.BlockTime()
+		}
 		plan.EnableTradingWithStartTime(startTime)
 	}
 
