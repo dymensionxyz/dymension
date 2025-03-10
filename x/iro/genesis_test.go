@@ -22,8 +22,8 @@ var (
 )
 
 var plans = []types.Plan{
-	types.NewPlan(1, "rollapp1", fooCoin, defaultCurve, time.Time{}, time.Time{}, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
-	types.NewPlan(2, "rollapp2", fooCoin, defaultCurve, time.Time{}, time.Time{}, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
+	types.NewPlan(1, "rollapp1", fooCoin, defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
+	types.NewPlan(2, "rollapp2", fooCoin, defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
 }
 
 func TestGenesis(t *testing.T) {

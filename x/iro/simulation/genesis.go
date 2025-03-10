@@ -35,9 +35,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 	rollappId := urand.RollappID()
 
-	startTime := time.Now()
-	preLaunchTime := startTime.Add(24 * time.Hour)
-
 	// Generate random allocated amount (between 100_000 and 1_000_000_000 RA tokens)
 	baseDenom := types.IRODenom(rollappId)
 	allocatedAmount := simtypes.RandomAmount(r, math.NewInt(1e9).SubRaw(100_000)).AddRaw(100_000).MulRaw(1e18)
@@ -50,7 +47,8 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 
 	// Generate random bonding curve
 	curve := generateRandomBondingCurve(r, allocatedAmount, liquidityPart)
-	plan := types.NewPlan(id, rollappId, allocation, curve, startTime, preLaunchTime, types.DefaultIncentivePlanParams(), liquidityPart, 24*time.Hour, 0)
+	plan := types.NewPlan(id, rollappId, allocation, curve, 24*time.Hour, types.DefaultIncentivePlanParams(), liquidityPart, 24*time.Hour, 0)
+	plan.EnableTradingWithStartTime(time.Now())
 
 	// randomize starting sold amount
 	// minSoldAmt < soldAmt < allocatedAmount - minUnsoldAmt

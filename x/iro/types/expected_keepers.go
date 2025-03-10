@@ -56,6 +56,7 @@ type PoolManagerKeeper interface {
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapp rollapptypes.Rollapp, found bool)
 	SetIROPlanToRollapp(ctx sdk.Context, rollapp *rollapptypes.Rollapp, iro Plan) error
+	SetPreLaunchTime(ctx sdk.Context, rollapp *rollapptypes.Rollapp, preLaunchTime time.Time)
 	MustGetRollappOwner(ctx sdk.Context, rollappID string) sdk.AccAddress
 }
 
