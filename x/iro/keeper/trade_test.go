@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	// Verify rollapp is not launchable (pre-launch time is far in the future)
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	s.Require().NotNil(rollapp.PreLaunchTime)
-	s.Assert().True(rollapp.PreLaunchTime.After(time.Now().Add(time.Hour * 24 * 365 * 9))) // at least 9 years in future
+	s.Assert().True(rollapp.PreLaunchTime.After(s.Ctx.BlockTime().Add(time.Hour * 24 * 365 * 9))) // at least 9 years in future
 
 	buyer := sample.Acc()
 	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
