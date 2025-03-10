@@ -28,7 +28,12 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "trading already enabled")
 	}
 
-	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
+	rollapp, found := k.rk.GetRollapp(ctx, plan.RollappId)
+	if !found {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp not found")
+	}
+
+	owner := sdk.MustAccAddressFromBech32(rollapp.Owner)
 	if !owner.Equals(submitter) {
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
@@ -40,6 +45,7 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 	plan.EnableTradingWithStartTime(ctx.BlockTime())
 	k.SetPlan(ctx, plan)
 
+	k.rk.SetPreLaunchTime(ctx, &rollapp, plan.PreLaunchTime)
 	return nil
 }
 

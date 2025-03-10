@@ -29,6 +29,13 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	s.Assert().False(plan.TradingEnabled)
+	s.Assert().True(plan.StartTime.IsZero())
+	s.Assert().True(plan.PreLaunchTime.IsZero())
+
+	// Verify rollapp is not launchable (pre-launch time is far in the future)
+	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	s.Require().NotNil(rollapp.PreLaunchTime)
+	s.Assert().True(rollapp.PreLaunchTime.After(time.Now().Add(time.Hour * 24 * 365 * 9))) // at least 9 years in future
 
 	buyer := sample.Acc()
 	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
@@ -54,11 +61,24 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	s.Require().Error(err)
 
 	// Enable trading by owner
+	enableTime := time.Now().Round(0).UTC()
+	s.Ctx = s.Ctx.WithBlockTime(enableTime)
 	err = s.App.IROKeeper.EnableTrading(s.Ctx, planId, owner)
 	s.Require().NoError(err)
 
+	// Verify plan trading is enabled and times are set correctly
+	plan = k.MustGetPlan(s.Ctx, planId)
+	s.Assert().True(plan.TradingEnabled)
+	s.Assert().Equal(enableTime, plan.StartTime)
+	s.Assert().Equal(enableTime.Add(plan.IroPlanDuration), plan.PreLaunchTime)
+
+	// Verify rollapp pre-launch time is updated
+	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	s.Require().NotNil(rollapp.PreLaunchTime)
+	s.Assert().Equal(plan.PreLaunchTime, *rollapp.PreLaunchTime)
+
 	// Buy should now succeed
-	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)
+	err = k.Buy(s.Ctx.WithBlockTime(enableTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)
 	s.Require().NoError(err)
 }
 
