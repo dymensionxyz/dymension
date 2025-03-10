@@ -37,7 +37,7 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "plan already settled")
 	}
 
-	plan.TradingEnabled = true
+	plan.EnableTradingWithStartTime(ctx.BlockTime())
 	k.SetPlan(ctx, plan)
 
 	return nil

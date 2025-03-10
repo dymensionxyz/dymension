@@ -40,32 +40,28 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, sdkerrors.ErrUnauthorized
 	}
 
-	startTime := req.StartTime
-	if startTime.Before(ctx.BlockTime()) {
-		startTime = ctx.BlockTime()
-	}
+	params := m.Keeper.GetParams(ctx)
+
 	// check minimal plan duration
-	if req.IroPlanDuration < m.Keeper.GetParams(ctx).MinPlanDuration {
+	if req.IroPlanDuration < params.MinPlanDuration {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
 	}
-	preLaunchTime := startTime.Add(req.IroPlanDuration)
 
 	// check minimal liquidity part
-	if req.LiquidityPart.LT(m.Keeper.GetParams(ctx).MinLiquidityPart) {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "liquidity part must be at least %s", m.Keeper.GetParams(ctx).MinLiquidityPart)
+	if req.LiquidityPart.LT(params.MinLiquidityPart) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "liquidity part must be at least %s", params.MinLiquidityPart)
 	}
 
 	// check vesting params
-	if req.VestingDuration < m.Keeper.GetParams(ctx).MinVestingDuration {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting duration must be at least %s", m.Keeper.GetParams(ctx).MinVestingDuration)
+	if req.VestingDuration < params.MinVestingDuration {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting duration must be at least %s", params.MinVestingDuration)
 	}
 
-	if req.VestingStartTimeAfterSettlement < m.Keeper.GetParams(ctx).MinVestingStartTimeAfterSettlement {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting start time after settlement must be at least %s", m.Keeper.GetParams(ctx).MinVestingStartTimeAfterSettlement)
+	if req.VestingStartTimeAfterSettlement < params.MinVestingStartTimeAfterSettlement {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting start time after settlement must be at least %s", params.MinVestingStartTimeAfterSettlement)
 	}
 
 	// validate incentive plan params
-	params := m.Keeper.GetParams(ctx)
 	if req.IncentivePlanParams.NumEpochsPaidOver < params.IncentivesMinNumEpochsPaidOver {
 		return nil, errors.Join(gerrc.ErrInvalidArgument, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "num epochs paid over"))
 	}
@@ -93,7 +89,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no genesis account for iro module account")
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, preLaunchTime, req.TradingEnabled, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration, req.VestingStartTimeAfterSettlement)
+	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.IroPlanDuration, req.StartTime, req.TradingEnabled, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration, req.VestingStartTimeAfterSettlement)
 	if err != nil {
 		return nil, err
 	}
@@ -111,14 +107,27 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 // 4. Creates a new module account for the IRO plan.
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
-func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, tradingEnabled bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
+	// if trading enabled initially, set start time and pre-launch time
+	var preLaunchTime time.Time
+	if tradingEnabled {
+		// FIXME: wrap into SetPlanTradeEnable
+		if startTime.Before(ctx.BlockTime()) {
+			startTime = ctx.BlockTime()
+		}
+		preLaunchTime = startTime.Add(planDuration)
+	}
+
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
-	plan.TradingEnabled = tradingEnabled
+	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, planDuration, startTime, preLaunchTime, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
+	if tradingEnabled {
+		plan.EnableTradingWithStartTime(startTime)
+	}
+
 	if err := plan.ValidateBasic(); err != nil {
 		return "", errors.Join(gerrc.ErrInvalidArgument, err)
 	}

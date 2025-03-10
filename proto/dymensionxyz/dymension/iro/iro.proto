@@ -101,6 +101,9 @@ message Plan {
   // Whether trading is enabled for the plan. default to true
   // can be set to false initially, to require EnableTrading tx for this IRO
   bool trading_enabled = 15;
+  // The duration of the plan.
+  google.protobuf.Duration iro_plan_duration = 16
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }
 
 message IncentivePlanParams {

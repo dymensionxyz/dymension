@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -51,11 +52,16 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return ErrInvalidEndTime
 	}
 
+	// if start time set, trading must be enabled
+	if m.StartTime.Unix() > 0 && !m.TradingEnabled {
+		return errors.New("trading must be enabled to set start time")
+	}
+
 	if err := m.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
 	}
 
-	if !m.LiquidityPart.IsPositive() {
+	if m.LiquidityPart.IsNegative() || m.LiquidityPart.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("liquidity part must be positive: %s", m.LiquidityPart)
 	}
 
