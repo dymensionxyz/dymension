@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/utils/uinv"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -95,6 +96,13 @@ func InvariantAccounting(k Keeper) uinv.Func {
 				if moduleBal.Amount.LT(claimable) {
 					errs = append(errs, fmt.Errorf("insufficient RA tokens: planID: %d, required: %s, available: %s",
 						plan.Id, claimable, moduleBal.Amount))
+				}
+
+				founderFunds := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom)
+				expectedFunds := plan.VestingPlan.Amount.Sub(plan.VestingPlan.Claimed)
+				if !founderFunds.Amount.Equal(expectedFunds) {
+					errs = append(errs, fmt.Errorf("incorrect founder funds: planID: %d, expected: %s, available: %s",
+						plan.Id, expectedFunds, founderFunds.Amount))
 				}
 			}
 		}

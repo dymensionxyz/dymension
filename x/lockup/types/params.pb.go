@@ -33,8 +33,9 @@ type Params struct {
 	ForceUnlockAllowedAddresses []string `protobuf:"bytes,1,rep,name=force_unlock_allowed_addresses,json=forceUnlockAllowedAddresses,proto3" json:"force_unlock_allowed_addresses,omitempty" yaml:"force_unlock_allowed_address"`
 	// LockCreationFee represents the base fee required to create a new lock.
 	LockCreationFee cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=lock_creation_fee,json=lockCreationFee,proto3,customtype=cosmossdk.io/math.Int" json:"lock_creation_fee"`
-	// MinLockDuration is the min time needed for a lock to mature after unlocking has
-	// started. The user can't create a lock with a duration less than this value.
+	// MinLockDuration is the min time needed for a lock to mature after unlocking
+	// has started. The user can't create a lock with a duration less than this
+	// value.
 	MinLockDuration time.Duration `protobuf:"bytes,3,opt,name=min_lock_duration,json=minLockDuration,proto3,stdduration" json:"duration,omitempty" yaml:"duration"`
 }
 

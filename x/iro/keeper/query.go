@@ -146,3 +146,28 @@ func (k Keeper) QuerySpotPrice(goCtx context.Context, req *types.QuerySpotPriceR
 		Price: plan.SpotPrice(),
 	}, nil
 }
+
+// QueryVesting implements types.QueryServer.
+func (k Keeper) QueryVesting(goCtx context.Context, req *types.QueryVestingRequest) (*types.QueryVestingResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	plan, found := k.GetPlan(ctx, req.PlanId)
+	if !found {
+		return nil, status.Error(codes.NotFound, "plan not found")
+	}
+
+	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
+
+	vested := plan.VestingPlan.VestedAmt(ctx.BlockTime())
+
+	response := &types.QueryVestingResponse{
+		Owner:           owner.String(),
+		Total:           plan.VestingPlan.Amount,
+		VestedAmount:    vested,
+		ClaimableAmount: vested.Sub(plan.VestingPlan.Claimed),
+	}
+	return response, nil
+}
