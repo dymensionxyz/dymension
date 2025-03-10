@@ -17,8 +17,10 @@ const (
 	FlagLiquidityPart                          = "liquidity-part"
 	FlagVestingDuration                        = "vesting-duration"
 	FlagVestingStartTimeAfterSettlement        = "vesting-start-time"
+	FlagTradingDisabled                        = "trading-disabled"
 )
 
+// FIXME: add plan duration
 var (
 	defaultIncentivePlanParams_epochs = types.DefaultIncentivePlanMinimumNumEpochsPaidOver
 	defaultIncentivePlanParams_start  = 7 * 24 * time.Hour
@@ -31,7 +33,8 @@ var (
 func FlagSetCreatePlan() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagStartTime, "", "The start time of the plan. Default is the current time.")
+	fs.Bool(FlagTradingDisabled, false, "Whether trading should be disabled initially. If true, start-time should not be provided.")
+	fs.String(FlagStartTime, "", "The start time of the plan. Default is the current time. Cannot be set if trading-enabled is false.")
 	fs.String(FlagBondingCurve, "", "The bonding curve parameters.")
 	fs.Duration(FlagIncentivesStartDurationAfterSettlement, defaultIncentivePlanParams_start, "The duration after the plan is settled to start the incentives.")
 	fs.Uint64(FlagIncentivesEpochs, defaultIncentivePlanParams_epochs, "The number of epochs for the incentives.")
