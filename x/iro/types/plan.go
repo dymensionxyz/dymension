@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,7 +24,7 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec) Plan {
+func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
 	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
 	plan := Plan{
 		Id:                  id,
@@ -37,6 +38,12 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		IncentivePlanParams: incentivesParams,
 		MaxAmountToSell:     eq,
 		LiquidityPart:       liquidityPart,
+		VestingPlan: IROVestingPlan{
+			Amount:                   math.ZeroInt(),
+			Claimed:                  math.ZeroInt(),
+			VestingDuration:          vestingDuration,
+			StartTimeAfterSettlement: vestingStartTimeAfterSettlement,
+		},
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
 	return plan
@@ -71,8 +78,16 @@ func (p Plan) ValidateBasic() error {
 		return fmt.Errorf("max amount to sell must be less than or equal to the total allocation: %s > %s", p.MaxAmountToSell.String(), p.TotalAllocation.Amount.String())
 	}
 
+	if p.LiquidityPart.IsNegative() || p.LiquidityPart.GT(math.LegacyOneDec()) {
+		return errors.New("liquidity part must be between 0 and 1")
+	}
+
 	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
+	}
+
+	if err := p.VestingPlan.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "vesting plan")
 	}
 
 	return nil
