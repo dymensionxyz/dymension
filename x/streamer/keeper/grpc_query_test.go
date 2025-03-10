@@ -5,12 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
-
-var _ = suite.TestingSuite(nil)
 
 // TestGRPCStreamByID tests querying streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCStreamByID() {
@@ -19,12 +16,12 @@ func (suite *KeeperTestSuite) TestGRPCStreamByID() {
 	streamID, stream := suite.CreateDefaultStream(coins)
 
 	// ensure that querying for a stream with an ID that doesn't exist returns an error.
-	res, err := suite.querier.StreamByID(sdk.WrapSDKContext(suite.Ctx), &types.StreamByIDRequest{Id: 1000})
+	res, err := suite.querier.StreamByID(suite.Ctx, &types.StreamByIDRequest{Id: 1000})
 	suite.Require().Error(err)
 	suite.Require().Equal(res, (*types.StreamByIDResponse)(nil))
 
 	// check that querying a stream with an ID that exists returns the stream.
-	res, err = suite.querier.StreamByID(sdk.WrapSDKContext(suite.Ctx), &types.StreamByIDRequest{Id: streamID})
+	res, err = suite.querier.StreamByID(suite.Ctx, &types.StreamByIDRequest{Id: streamID})
 	suite.Require().NoError(err)
 	suite.Require().NotEqual(res.Stream, nil)
 
@@ -35,7 +32,7 @@ func (suite *KeeperTestSuite) TestGRPCStreamByID() {
 // TestGRPCStreams tests querying upcoming and active streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCStreams() {
 	// ensure initially querying streams returns no streams
-	res, err := suite.querier.Streams(sdk.WrapSDKContext(suite.Ctx), &types.StreamsRequest{})
+	res, err := suite.querier.Streams(suite.Ctx, &types.StreamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 0)
 
@@ -45,7 +42,7 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 	suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
 	// query streams again, but this time expect the stream created earlier in the response
-	res, err = suite.querier.Streams(sdk.WrapSDKContext(suite.Ctx), &types.StreamsRequest{})
+	res, err = suite.querier.Streams(suite.Ctx, &types.StreamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 1)
 	expectedStream := suite.ExpectedDefaultStream(streamID, stream.StartTime, coins)
@@ -61,12 +58,12 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 
 	// check that setting page request limit to 10 will only return 10 out of the 11 streams
 	filter := query.PageRequest{Limit: 10}
-	res, err = suite.querier.Streams(sdk.WrapSDKContext(suite.Ctx), &types.StreamsRequest{Pagination: &filter})
+	res, err = suite.querier.Streams(suite.Ctx, &types.StreamsRequest{Pagination: &filter})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 10)
 
 	filter = query.PageRequest{Limit: 13}
-	res, err = suite.querier.Streams(sdk.WrapSDKContext(suite.Ctx), &types.StreamsRequest{Pagination: &filter})
+	res, err = suite.querier.Streams(suite.Ctx, &types.StreamsRequest{Pagination: &filter})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 11)
 }
@@ -74,20 +71,20 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 // TestGRPCActiveStreams tests querying active streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 	// ensure initially querying active streams returns no streams
-	res, err := suite.querier.ActiveStreams(sdk.WrapSDKContext(suite.Ctx), &types.ActiveStreamsRequest{})
+	res, err := suite.querier.ActiveStreams(suite.Ctx, &types.ActiveStreamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 0)
 
 	// create a stream and move it from upcoming to active
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 	streamID, stream := suite.CreateDefaultStream(coins)
-	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
+	suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
 	err = suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 
 	// query active streams again, but this time expect the stream created earlier in the response
-	res, err = suite.querier.ActiveStreams(sdk.WrapSDKContext(suite.Ctx), &types.ActiveStreamsRequest{})
+	res, err = suite.querier.ActiveStreams(suite.Ctx, &types.ActiveStreamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 1)
 
@@ -98,7 +95,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 	for i := 0; i < 20; i++ {
 		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 		_, stream := suite.CreateDefaultStream(coins)
-		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
+		suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
 		// move the first 9 streams from upcoming to active (now 10 active streams, 30 total streams)
 		if i < 9 {
@@ -108,12 +105,12 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 	}
 
 	// set page request limit to 5, expect only 5 active stream responses
-	res, err = suite.querier.ActiveStreams(sdk.WrapSDKContext(suite.Ctx), &types.ActiveStreamsRequest{Pagination: &query.PageRequest{Limit: 5}})
+	res, err = suite.querier.ActiveStreams(suite.Ctx, &types.ActiveStreamsRequest{Pagination: &query.PageRequest{Limit: 5}})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 5)
 
 	// set page request limit to 15, expect only 10 active stream responses
-	res, err = suite.querier.ActiveStreams(sdk.WrapSDKContext(suite.Ctx), &types.ActiveStreamsRequest{Pagination: &query.PageRequest{Limit: 15}})
+	res, err = suite.querier.ActiveStreams(suite.Ctx, &types.ActiveStreamsRequest{Pagination: &query.PageRequest{Limit: 15}})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 10)
 }
@@ -121,7 +118,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 // TestGRPCUpcomingStreams tests querying upcoming streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 	// ensure initially querying upcoming streams returns no streams
-	res, err := suite.querier.UpcomingStreams(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingStreamsRequest{})
+	res, err := suite.querier.UpcomingStreams(suite.Ctx, &types.UpcomingStreamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 0)
 
@@ -130,7 +127,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 	streamID, stream := suite.CreateDefaultStream(coins)
 
 	// query upcoming streams again, but this time expect the stream created earlier in the response
-	res, err = suite.querier.UpcomingStreams(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingStreamsRequest{})
+	res, err = suite.querier.UpcomingStreams(suite.Ctx, &types.UpcomingStreamsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 1)
 	expectedStream := suite.ExpectedDefaultStream(streamID, stream.StartTime, coins)
@@ -152,12 +149,12 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 	}
 
 	// query upcoming streams with a page request of 5 should return 5 streams
-	res, err = suite.querier.UpcomingStreams(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingStreamsRequest{Pagination: &query.PageRequest{Limit: 5}})
+	res, err = suite.querier.UpcomingStreams(suite.Ctx, &types.UpcomingStreamsRequest{Pagination: &query.PageRequest{Limit: 5}})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 5)
 
 	// query upcoming streams with a page request of 15 should return 12 streams
-	res, err = suite.querier.UpcomingStreams(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingStreamsRequest{Pagination: &query.PageRequest{Limit: 15}})
+	res, err = suite.querier.UpcomingStreams(suite.Ctx, &types.UpcomingStreamsRequest{Pagination: &query.PageRequest{Limit: 15}})
 	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 12)
 }
@@ -172,27 +169,27 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().NoError(err)
 
 	// ensure initially querying to distribute coins returns no coins
-	res, err := suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err := suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, sdk.Coins{})
 
 	// setup a non perpetual stream
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 300000)}
-	streamID, _ := suite.CreateDefaultStream(coins)
-	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
+	streamID, stream := suite.CreateDefaultStream(coins)
+	suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
-	stream, err := suite.querier.GetStreamByID(suite.Ctx, streamID)
+	stream, err = suite.querier.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(stream)
 
 	// check to distribute coins after stream creation, but before stream active
-	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins)
 
 	// check to distribute coins after stream creation
 	// ensure this equals the coins within the previously created non-perpetual stream
-	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins)
 
@@ -205,7 +202,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// check to distribute coins after the epoch start
 	// ensure this equals the coins within the previously created non-perpetual stream
 	// the rewards are not distributed yet
-	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins)
 
@@ -224,7 +221,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().Equal(stream.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 10000)})
 
 	// check that the to distribute coins is equal to the initial stream coin balance minus what has been distributed already (10-4=6)
-	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins.Sub(distrCoins...))
 
@@ -247,7 +244,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 
 	// now that all coins have been distributed (4 in first found 6 in the second round)
 	// to distribute coins should be null
-	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, sdk.Coins{sdk.NewInt64Coin("stake", 280000)})
 }

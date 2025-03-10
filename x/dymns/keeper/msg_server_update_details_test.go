@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
+	storetypes "cosmossdk.io/store/types"
+
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -21,8 +21,6 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateDetails() {
 
 	const recordName = "my-name"
 
-	params.SetAddressPrefixes()
-
 	tests := []struct {
 		name               string
 		dymName            *dymnstypes.DymName
@@ -31,7 +29,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateDetails() {
 		wantErr            bool
 		wantErrContains    string
 		wantDymName        *dymnstypes.DymName
-		wantMinGasConsumed sdk.Gas
+		wantMinGasConsumed storetypes.Gas
 		postTestFunc       func(s *KeeperTestSuite)
 	}{
 		{

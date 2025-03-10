@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
@@ -13,12 +12,9 @@ const (
 )
 
 var (
-	_ sdk.Msg            = &MsgVote{}
-	_ sdk.Msg            = &MsgRevokeVote{}
-	_ sdk.Msg            = &MsgUpdateParams{}
-	_ legacytx.LegacyMsg = &MsgVote{}
-	_ legacytx.LegacyMsg = &MsgRevokeVote{}
-	_ legacytx.LegacyMsg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgVote{}
+	_ sdk.Msg = &MsgRevokeVote{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 func (m MsgVote) ValidateBasic() error {
@@ -43,11 +39,6 @@ func (m MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func (m *MsgVote) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
 func (m *MsgVote) Route() string {
 	return RouterKey
 }
@@ -70,11 +61,6 @@ func (m MsgRevokeVote) ValidateBasic() error {
 func (m MsgRevokeVote) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Voter)
 	return []sdk.AccAddress{signer}
-}
-
-func (m *MsgRevokeVote) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgRevokeVote) Route() string {
@@ -105,11 +91,6 @@ func (m MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (m *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateParams) Route() string {

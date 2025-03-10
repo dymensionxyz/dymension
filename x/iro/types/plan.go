@@ -79,16 +79,12 @@ func (p Plan) ValidateBasic() error {
 		return fmt.Errorf("max amount to sell must be less than or equal to the total allocation: %s > %s", p.MaxAmountToSell.String(), p.TotalAllocation.Amount.String())
 	}
 
+	if p.LiquidityPart.IsNegative() || p.LiquidityPart.GT(math.LegacyOneDec()) {
+		return errors.New("liquidity part must be between 0 and 1")
+	}
+
 	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
-	}
-
-	if p.VestingPlan.VestingDuration < 0 {
-		return errors.New("vesting duration cannot be negative")
-	}
-
-	if !p.LiquidityPart.IsPositive() || p.LiquidityPart.GT(math.LegacyOneDec()) {
-		return errors.New("liquidity part must be between 0 and 1")
 	}
 
 	if err := p.VestingPlan.ValidateBasic(); err != nil {

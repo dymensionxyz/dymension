@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
 const (
@@ -19,20 +18,14 @@ const (
 )
 
 var (
-	_ sdk.Msg            = &MsgCreatePlan{}
-	_ sdk.Msg            = &MsgBuy{}
-	_ sdk.Msg            = &MsgBuyExactSpend{}
-	_ sdk.Msg            = &MsgSell{}
-	_ sdk.Msg            = &MsgClaim{}
-	_ sdk.Msg            = &MsgClaimVested{}
-	_ sdk.Msg            = &MsgUpdateParams{}
-	_ sdk.Msg            = &MsgEnableTrading{}
-	_ legacytx.LegacyMsg = &MsgCreatePlan{}
-	_ legacytx.LegacyMsg = &MsgBuy{}
-	_ legacytx.LegacyMsg = &MsgBuyExactSpend{}
-	_ legacytx.LegacyMsg = &MsgSell{}
-	_ legacytx.LegacyMsg = &MsgClaim{}
-	_ legacytx.LegacyMsg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgCreatePlan{}
+	_ sdk.Msg = &MsgBuy{}
+	_ sdk.Msg = &MsgBuyExactSpend{}
+	_ sdk.Msg = &MsgSell{}
+	_ sdk.Msg = &MsgClaim{}
+	_ sdk.Msg = &MsgClaimVested{}
+	_ sdk.Msg = &MsgEnableTrading{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // ValidateBasic performs basic validation checks on the MsgCreatePlan message.
@@ -128,36 +121,6 @@ func (m *MsgUpdateParams) Type() string {
 func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Owner)
 	return []sdk.AccAddress{addr}
-}
-
-func (m *MsgCreatePlan) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-func (m *MsgBuy) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-func (m *MsgBuyExactSpend) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-func (m *MsgSell) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-func (m *MsgClaim) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-func (m *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgBuy) ValidateBasic() error {

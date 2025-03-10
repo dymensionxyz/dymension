@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -105,8 +105,6 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 	//goland:noinspection SpellCheckingInspection
 	nonBech32NonHexUpperCaseA := strings.ToUpper("X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5")
 
-	params.SetAddressPrefixes()
-
 	tests := []struct {
 		name               string
 		dymName            *dymnstypes.DymName
@@ -115,7 +113,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 		wantErr            bool
 		wantErrContains    string
 		wantDymName        *dymnstypes.DymName
-		wantMinGasConsumed sdk.Gas
+		wantMinGasConsumed storetypes.Gas
 		postTestFunc       func(s *KeeperTestSuite)
 	}{
 		{
@@ -1676,8 +1674,6 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 	const externalChainId = "awesome"
 	const name = "my-name"
 	const subName = "sub"
-
-	params.SetAddressPrefixes()
 
 	const (
 		tcCfgAddr = iota

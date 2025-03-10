@@ -10,7 +10,6 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -51,7 +50,7 @@ func DefaultParams() Params {
 // DefaultPriceParams returns a default set of price parameters
 func DefaultPriceParams() PriceParams {
 	return PriceParams{
-		NamePriceSteps: []sdkmath.Int{
+		NamePriceSteps: []math.Int{
 			math.NewInt(5000 /* DYM */).MulRaw(1e18), // 1 letter
 			math.NewInt(2500 /* DYM */).MulRaw(1e18), // 2 letters
 			math.NewInt(1000 /* DYM */).MulRaw(1e18), // 3 letters
@@ -59,7 +58,7 @@ func DefaultPriceParams() PriceParams {
 			math.NewInt(5 /* DYM */).MulRaw(1e18),    // 5+ letters
 		},
 
-		AliasPriceSteps: []sdkmath.Int{
+		AliasPriceSteps: []math.Int{
 			math.NewInt(6000 /* DYM */).MulRaw(1e18), // 1 letter
 			math.NewInt(3000 /* DYM */).MulRaw(1e18), // 2 letters
 			math.NewInt(1500 /* DYM */).MulRaw(1e18), // 3 letters
@@ -200,17 +199,18 @@ func (m PriceParams) Validate() error {
 }
 
 // GetFirstYearDymNamePrice returns the price for the first year of a Dym-Name registration.
-func (m PriceParams) GetFirstYearDymNamePrice(name string) sdkmath.Int {
+func (m PriceParams) GetFirstYearDymNamePrice(name string) math.Int {
 	return getElementAtIndexOrLast(m.NamePriceSteps, len(name)-1)
 }
 
 // GetAliasPrice returns the one-off-payment price for an Alias registration.
-func (m PriceParams) GetAliasPrice(alias string) sdkmath.Int {
+func (m PriceParams) GetAliasPrice(alias string) math.Int {
 	return getElementAtIndexOrLast(m.AliasPriceSteps, len(alias)-1)
 }
 
 // getElementAtIndexOrLast returns the element at the given index or the last element if the index is out of bounds.
-func getElementAtIndexOrLast(elements []sdkmath.Int, index int) sdkmath.Int {
+// TODO: negative index check https://github.com/dymensionxyz/dymension/issues/1738
+func getElementAtIndexOrLast(elements []math.Int, index int) math.Int {
 	if index >= len(elements) {
 		return elements[len(elements)-1]
 	}

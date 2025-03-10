@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	math "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 

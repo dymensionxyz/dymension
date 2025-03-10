@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/stretchr/testify/require"
@@ -20,14 +19,14 @@ func TestStreamerExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 	genesis := app.StreamerKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params, types.DefaultGenesis().Params)
 	require.Len(t, genesis.Streams, 0)
 
 	// fund the module
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
-	err := bankutil.FundModuleAccount(app.BankKeeper, ctx, types.ModuleName, coins)
+	err := bankutil.FundModuleAccount(ctx, app.BankKeeper, types.ModuleName, coins)
 	require.NoError(t, err)
 
 	_, err = app.IncentivesKeeper.CreateGauge(
@@ -81,7 +80,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 // TestStreamerInitGenesis takes a genesis state and tests initializing that genesis for the streamer module.
 func TestStreamerInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.Validate()
@@ -142,7 +141,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 
 func TestStreamerOrder(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{}).WithBlockTime(time.Now())
+	ctx := app.BaseApp.NewContext(false).WithBlockTime(time.Now())
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.Validate()

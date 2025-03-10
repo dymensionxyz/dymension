@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
@@ -25,7 +24,6 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 		accountBalanceToFund sdk.Coins
 		gaugeAddition        sdk.Coins
 		isPerpetual          bool
-		isModuleAccount      bool
 		expectErr            bool
 	}{
 		{
@@ -69,13 +67,6 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 				sdk.NewCoin("uvwx", types.DYM.Mul(math.NewInt(2))),
 				sdk.NewCoin("yzzz", types.DYM.Mul(math.NewInt(2))),
 			),
-		},
-		{
-			name:                 "module account creates a perpetual gauge and fills gauge with some remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("stake", types.DYM.Mul(math.NewInt(7))), sdk.NewCoin("foo", types.DYM.Mul(math.NewInt(70)))),
-			gaugeAddition:        sdk.NewCoins(sdk.NewCoin("stake", types.DYM.Mul(math.NewInt(1)))),
-			isPerpetual:          true,
-			isModuleAccount:      true,
 		},
 		{
 			name:                 "user with multiple denoms creates a perpetual gauge and fills gauge with some remaining tokens",
@@ -135,23 +126,13 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			testAccountPubkey := secp256k1.GenPrivKeyFromSecret([]byte("acc")).PubKey()
-			testAccountAddress := sdk.AccAddress(testAccountPubkey.Address())
-
 			ctx := suite.Ctx
 			bankKeeper := suite.App.BankKeeper
 			accountKeeper := suite.App.AccountKeeper
 			msgServer := keeper.NewMsgServerImpl(suite.App.IncentivesKeeper)
-
+			testAccountPubkey := secp256k1.GenPrivKeyFromSecret([]byte("acc")).PubKey()
+			testAccountAddress := sdk.AccAddress(testAccountPubkey.Address())
 			suite.FundAcc(testAccountAddress, tc.accountBalanceToFund)
-
-			if tc.isModuleAccount {
-				modAcc := authtypes.NewModuleAccount(authtypes.NewBaseAccount(testAccountAddress, testAccountPubkey, 1, 0),
-					"module",
-					"permission",
-				)
-				accountKeeper.SetModuleAccount(ctx, modAcc)
-			}
 
 			suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
 			distrTo := lockuptypes.QueryCondition{
@@ -207,7 +188,6 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 		accountBalanceToFund sdk.Coins
 		gaugeAddition        sdk.Coins
 		isPerpetual          bool
-		isModuleAccount      bool
 		expectErr            bool
 	}{
 		{
@@ -251,13 +231,6 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 				sdk.NewCoin("uvwx", types.DYM.Mul(math.NewInt(20))),
 				sdk.NewCoin("yzzz", types.DYM.Mul(math.NewInt(20))),
 			),
-		},
-		{
-			name:                 "module account creates a perpetual gauge and fills gauge with some remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("stake", types.DYM.Mul(math.NewInt(70))), sdk.NewCoin("foo", types.DYM.Mul(math.NewInt(70)))),
-			gaugeAddition:        sdk.NewCoins(sdk.NewCoin("stake", types.DYM.Mul(math.NewInt(10)))),
-			isPerpetual:          true,
-			isModuleAccount:      true,
 		},
 		{
 			name:                 "user with multiple denoms creates a perpetual gauge and fills gauge with some remaining tokens",
@@ -324,14 +297,6 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 			msgServer := keeper.NewMsgServerImpl(incentivesKeeper)
 
 			suite.FundAcc(testAccountAddress, tc.accountBalanceToFund)
-
-			if tc.isModuleAccount {
-				modAcc := authtypes.NewModuleAccount(authtypes.NewBaseAccount(testAccountAddress, testAccountPubkey, 1, 0),
-					"module",
-					"permission",
-				)
-				accountKeeper.SetModuleAccount(ctx, modAcc)
-			}
 
 			// System under test.
 			coins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(500000000)))

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
@@ -72,16 +72,16 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 		buyOrderId             string
 		owner                  string
 		minAccept              sdk.Coin
-		originalModuleBalance  sdkmath.Int
-		originalOwnerBalance   sdkmath.Int
+		originalModuleBalance  math.Int
+		originalOwnerBalance   math.Int
 		preRunSetupFunc        func(s *KeeperTestSuite)
 		wantErr                bool
 		wantErrContains        string
 		wantLaterOffer         *dymnstypes.BuyOrder
 		wantLaterDymName       *dymnstypes.DymName
-		wantLaterModuleBalance sdkmath.Int
-		wantLaterOwnerBalance  sdkmath.Int
-		wantMinConsumeGas      sdk.Gas
+		wantLaterModuleBalance math.Int
+		wantLaterOwnerBalance  math.Int
+		wantMinConsumeGas      storetypes.Gas
 		afterTestFunc          func(s *KeeperTestSuite)
 	}{
 		{
@@ -102,7 +102,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				Controller: offer.Buyer,
 				ExpireAt:   dymName.ExpireAt,
 			},
-			wantLaterModuleBalance: sdkmath.ZeroInt(),
+			wantLaterModuleBalance: math.ZeroInt(),
 			wantLaterOwnerBalance:  offer.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
@@ -132,7 +132,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				Controller: offer.Buyer,
 				ExpireAt:   dymName.ExpireAt,
 			},
-			wantLaterModuleBalance: sdkmath.ZeroInt(),
+			wantLaterModuleBalance: math.ZeroInt(),
 			wantLaterOwnerBalance:  offer.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(s *KeeperTestSuite) {
@@ -189,7 +189,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				Controller: offer.Buyer,
 				ExpireAt:   dymName.ExpireAt,
 			},
-			wantLaterModuleBalance: sdkmath.ZeroInt(),
+			wantLaterModuleBalance: math.ZeroInt(),
 			wantLaterOwnerBalance:  offer.OfferPrice.Amount,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(s *KeeperTestSuite) {
@@ -227,8 +227,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:            offer.Id,
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice.AddAmount(math.NewInt(1)),
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			preRunSetupFunc:       nil,
 			wantErr:               false,
 			wantLaterOffer: &dymnstypes.BuyOrder{
@@ -243,8 +243,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				}(),
 			},
 			wantLaterDymName:       dymName,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
@@ -254,8 +254,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:            offer.Id,
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice.AddAmount(math.NewInt(1)),
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			preRunSetupFunc: func(s *KeeperTestSuite) {
 				key := dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
 				orderIds := s.dymNsKeeper.GenericGetReverseLookupBuyOrderIdsRecord(s.ctx, key)
@@ -277,8 +277,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					return &coin
 				}(),
 			},
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(s *KeeperTestSuite) {
 				key := dymnstypes.DymNameToBuyOrderIdsRvlKey(dymName.Name)
@@ -297,8 +297,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:            offer.Id,
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice.AddAmount(math.NewInt(1)),
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			preRunSetupFunc: func(s *KeeperTestSuite) {
 				key := dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(dymName.Owner)
 				dymNames := s.dymNsKeeper.GenericGetReverseLookupDymNamesRecord(s.ctx, key)
@@ -336,8 +336,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					return &coin
 				}(),
 			},
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 			afterTestFunc: func(s *KeeperTestSuite) {
 				key := dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(dymName.Owner)
@@ -395,14 +395,14 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:             "101",
 			owner:                  ownerA,
 			minAccept:              minOfferPriceCoin,
-			originalModuleBalance:  sdkmath.NewInt(1).Mul(priceMultiplier),
-			originalOwnerBalance:   sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance:  math.NewInt(1).Mul(priceMultiplier),
+			originalOwnerBalance:   math.NewInt(2).Mul(priceMultiplier),
 			wantErr:                true,
 			wantErrContains:        "Buy-Order: 101: not found",
 			wantLaterOffer:         nil,
 			wantLaterDymName:       dymName,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -412,14 +412,14 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:             "10673264823",
 			owner:                  ownerA,
 			minAccept:              minOfferPriceCoin,
-			originalModuleBalance:  sdkmath.NewInt(1).Mul(priceMultiplier),
-			originalOwnerBalance:   sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance:  math.NewInt(1).Mul(priceMultiplier),
+			originalOwnerBalance:   math.NewInt(2).Mul(priceMultiplier),
 			wantErr:                true,
 			wantErrContains:        "Buy-Order: 10673264823: not found",
 			wantLaterOffer:         offer,
 			wantLaterDymName:       dymName,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -429,14 +429,14 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:             offer.Id,
 			owner:                  ownerA,
 			minAccept:              offer.OfferPrice,
-			originalModuleBalance:  sdkmath.NewInt(1).Mul(priceMultiplier),
-			originalOwnerBalance:   sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance:  math.NewInt(1).Mul(priceMultiplier),
+			originalOwnerBalance:   math.NewInt(2).Mul(priceMultiplier),
 			wantErr:                true,
 			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.AssetId),
 			wantLaterOffer:         offer,
 			wantLaterDymName:       nil,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -453,13 +453,13 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:             offer.Id,
 			owner:                  dymName.Owner,
 			minAccept:              offer.OfferPrice,
-			originalModuleBalance:  sdkmath.NewInt(1).Mul(priceMultiplier),
-			originalOwnerBalance:   sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance:  math.NewInt(1).Mul(priceMultiplier),
+			originalOwnerBalance:   math.NewInt(2).Mul(priceMultiplier),
 			wantErr:                true,
 			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.AssetId),
 			wantLaterOffer:         offer,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -469,14 +469,14 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:             offer.Id,
 			owner:                  ownerA,
 			minAccept:              offer.OfferPrice,
-			originalModuleBalance:  sdkmath.NewInt(1).Mul(priceMultiplier),
-			originalOwnerBalance:   sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance:  math.NewInt(1).Mul(priceMultiplier),
+			originalOwnerBalance:   math.NewInt(2).Mul(priceMultiplier),
 			wantErr:                true,
 			wantErrContains:        "not the owner of the Dym-Name",
 			wantLaterDymName:       sameDymNameButOwnedByAnother,
 			wantLaterOffer:         offer,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -494,8 +494,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:            "101",
 			owner:                 ownerA,
 			minAccept:             minOfferPriceCoin,
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantErr:               true,
 			wantErrContains:       "cannot accept own offer",
 			wantLaterDymName:      dymName,
@@ -508,8 +508,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					OfferPrice: minOfferPriceCoin,
 				}
 			}(),
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -533,8 +533,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				Denom:  "u" + s.priceDenom(),
 				Amount: math.NewInt(minOfferPrice).Mul(priceMultiplier),
 			},
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantErr:               true,
 			wantErrContains:       "denom must be the same as the offer price",
 			wantLaterDymName:      dymName,
@@ -551,8 +551,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					},
 				}
 			}(),
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -570,8 +570,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:            "101",
 			owner:                 ownerA,
 			minAccept:             minOfferPriceCoin,
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantErr:               true,
 			wantErrContains:       "amount must be greater than or equals to the offer price",
 			wantLaterDymName:      dymName,
@@ -584,8 +584,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 					OfferPrice: minOfferPriceCoin.AddAmount(math.NewInt(2)),
 				}
 			}(),
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      1,
 		},
 		{
@@ -649,8 +649,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 			buyOrderId:            offer.Id,
 			owner:                 dymName.Owner,
 			minAccept:             offer.OfferPrice.AddAmount(math.NewInt(1)),
-			originalModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			originalOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			originalModuleBalance: math.OneInt().Mul(priceMultiplier),
+			originalOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			preRunSetupFunc: func(s *KeeperTestSuite) {
 				err := s.dymNsKeeper.SetSellOrder(
 					s.ctx,
@@ -674,8 +674,8 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				}(),
 			},
 			wantLaterDymName:       dymName,
-			wantLaterModuleBalance: sdkmath.OneInt().Mul(priceMultiplier),
-			wantLaterOwnerBalance:  sdkmath.NewInt(2).Mul(priceMultiplier),
+			wantLaterModuleBalance: math.OneInt().Mul(priceMultiplier),
+			wantLaterOwnerBalance:  math.NewInt(2).Mul(priceMultiplier),
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOrder,
 		},
 		{
@@ -698,7 +698,7 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_DymName() {
 				Controller: offer.Buyer,
 				ExpireAt:   dymName.ExpireAt,
 			},
-			wantLaterModuleBalance: sdkmath.ZeroInt(),
+			wantLaterModuleBalance: math.ZeroInt(),
 			wantLaterOwnerBalance:  offer.OfferPrice.Amount,
 			wantMinConsumeGas:      100_000_000 + dymnstypes.OpGasUpdateBuyOrder,
 		},
@@ -858,16 +858,16 @@ func (s *KeeperTestSuite) Test_msgServer_AcceptBuyOrder_Type_Alias() {
 		buyOrderId             string
 		owner                  string
 		minAccept              sdk.Coin
-		originalModuleBalance  sdkmath.Int
-		originalOwnerBalance   sdkmath.Int
+		originalModuleBalance  math.Int
+		originalOwnerBalance   math.Int
 		preRunSetupFunc        func(s *KeeperTestSuite)
 		wantErr                bool
 		wantErrContains        string
 		wantLaterOffer         *dymnstypes.BuyOrder
 		wantLaterRollApps      []rollapp
-		wantLaterModuleBalance sdkmath.Int
-		wantLaterOwnerBalance  sdkmath.Int
-		wantMinConsumeGas      sdk.Gas
+		wantLaterModuleBalance math.Int
+		wantLaterOwnerBalance  math.Int
+		wantMinConsumeGas      storetypes.Gas
 		afterTestFunc          func(s *KeeperTestSuite)
 	}{
 		{

@@ -3,12 +3,12 @@ package keeper
 import (
 	"fmt"
 
+	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -17,7 +17,7 @@ type Keeper struct {
 	authority string // authority is the x/gov module account
 
 	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
+	storeKey      storetypes.Key
 	paramStore    paramtypes.Subspace
 	bankKeeper    dymnstypes.BankKeeper
 	rollappKeeper dymnstypes.RollAppKeeper
@@ -26,7 +26,7 @@ type Keeper struct {
 // NewKeeper returns a new instance of the DymNS keeper
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+	key storetypes.Key,
 	ps paramtypes.Subspace,
 	bk dymnstypes.BankKeeper,
 	rk dymnstypes.RollAppKeeper,

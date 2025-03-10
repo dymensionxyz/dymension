@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -518,12 +517,12 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterName() {
 
 	s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 		params.Price.PriceDenom = denom
-		params.Price.NamePriceSteps = []sdkmath.Int{
-			sdkmath.NewInt(price1L).Mul(priceMultiplier),
-			sdkmath.NewInt(price2L).Mul(priceMultiplier),
-			sdkmath.NewInt(price3L).Mul(priceMultiplier),
-			sdkmath.NewInt(price4L).Mul(priceMultiplier),
-			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+		params.Price.NamePriceSteps = []math.Int{
+			math.NewInt(price1L).Mul(priceMultiplier),
+			math.NewInt(price2L).Mul(priceMultiplier),
+			math.NewInt(price3L).Mul(priceMultiplier),
+			math.NewInt(price4L).Mul(priceMultiplier),
+			math.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
 		params.Price.PriceExtends = math.NewInt(extendsPrice).Mul(priceMultiplier)
 		params.Misc.GracePeriodDuration = 30 * 24 * time.Hour
@@ -952,12 +951,12 @@ func (s *KeeperTestSuite) Test_queryServer_EstimateRegisterAlias() {
 
 	s.updateModuleParams(func(params dymnstypes.Params) dymnstypes.Params {
 		params.Price.PriceDenom = denom
-		params.Price.AliasPriceSteps = []sdkmath.Int{
-			sdkmath.NewInt(price1L).Mul(priceMultiplier),
-			sdkmath.NewInt(price2L).Mul(priceMultiplier),
-			sdkmath.NewInt(price3L).Mul(priceMultiplier),
-			sdkmath.NewInt(price4L).Mul(priceMultiplier),
-			sdkmath.NewInt(price5PlusL).Mul(priceMultiplier),
+		params.Price.AliasPriceSteps = []math.Int{
+			math.NewInt(price1L).Mul(priceMultiplier),
+			math.NewInt(price2L).Mul(priceMultiplier),
+			math.NewInt(price3L).Mul(priceMultiplier),
+			math.NewInt(price4L).Mul(priceMultiplier),
+			math.NewInt(price5PlusL).Mul(priceMultiplier),
 		}
 		params.Misc.GracePeriodDuration = 30 * 24 * time.Hour
 
