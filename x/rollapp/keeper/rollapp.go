@@ -144,7 +144,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pla
 	// if not enabled yet, set preLaunchTime to the future
 	preLaunchTime := plan.PreLaunchTime
 	if !plan.TradingEnabled {
-		preLaunchTime = time.Now().Add(time.Hour * 24 * 365 * 10) // 10 years
+		preLaunchTime = ctx.BlockTime().Add(time.Hour * 24 * 365 * 10) // 10 years
 	}
 
 	rollapp.PreLaunchTime = &preLaunchTime
