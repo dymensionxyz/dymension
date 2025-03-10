@@ -23,6 +23,7 @@ var (
 	_ sdk.Msg = &MsgBuyExactSpend{}
 	_ sdk.Msg = &MsgSell{}
 	_ sdk.Msg = &MsgClaim{}
+	_ sdk.Msg = &MsgClaimVested{}
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
@@ -55,6 +56,14 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 
 	if !m.LiquidityPart.IsPositive() {
 		return fmt.Errorf("liquidity part must be positive: %s", m.LiquidityPart)
+	}
+
+	if m.VestingDuration < 0 {
+		return fmt.Errorf("vesting duration must be non-negative: %v", m.VestingDuration)
+	}
+
+	if m.VestingStartTimeAfterSettlement < 0 {
+		return fmt.Errorf("vesting start time after settlement must be non-negative: %v", m.VestingStartTimeAfterSettlement)
 	}
 
 	return nil
@@ -174,6 +183,22 @@ func (m *MsgClaim) ValidateBasic() error {
 func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Claimer)
 	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgClaimVested) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Claimer)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic implements types.Msg.
+func (m *MsgClaimVested) ValidateBasic() error {
+	// claimer bech32
+	_, err := sdk.AccAddressFromBech32(m.Claimer)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid claimer address: %s", err)
+	}
+
+	return nil
 }
 
 func (m *MsgUpdateParams) ValidateBasic() error {
