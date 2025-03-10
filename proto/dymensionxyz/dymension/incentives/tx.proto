@@ -25,10 +25,11 @@ message MsgCreateGauge {
   bool is_perpetual = 1;
   // owner is the address of gauge creator
   string owner = 2 [ (gogoproto.moretags) = "yaml:\"owner\"" ];
-  // distribute_to show which lock the gauge should distribute to by time
-  // duration or by timestamp
-  dymensionxyz.dymension.lockup.QueryCondition distribute_to = 3
-      [ (gogoproto.nullable) = false ];
+  // distribute_to is where the gauge rewards are distributed to
+  oneof distribute_to {
+    dymensionxyz.dymension.lockup.QueryCondition asset = 3;
+    EndorsementGauge endorsement = 7;
+  }
   // coins are coin(s) to be distributed by the gauge
   repeated cosmos.base.v1beta1.Coin coins = 4 [
     (gogoproto.nullable) = false,
