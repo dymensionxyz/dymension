@@ -488,6 +488,16 @@ func (m *Plan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x72
 	{
+		size, err := m.VestingPlan.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintIro(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x72
+	{
 		size := m.LiquidityPart.Size()
 		i -= size
 		if _, err := m.LiquidityPart.MarshalTo(dAtA[i:]); err != nil {
