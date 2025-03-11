@@ -3,6 +3,7 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
@@ -123,7 +124,7 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) er
 // - rollapp must not be launched
 // - genesis info must be set
 // NOTE: we already validated that a genesis account exists for the IRO plan
-func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro irotypes.Plan) error {
+func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, plan irotypes.Plan) error {
 	if rollapp.Launched {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp already launched")
 	}
@@ -140,10 +141,21 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, iro
 	rollapp.GenesisInfo.Sealed = true
 
 	// set pre launch time
-	rollapp.PreLaunchTime = &iro.PreLaunchTime
+	// if not enabled yet, set preLaunchTime to the future
+	preLaunchTime := plan.PreLaunchTime
+	if !plan.TradingEnabled {
+		preLaunchTime = ctx.BlockTime().Add(time.Hour * 24 * 365 * 10) // 10 years
+	}
 
+	rollapp.PreLaunchTime = &preLaunchTime
 	k.SetRollapp(ctx, *rollapp)
 	return nil
+}
+
+// setPreLaunchTime sets the pre launch time for a rollapp
+func (k Keeper) SetPreLaunchTime(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) {
+	rollapp.PreLaunchTime = &preLaunchTime
+	k.SetRollapp(ctx, *rollapp)
 }
 
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)
