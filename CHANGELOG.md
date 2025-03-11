@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-03-10)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-03-11)
 
 
 ### Bug Fixes
@@ -32,6 +32,7 @@
 * **iro:** founder can trade before start time ([#1753](https://github.com/dymensionxyz/dymension/issues/1753)) ([e7cf378](https://github.com/dymensionxyz/dymension/commit/e7cf378e9c35e428b30d8c5d03ae31497c616a15))
 * **iro:** setting equilibrium point where the raised dym goes to the liquidity pool ([#1750](https://github.com/dymensionxyz/dymension/issues/1750)) ([9ce13d9](https://github.com/dymensionxyz/dymension/commit/9ce13d919d168938180f0e58e02f4f695830d0e1))
 * **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
+* **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
 
 
 
