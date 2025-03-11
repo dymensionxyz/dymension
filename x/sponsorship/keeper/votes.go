@@ -8,7 +8,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -57,6 +56,12 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to update distribution: %w", err)
 	}
 
+	// Add voter's shares to RA endorsement shares
+	err = k.UpdateTotalSharesWithDistribution(ctx, update)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
+	}
+
 	// Save the user's vote
 	vote := types.Vote{
 		VotingPower: vpBreakdown.TotalPower,
@@ -65,6 +70,12 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	err = k.SaveVote(ctx, voter, vote)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to save vote: %w", err)
+	}
+
+	// The user can't claim rewards in this epoch
+	err = k.BlacklistClaim(ctx, voter)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("blacklist claim: %w", err)
 	}
 
 	// Save the user's voting power breakdown
@@ -107,6 +118,12 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 		return types.Distribution{}, fmt.Errorf("failed to update distribution: %w", err)
 	}
 
+	// Subtract voter's shares from RA endorsement shares (update is already negated)
+	err = k.UpdateTotalSharesWithDistribution(ctx, update)
+	if err != nil {
+		return types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
+	}
+
 	// Prune the user’s vote and voting power
 	err = k.DeleteVote(ctx, voter)
 	if err != nil {
@@ -132,7 +149,6 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 //   - No gauge get less than MinAllocationWeight
 //   - All gauges exist
 //   - All gauges are perpetual
-//   - Rollapp gauges have at least one bonded sequencer
 func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, minAllocationWeight math.Int) error {
 	for _, weight := range weights {
 		// No gauge get less than MinAllocationWeight
@@ -150,17 +166,6 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 		if !gauge.IsPerpetual {
 			return fmt.Errorf("gauge is not perpetual: %d", weight.GaugeId)
 		}
-
-		// Rollapp gauges have at least one bonded sequencer
-		switch distrTo := gauge.DistributeTo.(type) {
-		case *incentivestypes.Gauge_Asset:
-			// no additional restrictions for asset gauges
-		case *incentivestypes.Gauge_Rollapp:
-			// no additional restrictions for asset gauges
-		default:
-			return fmt.Errorf("gauge has an unsupported distribution type: gauge id %d, type %T", gauge.Id, distrTo)
-		}
-
 	}
 	return nil
 }

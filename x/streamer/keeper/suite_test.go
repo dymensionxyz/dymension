@@ -60,7 +60,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) CreateGauge() error {
-	_, err := suite.App.IncentivesKeeper.CreateGauge(
+	_, err := suite.App.IncentivesKeeper.CreateAssetGauge(
 		suite.Ctx,
 		true,
 		suite.App.AccountKeeper.GetModuleAddress(types.ModuleName),

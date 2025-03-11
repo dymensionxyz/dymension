@@ -28,7 +28,7 @@ func TestMsgCreateGauge(t *testing.T) {
 			Duration:      time.Second,
 		}
 
-		properMsg := *incentivestypes.NewMsgCreateGauge(
+		properMsg := *incentivestypes.NewMsgCreateAssetGauge(
 			false,
 			addr1,
 			distributeTo,
@@ -73,7 +73,7 @@ func TestMsgCreateGauge(t *testing.T) {
 		{
 			name: "empty distribution denom",
 			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.DistributeTo.Denom = ""
+				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.Denom = ""
 				return msg
 			}),
 			expectPass: false,
@@ -81,7 +81,7 @@ func TestMsgCreateGauge(t *testing.T) {
 		{
 			name: "invalid distribution denom",
 			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.DistributeTo.Denom = "111"
+				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.Denom = "111"
 				return msg
 			}),
 			expectPass: false,
@@ -89,7 +89,7 @@ func TestMsgCreateGauge(t *testing.T) {
 		{
 			name: "invalid lock query type",
 			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.DistributeTo.LockQueryType = -1
+				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.LockQueryType = -1
 				return msg
 			}),
 			expectPass: false,
@@ -97,7 +97,7 @@ func TestMsgCreateGauge(t *testing.T) {
 		{
 			name: "invalid lock query type",
 			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.DistributeTo.LockQueryType = -1
+				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.LockQueryType = -1
 				return msg
 			}),
 			expectPass: false,
@@ -238,10 +238,12 @@ func TestAuthzMsg(t *testing.T) {
 			incentivesMsg: &incentivestypes.MsgCreateGauge{
 				IsPerpetual: false,
 				Owner:       addr1,
-				DistributeTo: lockuptypes.QueryCondition{
-					LockQueryType: lockuptypes.ByDuration,
-					Denom:         "lptoken",
-					Duration:      time.Second,
+				DistributeTo: &incentivestypes.MsgCreateGauge_Asset{
+					Asset: &lockuptypes.QueryCondition{
+						LockQueryType: lockuptypes.ByDuration,
+						Denom:         "lptoken",
+						Duration:      time.Second,
+					},
 				},
 				Coins:             sdk.NewCoins(coin),
 				StartTime:         someDate,

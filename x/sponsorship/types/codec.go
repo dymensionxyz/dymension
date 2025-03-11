@@ -12,6 +12,7 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgVote{}, "sponsorship/Vote", nil)
 	cdc.RegisterConcrete(&MsgRevokeVote{}, "sponsorship/RevokeVote", nil)
+	cdc.RegisterConcrete(&MsgClaimRewards{}, "sponsorship/ClaimRewards", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "sponsorship/UpdateParams", nil)
 }
 
@@ -21,6 +22,7 @@ func RegisterInterfaces(reg types.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgVote{},
 		&MsgRevokeVote{},
+		&MsgClaimRewards{},
 		&MsgUpdateParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(reg, &_Msg_serviceDesc)

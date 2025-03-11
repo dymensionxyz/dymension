@@ -14,7 +14,7 @@ import (
 
 func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 	for _, duration := range k.ik.GetLockableDurations(ctx) {
-		_, err := k.ik.CreateGauge(
+		_, err := k.ik.CreateAssetGauge(
 			ctx,
 			true,
 			k.ak.GetModuleAddress(types.ModuleName),
@@ -34,9 +34,4 @@ func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 	}
 
 	return nil
-}
-
-func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappID string) error {
-	_, err := k.ik.CreateRollappGauge(ctx, rollappID)
-	return err
 }
