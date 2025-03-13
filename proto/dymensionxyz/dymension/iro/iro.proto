@@ -104,6 +104,9 @@ message Plan {
   // The duration of the plan.
   google.protobuf.Duration iro_plan_duration = 16
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // the denom used for raising liquidity
+  string liquidity_denom = 17;
 }
 
 message IncentivePlanParams {

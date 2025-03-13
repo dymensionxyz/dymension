@@ -77,3 +77,24 @@ func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSell
 
 	return &types.MsgSellResponse{}, nil
 }
+
+// Claim implements types.MsgServer.
+func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgClaimResponse, error) {
+	claimerAddr := sdk.MustAccAddressFromBech32(req.Claimer)
+	err := m.Keeper.Claim(sdk.UnwrapSDKContext(ctx), req.PlanId, claimerAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgClaimResponse{}, nil
+}
+
+func (m msgServer) ClaimVested(ctx context.Context, req *types.MsgClaimVested) (*types.MsgClaimVestedResponse, error) {
+	claimerAddr := sdk.MustAccAddressFromBech32(req.Claimer)
+	err := m.Keeper.ClaimVested(sdk.UnwrapSDKContext(ctx), req.PlanId, claimerAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgClaimVestedResponse{}, nil
+}

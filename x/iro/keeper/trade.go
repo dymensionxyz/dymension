@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
@@ -74,7 +73,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	takerFee := sdk.NewCoin(plan.LiquidityDenom, takerFeeAmt)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, buyer, &owner)
 	if err != nil {
@@ -82,7 +81,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	cost := sdk.NewCoin(appparams.BaseDenom, costAmt)
+	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
 		return err
@@ -146,7 +145,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	takerFee := sdk.NewCoin(plan.LiquidityDenom, takerFeeAmt)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, buyer, &owner)
 	if err != nil {
@@ -154,7 +153,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	cost := sdk.NewCoin(appparams.BaseDenom, toSpendMinusTakerFeeAmt)
+	cost := sdk.NewCoin(plan.LiquidityDenom, toSpendMinusTakerFeeAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
 		return err
@@ -214,7 +213,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	}
 
 	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	cost := sdk.NewCoin(appparams.BaseDenom, costAmt)
+	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(cost))
 	if err != nil {
 		return err
@@ -225,7 +224,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	k.SetPlan(ctx, *plan)
 
 	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	takerFee := sdk.NewCoin(plan.LiquidityDenom, takerFeeAmt)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, seller, &owner)
 	if err != nil {

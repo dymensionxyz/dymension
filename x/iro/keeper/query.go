@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
@@ -61,7 +60,7 @@ func (k Keeper) QueryCost(goCtx context.Context, req *types.QueryCostRequest) (*
 	} else {
 		costAmt = plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(req.Amt))
 	}
-	cost := sdk.NewCoin(appparams.BaseDenom, costAmt)
+	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	return &types.QueryCostResponse{Cost: &cost}, nil
 }
 

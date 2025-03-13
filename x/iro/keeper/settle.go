@@ -12,7 +12,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
@@ -54,9 +53,9 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return err
 	}
 
-	raisedDYMAmt := k.BK.GetBalance(ctx, plan.GetAddress(), appparams.BaseDenom).Amount
-	poolTokens := raisedDYMAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
-	ownerTokens := raisedDYMAmt.Sub(poolTokens)
+	raisedLiquidityAmt := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom).Amount
+	poolTokens := raisedLiquidityAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
+	ownerTokens := raisedLiquidityAmt.Sub(poolTokens)
 
 	// start the vesting schedule for the owner tokens
 	plan.VestingPlan.Amount = ownerTokens
@@ -104,7 +103,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(claimableAmt)
 
 	// send the raised DYM to the iro module as it will be used as the pool creator
-	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, poolTokens)))
+	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, poolTokens)))
 	if err != nil {
 		return 0, 0, err
 	}
@@ -112,14 +111,14 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	// find the tokens needed to bootstrap the pool, to fulfill last price
 	tokens, dym := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
 	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
-	dymLiquidityCoin := sdk.NewCoin(appparams.BaseDenom, dym)
+	baseLiquidityCoin := sdk.NewCoin(plan.LiquidityDenom, dym)
 
 	// create pool
 	gammGlobalParams := k.gk.GetParams(ctx).GlobalFees
 	poolParams := balancer.NewPoolParams(gammGlobalParams.SwapFee, gammGlobalParams.ExitFee, nil)
 	balancerPool := balancer.NewMsgCreateBalancerPool(k.AK.GetModuleAddress(types.ModuleName), poolParams, []balancer.PoolAsset{
 		{
-			Token:  dymLiquidityCoin,
+			Token:  baseLiquidityCoin,
 			Weight: math.OneInt(),
 		},
 		{
@@ -137,7 +136,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	// Add incentives
 	poolDenom := gammtypes.GetPoolShareDenom(poolId)
 	incentives := sdk.NewCoins(
-		sdk.NewCoin(dymLiquidityCoin.Denom, poolTokens.Sub(dymLiquidityCoin.Amount)),
+		sdk.NewCoin(baseLiquidityCoin.Denom, poolTokens.Sub(baseLiquidityCoin.Amount)),
 		sdk.NewCoin(rollappLiquidityCoin.Denom, unallocatedTokens.Sub(rollappLiquidityCoin.Amount)),
 	)
 	distrTo := lockuptypes.QueryCondition{
