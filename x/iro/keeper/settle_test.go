@@ -8,7 +8,6 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -115,7 +114,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			k := s.App.IROKeeper
 
 			// Create IRO plan
-			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, k.GetParams(s.Ctx).CreationFee)))
+			planDenom := "adym"
+			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(planDenom, k.GetParams(s.Ctx).CreationFee)))
 			planId, err := k.CreatePlan(s.Ctx, allocation, time.Hour, startTime, true, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 			s.Require().NoError(err)
 			reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
@@ -128,7 +128,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			}
 
 			plan := k.MustGetPlan(s.Ctx, planId)
-			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), appparams.BaseDenom)
+			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
 			s.Require().Equal(tc.expectedDYM.String(), raisedDYM.Amount.String())
 
 			unallocatedTokensAmt := allocation.Sub(plan.SoldAmt).Add(reservedTokens)

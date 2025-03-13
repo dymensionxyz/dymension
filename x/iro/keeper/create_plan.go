@@ -15,7 +15,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -89,6 +88,11 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no genesis account for iro module account")
 	}
 
+	// check liquidity denom is allowed
+	if !contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, req.LiquidityDenom) {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
+	}
+
 	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, req.IroPlanDuration, req.StartTime, req.TradingEnabled, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration, req.VestingStartTimeAfterSettlement)
 	if err != nil {
 		return nil, err
@@ -139,13 +143,14 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, planDurati
 	}
 
 	// charge creation fee
+	// FIXME: need to fix if it's non dym??????
 	feeAmt := k.GetParams(ctx).CreationFee
 	cost := plan.BondingCurve.Cost(math.ZeroInt(), feeAmt)
 	if !cost.IsPositive() {
 		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
 	}
 
-	feeCostInDym := sdk.NewCoin(appparams.BaseDenom, cost)
+	feeCostInDym := sdk.NewCoin(plan.LiquidityDenom, cost)
 	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(feeCostInDym))
 	if err != nil {
 		return "", err
@@ -210,4 +215,14 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 		return sdk.Coin{}, err
 	}
 	return minted, nil
+}
+
+// Function to check if a slice contains a string
+func contains(slice []string, str string) bool {
+	for _, v := range slice {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }

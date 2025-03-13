@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
@@ -87,17 +86,18 @@ func (s *KeeperTestSuite) TestClaimVested() {
 	s.BuySomeTokens(planId, sample.Acc(), soldAmt)
 
 	owner := s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId)
-	raisedDym := s.App.BankKeeper.GetBalance(s.Ctx, k.MustGetPlan(s.Ctx, planId).GetAddress(), appparams.BaseDenom)
+	plan := k.MustGetPlan(s.Ctx, planId)
+	raisedDym := s.App.BankKeeper.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
 	poolFunds := liquidityPart.MulInt(raisedDym.Amount).TruncateInt()
 	expectedOwnerFunds := raisedDym.Amount.Sub(poolFunds)
 
-	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, owner, appparams.BaseDenom)
+	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, owner, plan.LiquidityDenom)
 	// settle
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 
-	plan := k.MustGetPlan(s.Ctx, planId)
+	plan = k.MustGetPlan(s.Ctx, planId)
 	s.Require().Equal(expectedOwnerFunds, plan.VestingPlan.Amount)
 
 	// claim vested - should fail as time not progressed
@@ -112,6 +112,6 @@ func (s *KeeperTestSuite) TestClaimVested() {
 	s.Require().NoError(err)
 
 	// assert claimed amt
-	balance = s.App.BankKeeper.GetBalance(s.Ctx, owner, appparams.BaseDenom)
+	balance = s.App.BankKeeper.GetBalance(s.Ctx, owner, plan.LiquidityDenom)
 	s.Require().Equal(expectedOwnerFunds.QuoRaw(2).String(), balance.Amount.Sub(balanceBefore.Amount).String())
 }
