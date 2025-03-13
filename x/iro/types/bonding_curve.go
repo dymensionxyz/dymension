@@ -27,6 +27,7 @@ C (constant) sets the starting price when supply is zero, effectively establishi
 */
 
 const (
+	// FIXME:!!!!
 	DYMDecimals = 18 // Decimal precision for DYM to adym conversion
 
 	MaxNValue     = 2 // Maximum allowed value for the N parameter
