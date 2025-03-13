@@ -27,9 +27,6 @@ C (constant) sets the starting price when supply is zero, effectively establishi
 */
 
 const (
-	// FIXME:!!!!
-	DYMDecimals = 18 // Decimal precision for DYM to adym conversion
-
 	MaxNValue     = 2 // Maximum allowed value for the N parameter
 	MaxNPrecision = 3 // Maximum allowed decimal precision for the N parameter
 
@@ -42,27 +39,33 @@ The bonding curve implementation based on decimal representation of the X (rolla
 we use scaling functions to convert between the decimal scale and the base denomination.
 */
 
-func NewBondingCurve(m, n, c math.LegacyDec) BondingCurve {
+func NewBondingCurve(m, n, c math.LegacyDec, rollappDenomDecimals, liquidityDenomDecimals uint64) BondingCurve {
 	return BondingCurve{
-		M: m,
-		N: n,
-		C: c,
+		M:                      m,
+		N:                      n,
+		C:                      c,
+		RollappDenomDecimals:   rollappDenomDecimals,
+		LiquidityDenomDecimals: liquidityDenomDecimals,
 	}
 }
 
 func DefaultBondingCurve() BondingCurve {
 	// linear bonding curve as default
 	return BondingCurve{
-		M: math.LegacyMustNewDecFromStr("0.005"),
-		N: math.LegacyOneDec(),
-		C: math.LegacyZeroDec(),
+		M:                      math.LegacyMustNewDecFromStr("0.005"),
+		N:                      math.LegacyOneDec(),
+		C:                      math.LegacyZeroDec(),
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
 	}
 }
 
 func (lbc BondingCurve) SupplyDecimals() int64 {
-	// TODO: allow to be set on creation instead of using default
-	rollappTokenDefaultDecimals := int64(18)
-	return rollappTokenDefaultDecimals
+	return int64(lbc.RollappDenomDecimals)
+}
+
+func (lbc BondingCurve) LiquidityDecimals() int64 {
+	return int64(lbc.LiquidityDenomDecimals)
 }
 
 // validateBasic checks if the bonding curve is valid
@@ -88,6 +91,10 @@ func (lbc BondingCurve) ValidateBasic() error {
 
 	if !checkPrecision(lbc.N) {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "N must have at most %d decimal places", MaxNPrecision)
+	}
+
+	if lbc.RollappDenomDecimals == 0 || lbc.LiquidityDenomDecimals == 0 {
+		return errorsmod.Wrapf(ErrInvalidBondingCurve, "rollapp_basedenom_decimals: %d, liquidity_denom_decimals: %d", lbc.RollappDenomDecimals, lbc.LiquidityDenomDecimals)
 	}
 
 	return nil
@@ -117,7 +124,7 @@ Cost = [M / (N + 1) * S^(N + 1) + C * S](S1 to S2)
 func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 	cost := lbc.integral(ScaleFromBase(x1, lbc.SupplyDecimals())).
 		Sub(lbc.integral(ScaleFromBase(x, lbc.SupplyDecimals())))
-	return ScaleToBase(cost, DYMDecimals)
+	return ScaleToBase(cost, lbc.LiquidityDecimals())
 }
 
 // Calculate the number of tokens that can be bought with a given amount of DYM
@@ -127,7 +134,7 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 // - returns: the number of tokens that can be bought with spendAmt, in the base denomination
 func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, error) {
 	startingX := ScaleFromBase(currX, lbc.SupplyDecimals())
-	spendTokens := ScaleFromBase(spendAmt, DYMDecimals)
+	spendTokens := ScaleFromBase(spendAmt, lbc.LiquidityDecimals())
 
 	// If the current supply is less than 1, return 0
 	if startingX.LT(math.LegacyOneDec()) {
@@ -144,7 +151,7 @@ func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, e
 		return math.ZeroInt(), err
 	}
 
-	return ScaleToBase(tokens, DYMDecimals), nil
+	return ScaleToBase(tokens, lbc.LiquidityDecimals()), nil
 }
 
 /* --------------------------- internal functions --------------------------- */

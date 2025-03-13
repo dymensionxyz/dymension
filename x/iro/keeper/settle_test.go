@@ -62,9 +62,11 @@ func (s *KeeperTestSuite) TestSettle() {
 
 func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	curve := types.BondingCurve{
-		M: math.LegacyMustNewDecFromStr("0"),
-		N: math.LegacyMustNewDecFromStr("1"),
-		C: math.LegacyMustNewDecFromStr("0.1"), // each token costs 0.1 DYM
+		M:                      math.LegacyMustNewDecFromStr("0"),
+		N:                      math.LegacyMustNewDecFromStr("1"),
+		C:                      math.LegacyMustNewDecFromStr("0.1"), // each token costs 0.1 DYM
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
 	}
 
 	startTime := time.Now()

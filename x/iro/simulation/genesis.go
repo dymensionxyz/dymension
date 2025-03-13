@@ -70,7 +70,7 @@ func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int, liquidit
 	targetRaiseDYM := simtypes.RandomAmount(r, math.NewInt(1e8)).AddRaw(10_000)
 
 	// Scale allocatedAmount from base denomination to decimal representation
-	allocatedTokens := types.ScaleFromBase(allocatedAmount, types.DYMDecimals)
+	allocatedTokens := types.ScaleFromBase(allocatedAmount, 18)
 
 	m := types.CalculateM(
 		math.LegacyNewDecFromInt(targetRaiseDYM),
@@ -80,8 +80,10 @@ func generateRandomBondingCurve(r *rand.Rand, allocatedAmount math.Int, liquidit
 	)
 
 	return types.BondingCurve{
-		M: m,
-		N: n,
-		C: math.LegacyZeroDec(),
+		M:                      m,
+		N:                      n,
+		C:                      math.LegacyZeroDec(),
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
 	}
 }

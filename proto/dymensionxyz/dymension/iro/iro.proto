@@ -30,6 +30,9 @@ message BondingCurve {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  uint64 rollapp_denom_decimals = 4;
+  uint64 liquidity_denom_decimals = 5;
 }
 
 // Plan represents a plan in the IRO module.

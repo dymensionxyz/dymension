@@ -199,9 +199,11 @@ func (s *KeeperTestSuite) TestTakerFee() {
 	k := s.App.IROKeeper
 	// Bonding curve with fixed price (1 token = 1 adym)
 	curve := types.BondingCurve{
-		M: math.LegacyMustNewDecFromStr("0"),
-		N: math.LegacyMustNewDecFromStr("1"),
-		C: math.LegacyMustNewDecFromStr("1"),
+		M:                      math.LegacyMustNewDecFromStr("0"),
+		N:                      math.LegacyMustNewDecFromStr("1"),
+		C:                      math.LegacyMustNewDecFromStr("1"),
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
 	}
 	incentives := types.DefaultIncentivePlanParams()
 

@@ -88,6 +88,21 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no genesis account for iro module account")
 	}
 
+	// validate rollapp decimals is correct
+	if req.BondingCurve.RollappDenomDecimals != uint64(rollapp.GenesisInfo.NativeDenom.Exponent) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "rollapp decimals must be %d", rollapp.GenesisInfo.NativeDenom.Exponent)
+	}
+
+	// validate the liquidity denom is registered and curve decimals are correct
+	liqToken, ok := m.BK.GetDenomMetaData(ctx, req.LiquidityDenom)
+	if !ok {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "denom %s not registered", req.LiquidityDenom)
+	}
+	exponent := liqToken.DenomUnits[len(liqToken.DenomUnits)-1].Exponent
+	if req.BondingCurve.LiquidityDenomDecimals != uint64(exponent) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "liquidity denom decimals must be %d", exponent)
+	}
+
 	// check liquidity denom is allowed
 	if !contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, req.LiquidityDenom) {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
@@ -143,7 +158,6 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 	}
 
 	// charge creation fee
-	// FIXME: need to fix if it's non dym??????
 	feeAmt := k.GetParams(ctx).CreationFee
 	cost := plan.BondingCurve.Cost(math.ZeroInt(), feeAmt)
 	if !cost.IsPositive() {
