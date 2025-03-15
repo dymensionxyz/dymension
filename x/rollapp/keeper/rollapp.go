@@ -152,7 +152,7 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pla
 	return nil
 }
 
-// setPreLaunchTime sets the pre launch time for a rollapp
+// SetPreLaunchTime sets the pre launch time for a rollapp
 func (k Keeper) SetPreLaunchTime(ctx sdk.Context, rollapp *types.Rollapp, preLaunchTime time.Time) {
 	rollapp.PreLaunchTime = &preLaunchTime
 	k.SetRollapp(ctx, *rollapp)
