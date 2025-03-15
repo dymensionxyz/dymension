@@ -37,7 +37,7 @@ func (k Keeper) GetModuleLockedCoins(ctx sdk.Context) sdk.Coins {
 	return notUnlockingCoins.Add(unlockingCoins...)
 }
 
-// GetPeriodLocksByDuration returns the total amount of query.Denom tokens locked for longer than
+// GetPeriodLocksAccumulation returns the total amount of query.Denom tokens locked for longer than
 // query.Duration.
 func (k Keeper) GetPeriodLocksAccumulation(ctx sdk.Context, query types.QueryCondition) math.Int {
 	beginKey := accumulationKey(query.Duration)

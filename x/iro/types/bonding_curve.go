@@ -64,7 +64,7 @@ func (lbc BondingCurve) SupplyDecimals() int64 {
 	return rollappTokenDefaultDecimals
 }
 
-// validateBasic checks if the bonding curve is valid
+// ValidateBasic checks if the bonding curve is valid
 func (lbc BondingCurve) ValidateBasic() error {
 	if lbc.M.IsNegative() {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "m: %d", lbc.M)
