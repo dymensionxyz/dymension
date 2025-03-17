@@ -240,7 +240,7 @@ func TestTokensForDYM(t *testing.T) {
 					cost := curve.curve.Cost(startingX, startingX.Add(x))
 
 					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
-						tokens, err := curve.curve.TokensForExactDYM(startingX, cost)
+						tokens, err := curve.curve.TokensForExactInAmount(startingX, cost)
 						require.NoError(t, err)
 						approxEqualInt(t, x, tokens)
 					})
@@ -383,6 +383,43 @@ func TestUseCaseA(t *testing.T) {
 	totalValue := bootstrapFunds.Add(unsoldValue)
 	err = approxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
 	require.NoError(t, err)
+}
+
+func TestUseCase_USDC(t *testing.T) {
+	// Test case parameters
+	val := math.NewInt(100_000) // 100,000 liquidity to raise
+	z := math.NewInt(1_000_000) // 1,000,000 RA tokens
+	n := math.LegacyNewDec(1)   // N = 1 (linear curve)
+	c := math.LegacyZeroDec()
+	r := math.LegacyMustNewDecFromStr("0.9") // 10% goes to founder
+
+	// Calculate M
+	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, r)
+	require.True(t, m.IsPositive())
+
+	curveUSDC := types.NewBondingCurve(m, n, c, 18, 6) // we set 18 for RA and 6 for USDC
+	curveDYM := types.NewBondingCurve(m, n, c, 18, 18) // we set 18 for RA and 18 for DYM
+
+	// find eq
+	eq := types.FindEquilibrium(curveUSDC, z.MulRaw(1e18), r)
+
+	// verify that the cost early is lower than the cost later
+	// test for buying 10_000 RA tokens
+
+	costUSDCFirst := curveUSDC.Cost(math.ZeroInt(), math.NewInt(10_000).MulRaw(1e18)) // first 10K tokens
+	costDYMFirst := curveDYM.Cost(math.ZeroInt(), math.NewInt(10_000).MulRaw(1e18))
+
+	require.Equal(t,
+		types.ScaleFromBase(costUSDCFirst, 6).TruncateInt().String(),
+		types.ScaleFromBase(costDYMFirst, 18).TruncateInt().String())
+
+	costUSDCLast := curveUSDC.Cost(eq.Sub(math.NewInt(10_000).MulRaw(1e18)), eq) // last 10K tokens
+	costDYMLast := curveDYM.Cost(eq.Sub(math.NewInt(10_000).MulRaw(1e18)), eq)
+
+	require.Equal(t,
+		types.ScaleFromBase(costUSDCLast, 6).TruncateInt().String(),
+		types.ScaleFromBase(costDYMLast, 18).TruncateInt().String())
+
 }
 
 func TestSpotPrice(t *testing.T) {
