@@ -95,7 +95,7 @@ func SimulateTestBondingCurve(k keeper.Keeper) simtypes.Operation {
 			}
 
 			// Calculate tokens for exact DYM spend
-			tokens, err := curve.TokensForExactDYM(plan.SoldAmt, cost)
+			tokens, err := curve.TokensForExactInAmount(plan.SoldAmt, cost)
 			if err != nil {
 				err = fmt.Errorf("%s: buy amount: %s,tokens for exact DYM spend: %w", curveDesc, scaledAmount.String(), err)
 				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err

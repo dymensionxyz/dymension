@@ -132,7 +132,7 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 // - currX: the current supply, in the base denomination
 // - spendAmt: the amount of DYM to spend, in adym
 // - returns: the number of tokens that can be bought with spendAmt, in the base denomination
-func (lbc BondingCurve) TokensForExactDYM(currX, spendAmt math.Int) (math.Int, error) {
+func (lbc BondingCurve) TokensForExactInAmount(currX, spendAmt math.Int) (math.Int, error) {
 	startingX := ScaleFromBase(currX, lbc.SupplyDecimals())
 	spendTokens := ScaleFromBase(spendAmt, lbc.LiquidityDecimals())
 

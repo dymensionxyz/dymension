@@ -129,7 +129,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// calculate the amount of tokens possible to buy with the amount to spend
-	tokensOutAmt, err := plan.BondingCurve.TokensForExactDYM(plan.SoldAmt, toSpendMinusTakerFeeAmt)
+	tokensOutAmt, err := plan.BondingCurve.TokensForExactInAmount(plan.SoldAmt, toSpendMinusTakerFeeAmt)
 	if err != nil {
 		return err
 	}
