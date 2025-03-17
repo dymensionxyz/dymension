@@ -5,7 +5,9 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
+	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 )
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal
@@ -29,4 +31,6 @@ type Upgrade struct {
 
 type UpgradeKeepers struct {
 	LockupKeeper *lockupkeeper.Keeper
+	IROKeeper    *irokeeper.Keeper
+	GAMMKeeper   *gammkeeper.Keeper
 }
