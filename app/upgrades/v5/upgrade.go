@@ -7,6 +7,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
@@ -45,9 +46,8 @@ func CreateUpgradeHandler(
 		// GAMM module params migration
 		migrateGAMMParams(ctx, keepers.GAMMKeeper)
 
-		// TODO: V50 migrations
-
-		// TODO: IBCKEEPER override
+		// fix V50 x/gov params
+		migrateGovParams(ctx, keepers.GovKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -56,7 +56,6 @@ func CreateUpgradeHandler(
 }
 
 func migrateLockupParams(ctx sdk.Context, k *lockupkeeper.Keeper) {
-	// overwrite params for rollapp module due to proto change
 	params := k.GetParams(ctx)
 
 	params.LockCreationFee = lockuptypes.DefaultLockFee
@@ -83,4 +82,19 @@ func migrateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement
 
 	k.SetParams(ctx, params)
+}
+
+func migrateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// expedited min deposit is 5 times the min deposit
+	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin(params.MinDeposit[0].Denom, params.MinDeposit[0].Amount.MulRaw(5)))
+
+	err = k.Params.Set(ctx, params)
+	if err != nil {
+		panic(err)
+	}
 }

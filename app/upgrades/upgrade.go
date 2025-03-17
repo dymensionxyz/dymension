@@ -4,6 +4,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
@@ -33,4 +34,5 @@ type UpgradeKeepers struct {
 	LockupKeeper *lockupkeeper.Keeper
 	IROKeeper    *irokeeper.Keeper
 	GAMMKeeper   *gammkeeper.Keeper
+	GovKeeper    *govkeeper.Keeper
 }
