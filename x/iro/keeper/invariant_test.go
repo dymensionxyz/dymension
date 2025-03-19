@@ -18,14 +18,13 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
-	endTime := startTime.Add(time.Hour)
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "test_rollapp_denom"
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	// Create a plan
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	plan := k.MustGetPlan(s.Ctx, planId)
 	planDenom := plan.TotalAllocation.Denom

@@ -8,7 +8,6 @@ import "google/protobuf/any.proto";
 
 import "ibc/core/client/v1/tx.proto";
 
-
 option go_package = "github.com/dymensionxyz/dymension/v3/x/lightclient/types";
 
 service Msg {
@@ -16,13 +15,14 @@ service Msg {
   rpc SetCanonicalClient(MsgSetCanonicalClient)
       returns (MsgSetCanonicalClientResponse);
 
-  // The normal IBC update client msg needs to go through our ante handler, which
-  // means we block authz wrapping of it, but we still need a way to do it via authz
-  // (for portal self-relaying). So, we add a new wrapper message here, and route it
-  // through the ante handler logic explicitly.
+  // The normal IBC update client msg needs to go through our ante handler,
+  // which means we block authz wrapping of it, but we still need a way to do it
+  // via authz (for portal self-relaying). So, we add a new wrapper message
+  // here, and route it through the ante handler logic explicitly.
   //
   // note: cannot reuse already-registered ibc request msg type
-  rpc UpdateClient(MsgUpdateClient) returns (ibc.core.client.v1.MsgUpdateClientResponse);
+  rpc UpdateClient(MsgUpdateClient)
+      returns (ibc.core.client.v1.MsgUpdateClientResponse);
 }
 
 // verify a client state and its consensus states against the rollapp
@@ -37,6 +37,4 @@ message MsgSetCanonicalClient {
 
 message MsgSetCanonicalClientResponse {}
 
-message MsgUpdateClient {
-  ibc.core.client.v1.MsgUpdateClient inner = 1;
-}
+message MsgUpdateClient { ibc.core.client.v1.MsgUpdateClient inner = 1; }

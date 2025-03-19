@@ -96,6 +96,13 @@ func InvariantAccounting(k Keeper) uinv.Func {
 					errs = append(errs, fmt.Errorf("insufficient RA tokens: planID: %d, required: %s, available: %s",
 						plan.Id, claimable, moduleBal.Amount))
 				}
+
+				founderFunds := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom)
+				expectedFunds := plan.VestingPlan.Amount.Sub(plan.VestingPlan.Claimed)
+				if !founderFunds.Amount.Equal(expectedFunds) {
+					errs = append(errs, fmt.Errorf("incorrect founder funds: planID: %d, expected: %s, available: %s",
+						plan.Id, expectedFunds, founderFunds.Amount))
+				}
 			}
 		}
 

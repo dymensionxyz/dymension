@@ -29,6 +29,7 @@ type DenomMetadataKeeper interface {
 // BankKeeper defines the expected interface needed to retrieve account balances.
 type BankKeeper interface {
 	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	GetDenomMetaData(ctx context.Context, denom string) (banktypes.Metadata, bool)
 	SendCoins(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
@@ -56,6 +57,7 @@ type PoolManagerKeeper interface {
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapp rollapptypes.Rollapp, found bool)
 	SetIROPlanToRollapp(ctx sdk.Context, rollapp *rollapptypes.Rollapp, iro Plan) error
+	SetPreLaunchTime(ctx sdk.Context, rollapp *rollapptypes.Rollapp, preLaunchTime time.Time)
 	MustGetRollappOwner(ctx sdk.Context, rollappID string) sdk.AccAddress
 }
 

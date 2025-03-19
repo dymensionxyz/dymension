@@ -56,7 +56,7 @@ func TestBondingCurve_ValidateBasic(t *testing.T) {
 			n := math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", tt.n))
 			c := math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", tt.c))
 
-			bondingCurve := types.NewBondingCurve(m, n, c)
+			bondingCurve := types.NewBondingCurve(m, n, c, 18, 18)
 			err := bondingCurve.ValidateBasic()
 			if tt.expectErr {
 				require.Error(t, err)
@@ -73,7 +73,7 @@ func TestBondingCurve_Linear(t *testing.T) {
 	m := math.LegacyMustNewDecFromStr("1")
 	n := math.LegacyMustNewDecFromStr("1")
 	c := math.LegacyMustNewDecFromStr("0")
-	curve := types.NewBondingCurve(m, n, c)
+	curve := types.NewBondingCurve(m, n, c, 18, 18)
 
 	// Test values
 	x1 := math.NewInt(0).MulRaw(1e18)
@@ -113,7 +113,7 @@ func TestBondingCurve_Quadratic(t *testing.T) {
 	m := math.LegacyMustNewDecFromStr("2")
 	n := math.LegacyMustNewDecFromStr("2")
 	c := math.LegacyMustNewDecFromStr("10")
-	curve := types.NewBondingCurve(m, n, c)
+	curve := types.NewBondingCurve(m, n, c, 18, 18)
 
 	// Test values
 	x1 := math.NewInt(0).MulRaw(1e18)
@@ -151,7 +151,7 @@ func TestBondingCurve_SquareRoot(t *testing.T) {
 	m := math.LegacyMustNewDecFromStr("2.24345436")
 	n := math.LegacyMustNewDecFromStr("0.5")
 	c := math.LegacyMustNewDecFromStr("10.5443534")
-	curve := types.NewBondingCurve(m, n, c)
+	curve := types.NewBondingCurve(m, n, c, 18, 18)
 
 	// Test values
 	x1 := math.NewInt(0).MulRaw(1e18)
@@ -218,11 +218,15 @@ func TestTokensForDYM(t *testing.T) {
 			math.LegacyMustNewDecFromStr("2.24345436"),
 			math.LegacyMustNewDecFromStr("0.5"),
 			math.LegacyMustNewDecFromStr("0.0"),
+			18,
+			18,
 		)},
 		{"Quadratic", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2"),
 			math.LegacyMustNewDecFromStr("1.5"),
 			math.LegacyMustNewDecFromStr("0.0"),
+			18,
+			18,
 		)},
 	}
 
@@ -236,7 +240,7 @@ func TestTokensForDYM(t *testing.T) {
 					cost := curve.curve.Cost(startingX, startingX.Add(x))
 
 					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
-						tokens, err := curve.curve.TokensForExactDYM(startingX, cost)
+						tokens, err := curve.curve.TokensForExactInAmount(startingX, cost)
 						require.NoError(t, err)
 						approxEqualInt(t, x, tokens)
 					})
@@ -260,11 +264,15 @@ func TestTokensForDYMApproximation(t *testing.T) {
 			math.LegacyMustNewDecFromStr("2.24345436"),
 			math.LegacyMustNewDecFromStr("0.5"),
 			math.LegacyMustNewDecFromStr("0.0"),
+			18,
+			18,
 		)},
 		{"Quadratic", types.NewBondingCurve(
 			math.LegacyMustNewDecFromStr("2"),
 			math.LegacyMustNewDecFromStr("1.5"),
 			math.LegacyMustNewDecFromStr("0.0"),
+			18,
+			18,
 		)},
 	}
 
@@ -282,7 +290,7 @@ func TestTokensForDYMApproximation(t *testing.T) {
 				cost := curve.curve.Cost(startingX, startingX.Add(x))
 
 				startingXScaled := types.ScaleFromBase(startingX, curve.curve.SupplyDecimals())
-				spendTokensScaled := types.ScaleFromBase(cost, types.DYMDecimals)
+				spendTokensScaled := types.ScaleFromBase(cost, 18)
 				_, iteration, err := curve.curve.TokensApproximation(startingXScaled, spendTokensScaled)
 				require.NoError(t, err)
 
@@ -330,7 +338,7 @@ func TestUseCaseA(t *testing.T) {
 	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, r)
 	require.True(t, m.IsPositive())
 
-	curve := types.NewBondingCurve(m, n, c)
+	curve := types.NewBondingCurve(m, n, c, 18, 18)
 
 	// find eq
 	eq := types.FindEquilibrium(curve, z.MulRaw(1e18), r)
@@ -377,6 +385,42 @@ func TestUseCaseA(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestUseCase_USDC(t *testing.T) {
+	// Test case parameters
+	val := math.NewInt(100_000) // 100,000 liquidity to raise
+	z := math.NewInt(1_000_000) // 1,000,000 RA tokens
+	n := math.LegacyNewDec(1)   // N = 1 (linear curve)
+	c := math.LegacyZeroDec()
+	r := math.LegacyMustNewDecFromStr("0.9") // 10% goes to founder
+
+	// Calculate M
+	m := types.CalculateM(math.LegacyNewDecFromInt(val), math.LegacyNewDecFromInt(z), n, r)
+	require.True(t, m.IsPositive())
+
+	curveUSDC := types.NewBondingCurve(m, n, c, 18, 6) // we set 18 for RA and 6 for USDC
+	curveDYM := types.NewBondingCurve(m, n, c, 18, 18) // we set 18 for RA and 18 for DYM
+
+	// find eq
+	eq := types.FindEquilibrium(curveUSDC, z.MulRaw(1e18), r)
+
+	// verify that the cost early is lower than the cost later
+	// test for buying 10_000 RA tokens
+
+	costUSDCFirst := curveUSDC.Cost(math.ZeroInt(), math.NewInt(10_000).MulRaw(1e18)) // first 10K tokens
+	costDYMFirst := curveDYM.Cost(math.ZeroInt(), math.NewInt(10_000).MulRaw(1e18))
+
+	require.Equal(t,
+		types.ScaleFromBase(costUSDCFirst, 6).TruncateInt().String(),
+		types.ScaleFromBase(costDYMFirst, 18).TruncateInt().String())
+
+	costUSDCLast := curveUSDC.Cost(eq.Sub(math.NewInt(10_000).MulRaw(1e18)), eq) // last 10K tokens
+	costDYMLast := curveDYM.Cost(eq.Sub(math.NewInt(10_000).MulRaw(1e18)), eq)
+
+	require.Equal(t,
+		types.ScaleFromBase(costUSDCLast, 6).TruncateInt().String(),
+		types.ScaleFromBase(costDYMLast, 18).TruncateInt().String())
+}
+
 func TestSpotPrice(t *testing.T) {
 	t.Run("Constant Price Curve", func(t *testing.T) {
 		// Test simplest case: y = 0.1 (constant price)
@@ -384,7 +428,7 @@ func TestSpotPrice(t *testing.T) {
 		n := math.LegacyZeroDec()
 		c := math.LegacyMustNewDecFromStr("0.1")
 
-		curve := types.NewBondingCurve(m, n, c)
+		curve := types.NewBondingCurve(m, n, c, 18, 18)
 
 		testCases := []struct {
 			x    math.Int
@@ -406,7 +450,7 @@ func TestSpotPrice(t *testing.T) {
 		n := math.LegacyOneDec()
 		c := math.LegacyMustNewDecFromStr("0.1")
 
-		curve := types.NewBondingCurve(m, n, c)
+		curve := types.NewBondingCurve(m, n, c, 18, 18)
 
 		testCases := []struct {
 			x    math.Int

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -23,6 +24,8 @@ var (
 	_ sdk.Msg = &MsgBuyExactSpend{}
 	_ sdk.Msg = &MsgSell{}
 	_ sdk.Msg = &MsgClaim{}
+	_ sdk.Msg = &MsgClaimVested{}
+	_ sdk.Msg = &MsgEnableTrading{}
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
@@ -49,14 +52,30 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return ErrInvalidEndTime
 	}
 
+	// if start time set, trading must be enabled
+	if m.StartTime.Unix() > 0 && !m.TradingEnabled {
+		return errors.New("trading must be enabled to set start time")
+	}
+
 	if err := m.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
 	}
 
-	if !m.LiquidityPart.IsPositive() {
+	if m.LiquidityPart.IsNegative() || m.LiquidityPart.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("liquidity part must be positive: %s", m.LiquidityPart)
 	}
 
+	if m.VestingDuration < 0 {
+		return fmt.Errorf("vesting duration must be non-negative: %v", m.VestingDuration)
+	}
+
+	if m.VestingStartTimeAfterSettlement < 0 {
+		return fmt.Errorf("vesting start time after settlement must be non-negative: %v", m.VestingStartTimeAfterSettlement)
+	}
+
+	if sdk.ValidateDenom(m.LiquidityDenom) != nil {
+		return fmt.Errorf("invalid liquidity denom: %s", m.LiquidityDenom)
+	}
 	return nil
 }
 
@@ -176,6 +195,22 @@ func (m *MsgClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
+func (m *MsgClaimVested) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Claimer)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic implements types.Msg.
+func (m *MsgClaimVested) ValidateBasic() error {
+	// claimer bech32
+	_, err := sdk.AccAddressFromBech32(m.Claimer)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid claimer address: %s", err)
+	}
+
+	return nil
+}
+
 func (m *MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
@@ -222,4 +257,20 @@ func (m *MsgBuyExactSpend) ValidateBasic() error {
 func (m *MsgBuyExactSpend) GetSigners() []sdk.AccAddress {
 	addr := sdk.MustAccAddressFromBech32(m.Buyer)
 	return []sdk.AccAddress{addr}
+}
+
+// GetSigners implements types.Msg.
+func (m *MsgEnableTrading) GetSigners() []sdk.AccAddress {
+	addr := sdk.MustAccAddressFromBech32(m.Owner)
+	return []sdk.AccAddress{addr}
+}
+
+func (m *MsgEnableTrading) ValidateBasic() error {
+	// owner bech32
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address: %s", err)
+	}
+
+	return nil
 }

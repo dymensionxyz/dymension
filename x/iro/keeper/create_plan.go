@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -15,7 +16,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -40,28 +40,33 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, sdkerrors.ErrUnauthorized
 	}
 
-	startTime := req.StartTime
-	if startTime.Before(ctx.BlockTime()) {
-		startTime = ctx.BlockTime()
-	}
-	// check minimal duration
-	if req.IroPlanDuration < m.Keeper.GetParams(ctx).MinPlanDuration {
+	params := m.Keeper.GetParams(ctx)
+
+	// check minimal plan duration
+	if req.IroPlanDuration < params.MinPlanDuration {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
 	}
-	preLaunchTime := startTime.Add(req.IroPlanDuration)
 
 	// check minimal liquidity part
-	if req.LiquidityPart.LT(m.Keeper.GetParams(ctx).MinLiquidityPart) {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, fmt.Sprintf("liquidity part must be at least %s", m.Keeper.GetParams(ctx).MinLiquidityPart))
+	if req.LiquidityPart.LT(params.MinLiquidityPart) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "liquidity part must be at least %s", params.MinLiquidityPart)
+	}
+
+	// check vesting params
+	if req.VestingDuration < params.MinVestingDuration {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting duration must be at least %s", params.MinVestingDuration)
+	}
+
+	if req.VestingStartTimeAfterSettlement < params.MinVestingStartTimeAfterSettlement {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting start time after settlement must be at least %s", params.MinVestingStartTimeAfterSettlement)
 	}
 
 	// validate incentive plan params
-	params := m.Keeper.GetParams(ctx)
 	if req.IncentivePlanParams.NumEpochsPaidOver < params.IncentivesMinNumEpochsPaidOver {
-		return nil, errors.Join(gerrc.ErrFailedPrecondition, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "num epochs paid over"))
+		return nil, errors.Join(gerrc.ErrInvalidArgument, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "num epochs paid over"))
 	}
 	if req.IncentivePlanParams.StartTimeAfterSettlement < params.IncentivesMinStartTimeAfterSettlement {
-		return nil, errors.Join(gerrc.ErrFailedPrecondition, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "start time after settlement"))
+		return nil, errors.Join(gerrc.ErrInvalidArgument, errorsmod.Wrap(types.ErrInvalidIncentivePlanParams, "start time after settlement"))
 	}
 
 	// Check if the plan already exists
@@ -84,7 +89,27 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no genesis account for iro module account")
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.AllocatedAmount, startTime, preLaunchTime, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart)
+	// validate rollapp decimals is correct
+	if req.BondingCurve.RollappDenomDecimals != uint64(rollapp.GenesisInfo.NativeDenom.Exponent) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "rollapp decimals must be %d", rollapp.GenesisInfo.NativeDenom.Exponent)
+	}
+
+	// validate the liquidity denom is registered and curve decimals are correct
+	liqToken, ok := m.BK.GetDenomMetaData(ctx, req.LiquidityDenom)
+	if !ok {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "denom %s not registered", req.LiquidityDenom)
+	}
+	exponent := liqToken.DenomUnits[len(liqToken.DenomUnits)-1].Exponent
+	if req.BondingCurve.LiquidityDenomDecimals != uint64(exponent) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "liquidity denom decimals must be %d", exponent)
+	}
+
+	// check liquidity denom is allowed
+	if !slices.Contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, req.LiquidityDenom) {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
+	}
+
+	planId, err := m.Keeper.CreatePlan(ctx, req.LiquidityDenom, req.AllocatedAmount, req.IroPlanDuration, req.StartTime, req.TradingEnabled, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration, req.VestingStartTimeAfterSettlement)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +127,22 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 // 4. Creates a new module account for the IRO plan.
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
-func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, preLaunchTime time.Time, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, allocation, curve, start, preLaunchTime, incentivesParams, liquidityPart)
+	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, liquidityDenom, allocation, curve, planDuration, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
+
+	// if trading enabled initially, set start time and pre-launch time
+	if tradingEnabled {
+		if startTime.Before(ctx.BlockTime()) {
+			startTime = ctx.BlockTime()
+		}
+		plan.EnableTradingWithStartTime(startTime)
+	}
+
 	if err := plan.ValidateBasic(); err != nil {
 		return "", errors.Join(gerrc.ErrInvalidArgument, err)
 	}
@@ -131,8 +165,8 @@ func (k Keeper) CreatePlan(ctx sdk.Context, allocatedAmount math.Int, start, pre
 		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
 	}
 
-	feeCostInDym := sdk.NewCoin(appparams.BaseDenom, cost)
-	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(feeCostInDym))
+	feeCostLiquidlyCoin := sdk.NewCoin(plan.LiquidityDenom, cost)
+	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(feeCostLiquidlyCoin))
 	if err != nil {
 		return "", err
 	}

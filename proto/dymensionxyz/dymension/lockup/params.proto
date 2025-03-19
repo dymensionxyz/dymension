@@ -3,6 +3,7 @@ package dymensionxyz.dymension.lockup;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "google/protobuf/duration.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/lockup/types";
 
@@ -10,10 +11,20 @@ message Params {
   repeated string force_unlock_allowed_addresses = 1
       [ (gogoproto.moretags) = "yaml:\"force_unlock_allowed_address\"" ];
 
-  // LockCreationFee represents the base fee required to create a new lock. 
+  // LockCreationFee represents the base fee required to create a new lock.
   string lock_creation_fee = 2 [
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+
+  // MinLockDuration is the min time needed for a lock to mature after unlocking
+  // has started. The user can't create a lock with a duration less than this
+  // value.
+  google.protobuf.Duration min_lock_duration = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag) = "duration,omitempty",
+    (gogoproto.moretags) = "yaml:\"duration\""
   ];
 }

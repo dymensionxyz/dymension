@@ -18,11 +18,12 @@ var (
 	defaultCurve         = types.DefaultBondingCurve()
 	defaultIncentives    = types.DefaultIncentivePlanParams()
 	defaultLiquidityPart = types.DefaultParams().MinLiquidityPart
+	defaultDuration      = time.Hour
 )
 
 var plans = []types.Plan{
-	types.NewPlan(1, "rollapp1", fooCoin, defaultCurve, time.Time{}, time.Time{}, defaultIncentives, defaultLiquidityPart),
-	types.NewPlan(2, "rollapp2", fooCoin, defaultCurve, time.Time{}, time.Time{}, defaultIncentives, defaultLiquidityPart),
+	types.NewPlan(1, "rollapp1", "adym", fooCoin, defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
+	types.NewPlan(2, "rollapp2", "adym", fooCoin, defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
 }
 
 func TestGenesis(t *testing.T) {
