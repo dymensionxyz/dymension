@@ -238,6 +238,8 @@ replace (
 	// for collections
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
 
+	github.com/cosmos/ibc-go/v7 => github.com/dymensionxyz/ibc-go-fork/v7 v7.5.2-0.20250319111500-5802d52cfd1e
+
 	// use dymension forks
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
