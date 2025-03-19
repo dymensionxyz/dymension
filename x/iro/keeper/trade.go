@@ -80,7 +80,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		return err
 	}
 
-	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
+	// Send liquidity token from buyer to the plan. The liquidity token sent directly to the plan's module account
 	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
@@ -115,7 +115,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	return nil
 }
 
-// BuyExactSpend uses exact amount of DYM to buy tokens on the curve
+// BuyExactSpend uses exact amount of liquidity to buy tokens on the curve
 func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error {
 	plan, err := k.GetTradeableIRO(ctx, planId, buyer)
 	if err != nil {
@@ -152,7 +152,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 		return err
 	}
 
-	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
+	// Send liquidity token from buyer to the plan. The liquidity token sent directly to the plan's module account
 	cost := sdk.NewCoin(plan.LiquidityDenom, toSpendMinusTakerFeeAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
@@ -212,7 +212,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		return err
 	}
 
-	// send DYM from the plan to the seller. DYM managed by the plan's module account
+	// Send liquidity token from the plan to the seller. The liquidity token managed by the plan's module account
 	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(cost))
 	if err != nil {

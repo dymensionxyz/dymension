@@ -28,7 +28,8 @@ func (k Keeper) AfterTransfersEnabled(ctx sdk.Context, rollappId, rollappIBCDeno
 // - Validates that the "TotalAllocation.Amount" of the RA token are available in the module account.
 // - Burns any unsold FUT tokens in the module account.
 // - Marks the plan as settled, allowing users to claim tokens.
-// - Uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool.
+// - Starts the vesting schedule for the owner tokens.
+// - Uses the raised liquidity and unsold tokens to bootstrap the rollapp's liquidity pool.
 func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error {
 	plan, found := k.GetPlanByRollapp(ctx, rollappId)
 	if !found {
@@ -66,7 +67,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	plan.SettledDenom = rollappIBCDenom
 	k.SetPlan(ctx, plan)
 
-	// uses the raised DYM and unsold tokens to bootstrap the rollapp's liquidity pool
+	// uses the raised liquidity and unsold tokens to bootstrap the rollapp's liquidity pool
 	poolID, gaugeID, err := k.bootstrapLiquidityPool(ctx, plan, poolTokens)
 	if err != nil {
 		return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
@@ -88,12 +89,12 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	return nil
 }
 
-// bootstrapLiquidityPool bootstraps the liquidity pool with the raised DYM and unsold tokens.
+// bootstrapLiquidityPool bootstraps the liquidity pool with the raised liquidity and unsold tokens.
 //
 // This function performs the following steps:
-// - Sends the raised DYM to the IRO module to be used as the pool creator.
+// - Sends the raised liquidity to the IRO module to be used as the pool creator.
 // - Determines the required pool liquidity amounts to fulfill the last price.
-// - Creates a balancer pool with the determined tokens and DYM.
+// - Creates a balancer pool with the determined tokens and liquidity.
 // - Uses leftover tokens as incentives to the pool LP token holders.
 func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTokens math.Int) (poolID, gaugeID uint64, err error) {
 	// claimable amount is kept in the module account and used for user's claims
@@ -102,16 +103,16 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	// the remaining tokens are used to bootstrap the liquidity pool
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(claimableAmt)
 
-	// send the raised DYM to the iro module as it will be used as the pool creator
+	// send the raised liquidity token to the iro module as it will be used as the pool creator
 	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, poolTokens)))
 	if err != nil {
 		return 0, 0, err
 	}
 
-	// find the tokens needed to bootstrap the pool, to fulfill last price
-	tokens, dym := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
-	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, tokens)
-	baseLiquidityCoin := sdk.NewCoin(plan.LiquidityDenom, dym)
+	// find the raTokens needed to bootstrap the pool, to fulfill last price
+	raTokens, liquidityTokens := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
+	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, raTokens)
+	baseLiquidityCoin := sdk.NewCoin(plan.LiquidityDenom, liquidityTokens)
 
 	// create pool
 	gammGlobalParams := k.gk.GetParams(ctx).GlobalFees

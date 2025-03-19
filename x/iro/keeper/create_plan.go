@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -104,7 +105,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}
 
 	// check liquidity denom is allowed
-	if !contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, req.LiquidityDenom) {
+	if !slices.Contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, req.LiquidityDenom) {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
@@ -229,14 +230,4 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 		return sdk.Coin{}, err
 	}
 	return minted, nil
-}
-
-// Function to check if a slice contains a string
-func contains(slice []string, str string) bool {
-	for _, v := range slice {
-		if v == str {
-			return true
-		}
-	}
-	return false
 }
