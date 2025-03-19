@@ -1,10 +1,6 @@
 package keeper
 
 import (
-	"context"
-
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -12,27 +8,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
-
-// Claim implements types.MsgServer.
-func (m msgServer) Claim(ctx context.Context, req *types.MsgClaim) (*types.MsgClaimResponse, error) {
-	claimerAddr := sdk.MustAccAddressFromBech32(req.Claimer)
-	err := m.Keeper.Claim(sdk.UnwrapSDKContext(ctx), req.PlanId, claimerAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgClaimResponse{}, nil
-}
-
-func (m msgServer) ClaimVested(ctx context.Context, req *types.MsgClaimVested) (*types.MsgClaimVestedResponse, error) {
-	claimerAddr := sdk.MustAccAddressFromBech32(req.Claimer)
-	err := m.Keeper.ClaimVested(sdk.UnwrapSDKContext(ctx), req.PlanId, claimerAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgClaimVestedResponse{}, nil
-}
 
 // Claim claims the FUT token for the real RA token
 //
@@ -118,7 +93,7 @@ func (k Keeper) ClaimVested(ctx sdk.Context, planId string, claimer sdk.AccAddre
 	}
 
 	// send the vested funds to the claimer
-	vestedCoins := sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, amt))
+	vestedCoins := sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, amt))
 	err := k.BK.SendCoins(ctx, plan.GetAddress(), claimer, vestedCoins)
 	if err != nil {
 		return err

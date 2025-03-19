@@ -73,9 +73,9 @@ func SimulateTestBondingCurve(k keeper.Keeper) simtypes.Operation {
 		}
 
 		// prepare base error with curve context
-		totalAll := types.ScaleFromBase(plan.TotalAllocation.Amount, types.DYMDecimals)
-		soldAmt := types.ScaleFromBase(plan.SoldAmt, types.DYMDecimals)
-		targetRaise := types.ScaleFromBase(curve.Cost(math.ZeroInt(), plan.TotalAllocation.Amount), types.DYMDecimals)
+		totalAll := types.ScaleFromBase(plan.TotalAllocation.Amount, curve.SupplyDecimals())
+		soldAmt := types.ScaleFromBase(plan.SoldAmt, curve.SupplyDecimals())
+		targetRaise := types.ScaleFromBase(curve.Cost(math.ZeroInt(), plan.TotalAllocation.Amount), curve.LiquidityDecimals())
 		curveDesc := fmt.Sprintf("total supply: %s, sold amount: %s, target raise: %s, bonding curve: %s", totalAll.String(), soldAmt.String(), targetRaise.String(), curve.Stringify())
 
 		if curve.M.IsZero() {
@@ -87,7 +87,7 @@ func SimulateTestBondingCurve(k keeper.Keeper) simtypes.Operation {
 		managed := false
 		lastCost := math.ZeroInt()
 		for _, amount := range testAmounts {
-			scaledAmount := types.ScaleFromBase(amount, types.DYMDecimals)
+			scaledAmount := types.ScaleFromBase(amount, 18)
 			// Calculate cost for buying tokens
 			cost := curve.Cost(plan.SoldAmt, amount.Add(plan.SoldAmt))
 			if !cost.IsPositive() {
@@ -95,7 +95,7 @@ func SimulateTestBondingCurve(k keeper.Keeper) simtypes.Operation {
 			}
 
 			// Calculate tokens for exact DYM spend
-			tokens, err := curve.TokensForExactDYM(plan.SoldAmt, cost)
+			tokens, err := curve.TokensForExactInAmount(plan.SoldAmt, cost)
 			if err != nil {
 				err = fmt.Errorf("%s: buy amount: %s,tokens for exact DYM spend: %w", curveDesc, scaledAmount.String(), err)
 				return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", err.Error()), nil, err

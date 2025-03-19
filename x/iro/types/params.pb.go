@@ -35,7 +35,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Params struct {
 	TakerFee cosmossdk_io_math.LegacyDec `protobuf:"bytes,1,opt,name=taker_fee,json=takerFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"taker_fee"`
 	// The fee for creating a plan in rollapp tokens (e.g 1000000000000000000 for
-	// 1Token fee) must be > 1 The cost in dym is charged from the creator
+	// 1Token fee) must be > 1 The cost in `liquidity_denom` is charged from the
+	// creator
 	CreationFee cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=creation_fee,json=creationFee,proto3,customtype=cosmossdk.io/math.Int" json:"creation_fee"`
 	// Minimum plan duration
 	// when creating a plan, the plan duration should be greater than or equal to
