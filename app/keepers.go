@@ -111,6 +111,11 @@ import (
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
+
+	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
 type AppKeepers struct {
@@ -166,6 +171,9 @@ type AppKeepers struct {
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 
 	DymNSKeeper dymnskeeper.Keeper
+
+	HyperCoreKeeper hypercorekeeper.Keeper
+	HyperWarpKeeper hyperwarpkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -505,6 +513,18 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		govModuleAddress,
+	)
+
+	a.HyperCoreKeeper = hypercorekeeper.NewKeeper(
+		appCodec,
+		a.keys[hypercoretypes.StoreKey],
+		a.keys[hypercoretypes.MemStoreKey],
+	)
+
+	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
+		appCodec,
+		a.keys[hyperwarptypes.StoreKey],
+		a.keys[hyperwarptypes.MemStoreKey],
 	)
 }
 
