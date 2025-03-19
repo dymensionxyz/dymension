@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cosmossdk.io/core/header"
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -17,6 +18,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
@@ -64,6 +66,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			msg: "Test that upgrade does not panic and sets correct parameters",
 			preUpgrade: func() error {
 				s.setLockupParams()
+				s.setIROParams()
 				return nil
 			},
 			upgrade: func() {
@@ -94,6 +97,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Lockup parameters
 				if err = s.validateLockupParamsMigration(); err != nil {
+					return
+				}
+
+				// validate IRO params
+				if err = s.validateIROParamsMigration(); err != nil {
 					return
 				}
 
@@ -135,5 +143,30 @@ func (s *UpgradeTestSuite) validateLockupParamsMigration() error {
 	if !cond {
 		return fmt.Errorf("lockup parameters not set correctly")
 	}
+	return nil
+}
+
+func (s *UpgradeTestSuite) setIROParams() {
+	oldParams := irotypes.DefaultParams()
+
+	oldParams.MinLiquidityPart = math.LegacyDec{}
+	oldParams.MinVestingDuration = 0
+	oldParams.MinVestingStartTimeAfterSettlement = 0
+
+	s.App.IROKeeper.SetParams(s.Ctx, oldParams)
+}
+
+func (s *UpgradeTestSuite) validateIROParamsMigration() error {
+	params := s.App.IROKeeper.GetParams(s.Ctx)
+	expected := irotypes.DefaultParams()
+
+	if !params.MinLiquidityPart.Equal(expected.MinLiquidityPart) {
+		return fmt.Errorf("min liquidity part not set correctly")
+	}
+
+	if params.MinVestingDuration != expected.MinVestingDuration || params.MinVestingStartTimeAfterSettlement != expected.MinVestingStartTimeAfterSettlement {
+		return fmt.Errorf("min vesting duration or start time after settlement not set correctly")
+	}
+
 	return nil
 }

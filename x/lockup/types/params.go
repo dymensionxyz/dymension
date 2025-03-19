@@ -36,9 +36,7 @@ func DefaultParams() Params {
 	return Params{
 		ForceUnlockAllowedAddresses: []string{},
 		LockCreationFee:             DefaultLockFee,
-		// TODO: Migrations! Set MinLockDuration to 1 day.
-		//  https://github.com/dymensionxyz/dymension/issues/1723
-		MinLockDuration: 0,
+		MinLockDuration:             0,
 	}
 }
 
