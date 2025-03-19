@@ -73,6 +73,9 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 		return fmt.Errorf("vesting start time after settlement must be non-negative: %v", m.VestingStartTimeAfterSettlement)
 	}
 
+	if sdk.ValidateDenom(m.LiquidityDenom) != nil {
+		return fmt.Errorf("invalid liquidity denom: %s", m.LiquidityDenom)
+	}
 	return nil
 }
 

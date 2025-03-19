@@ -24,7 +24,7 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, planDuration time.Duration, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
+func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.Coin, curve BondingCurve, planDuration time.Duration, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
 	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
 	// start time and pre-launch time are set later on
 	plan := Plan{
@@ -38,6 +38,7 @@ func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurv
 		IncentivePlanParams: incentivesParams,
 		MaxAmountToSell:     eq,
 		LiquidityPart:       liquidityPart,
+		LiquidityDenom:      liquidityDenom,
 		VestingPlan: IROVestingPlan{
 			Amount:                   math.ZeroInt(),
 			Claimed:                  math.ZeroInt(),
@@ -88,6 +89,10 @@ func (p Plan) ValidateBasic() error {
 
 	if err := p.VestingPlan.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "vesting plan")
+	}
+
+	if err := sdk.ValidateDenom(p.LiquidityDenom); err != nil {
+		return errorsmod.Wrap(err, "invalid liquidity denom")
 	}
 
 	return nil

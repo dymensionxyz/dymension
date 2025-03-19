@@ -96,13 +96,15 @@ message MsgCreatePlan {
     (gogoproto.nullable) = false
   ];
 
-  google.protobuf.Duration vesting_duration = 10 [
+  string liquidity_denom = 10;
+
+  google.protobuf.Duration vesting_duration = 11 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"vesting_duration\""
   ];
 
-  google.protobuf.Duration vesting_start_time_after_settlement = 11 [
+  google.protobuf.Duration vesting_start_time_after_settlement = 12 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"vesting_start_time_after_settlement\""

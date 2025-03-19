@@ -1,8 +1,9 @@
 package apptesting
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"slices"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AssertEventEmitted asserts that ctx's event manager has emitted the given number of events

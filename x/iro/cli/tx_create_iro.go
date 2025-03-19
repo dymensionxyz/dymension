@@ -148,6 +148,7 @@ Examples:
 					NumEpochsPaidOver:        incentivesEpochs,
 				},
 				LiquidityPart:                   math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", liquidityPart)),
+				LiquidityDenom:                  "adym", // TODO: add as flag
 				VestingDuration:                 vestingDuration,
 				VestingStartTimeAfterSettlement: vestingStartTimeAfterSettlement,
 				TradingEnabled:                  !tradingDisabled,
@@ -191,6 +192,6 @@ func ParseBondingCurve(curveStr string) (types.BondingCurve, error) {
 		return curve, errors.New("invalid C parameter")
 	}
 
-	curve = types.NewBondingCurve(M, N, C)
+	curve = types.NewBondingCurve(M, N, C, 18, 18)
 	return curve, curve.ValidateBasic()
 }

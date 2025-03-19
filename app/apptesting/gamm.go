@@ -21,6 +21,7 @@ var DefaultAcctFunds sdk.Coins = sdk.NewCoins(
 	sdk.NewCoin("bar", EXP.Mul(math.NewInt(1_000_000))),
 	sdk.NewCoin("baz", EXP.Mul(math.NewInt(1_000_000))),
 	sdk.NewCoin("stake", EXP.Mul(math.NewInt(1_000_000_000_000))),
+	sdk.NewCoin("usdc", math.NewInt(1e6).Mul(math.NewInt(1_000_000))), // 6 decimals
 )
 
 var DefaultPoolParams = balancer.PoolParams{
