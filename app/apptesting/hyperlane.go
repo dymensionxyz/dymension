@@ -10,7 +10,7 @@ import (
 
 func (s *KeeperTestHelper) SetupHyperlane() {
 
-	server := uhyp.NewServer(&s.App.HyperCoreKeeper, &s.App.HyperCoreKeeper.PostDispatchKeeper, &s.App.HyperCoreKeeper.IsmKeeper)
+	server := uhyp.NewServer(&s.App.HyperCoreKeeper, &s.App.HyperCoreKeeper.PostDispatchKeeper, &s.App.HyperCoreKeeper.IsmKeeper, s.App.HyperWarpKeeper)
 	owner := Alice
 
 	mailboxId, err := server.CreateDefaultMailbox(s.Ctx, owner, "acoin")
