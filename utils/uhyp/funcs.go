@@ -54,22 +54,33 @@ func (s *Server) warpServer() warptypes.MsgServer {
 	return warpkeeper.NewMsgServerImpl(s.warpK)
 }
 
-func (s *Server) CreateDefaultMailbox(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
-	igp, err := s.CreateIGP(ctx, creator)
+func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom string) (hyperutil.HexAddress, error) {
+	ism, err := s.CreateNoopIsm(ctx, owner)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	noopHook, err := s.CreateNoopHook(ctx, creator)
+	igp, err := s.CreateIGP(ctx, owner, denom)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ism, err := s.CreateNoopIsm(ctx, creator)
+	noopHook, err := s.CreateNoopHook(ctx, owner)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	localDomain := uint32(0)
+	err = s.SetDestinationGasConfig(ctx,
+		owner,
+		igp.String(),
+		1,
+		math.NewInt(1e10),
+		math.NewInt(1),
+		math.NewInt(200000),
+	)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	localDomain := uint32(1)
 
-	mailboxId, err := s.CreateMailbox(ctx, creator, localDomain, ism, igp, noopHook)
+	mailboxId, err := s.CreateMailbox(ctx, owner, localDomain, ism, igp, noopHook)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
@@ -81,14 +92,18 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, creator string) (hyperuti
 // Core
 /////////////////////////
 
-func (s *Server) CreateMailbox(ctx sdk.Context, creator string, localDomain uint32, ismId, igpHookId, noopHookId hyperutil.HexAddress) (hyperutil.HexAddress, error) {
+func (s *Server) CreateMailbox(ctx sdk.Context,
+	owner string,
+	localDomain uint32,
+	ism, requiredHook, defaultHook hyperutil.HexAddress,
+) (hyperutil.HexAddress, error) {
 
 	msg := &types.MsgCreateMailbox{
-		Owner:        creator,
+		Owner:        owner,
 		LocalDomain:  localDomain,
-		DefaultIsm:   ismId,
-		DefaultHook:  &noopHookId,
-		RequiredHook: &igpHookId,
+		DefaultIsm:   ism,
+		DefaultHook:  &defaultHook,
+		RequiredHook: &requiredHook,
 	}
 	res, err := s.coreServer().CreateMailbox(ctx, msg)
 	if err != nil {
@@ -103,14 +118,14 @@ func (s *Server) CreateMailbox(ctx sdk.Context, creator string, localDomain uint
 }
 
 func (s *Server) SetMailbox(ctx sdk.Context,
-	creator string,
+	owner string,
 	mailboxId hyperutil.HexAddress,
 	localDomain uint32,
 	ismId, igpHookId, noopHookId hyperutil.HexAddress,
 	newOwner string,
 ) error {
 	msg := &types.MsgSetMailbox{
-		Owner:        creator,
+		Owner:        owner,
 		MailboxId:    mailboxId,
 		DefaultIsm:   &ismId,
 		DefaultHook:  &noopHookId,
@@ -141,9 +156,9 @@ func (s *Server) ProcessMessage(ctx sdk.Context,
 // Post Dispatch
 /////////////////////////
 
-func (s *Server) CreateIGP(ctx sdk.Context, creator string, denom string) (hyperutil.HexAddress, error) {
+func (s *Server) CreateIGP(ctx sdk.Context, owner string, denom string) (hyperutil.HexAddress, error) {
 	msg := &pdtypes.MsgCreateIgp{
-		Owner: creator,
+		Owner: owner,
 		Denom: denom,
 	}
 	res, err := s.pdServer().CreateIgp(ctx, msg)
@@ -157,10 +172,10 @@ func (s *Server) CreateIGP(ctx sdk.Context, creator string, denom string) (hyper
 	return ret, nil
 }
 
-func (s *Server) SetIgpOwner(ctx sdk.Context, creator string, igpId string, // TODO: hex address?
+func (s *Server) SetIgpOwner(ctx sdk.Context, owner string, igpId string, // TODO: hex address?
 	newOwner string) error {
 	msg := &pdtypes.MsgSetIgpOwner{
-		Owner:    creator,
+		Owner:    owner,
 		IgpId:    igpId,
 		NewOwner: newOwner,
 	}
@@ -168,8 +183,15 @@ func (s *Server) SetIgpOwner(ctx sdk.Context, creator string, igpId string, // T
 	return err
 }
 
-func (s *Server) SetDestinationDomain(ctx sdk.Context, creator string, igpId string, // TODO: hex address?
-	remoteDomain uint32) error {
+func (s *Server) SetDestinationGasConfig(
+	ctx sdk.Context,
+	owner string,
+	igpId string, // TODO: hex address?
+	remoteDomain uint32,
+	tokenExchangeRate math.Int,
+	gasPrice math.Int,
+	gasOverhead math.Int,
+) error {
 	cfg := &pdtypes.DestinationGasConfig{
 		RemoteDomain: remoteDomain,
 		GasOracle: &pdtypes.GasOracle{
@@ -179,7 +201,7 @@ func (s *Server) SetDestinationDomain(ctx sdk.Context, creator string, igpId str
 		GasOverhead: math.NewInt(0),
 	}
 	msg := &pdtypes.MsgSetDestinationGasConfig{
-		Owner:                creator,
+		Owner:                owner,
 		IgpId:                igpId,
 		DestinationGasConfig: cfg,
 	}
@@ -237,9 +259,9 @@ func (s *Server) CreateMerkleTreeHook(ctx sdk.Context, owner string, mailboxId s
 	return ret, nil
 }
 
-func (s *Server) CreateNoopHook(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
+func (s *Server) CreateNoopHook(ctx sdk.Context, owner string) (hyperutil.HexAddress, error) {
 	msg := &pdtypes.MsgCreateNoopHook{
-		Owner: creator,
+		Owner: owner,
 	}
 	res, err := s.pdServer().CreateNoopHook(ctx, msg)
 	if err != nil {
@@ -324,9 +346,10 @@ func (s *Server) AnnounceValidator(ctx sdk.Context,
 // Warp Routes
 /////////////////////////
 
-func (s *Server) CreateSyntheticToken(ctx sdk.Context, creator string, originMailbox hyperutil.HexAddress) (hyperutil.HexAddress, error) {
+// returns tokens id
+func (s *Server) CreateSyntheticToken(ctx sdk.Context, owner string, originMailbox hyperutil.HexAddress) (hyperutil.HexAddress, error) {
 	msg := &warptypes.MsgCreateSyntheticToken{
-		Owner:         creator,
+		Owner:         owner,
 		OriginMailbox: originMailbox,
 	}
 	res, err := s.warpServer().CreateSyntheticToken(ctx, msg)
@@ -340,9 +363,10 @@ func (s *Server) CreateSyntheticToken(ctx sdk.Context, creator string, originMai
 	return ret, nil
 }
 
-func (s *Server) CreateCollateralToken(ctx sdk.Context, creator string, originMailbox hyperutil.HexAddress, originDenom string) (hyperutil.HexAddress, error) {
+// returns tokens id
+func (s *Server) CreateCollateralToken(ctx sdk.Context, owner string, originMailbox hyperutil.HexAddress, originDenom string) (hyperutil.HexAddress, error) {
 	msg := &warptypes.MsgCreateCollateralToken{
-		Owner:         creator,
+		Owner:         owner,
 		OriginMailbox: originMailbox,
 		OriginDenom:   originDenom,
 	}
@@ -357,9 +381,9 @@ func (s *Server) CreateCollateralToken(ctx sdk.Context, creator string, originMa
 	return ret, nil
 }
 
-func (s *Server) SetToken(ctx sdk.Context, creator string, tokenId hyperutil.HexAddress, newOwner string, ismId *hyperutil.HexAddress) error {
+func (s *Server) SetToken(ctx sdk.Context, owner string, tokenId hyperutil.HexAddress, newOwner string, ismId *hyperutil.HexAddress) error {
 	msg := &warptypes.MsgSetToken{
-		Owner:    creator,
+		Owner:    owner,
 		TokenId:  tokenId,
 		NewOwner: newOwner,
 		IsmId:    ismId,
@@ -368,9 +392,9 @@ func (s *Server) SetToken(ctx sdk.Context, creator string, tokenId hyperutil.Hex
 	return err
 }
 
-func (s *Server) EnrollRemoteRouter(ctx sdk.Context, creator string, tokenId hyperutil.HexAddress, remoteRouter *warptypes.RemoteRouter) error {
+func (s *Server) EnrollRemoteRouter(ctx sdk.Context, owner string, tokenId hyperutil.HexAddress, remoteRouter *warptypes.RemoteRouter) error {
 	msg := &warptypes.MsgEnrollRemoteRouter{
-		Owner:        creator,
+		Owner:        owner,
 		TokenId:      tokenId,
 		RemoteRouter: remoteRouter,
 	}
@@ -378,9 +402,9 @@ func (s *Server) EnrollRemoteRouter(ctx sdk.Context, creator string, tokenId hyp
 	return err
 }
 
-func (s *Server) UnrollRemoteRouter(ctx sdk.Context, creator string, tokenId hyperutil.HexAddress, receiverDomain uint32) error {
+func (s *Server) UnrollRemoteRouter(ctx sdk.Context, owner string, tokenId hyperutil.HexAddress, receiverDomain uint32) error {
 	msg := &warptypes.MsgUnrollRemoteRouter{
-		Owner:          creator,
+		Owner:          owner,
 		TokenId:        tokenId,
 		ReceiverDomain: receiverDomain,
 	}
@@ -388,9 +412,10 @@ func (s *Server) UnrollRemoteRouter(ctx sdk.Context, creator string, tokenId hyp
 	return err
 }
 
+// returns message id
 func (s *Server) RemoteTransfer(
 	ctx sdk.Context,
-	creator string,
+	owner string,
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
 	recipient hyperutil.HexAddress,
@@ -401,7 +426,7 @@ func (s *Server) RemoteTransfer(
 	gasLimit math.Int,
 ) (string, error) {
 	msg := &warptypes.MsgRemoteTransfer{
-		Sender:             creator,
+		Sender:             owner,
 		TokenId:            tokenId,
 		DestinationDomain:  destinationDomain,
 		Recipient:          recipient,
