@@ -1,12 +1,13 @@
 package types
 
 import (
-	context "context"
-	time "time"
+	"context"
+	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -41,4 +42,13 @@ type TxFeesKeeper interface {
 
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
+}
+
+type PoolManagerKeeper interface {
+	GetPoolModule(ctx sdk.Context, poolId uint64) (poolmanagertypes.SwapI, error)
+	GetNextPoolId(ctx sdk.Context) uint64
+}
+
+type GammKeeper interface {
+	GetPool(ctx sdk.Context, poolId uint64) (poolmanagertypes.PoolI, error)
 }

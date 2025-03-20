@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/log"
 
-	flags "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	ethflags "github.com/evmos/ethermint/server/flags"
 
@@ -62,7 +62,6 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -78,6 +77,8 @@ import (
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/spf13/cast"
+
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -388,6 +389,8 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
+		a.PoolManagerKeeper,
+		a.GAMMKeeper,
 	)
 
 	a.IROKeeper = irokeeper.NewKeeper(
