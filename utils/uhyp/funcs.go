@@ -141,12 +141,92 @@ func (s *Server) ProcessMessage(ctx sdk.Context,
 // Post Dispatch
 /////////////////////////
 
-func (s *Server) CreateIGP(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
+func (s *Server) CreateIGP(ctx sdk.Context, creator string, denom string) (hyperutil.HexAddress, error) {
 	msg := &pdtypes.MsgCreateIgp{
 		Owner: creator,
-		Denom: "acoin",
+		Denom: denom,
 	}
 	res, err := s.pdServer().CreateIgp(ctx, msg)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	ret, err := hyperutil.DecodeHexAddress(res.Id)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	return ret, nil
+}
+
+func (s *Server) SetIgpOwner(ctx sdk.Context, creator string, igpId string, // TODO: hex address?
+	newOwner string) error {
+	msg := &pdtypes.MsgSetIgpOwner{
+		Owner:    creator,
+		IgpId:    igpId,
+		NewOwner: newOwner,
+	}
+	_, err := s.pdServer().SetIgpOwner(ctx, msg)
+	return err
+}
+
+func (s *Server) SetDestinationDomain(ctx sdk.Context, creator string, igpId string, // TODO: hex address?
+	remoteDomain uint32) error {
+	cfg := &pdtypes.DestinationGasConfig{
+		RemoteDomain: remoteDomain,
+		GasOracle: &pdtypes.GasOracle{
+			TokenExchangeRate: math.NewInt(0),
+			GasPrice:          math.NewInt(0),
+		},
+		GasOverhead: math.NewInt(0),
+	}
+	msg := &pdtypes.MsgSetDestinationGasConfig{
+		Owner:                creator,
+		IgpId:                igpId,
+		DestinationGasConfig: cfg,
+	}
+	_, err := s.pdServer().SetDestinationGasConfig(ctx, msg)
+	return err
+}
+
+func (s *Server) PayforGas(
+	ctx sdk.Context,
+	sender string,
+	igpId string, // TODO: hex address?
+	messageId string, // TODO: hex address?
+	destinationDomain uint32,
+	amount sdk.Coin,
+	gasLimit math.Int,
+) error {
+	msg := &pdtypes.MsgPayForGas{
+		Sender:            sender,
+		IgpId:             igpId,
+		MessageId:         messageId,
+		DestinationDomain: destinationDomain,
+		Amount:            amount,
+		GasLimit:          gasLimit,
+	}
+	_, err := s.pdServer().PayForGas(ctx, msg)
+	return err
+}
+
+func (s *Server) Claim(
+	ctx sdk.Context,
+	sender string,
+	igpId string, // TODO: hex address?
+) error {
+	msg := &pdtypes.MsgClaim{
+		Sender: sender,
+		IgpId:  igpId,
+	}
+	_, err := s.pdServer().Claim(ctx, msg)
+	return err
+}
+
+func (s *Server) CreateMerkleTreeHook(ctx sdk.Context, owner string, mailboxId string) (hyperutil.HexAddress, error) {
+	msg := &pdtypes.MsgCreateMerkleTreeHook{
+		Owner:     owner,
+		MailboxId: mailboxId,
+	}
+	res, err := s.pdServer().CreateMerkleTreeHook(ctx, msg)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
