@@ -13,7 +13,7 @@ require (
 	github.com/cometbft/cometbft v0.37.5
 	github.com/cometbft/cometbft-db v0.11.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.47.13
+	github.com/cosmos/cosmos-sdk v0.47.17
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3
 	github.com/cosmos/ibc-go/v7 v7.5.1
@@ -239,8 +239,8 @@ replace (
 	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.37.5-0.20241118210820-8eda0d5f45b9
 	// use dymension forks
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.47.9-0.20241030110731-1ee7a862da35
+	github.com/cosmos/ibc-go/v7 => github.com/dymensionxyz/ibc-go-fork/v7 v7.5.2-0.20250320165718-9e2a1a0e65e0
 	//hacks
-	github.com/cosmos/ibc-go/v7 => github.com/dymensionxyz/ibc-go-fork/v7 v7.5.2-0.20241118120532-3f2f353810f3
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20241203143227-6db8e3df1248
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20240820121212-c0e21fa21e43
