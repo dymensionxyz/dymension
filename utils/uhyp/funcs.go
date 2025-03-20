@@ -1,6 +1,7 @@
 package uhyp
 
 import (
+	"cosmossdk.io/math"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	ismkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/keeper"
 	ismtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
@@ -8,6 +9,8 @@ import (
 	pdtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
 	corekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	types "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -23,13 +26,15 @@ type Server struct {
 	coreK *corekeeper.Keeper
 	pdK   *pdkeeper.Keeper
 	ismK  *ismkeeper.Keeper
+	warpK warpkeeper.Keeper
 }
 
-func NewServer(coreK *corekeeper.Keeper, pdK *pdkeeper.Keeper, ismK *ismkeeper.Keeper) *Server {
+func NewServer(coreK *corekeeper.Keeper, pdK *pdkeeper.Keeper, ismK *ismkeeper.Keeper, warpK warpkeeper.Keeper) *Server {
 	return &Server{
 		coreK: coreK,
 		pdK:   pdK,
 		ismK:  ismK,
+		warpK: warpK,
 	}
 }
 
@@ -43,6 +48,10 @@ func (s *Server) pdServer() pdtypes.MsgServer {
 
 func (s *Server) ismServer() ismtypes.MsgServer {
 	return ismkeeper.NewMsgServerImpl(s.ismK)
+}
+
+func (s *Server) warpServer() warptypes.MsgServer {
+	return warpkeeper.NewMsgServerImpl(s.warpK)
 }
 
 func (s *Server) CreateDefaultMailbox(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
@@ -147,4 +156,98 @@ func (s *Server) CreateMultisigIsm(ctx sdk.Context, creator string) (hyperutil.H
 		return hyperutil.HexAddress{}, err
 	}
 	return res.Id, nil
+}
+
+func (s *Server) CreateSyntheticToken(ctx sdk.Context, creator string, originMailbox hyperutil.HexAddress) (hyperutil.HexAddress, error) {
+	msg := &warptypes.MsgCreateSyntheticToken{
+		Owner:         creator,
+		OriginMailbox: originMailbox,
+	}
+	res, err := s.warpServer().CreateSyntheticToken(ctx, msg)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	ret, err := hyperutil.DecodeHexAddress(res.Id)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	return ret, nil
+}
+
+func (s *Server) CreateCollateralToken(ctx sdk.Context, creator string, originMailbox hyperutil.HexAddress, originDenom string) (hyperutil.HexAddress, error) {
+	msg := &warptypes.MsgCreateCollateralToken{
+		Owner:         creator,
+		OriginMailbox: originMailbox,
+		OriginDenom:   originDenom,
+	}
+	res, err := s.warpServer().CreateCollateralToken(ctx, msg)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	ret, err := hyperutil.DecodeHexAddress(res.Id)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	return ret, nil
+}
+
+func (s *Server) SetToken(ctx sdk.Context, creator string, tokenId hyperutil.HexAddress, newOwner string, ismId *hyperutil.HexAddress) error {
+	msg := &warptypes.MsgSetToken{
+		Owner:    creator,
+		TokenId:  tokenId,
+		NewOwner: newOwner,
+		IsmId:    ismId,
+	}
+	_, err := s.warpServer().SetToken(ctx, msg)
+	return err
+}
+
+func (s *Server) EnrollRemoteRouter(ctx sdk.Context, creator string, tokenId hyperutil.HexAddress, remoteRouter *warptypes.RemoteRouter) error {
+	msg := &warptypes.MsgEnrollRemoteRouter{
+		Owner:        creator,
+		TokenId:      tokenId,
+		RemoteRouter: remoteRouter,
+	}
+	_, err := s.warpServer().EnrollRemoteRouter(ctx, msg)
+	return err
+}
+
+func (s *Server) UnrollRemoteRouter(ctx sdk.Context, creator string, tokenId hyperutil.HexAddress, receiverDomain uint32) error {
+	msg := &warptypes.MsgUnrollRemoteRouter{
+		Owner:          creator,
+		TokenId:        tokenId,
+		ReceiverDomain: receiverDomain,
+	}
+	_, err := s.warpServer().UnrollRemoteRouter(ctx, msg)
+	return err
+}
+
+func (s *Server) RemoteTransfer(
+	ctx sdk.Context,
+	creator string,
+	tokenId hyperutil.HexAddress,
+	destinationDomain uint32,
+	recipient hyperutil.HexAddress,
+	customHookId hyperutil.HexAddress,
+	maxFee sdk.Coin,
+	customHookMetadata string,
+	amt math.Int,
+	gasLimit math.Int,
+) (string, error) {
+	msg := &warptypes.MsgRemoteTransfer{
+		Sender:             creator,
+		TokenId:            tokenId,
+		DestinationDomain:  destinationDomain,
+		Recipient:          recipient,
+		Amount:             amt,
+		CustomHookId:       &customHookId,
+		GasLimit:           gasLimit,
+		MaxFee:             maxFee,
+		CustomHookMetadata: customHookMetadata,
+	}
+	res, err := s.warpServer().RemoteTransfer(ctx, msg)
+	if err != nil {
+		return "", err
+	}
+	return res.MessageId, nil
 }
