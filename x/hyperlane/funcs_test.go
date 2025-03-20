@@ -23,6 +23,6 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }
 
-func (s *TestSuite) TestSetup() {
+func (s *TestSuite) TestTheSetup() {
 	s.SetupHyperlane()
 }

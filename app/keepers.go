@@ -115,6 +115,7 @@ import (
 	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
 type AppKeepers struct {
@@ -525,7 +526,7 @@ func (a *AppKeepers) InitKeepers(
 	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
 		appCodec,
 		a.AccountKeeper.AddressCodec(),
-		runtime.NewKVStoreService(a.keys[hypercoretypes.ModuleName]), // TODO: check
+		runtime.NewKVStoreService(a.keys[hyperwarptypes.ModuleName]), // TODO: check
 		govModuleAddress,
 		a.BankKeeper,
 		&a.HyperCoreKeeper,

@@ -66,7 +66,6 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, creator string) (hyperuti
 	}
 
 	return mailboxId, nil
-
 }
 
 func (s *Server) CreateMailbox(ctx sdk.Context, creator string, localDomain uint32, ismId, igpHookId, noopHookId hyperutil.HexAddress) (hyperutil.HexAddress, error) {
