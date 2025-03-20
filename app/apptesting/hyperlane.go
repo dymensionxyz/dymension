@@ -28,6 +28,8 @@ func (s *KeeperTestHelper) SetupHyperlane() {
 		RequiredHook: defaultRequiredHook,
 	}
 
+	is
+
 	_, err := coreServer.CreateMailbox(s.Ctx, &m)
 	s.Require().NoError(err)
 
