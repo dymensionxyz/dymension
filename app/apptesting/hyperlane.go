@@ -3,6 +3,7 @@ package apptesting
 import (
 	hyperlanecorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	hyperlanecoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	"github.com/dymensionxyz/dymension/v3/utils/uhyp"
 	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
@@ -48,7 +49,7 @@ func (s *KeeperTestHelper) SetupHyperlane() {
 	// 2) Create mailbox with that default ISM
 	mbRes, err := coreServer.CreateMailbox(s.Ctx, &hyperlanecoretypes.MsgCreateMailbox{
 		Owner:       Alice,
-		DefaultIsm:  hyperutil.MustDecodeHexAddress(ismRes.Id),
+		DefaultIsm:  uhyp.MustDecodeHexAddress(ismRes.Id),
 		LocalDomain: 42,
 	})
 	s.Require().NoError(err)
