@@ -67,10 +67,11 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom strin
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
+	remoteDomain := uint32(1)
 	err = s.SetDestinationGasConfig(ctx,
 		owner,
 		igp.String(),
-		1,
+		remoteDomain, // should this really by?
 		math.NewInt(1e10),
 		math.NewInt(1),
 		math.NewInt(200000),
@@ -195,10 +196,10 @@ func (s *Server) SetDestinationGasConfig(
 	cfg := &pdtypes.DestinationGasConfig{
 		RemoteDomain: remoteDomain,
 		GasOracle: &pdtypes.GasOracle{
-			TokenExchangeRate: math.NewInt(0),
-			GasPrice:          math.NewInt(0),
+			TokenExchangeRate: tokenExchangeRate,
+			GasPrice:          gasPrice,
 		},
-		GasOverhead: math.NewInt(0),
+		GasOverhead: gasOverhead,
 	}
 	msg := &pdtypes.MsgSetDestinationGasConfig{
 		Owner:                owner,

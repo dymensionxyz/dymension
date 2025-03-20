@@ -530,7 +530,7 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 		a.BankKeeper,
 		&a.HyperCoreKeeper,
-		[]int32{}, // TODO: ??
+		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
 	)
 }
 
