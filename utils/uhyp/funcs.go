@@ -25,8 +25,12 @@ type Server struct {
 	ismK  *ismkeeper.Keeper
 }
 
-func NewServer() *Server {
-	return &Server{}
+func NewServer(coreK *corekeeper.Keeper, pdK *pdkeeper.Keeper, ismK *ismkeeper.Keeper) *Server {
+	return &Server{
+		coreK: coreK,
+		pdK:   pdK,
+		ismK:  ismK,
+	}
 }
 
 func (s *Server) coreServer() types.MsgServer {
