@@ -5,6 +5,8 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -137,4 +139,6 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	txfeestypes.StoreKey,
 	lightcliendmoduletypes.StoreKey,
 	grouptypes.StoreKey,
+	hypercoretypes.ModuleName,
+	hyperwarptypes.ModuleName,
 )
