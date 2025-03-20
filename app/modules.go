@@ -86,6 +86,7 @@ import (
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+
 	//hypercoretypes "/Users/danwt/Documents/dym/danwt-hyperlane-cosmos/x/core/types"
 	hypercore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
 	hypertypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
@@ -150,6 +151,10 @@ func (app *App) SetupModules(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		txfees.NewAppModule(*app.TxFeesKeeper),
+
+		// Hyperlane modules
+		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
+		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
 	}
 }
 
