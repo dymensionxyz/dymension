@@ -86,7 +86,15 @@ import (
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	//hypercoretypes "/Users/danwt/Documents/dym/danwt-hyperlane-cosmos/x/core/types"
+	hypercore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
+	hypertypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
+
+var _ = hypercore.ConsensusVersion
+var _ = hyperwarp.ConsensusVersion
 
 func (app *App) SetupModules(
 	appCodec codec.Codec,
@@ -156,6 +164,7 @@ func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
+	// TODO: need HL?
 	return modAccAddrs
 }
 
@@ -181,6 +190,8 @@ var maccPerms = map[string][]string{
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
+	hypertypes.ModuleName:                              {}, // TODO: check
+	hyperwarptypes.ModuleName:                          {}, // TODO: check
 }
 
 var PreBlockers = []string{
@@ -227,6 +238,8 @@ var BeginBlockers = []string{
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,     // TODO: check order
+	hyperwarptypes.ModuleName, // TODO: check order
 }
 
 var EndBlockers = []string{
@@ -269,6 +282,8 @@ var EndBlockers = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,     // TODO: check order
+	hyperwarptypes.ModuleName, // TODO: check order
 }
 
 var InitGenesis = []string{
@@ -311,4 +326,6 @@ var InitGenesis = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,     // TODO: check order
+	hyperwarptypes.ModuleName, // TODO: check order
 }
