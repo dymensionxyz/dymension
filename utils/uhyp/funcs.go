@@ -77,6 +77,10 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, creator string) (hyperuti
 	return mailboxId, nil
 }
 
+/////////////////////////
+// Core
+/////////////////////////
+
 func (s *Server) CreateMailbox(ctx sdk.Context, creator string, localDomain uint32, ismId, igpHookId, noopHookId hyperutil.HexAddress) (hyperutil.HexAddress, error) {
 
 	msg := &types.MsgCreateMailbox{
@@ -96,8 +100,46 @@ func (s *Server) CreateMailbox(ctx sdk.Context, creator string, localDomain uint
 	}
 
 	return ret, nil
-
 }
+
+func (s *Server) SetMailbox(ctx sdk.Context,
+	creator string,
+	mailboxId hyperutil.HexAddress,
+	localDomain uint32,
+	ismId, igpHookId, noopHookId hyperutil.HexAddress,
+	newOwner string,
+) error {
+	msg := &types.MsgSetMailbox{
+		Owner:        creator,
+		MailboxId:    mailboxId,
+		DefaultIsm:   &ismId,
+		DefaultHook:  &noopHookId,
+		RequiredHook: &igpHookId,
+		NewOwner:     newOwner,
+	}
+	_, err := s.coreServer().SetMailbox(ctx, msg)
+	return err
+}
+
+func (s *Server) ProcessMessage(ctx sdk.Context,
+	mailboxId hyperutil.HexAddress,
+	relayer string,
+	metadata string,
+	message string,
+) error {
+	msg := &types.MsgProcessMessage{
+		MailboxId: mailboxId,
+		Relayer:   relayer,
+		Metadata:  metadata,
+		Message:   message,
+	}
+	_, err := s.coreServer().ProcessMessage(ctx, msg)
+	return err
+}
+
+/////////////////////////
+// Post Dispatch
+/////////////////////////
 
 func (s *Server) CreateIGP(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
 	msg := &pdtypes.MsgCreateIgp{
@@ -130,17 +172,28 @@ func (s *Server) CreateNoopHook(ctx sdk.Context, creator string) (hyperutil.HexA
 	return ret, nil
 }
 
-func (s *Server) CreateNoopIsm(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
-	msg := &ismtypes.MsgCreateNoopIsm{
+/////////////////////////
+// Interchain Security Modules
+/////////////////////////
+
+func (s *Server) CreateMessageIdMultisigIsm(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
+	msg := &ismtypes.MsgCreateMessageIdMultisigIsm{
 		Creator: creator,
+		Validators: []string{
+			"0xa05b6a0aa112b61a7aa16c19cac27d970692995e",
+			"0xb05b6a0aa112b61a7aa16c19cac27d970692995e",
+			"0xd05b6a0aa112b61a7aa16c19cac27d970692995e",
+		},
+		Threshold: 2,
 	}
-	res, err := s.ismServer().CreateNoopIsm(ctx, msg)
+	res, err := s.ismServer().CreateMessageIdMultisigIsm(ctx, msg)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
 	return res.Id, nil
 }
 
+// (merkle root based)
 func (s *Server) CreateMultisigIsm(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
 	msg := &ismtypes.MsgCreateMerkleRootMultisigIsm{
 		Creator: creator,
@@ -157,6 +210,39 @@ func (s *Server) CreateMultisigIsm(ctx sdk.Context, creator string) (hyperutil.H
 	}
 	return res.Id, nil
 }
+
+func (s *Server) CreateNoopIsm(ctx sdk.Context, creator string) (hyperutil.HexAddress, error) {
+	msg := &ismtypes.MsgCreateNoopIsm{
+		Creator: creator,
+	}
+	res, err := s.ismServer().CreateNoopIsm(ctx, msg)
+	if err != nil {
+		return hyperutil.HexAddress{}, err
+	}
+	return res.Id, nil
+}
+
+func (s *Server) AnnounceValidator(ctx sdk.Context,
+	validator string,
+	storageLocation string,
+	signature string,
+	mailboxId string, // hex address?
+	creator string,
+) error {
+	msg := &ismtypes.MsgAnnounceValidator{
+		Validator:       validator,
+		StorageLocation: storageLocation,
+		Signature:       signature,
+		MailboxId:       mailboxId,
+		Creator:         creator,
+	}
+	_, err := s.ismServer().AnnounceValidator(ctx, msg)
+	return err
+}
+
+/////////////////////////
+// Warp Routes
+/////////////////////////
 
 func (s *Server) CreateSyntheticToken(ctx sdk.Context, creator string, originMailbox hyperutil.HexAddress) (hyperutil.HexAddress, error) {
 	msg := &warptypes.MsgCreateSyntheticToken{
