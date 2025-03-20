@@ -8,6 +8,7 @@
 
 * add missing validations in x/rollapp/types/genesis.go ([#1657](https://github.com/dymensionxyz/dymension/issues/1657)) ([4ebef89](https://github.com/dymensionxyz/dymension/commit/4ebef89664fbefbede41aa2df24cc0087e01a288))
 * correct two usages of indefinite articles in cli ([#1698](https://github.com/dymensionxyz/dymension/issues/1698)) ([1750571](https://github.com/dymensionxyz/dymension/commit/1750571db86c1ff77538e01d01de240a1ededa42))
+* **denommetadata:** wrong key in paginated guery for registered denoms ([#1798](https://github.com/dymensionxyz/dymension/issues/1798)) ([c5d94ab](https://github.com/dymensionxyz/dymension/commit/c5d94ab99849a0a48e855e011ef980b78ed359b6))
 * **eibc:** authorization min fee truncating ([#1756](https://github.com/dymensionxyz/dymension/issues/1756)) ([e4fc14b](https://github.com/dymensionxyz/dymension/commit/e4fc14bb315a083737f81ce8eb3662053a15bc16))
 * **iro:** first sell tokens, than charge fee ([#1717](https://github.com/dymensionxyz/dymension/issues/1717)) ([9ca4a70](https://github.com/dymensionxyz/dymension/commit/9ca4a7066288bdacb629b4a3b90c4b1922f051cc))
 * **iro:** missing `StartTimeAfterSettlement` in IRO default params ([#1704](https://github.com/dymensionxyz/dymension/issues/1704)) ([10edf97](https://github.com/dymensionxyz/dymension/commit/10edf973bf95cd8a28d8af1cd312c3e4e9939f6e))
