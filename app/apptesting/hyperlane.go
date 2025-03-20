@@ -1,15 +1,34 @@
 package apptesting
 
 import (
+	hyperlanecorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	hyperlanecoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
+
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 )
 
-func (s *KeeperTestHelper) SetupHyperlane() string {
+/*
+TODO: this is all a big wip
+*/
 
-	m := hyperlanecoretypes.CreateMailbox{
-		Owner:      s.Ctx.AccAddress().String(),
-		DefaultIsm: defaultIsm,
+func (s *KeeperTestHelper) SetupHyperlane() {
+
+	coreServer := hyperlanecorekeeper.NewMsgServerImpl(&s.App.HyperCoreKeeper)
+	var owner string
+	localDomain := uint32(1)
+	defaultIsm := hyperutil.NewZeroAddress()
+	defaultHook := uptr.To(hyperutil.NewZeroAddress())
+	defaultRequiredHook := uptr.To(hyperutil.NewZeroAddress())
+	m := hyperlanecoretypes.MsgCreateMailbox{
+		Owner:        owner,
+		LocalDomain:  localDomain,
+		DefaultIsm:   defaultIsm,
+		DefaultHook:  defaultHook,
+		RequiredHook: defaultRequiredHook,
 	}
 
-	return routerId
+	_, err := coreServer.CreateMailbox(s.Ctx, &m)
+	s.Require().NoError(err)
+
 }
