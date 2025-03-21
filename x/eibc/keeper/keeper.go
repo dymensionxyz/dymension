@@ -172,9 +172,12 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.Dem
 	if err != nil {
 		return nil, err
 	}
+	if err := demandOrder.ValidateOrderIsOutstanding(); err != nil {
+		return nil, err
+	}
 
 	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
-	packet, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	packet, err := k.OrderPacket(ctx, orderId)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +188,21 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.Dem
 		return nil, types.ErrDemandOrderInactive
 	}
 
-	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
+	return demandOrder, nil
+}
+
+func (k Keeper) OrderPacket(ctx sdk.Context, orderId string) (*commontypes.RollappPacket, error) {
+	demandOrder, err := k.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
+	packet, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	if err != nil {
+		return nil, err
+	}
+	return packet, nil
 }
 
 // ListAllDemandOrders returns all demand orders.
@@ -285,6 +302,8 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 	o *types.DemandOrder,
 	fulfiller sdk.AccAddress,
 ) error {
+	packet, err := k.OrderPacket(ctx, o.Id)
+
 	fulfillerAccount := k.ak.GetAccount(ctx, fulfiller) // TODO: can omit?
 	if fulfillerAccount == nil {
 		return types.ErrFulfillerAddressDoesNotExist

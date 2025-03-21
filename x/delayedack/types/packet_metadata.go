@@ -13,6 +13,7 @@ type PacketMetadata struct {
 
 type EIBCMetadata struct {
 	Fee string `json:"fee"`
+	FulfillHook
 }
 
 func (p PacketMetadata) ValidateBasic() error {
