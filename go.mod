@@ -19,6 +19,7 @@ require (
 	cosmossdk.io/x/tx v0.13.8
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/bcp-innovations/hyperlane-cosmos v0.0.0-20250319112518-e26f472da4f9
+	github.com/celestiaorg/celestia-openrpc v0.5.0
 	github.com/cockroachdb/errors v1.11.3
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cometbft/cometbft-db v0.14.1
@@ -48,6 +49,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
+	go.starlark.net v0.0.0-20250318223901-d9371fef63fe
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
 	gonum.org/v1/gonum v0.15.1
 	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142

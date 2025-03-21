@@ -541,6 +541,7 @@ func (a *AppKeepers) InitKeepers(
 	a.ForwardKeeper = *forwardkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[forwardtypes.ModuleName]),
+		&a.HyperWarpKeeper,
 	)
 
 	a.EIBCKeeper.SetFulfillHooks(a.ForwardKeeper.Hook())

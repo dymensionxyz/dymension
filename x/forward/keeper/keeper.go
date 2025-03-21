@@ -18,11 +18,13 @@ type Keeper struct {
 	cdc    codec.BinaryCodec
 	Schema collections.Schema
 	// TODO: params collection
+	warpKeeper types.WarpRouteKeeper
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	service storetypes.KVStoreService,
+	warpKeeper types.WarpRouteKeeper,
 ) *Keeper {
 
 	sb := collections.NewSchemaBuilder(service)
@@ -35,8 +37,9 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:    cdc,
-		Schema: schema,
+		cdc:        cdc,
+		Schema:     schema,
+		warpKeeper: warpKeeper,
 	}
 }
 
