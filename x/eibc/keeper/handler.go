@@ -12,6 +12,7 @@ import (
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/fulfillhooks"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
@@ -80,6 +81,16 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	}
 	if err := eibcMetaData.ValidateBasic(); err != nil {
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
+	}
+
+	fulfillHook, err := eibcMetaData.GetFulfillHook()
+	if err != nil {
+		return nil, fmt.Errorf("get fulfill hook: %w", err)
+	}
+	if fulfillHook != nil {
+		if err := fulfillhooks.Valid(*fulfillHook); err != nil {
+			return nil, fmt.Errorf("validate fulfill hook: %w", err)
+		}
 	}
 
 	// Calculate the demand order price and validate it,

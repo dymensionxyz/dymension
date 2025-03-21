@@ -7,11 +7,15 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // if given in eibc metadata, eibc fullfillment funds will be directed to a module address
 // and a hook will be executed
-message FulfillHookMetadata {
+message FulfillHook {
+  // name of hook
   string hook_name = 1;
+  // opaque data to be interpreted by the hook
   bytes hook_data = 2;
 }
 
-message ForwardHookMetadata {
+message ForwardHook {
   // TODO:
+  string foo = 1;
+  int64 bar = 2;
 }

@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type PacketMetadata struct {
@@ -24,20 +22,20 @@ func (p PacketMetadata) ValidateBasic() error {
 	return p.EIBC.ValidateBasic()
 }
 
-func (e EIBCMetadata) GetFulfillHook() (eibctypes.FulfillHookMetadata, error) {
+func (e EIBCMetadata) GetFulfillHook() (*eibctypes.FulfillHookMetadata, error) {
 	if len(e.FulfillHook) == 0 {
-		return eibctypes.FulfillHookMetadata{}, gerrc.ErrNotFound
+		return nil, nil
 	}
 	var hook eibctypes.FulfillHookMetadata
 	// unmarshal with protobuf
 	err := proto.Unmarshal(e.FulfillHook, &hook)
 	if err != nil {
-		return eibctypes.FulfillHookMetadata{}, fmt.Errorf("unmarshal fulfill hook: %w", err)
+		return nil, fmt.Errorf("unmarshal fulfill hook: %w", err)
 	}
 	if err := hook.ValidateBasic(); err != nil {
-		return eibctypes.FulfillHookMetadata{}, fmt.Errorf("validate fulfill hook: %w", err)
+		return nil, fmt.Errorf("validate fulfill hook: %w", err)
 	}
-	return hook, nil
+	return &hook, nil
 }
 
 func (e EIBCMetadata) ValidateBasic() error {
@@ -46,9 +44,7 @@ func (e EIBCMetadata) ValidateBasic() error {
 		return fmt.Errorf("fee: %w", err)
 	}
 	if _, err := e.GetFulfillHook(); err != nil {
-		if !errorsmod.IsOf(err, gerrc.ErrNotFound) {
-			return fmt.Errorf("fulfill hook: %w", err)
-		}
+		return fmt.Errorf("fulfill hook: %w", err)
 	}
 	return nil
 }
