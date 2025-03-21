@@ -133,13 +133,14 @@ func (k Keeper) SetOrderFulfilled(
 	if err != nil {
 		return err
 	}
-	receiverAddress := fulfillerAddress
+	newTransferRecipient := fulfillerAddress
 	if collectorAddress != nil {
 		// optional override
-		receiverAddress = collectorAddress
+		newTransferRecipient = collectorAddress
 	}
-	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, receiverAddress.String())
+
+	// This hook should be called only once per fulfillment.
+	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, newTransferRecipient.String())
 	if err != nil {
 		return err
 	}
