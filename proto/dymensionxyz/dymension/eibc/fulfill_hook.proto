@@ -13,9 +13,3 @@ message FulfillHook {
   // opaque data to be interpreted by the hook
   bytes hook_data = 2;
 }
-
-message ForwardHook {
-  // TODO:
-  string foo = 1;
-  int64 bar = 2;
-}

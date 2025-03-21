@@ -23,17 +23,18 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		hooks      types.EIBCHooks
-		paramstore paramtypes.Subspace
-		ak         types.AccountKeeper
-		bk         types.BankKeeper
-		dack       types.DelayedAckKeeper
-		rk         types.RollappKeeper
-		Schema     collections.Schema
-		LPs        LPs
+		cdc          codec.BinaryCodec
+		storeKey     storetypes.StoreKey
+		memKey       storetypes.StoreKey
+		hooks        types.EIBCHooks
+		paramstore   paramtypes.Subspace
+		ak           types.AccountKeeper
+		bk           types.BankKeeper
+		dack         types.DelayedAckKeeper
+		rk           types.RollappKeeper
+		Schema       collections.Schema
+		LPs          LPs
+		fulfillHooks FulfillHooks
 	}
 )
 
@@ -63,21 +64,26 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		ak:         accountKeeper,
-		bk:         bankKeeper,
-		dack:       delayedAckKeeper,
-		rk:         rk,
-		Schema:     schema,
-		LPs:        lps,
+		cdc:          cdc,
+		storeKey:     storeKey,
+		memKey:       memKey,
+		paramstore:   ps,
+		ak:           accountKeeper,
+		bk:           bankKeeper,
+		dack:         delayedAckKeeper,
+		rk:           rk,
+		Schema:       schema,
+		LPs:          lps,
+		fulfillHooks: NewHooks(),
 	}
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) SetFulfillHooks(hooks FulfillHooks) {
+	k.fulfillHooks = hooks
 }
 
 func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
@@ -360,19 +366,20 @@ func (k Keeper) fulfill(ctx sdk.Context,
 	*/
 
 	if o.FulfillHook != nil {
-		err := k.doFulfillHook(ctx, o)
+		err := k.doFulfillHook(ctx, o, args)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")
 		}
-	}
-
-	err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
-	if err != nil {
-		return errorsmod.Wrap(err, "send coins")
+	} else {
+		// TODO: can make this an instance of a hook / type of hook
+		err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
+		if err != nil {
+			return errorsmod.Wrap(err, "send coins")
+		}
 	}
 
 	o.FulfillerAddress = args.Fulfiller.String()
-	err = k.SetDemandOrder(ctx, o)
+	err := k.SetDemandOrder(ctx, o)
 	if err != nil {
 		return err
 	}

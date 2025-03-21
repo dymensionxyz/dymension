@@ -1,53 +1,43 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/gogo/protobuf/proto"
 )
 
 const (
 	HookNameForward = "forward"
 )
 
+type FulfillHook interface {
+	ValidateData(hookData []byte) error
+	Run(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs, hookData []byte) error
+}
+
+type FulfillHooks struct {
+	hooks map[string]FulfillHook
+}
+
+func NewHooks() FulfillHooks {
+	return FulfillHooks{
+		hooks: make(map[string]FulfillHook),
+	}
+}
+
 // assumed already passed validate basic
-func validateFulfillHook(info types.FulfillHook) error {
-	switch info.HookName {
-	case HookNameForward:
-		return validForward(info.HookData)
-	default:
-		return gerrc.ErrInvalidArgument.Wrap("hook name")
+func (h FulfillHooks) validateFulfillHook(info types.FulfillHook) error {
+	f, ok := h.hooks[info.HookName]
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("hook")
 	}
+	return f.ValidateData(info.HookData)
 }
 
-func validForward(data []byte) error {
-	var d types.ForwardHook
-	err := proto.Unmarshal(data, &d)
-	if err != nil {
-		return errorsmod.Wrap(err, "unmarshal forward hook")
+func (h FulfillHooks) doFulfillHook(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs) error {
+	f, ok := h.hooks[order.FulfillHook.HookName]
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	if err := d.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "validate forward hook")
-	}
-	return nil
-}
-
-func (k Keeper) doFulfillHook(ctx sdk.Context, order *types.DemandOrder) error {
-	switch order.FulfillHook.HookName {
-	case HookNameForward:
-		return k.doForwardHook(ctx, order)
-	default:
-		return gerrc.ErrInvalidArgument.Wrap("hook name")
-	}
-}
-
-func (k Keeper) doForwardHook(ctx sdk.Context, order *types.DemandOrder) error {
-	var d types.ForwardHook
-	err := proto.Unmarshal(order.FulfillHook.HookData, &d)
-	if err != nil {
-		return errorsmod.Wrap(err, "unmarshal forward hook")
-	}
-	return nil
+	return f.Run(ctx, order, args, order.FulfillHook.HookData)
 }
