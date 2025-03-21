@@ -63,29 +63,30 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom strin
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	igp, err := s.CreateIGP(ctx, owner, denom)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
+	// igp, err := s.CreateIGP(ctx, owner, denom)
+	// if err != nil {
+	// 	return hyperutil.HexAddress{}, err
+	// }
 	noopHook, err := s.CreateNoopHook(ctx, owner)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	remoteDomain := uint32(1)
-	err = s.SetDestinationGasConfig(ctx,
-		owner,
-		igp.String(),
-		remoteDomain, // should this really by?
-		math.NewInt(1e10),
-		math.NewInt(1),
-		math.NewInt(200000),
-	)
+	// remoteDomain := uint32(1)
+	// err = s.SetDestinationGasConfig(ctx,
+	// 	owner,
+	// 	igp.String(),
+	// 	remoteDomain, // should this really by?
+	// 	math.NewInt(1e10),
+	// 	math.NewInt(1),
+	// 	math.NewInt(200000),
+	// )
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
 	localDomain := uint32(1)
 
-	mailboxId, err := s.CreateMailbox(ctx, owner, localDomain, ism, igp, noopHook)
+	// can use IGP as required hook
+	mailboxId, err := s.CreateMailbox(ctx, owner, localDomain, ism, noopHook, noopHook)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
