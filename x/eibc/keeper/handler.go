@@ -137,7 +137,7 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	creationHeight := uint64(ctx.BlockHeight())
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil)
 	return order, nil
 }
 
