@@ -207,34 +207,11 @@ func NewEndorsement(rollappId string, rollappGaugeId uint64) Endorsement {
 
 type EndorsementUpdateFn func(Endorsement) Endorsement
 
-func AddEndorsementGauge(gaugeId uint64) EndorsementUpdateFn {
-	return func(e Endorsement) Endorsement {
-		e.EndorsementGaugeIds = append(e.EndorsementGaugeIds, gaugeId)
-		return e
-	}
-}
-
-func RemoveEndorsementGauge(gaugeId uint64) EndorsementUpdateFn {
-	return func(e Endorsement) Endorsement {
-		e.EndorsementGaugeIds = slices.DeleteFunc(e.EndorsementGaugeIds, func(i uint64) bool { return i == gaugeId })
-		return e
-	}
-}
-
 // AddTotalShares updates total shares of the endorsement by adding the given update.
 // Update may be either positive or negative.
 func AddTotalShares(update math.Int) EndorsementUpdateFn {
 	return func(e Endorsement) Endorsement {
 		e.TotalShares = e.TotalShares.Add(update)
-		return e
-	}
-}
-
-// AddEpochShares updates total shares of the endorsement by adding the given update.
-// Update may be either positive or negative.
-func AddEpochShares(update math.Int) EndorsementUpdateFn {
-	return func(e Endorsement) Endorsement {
-		e.EpochShares = e.EpochShares.Add(update)
 		return e
 	}
 }
