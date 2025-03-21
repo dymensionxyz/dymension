@@ -1,11 +1,14 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/stretchr/testify/require"
 
@@ -715,4 +718,113 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	suite.Require().NoError(err)
 	suite.Assert().Equal(updatedDemandOrder.Fee.AmountOf(denom), newFee)
 	suite.Assert().Equal(updatedDemandOrder.Price.AmountOf(denom), expectedNewPrice)
+}
+
+// create an order, create and lp, try to use it, query and delete
+func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
+	largeBalance := math.NewInt(10_000_000)
+	denom := sdk.DefaultBondDenom
+	rol := "rollapp_1234-1"
+	k := suite.App.EIBCKeeper
+	type Test struct {
+		name                string
+		fulfillerBal        math.Int
+		orderCreationHeight uint64
+		orderFee            math.Int
+		orderPrice          math.Int
+		lpMaxPrice          math.Int
+		lpMinFee            math.Int
+		lpSpendLimit        math.Int
+		lpOrderMinAgeBlocks uint64
+		nowHeight           int64
+		err                 error
+	}
+	for _, tc := range []Test{
+		{
+			name:         "happy flow",
+			fulfillerBal: math.NewInt(100),
+			nowHeight:    15,
+
+			orderCreationHeight: 10,
+			orderFee:            math.NewInt(20),
+			orderPrice:          math.NewInt(40),
+
+			lpMaxPrice:          math.NewInt(50),
+			lpMinFee:            math.NewInt(10),
+			lpSpendLimit:        math.NewInt(100),
+			lpOrderMinAgeBlocks: 0,
+		},
+	} {
+		suite.Run(tc.name, func() {
+			addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, largeBalance)
+			orderAddr := addrs[0]
+			fulfillerAddr := addrs[1]
+			rPacket := *rollappPacket
+			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, rPacket)
+			order := types.NewDemandOrder(rPacket, tc.orderPrice, tc.orderFee, denom, orderAddr.String(), tc.orderCreationHeight)
+			err := k.SetDemandOrder(suite.Ctx, order)
+			suite.Require().NoError(err)
+
+			orderBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			fulfillerBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
+
+			msgC := types.MsgCreateOnDemandLP{
+				Lp: &types.OnDemandLP{
+					FundsAddr:         fulfillerAddr.String(),
+					Rollapp:           rol,
+					Denom:             denom,
+					MaxPrice:          tc.lpMaxPrice,
+					MinFee:            tc.lpMinFee,
+					SpendLimit:        tc.lpSpendLimit,
+					OrderMinAgeBlocks: tc.lpOrderMinAgeBlocks,
+				},
+			}
+			resC, err := suite.msgServer.CreateOnDemandLP(suite.Ctx, &msgC)
+			suite.Require().NoError(err)
+
+			suite.Require().Equal(uint64(0), resC.Id)
+
+			suite.Ctx = suite.Ctx.WithBlockHeight(tc.nowHeight)
+			lp, err := k.LPs.Get(suite.Ctx, resC.Id)
+			suite.Require().NoError(err)
+			suite.Require().Equal(msgC.Lp, lp.Lp)
+
+			lps, err := k.LPs.GetAll(suite.Ctx)
+			suite.Require().NoError(err)
+			suite.Require().Equal(msgC.Lp, lps[0].Lp)
+
+			msgF := &types.MsgTryFulfillOnDemand{
+				Signer:  orderAddr.String(),
+				OrderId: order.Id,
+				Rng:     0,
+			}
+			_, err = suite.msgServer.TryFulfillOnDemand(suite.Ctx, msgF)
+			orderBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
+			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
+			if tc.err == nil {
+				suite.Require().NoError(err)
+				suite.Require().True(orderBalBefore.Add(tc.orderPrice).Equal(orderBalAft),
+					"order bal before:%s, aft:%s ", orderBalBefore.String(), orderBalAft.String())
+				suite.Require().True(fulfillerBalBefore.Sub(tc.orderPrice).Equal(fulfillerBalAft),
+					"fulfiller bal before:%s, aft:%s ", fulfillerBalBefore.String(), fulfillerBalAft.String())
+			} else {
+				suite.Require().True(errorsmod.IsOf(err, tc.err))
+			}
+
+			resQ, err := keeper.NewQuerier(k).OnDemandLPsByByAddr(suite.Ctx, &types.QueryOnDemandLPsByAddrRequest{Addr: fulfillerAddr.String()})
+			suite.Require().NoError(err)
+			suite.Require().Len(resQ.Lps, 1)
+			suite.Require().Equal(resC.Id, resQ.Lps[0].Id)
+
+			msgD := &types.MsgDeleteOnDemandLP{
+				Signer: fulfillerAddr.String(),
+				Ids:    []uint64{resC.Id},
+			}
+			_, err = suite.msgServer.DeleteOnDemandLP(suite.Ctx, msgD)
+			suite.Require().NoError(err)
+
+			_, err = k.LPs.Get(suite.Ctx, msgD.Ids[0])
+			suite.Require().True(errorsmod.IsOf(err, collections.ErrNotFound))
+		})
+	}
 }

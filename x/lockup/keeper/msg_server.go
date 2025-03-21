@@ -39,6 +39,11 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return nil, err
 	}
 
+	minLockDuration := server.keeper.GetParams(ctx).MinLockDuration
+	if msg.Duration < minLockDuration {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "lock duration (%d) is less than the minimum lock duration (%d)", msg.Duration, minLockDuration)
+	}
+
 	// Charge fess for locking tokens
 	if err = server.keeper.ChargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx), msg.Coins); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)

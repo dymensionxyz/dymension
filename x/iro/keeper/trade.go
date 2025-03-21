@@ -1,60 +1,51 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-// Buy implements types.MsgServer.
-func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {
-	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
-	if err != nil {
-		return nil, err
+// EnableTrading enables trading for a given plan.
+// It checks that the plan exists, it is not already enabled, the submitter is the owner of the RollApp
+// and the plan is not settled.
+// If all preconditions are met, it sets the TradingEnabled flag to true and stores the plan back in the
+// store.
+func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccAddress) error {
+	plan, ok := k.GetPlan(ctx, planId)
+	if !ok {
+		return types.ErrPlanNotFound
 	}
 
-	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
-	if err != nil {
-		return nil, err
+	if plan.TradingEnabled {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "trading already enabled")
 	}
 
-	return &types.MsgBuyResponse{}, nil
-}
-
-// BuyExactSpend implements types.MsgServer.
-func (m msgServer) BuyExactSpend(ctx context.Context, req *types.MsgBuyExactSpend) (*types.MsgBuyResponse, error) {
-	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
-	if err != nil {
-		return nil, err
+	rollapp, found := k.rk.GetRollapp(ctx, plan.RollappId)
+	if !found {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp not found")
 	}
 
-	err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
-	if err != nil {
-		return nil, err
+	owner := sdk.MustAccAddressFromBech32(rollapp.Owner)
+	if !owner.Equals(submitter) {
+		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the RollApp")
 	}
 
-	return &types.MsgBuyResponse{}, nil
-}
-
-// Sell implements types.MsgServer.
-func (m msgServer) Sell(ctx context.Context, req *types.MsgSell) (*types.MsgSellResponse, error) {
-	seller, err := sdk.AccAddressFromBech32(req.Seller)
-	if err != nil {
-		return nil, err
-	}
-	err = m.Keeper.Sell(sdk.UnwrapSDKContext(ctx), req.PlanId, seller, req.Amount, req.MinIncomeAmount)
-	if err != nil {
-		return nil, err
+	if plan.IsSettled() {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "plan already settled")
 	}
 
-	return &types.MsgSellResponse{}, nil
+	plan.EnableTradingWithStartTime(ctx.BlockTime())
+	k.SetPlan(ctx, plan)
+
+	k.rk.SetPreLaunchTime(ctx, &rollapp, plan.PreLaunchTime)
+	return nil
 }
 
 // Buy buys fixed amount of allocation with price according to the price curve
@@ -82,15 +73,15 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	}
 
 	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	takerFee := sdk.NewCoin(plan.LiquidityDenom, takerFeeAmt)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, buyer, &owner)
 	if err != nil {
 		return err
 	}
 
-	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	cost := sdk.NewCoin(appparams.BaseDenom, costAmt)
+	// Send liquidity token from buyer to the plan. The liquidity token sent directly to the plan's module account
+	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
 		return err
@@ -124,7 +115,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	return nil
 }
 
-// BuyExactSpend uses exact amount of DYM to buy tokens on the curve
+// BuyExactSpend uses exact amount of liquidity to buy tokens on the curve
 func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error {
 	plan, err := k.GetTradeableIRO(ctx, planId, buyer)
 	if err != nil {
@@ -138,7 +129,7 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// calculate the amount of tokens possible to buy with the amount to spend
-	tokensOutAmt, err := plan.BondingCurve.TokensForExactDYM(plan.SoldAmt, toSpendMinusTakerFeeAmt)
+	tokensOutAmt, err := plan.BondingCurve.TokensForExactInAmount(plan.SoldAmt, toSpendMinusTakerFeeAmt)
 	if err != nil {
 		return err
 	}
@@ -154,15 +145,15 @@ func (k Keeper) BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddre
 	}
 
 	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	takerFee := sdk.NewCoin(plan.LiquidityDenom, takerFeeAmt)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, buyer, &owner)
 	if err != nil {
 		return err
 	}
 
-	// send DYM from buyer to the plan. DYM sent directly to the plan's module account
-	cost := sdk.NewCoin(appparams.BaseDenom, toSpendMinusTakerFeeAmt)
+	// Send liquidity token from buyer to the plan. The liquidity token sent directly to the plan's module account
+	cost := sdk.NewCoin(plan.LiquidityDenom, toSpendMinusTakerFeeAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
 		return err
@@ -221,8 +212,8 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 		return err
 	}
 
-	// send DYM from the plan to the seller. DYM managed by the plan's module account
-	cost := sdk.NewCoin(appparams.BaseDenom, costAmt)
+	// Send liquidity token from the plan to the seller. The liquidity token managed by the plan's module account
+	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(cost))
 	if err != nil {
 		return err
@@ -233,7 +224,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	k.SetPlan(ctx, *plan)
 
 	// Charge taker fee
-	takerFee := sdk.NewCoin(appparams.BaseDenom, takerFeeAmt)
+	takerFee := sdk.NewCoin(plan.LiquidityDenom, takerFeeAmt)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, seller, &owner)
 	if err != nil {
@@ -274,10 +265,18 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 
 	// Validate start time started (unless the trader is the owner)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
-	if ctx.BlockTime().Before(plan.StartTime) && !owner.Equals(trader) {
-		return nil, errorsmod.Wrapf(types.ErrPlanNotStarted, "planId: %d", plan.Id)
+	if owner.Equals(trader) {
+		return &plan, nil
 	}
 
+	// validate trading enabled
+	if !plan.TradingEnabled {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading disabled")
+	}
+
+	if ctx.BlockTime().Before(plan.StartTime) {
+		return nil, errorsmod.Wrapf(types.ErrPlanNotStarted, "planId: %d", plan.Id)
+	}
 	return &plan, nil
 }
 

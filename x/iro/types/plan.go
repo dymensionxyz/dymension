@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,20 +24,27 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, allocation sdk.Coin, curve BondingCurve, start time.Time, end time.Time, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec) Plan {
+func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.Coin, curve BondingCurve, planDuration time.Duration, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
 	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
+	// start time and pre-launch time are set later on
 	plan := Plan{
 		Id:                  id,
 		RollappId:           rollappId,
 		TotalAllocation:     allocation,
 		BondingCurve:        curve,
-		StartTime:           start,
-		PreLaunchTime:       end,
+		IroPlanDuration:     planDuration,
 		SoldAmt:             math.ZeroInt(),
 		ClaimedAmt:          math.ZeroInt(),
 		IncentivePlanParams: incentivesParams,
 		MaxAmountToSell:     eq,
 		LiquidityPart:       liquidityPart,
+		LiquidityDenom:      liquidityDenom,
+		VestingPlan: IROVestingPlan{
+			Amount:                   math.ZeroInt(),
+			Claimed:                  math.ZeroInt(),
+			VestingDuration:          vestingDuration,
+			StartTimeAfterSettlement: vestingStartTimeAfterSettlement,
+		},
 	}
 	plan.ModuleAccAddress = authtypes.NewModuleAddress(plan.ModuleAccName()).String()
 	return plan
@@ -71,8 +79,20 @@ func (p Plan) ValidateBasic() error {
 		return fmt.Errorf("max amount to sell must be less than or equal to the total allocation: %s > %s", p.MaxAmountToSell.String(), p.TotalAllocation.Amount.String())
 	}
 
+	if p.LiquidityPart.IsNegative() || p.LiquidityPart.GT(math.LegacyOneDec()) {
+		return errors.New("liquidity part must be between 0 and 1")
+	}
+
 	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
 		return errors.Join(ErrInvalidIncentivePlanParams, err)
+	}
+
+	if err := p.VestingPlan.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "vesting plan")
+	}
+
+	if err := sdk.ValidateDenom(p.LiquidityDenom); err != nil {
+		return errorsmod.Wrap(err, "invalid liquidity denom")
 	}
 
 	return nil
@@ -99,6 +119,14 @@ func (p Plan) GetAddress() sdk.AccAddress {
 // GetIRODenom returns IRO token's denom
 func (p Plan) GetIRODenom() string {
 	return IRODenom(p.RollappId)
+}
+
+// EnableTradingWithStartTime enables trading for the plan and sets the start and pre-launch times
+// based on the provided start time and plan duration
+func (p *Plan) EnableTradingWithStartTime(startTime time.Time) {
+	p.TradingEnabled = true
+	p.StartTime = startTime
+	p.PreLaunchTime = startTime.Add(p.IroPlanDuration)
 }
 
 func DefaultIncentivePlanParams() IncentivePlanParams {

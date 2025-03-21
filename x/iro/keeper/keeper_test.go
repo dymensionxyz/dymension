@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 
@@ -42,7 +41,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	rollappId := suite.CreateDefaultRollapp()
 	rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollappId)
 	funds := suite.App.IROKeeper.GetParams(suite.Ctx).CreationFee.Mul(math.NewInt(10)) // 10 times the creation fee
-	suite.FundAcc(sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, funds)))
+	suite.FundAcc(sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin("adym", funds)))
 
 	// set txfees basedenom
 	err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")

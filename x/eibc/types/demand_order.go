@@ -155,6 +155,11 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 }
 
 // GetFeeAmount returns the fee amount of the demand order.
+func (m *DemandOrder) PriceAmount() math.Int {
+	return m.Price[0].Amount
+}
+
+// GetFeeAmount returns the fee amount of the demand order.
 func (m *DemandOrder) GetFeeAmount() math.Int {
 	return m.Fee.AmountOf(m.Price[0].Denom)
 }
@@ -183,4 +188,9 @@ func BuildDemandIDFromPacketKey(packetKey string) string {
 	hash := sha256.Sum256([]byte(packetKey))
 	hashString := hex.EncodeToString(hash[:])
 	return hashString
+}
+
+func (m *DemandOrder) Denom() string {
+	// it's guaranteed price/fee are exactly one coin with the same denom
+	return m.Price[0].Denom
 }
