@@ -14,6 +14,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// TODO: move
+var LocalDomain = uint32(1)
+var RemoteDomain = uint32(2)
+
 func MustDecodeHexAddress(s string) hyperutil.HexAddress {
 	addr, err := hyperutil.DecodeHexAddress(s)
 	if err != nil {
@@ -80,13 +84,12 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom strin
 	// 	math.NewInt(1),
 	// 	math.NewInt(200000),
 	// )
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
-	localDomain := uint32(1)
+	// if err != nil {
+	// return hyperutil.HexAddress{}, err
+	// }
 
 	// can use IGP as required hook
-	mailboxId, err := s.CreateMailbox(ctx, owner, localDomain, ism, noopHook, noopHook)
+	mailboxId, err := s.CreateMailbox(ctx, owner, LocalDomain, ism, noopHook, noopHook)
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
@@ -398,11 +401,11 @@ func (s *Server) SetToken(ctx sdk.Context, owner string, tokenId hyperutil.HexAd
 	return err
 }
 
-func (s *Server) EnrollRemoteRouter(ctx sdk.Context, owner string, tokenId hyperutil.HexAddress, remoteRouter *warptypes.RemoteRouter) error {
+func (s *Server) EnrollRemoteRouter(ctx sdk.Context, owner string, tokenId hyperutil.HexAddress, remoteRouter warptypes.RemoteRouter) error {
 	msg := &warptypes.MsgEnrollRemoteRouter{
 		Owner:        owner,
 		TokenId:      tokenId,
-		RemoteRouter: remoteRouter,
+		RemoteRouter: &remoteRouter,
 	}
 	_, err := s.warpServer().EnrollRemoteRouter(ctx, msg)
 	return err
