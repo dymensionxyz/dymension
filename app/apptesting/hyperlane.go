@@ -117,6 +117,9 @@ func (s *KeeperTestHelper) SetupHyperlane() {
 	server := uhyp.NewServer(&s.App.HyperCoreKeeper, &s.App.HyperCoreKeeper.PostDispatchKeeper, &s.App.HyperCoreKeeper.IsmKeeper, s.App.HyperWarpKeeper)
 	owner := Alice
 	denom := "acoin"
+	largeAmt := math.NewInt(1e18)
+
+	FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin(denom, largeAmt)))
 
 	mailboxId, err := server.CreateDefaultMailbox(s.Ctx, owner, denom)
 	s.NoError(err)
