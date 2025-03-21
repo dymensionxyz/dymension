@@ -76,24 +76,28 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
 
-	fundsSource := msg.GetLPBech32Address()
-	feeRecipient := msg.GetOperatorFeeBech32Address()
+	lp := msg.GetLPBech32Address()
+	operator := msg.GetOperatorFeeBech32Address()
 
-	err = m.Keeper.FulfillBase(ctx, demandOrder, fundsSource, fundsSource, feeRecipient)
-	if err != nil {
-		return nil, err
+	if err := m.ensureAccount(ctx, operator); err != nil {
+		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
-	if err := m.ensureAccount(ctx, feeRecipient); err != nil {
-		return nil, errorsmod.Wrap(err, "ensure operator fee account")
+	err = m.Keeper.FulfillBase(ctx, demandOrder, FulfillArgs{
+		FundsSource:          lp,
+		NewTransferRecipient: lp,
+		Fulfiller:            operator,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	fee := math.LegacyNewDecFromInt(demandOrder.GetFeeAmount())
 	operatorFee := fee.MulTruncate(msg.OperatorFeeShare).TruncateInt()
 
 	if operatorFee.IsPositive() {
-		// Send the fee part to the fulfiller/operator
-		err = m.bk.SendCoins(ctx, fundsSource, feeRecipient, sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
+		// LP pays fee to operator
+		err = m.bk.SendCoins(ctx, lp, operator, sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
 		if err != nil {
 			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
@@ -103,7 +107,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledAuthorizedEvent(
 		demandOrder.CreationHeight,
 		msg.LpAddress,
-		feeRecipient.String(),
+		operator.String(),
 		operatorFee.String(),
 	)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

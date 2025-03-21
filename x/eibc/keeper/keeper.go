@@ -124,23 +124,22 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 // SetOrderFulfilled should be called only at most once per order.
 func (k Keeper) SetOrderFulfilled(
 	ctx sdk.Context,
-	order *types.DemandOrder,
-	fulfillerAddress sdk.AccAddress,
-	collectorAddress sdk.AccAddress,
+	o *types.DemandOrder,
+	fulfiller sdk.AccAddress,
+	overrideNewTransferRecipient sdk.AccAddress,
 ) error {
-	order.FulfillerAddress = fulfillerAddress.String()
-	err := k.SetDemandOrder(ctx, order)
+	o.FulfillerAddress = fulfiller.String()
+	err := k.SetDemandOrder(ctx, o)
 	if err != nil {
 		return err
 	}
-	newTransferRecipient := fulfillerAddress
-	if collectorAddress != nil {
-		// optional override
-		newTransferRecipient = collectorAddress
+	newTransferRecipient := fulfiller
+	if overrideNewTransferRecipient != nil {
+		newTransferRecipient = overrideNewTransferRecipient
 	}
 
 	// This hook should be called only once per fulfillment.
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, newTransferRecipient.String())
+	err = k.hooks.AfterDemandOrderFulfilled(ctx, o, newTransferRecipient.String())
 	if err != nil {
 		return err
 	}
@@ -304,7 +303,12 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 	fulfiller sdk.AccAddress,
 ) error {
 
-	err := k.FulfillBase(ctx, o, fulfiller, nil, fulfiller)
+	err := k.FulfillBase(ctx, o, FulfillArgs{
+		FundsSource:          fulfiller,
+		NewTransferRecipient: fulfiller,
+		Fulfiller:            fulfiller,
+	})
+
 	if err != nil {
 		return err
 	}
@@ -316,22 +320,26 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 	return nil
 }
 
+type FulfillArgs struct {
+	FundsSource          sdk.AccAddress
+	NewTransferRecipient sdk.AccAddress
+	Fulfiller            sdk.AccAddress
+}
+
 func (k Keeper) FulfillBase(ctx sdk.Context,
 	o *types.DemandOrder,
-	fundsSource sdk.AccAddress,
-	newPacketRecipient sdk.AccAddress,
-	fulfiller sdk.AccAddress,
+	args FulfillArgs,
 ) error {
-	if err := k.ensureAccount(ctx, fundsSource); err != nil {
+	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {
 		return errorsmod.Wrap(err, "ensure fulfiller account")
 	}
 
-	err := k.bk.SendCoins(ctx, fundsSource, o.GetRecipientBech32Address(), o.Price)
+	err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
 	if err != nil {
 		return errorsmod.Wrap(err, "send coins")
 	}
 
-	if err = k.SetOrderFulfilled(ctx, o, fulfiller, newPacketRecipient); err != nil {
+	if err = k.SetOrderFulfilled(ctx, o, args.Fulfiller, args.NewTransferRecipient); err != nil {
 		return errorsmod.Wrap(err, "set fulfilled")
 	}
 
