@@ -121,32 +121,6 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 	return demandOrder, nil
 }
 
-// SetOrderFulfilled should be called only at most once per order.
-func (k Keeper) SetOrderFulfilled(
-	ctx sdk.Context,
-	o *types.DemandOrder,
-	fulfiller sdk.AccAddress,
-	overrideNewTransferRecipient sdk.AccAddress,
-) error {
-	o.FulfillerAddress = fulfiller.String()
-	err := k.SetDemandOrder(ctx, o)
-	if err != nil {
-		return err
-	}
-	newTransferRecipient := fulfiller
-	if overrideNewTransferRecipient != nil {
-		newTransferRecipient = overrideNewTransferRecipient
-	}
-
-	// This hook should be called only once per fulfillment.
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, o, newTransferRecipient.String())
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // GetDemandOrder returns the demand order with the given id and status.
 func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*types.DemandOrder, error) {
 	store := ctx.KVStore(k.storeKey)
@@ -335,13 +309,35 @@ func (k Keeper) fulfill(ctx sdk.Context,
 		return errorsmod.Wrap(err, "ensure fulfiller account")
 	}
 
+	/*
+		I need to figure this out
+		Options:
+			1. Just have an explicit hook here. Send the money to some other address and do logic from there.
+				Drawbacks
+					 a: ugly, does not unify with current hook.
+					  That means:
+					  The
+					b: what happens if eibc doesn't fulfill, and it gets finalized at the end?
+			2. Add a hook after the current one
+				Packet will have the updated receiver (the lp or fulfiller)
+				Funds have already been sent to original receiver addr
+
+	*/
+
 	err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
 	if err != nil {
 		return errorsmod.Wrap(err, "send coins")
 	}
 
-	if err = k.SetOrderFulfilled(ctx, o, args.Fulfiller, args.NewTransferRecipient); err != nil {
-		return errorsmod.Wrap(err, "set fulfilled")
+	o.FulfillerAddress = args.Fulfiller.String()
+	err = k.SetDemandOrder(ctx, o)
+	if err != nil {
+		return err
+	}
+
+	err = k.hooks.AfterDemandOrderFulfilled(ctx, o, args.NewTransferRecipient.String())
+	if err != nil {
+		return err
 	}
 
 	return nil
