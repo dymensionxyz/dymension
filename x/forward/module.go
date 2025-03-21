@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/dymensionxyz/dymension/v3/x/forward/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
 var (
@@ -30,6 +31,11 @@ func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper) AppModule {
 		cdc:    cdc,
 		keeper: keeper,
 	}
+}
+
+// Name returns the name of the module as a string
+func (am AppModule) Name() string {
+	return types.ModuleName
 }
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
