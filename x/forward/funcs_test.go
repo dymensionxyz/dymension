@@ -1,4 +1,4 @@
-package hyperlane
+package forward
 
 import (
 	"testing"

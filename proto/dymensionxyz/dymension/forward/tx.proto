@@ -1,0 +1,19 @@
+syntax = "proto3";
+package dymensionxyz.dymension.forward;
+
+import "cosmos/msg/v1/msg.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc Foo(MsgFoo) returns (MsgFooResponse);
+}
+
+message MsgFoo {
+  string foo = 1;
+}
+
+message MsgFooResponse {}

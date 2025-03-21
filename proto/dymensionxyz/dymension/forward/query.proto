@@ -1,0 +1,22 @@
+syntax = "proto3";
+package dymensionxyz.dymension.forward;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymensionxyz/dymension/common/status.proto";
+import "dymensionxyz/dymension/forward/params.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/forward/params";
+  }
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {}

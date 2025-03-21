@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
-	"github.com/dymensionxyz/dymension/v3/x/hyperlane/types"
+	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
 type (
@@ -19,7 +19,6 @@ type (
 		storeKey   storetypes.StoreKey
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
-		hooks      types.HyperlaneHooks
 		Schema     collections.Schema
 	}
 )
@@ -56,17 +55,4 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-// SetHooks sets the hyperlane hooks
-func (k *Keeper) SetHooks(hooks types.HyperlaneHooks) {
-	if k.hooks != nil {
-		panic("hyperlane hooks already set")
-	}
-	k.hooks = hooks
-}
-
-// GetHooks returns the hyperlane hooks
-func (k *Keeper) GetHooks() types.HyperlaneHooks {
-	return k.hooks
 }

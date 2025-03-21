@@ -1,4 +1,4 @@
-package hyperlane
+package forward
 
 type Foo struct {
 }

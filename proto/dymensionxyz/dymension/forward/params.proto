@@ -1,0 +1,10 @@
+syntax = "proto3";
+package dymensionxyz.dymension.forward;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
+
+// Params defines the parameters for the module.
+message Params {}

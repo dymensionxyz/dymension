@@ -1,18 +1,12 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 var (
 	_ paramtypes.ParamSet = (*Params)(nil)
 )
-
-// Params defines the parameters for the hyperlane module
-type Params struct {
-	// TODO: Add parameters as needed
-}
 
 // ParamKeyTable returns the parameter key table.
 func ParamKeyTable() paramtypes.KeyTable {
@@ -32,12 +26,3 @@ func DefaultParams() *Params {
 		// TODO: Set default values
 	}
 }
-
-// HyperlaneHooks defines the interface for hyperlane hooks
-type HyperlaneHooks interface {
-	// AfterMessageProcessed is called after a hyperlane message is processed
-	AfterMessageProcessed(ctx sdk.Context, messageID string) error
-}
-
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (h HyperlaneHooks) IsOnePerModuleType() {}

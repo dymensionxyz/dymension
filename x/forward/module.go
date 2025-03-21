@@ -1,4 +1,4 @@
-package hyperlane
+package forward
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/dymensionxyz/dymension/v3/x/hyperlane/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/forward/keeper"
 )
 
 var (
