@@ -353,7 +353,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			expectOrderFulfilled:      false,
 		},
 		{
-			name:           "Failure due to operator fee account not existing",
+			name:           "Fail because operator fee account doesn't exist",
 			orderPrice:     sdk.NewInt64Coin("adym", 100),
 			orderFee:       math.NewInt(10),
 			orderRecipient: sample.AccAddress(),

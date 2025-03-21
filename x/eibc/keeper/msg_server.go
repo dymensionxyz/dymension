@@ -79,14 +79,8 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	fundsSource := msg.GetLPBech32Address()
 	feeRecipient := msg.GetOperatorFeeBech32Address()
 
-	if err := m.ensureAccount(ctx, fundsSource); err != nil {
-		return nil, errorsmod.Wrap(err, "ensure lp account")
-	}
-
-	// Send the funds from the lpAccount to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, fundsSource, demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.Keeper.FulfillBase(ctx, demandOrder, fundsSource, fundsSource, feeRecipient)
 	if err != nil {
-		logger.Error("Failed to send price to recipient", "error", err)
 		return nil, err
 	}
 
@@ -104,10 +98,6 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
 		}
-	}
-
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, feeRecipient, fundsSource); err != nil {
-		return nil, err
 	}
 
 	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledAuthorizedEvent(
