@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"fmt"
-
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -18,7 +18,7 @@ func validateFulfillHook(info types.FulfillHook) error {
 	case HookNameForward:
 		return validForward(info.HookData)
 	default:
-		return fmt.Errorf("invalid hook name: %s", info.HookName)
+		return gerrc.ErrInvalidArgument.Wrap("hook name")
 	}
 }
 
@@ -26,10 +26,10 @@ func validForward(data []byte) error {
 	var d types.ForwardHook
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
-		return fmt.Errorf("unmarshal forward hook metadata: %w", err)
+		return errorsmod.Wrap(err, "unmarshal forward hook")
 	}
 	if err := d.ValidateBasic(); err != nil {
-		return fmt.Errorf("validate forward hook metadata: %w", err)
+		return errorsmod.Wrap(err, "validate forward hook")
 	}
 	return nil
 }
@@ -39,7 +39,7 @@ func (k Keeper) doFulfillHook(ctx sdk.Context, order *types.DemandOrder) error {
 	case HookNameForward:
 		return k.doForwardHook(ctx, order)
 	default:
-		return fmt.Errorf("invalid hook name: %s", order.FulfillHook.HookName)
+		return gerrc.ErrInvalidArgument.Wrap("hook name")
 	}
 }
 
@@ -47,6 +47,7 @@ func (k Keeper) doForwardHook(ctx sdk.Context, order *types.DemandOrder) error {
 	var d types.ForwardHook
 	err := proto.Unmarshal(order.FulfillHook.HookData, &d)
 	if err != nil {
-		return fmt.Errorf("unmarshal forward hook metadata: %w", err)
+		return errorsmod.Wrap(err, "unmarshal forward hook")
 	}
+	return nil
 }
