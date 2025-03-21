@@ -303,24 +303,44 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 	fulfiller sdk.AccAddress,
 ) error {
 
-	fulfillerAccount := k.ak.GetAccount(ctx, fulfiller) // TODO: can omit?
-	if fulfillerAccount == nil {
-		return types.ErrFulfillerAddressDoesNotExist
-	}
-
-	err := k.bk.SendCoins(ctx, fulfiller, o.GetRecipientBech32Address(), o.Price)
+	err := k.FulfillBase(ctx, o, fulfiller, nil)
 	if err != nil {
-		return errorsmod.Wrap(err, "send coins")
-	}
-
-	if err = k.SetOrderFulfilled(ctx, o, fulfiller, nil); err != nil {
-		return errorsmod.Wrap(err, "set fulfilled")
+		return err
 	}
 
 	if err = uevent.EmitTypedEvent(ctx, o.GetFulfilledEvent()); err != nil {
 		return fmt.Errorf("emit event: %w", err)
 	}
 
+	return nil
+}
+
+func (k Keeper) FulfillBase(ctx sdk.Context,
+	o *types.DemandOrder,
+	fundsSource sdk.AccAddress,
+	newPacketRecipient sdk.AccAddress,
+) error {
+	if err := k.ensureAccount(ctx, fundsSource); err != nil {
+		return errorsmod.Wrap(err, "ensure fulfiller account")
+	}
+
+	err := k.bk.SendCoins(ctx, fundsSource, o.GetRecipientBech32Address(), o.Price)
+	if err != nil {
+		return errorsmod.Wrap(err, "send coins")
+	}
+
+	if err = k.SetOrderFulfilled(ctx, o, fundsSource, newPacketRecipient); err != nil {
+		return errorsmod.Wrap(err, "set fulfilled")
+	}
+
+	return nil
+}
+
+func (k Keeper) ensureAccount(ctx sdk.Context, address sdk.AccAddress) error {
+	account := k.ak.GetAccount(ctx, address)
+	if account == nil {
+		return types.ErrFulfillerAddressDoesNotExist
+	}
 	return nil
 }
 
