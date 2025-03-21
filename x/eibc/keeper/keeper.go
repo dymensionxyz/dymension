@@ -339,7 +339,7 @@ func (k Keeper) FulfillBase(ctx sdk.Context,
 func (k Keeper) ensureAccount(ctx sdk.Context, address sdk.AccAddress) error {
 	account := k.ak.GetAccount(ctx, address)
 	if account == nil {
-		return types.ErrFulfillerAddressDoesNotExist
+		return errorsmod.Wrapf(types.ErrAccountDoesNotExist, "address: %s", address)
 	}
 	return nil
 }

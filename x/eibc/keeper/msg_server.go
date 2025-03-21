@@ -76,21 +76,22 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
 
-	lpAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
-	if lpAccount == nil {
-		return nil, types.ErrLPAccountDoesNotExist
+	fundsSource := msg.GetLPBech32Address()
+	feeRecipient := msg.GetOperatorFeeBech32Address()
+
+	if err := m.ensureAccount(ctx, fundsSource); err != nil {
+		return nil, errorsmod.Wrap(err, "ensure lp account")
 	}
 
 	// Send the funds from the lpAccount to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.bk.SendCoins(ctx, fundsSource, demandOrder.GetRecipientBech32Address(), demandOrder.Price)
 	if err != nil {
 		logger.Error("Failed to send price to recipient", "error", err)
 		return nil, err
 	}
 
-	operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
-	if operatorAccount == nil {
-		return nil, types.ErrOperatorFeeAccountDoesNotExist
+	if err := m.ensureAccount(ctx, feeRecipient); err != nil {
+		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
 	fee := math.LegacyNewDecFromInt(demandOrder.GetFeeAmount())
@@ -98,21 +99,21 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 
 	if operatorFee.IsPositive() {
 		// Send the fee part to the fulfiller/operator
-		err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), operatorAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
+		err = m.bk.SendCoins(ctx, fundsSource, feeRecipient, sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
 		if err != nil {
 			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
 		}
 	}
 
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, operatorAccount.GetAddress(), lpAccount.GetAddress()); err != nil {
+	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, feeRecipient, fundsSource); err != nil {
 		return nil, err
 	}
 
 	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledAuthorizedEvent(
 		demandOrder.CreationHeight,
 		msg.LpAddress,
-		operatorAccount.GetAddress().String(),
+		feeRecipient.String(),
 		operatorFee.String(),
 	)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

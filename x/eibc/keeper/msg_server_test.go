@@ -349,7 +349,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			lpAccountBalance:          nil, // Account does not exist
 			operatorFeeAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 50)),
-			expectError:               types.ErrLPAccountDoesNotExist,
+			expectError:               types.ErrAccountDoesNotExist,
 			expectOrderFulfilled:      false,
 		},
 		{
@@ -369,7 +369,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			},
 			lpAccountBalance:          sdk.NewCoins(sdk.NewInt64Coin("adym", 200)),
 			operatorFeeAccountBalance: nil, // Account does not exist
-			expectError:               types.ErrOperatorFeeAccountDoesNotExist,
+			expectError:               types.ErrAccountDoesNotExist,
 			expectOrderFulfilled:      false,
 			expectedLPAccountBalance:  sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
@@ -508,6 +508,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			// Check for expected errors
 			if tc.expectError != nil {
 				suite.Require().Error(err, tc.name)
+				// suite.Require().True(errorsmod.IsOf(err, tc.expectError), tc.name)
 				suite.Require().ErrorContains(err, tc.expectError.Error(), tc.name)
 			} else {
 				suite.Require().NoError(err, tc.name)

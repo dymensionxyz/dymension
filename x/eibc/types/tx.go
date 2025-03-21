@@ -128,7 +128,7 @@ func (msg *MsgFulfillOrderAuthorized) GetLPBech32Address() []byte {
 	return sdk.MustAccAddressFromBech32(msg.LpAddress)
 }
 
-func (msg *MsgFulfillOrderAuthorized) GetOperatorFeeBech32Address() []byte {
+func (msg *MsgFulfillOrderAuthorized) GetOperatorFeeBech32Address() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(msg.OperatorFeeAddress)
 }
 
