@@ -12,7 +12,3 @@ func (m FulfillHook) ValidateBasic() error {
 	}
 	return nil
 }
-
-func (m ForwardHook) ValidateBasic() error {
-	return nil
-}

@@ -12,7 +12,13 @@ const (
 
 type FulfillHook interface {
 	ValidateData(hookData []byte) error
-	Run(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs, hookData []byte) error
+	Run(ctx sdk.Context, order *types.DemandOrder,
+		fundsSource sdk.AccAddress,
+		newTransferRecipient sdk.AccAddress,
+		fulfiller sdk.AccAddress,
+
+		hookData []byte) error
+	Name() string
 }
 
 type FulfillHooks struct {
@@ -25,8 +31,12 @@ func NewHooks() FulfillHooks {
 	}
 }
 
+func (h FulfillHooks) RegisterHook(hook FulfillHook) {
+	h.hooks[hook.Name()] = hook
+}
+
 // assumed already passed validate basic
-func (h FulfillHooks) validateFulfillHook(info types.FulfillHook) error {
+func (h FulfillHooks) validate(info types.FulfillHook) error {
 	f, ok := h.hooks[info.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
@@ -34,10 +44,10 @@ func (h FulfillHooks) validateFulfillHook(info types.FulfillHook) error {
 	return f.ValidateData(info.HookData)
 }
 
-func (h FulfillHooks) doFulfillHook(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs) error {
+func (h FulfillHooks) exec(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs) error {
 	f, ok := h.hooks[order.FulfillHook.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, order, args, order.FulfillHook.HookData)
+	return f.Run(ctx, order, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, order.FulfillHook.HookData)
 }

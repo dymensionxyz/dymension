@@ -87,7 +87,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 		return nil, fmt.Errorf("get fulfill hook: %w", err)
 	}
 	if fulfillHook != nil {
-		if err := validateFulfillHook(*fulfillHook); err != nil {
+		if err := k.fulfillHooks.validate(*fulfillHook); err != nil {
 			return nil, fmt.Errorf("validate fulfill hook: %w", err)
 		}
 	}

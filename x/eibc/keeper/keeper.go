@@ -82,8 +82,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) SetFulfillHooks(hooks FulfillHooks) {
-	k.fulfillHooks = hooks
+func (k Keeper) SetFulfillHooks(hooks ...FulfillHook) {
+	for _, hook := range hooks {
+		k.fulfillHooks.RegisterHook(hook)
+	}
 }
 
 func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
@@ -366,7 +368,7 @@ func (k Keeper) fulfill(ctx sdk.Context,
 	*/
 
 	if o.FulfillHook != nil {
-		err := k.doFulfillHook(ctx, o, args)
+		err := k.fulfillHooks.exec(ctx, o, args)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")
 		}

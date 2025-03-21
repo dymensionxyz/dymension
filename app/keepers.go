@@ -543,6 +543,8 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[forwardtypes.ModuleName]),
 	)
 
+	a.EIBCKeeper.SetFulfillHooks(a.ForwardKeeper.Hook())
+
 }
 
 func (a *AppKeepers) InitTransferStack() {
