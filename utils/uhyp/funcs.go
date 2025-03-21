@@ -54,6 +54,10 @@ func (s *Server) warpServer() warptypes.MsgServer {
 	return warpkeeper.NewMsgServerImpl(s.warpK)
 }
 
+// creates a mailbox with IGP but no merkle tree.
+// That means the post dispatch will not create a merkle tree.
+// Also, any warp routes which don't specify an override ISM will go to the default ISM (via approuter) which is noop.
+// So inbound warp route messages are not verified.
 func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom string) (hyperutil.HexAddress, error) {
 	ism, err := s.CreateNoopIsm(ctx, owner)
 	if err != nil {
