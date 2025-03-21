@@ -359,6 +359,13 @@ func (k Keeper) fulfill(ctx sdk.Context,
 
 	*/
 
+	if o.FulfillHook != nil {
+		err := k.doFulfillHook(ctx, o)
+		if err != nil {
+			return errorsmod.Wrap(err, "do fulfill hook")
+		}
+	}
+
 	err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
 	if err != nil {
 		return errorsmod.Wrap(err, "send coins")
