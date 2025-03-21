@@ -8,7 +8,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -21,10 +20,17 @@ type Keeper struct {
 	delegatorValidatorPower collections.Map[collections.Pair[sdk.AccAddress, sdk.ValAddress], math.Int]
 	distribution            collections.Item[types.Distribution]
 	votes                   collections.Map[sdk.AccAddress, types.Vote]
+	// rollapp ID -> types.Endorsement mapping
+	// TODO: write a migration that creates Endorsement objects for existing rollapps
+	//  https://github.com/dymensionxyz/research/issues/458
+	raEndorsements collections.Map[string, types.Endorsement]
+	// the list of the users who do not have the right to claim rewards on this epoch
+	// the index is refreshed every epoch
+	claimBlacklist collections.KeySet[sdk.AccAddress]
 
 	stakingKeeper    types.StakingKeeper
 	incentivesKeeper types.IncentivesKeeper
-	sequencerKeeper  types.SequencerKeeper
+	bankKeeper       types.BankKeeper
 }
 
 // NewKeeper returns a new instance of the x/sponsorship keeper.
@@ -34,7 +40,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
 	ik types.IncentivesKeeper,
-	sqk types.SequencerKeeper,
+	bk types.BankKeeper,
 	authority string,
 ) Keeper {
 	// ensure the module account is set
@@ -80,9 +86,22 @@ func NewKeeper(
 			collcompat.AccAddressKey,
 			collcompat.ProtoValue[types.Vote](cdc),
 		),
+		raEndorsements: collections.NewMap(
+			sb,
+			types.RAEndorsementsPrefix(),
+			"endorsements",
+			collections.StringKey,
+			codec.CollValue[types.Endorsement](cdc),
+		),
+		claimBlacklist: collections.NewKeySet(
+			sb,
+			types.ClaimBlacklistPrefix(),
+			"claim_blacklist",
+			sdk.AccAddressKey,
+		),
 		stakingKeeper:    sk,
 		incentivesKeeper: ik,
-		sequencerKeeper:  sqk,
+		bankKeeper:       bk,
 	}
 
 	// SchemaBuilder CANNOT be used after Build is called,

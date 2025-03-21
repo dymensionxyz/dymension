@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) SetupGauges(gaugeDescriptors []perpGaugeDesc, deno
 // CreateGauge creates a gauge struct given the required params.
 func (suite *KeeperTestSuite) CreateGauge(isPerpetual bool, addr sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpoch uint64) (uint64, *types.Gauge) {
 	suite.FundAcc(addr, coins)
-	gaugeID, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, isPerpetual, addr, coins, distrTo, startTime, numEpoch)
+	gaugeID, err := suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, isPerpetual, addr, coins, distrTo, startTime, numEpoch)
 	suite.Require().NoError(err)
 	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
 	suite.Require().NoError(err)
