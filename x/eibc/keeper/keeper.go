@@ -302,7 +302,6 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 	o *types.DemandOrder,
 	fulfiller sdk.AccAddress,
 ) error {
-	packet, err := k.OrderPacket(ctx, o.Id)
 
 	fulfillerAccount := k.ak.GetAccount(ctx, fulfiller) // TODO: can omit?
 	if fulfillerAccount == nil {

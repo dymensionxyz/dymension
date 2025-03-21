@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/cosmos/gogoproto/proto"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type PacketMetadata struct {
@@ -12,18 +16,39 @@ type PacketMetadata struct {
 }
 
 type EIBCMetadata struct {
-	Fee string `json:"fee"`
-	FulfillHook
+	Fee         string `json:"fee"`
+	FulfillHook []byte `json:"fulfill_hook,omitempty"` // TODO: would be better to rework this whole thing into a pb message
 }
 
 func (p PacketMetadata) ValidateBasic() error {
 	return p.EIBC.ValidateBasic()
 }
 
+func (e EIBCMetadata) GetFulfillHook() (eibctypes.FulfillHookMetadata, error) {
+	if len(e.FulfillHook) == 0 {
+		return eibctypes.FulfillHookMetadata{}, gerrc.ErrNotFound
+	}
+	var hook eibctypes.FulfillHookMetadata
+	// unmarshal with protobuf
+	err := proto.Unmarshal(e.FulfillHook, &hook)
+	if err != nil {
+		return eibctypes.FulfillHookMetadata{}, fmt.Errorf("unmarshal fulfill hook: %w", err)
+	}
+	if err := hook.ValidateBasic(); err != nil {
+		return eibctypes.FulfillHookMetadata{}, fmt.Errorf("validate fulfill hook: %w", err)
+	}
+	return hook, nil
+}
+
 func (e EIBCMetadata) ValidateBasic() error {
 	_, err := e.FeeInt()
 	if err != nil {
 		return fmt.Errorf("fee: %w", err)
+	}
+	if _, err := e.GetFulfillHook(); err != nil {
+		if !errorsmod.IsOf(err, gerrc.ErrNotFound) {
+			return fmt.Errorf("fulfill hook: %w", err)
+		}
 	}
 	return nil
 }
