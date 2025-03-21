@@ -116,6 +116,9 @@ import (
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+
+	forwardkeeper "github.com/dymensionxyz/dymension/v3/x/forward/keeper"
+	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
 type AppKeepers struct {
@@ -174,6 +177,8 @@ type AppKeepers struct {
 
 	HyperCoreKeeper hypercorekeeper.Keeper
 	HyperWarpKeeper hyperwarpkeeper.Keeper
+
+	ForwardKeeper forwardkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -532,6 +537,12 @@ func (a *AppKeepers) InitKeepers(
 		&a.HyperCoreKeeper,
 		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
 	)
+
+	a.ForwardKeeper = *forwardkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[forwardtypes.ModuleName]),
+	)
+
 }
 
 func (a *AppKeepers) InitTransferStack() {

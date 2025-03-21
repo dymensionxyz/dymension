@@ -63,6 +63,7 @@ import (
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward"
+	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -200,6 +201,7 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              {}, // TODO: check
 	hyperwarptypes.ModuleName:                          {}, // TODO: check
+	forwardtypes.ModuleName:                            {},
 }
 
 var PreBlockers = []string{
@@ -248,6 +250,7 @@ var BeginBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,     // TODO: check order
 	hyperwarptypes.ModuleName, // TODO: check order
+	forwardtypes.ModuleName,   // TODO: check order
 }
 
 var EndBlockers = []string{
@@ -292,6 +295,7 @@ var EndBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,     // TODO: check order
 	hyperwarptypes.ModuleName, // TODO: check order
+	forwardtypes.ModuleName,   // TODO: check order
 }
 
 var InitGenesis = []string{
@@ -336,4 +340,5 @@ var InitGenesis = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,     // TODO: check order
 	hyperwarptypes.ModuleName, // TODO: check order
+	forwardtypes.ModuleName,   // TODO: check order
 }

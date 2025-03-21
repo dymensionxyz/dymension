@@ -4,40 +4,30 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	storetypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
-type (
-	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		paramstore paramtypes.Subspace
-		Schema     collections.Schema
-	}
-)
+var _ types.MsgServer = Keeper{}
+var _ types.QueryServer = Keeper{}
+
+type Keeper struct {
+	cdc    codec.BinaryCodec
+	Schema collections.Schema
+	// TODO: params collection
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
+	service storetypes.KVStoreService,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
-	service := collcompat.NewKVStoreService(storeKey)
 
 	sb := collections.NewSchemaBuilder(service)
 	// TODO: Add collections
+	_ = sb
 
 	schema, err := sb.Build()
 	if err != nil {
@@ -45,11 +35,8 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		Schema:     schema,
+		cdc:    cdc,
+		Schema: schema,
 	}
 }
 

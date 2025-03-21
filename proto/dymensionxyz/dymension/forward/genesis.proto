@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.forward;
+
+import "dymensionxyz/dymension/forward/params.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
+
+message GenesisState {
+  // params are all the parameters of the module
+  Params params = 1 [(gogoproto.nullable) = false];
+}

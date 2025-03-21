@@ -9,14 +9,12 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
-// Query defines the gRPC querier service.
 service Query {
-  // Parameters queries the parameters of the module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/forward/params";
+  rpc Wiz(WizRequest) returns (WizResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/forward/wiz";
   }
 }
 
-message QueryParamsRequest {}
+message WizRequest {}
 
-message QueryParamsResponse {}
+message WizResponse {}

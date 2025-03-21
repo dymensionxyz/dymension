@@ -1,15 +1,9 @@
 package types
 
-// GenesisState defines the hyperlane module's genesis state.
-type GenesisState struct {
-	// TODO: Add genesis state fields
-	Params *Params `json:"params" yaml:"params"`
-}
-
 // DefaultGenesisState returns the default genesis state for the hyperlane module.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params: DefaultParams(),
+		Params: *DefaultParams(),
 	}
 }
 

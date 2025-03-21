@@ -1,4 +1,4 @@
-package forward
+package forward_test
 
 import (
 	"testing"
