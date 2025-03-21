@@ -313,14 +313,49 @@ func (k Keeper) fulfill(ctx sdk.Context,
 		I need to figure this out
 		Options:
 			1. Just have an explicit hook here. Send the money to some other address and do logic from there.
+				How it is:
+					Explicit hook here calls to some bespoke function, and redirects the money to the function
+					That function is responsible for all logic
+					The packet receiver is updated to be the fulfiller, the original recipient is saved as some nil receiver
+					All the actual info needed for the hook to work should be in the memo
+					Then, the hook will do some stuff
+
+					The packet can finalize with two cases
+						1. The eibc hook was done, and the receiver is the fulfiller
+						2. The eibc hook wasn't done, and the packet is original
+						    For MVP, we reject all such packets on finalization, meaning
+								TODO: need to check error ack here
+
+
 				Drawbacks
 					 a: ugly, does not unify with current hook.
 					  That means:
 					  The
 					b: what happens if eibc doesn't fulfill, and it gets finalized at the end?
+				What does the packet look like?
 			2. Add a hook after the current one
 				Packet will have the updated receiver (the lp or fulfiller)
 				Funds have already been sent to original receiver addr
+
+		Can I do something that is compatible with PFM too?
+			It's blocked completely by delayedack because it won't accept the memo
+			What if we let the memo through?
+			I guess the packet gets trapped in delayedack, with a 'pfm' receiver
+			Then, if someone fulfills:
+				money is sent to pfm
+				new recipient is the LP
+				on finalization:
+					packet would actually go to PFM
+			If noone fulfills:
+				Should reject
+
+		What does it mean conceptually for an EIBC fulfiller to trigger the PFM?
+			A semantically proper PFM packet should be constructed in place and forwarded to the PFM module
+			What does it mean for a refund/fail/timeout here?
+				The eibc fulfiller gets the money back
+				The original user succeeded no matter what
+
+
 
 	*/
 
