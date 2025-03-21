@@ -208,7 +208,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 		lps[i], lps[j] = lps[j], lps[i]
 	})
 	for _, lp := range lps {
-		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
+		err := k.fulfillBasic(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
 			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
 				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {

@@ -298,12 +298,13 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 	return
 }
 
-func (k Keeper) Fulfill(ctx sdk.Context,
+// basic i.e. not authorized
+func (k Keeper) fulfillBasic(ctx sdk.Context,
 	o *types.DemandOrder,
 	fulfiller sdk.AccAddress,
 ) error {
 
-	err := k.FulfillBase(ctx, o, FulfillArgs{
+	err := k.fulfill(ctx, o, fulfillArgs{
 		FundsSource:          fulfiller,
 		NewTransferRecipient: fulfiller,
 		Fulfiller:            fulfiller,
@@ -320,15 +321,15 @@ func (k Keeper) Fulfill(ctx sdk.Context,
 	return nil
 }
 
-type FulfillArgs struct {
+type fulfillArgs struct {
 	FundsSource          sdk.AccAddress
 	NewTransferRecipient sdk.AccAddress
 	Fulfiller            sdk.AccAddress
 }
 
-func (k Keeper) FulfillBase(ctx sdk.Context,
+func (k Keeper) fulfill(ctx sdk.Context,
 	o *types.DemandOrder,
-	args FulfillArgs,
+	args fulfillArgs,
 ) error {
 	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {
 		return errorsmod.Wrap(err, "ensure fulfiller account")

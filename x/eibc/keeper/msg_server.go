@@ -48,7 +48,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrExpectedFeeNotMet
 	}
 
-	err = m.Fulfill(ctx, demandOrder, msg.GetFulfillerBech32Address())
+	err = m.fulfillBasic(ctx, demandOrder, msg.GetFulfillerBech32Address())
 	if err != nil {
 		logger.Error("Fulfill order", "error", err)
 		return nil, err
@@ -83,7 +83,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
-	err = m.Keeper.FulfillBase(ctx, demandOrder, FulfillArgs{
+	err = m.Keeper.fulfill(ctx, demandOrder, fulfillArgs{
 		FundsSource:          lp,
 		NewTransferRecipient: lp,
 		Fulfiller:            operator,
