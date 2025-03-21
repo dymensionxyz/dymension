@@ -1,4 +1,4 @@
-package fulfillhooks
+package keeper
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ const (
 )
 
 // assumed already passed validate basic
-func Valid(info types.FulfillHook) error {
+func validateFulfillHook(info types.FulfillHook) error {
 	switch info.HookName {
 	case HookNameForward:
 		return validForward(info.HookData)
