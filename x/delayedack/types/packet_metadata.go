@@ -22,11 +22,11 @@ func (p PacketMetadata) ValidateBasic() error {
 	return p.EIBC.ValidateBasic()
 }
 
-func (e EIBCMetadata) GetFulfillHook() (*eibctypes.FulfillHookMetadata, error) {
+func (e EIBCMetadata) GetFulfillHook() (*eibctypes.FulfillHook, error) {
 	if len(e.FulfillHook) == 0 {
 		return nil, nil
 	}
-	var hook eibctypes.FulfillHookMetadata
+	var hook eibctypes.FulfillHook
 	// unmarshal with protobuf
 	err := proto.Unmarshal(e.FulfillHook, &hook)
 	if err != nil {

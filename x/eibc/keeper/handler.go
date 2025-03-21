@@ -105,7 +105,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 	creationHeight := uint64(ctx.BlockHeight())
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, fulfillHook)
 	return order, nil
 }
 
