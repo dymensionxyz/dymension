@@ -197,11 +197,10 @@ func (m Gauges) Swap(i, j int) {
 
 func NewEndorsement(rollappId string, rollappGaugeId uint64) Endorsement {
 	return Endorsement{
-		RollappId:           rollappId,
-		RollappGaugeId:      rollappGaugeId,
-		EndorsementGaugeIds: nil,
-		TotalShares:         math.ZeroInt(),
-		EpochShares:         math.ZeroInt(),
+		RollappId:      rollappId,
+		RollappGaugeId: rollappGaugeId,
+		TotalShares:    math.ZeroInt(),
+		EpochShares:    math.ZeroInt(),
 	}
 }
 
