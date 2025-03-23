@@ -22,11 +22,11 @@ func (suite *KeeperTestSuite) TestInvalidDurationGaugeCreationValidation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration / 2, // 0.5 second, invalid duration
 	}
-	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err := suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
 	distrTo.Duration = defaultLockDuration
-	_, err = suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err = suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().NoError(err)
 }
 
@@ -41,10 +41,10 @@ func (suite *KeeperTestSuite) TestNonExistentDenomGaugeCreation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration,
 	}
-	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err := suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
-	_, err = suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err = suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().NoError(err)
 }
 

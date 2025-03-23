@@ -29,7 +29,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 	err := bankutil.FundModuleAccount(ctx, app.BankKeeper, types.ModuleName, coins)
 	require.NoError(t, err)
 
-	_, err = app.IncentivesKeeper.CreateGauge(
+	_, err = app.IncentivesKeeper.CreateAssetGauge(
 		ctx,
 		true,
 		app.AccountKeeper.GetModuleAddress(types.ModuleName),

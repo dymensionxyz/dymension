@@ -146,3 +146,65 @@ func (k Keeper) IterateVotes(
 
 	return nil
 }
+
+func (k Keeper) GetEndorsement(ctx sdk.Context, rollappID string) (types.Endorsement, error) {
+	return k.raEndorsements.Get(ctx, rollappID)
+}
+
+func (k Keeper) SaveEndorsement(ctx sdk.Context, e types.Endorsement) error {
+	return k.raEndorsements.Set(ctx, e.RollappId, e)
+}
+
+func (k Keeper) HasEndorsement(ctx sdk.Context, rollappID string) (bool, error) {
+	return k.raEndorsements.Has(ctx, rollappID)
+}
+
+// UpdateEndorsement updates the endorsement by applying the provided function to the current endorsement.
+// It retrieves the current endorsement from the state, applies the update function to it, saves the updated endorsement
+// back to the state, and returns the updated endorsement. If any error occurs during these steps, it returns an error.
+func (k Keeper) UpdateEndorsement(ctx sdk.Context, rollappID string, updates ...types.EndorsementUpdateFn) error {
+	current, err := k.GetEndorsement(ctx, rollappID)
+	if err != nil {
+		return fmt.Errorf("get endorsement: %w", err)
+	}
+
+	for _, update := range updates {
+		current = update(current)
+	}
+
+	err = k.SaveEndorsement(ctx, current)
+	if err != nil {
+		return fmt.Errorf("save endorsement: %w", err)
+	}
+
+	return nil
+}
+
+func (k Keeper) GetAllEndorsements(ctx sdk.Context) ([]types.Endorsement, error) {
+	iterator, err := k.raEndorsements.Iterate(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer iterator.Close() // nolint: errcheck
+	return iterator.Values()
+}
+
+func (k Keeper) CanClaim(ctx sdk.Context, addr sdk.AccAddress) (bool, error) {
+	blacklisted, err := k.claimBlacklist.Has(ctx, addr)
+	if err != nil {
+		return false, fmt.Errorf("check claim blacklist: %w", err)
+	}
+	voted, err := k.votes.Has(ctx, addr)
+	if err != nil {
+		return false, fmt.Errorf("check vote: %w", err)
+	}
+	return !blacklisted && voted, err
+}
+
+func (k Keeper) BlacklistClaim(ctx sdk.Context, addr sdk.AccAddress) error {
+	return k.claimBlacklist.Set(ctx, addr)
+}
+
+func (k Keeper) RefreshClaimBlacklist(ctx sdk.Context) error {
+	return k.claimBlacklist.Clear(ctx, nil)
+}

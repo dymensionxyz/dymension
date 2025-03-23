@@ -410,7 +410,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.StakingKeeper,
 		a.IncentivesKeeper,
-		a.SequencerKeeper,
+		a.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -545,14 +545,14 @@ func (a *AppKeepers) SetupHooks() {
 		stakingtypes.NewMultiStakingHooks(
 			a.DistrKeeper.Hooks(),
 			a.SlashingKeeper.Hooks(),
-			a.SponsorshipKeeper.Hooks(),
+			a.SponsorshipKeeper.StakingHooks(),
 		),
 	)
 
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
-		// insert lockup hooks receivers here
+			// insert lockup hooks receivers here
 		),
 	)
 
@@ -572,7 +572,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
-		// insert incentive hooks receivers here
+			// insert incentive hooks receivers here
 		),
 	)
 
@@ -588,6 +588,7 @@ func (a *AppKeepers) SetupHooks() {
 			a.IncentivesKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
+			a.SponsorshipKeeper.EpochHooks(),
 		),
 	)
 
