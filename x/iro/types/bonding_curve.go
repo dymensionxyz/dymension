@@ -35,7 +35,7 @@ const (
 )
 
 /*
-The bonding curve implementation based on decimal representation of the X (rollapp's tokens) and Y (DYM) values.
+The bonding curve implementation based on decimal representation of the X (rollapp's tokens) and Y (liquidity) values.
 we use scaling functions to convert between the decimal scale and the base denomination.
 */
 
@@ -61,14 +61,14 @@ func DefaultBondingCurve() BondingCurve {
 }
 
 func (lbc BondingCurve) SupplyDecimals() int64 {
-	return int64(lbc.RollappDenomDecimals)
+	return int64(lbc.RollappDenomDecimals) // nolint: gosec
 }
 
 func (lbc BondingCurve) LiquidityDecimals() int64 {
-	return int64(lbc.LiquidityDenomDecimals)
+	return int64(lbc.LiquidityDenomDecimals) // nolint: gosec
 }
 
-// validateBasic checks if the bonding curve is valid
+// ValidateBasic checks if the bonding curve is valid
 func (lbc BondingCurve) ValidateBasic() error {
 	if lbc.M.IsNegative() {
 		return errorsmod.Wrapf(ErrInvalidBondingCurve, "m: %d", lbc.M)
@@ -127,10 +127,10 @@ func (lbc BondingCurve) Cost(x, x1 math.Int) math.Int {
 	return ScaleToBase(cost, lbc.LiquidityDecimals())
 }
 
-// Calculate the number of tokens that can be bought with a given amount of DYM
+// Calculate the number of tokens that can be bought for a given amount of liquidity
 // As the integral of the bonding curve function is not invertible, we use the Newton-Raphson method to approximate the solution
 // - currX: the current supply, in the base denomination
-// - spendAmt: the amount of DYM to spend, in adym
+// - spendAmt: the amount of liquidity tokens to spend, in base denomination
 // - returns: the number of tokens that can be bought with spendAmt, in the base denomination
 func (lbc BondingCurve) TokensForExactInAmount(currX, spendAmt math.Int) (math.Int, error) {
 	startingX := ScaleFromBase(currX, lbc.SupplyDecimals())
@@ -155,7 +155,7 @@ func (lbc BondingCurve) TokensForExactInAmount(currX, spendAmt math.Int) (math.I
 }
 
 /* --------------------------- internal functions --------------------------- */
-// Calculate the number of tokens that can be bought with a given amount of DYM
+// Calculate the number of tokens that can be bought with a given amount of liquidity tokens
 // inputs validated and scaled by caller
 func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDec) (math.LegacyDec, int, error) {
 	// Define the function we're trying to solve: f(x) = Integral(startingX + x) - Integral(startingX) - spendAmt
@@ -248,12 +248,12 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 
 // CalculateM computes the M parameter for a bonding curve
 // It's actually not used in the codebase, but it's here for reference and for testing purposes
-// val: total value to be raised (in DYM, not adym)
+// val: total value to be raised in display denom (e.g DYM, not adym)
 // t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
 //
 // we use the eq point (eq = ((N+1) * T) / (N+2)) to calculate M
-// The total value at the eq, which consists of raised dym and unsold tokens, should equal val
+// The total value at the eq, which consists of raised liquidity and unsold tokens, should equal val
 // solving the equation for M gives:
 // M = (VAL * (N+1) * (R + N + 1)^(N+1)) / (2 * R * ((N+1) * T)^(N+1))
 

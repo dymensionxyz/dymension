@@ -419,7 +419,6 @@ func TestUseCase_USDC(t *testing.T) {
 	require.Equal(t,
 		types.ScaleFromBase(costUSDCLast, 6).TruncateInt().String(),
 		types.ScaleFromBase(costDYMLast, 18).TruncateInt().String())
-
 }
 
 func TestSpotPrice(t *testing.T) {

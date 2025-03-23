@@ -22,7 +22,7 @@ func (s *RollappTestSuite) TestKeeper_SetRegisteredDenom() {
 	}
 
 	for _, rollappId := range rollappIDs {
-		gotDenoms, err := s.k().GetAllRegisteredDenoms(s.Ctx, rollappId)
+		gotDenoms, _, err := s.k().GetAllRegisteredDenomsPaginated(s.Ctx, rollappId, nil)
 		s.Require().NoError(err)
 		s.Require().ElementsMatch(denoms, gotDenoms)
 	}
