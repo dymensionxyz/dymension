@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-03-20)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-03-23)
 
 
 ### Bug Fixes
@@ -36,6 +36,7 @@
 * **iro:** setting equilibrium point where the raised dym goes to the liquidity pool ([#1750](https://github.com/dymensionxyz/dymension/issues/1750)) ([9ce13d9](https://github.com/dymensionxyz/dymension/commit/9ce13d919d168938180f0e58e02f4f695830d0e1))
 * **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
 * **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
+* **sponsorship:** added endorsement yielding ([#1748](https://github.com/dymensionxyz/dymension/issues/1748)) ([2dc6b08](https://github.com/dymensionxyz/dymension/commit/2dc6b08cca590d5978202ac49d16271746b93b90))
 
 
 
