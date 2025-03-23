@@ -21,6 +21,8 @@ service Msg {
 
   // RevokeVote allows a user to revoke their vote.
   rpc RevokeVote(MsgRevokeVote) returns (MsgRevokeVoteResponse);
+
+  rpc ClaimRewards(MsgClaimRewards) returns (MsgClaimRewardsResponse);
 }
 
 // MsgUpdateParams allows to update module params.
@@ -56,3 +58,17 @@ message MsgRevokeVote {
 }
 
 message MsgRevokeVoteResponse {}
+
+// MsgClaimRewards defines a message to claim rewards.
+// The provided gauge must be an endorsement gauge, and the user must have a
+// vote with non-zero weight for the respective rollapp gauge.
+message MsgClaimRewards {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // Sender is the bech32 encoded address of the user claiming rewards.
+  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // GaugeID is the ID of the gauge from which the user is claiming rewards.
+  uint64 gauge_id = 2;
+}
+
+message MsgClaimRewardsResponse {}

@@ -49,6 +49,12 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders)
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.calculateRollappGaugeRewards(ctx, gauge, &lockHolders)
+		case *types.Gauge_Endorsement:
+			// endorsement gauges are distributed on epoch end
+			// in that case, gaugeDistributedCoins == 0 as the rewards are distributed lazily during the epoch
+			if epochEnd {
+				err = k.updateEndorsementGaugeOnEpochEnd(ctx, gauge)
+			}
 		default:
 			return nil, errorsmod.WithType(sdkerrors.ErrInvalidType, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id))
 		}
