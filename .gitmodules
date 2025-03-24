@@ -1,0 +1,3 @@
+[submodule "scripts/hyperlane/remote/ethereum/demo/lib/forge-std"]
+	path = scripts/hyperlane/remote/ethereum/demo/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
