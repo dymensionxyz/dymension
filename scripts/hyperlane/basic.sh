@@ -17,7 +17,8 @@ hub start --log_level=debug
 export HYPD_FLAGS=--home test --chain-id hyperlane-local --keyring-backend test --from alice --fees 40000uhyp
 export DAN_FLAGS=(--from hub-user --fees 20000000000000adym)
 
-/Users/danwt/.dymension/config/app.toml
+# /Users/danwt/.dymension/config/app.toml can update this with swagger using dasel
+
 
 # create noop ism
 hub tx hyperlane ism create-noop "${DAN_FLAGS[@]}"
