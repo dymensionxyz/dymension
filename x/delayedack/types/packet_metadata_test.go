@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+// TODO: need to create a util here to inject a pb hook
+
 func Test_parsePacketMetadata(t *testing.T) {
 	type args struct {
 		input string
@@ -27,6 +29,8 @@ func Test_parsePacketMetadata(t *testing.T) {
 			},
 			false,
 		},
+		//TODO: should have a test here?
+
 		{
 			"invalid - misquoted fee",
 			args{

@@ -3,11 +3,11 @@ package ibctesting_test
 import (
 	"testing"
 
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -63,14 +63,12 @@ func (s *forwardSuite) TestForward() {
 		},
 	)
 	s.T().Log("running test forward!")
-	basicHook := forwardtypes.HookCalldata{
-		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
-			TokenId:           "1",
-			DestinationDomain: "1",
-			Sender:            "cosmos1",
-		},
+
+	hookData := eibctypes.FulfillHook{
+		HookName: dummy,
+		HookData: []byte{},
 	}
-	basicHookBytes, err := proto.Marshal(&basicHook)
+	raw, err := proto.Marshal(&hookData)
 	s.Require().NoError(err)
 	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
 		{
@@ -78,7 +76,8 @@ func (s *forwardSuite) TestForward() {
 			fulfillerStartBal: "300",
 			eibcTransferFee:   "150",
 			transferAmt:       "200",
-			fulfillHook:       basicHookBytes,
+			fulfillHook:       raw,
 		},
 	})
+	s.Require().True(h.called)
 }
