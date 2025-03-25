@@ -88,8 +88,13 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom strin
 	// return hyperutil.HexAddress{}, err
 	// }
 
-	// can use IGP as required hook
-	mailboxId, err := s.CreateMailbox(ctx, owner, LocalDomain, ism, noopHook, noopHook)
+	mailboxId, err := s.CreateMailbox(ctx, CreateMailboxArgs{
+		Owner:        owner,
+		LocalDomain:  LocalDomain,
+		Ism:          ism,
+		RequiredHook: noopHook, // would typically be IGP (sure?)
+		DefaultHook:  noopHook, // would typically be merkle hook (sure?)
+	})
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
@@ -101,18 +106,24 @@ func (s *Server) CreateDefaultMailbox(ctx sdk.Context, owner string, denom strin
 // Core
 /////////////////////////
 
+type CreateMailboxArgs struct {
+	Owner        string
+	LocalDomain  uint32
+	Ism          hyperutil.HexAddress
+	RequiredHook hyperutil.HexAddress // Runs first.
+	DefaultHook  hyperutil.HexAddress // Runs second.
+}
+
 func (s *Server) CreateMailbox(ctx sdk.Context,
-	owner string,
-	localDomain uint32,
-	ism, requiredHook, defaultHook hyperutil.HexAddress,
+	args CreateMailboxArgs,
 ) (hyperutil.HexAddress, error) {
 
 	msg := &types.MsgCreateMailbox{
-		Owner:        owner,
-		LocalDomain:  localDomain,
-		DefaultIsm:   ism,
-		DefaultHook:  &defaultHook,
-		RequiredHook: &requiredHook,
+		Owner:        args.Owner,
+		LocalDomain:  args.LocalDomain,
+		DefaultIsm:   args.Ism,
+		DefaultHook:  &args.DefaultHook,
+		RequiredHook: &args.RequiredHook,
 	}
 	res, err := s.coreServer().CreateMailbox(ctx, msg)
 	if err != nil {
