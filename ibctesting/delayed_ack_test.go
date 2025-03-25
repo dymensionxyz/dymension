@@ -181,7 +181,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.Require().NoError(err)
 
 	// manually finalize packets through x/delayedack
-	s.finalizeRollappPacketsByAddress(s.hubChain().SenderAccount.GetAddress().String())
+	s.finalizePacketsByAddr(s.hubChain().SenderAccount.GetAddress().String())
 
 	// Validate ack is found
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -237,7 +237,7 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 	// manually finalize packets through x/delayedack
-	s.finalizeRollappPacketsByAddress(senderAccount.String())
+	s.finalizePacketsByAddr(senderAccount.String())
 	// Validate funds are returned to the sender
 	postFinalizeBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)

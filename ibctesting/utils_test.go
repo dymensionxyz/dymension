@@ -378,7 +378,8 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	return chain
 }
 
-func (s *utilSuite) finalizeRollappPacketsByAddress(address string) sdk.Events {
+// finalize everything for a given recipient address
+func (s *utilSuite) finalizePacketsByAddr(address string) sdk.Events {
 	s.T().Helper()
 	// Query all pending packets by address
 	querier := delayedackkeeper.NewQuerier(s.hubApp().DelayedAckKeeper)
