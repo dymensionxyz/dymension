@@ -1,4 +1,11 @@
-package ibctesting
+package ibctesting_test
+
+import (
+	"testing"
+
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/stretchr/testify/suite"
+)
 
 /*
 Friday:
@@ -12,3 +19,12 @@ Next sensible things:
  (can use a dummy hook)
 -
 */
+
+type forwardSuite struct {
+	utilSuite
+	path *ibctesting.Path
+}
+
+func TestForwardSuite(t *testing.T) {
+	suite.Run(t, new(forwardSuite))
+}
