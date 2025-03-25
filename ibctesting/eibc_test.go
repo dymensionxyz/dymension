@@ -201,22 +201,7 @@ func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 // TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
-	// Setup globals for the test
-	totalDemandOrdersCreated := 0
-	eibcKeeper := s.hubApp().EIBCKeeper
-	delayedAckKeeper := s.hubApp().DelayedAckKeeper
-	IBCSenderAccount := s.rollappChain().SenderAccount.GetAddress().String()
-	rollappStateIndex := uint64(0)
-	IBCRecipientAccountInitialIndex := 0
-	fulfillerAccountInitialIndex := 1
-	// Create cases
-	cases := []struct {
-		name                            string
-		IBCTransferAmount               string
-		EIBCTransferFee                 string
-		fulfillerInitialIBCDenomBalance string
-		isFulfilledSuccess              bool
-	}{
+	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
 		{
 			"fulfill demand order successfully",
 			"200",
@@ -231,7 +216,30 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			"49",
 			false,
 		},
-	}
+	})
+}
+
+type eibcTransferFulfillmentTC struct {
+	name                            string
+	IBCTransferAmount               string
+	EIBCTransferFee                 string
+	fulfillerInitialIBCDenomBalance string
+	isFulfilledSuccess              bool
+}
+
+// TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
+// It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
+func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
+	// Setup globals for the test
+	totalDemandOrdersCreated := 0
+	eibcKeeper := s.hubApp().EIBCKeeper
+	delayedAckKeeper := s.hubApp().DelayedAckKeeper
+	IBCSenderAccount := s.rollappChain().SenderAccount.GetAddress().String()
+	rollappStateIndex := uint64(0)
+	IBCRecipientAccountInitialIndex := 0
+	fulfillerAccountInitialIndex := 1
+	// Create cases
+
 	for idx, tc := range cases {
 		s.Run(tc.name, func() {
 			// Get the initial state of the accounts
