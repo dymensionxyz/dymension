@@ -35,10 +35,6 @@ func (h Hook) Run(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk
 	return h.doForwardHook(ctx, order, fundsSource, hookData)
 }
 
-func (h Hook) Name() string {
-	return HookNameForward
-}
-
 func validForward(data []byte) error {
 	var d types.HookCalldata
 	err := proto.Unmarshal(data, &d)

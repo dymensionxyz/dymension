@@ -544,7 +544,11 @@ func (a *AppKeepers) InitKeepers(
 		&a.HyperWarpKeeper,
 	)
 
-	a.EIBCKeeper.SetFulfillHooks(a.ForwardKeeper.Hook())
+	a.EIBCKeeper.SetFulfillHooks(
+		map[string]eibckeeper.FulfillHook{
+			forwardkeeper.HookNameForward: a.ForwardKeeper.Hook(),
+		},
+	)
 
 }
 

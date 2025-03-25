@@ -82,10 +82,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) SetFulfillHooks(hooks ...FulfillHook) {
-	for _, hook := range hooks {
-		k.fulfillHooks.RegisterHook(hook)
-	}
+func (k Keeper) SetFulfillHooks(hooks map[string]FulfillHook) {
+	k.fulfillHooks.RegisterHooks(hooks)
 }
 
 func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {

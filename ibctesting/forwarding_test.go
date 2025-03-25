@@ -35,6 +35,7 @@ func (s *forwardSuite) SetupTest() {
 }
 
 func (s *forwardSuite) TestForward() {
+	s.utilSuite.hubApp().EIBCKeeper.SetFulfillHooks()
 	s.T().Log("running test forward!")
 	basicHook := forwardtypes.HookCalldata{
 		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{

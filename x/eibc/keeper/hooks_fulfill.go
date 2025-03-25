@@ -18,7 +18,6 @@ type FulfillHook interface {
 		fulfiller sdk.AccAddress,
 
 		hookData []byte) error
-	Name() string
 }
 
 type FulfillHooks struct {
@@ -31,8 +30,8 @@ func NewHooks() FulfillHooks {
 	}
 }
 
-func (h FulfillHooks) RegisterHook(hook FulfillHook) {
-	h.hooks[hook.Name()] = hook
+func (h FulfillHooks) RegisterHooks(hooks map[string]FulfillHook) {
+	h.hooks = hooks
 }
 
 // assumed already passed validate basic
