@@ -78,6 +78,7 @@ func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder
 	if err != nil {
 		return errorsmod.Wrap(err, "remote transfer")
 	}
+	_ = res
 
 	// var token warptypes.HypToken
 	// var dst uint32

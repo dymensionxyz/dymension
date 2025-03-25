@@ -3,7 +3,6 @@ package ibctesting_test
 import (
 	"testing"
 
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -21,10 +20,17 @@ Next sensible things:
 */
 
 type forwardSuite struct {
-	utilSuite
-	path *ibctesting.Path
+	eibcSuite
 }
 
 func TestForwardSuite(t *testing.T) {
 	suite.Run(t, new(forwardSuite))
+}
+
+func (s *forwardSuite) SetupTest() {
+	s.eibcSuite.SetupTest()
+}
+
+func (s *forwardSuite) TestForward() {
+	s.T().Log("running test forward!")
 }
