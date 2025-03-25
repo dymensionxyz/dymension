@@ -227,10 +227,7 @@ type eibcTransferFulfillmentTC struct {
 	isFulfilledSuccess              bool
 }
 
-// TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
-// It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
-	// Setup globals for the test
 	totalDemandOrdersCreated := 0
 	eibcKeeper := s.hubApp().EIBCKeeper
 	delayedAckKeeper := s.hubApp().DelayedAckKeeper
@@ -238,7 +235,6 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 	rollappStateIndex := uint64(0)
 	IBCRecipientAccountInitialIndex := 0
 	fulfillerAccountInitialIndex := 1
-	// Create cases
 
 	for idx, tc := range cases {
 		s.Run(tc.name, func() {
