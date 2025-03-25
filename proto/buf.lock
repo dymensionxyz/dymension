@@ -27,6 +27,11 @@ deps:
     commit: 55085f7c710a45f58fa09947208eb70b
     digest: shake256:9bf0bc495b5a11c88d163d39ef521bc4b00bc1374a05758c91d82821bdc61f09e8c2c51dda8452529bf80137f34d852561eacbe9550a59015d51cecb0dacb628
   - remote: buf.build
+    owner: danwt
+    repository: d-hyperlane-cosmos
+    commit: 12fe35760c3c449dae914d6159699a32
+    digest: shake256:e68a59939d521b29fa6071d85605c2164c0b0cc3e9331d29b0f8087e39407acee9685f4623c6c4328fd14b3c0f395bd5dabe8f6ba4ebbc459598f10249c2ce72
+  - remote: buf.build
     owner: googleapis
     repository: googleapis
     commit: 8d7204855ec14631a499bd7393ce1970
@@ -36,3 +41,8 @@ deps:
     repository: grpc-gateway
     commit: 4c5ba75caaf84e928b7137ae5c18c26a
     digest: shake256:e174ad9408f3e608f6157907153ffec8d310783ee354f821f57178ffbeeb8faa6bb70b41b61099c1783c82fe16210ebd1279bc9c9ee6da5cffba9f0e675b8b99
+  - remote: buf.build
+    owner: protocolbuffers
+    repository: wellknowntypes
+    commit: 657250e6a39648cbb169d079a60bd9ba
+    digest: shake256:00de25001b8dd2e29d85fc4bcc3ede7aed886d76d67f5e0f7a9b320b90f871d3eb73507d50818d823a0512f3f8db77a11c043685528403e31ff3fef18323a9fb

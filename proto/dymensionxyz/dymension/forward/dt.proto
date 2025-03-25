@@ -7,7 +7,7 @@ import "hyperlane/warp/v1/tx.proto";
 
 message ForwardHook {
   // TODO:
-  hyperlane.warp.v1.MsgRemoteTransfer remote_transfer = 1; 
-  string foo = 1;
-  int64 bar = 2;
+  hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
+  string foo = 2;
+  int64 bar = 3;
 }
