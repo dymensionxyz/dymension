@@ -76,3 +76,20 @@ hyperlane warp init
 
 # output:
 # addressOrDenom: "0xc5a5C42992dECbae36851359345FE25997F5C42d"
+
+# Step 4: Relay
+# The Hyperlane CLI doesn't support the cosmos module yet, so need to use some adhoc tooling and scripts from Kyve:
+# - https://github.com/bcp-innovations/hyperlane-cosmos/tree/mbreithecker/evm-scripts/scripts/hypertools
+# - https://github.com/bcp-innovations/hyperlane-cosmos/tree/mbreithecker/evm-scripts/scripts/ethers
+
+# facts: 
+# cosmos 
+# - token 0x726f757465725f61707000000000000000000000000000010000000000000000
+# - origin mailbox 0x68797065726c616e650000000000000000000000000000000000000000000000
+# evm
+# - chain name aaadym
+# - decimals 18
+# - token  0xc5a5C42992dECbae36851359345FE25997F5C42d
+# - symbol adym
+# - mailbox 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+# - test recipient (??) 0xc6e7DF5E7b4f2A278906862b61205850344D4e7d

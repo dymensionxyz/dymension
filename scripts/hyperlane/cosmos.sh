@@ -65,3 +65,20 @@ TOKEN_AMT=1000
 hub tx hyperlane-transfer transfer $TOKEN_ID $DST_DOMAIN $ARB_RECIPIENT $TOKEN_AMT --max-hyperlane-fee 0adym "${DAN_FLAGS[@]}"
 curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
 
+# Queries
+# http://localhost:1318/hyperlane/v1/tokens
+# http://localhost:1318/hyperlane/v1/tokens/{id}
+# http://localhost:1318/hyperlane/v1/tokens/{id}/bridged_supply
+# http://localhost:1318/hyperlane/v1/tokens/{id}/remote_routers
+# http://localhost:1318/hyperlane/v1/isms
+# http://localhost:1318/hyperlane/v1/isms/{id}
+# http://localhost:1318/hyperlane/v1/mailboxes
+# http://localhost:1318/hyperlane/v1/mailboxes/{id}
+# http://localhost:1318/hyperlane/v1/recipient_ism/{recipient}
+# http://localhost:1318/hyperlane/v1/verify_dry_run
+# http://localhost:1318/hyperlane/v1/igps
+# http://localhost:1318/hyperlane/v1/igps/{id}
+# http://localhost:1318/hyperlane/v1/merkle_tree_hooks
+# http://localhost:1318/hyperlane/v1/merkle_tree_hooks/{id}
+# http://localhost:1318/hyperlane/v1/noop_hooks
+# http://localhost:1318/hyperlane/v1/noop_hooks/{id}
