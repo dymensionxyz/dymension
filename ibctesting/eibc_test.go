@@ -303,6 +303,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolStateIx = rolStateIx + 1
 			s.updateRollappState(rolH)
 			packet := s.transferRollappToHub(s.path, transferSrcAcc, ibcRecipient.String(), tc.transferAmt, memo, false)
+			s.Require().True(s.rollappHasPacketCommitment(packet))
 
 			// Validate demand order created. Calling TransferRollappToHub also promotes the block time for
 			// ibc purposes which causes the AfterEpochEnd of the rollapp packet deletion to fire (which also deletes the demand order)
@@ -562,7 +563,7 @@ func (s *eibcSuite) transferRollappToHub(
 		found := hubIBCK.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		s.Require().True(found)
 	}
-	s.Require().True(s.rollappHasPacketCommitment(packet))
+
 	return packet
 }
 
