@@ -24,6 +24,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
 type eibcSuite struct {
@@ -225,14 +226,24 @@ type eibcTransferFulfillmentTC struct {
 	eibcTransferFee   string
 	fulfillerStartBal string
 	expectFulfillFail bool
+	forward           *forwardtypes.HookCalldata
 }
 
-func createMemo(eibcFee string) string {
-	eibcJson, _ := json.Marshal(map[string]map[string]string{
+func createMemo(eibcFee string, forward *forwardtypes.HookCalldata) string {
+
+	m := map[string]map[string]string{
 		"eibc": {
 			"fee": eibcFee,
 		},
-	})
+	}
+	if forward != nil {
+		m["fulfill_hook"] = map[string]string{
+			"hook": forward.String(),
+		}
+	}
+
+	eibcJson, _ := json.Marshal(m)
+
 	return string(eibcJson)
 }
 
@@ -257,7 +268,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolH := uint64(s.rollappCtx().BlockHeight())
 			s.updateRollappState(rolH)
 
-			memo := createMemo(tc.eibcTransferFee)
+			memo := createMemo(tc.eibcTransferFee, tc.forward)
 			var IBCDenom string
 
 			// transfer to fulfiller so he has money

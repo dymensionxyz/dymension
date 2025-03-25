@@ -1,5 +1,5 @@
 package types
 
-func (h *ForwardHook) ValidateBasic() error {
+func (h *HookCalldata) ValidateBasic() error {
 	return nil
 }

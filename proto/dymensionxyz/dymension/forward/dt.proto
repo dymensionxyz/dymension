@@ -5,7 +5,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
 import "hyperlane/warp/v1/tx.proto";
 
-message ForwardHook {
+message HookCalldata {
   // TODO:
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
   string foo = 2;

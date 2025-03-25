@@ -40,7 +40,7 @@ func (h Hook) Name() string {
 }
 
 func validForward(data []byte) error {
-	var d types.ForwardHook
+	var d types.HookCalldata
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
 		return errorsmod.Wrap(err, "unmarshal forward hook")
@@ -52,7 +52,7 @@ func validForward(data []byte) error {
 }
 
 func (k Keeper) doForwardHook(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, data []byte) error {
-	var d types.ForwardHook
+	var d types.HookCalldata
 	err := proto.Unmarshal(order.FulfillHook.HookData, &d)
 	if err != nil {
 		return errorsmod.Wrap(err, "unmarshal forward hook")
@@ -60,7 +60,7 @@ func (k Keeper) doForwardHook(ctx sdk.Context, order *eibctypes.DemandOrder, fun
 	return k.forwardToHyperlane(ctx, order, fundsSource, d)
 }
 
-func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, d types.ForwardHook) error {
+func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, d types.HookCalldata) error {
 
 	// m := warptypes.MsgRemoteTransfer{
 	// 	TokenId:            tokenId,
