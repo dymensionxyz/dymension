@@ -3,21 +3,11 @@ export SETTLEMENT_EXECUTABLE="dymd"
 bash scripts/setup_local.sh
 alias hub="dymd"
 
-# should put swagger = true
 hub start --log_level=debug
-
-# export HUB_RPC_ENDPOINT="localhost"
-# export HUB_RPC_PORT="36657" # default: 36657
-# export HUB_RPC_URL="http://${HUB_RPC_ENDPOINT}:${HUB_RPC_PORT}"
-# export HUB_CHAIN_ID="dymension_100-1"
-# dymd config set chain-id ${HUB_CHAIN_ID}
-# dymd config set node ${HUB_RPC_URL}
 
 # Hyperlane https://github.com/bcp-innovations/hyperlane-cosmos/blob/mbreithecker/readme/README.md
 export HYPD_FLAGS=--home test --chain-id hyperlane-local --keyring-backend test --from alice --fees 40000uhyp
 export DAN_FLAGS=(--from hub-user --fees 20000000000000adym)
-
-# /Users/danwt/.dymension/config/app.toml can update this with swagger using dasel
 
 
 # create noop ism
