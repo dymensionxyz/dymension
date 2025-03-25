@@ -154,14 +154,6 @@ func (s *KeeperTestHelper) SetupHyperlane() {
 	tokenID, err := server.CreateCollateralToken(s.Ctx, owner, mailboxId, denom)
 	s.NoError(err)
 
-	var customHookMetadata string         // ??
-	var recipient hyperutil.HexAddress    // should be real counterparty recipient
-	var customHookId hyperutil.HexAddress // empty means fall back to default hook
-
-	var maxFee sdk.Coin = sdk.NewCoin(denom, math.NewInt(1000000))
-	var amt math.Int = transferAmt
-	var gasLimit math.Int = math.NewInt(0)
-
 	err = server.EnrollRemoteRouter(s.Ctx, owner, tokenID, warptypes.RemoteRouter{
 		ReceiverDomain:   uhyp.RemoteDomain,
 		ReceiverContract: arbitraryContract,
@@ -169,9 +161,17 @@ func (s *KeeperTestHelper) SetupHyperlane() {
 	})
 	s.NoError(err)
 
+	var maxFee sdk.Coin = sdk.NewCoin(denom, math.NewInt(1000000))
+	var amt math.Int = transferAmt
+	var gasLimit math.Int = math.NewInt(0)
+
+	var customHookMetadata string      // ??
+	var recipient hyperutil.HexAddress // in practice should be real counterparty recipient
+
 	// TODO: to make this pass need to add some tokens for alice
 	messageID, err := server.RemoteTransfer(s.Ctx, owner, tokenID, uhyp.RemoteDomain,
-		recipient, customHookId, maxFee, customHookMetadata, amt, gasLimit)
+		recipient, nil, // custom hook is nil so use mailbox default hook as the second hook that occurs
+		maxFee, customHookMetadata, amt, gasLimit)
 	s.NoError(err)
 	_ = messageID
 
