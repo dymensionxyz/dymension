@@ -5,6 +5,8 @@ import (
 
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/cosmos/gogoproto/proto"
+	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -34,8 +36,32 @@ func (s *forwardSuite) SetupTest() {
 	s.eibcSuite.SetupTest()
 }
 
+// TODO: use mock generation
+type mockHook struct {
+	called bool
+}
+
+func (h mockHook) ValidateData(hookData []byte) error {
+	return nil
+}
+
+func (h mockHook) Run(ctx sdk.Context, order *types.DemandOrder,
+	fundsSource sdk.AccAddress,
+	newTransferRecipient sdk.AccAddress,
+	fulfiller sdk.AccAddress,
+	hookData []byte) error {
+	h.called = true
+	return nil
+}
+
 func (s *forwardSuite) TestForward() {
-	s.utilSuite.hubApp().EIBCKeeper.SetFulfillHooks()
+	dummy := "dummy"
+	h := mockHook{}
+	s.utilSuite.hubApp().EIBCKeeper.SetFulfillHooks(
+		map[string]eibckeeper.FulfillHook{
+			dummy: h,
+		},
+	)
 	s.T().Log("running test forward!")
 	basicHook := forwardtypes.HookCalldata{
 		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{

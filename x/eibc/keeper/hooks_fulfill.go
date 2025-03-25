@@ -10,6 +10,16 @@ const (
 	HookNameForward = "forward"
 )
 
+}
+
+func (h NoopHook) Run(ctx sdk.Context, order *types.DemandOrder,
+	fundsSource sdk.AccAddress,
+	newTransferRecipient sdk.AccAddress,
+	fulfiller sdk.AccAddress,
+	hookData []byte) error {
+	return nil
+}
+
 type FulfillHook interface {
 	ValidateData(hookData []byte) error
 	Run(ctx sdk.Context, order *types.DemandOrder,
