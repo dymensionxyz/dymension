@@ -39,6 +39,7 @@ Synthesis
 			Create a collateral token 'adym' on top of the mailbox (thus, noop ISM will be used)
 		Now do the same on Ethereum
 			...
+			Also need to enroll the remote router to be able to receive tokens
 		Back to Hub:
 			Enroll a remote router <token, <dst, Ethereum warp route (token) address, Gas=0>
 
