@@ -10,6 +10,29 @@ import (
 )
 
 /*
+Synthesis
+	Setup
+
+	Send (assume Dym from Hub to Ethereum)
+		WR:
+			Pass token, real recipient, dst, amt
+			Need a router: mapping <token, dst, dst contract (warp route)>
+			Dispatches a message with src mailbox as origin (token.OriginMailbox)
+			Target is the dst contract
+		Dispatch:
+			Need required and default hooks
+			Does post dispatch with the required hook
+
+
+	Questions:
+		Necessity of IGP?
+		What is remote router gas?
+
+
+
+*/
+
+/*
 A reminder on how things work
 
 Mailbox has
@@ -131,10 +154,11 @@ func (s *KeeperTestHelper) SetupHyperlane() {
 	tokenID, err := server.CreateCollateralToken(s.Ctx, owner, mailboxId, denom)
 	s.NoError(err)
 
-	var recipient hyperutil.HexAddress
-	var customHookId hyperutil.HexAddress
+	var customHookMetadata string         // ??
+	var recipient hyperutil.HexAddress    // should be real counterparty recipient
+	var customHookId hyperutil.HexAddress // empty means fall back to default hook
+
 	var maxFee sdk.Coin = sdk.NewCoin(denom, math.NewInt(1000000))
-	var customHookMetadata string
 	var amt math.Int = transferAmt
 	var gasLimit math.Int = math.NewInt(0)
 

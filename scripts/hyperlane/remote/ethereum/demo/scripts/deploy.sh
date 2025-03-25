@@ -93,3 +93,8 @@ hyperlane warp init
 # - symbol adym
 # - mailbox 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
 # - test recipient (??) 0xc6e7DF5E7b4f2A278906862b61205850344D4e7d
+
+# Undestanding the javascript:
+# ???
+# Understanding the go:
+# - announce a validator (generate the signed tx)

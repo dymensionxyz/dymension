@@ -55,7 +55,7 @@ hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ARB_CONTRA
 
 # transfer
 # token, dst domain, recipient, amount
-ARB_RECIPIENT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0" # TODO: check
+ARB_RECIPIENT="0xc5a5C42992dECbae36851359345FE25997F5C42d" # TODO: check
 # optionally
 # 	custom-hook-id: ""
 # 	custom-hook-metadata: ""
