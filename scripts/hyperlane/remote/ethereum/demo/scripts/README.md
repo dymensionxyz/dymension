@@ -1,0 +1,1 @@
+This is hyperlane relevant scripts. Not the Foundry default script(s).
