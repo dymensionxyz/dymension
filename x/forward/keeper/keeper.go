@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
@@ -19,6 +20,7 @@ type Keeper struct {
 	Schema collections.Schema
 	// TODO: params collection
 	warpKeeper types.WarpRouteKeeper
+	warpServer warptypes.MsgServer
 }
 
 func NewKeeper(

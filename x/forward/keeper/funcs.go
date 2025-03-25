@@ -65,6 +65,23 @@ func (k Keeper) doForwardHook(ctx sdk.Context, order *eibctypes.DemandOrder, fun
 
 func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, d types.ForwardHook) error {
 
+	m := warptypes.MsgRemoteTransfer{
+		TokenId:            tokenId,
+		DestinationDomain:  uint32(destinationDomain),
+		Sender:             clientCtx.GetFromAddress().String(),
+		Recipient:          recipient,
+		Amount:             argAmount,
+		CustomHookId:       parsedHookId,
+		GasLimit:           gasLimitInt,
+		MaxFee:             maxFeeCoin,
+		CustomHookMetadata: customHookMetadata,
+	}
+
+	res, err := k.warpServer.RemoteTransfer(ctx, &m)
+	if err != nil {
+		return errorsmod.Wrap(err, "remote transfer")
+	}
+
 	var token warptypes.HypToken
 	var dst uint32
 	var recipient util.HexAddress
