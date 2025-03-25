@@ -3,6 +3,9 @@ package ibctesting_test
 import (
 	"testing"
 
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	"github.com/cosmos/gogoproto/proto"
+	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -33,4 +36,22 @@ func (s *forwardSuite) SetupTest() {
 
 func (s *forwardSuite) TestForward() {
 	s.T().Log("running test forward!")
+	basicHook := forwardtypes.HookCalldata{
+		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
+			TokenId:           "1",
+			DestinationDomain: "1",
+			Sender:            "cosmos1",
+		},
+	}
+	basicHookBytes, err := proto.Marshal(&basicHook)
+	s.Require().NoError(err)
+	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
+		{
+			name:              "forwarding works",
+			fulfillerStartBal: "300",
+			eibcTransferFee:   "150",
+			transferAmt:       "200",
+			fulfillHook:       basicHookBytes,
+		},
+	})
 }
