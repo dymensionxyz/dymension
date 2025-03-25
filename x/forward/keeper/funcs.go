@@ -2,9 +2,6 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
-	"github.com/bcp-innovations/hyperlane-cosmos/util"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
@@ -82,26 +79,26 @@ func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder
 		return errorsmod.Wrap(err, "remote transfer")
 	}
 
-	var token warptypes.HypToken
-	var dst uint32
-	var recipient util.HexAddress
-	var amount math.Int
-	var customHookId *util.HexAddress
-	var gasLimit math.Int
-	var maxFee sdk.Coin
-	var customHookMetadata []byte
+	// var token warptypes.HypToken
+	// var dst uint32
+	// var recipient util.HexAddress
+	// var amount math.Int
+	// var customHookId *util.HexAddress
+	// var gasLimit math.Int
+	// var maxFee sdk.Coin
+	// var customHookMetadata []byte
 
-	k.warpKeeper.RemoteTransferCollateral(ctx,
-		token,
-		fundsSource.String(),
-		dst,
-		recipient,
-		amount,
-		customHookId,
-		gasLimit,
-		maxFee,
-		customHookMetadata,
-	)
+	// k.warpKeeper.RemoteTransferCollateral(ctx,
+	// 	token,
+	// 	fundsSource.String(),
+	// 	dst,
+	// 	recipient,
+	// 	amount,
+	// 	customHookId,
+	// 	gasLimit,
+	// 	maxFee,
+	// 	customHookMetadata,
+	// )
 
 	return nil
 
