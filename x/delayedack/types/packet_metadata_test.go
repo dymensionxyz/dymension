@@ -3,9 +3,9 @@ package types
 import (
 	"reflect"
 	"testing"
-)
 
-// TODO: need to create a util here to inject a pb hook
+	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
+)
 
 func Test_parsePacketMetadata(t *testing.T) {
 	type args struct {
@@ -29,7 +29,19 @@ func Test_parsePacketMetadata(t *testing.T) {
 			},
 			false,
 		},
-		//TODO: should have a test here?
+		{
+			"valid with hook",
+			args{
+				utransfer.CreateMemo("100", []byte{123}),
+			},
+			&PacketMetadata{
+				EIBC: &EIBCMetadata{
+					Fee:         "100",
+					FulfillHook: []byte{123},
+				},
+			},
+			false,
+		},
 
 		{
 			"invalid - misquoted fee",

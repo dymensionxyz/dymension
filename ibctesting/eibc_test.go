@@ -21,6 +21,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -230,22 +231,6 @@ type eibcTransferFulfillmentTC struct {
 	fulfillHook       []byte
 }
 
-func createMemo(eibcFee string, fulfillHook []byte) string {
-
-	m := map[string]map[string]any{
-		"eibc": map[string]any{
-			"fee": eibcFee,
-		},
-	}
-	if len(fulfillHook) > 0 {
-		m["eibc"]["fulfill_hook"] = fulfillHook
-	}
-
-	eibcJson, _ := json.Marshal(m)
-
-	return string(eibcJson)
-}
-
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 	numOrdersTotal := 0
 	eibcK := s.hubApp().EIBCKeeper
@@ -267,7 +252,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolH := uint64(s.rollappCtx().BlockHeight())
 			s.updateRollappState(rolH)
 
-			memo := createMemo(tc.eibcTransferFee, nil) // TODO: can erase completely?
+			memo := utransfer.CreateMemo(tc.eibcTransferFee, nil) // TODO: can erase completely?
 			var IBCDenom string
 
 			// transfer to fulfiller so he has money
@@ -305,7 +290,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 				s.Require().False(lastOrder.IsFulfilled())
 				s.Require().Equal(commontypes.Status_FINALIZED, lastOrder.TrackingPacketStatus)
 			}
-			memo = createMemo(tc.eibcTransferFee, tc.fulfillHook)
+			memo = utransfer.CreateMemo(tc.eibcTransferFee, tc.fulfillHook)
 
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			s.rollappChain().NextBlock()
