@@ -91,7 +91,7 @@ func NewKeeper(
 			"obsolete_drs_versions",
 			collections.Uint32Key,
 		),
-		registeredRollappDenoms: collections.NewKeySet[collections.Pair[string, string]](
+		registeredRollappDenoms: collections.NewKeySet(
 			sb,
 			collections.NewPrefix(types.KeyRegisteredDenomPrefix),
 			"registered_rollapp_denoms",
