@@ -1,13 +1,16 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/big"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
@@ -305,6 +308,9 @@ func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, l
 					// If no pool found, continue
 					pool, ok := minDistrValueCache.poolsMap[poolKey]
 					if !ok {
+						if err := k.sendToCommunityPool(ctx, sdk.NewCoin(coin.Denom, amt)); err != nil {
+							k.Logger(ctx).Error("gauge %d send to community pool failed", gauge.Id)
+						}
 						continue
 					}
 
@@ -374,6 +380,19 @@ func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, l
 	}
 
 	return totalDistrCoins, nil
+}
+
+func (k Keeper) sendToCommunityPool(ctx context.Context, coin sdk.Coin) error {
+	senderAddr := k.ak.GetModuleAddress(types.ModuleName)
+	if senderAddr == nil {
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName))
+	}
+
+	if err := k.cpk.FundCommunityPool(ctx, sdk.Coins{coin}, senderAddr); err != nil {
+		return fmt.Errorf("sendToCommunityPool: %w", err)
+	}
+
+	return nil
 }
 
 // getLockAmountOfDenom returns the amount of a specific denom in a lock

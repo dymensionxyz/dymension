@@ -26,6 +26,8 @@ type Keeper struct {
 	rk         types.RollappKeeper
 	pmk        types.PoolManagerKeeper
 	gk         types.GammKeeper
+	cpk        types.CommunityPoolKeeper
+	ak         types.AccountKeeper
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
@@ -39,6 +41,8 @@ func NewKeeper(
 	rk types.RollappKeeper,
 	pmk types.PoolManagerKeeper,
 	gk types.GammKeeper,
+	cpk types.CommunityPoolKeeper,
+	ak types.AccountKeeper,
 ) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -54,6 +58,8 @@ func NewKeeper(
 		rk:         rk,
 		pmk:        pmk,
 		gk:         gk,
+		cpk:        cpk,
+		ak:         ak,
 	}
 }
 
