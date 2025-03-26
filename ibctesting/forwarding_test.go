@@ -38,28 +38,35 @@ func (s *forwardSuite) SetupTest() {
 
 // TODO: use mock generation
 type mockHook struct {
+	*forwardSuite
 	called bool
 }
 
-func (h mockHook) ValidateData(hookData []byte) error {
+func (h *mockHook) ValidateData(hookData []byte) error {
 	return nil
 }
 
-func (h mockHook) Run(ctx sdk.Context, order *types.DemandOrder,
+func (h *mockHook) Run(ctx sdk.Context, order *types.DemandOrder,
 	fundsSource sdk.AccAddress,
 	newTransferRecipient sdk.AccAddress,
 	fulfiller sdk.AccAddress,
 	hookData []byte) error {
+
+	// mimic the regular transfer for this test
+	h.utilSuite.hubApp().BankKeeper.SendCoins(ctx, fundsSource, order.GetRecipientBech32Address(), order.Price)
+
 	h.called = true
 	return nil
 }
 
 func (s *forwardSuite) TestForward() {
 	dummy := "dummy"
-	h := mockHook{}
+	h := mockHook{
+		forwardSuite: s,
+	}
 	s.utilSuite.hubApp().EIBCKeeper.SetFulfillHooks(
 		map[string]eibckeeper.FulfillHook{
-			dummy: h,
+			dummy: &h,
 		},
 	)
 	s.T().Log("running test forward!")

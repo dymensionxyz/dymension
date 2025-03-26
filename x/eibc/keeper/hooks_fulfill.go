@@ -20,31 +20,19 @@ type FulfillHook interface {
 		hookData []byte) error
 }
 
-type FulfillHooks struct {
-	hooks map[string]FulfillHook
-}
-
-func NewHooks() FulfillHooks {
-	return FulfillHooks{
-		hooks: make(map[string]FulfillHook),
-	}
-}
-
-func (h FulfillHooks) RegisterHooks(hooks map[string]FulfillHook) {
-	h.hooks = hooks
-}
+type FulfillHooks map[string]FulfillHook
 
 // assumed already passed validate basic
 func (h FulfillHooks) validate(info types.FulfillHook) error {
-	f, ok := h.hooks[info.HookName]
+	f, ok := h[info.HookName]
 	if !ok {
-		return gerrc.ErrNotFound.Wrap("hook")
+		return gerrc.ErrNotFound.Wrapf("hook %s", info.HookName)
 	}
 	return f.ValidateData(info.HookData)
 }
 
 func (h FulfillHooks) exec(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs) error {
-	f, ok := h.hooks[order.FulfillHook.HookName]
+	f, ok := h[order.FulfillHook.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}

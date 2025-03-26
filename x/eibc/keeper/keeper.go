@@ -74,7 +74,7 @@ func NewKeeper(
 		rk:           rk,
 		Schema:       schema,
 		LPs:          lps,
-		fulfillHooks: NewHooks(),
+		fulfillHooks: make(FulfillHooks),
 	}
 }
 
@@ -83,7 +83,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) SetFulfillHooks(hooks map[string]FulfillHook) {
-	k.fulfillHooks.RegisterHooks(hooks)
+	for name, hook := range hooks {
+		k.fulfillHooks[name] = hook
+	}
 }
 
 func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
