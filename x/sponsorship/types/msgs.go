@@ -8,12 +8,14 @@ import (
 const (
 	TypeMsgVote         = "vote"
 	TypeMsgRevokeVote   = "revoke_vote"
+	TypeMsgClaimRewards = "claim_rewards"
 	TypeMsgUpdateParams = "update_params"
 )
 
 var (
 	_ sdk.Msg = &MsgVote{}
 	_ sdk.Msg = &MsgRevokeVote{}
+	_ sdk.Msg = &MsgClaimRewards{}
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
@@ -39,10 +41,6 @@ func (m MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func (m *MsgVote) Route() string {
-	return RouterKey
-}
-
 func (m *MsgVote) Type() string {
 	return TypeMsgVote
 }
@@ -61,10 +59,6 @@ func (m MsgRevokeVote) ValidateBasic() error {
 func (m MsgRevokeVote) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Voter)
 	return []sdk.AccAddress{signer}
-}
-
-func (m *MsgRevokeVote) Route() string {
-	return RouterKey
 }
 
 func (m *MsgRevokeVote) Type() string {
@@ -93,10 +87,26 @@ func (m MsgUpdateParams) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgUpdateParams) Route() string {
-	return RouterKey
-}
-
 func (m *MsgUpdateParams) Type() string {
 	return TypeMsgUpdateParams
+}
+
+func (m MsgClaimRewards) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Sender)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf(
+			"sender '%s' must be a valid bech32 address: %s",
+			m.Sender, err.Error(),
+		)
+	}
+	return nil
+}
+
+func (m MsgClaimRewards) GetSigners() []sdk.AccAddress {
+	signer, _ := sdk.AccAddressFromBech32(m.Sender)
+	return []sdk.AccAddress{signer}
+}
+
+func (m *MsgClaimRewards) Type() string {
+	return TypeMsgClaimRewards
 }

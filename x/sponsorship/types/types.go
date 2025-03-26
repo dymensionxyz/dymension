@@ -40,6 +40,18 @@ func (v Vote) Validate() error {
 	return nil
 }
 
+// GetGaugePower returns how much power the vote has in the gauge with the given ID.
+// If the gauge is not present in the vote, it returns 0.
+// If the gauge is present, it returns the power as an absolute number (not a percentage).
+func (v Vote) GetGaugePower(gaugeId uint64) math.Int {
+	for _, w := range v.Weights {
+		if w.GaugeId == gaugeId {
+			return v.VotingPower.Mul(w.Weight).Quo(MaxAllocationWeight)
+		}
+	}
+	return math.ZeroInt()
+}
+
 func ValidateGaugeWeights(w []GaugeWeight) error {
 	total := math.ZeroInt()
 	gaugeIDs := make(map[uint64]struct{}, len(w)) // this map helps check for duplicates
@@ -181,4 +193,24 @@ func (m Gauges) Less(i, j int) bool {
 
 func (m Gauges) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
+}
+
+func NewEndorsement(rollappId string, rollappGaugeId uint64) Endorsement {
+	return Endorsement{
+		RollappId:      rollappId,
+		RollappGaugeId: rollappGaugeId,
+		TotalShares:    math.ZeroInt(),
+		EpochShares:    math.ZeroInt(),
+	}
+}
+
+type EndorsementUpdateFn func(Endorsement) Endorsement
+
+// AddTotalShares updates total shares of the endorsement by adding the given update.
+// Update may be either positive or negative.
+func AddTotalShares(update math.Int) EndorsementUpdateFn {
+	return func(e Endorsement) Endorsement {
+		e.TotalShares = e.TotalShares.Add(update)
+		return e
+	}
 }

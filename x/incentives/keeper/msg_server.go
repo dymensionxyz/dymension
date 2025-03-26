@@ -44,9 +44,18 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
-	gaugeID, err := server.keeper.CreateGauge(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
-	if err != nil {
-		return nil, fmt.Errorf("create gauge: %w", err)
+	var gaugeID uint64
+	switch distr := msg.DistributeTo.(type) {
+	case *types.MsgCreateGauge_Asset:
+		gaugeID, err = server.keeper.CreateAssetGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *distr.Asset, msg.StartTime, msg.NumEpochsPaidOver)
+		if err != nil {
+			return nil, fmt.Errorf("create gauge: %w", err)
+		}
+	case *types.MsgCreateGauge_Endorsement:
+		gaugeID, err = server.keeper.CreateEndorsementGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *distr.Endorsement, msg.StartTime, msg.NumEpochsPaidOver)
+		if err != nil {
+			return nil, fmt.Errorf("create gauge: %w", err)
+		}
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

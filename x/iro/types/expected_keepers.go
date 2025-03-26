@@ -40,7 +40,7 @@ type BankKeeper interface {
 // IncentivesKeeper defines the expected interface needed to retrieve account balances.
 type IncentivesKeeper interface {
 	GetLockableDurations(ctx sdk.Context) []time.Duration
-	CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
+	CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
 }
 
 // GammKeeper defines the expected interface needed to retrieve account balances.
