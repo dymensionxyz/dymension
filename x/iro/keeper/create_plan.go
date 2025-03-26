@@ -231,13 +231,3 @@ func (k Keeper) MintAllocation(ctx sdk.Context, allocatedAmount math.Int, rollap
 	}
 	return minted, nil
 }
-
-// Function to check if a slice contains a string
-func contains(slice []string, str string) bool {
-	for _, v := range slice {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
