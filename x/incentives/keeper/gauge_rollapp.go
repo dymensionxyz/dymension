@@ -41,6 +41,14 @@ func (k Keeper) calculateRollappGaugeRewards(ctx sdk.Context, gauge types.Gauge,
 	if !found {
 		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
 	}
+
+	_, isIRO := k.ik.GetPlanByRollapp(ctx, gauge.GetRollapp().RollappId)
+
+	if isIRO && k.EndorsementMode(ctx) != types.Params_EndorsementModeRollappAndIRO {
+		ctx.Logger().Debug("IROs are not currently endorsed")
+		return sdk.Coins{}, nil
+	}
+
 	// Ignore the error since the owner must always be valid in x/rollapp
 	owner := rollapp.Owner
 

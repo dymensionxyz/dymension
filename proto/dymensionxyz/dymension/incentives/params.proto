@@ -33,4 +33,12 @@ message Params {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
+
+  enum EndorsementMode {
+    EndorsementModeRollapp = 0;
+    EndorsementModeRollappAndIRO = 1;
+  }
+
+  // EndorsementMode switches between endorsing only active Rollapps and endorsing both active Rollapps and IROs
+  EndorsementMode endorsement_mode = 5;
 }

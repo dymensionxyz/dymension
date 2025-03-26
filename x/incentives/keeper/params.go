@@ -21,3 +21,8 @@ func (k Keeper) DistrEpochIdentifier(ctx sdk.Context) (res string) {
 	k.paramSpace.Get(ctx, types.KeyDistrEpochIdentifier, &res)
 	return
 }
+
+func (k Keeper) EndorsementMode(ctx sdk.Context) (res types.Params_EndorsementMode) {
+	k.paramSpace.Get(ctx, types.KeyEndorsementMode, &res)
+	return
+}
