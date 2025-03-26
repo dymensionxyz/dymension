@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"context"
+
 	errorsmod "cosmossdk.io/errors"
+	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
@@ -56,6 +59,7 @@ func (k Keeper) doForwardHook(ctx sdk.Context, order *eibctypes.DemandOrder, fun
 	return k.forwardToHyperlane(ctx, order, fundsSource, d)
 }
 
+// for transfers coming from eibc which are being forwarded (to HL)
 func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, d types.HookCalldata) error {
 
 	// m := warptypes.MsgRemoteTransfer{
@@ -99,4 +103,12 @@ func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder
 
 	return nil
 
+}
+
+// for inbound warp route transfers
+func (k Keeper) Handle(ctx context.Context, args warpkeeper.DymHookArgs) error {
+	/*
+	   The simplest thing to do here is just immediately send the memo
+	*/
+	return nil
 }

@@ -10,6 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
+
+	// import eibc transfer keeper
+	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -19,8 +22,9 @@ type Keeper struct {
 	cdc    codec.BinaryCodec
 	Schema collections.Schema
 	// TODO: params collection
-	warpKeeper types.WarpRouteKeeper
-	warpServer warptypes.MsgServer
+	warpKeeper     types.WarpRouteKeeper
+	warpServer     warptypes.MsgServer
+	transferKeeper transferkeeper.Keeper // TODO: interface
 }
 
 func NewKeeper(

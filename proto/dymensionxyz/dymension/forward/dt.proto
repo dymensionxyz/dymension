@@ -5,9 +5,21 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
 import "hyperlane/warp/v1/tx.proto";
 
+// for eibc -> hyperlane
 message HookCalldata {
   // TODO:
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
   string foo = 2;
   int64 bar = 3;
+}
+
+/*
+How to test?
+- Make sure the cosmos account in the original HL recipient is the forward module account
+  (conflict with the usage of send coins from module to account in the HL code?)
+- Use the tokens to immediately do a transfer to the rollapp
+- On refund... hmmmmmmmm, also someone can fast fulfill the refund :(
+*/
+message HookHLtoRol {
+
 }

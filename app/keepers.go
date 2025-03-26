@@ -535,7 +535,10 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 		a.BankKeeper,
 		&a.HyperCoreKeeper,
-		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
+		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL),
+			// Required for our fork:
+			int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC_MEMO), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL_MEMO),
+		},
 	)
 
 	a.ForwardKeeper = *forwardkeeper.NewKeeper(
@@ -543,6 +546,8 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[forwardtypes.ModuleName]),
 		&a.HyperWarpKeeper,
 	)
+
+	hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper, a.ForwardKeeper.Hook())
 
 	a.EIBCKeeper.SetFulfillHooks(
 		map[string]eibckeeper.FulfillHook{
