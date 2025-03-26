@@ -39,7 +39,7 @@ func (s *AnteTestSuite) getMsgCreateValidator(from sdk.AccAddress) sdk.Msg {
 		sdk.ValAddress(from).String(),
 		ed25519.GenPrivKey().PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
-		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
 		math.OneInt(),
 	)
