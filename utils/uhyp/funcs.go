@@ -129,12 +129,8 @@ func (s *Server) CreateMailbox(ctx sdk.Context,
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ret, err := hyperutil.DecodeHexAddress(res.Id)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
+	return res.Id, nil
 
-	return ret, nil
 }
 
 func (s *Server) SetMailbox(ctx sdk.Context,
@@ -185,14 +181,10 @@ func (s *Server) CreateIGP(ctx sdk.Context, owner string, denom string) (hyperut
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ret, err := hyperutil.DecodeHexAddress(res.Id)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
-	return ret, nil
+	return res.Id, nil
 }
 
-func (s *Server) SetIgpOwner(ctx sdk.Context, owner string, igpId string, // TODO: hex address?
+func (s *Server) SetIgpOwner(ctx sdk.Context, owner string, igpId hyperutil.HexAddress, // TODO: hex address?
 	newOwner string) error {
 	msg := &pdtypes.MsgSetIgpOwner{
 		Owner:    owner,
@@ -206,7 +198,7 @@ func (s *Server) SetIgpOwner(ctx sdk.Context, owner string, igpId string, // TOD
 func (s *Server) SetDestinationGasConfig(
 	ctx sdk.Context,
 	owner string,
-	igpId string, // TODO: hex address?
+	igpId hyperutil.HexAddress,
 	remoteDomain uint32,
 	tokenExchangeRate math.Int,
 	gasPrice math.Int,
@@ -232,8 +224,8 @@ func (s *Server) SetDestinationGasConfig(
 func (s *Server) PayforGas(
 	ctx sdk.Context,
 	sender string,
-	igpId string, // TODO: hex address?
-	messageId string, // TODO: hex address?
+	igpId hyperutil.HexAddress,
+	messageId hyperutil.HexAddress,
 	destinationDomain uint32,
 	amount sdk.Coin,
 	gasLimit math.Int,
@@ -253,7 +245,7 @@ func (s *Server) PayforGas(
 func (s *Server) Claim(
 	ctx sdk.Context,
 	sender string,
-	igpId string, // TODO: hex address?
+	igpId hyperutil.HexAddress,
 ) error {
 	msg := &pdtypes.MsgClaim{
 		Sender: sender,
@@ -263,7 +255,7 @@ func (s *Server) Claim(
 	return err
 }
 
-func (s *Server) CreateMerkleTreeHook(ctx sdk.Context, owner string, mailboxId string) (hyperutil.HexAddress, error) {
+func (s *Server) CreateMerkleTreeHook(ctx sdk.Context, owner string, mailboxId hyperutil.HexAddress) (hyperutil.HexAddress, error) {
 	msg := &pdtypes.MsgCreateMerkleTreeHook{
 		Owner:     owner,
 		MailboxId: mailboxId,
@@ -272,11 +264,7 @@ func (s *Server) CreateMerkleTreeHook(ctx sdk.Context, owner string, mailboxId s
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ret, err := hyperutil.DecodeHexAddress(res.Id)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
-	return ret, nil
+	return res.Id, nil
 }
 
 func (s *Server) CreateNoopHook(ctx sdk.Context, owner string) (hyperutil.HexAddress, error) {
@@ -287,11 +275,7 @@ func (s *Server) CreateNoopHook(ctx sdk.Context, owner string) (hyperutil.HexAdd
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ret, err := hyperutil.DecodeHexAddress(res.Id)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
-	return ret, nil
+	return res.Id, nil
 }
 
 /////////////////////////
@@ -348,7 +332,7 @@ func (s *Server) AnnounceValidator(ctx sdk.Context,
 	validator string,
 	storageLocation string,
 	signature string,
-	mailboxId string, // hex address?
+	mailboxId hyperutil.HexAddress,
 	creator string,
 ) error {
 	msg := &ismtypes.MsgAnnounceValidator{
@@ -376,11 +360,7 @@ func (s *Server) CreateSyntheticToken(ctx sdk.Context, owner string, originMailb
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ret, err := hyperutil.DecodeHexAddress(res.Id)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
-	return ret, nil
+	return res.Id, nil
 }
 
 // returns tokens id
@@ -394,11 +374,7 @@ func (s *Server) CreateCollateralToken(ctx sdk.Context, owner string, originMail
 	if err != nil {
 		return hyperutil.HexAddress{}, err
 	}
-	ret, err := hyperutil.DecodeHexAddress(res.Id)
-	if err != nil {
-		return hyperutil.HexAddress{}, err
-	}
-	return ret, nil
+	return res.Id, nil
 }
 
 func (s *Server) SetToken(ctx sdk.Context, owner string, tokenId hyperutil.HexAddress, newOwner string, ismId *hyperutil.HexAddress) error {
@@ -444,7 +420,7 @@ func (s *Server) RemoteTransfer(
 	customHookMetadata string,
 	amt math.Int,
 	gasLimit math.Int,
-) (string, error) {
+) (hyperutil.HexAddress, error) {
 	msg := &warptypes.MsgRemoteTransfer{
 		Sender:             owner,
 		TokenId:            tokenId,
@@ -458,7 +434,7 @@ func (s *Server) RemoteTransfer(
 	}
 	res, err := s.warpServer().RemoteTransfer(ctx, msg)
 	if err != nil {
-		return "", err
+		return hyperutil.HexAddress{}, err
 	}
 	return res.MessageId, nil
 }
