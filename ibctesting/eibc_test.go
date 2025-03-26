@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -328,8 +327,8 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			// Check packet recipient is updated
 			rolPacket, err := delayedackK.GetRollappPacket(s.hubCtx(), lastOrder.TrackingPacketKey)
 			s.Require().NoError(err)
-			var transferData transfertypes.FungibleTokenPacketData
-			err = transfertypes.ModuleCdc.UnmarshalJSON(rolPacket.Packet.GetData(), &transferData)
+			var transferData types.FungibleTokenPacketData
+			err = types.ModuleCdc.UnmarshalJSON(rolPacket.Packet.GetData(), &transferData)
 			s.Require().NoError(err)
 			s.Require().Equal(mFulfill.FulfillerAddress, transferData.Receiver)
 
