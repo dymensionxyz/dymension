@@ -54,7 +54,7 @@ type SetupOptions struct {
 	AppOpts            types.AppOptions
 }
 
-// Having this enabled led to some problems because some tests use intrusive methods to modify the state, whichs breaks invariants
+// Having this enabled led to some problems because some tests use intrusive methods to modify the state, which breaks invariants
 var InvariantCheckInterval = uint(0) // disabled
 
 func SetupTestingApp() (*app.App, app.GenesisState) {

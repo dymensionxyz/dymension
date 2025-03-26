@@ -663,7 +663,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	return paramsKeeper
 }
 
-// this is a workaround to get rid of the denommetadata set automaticlly by ibc-go v8.x
+// this is a workaround to get rid of the denommetadata set automatically by ibc-go v8.x
 // it has 2 issues:
 // - it's not valid metadata struct
 // - it has no exponent
