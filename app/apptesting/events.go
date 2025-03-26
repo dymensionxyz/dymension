@@ -1,8 +1,9 @@
 package apptesting
 
 import (
+	"slices"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/exp/slices"
 )
 
 // AssertEventEmitted asserts that ctx's event manager has emitted the given number of events

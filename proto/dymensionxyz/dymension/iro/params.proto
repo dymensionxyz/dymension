@@ -18,7 +18,8 @@ message Params {
   ];
 
   // The fee for creating a plan in rollapp tokens (e.g 1000000000000000000 for
-  // 1Token fee) must be > 1 The cost in dym is charged from the creator
+  // 1Token fee) must be > 1 The cost in `liquidity_denom` is charged from the
+  // creator
   string creation_fee = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
@@ -46,4 +47,11 @@ message Params {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  google.protobuf.Duration min_vesting_duration = 7
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // Minimum start time after settlement to start vesting
+  google.protobuf.Duration min_vesting_start_time_after_settlement = 8
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }

@@ -30,6 +30,9 @@ message BondingCurve {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  uint64 rollapp_denom_decimals = 4;
+  uint64 liquidity_denom_decimals = 5;
 }
 
 // Plan represents a plan in the IRO module.
@@ -95,6 +98,18 @@ message Plan {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  IROVestingPlan vesting_plan = 14 [ (gogoproto.nullable) = false ];
+
+  // Whether trading is enabled for the plan. default to true
+  // can be set to false initially, to require EnableTrading tx for this IRO
+  bool trading_enabled = 15;
+  // The duration of the plan.
+  google.protobuf.Duration iro_plan_duration = 16
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // the denom used for raising liquidity
+  string liquidity_denom = 17;
 }
 
 message IncentivePlanParams {
@@ -105,4 +120,37 @@ message IncentivePlanParams {
   // num_epochs_paid_over is the number of total epochs distribution will be
   // completed over
   uint64 num_epochs_paid_over = 2;
+}
+
+message IROVestingPlan {
+  option (gogoproto.goproto_getters) = false;
+
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  string claimed = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  google.protobuf.Duration vesting_duration = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"vesting_duration\""
+  ];
+
+  google.protobuf.Duration start_time_after_settlement = 4
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // Vesting start time (set on IRO settlement)
+  google.protobuf.Timestamp start_time = 5
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // Vesting end time (set on IRO settlement)
+  google.protobuf.Timestamp end_time = 6
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }

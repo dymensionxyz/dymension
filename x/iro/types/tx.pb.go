@@ -138,16 +138,23 @@ type MsgCreatePlan struct {
 	// NOTE: This amount is expected to be defined on the rollapp genesis info
 	AllocatedAmount cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=allocated_amount,json=allocatedAmount,proto3,customtype=cosmossdk.io/math.Int" json:"allocated_amount"`
 	BondingCurve    BondingCurve          `protobuf:"bytes,4,opt,name=bonding_curve,json=bondingCurve,proto3" json:"bonding_curve"`
+	// Whether trading is enabled for the plan. default to true
+	// can be set to false initially, to require EnableTrading tx for this IRO
+	TradingEnabled bool `protobuf:"varint,5,opt,name=trading_enabled,json=tradingEnabled,proto3" json:"trading_enabled,omitempty"`
+	// The start time of the plan. shouldnt be set initially if trading disabled.
 	// The start time of the plan.
-	StartTime time.Time `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
+	StartTime time.Time `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
 	// The duration of the plan.
-	IroPlanDuration time.Duration `protobuf:"bytes,6,opt,name=iro_plan_duration,json=iroPlanDuration,proto3,stdduration" json:"iro_plan_duration"`
+	IroPlanDuration time.Duration `protobuf:"bytes,7,opt,name=iro_plan_duration,json=iroPlanDuration,proto3,stdduration" json:"iro_plan_duration"`
 	// The incentive plan parameters for the tokens left after the plan is
 	// settled.
-	IncentivePlanParams IncentivePlanParams `protobuf:"bytes,7,opt,name=incentive_plan_params,json=incentivePlanParams,proto3" json:"incentive_plan_params"`
+	IncentivePlanParams IncentivePlanParams `protobuf:"bytes,8,opt,name=incentive_plan_params,json=incentivePlanParams,proto3" json:"incentive_plan_params"`
 	// The part of the liquidity that will be used for liquidity pool
 	// liquidity_part = 0.9 means 90% of the funds will go to the liquidity pool
-	LiquidityPart cosmossdk_io_math.LegacyDec `protobuf:"bytes,13,opt,name=liquidity_part,json=liquidityPart,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"liquidity_part"`
+	LiquidityPart                   cosmossdk_io_math.LegacyDec `protobuf:"bytes,9,opt,name=liquidity_part,json=liquidityPart,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"liquidity_part"`
+	LiquidityDenom                  string                      `protobuf:"bytes,10,opt,name=liquidity_denom,json=liquidityDenom,proto3" json:"liquidity_denom,omitempty"`
+	VestingDuration                 time.Duration               `protobuf:"bytes,11,opt,name=vesting_duration,json=vestingDuration,proto3,stdduration" json:"vesting_duration" yaml:"vesting_duration"`
+	VestingStartTimeAfterSettlement time.Duration               `protobuf:"bytes,12,opt,name=vesting_start_time_after_settlement,json=vestingStartTimeAfterSettlement,proto3,stdduration" json:"vesting_start_time_after_settlement" yaml:"vesting_start_time_after_settlement"`
 }
 
 func (m *MsgCreatePlan) Reset()         { *m = MsgCreatePlan{} }
@@ -204,6 +211,13 @@ func (m *MsgCreatePlan) GetBondingCurve() BondingCurve {
 	return BondingCurve{}
 }
 
+func (m *MsgCreatePlan) GetTradingEnabled() bool {
+	if m != nil {
+		return m.TradingEnabled
+	}
+	return false
+}
+
 func (m *MsgCreatePlan) GetStartTime() time.Time {
 	if m != nil {
 		return m.StartTime
@@ -223,6 +237,27 @@ func (m *MsgCreatePlan) GetIncentivePlanParams() IncentivePlanParams {
 		return m.IncentivePlanParams
 	}
 	return IncentivePlanParams{}
+}
+
+func (m *MsgCreatePlan) GetLiquidityDenom() string {
+	if m != nil {
+		return m.LiquidityDenom
+	}
+	return ""
+}
+
+func (m *MsgCreatePlan) GetVestingDuration() time.Duration {
+	if m != nil {
+		return m.VestingDuration
+	}
+	return 0
+}
+
+func (m *MsgCreatePlan) GetVestingStartTimeAfterSettlement() time.Duration {
+	if m != nil {
+		return m.VestingStartTimeAfterSettlement
+	}
+	return 0
 }
 
 type MsgCreatePlanResponse struct {
@@ -270,6 +305,96 @@ func (m *MsgCreatePlanResponse) GetPlanId() string {
 	return ""
 }
 
+type MsgEnableTrading struct {
+	// The address of the plan owner.
+	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	// The ID of the plan.
+	PlanId string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+}
+
+func (m *MsgEnableTrading) Reset()         { *m = MsgEnableTrading{} }
+func (m *MsgEnableTrading) String() string { return proto.CompactTextString(m) }
+func (*MsgEnableTrading) ProtoMessage()    {}
+func (*MsgEnableTrading) Descriptor() ([]byte, []int) {
+	return fileDescriptor_41b9ae3e091bbd60, []int{4}
+}
+func (m *MsgEnableTrading) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEnableTrading) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEnableTrading.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEnableTrading) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEnableTrading.Merge(m, src)
+}
+func (m *MsgEnableTrading) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEnableTrading) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEnableTrading.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEnableTrading proto.InternalMessageInfo
+
+func (m *MsgEnableTrading) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
+func (m *MsgEnableTrading) GetPlanId() string {
+	if m != nil {
+		return m.PlanId
+	}
+	return ""
+}
+
+type MsgEnableTradingResponse struct {
+}
+
+func (m *MsgEnableTradingResponse) Reset()         { *m = MsgEnableTradingResponse{} }
+func (m *MsgEnableTradingResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgEnableTradingResponse) ProtoMessage()    {}
+func (*MsgEnableTradingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_41b9ae3e091bbd60, []int{5}
+}
+func (m *MsgEnableTradingResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEnableTradingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEnableTradingResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEnableTradingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEnableTradingResponse.Merge(m, src)
+}
+func (m *MsgEnableTradingResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEnableTradingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEnableTradingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEnableTradingResponse proto.InternalMessageInfo
+
 // MsgBuy defines a message to buy allocation.
 type MsgBuy struct {
 	Buyer string `protobuf:"bytes,1,opt,name=buyer,proto3" json:"buyer,omitempty"`
@@ -285,7 +410,7 @@ func (m *MsgBuy) Reset()         { *m = MsgBuy{} }
 func (m *MsgBuy) String() string { return proto.CompactTextString(m) }
 func (*MsgBuy) ProtoMessage()    {}
 func (*MsgBuy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{4}
+	return fileDescriptor_41b9ae3e091bbd60, []int{6}
 }
 func (m *MsgBuy) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -342,7 +467,7 @@ func (m *MsgBuyExactSpend) Reset()         { *m = MsgBuyExactSpend{} }
 func (m *MsgBuyExactSpend) String() string { return proto.CompactTextString(m) }
 func (*MsgBuyExactSpend) ProtoMessage()    {}
 func (*MsgBuyExactSpend) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{5}
+	return fileDescriptor_41b9ae3e091bbd60, []int{7}
 }
 func (m *MsgBuyExactSpend) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -392,7 +517,7 @@ func (m *MsgBuyResponse) Reset()         { *m = MsgBuyResponse{} }
 func (m *MsgBuyResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgBuyResponse) ProtoMessage()    {}
 func (*MsgBuyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{6}
+	return fileDescriptor_41b9ae3e091bbd60, []int{8}
 }
 func (m *MsgBuyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -436,7 +561,7 @@ func (m *MsgSell) Reset()         { *m = MsgSell{} }
 func (m *MsgSell) String() string { return proto.CompactTextString(m) }
 func (*MsgSell) ProtoMessage()    {}
 func (*MsgSell) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{7}
+	return fileDescriptor_41b9ae3e091bbd60, []int{9}
 }
 func (m *MsgSell) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -486,7 +611,7 @@ func (m *MsgSellResponse) Reset()         { *m = MsgSellResponse{} }
 func (m *MsgSellResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSellResponse) ProtoMessage()    {}
 func (*MsgSellResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{8}
+	return fileDescriptor_41b9ae3e091bbd60, []int{10}
 }
 func (m *MsgSellResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -526,7 +651,7 @@ func (m *MsgClaim) Reset()         { *m = MsgClaim{} }
 func (m *MsgClaim) String() string { return proto.CompactTextString(m) }
 func (*MsgClaim) ProtoMessage()    {}
 func (*MsgClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{9}
+	return fileDescriptor_41b9ae3e091bbd60, []int{11}
 }
 func (m *MsgClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -576,7 +701,7 @@ func (m *MsgClaimResponse) Reset()         { *m = MsgClaimResponse{} }
 func (m *MsgClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgClaimResponse) ProtoMessage()    {}
 func (*MsgClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41b9ae3e091bbd60, []int{10}
+	return fileDescriptor_41b9ae3e091bbd60, []int{12}
 }
 func (m *MsgClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -605,11 +730,103 @@ func (m *MsgClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgClaimResponse proto.InternalMessageInfo
 
+// MsgClaimVested defines a message to claim funds as a rollapp owner
+type MsgClaimVested struct {
+	Claimer string `protobuf:"bytes,1,opt,name=claimer,proto3" json:"claimer,omitempty"`
+	// The ID of the plan.
+	PlanId string `protobuf:"bytes,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+}
+
+func (m *MsgClaimVested) Reset()         { *m = MsgClaimVested{} }
+func (m *MsgClaimVested) String() string { return proto.CompactTextString(m) }
+func (*MsgClaimVested) ProtoMessage()    {}
+func (*MsgClaimVested) Descriptor() ([]byte, []int) {
+	return fileDescriptor_41b9ae3e091bbd60, []int{13}
+}
+func (m *MsgClaimVested) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgClaimVested) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgClaimVested.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgClaimVested) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgClaimVested.Merge(m, src)
+}
+func (m *MsgClaimVested) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgClaimVested) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgClaimVested.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgClaimVested proto.InternalMessageInfo
+
+func (m *MsgClaimVested) GetClaimer() string {
+	if m != nil {
+		return m.Claimer
+	}
+	return ""
+}
+
+func (m *MsgClaimVested) GetPlanId() string {
+	if m != nil {
+		return m.PlanId
+	}
+	return ""
+}
+
+type MsgClaimVestedResponse struct {
+}
+
+func (m *MsgClaimVestedResponse) Reset()         { *m = MsgClaimVestedResponse{} }
+func (m *MsgClaimVestedResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgClaimVestedResponse) ProtoMessage()    {}
+func (*MsgClaimVestedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_41b9ae3e091bbd60, []int{14}
+}
+func (m *MsgClaimVestedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgClaimVestedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgClaimVestedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgClaimVestedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgClaimVestedResponse.Merge(m, src)
+}
+func (m *MsgClaimVestedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgClaimVestedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgClaimVestedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgClaimVestedResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "dymensionxyz.dymension.iro.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "dymensionxyz.dymension.iro.MsgUpdateParamsResponse")
 	proto.RegisterType((*MsgCreatePlan)(nil), "dymensionxyz.dymension.iro.MsgCreatePlan")
 	proto.RegisterType((*MsgCreatePlanResponse)(nil), "dymensionxyz.dymension.iro.MsgCreatePlanResponse")
+	proto.RegisterType((*MsgEnableTrading)(nil), "dymensionxyz.dymension.iro.MsgEnableTrading")
+	proto.RegisterType((*MsgEnableTradingResponse)(nil), "dymensionxyz.dymension.iro.MsgEnableTradingResponse")
 	proto.RegisterType((*MsgBuy)(nil), "dymensionxyz.dymension.iro.MsgBuy")
 	proto.RegisterType((*MsgBuyExactSpend)(nil), "dymensionxyz.dymension.iro.MsgBuyExactSpend")
 	proto.RegisterType((*MsgBuyResponse)(nil), "dymensionxyz.dymension.iro.MsgBuyResponse")
@@ -617,6 +834,8 @@ func init() {
 	proto.RegisterType((*MsgSellResponse)(nil), "dymensionxyz.dymension.iro.MsgSellResponse")
 	proto.RegisterType((*MsgClaim)(nil), "dymensionxyz.dymension.iro.MsgClaim")
 	proto.RegisterType((*MsgClaimResponse)(nil), "dymensionxyz.dymension.iro.MsgClaimResponse")
+	proto.RegisterType((*MsgClaimVested)(nil), "dymensionxyz.dymension.iro.MsgClaimVested")
+	proto.RegisterType((*MsgClaimVestedResponse)(nil), "dymensionxyz.dymension.iro.MsgClaimVestedResponse")
 }
 
 func init() {
@@ -624,70 +843,82 @@ func init() {
 }
 
 var fileDescriptor_41b9ae3e091bbd60 = []byte{
-	// 1000 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xcf, 0x6f, 0x1b, 0x45,
-	0x14, 0xce, 0x26, 0x8e, 0x53, 0xbf, 0xc6, 0xf9, 0x31, 0x34, 0x8a, 0x63, 0x84, 0x53, 0xb9, 0x95,
-	0x08, 0x49, 0xbb, 0x9b, 0x1f, 0x12, 0x87, 0xdc, 0xe2, 0x04, 0x21, 0x23, 0xa2, 0x56, 0x4e, 0x0b,
-	0x15, 0x48, 0xac, 0xc6, 0xbb, 0xc3, 0x66, 0xe8, 0xee, 0xcc, 0xb2, 0x33, 0x9b, 0xd8, 0x9c, 0x10,
-	0x47, 0x4e, 0x3d, 0x72, 0xe6, 0x2f, 0xe8, 0xa1, 0x7f, 0x44, 0x8f, 0x55, 0x4f, 0x88, 0x43, 0x41,
-	0xc9, 0xa1, 0x77, 0x2e, 0x1c, 0x41, 0x33, 0xb3, 0xeb, 0x38, 0x09, 0x89, 0x9d, 0x96, 0x9e, 0xec,
-	0xb7, 0xef, 0x7b, 0xdf, 0x7b, 0xf3, 0xcd, 0xb7, 0x33, 0x0b, 0xb7, 0xfc, 0x6e, 0x44, 0x98, 0xa0,
-	0x9c, 0x75, 0xba, 0x3f, 0x38, 0xbd, 0xc0, 0xa1, 0x09, 0x77, 0x64, 0xc7, 0x8e, 0x13, 0x2e, 0x39,
-	0xaa, 0xf6, 0x83, 0xec, 0x5e, 0x60, 0xd3, 0x84, 0x57, 0x6f, 0x04, 0x3c, 0xe0, 0x1a, 0xe6, 0xa8,
-	0x7f, 0xa6, 0xa2, 0xba, 0xe0, 0x71, 0x11, 0x71, 0xe1, 0x9a, 0x84, 0x09, 0xb2, 0xd4, 0xbc, 0x89,
-	0x9c, 0x48, 0x04, 0xce, 0xc1, 0x9a, 0xfa, 0xc9, 0x12, 0xb7, 0x2f, 0x19, 0x85, 0x26, 0x39, 0x73,
-	0x2d, 0xe0, 0x3c, 0x08, 0x89, 0xa3, 0xa3, 0x76, 0xfa, 0xad, 0xe3, 0xa7, 0x09, 0x96, 0x6a, 0x1a,
-	0x93, 0x5f, 0x3c, 0x9b, 0x97, 0x34, 0x22, 0x42, 0xe2, 0x28, 0xce, 0x09, 0xb2, 0xfe, 0x6d, 0x2c,
-	0x88, 0x73, 0xb0, 0xd6, 0x26, 0x12, 0xaf, 0x39, 0x1e, 0xa7, 0x39, 0xc1, 0x87, 0x97, 0x8c, 0x11,
-	0xe3, 0x04, 0x47, 0xd9, 0x42, 0xea, 0xbf, 0x5a, 0x30, 0xbd, 0x2b, 0x82, 0x87, 0xb1, 0x8f, 0x25,
-	0xb9, 0xaf, 0x33, 0xe8, 0x63, 0x28, 0xe1, 0x54, 0xee, 0xf3, 0x84, 0xca, 0x6e, 0xc5, 0xba, 0x69,
-	0x2d, 0x95, 0x1a, 0x95, 0x97, 0xcf, 0xee, 0xde, 0xc8, 0x14, 0xd8, 0xf2, 0xfd, 0x84, 0x08, 0xb1,
-	0x27, 0x13, 0xca, 0x82, 0xd6, 0x09, 0x14, 0x7d, 0x0a, 0xc0, 0xc8, 0xa1, 0x6b, 0xf8, 0x2b, 0xa3,
-	0x37, 0xad, 0xa5, 0xeb, 0xeb, 0x75, 0xfb, 0x62, 0xd9, 0x6d, 0xd3, 0xaf, 0x51, 0x78, 0xfe, 0x6a,
-	0x71, 0xa4, 0x55, 0x62, 0xe4, 0xd0, 0x3c, 0xd8, 0x9c, 0xfa, 0xe9, 0xf5, 0xd3, 0xe5, 0x13, 0xe2,
-	0xfa, 0x02, 0xcc, 0x9f, 0x99, 0xb1, 0x45, 0x44, 0xcc, 0x99, 0x20, 0xf5, 0xbf, 0x0a, 0x50, 0xde,
-	0x15, 0xc1, 0x76, 0x42, 0x54, 0x2e, 0xc4, 0x0c, 0xd9, 0x30, 0xce, 0x0f, 0x19, 0x49, 0x06, 0x4e,
-	0x6e, 0x60, 0xe8, 0x03, 0x80, 0x84, 0x87, 0x21, 0x8e, 0x63, 0x97, 0xfa, 0x7a, 0xea, 0x52, 0xab,
-	0x94, 0x3d, 0x69, 0xfa, 0xe8, 0x0b, 0x98, 0xc1, 0x61, 0xc8, 0x3d, 0x2c, 0x89, 0xef, 0xe2, 0x88,
-	0xa7, 0x4c, 0x56, 0xc6, 0x34, 0xf3, 0x8a, 0x1a, 0xfb, 0xf7, 0x57, 0x8b, 0x73, 0x86, 0x5d, 0xf8,
-	0x8f, 0x6d, 0xca, 0x9d, 0x08, 0xcb, 0x7d, 0xbb, 0xc9, 0xe4, 0xcb, 0x67, 0x77, 0x21, 0x6b, 0xdb,
-	0x64, 0xb2, 0x35, 0xdd, 0x23, 0xd9, 0xd2, 0x1c, 0x68, 0x0f, 0xca, 0x6d, 0xce, 0x7c, 0xca, 0x02,
-	0xd7, 0x4b, 0x93, 0x03, 0x52, 0x29, 0x68, 0xbd, 0x96, 0x2e, 0xd3, 0xab, 0x61, 0x0a, 0xb6, 0x15,
-	0x3e, 0x53, 0x6d, 0xb2, 0xdd, 0xf7, 0x0c, 0x6d, 0x03, 0x08, 0x89, 0x13, 0xe9, 0x2a, 0xbf, 0x54,
-	0xc6, 0x35, 0x63, 0xd5, 0x36, 0x66, 0xb2, 0x73, 0x33, 0xd9, 0x0f, 0x72, 0x33, 0x35, 0xae, 0x29,
-	0x8e, 0x27, 0x7f, 0x2c, 0x5a, 0xad, 0x92, 0xae, 0x53, 0x19, 0x74, 0x0f, 0x66, 0x69, 0xc2, 0xdd,
-	0x38, 0xc4, 0xcc, 0xcd, 0x7d, 0x59, 0x29, 0x6a, 0xae, 0x85, 0x73, 0x5c, 0x3b, 0x19, 0xc0, 0x50,
-	0xfd, 0xa2, 0xa8, 0xa6, 0x69, 0xc2, 0xd5, 0x4e, 0xe4, 0x29, 0x44, 0x61, 0x8e, 0x32, 0x8f, 0x30,
-	0x49, 0x0f, 0x88, 0xa1, 0xcd, 0x2c, 0x32, 0xa1, 0x49, 0x9d, 0xcb, 0x96, 0xdc, 0xcc, 0x0b, 0x15,
-	0xe3, 0x29, 0xbf, 0xbc, 0x47, 0xcf, 0xa7, 0xd0, 0x23, 0x98, 0x0a, 0xe9, 0xf7, 0x29, 0xf5, 0xa9,
-	0xec, 0xaa, 0x2e, 0xb2, 0x52, 0xd6, 0x7b, 0xb5, 0x96, 0xed, 0xd5, 0xfb, 0xe7, 0xf7, 0xea, 0x73,
-	0x12, 0x60, 0xaf, 0xbb, 0x43, 0xbc, 0xbe, 0x1d, 0xdb, 0x21, 0x5e, 0xab, 0xdc, 0x23, 0xba, 0x8f,
-	0x13, 0xb9, 0x09, 0xca, 0x93, 0xc6, 0x32, 0xf5, 0x55, 0x98, 0x3b, 0xe5, 0xb9, 0xdc, 0x8d, 0x68,
-	0x1e, 0x26, 0xf4, 0xfa, 0xa8, 0x6f, 0xdc, 0xd7, 0x2a, 0xaa, 0xb0, 0xe9, 0xd7, 0xff, 0xb6, 0xa0,
-	0xb8, 0x2b, 0x82, 0x46, 0xda, 0x55, 0xfe, 0x6c, 0xa7, 0xdd, 0x61, 0xfc, 0xa9, 0x61, 0xfd, 0x9c,
-	0xa3, 0xfd, 0x9c, 0x68, 0x1b, 0x8a, 0x6f, 0xee, 0xc7, 0xac, 0x14, 0xed, 0xc1, 0x74, 0x84, 0x3b,
-	0xae, 0xc7, 0x85, 0xcc, 0xdd, 0x5d, 0xb8, 0x3a, 0x5b, 0x39, 0xc2, 0x9d, 0x6d, 0x2e, 0xa4, 0xf1,
-	0x76, 0xa6, 0x95, 0x1e, 0xbf, 0xfe, 0xf3, 0x28, 0xcc, 0x98, 0x95, 0x7f, 0xd2, 0xc1, 0x9e, 0xdc,
-	0x8b, 0x09, 0xf3, 0xff, 0x3f, 0x0d, 0xb6, 0x60, 0x5c, 0x28, 0xc6, 0x37, 0x91, 0xc0, 0x54, 0xa2,
-	0x6f, 0x60, 0x2e, 0xa2, 0xcc, 0xe5, 0xa9, 0x74, 0x25, 0x7f, 0x4c, 0x98, 0x78, 0x0b, 0x1d, 0x50,
-	0x44, 0xd9, 0xbd, 0x54, 0x3e, 0xd0, 0x3c, 0xff, 0x21, 0xc6, 0x0c, 0x4c, 0x19, 0x2d, 0x7a, 0xe7,
-	0xd7, 0x3f, 0x16, 0x4c, 0xec, 0x8a, 0x60, 0x8f, 0x84, 0x21, 0x5a, 0x85, 0xa2, 0x20, 0x61, 0x38,
-	0x84, 0x2c, 0x19, 0xee, 0x1d, 0x7b, 0xe3, 0x4b, 0x98, 0x55, 0xca, 0x50, 0xe6, 0xf1, 0x88, 0xbc,
-	0x85, 0x2a, 0xd3, 0x11, 0x65, 0x4d, 0x4d, 0x92, 0x49, 0x72, 0x5d, 0x49, 0x92, 0xad, 0xa1, 0x3e,
-	0xab, 0x2f, 0x20, 0x25, 0x40, 0x4f, 0x14, 0x02, 0xd7, 0xd4, 0xfb, 0x15, 0x62, 0x1a, 0xa1, 0x75,
-	0x98, 0xf0, 0xd4, 0x9f, 0x21, 0x54, 0xc9, 0x81, 0x17, 0xca, 0xb2, 0x39, 0xa9, 0x1a, 0xe7, 0xb0,
-	0x3a, 0xd2, 0xce, 0xd4, 0x6d, 0xf2, 0xd6, 0xeb, 0xc7, 0x05, 0x18, 0xdb, 0x15, 0x01, 0x8a, 0x61,
-	0xf2, 0xd4, 0x9d, 0xb8, 0x72, 0xd9, 0x21, 0x75, 0xe6, 0x72, 0xaa, 0x6e, 0x5c, 0x01, 0xdc, 0x3b,
-	0x3b, 0xbe, 0x03, 0xe8, 0xbb, 0xc5, 0x3e, 0x1a, 0x40, 0x71, 0x02, 0xad, 0xae, 0x0d, 0x0d, 0xed,
-	0xf5, 0x7a, 0x08, 0x63, 0xea, 0x28, 0xaa, 0x0f, 0xa8, 0x6c, 0xa4, 0xdd, 0xea, 0xf2, 0x60, 0x4c,
-	0x8f, 0x96, 0x42, 0xf9, 0xf4, 0x7b, 0x7e, 0x67, 0x70, 0xf1, 0x09, 0xfa, 0x4a, 0xad, 0x1e, 0x41,
-	0x41, 0xbf, 0x33, 0xb7, 0x06, 0xd4, 0x28, 0x50, 0x75, 0x65, 0x08, 0x50, 0x8f, 0xf9, 0x6b, 0x18,
-	0x37, 0xce, 0xbb, 0x3d, 0x48, 0x57, 0x85, 0xaa, 0xde, 0x19, 0x06, 0x95, 0x93, 0x57, 0xc7, 0x7f,
-	0x7c, 0xfd, 0x74, 0xd9, 0x6a, 0x7c, 0xf6, 0xfc, 0xa8, 0x66, 0xbd, 0x38, 0xaa, 0x59, 0x7f, 0x1e,
-	0xd5, 0xac, 0x27, 0xc7, 0xb5, 0x91, 0x17, 0xc7, 0xb5, 0x91, 0xdf, 0x8e, 0x6b, 0x23, 0x5f, 0xad,
-	0x06, 0x54, 0xee, 0xa7, 0x6d, 0xdb, 0xe3, 0x91, 0x73, 0xc1, 0x37, 0xdc, 0xc1, 0x86, 0xd3, 0x31,
-	0x9f, 0xb6, 0xdd, 0x98, 0x88, 0x76, 0x51, 0xdf, 0xc5, 0x1b, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff,
-	0x27, 0x96, 0xa4, 0x3c, 0x05, 0x0b, 0x00, 0x00,
+	// 1198 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0x4f, 0x6f, 0x13, 0xc7,
+	0x1b, 0xce, 0x42, 0xe2, 0xc4, 0x6f, 0xfe, 0xb2, 0x3f, 0xf2, 0xcb, 0xb2, 0x55, 0x1d, 0xb4, 0x41,
+	0x22, 0x0d, 0xb0, 0x4b, 0x42, 0xc5, 0x81, 0x5b, 0x9c, 0xa0, 0x2a, 0x55, 0x23, 0x90, 0x0d, 0x14,
+	0xb5, 0x52, 0x57, 0xe3, 0xdd, 0x61, 0x99, 0xb2, 0x3b, 0xe3, 0xee, 0xcc, 0x06, 0xbb, 0xa7, 0xaa,
+	0xc7, 0x9e, 0x38, 0xf6, 0x56, 0xa9, 0x9f, 0x80, 0x03, 0xdf, 0xa1, 0x1c, 0x29, 0xa7, 0xaa, 0x07,
+	0x5a, 0xc1, 0x81, 0x7b, 0x2f, 0x3d, 0xb6, 0x9a, 0x99, 0xdd, 0xb5, 0x1d, 0x1a, 0xdb, 0xa1, 0xe5,
+	0x14, 0xcf, 0xcc, 0x33, 0xcf, 0xf3, 0xfa, 0x79, 0xff, 0x64, 0x0c, 0x6b, 0x61, 0x37, 0xc1, 0x94,
+	0x13, 0x46, 0x3b, 0xdd, 0xaf, 0xbd, 0x72, 0xe1, 0x91, 0x94, 0x79, 0xa2, 0xe3, 0xb6, 0x53, 0x26,
+	0x98, 0x69, 0xf7, 0x83, 0xdc, 0x72, 0xe1, 0x92, 0x94, 0xd9, 0xa7, 0x23, 0x16, 0x31, 0x05, 0xf3,
+	0xe4, 0x27, 0x7d, 0xc3, 0x3e, 0x13, 0x30, 0x9e, 0x30, 0xee, 0xeb, 0x03, 0xbd, 0xc8, 0x8f, 0x56,
+	0xf4, 0xca, 0x4b, 0x78, 0xe4, 0x1d, 0x6c, 0xca, 0x3f, 0xf9, 0xc1, 0xb9, 0x21, 0xa1, 0x90, 0xb4,
+	0x60, 0xae, 0x45, 0x8c, 0x45, 0x31, 0xf6, 0xd4, 0xaa, 0x95, 0xdd, 0xf3, 0xc2, 0x2c, 0x45, 0x42,
+	0x46, 0xa3, 0xcf, 0x57, 0x0f, 0x9f, 0x0b, 0x92, 0x60, 0x2e, 0x50, 0xd2, 0x2e, 0x08, 0x72, 0xfd,
+	0x16, 0xe2, 0xd8, 0x3b, 0xd8, 0x6c, 0x61, 0x81, 0x36, 0xbd, 0x80, 0x91, 0x82, 0xe0, 0xfc, 0x90,
+	0x30, 0xda, 0x28, 0x45, 0x49, 0xfe, 0x45, 0x9c, 0x1f, 0x0d, 0x58, 0xdc, 0xe7, 0xd1, 0xed, 0x76,
+	0x88, 0x04, 0xbe, 0xa9, 0x4e, 0xcc, 0xab, 0x50, 0x45, 0x99, 0xb8, 0xcf, 0x52, 0x22, 0xba, 0x96,
+	0x71, 0xd6, 0x58, 0xaf, 0xd6, 0xad, 0xe7, 0x4f, 0x2e, 0x9d, 0xce, 0x1d, 0xd8, 0x0e, 0xc3, 0x14,
+	0x73, 0xde, 0x14, 0x29, 0xa1, 0x51, 0xa3, 0x07, 0x35, 0x3f, 0x02, 0xa0, 0xf8, 0xa1, 0xaf, 0xf9,
+	0xad, 0x13, 0x67, 0x8d, 0xf5, 0xd9, 0x2d, 0xc7, 0x3d, 0xda, 0x76, 0x57, 0xeb, 0xd5, 0x27, 0x9f,
+	0xbe, 0x58, 0x9d, 0x68, 0x54, 0x29, 0x7e, 0xa8, 0x37, 0xae, 0x2d, 0x7c, 0xfb, 0xfa, 0xf1, 0x46,
+	0x8f, 0xd8, 0x39, 0x03, 0x2b, 0x87, 0x62, 0x6c, 0x60, 0xde, 0x66, 0x94, 0x63, 0xe7, 0xe7, 0x69,
+	0x98, 0xdf, 0xe7, 0xd1, 0x4e, 0x8a, 0xe5, 0x59, 0x8c, 0xa8, 0xe9, 0xc2, 0x14, 0x7b, 0x48, 0x71,
+	0x3a, 0x32, 0x72, 0x0d, 0x33, 0xdf, 0x07, 0x48, 0x59, 0x1c, 0xa3, 0x76, 0xdb, 0x27, 0xa1, 0x8a,
+	0xba, 0xda, 0xa8, 0xe6, 0x3b, 0x7b, 0xa1, 0x79, 0x07, 0x96, 0x50, 0x1c, 0xb3, 0x00, 0x09, 0x1c,
+	0xfa, 0x28, 0x61, 0x19, 0x15, 0xd6, 0x49, 0xc5, 0x7c, 0x41, 0x86, 0xfd, 0xeb, 0x8b, 0xd5, 0x65,
+	0xcd, 0xce, 0xc3, 0x07, 0x2e, 0x61, 0x5e, 0x82, 0xc4, 0x7d, 0x77, 0x8f, 0x8a, 0xe7, 0x4f, 0x2e,
+	0x41, 0x2e, 0xbb, 0x47, 0x45, 0x63, 0xb1, 0x24, 0xd9, 0x56, 0x1c, 0x66, 0x13, 0xe6, 0x5b, 0x8c,
+	0x86, 0x84, 0x46, 0x7e, 0x90, 0xa5, 0x07, 0xd8, 0x9a, 0x54, 0x7e, 0xad, 0x0f, 0xf3, 0xab, 0xae,
+	0x2f, 0xec, 0x48, 0x7c, 0xee, 0xda, 0x5c, 0xab, 0x6f, 0xcf, 0x3c, 0x0f, 0x8b, 0x22, 0x45, 0x8a,
+	0x14, 0x53, 0xd4, 0x8a, 0x71, 0x68, 0x4d, 0x9d, 0x35, 0xd6, 0x67, 0x1a, 0x0b, 0xf9, 0xf6, 0x75,
+	0xbd, 0x6b, 0xee, 0x00, 0x70, 0x81, 0x52, 0xe1, 0xcb, 0xc2, 0xb2, 0x2a, 0x4a, 0xda, 0x76, 0x75,
+	0xd5, 0xb9, 0x45, 0xd5, 0xb9, 0xb7, 0x8a, 0xaa, 0xab, 0xcf, 0x48, 0xb1, 0x47, 0xbf, 0xad, 0x1a,
+	0x8d, 0xaa, 0xba, 0x27, 0x4f, 0xcc, 0x1b, 0x70, 0x8a, 0xa4, 0xcc, 0x6f, 0xc7, 0x88, 0xfa, 0x45,
+	0x01, 0x5b, 0xd3, 0x8a, 0xeb, 0xcc, 0x1b, 0x5c, 0xbb, 0x39, 0x40, 0x53, 0x7d, 0x2f, 0xa9, 0x16,
+	0x49, 0xca, 0x64, 0xca, 0x8a, 0x23, 0x93, 0xc0, 0x32, 0xa1, 0x01, 0xa6, 0x82, 0x1c, 0x60, 0x4d,
+	0x9b, 0xd7, 0xd2, 0x8c, 0x22, 0xf5, 0x86, 0x79, 0xb3, 0x57, 0x5c, 0x94, 0x8c, 0x03, 0x85, 0xf5,
+	0x3f, 0xf2, 0xe6, 0x91, 0x79, 0x17, 0x16, 0x62, 0xf2, 0x55, 0x46, 0x42, 0x22, 0xba, 0x52, 0x45,
+	0x58, 0x55, 0x95, 0xd4, 0xcd, 0x3c, 0xa9, 0xef, 0xbd, 0x99, 0xd4, 0x4f, 0x70, 0x84, 0x82, 0xee,
+	0x2e, 0x0e, 0xfa, 0x52, 0xbb, 0x8b, 0x83, 0xc6, 0x7c, 0x49, 0x74, 0x13, 0xa5, 0x42, 0xe6, 0xa0,
+	0xc7, 0x1c, 0x62, 0xca, 0x12, 0x0b, 0x54, 0x51, 0xf5, 0x04, 0x77, 0xe5, 0xae, 0x49, 0x60, 0xe9,
+	0x00, 0x73, 0x21, 0x93, 0x55, 0xba, 0x37, 0x3b, 0xca, 0xbd, 0x35, 0x19, 0xdf, 0x1f, 0x2f, 0x56,
+	0x57, 0xba, 0x28, 0x89, 0xaf, 0x39, 0x87, 0x09, 0x1c, 0x6d, 0x6c, 0xbe, 0x5d, 0x1a, 0xfb, 0x83,
+	0x01, 0x6b, 0x05, 0xb4, 0x97, 0x77, 0x1f, 0xdd, 0x13, 0x38, 0xf5, 0x39, 0x16, 0x22, 0xc6, 0x09,
+	0xa6, 0xc2, 0x9a, 0x1b, 0x25, 0x7f, 0x35, 0x97, 0xdf, 0x18, 0x94, 0x1f, 0xc2, 0xa9, 0x23, 0x5a,
+	0xcd, 0x91, 0xcd, 0xa2, 0x78, 0xb6, 0x25, 0xac, 0x59, 0xa2, 0xae, 0x81, 0x6c, 0x79, 0xdd, 0x91,
+	0xce, 0x65, 0x58, 0x1e, 0x68, 0xe9, 0xa2, 0xd9, 0xcd, 0x15, 0x98, 0x56, 0x55, 0x41, 0x42, 0xdd,
+	0xdc, 0x8d, 0x8a, 0x5c, 0xee, 0x85, 0x4e, 0x04, 0x4b, 0xfb, 0x3c, 0x2f, 0xee, 0x5b, 0xba, 0xd2,
+	0x8f, 0x3d, 0x07, 0xfa, 0xc8, 0x4f, 0xf4, 0x93, 0x0f, 0x84, 0x66, 0x83, 0x75, 0x58, 0xa8, 0x1c,
+	0x45, 0x7f, 0x1a, 0x50, 0xd9, 0xe7, 0x51, 0x3d, 0xeb, 0x4a, 0xed, 0x56, 0xd6, 0x1d, 0x47, 0x5b,
+	0xc1, 0x8e, 0xd4, 0x36, 0x77, 0xa0, 0xf2, 0xf6, 0x33, 0x27, 0xbf, 0x6a, 0x36, 0x61, 0x31, 0x41,
+	0x1d, 0x3f, 0x60, 0x5c, 0x14, 0x13, 0x6c, 0xf2, 0xf8, 0x6c, 0xf3, 0x09, 0xea, 0xec, 0x30, 0x2e,
+	0xf4, 0xfc, 0xca, 0x5d, 0x51, 0xe1, 0x3b, 0xdf, 0x9d, 0x50, 0xfe, 0xd7, 0xb3, 0xee, 0xf5, 0x0e,
+	0x0a, 0x44, 0xb3, 0x8d, 0x69, 0xf8, 0xdf, 0x79, 0xb0, 0x0d, 0x53, 0x5c, 0x32, 0xbe, 0x8d, 0x05,
+	0xfa, 0xa6, 0xf9, 0x05, 0x2c, 0x27, 0x84, 0xfa, 0x2c, 0x13, 0xbe, 0x60, 0x0f, 0x30, 0xe5, 0xff,
+	0xc2, 0x07, 0x33, 0x21, 0xf4, 0x46, 0x26, 0x6e, 0x29, 0x9e, 0x7f, 0x30, 0x63, 0x09, 0x16, 0xb4,
+	0x17, 0x65, 0x61, 0xfc, 0x65, 0xc0, 0xf4, 0x3e, 0x8f, 0x9a, 0x38, 0x8e, 0xcd, 0xcb, 0x50, 0xe1,
+	0x38, 0x8e, 0xc7, 0xb0, 0x25, 0xc7, 0xbd, 0xe3, 0xda, 0xf8, 0x14, 0x4e, 0x49, 0x67, 0x08, 0x0d,
+	0x98, 0x6c, 0xde, 0xb7, 0x76, 0x65, 0x31, 0x21, 0x74, 0x4f, 0x91, 0xe4, 0x96, 0xcc, 0x4a, 0x4b,
+	0xf2, 0xef, 0xe0, 0x9c, 0x52, 0x8f, 0x0c, 0x69, 0x40, 0x69, 0x0a, 0x86, 0x19, 0xd9, 0xe4, 0x31,
+	0x22, 0x89, 0xb9, 0x05, 0xd3, 0x81, 0xfc, 0x30, 0x86, 0x2b, 0x05, 0xf0, 0xe8, 0x76, 0x9d, 0x93,
+	0xc2, 0x05, 0xcc, 0x31, 0x55, 0x65, 0x2a, 0x99, 0x52, 0xfa, 0x81, 0xca, 0x90, 0xda, 0xbb, 0x83,
+	0xb9, 0xc0, 0xe1, 0xbb, 0x0c, 0xc0, 0x82, 0xff, 0x0f, 0x8a, 0x15, 0x61, 0x6c, 0xfd, 0x54, 0x81,
+	0x93, 0xfb, 0x3c, 0x32, 0xdb, 0x30, 0x37, 0xf0, 0xfc, 0xba, 0x30, 0xec, 0xdf, 0xdc, 0xa1, 0x77,
+	0x90, 0x7d, 0xe5, 0x18, 0xe0, 0x72, 0x8e, 0x7e, 0x09, 0xd0, 0xf7, 0x60, 0xfa, 0x60, 0x04, 0x45,
+	0x0f, 0x6a, 0x6f, 0x8e, 0x0d, 0x2d, 0xb5, 0x38, 0xcc, 0x0f, 0xce, 0xe5, 0x8b, 0x23, 0x38, 0x06,
+	0xd0, 0xf6, 0x87, 0xc7, 0x41, 0x97, 0xa2, 0xb7, 0xe1, 0xa4, 0x1c, 0xc3, 0xce, 0x88, 0xcb, 0xf5,
+	0xac, 0x6b, 0x6f, 0x8c, 0xc6, 0x94, 0xb4, 0x04, 0xe6, 0x07, 0x67, 0xdc, 0xc5, 0xd1, 0x97, 0x7b,
+	0xe8, 0x63, 0x49, 0xdd, 0x85, 0x49, 0x35, 0x2f, 0xd6, 0x46, 0xdc, 0x91, 0x20, 0xfb, 0xc2, 0x18,
+	0xa0, 0x92, 0xf9, 0x73, 0x98, 0xd2, 0x5d, 0x77, 0x6e, 0x54, 0x32, 0x25, 0xca, 0xbe, 0x38, 0x0e,
+	0xaa, 0x24, 0x4f, 0x60, 0xb6, 0xbf, 0xaf, 0x36, 0xc6, 0xb9, 0xac, 0xb1, 0xf6, 0xd6, 0xf8, 0xd8,
+	0x42, 0xce, 0x9e, 0xfa, 0xe6, 0xf5, 0xe3, 0x0d, 0xa3, 0xfe, 0xf1, 0xd3, 0x97, 0x35, 0xe3, 0xd9,
+	0xcb, 0x9a, 0xf1, 0xfb, 0xcb, 0x9a, 0xf1, 0xe8, 0x55, 0x6d, 0xe2, 0xd9, 0xab, 0xda, 0xc4, 0x2f,
+	0xaf, 0x6a, 0x13, 0x9f, 0x5d, 0x8e, 0x88, 0xb8, 0x9f, 0xb5, 0xdc, 0x80, 0x25, 0xde, 0x11, 0x3f,
+	0x89, 0x0e, 0xae, 0x78, 0x1d, 0xfd, 0x4b, 0xb1, 0xdb, 0xc6, 0xbc, 0x55, 0x51, 0x8f, 0x9e, 0x2b,
+	0x7f, 0x07, 0x00, 0x00, 0xff, 0xff, 0x59, 0xcf, 0x69, 0x2f, 0x54, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -706,6 +937,7 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// CreatePlan is used to create a new plan.
 	CreatePlan(ctx context.Context, in *MsgCreatePlan, opts ...grpc.CallOption) (*MsgCreatePlanResponse, error)
+	EnableTrading(ctx context.Context, in *MsgEnableTrading, opts ...grpc.CallOption) (*MsgEnableTradingResponse, error)
 	// Buy is used to buy allocation.
 	Buy(ctx context.Context, in *MsgBuy, opts ...grpc.CallOption) (*MsgBuyResponse, error)
 	BuyExactSpend(ctx context.Context, in *MsgBuyExactSpend, opts ...grpc.CallOption) (*MsgBuyResponse, error)
@@ -713,6 +945,7 @@ type MsgClient interface {
 	Sell(ctx context.Context, in *MsgSell, opts ...grpc.CallOption) (*MsgSellResponse, error)
 	// Claim is used to claim tokens after the plan is settled.
 	Claim(ctx context.Context, in *MsgClaim, opts ...grpc.CallOption) (*MsgClaimResponse, error)
+	ClaimVested(ctx context.Context, in *MsgClaimVested, opts ...grpc.CallOption) (*MsgClaimVestedResponse, error)
 }
 
 type msgClient struct {
@@ -735,6 +968,15 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 func (c *msgClient) CreatePlan(ctx context.Context, in *MsgCreatePlan, opts ...grpc.CallOption) (*MsgCreatePlanResponse, error) {
 	out := new(MsgCreatePlanResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.iro.Msg/CreatePlan", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) EnableTrading(ctx context.Context, in *MsgEnableTrading, opts ...grpc.CallOption) (*MsgEnableTradingResponse, error) {
+	out := new(MsgEnableTradingResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.iro.Msg/EnableTrading", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -777,12 +1019,22 @@ func (c *msgClient) Claim(ctx context.Context, in *MsgClaim, opts ...grpc.CallOp
 	return out, nil
 }
 
+func (c *msgClient) ClaimVested(ctx context.Context, in *MsgClaimVested, opts ...grpc.CallOption) (*MsgClaimVestedResponse, error) {
+	out := new(MsgClaimVestedResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.iro.Msg/ClaimVested", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// UpdateParams is used for updating module params.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// CreatePlan is used to create a new plan.
 	CreatePlan(context.Context, *MsgCreatePlan) (*MsgCreatePlanResponse, error)
+	EnableTrading(context.Context, *MsgEnableTrading) (*MsgEnableTradingResponse, error)
 	// Buy is used to buy allocation.
 	Buy(context.Context, *MsgBuy) (*MsgBuyResponse, error)
 	BuyExactSpend(context.Context, *MsgBuyExactSpend) (*MsgBuyResponse, error)
@@ -790,6 +1042,7 @@ type MsgServer interface {
 	Sell(context.Context, *MsgSell) (*MsgSellResponse, error)
 	// Claim is used to claim tokens after the plan is settled.
 	Claim(context.Context, *MsgClaim) (*MsgClaimResponse, error)
+	ClaimVested(context.Context, *MsgClaimVested) (*MsgClaimVestedResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -802,6 +1055,9 @@ func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateP
 func (*UnimplementedMsgServer) CreatePlan(ctx context.Context, req *MsgCreatePlan) (*MsgCreatePlanResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePlan not implemented")
 }
+func (*UnimplementedMsgServer) EnableTrading(ctx context.Context, req *MsgEnableTrading) (*MsgEnableTradingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableTrading not implemented")
+}
 func (*UnimplementedMsgServer) Buy(ctx context.Context, req *MsgBuy) (*MsgBuyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Buy not implemented")
 }
@@ -813,6 +1069,9 @@ func (*UnimplementedMsgServer) Sell(ctx context.Context, req *MsgSell) (*MsgSell
 }
 func (*UnimplementedMsgServer) Claim(ctx context.Context, req *MsgClaim) (*MsgClaimResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Claim not implemented")
+}
+func (*UnimplementedMsgServer) ClaimVested(ctx context.Context, req *MsgClaimVested) (*MsgClaimVestedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClaimVested not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -851,6 +1110,24 @@ func _Msg_CreatePlan_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).CreatePlan(ctx, req.(*MsgCreatePlan))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_EnableTrading_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgEnableTrading)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).EnableTrading(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.iro.Msg/EnableTrading",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).EnableTrading(ctx, req.(*MsgEnableTrading))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -927,6 +1204,24 @@ func _Msg_Claim_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ClaimVested_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgClaimVested)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ClaimVested(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.iro.Msg/ClaimVested",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ClaimVested(ctx, req.(*MsgClaimVested))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.iro.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -938,6 +1233,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePlan",
 			Handler:    _Msg_CreatePlan_Handler,
+		},
+		{
+			MethodName: "EnableTrading",
+			Handler:    _Msg_EnableTrading_Handler,
 		},
 		{
 			MethodName: "Buy",
@@ -954,6 +1253,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Claim",
 			Handler:    _Msg_Claim_Handler,
+		},
+		{
+			MethodName: "ClaimVested",
+			Handler:    _Msg_ClaimVested_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1043,6 +1346,29 @@ func (m *MsgCreatePlan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	n2, err2 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.VestingStartTimeAfterSettlement, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.VestingStartTimeAfterSettlement):])
+	if err2 != nil {
+		return 0, err2
+	}
+	i -= n2
+	i = encodeVarintTx(dAtA, i, uint64(n2))
+	i--
+	dAtA[i] = 0x62
+	n3, err3 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.VestingDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.VestingDuration):])
+	if err3 != nil {
+		return 0, err3
+	}
+	i -= n3
+	i = encodeVarintTx(dAtA, i, uint64(n3))
+	i--
+	dAtA[i] = 0x5a
+	if len(m.LiquidityDenom) > 0 {
+		i -= len(m.LiquidityDenom)
+		copy(dAtA[i:], m.LiquidityDenom)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.LiquidityDenom)))
+		i--
+		dAtA[i] = 0x52
+	}
 	{
 		size := m.LiquidityPart.Size()
 		i -= size
@@ -1052,7 +1378,7 @@ func (m *MsgCreatePlan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x6a
+	dAtA[i] = 0x4a
 	{
 		size, err := m.IncentivePlanParams.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -1062,23 +1388,33 @@ func (m *MsgCreatePlan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x3a
-	n3, err3 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.IroPlanDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.IroPlanDuration):])
-	if err3 != nil {
-		return 0, err3
+	dAtA[i] = 0x42
+	n5, err5 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.IroPlanDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.IroPlanDuration):])
+	if err5 != nil {
+		return 0, err5
 	}
-	i -= n3
-	i = encodeVarintTx(dAtA, i, uint64(n3))
+	i -= n5
+	i = encodeVarintTx(dAtA, i, uint64(n5))
+	i--
+	dAtA[i] = 0x3a
+	n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.StartTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.StartTime):])
+	if err6 != nil {
+		return 0, err6
+	}
+	i -= n6
+	i = encodeVarintTx(dAtA, i, uint64(n6))
 	i--
 	dAtA[i] = 0x32
-	n4, err4 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.StartTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.StartTime):])
-	if err4 != nil {
-		return 0, err4
+	if m.TradingEnabled {
+		i--
+		if m.TradingEnabled {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x28
 	}
-	i -= n4
-	i = encodeVarintTx(dAtA, i, uint64(n4))
-	i--
-	dAtA[i] = 0x2a
 	{
 		size, err := m.BondingCurve.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -1143,6 +1479,66 @@ func (m *MsgCreatePlanResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xa
 	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEnableTrading) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEnableTrading) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEnableTrading) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PlanId) > 0 {
+		i -= len(m.PlanId)
+		copy(dAtA[i:], m.PlanId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PlanId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEnableTradingResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEnableTradingResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEnableTradingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
 	return len(dAtA) - i, nil
 }
 
@@ -1423,6 +1819,66 @@ func (m *MsgClaimResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgClaimVested) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgClaimVested) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgClaimVested) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PlanId) > 0 {
+		i -= len(m.PlanId)
+		copy(dAtA[i:], m.PlanId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PlanId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Claimer) > 0 {
+		i -= len(m.Claimer)
+		copy(dAtA[i:], m.Claimer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Claimer)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgClaimVestedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgClaimVestedResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgClaimVestedResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1476,6 +1932,9 @@ func (m *MsgCreatePlan) Size() (n int) {
 	n += 1 + l + sovTx(uint64(l))
 	l = m.BondingCurve.Size()
 	n += 1 + l + sovTx(uint64(l))
+	if m.TradingEnabled {
+		n += 2
+	}
 	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.StartTime)
 	n += 1 + l + sovTx(uint64(l))
 	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.IroPlanDuration)
@@ -1483,6 +1942,14 @@ func (m *MsgCreatePlan) Size() (n int) {
 	l = m.IncentivePlanParams.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = m.LiquidityPart.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = len(m.LiquidityDenom)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.VestingDuration)
+	n += 1 + l + sovTx(uint64(l))
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.VestingStartTimeAfterSettlement)
 	n += 1 + l + sovTx(uint64(l))
 	return n
 }
@@ -1497,6 +1964,32 @@ func (m *MsgCreatePlanResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	return n
+}
+
+func (m *MsgEnableTrading) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.PlanId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgEnableTradingResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -1599,6 +2092,32 @@ func (m *MsgClaim) Size() (n int) {
 }
 
 func (m *MsgClaimResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgClaimVested) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Claimer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.PlanId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgClaimVestedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1939,6 +2458,26 @@ func (m *MsgCreatePlan) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TradingEnabled", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.TradingEnabled = bool(v != 0)
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StartTime", wireType)
 			}
@@ -1971,7 +2510,7 @@ func (m *MsgCreatePlan) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field IroPlanDuration", wireType)
 			}
@@ -2004,7 +2543,7 @@ func (m *MsgCreatePlan) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 7:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field IncentivePlanParams", wireType)
 			}
@@ -2037,7 +2576,7 @@ func (m *MsgCreatePlan) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 13:
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field LiquidityPart", wireType)
 			}
@@ -2068,6 +2607,104 @@ func (m *MsgCreatePlan) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.LiquidityPart.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LiquidityDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LiquidityDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VestingDuration", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.VestingDuration, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VestingStartTimeAfterSettlement", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.VestingStartTimeAfterSettlement, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2153,6 +2790,170 @@ func (m *MsgCreatePlanResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.PlanId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEnableTrading) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEnableTrading: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEnableTrading: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PlanId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PlanId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEnableTradingResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEnableTradingResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEnableTradingResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -2961,6 +3762,170 @@ func (m *MsgClaimResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgClaimResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgClaimVested) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgClaimVested: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgClaimVested: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Claimer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Claimer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PlanId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PlanId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgClaimVestedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgClaimVestedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgClaimVestedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

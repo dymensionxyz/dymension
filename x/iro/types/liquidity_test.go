@@ -68,7 +68,7 @@ func TestFindEquilibrium(t *testing.T) {
 					t.Skip("m is not positive", tc.name, "allocation", allocation, "targetRaise", raiseTarget)
 				}
 
-				curve := types.NewBondingCurve(calcaulateM, tc.n, sdkmath.LegacyZeroDec())
+				curve := types.NewBondingCurve(calcaulateM, tc.n, sdkmath.LegacyZeroDec(), 18, 18)
 				// assert eq is > 0
 				eq := types.FindEquilibrium(curve, allocationScaled, r)
 				require.True(t, eq.IsPositive())

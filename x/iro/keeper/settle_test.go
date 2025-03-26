@@ -8,7 +8,6 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -21,13 +20,12 @@ func (s *KeeperTestSuite) TestSettle() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
-	endTime := startTime.Add(time.Hour)
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, amt, startTime, endTime, rollapp, curve, incentives, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
@@ -64,9 +62,11 @@ func (s *KeeperTestSuite) TestSettle() {
 
 func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 	curve := types.BondingCurve{
-		M: math.LegacyMustNewDecFromStr("0"),
-		N: math.LegacyMustNewDecFromStr("1"),
-		C: math.LegacyMustNewDecFromStr("0.1"), // each token costs 0.1 DYM
+		M:                      math.LegacyMustNewDecFromStr("0"),
+		N:                      math.LegacyMustNewDecFromStr("1"),
+		C:                      math.LegacyMustNewDecFromStr("0.1"), // each token costs 0.1 DYM
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
 	}
 
 	startTime := time.Now()
@@ -116,8 +116,9 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			k := s.App.IROKeeper
 
 			// Create IRO plan
-			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, k.GetParams(s.Ctx).CreationFee)))
-			planId, err := k.CreatePlan(s.Ctx, allocation, startTime, startTime.Add(time.Hour), rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart)
+			planDenom := "adym"
+			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(planDenom, k.GetParams(s.Ctx).CreationFee)))
+			planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, startTime, true, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 			s.Require().NoError(err)
 			reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
 
@@ -129,7 +130,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			}
 
 			plan := k.MustGetPlan(s.Ctx, planId)
-			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), appparams.BaseDenom)
+			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
 			s.Require().Equal(tc.expectedDYM.String(), raisedDYM.Amount.String())
 
 			unallocatedTokensAmt := allocation.Sub(plan.SoldAmt).Add(reservedTokens)
@@ -176,8 +177,6 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			// 		unallocatedTokens - actual poolCoins
 			expectedIncentives := sdk.NewCoins(sdk.NewCoin("adym", expectedDYMInPool), sdk.NewCoin(rollappDenom, unallocatedTokensAmt)).Sub(poolCoins...)
 			s.Assert().Equal(expectedIncentives.String(), gauge.Coins.String())
-
-			// FIXME: assert founder's funds
 		})
 	}
 }

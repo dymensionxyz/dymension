@@ -57,9 +57,6 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		if sdk.ValidateDenom(distr.Asset.Denom) != nil {
 			return errors.New("denom should be valid for the condition")
 		}
-		if lockuptypes.LockQueryType_name[int32(distr.Asset.LockQueryType)] == "" {
-			return errors.New("lock query type is invalid")
-		}
 		if lockuptypes.LockQueryType_name[int32(distr.Asset.LockQueryType)] != "ByDuration" {
 			return errors.New("only duration query condition is allowed. Start time distr conditions is an obsolete codepath slated for deletion")
 		}
