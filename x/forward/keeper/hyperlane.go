@@ -8,7 +8,6 @@ import (
 	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -18,14 +17,10 @@ import (
 func (k Keeper) OnHyperlane(goCtx context.Context, args warpkeeper.DymHookArgs) error {
 	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
 	// it would be more flexible and allow memo forwarding
-	var d types.HookHLtoIBC
-	err := proto.Unmarshal(args.Memo, &d)
-	if err != nil {
-		return errorsmod.Wrap(err, "unmarshal forward hook")
-	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err = k.escrowFromModule(ctx, warptypes.ModuleName, args.Coins)
+	err := k.escrowFromModule(ctx, warptypes.ModuleName, args.Coins)
 	if err != nil {
 		// should never happen
 		err = errorsmod.Wrap(err, "escrow from module")
@@ -33,7 +28,13 @@ func (k Keeper) OnHyperlane(goCtx context.Context, args warpkeeper.DymHookArgs) 
 		return err
 	}
 
-	k.forwardToIBC(ctx, d.Transfer, *d.Recovery, args.Coins[0])
+	d, nextMemo, err := types.UnpackMemoFromHyperlane(args.Memo)
+	if err != nil {
+		// user is a bit screwed in this case since the tokens can never be refunded
+		return errorsmod.Wrap(err, "unpack memo from hyperlane")
+	}
+
+	k.forwardToIBC(ctx, d.Transfer, *d.Recovery, args.Coins[0], nextMemo)
 	return nil
 }
 
@@ -64,7 +65,8 @@ func (k Keeper) forwardToHyperlaneInner(ctx sdk.Context, order *eibctypes.Demand
 		return gerrc.ErrInvalidArgument.Wrapf("max cost (fee + amount)exceeds max budget %s > %s", maxCost, maxBudget)
 	}
 
-	m := &warptypes.MsgRemoteTransfer{
+	m := &warptypes.MsgDymRemoteTransfer{
+
 		Sender:            k.getModuleAddr(ctx).String(),
 		TokenId:           d.HyperlaneTransfer.TokenId,
 		DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
@@ -80,7 +82,7 @@ func (k Keeper) forwardToHyperlaneInner(ctx sdk.Context, order *eibctypes.Demand
 		CustomHookId:       d.HyperlaneTransfer.CustomHookId,
 	}
 
-	_, err = k.warpS.RemoteTransfer(ctx, m) // TODO: responsse?
+	_, err = k.warpS.DymRemoteTransfer(ctx, m) // TODO: responsse?
 	return err
 
 }

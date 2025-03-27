@@ -68,13 +68,13 @@ func (k Keeper) onEIBC(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSourc
 	return nil
 }
 
-func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, r types.Recovery, maxBudget sdk.Coin, memo string) {
+func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, r types.Recovery, maxBudget sdk.Coin, memo []byte) {
 	k.refundOnError(ctx, func() error {
 		return k.forwardToIBCInner(ctx, transfer, maxBudget, memo)
 	}, r, sdk.NewCoins(transfer.Token))
 }
 
-func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo string) error {
+func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo []byte) error {
 
 	ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
@@ -84,7 +84,7 @@ func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.Ms
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
-		memo,
+		string(memo), // TODO: conversion ok?
 	)
 	_, err := k.transferK.Transfer(ctx, transfer) // TODO: response?
 	return err

@@ -1,20 +1,14 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
-
-func (h *HookEIBCtoHL) ValidateBasic() error {
-	err := h.Recovery.ValidateBasic()
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 // sender is computed
 func NewHookEIBCtoHL(
@@ -44,12 +38,8 @@ func NewHookEIBCtoHL(
 	}
 }
 
-func (h *HookHLtoIBC) ValidateBasic() error {
-	err := h.Transfer.ValidateBasic()
-	if err != nil {
-		return err
-	}
-	err = h.Recovery.ValidateBasic()
+func (h *HookEIBCtoHL) ValidateBasic() error {
+	err := h.Recovery.ValidateBasic()
 	if err != nil {
 		return err
 	}
@@ -78,8 +68,23 @@ func NewHookHLtoIBC(
 	}
 }
 
-func (r *Recovery) ValidateBasic() error {
-	_, err := r.AccAddr()
+// WARNING: assumes the memo is entirely dedicated to the HL->IBC forwarder
+// TODO: also extract and then forward the rest of the memo, so that it can be used for other things later
+func UnpackMemoFromHyperlane(bz []byte) (*HookHLtoIBC, []byte, error) {
+	var d HookHLtoIBC
+	err := proto.Unmarshal(bz, &d)
+	if err != nil {
+		return nil, nil, errorsmod.Wrap(err, "unmarshal forward hook")
+	}
+	return &d, nil, nil
+}
+
+func (h *HookHLtoIBC) ValidateBasic() error {
+	err := h.Transfer.ValidateBasic()
+	if err != nil {
+		return err
+	}
+	err = h.Recovery.ValidateBasic()
 	if err != nil {
 		return err
 	}
@@ -92,6 +97,14 @@ func NewRecovery(
 	return &Recovery{
 		Address: address,
 	}
+}
+
+func (r *Recovery) ValidateBasic() error {
+	_, err := r.AccAddr()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *Recovery) AccAddr() (sdk.AccAddress, error) {
