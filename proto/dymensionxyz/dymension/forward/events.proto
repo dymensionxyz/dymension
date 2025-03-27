@@ -4,3 +4,8 @@ package dymensionxyz.dymension.forward;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
 message EventFoo {}
+
+message EventWillRefund {
+    // what caused the problem
+    string errCause = 1;
+}

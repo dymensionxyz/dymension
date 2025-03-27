@@ -36,7 +36,7 @@ func (r *Recovery) ValidateBasic() error {
 	return nil
 }
 
-func (r *Recovery) GetAddress() string {
+func (r *Recovery) AccAddr() string {
 	// from bech32
 	addr, err := sdk.AccAddressFromBech32(r.Address)
 	if err != nil {
