@@ -65,21 +65,25 @@ func (k Keeper) forwardToHyperlaneInner(ctx sdk.Context, order *eibctypes.Demand
 		return gerrc.ErrInvalidArgument.Wrapf("max cost (fee + amount)exceeds max budget %s > %s", maxCost, maxBudget)
 	}
 
+	// Need to use DymRemoteTransfer because we only use WR's which support memo in the direction HL -> Hub, and
+	// we need to send back with the same WR that it came in on.
 	m := &warptypes.MsgDymRemoteTransfer{
+		Inner: &warptypes.MsgRemoteTransfer{
 
-		Sender:            k.getModuleAddr(ctx).String(),
-		TokenId:           d.HyperlaneTransfer.TokenId,
-		DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
-		Recipient:         d.HyperlaneTransfer.Recipient,
-		Amount:            d.HyperlaneTransfer.Amount,
+			Sender:            k.getModuleAddr(ctx).String(),
+			TokenId:           d.HyperlaneTransfer.TokenId,
+			DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
+			Recipient:         d.HyperlaneTransfer.Recipient,
+			Amount:            d.HyperlaneTransfer.Amount,
 
-		GasLimit: d.HyperlaneTransfer.GasLimit,
-		MaxFee:   d.HyperlaneTransfer.MaxFee,
+			GasLimit: d.HyperlaneTransfer.GasLimit,
+			MaxFee:   d.HyperlaneTransfer.MaxFee,
 
-		// these are used mainly to override the default relayer (pay a different relayer)
-		// there is no security risk from allowing these to be anything
-		CustomHookMetadata: d.HyperlaneTransfer.CustomHookMetadata,
-		CustomHookId:       d.HyperlaneTransfer.CustomHookId,
+			// these are used mainly to override the default relayer (pay a different relayer)
+			// there is no security risk from allowing these to be anything
+			CustomHookMetadata: d.HyperlaneTransfer.CustomHookMetadata,
+			CustomHookId:       d.HyperlaneTransfer.CustomHookId,
+		},
 	}
 
 	_, err = k.warpS.DymRemoteTransfer(ctx, m) // TODO: responsse?
