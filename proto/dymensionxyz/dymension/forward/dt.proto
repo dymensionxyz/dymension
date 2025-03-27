@@ -6,6 +6,8 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 import "hyperlane/warp/v1/tx.proto";
 import "ibc/applications/transfer/v1/tx.proto";
 
+// TODO: might need to add recovery address...
+
 // for eibc -> hyperlane
 message HookEIBCtoHL {
   // TODO:

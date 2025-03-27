@@ -166,6 +166,8 @@ Extension:
 
 Conclusions:
 	Moving forward with the recovery address idea
+High level investigations:
+	Need to check that osmosis allows you to specify a memo on the ibc transfer
 */
 
 // for inbound warp route transfers. At this point, the tokens are in the hyperlane warp module still
@@ -182,23 +184,28 @@ func (k Keeper) Handle(goCtx context.Context, args warpkeeper.DymHookArgs) error
 }
 
 func (k Keeper) transferTokensHyperlaneToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer) error {
-	var (
-		token         = transfer.Token
-		amount        = transfer.Amount
-		sender        = transfer.Sender
-		recipient     = transfer.Receiver
-		timeoutHeight = transfer.TimeoutHeight
-	)
-	k.transferKeeper.Transfer(
-		ctx,
-		&ibctransfertypes.MsgTransfer{
-			SourcePort:       "transfer",
-			SourceChannel:    "channel-0",
-			Token:            token,
-			Sender:           sender,
-			Receiver:         recipient,
-			TimeoutHeight:    &types.Height{},
-			TimeoutTimestamp: 0,
-		},
-	)
+	return nil
+
 }
+
+// func (k Keeper) transferTokensHyperlaneToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer) error {
+// 	var (
+// 		token         = transfer.Token
+// 		amount        = transfer.Amount
+// 		sender        = transfer.Sender
+// 		recipient     = transfer.Receiver
+// 		timeoutHeight = transfer.TimeoutHeight
+// 	)
+// 	k.transferKeeper.Transfer(
+// 		ctx,
+// 		&ibctransfertypes.MsgTransfer{
+// 			SourcePort:       "transfer",
+// 			SourceChannel:    "channel-0",
+// 			Token:            token,
+// 			Sender:           sender,
+// 			Receiver:         recipient,
+// 			TimeoutHeight:    &types.Height{},
+// 			TimeoutTimestamp: 0,
+// 		},
+// 	)
+// }
