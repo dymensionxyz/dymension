@@ -151,13 +151,18 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 	return stateInfo, nil
 }
 
+// HardForkToLatest attempts to hard fork the rollapp to the latest state.
+// It retrieves the latest state information for the given rollappID and,
+// if found, initiates a hard fork process to the latest valid height.
+// Returns an error if the hard fork operation fails.
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
+	latestValidHeight := uint64(0)
 	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
-	if !ok {
-		return errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no last batch")
+	if ok {
+		latestValidHeight = lastBatch.GetLatestHeight()
 	}
-	// we invoke a hard fork on the last posted batch without reverting any states
-	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight())
+
+	return k.HardFork(ctx, rollappID, latestValidHeight)
 }
 
 func mapKeysToSlice(m map[string]struct{}) []string {
@@ -220,5 +225,7 @@ func (k Keeper) ForkLatestAllowed(ctx sdk.Context, rollapp string) bool {
 // is the rollback fork going to violate assumptions?
 func (k Keeper) ForkAllowed(ctx sdk.Context, rollapp string, lastValidHeight uint64) bool {
 	ra := k.MustGetRollapp(ctx, rollapp)
+	// FIXME: we MUST demend that TransferProofHeight <= lastValidHeight
+	// which means TransferProofHeight must be set only when state with h>TransferProofHeight is committed
 	return 0 < ra.GenesisState.TransferProofHeight && ra.GenesisState.TransferProofHeight <= lastValidHeight
 }
