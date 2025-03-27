@@ -1,5 +1,9 @@
 package types
 
-func (h *HookCalldata) ValidateBasic() error {
+func (h *HookEIBCtoHL) ValidateBasic() error {
+	return nil
+}
+
+func (h *HookHLtoIBC) ValidateBasic() error {
 	return nil
 }

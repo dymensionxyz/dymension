@@ -547,7 +547,10 @@ func (a *AppKeepers) InitKeepers(
 		&a.HyperWarpKeeper,
 	)
 
-	hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper, a.ForwardKeeper.Hook())
+	{
+		h := hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper)
+		h.SetHook(a.ForwardKeeper.Hook())
+	}
 
 	a.EIBCKeeper.SetFulfillHooks(
 		map[string]eibckeeper.FulfillHook{

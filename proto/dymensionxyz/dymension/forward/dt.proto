@@ -4,9 +4,10 @@ package dymensionxyz.dymension.forward;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
 import "hyperlane/warp/v1/tx.proto";
+import "ibc/applications/transfer/v1/tx.proto";
 
 // for eibc -> hyperlane
-message HookCalldata {
+message HookEIBCtoHL {
   // TODO:
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
   string foo = 2;
@@ -20,6 +21,6 @@ How to test?
 - Use the tokens to immediately do a transfer to the rollapp
 - On refund... hmmmmmmmm, also someone can fast fulfill the refund :(
 */
-message HookHLtoRol {
-
+message HookHLtoIBC {
+  ibc.applications.transfer.v1.MsgTransfer transfer = 1;
 }

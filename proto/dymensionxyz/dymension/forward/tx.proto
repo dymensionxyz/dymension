@@ -3,13 +3,15 @@ package dymensionxyz.dymension.forward;
 
 import "cosmos/msg/v1/msg.proto";
 
+import "dymensionxyz/dymension/forward/dt.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
-// Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
   rpc Foo(MsgFoo) returns (MsgFooResponse);
+
+  rpc DemoHLToIBC(MsgDemoHLToIBC) returns (MsgDemoHLToIBCResponse);
 }
 
 message MsgFoo {
@@ -17,3 +19,12 @@ message MsgFoo {
 }
 
 message MsgFooResponse {}
+
+
+message MsgDemoHLToIBC {
+  option (cosmos.msg.v1.signer) = "signer"; 
+  string signer = 1;
+  HookHLtoIBC hook = 2;
+}
+
+message MsgDemoHLToIBCResponse {}
