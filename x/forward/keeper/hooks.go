@@ -60,6 +60,13 @@ func (k Keeper) doForwardHook(ctx sdk.Context, order *eibctypes.DemandOrder, fun
 	if err != nil {
 		return errorsmod.Wrap(err, "unmarshal forward hook")
 	}
+	err = k.escrowFromUser(ctx, fundsSource, order.Price)
+	if err != nil {
+		// should never happen
+		err = errorsmod.Wrap(err, "escrow from user")
+		k.Logger(ctx).Error("doForwardHook", "error", err)
+		return err
+	}
 	return k.forwardToHyperlane(ctx, order, fundsSource, d)
 }
 
@@ -173,10 +180,16 @@ func (k Keeper) Handle(goCtx context.Context, args warpkeeper.DymHookArgs) error
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	d.Transfer.Token = args.Coins[0]
 
+	err = k.escrowFromModule(ctx, warptypes.ModuleName, args.Coins)
+	if err != nil {
+		return errorsmod.Wrap(err, "escrow from module")
+	}
+
 	return k.transferTokensHyperlaneToIBC(ctx, d.Transfer)
 }
 
 func (k Keeper) transferTokensHyperlaneToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer) error {
+
 	var (
 		token            = transfer.Token
 		sender           = transfer.Sender

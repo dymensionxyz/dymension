@@ -25,6 +25,7 @@ type Keeper struct {
 	warpKeeper     types.WarpRouteKeeper
 	warpServer     warptypes.MsgServer
 	transferKeeper transferkeeper.Keeper // TODO: interface
+	bankKeeper     types.BankKeeper
 }
 
 func NewKeeper(
