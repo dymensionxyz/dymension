@@ -545,6 +545,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[forwardtypes.ModuleName]),
 		&a.HyperWarpKeeper,
+		a.BankKeeper,
 	)
 
 	{

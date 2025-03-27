@@ -1,6 +1,8 @@
 package types
 
 import (
+	context "context"
+
 	"cosmossdk.io/math"
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
@@ -20,8 +22,16 @@ type WarpRouteKeeper interface {
 		customHookMetadata []byte) (messageId util.HexAddress, err error)
 }
 
+type WarpQuery interface {
+	Token(ctx context.Context, request *types.QueryTokenRequest) (*types.QueryTokenResponse, error)
+}
+
 type BankKeeper interface {
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx context.Context, senderModule, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+}
+
+type AccountKeeper interface {
+	GetModuleAddress(moduleName string) sdk.AccAddress
 }

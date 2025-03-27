@@ -1,9 +1,11 @@
 package types
 
 import (
-	"errors"
-
+	"cosmossdk.io/math"
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
 func (h *HookEIBCtoHL) ValidateBasic() error {
@@ -12,6 +14,34 @@ func (h *HookEIBCtoHL) ValidateBasic() error {
 		return err
 	}
 	return nil
+}
+
+// sender is computed
+func NewHookEIBCtoHL(
+	recovery *Recovery,
+	tokenId hyperutil.HexAddress,
+	destinationDomain uint32,
+	recipient hyperutil.HexAddress,
+	amount math.Int,
+	maxFee sdk.Coin,
+
+	gasLimit math.Int, // can be zero
+	customHookId *hyperutil.HexAddress, // optional
+	customHookMetadata string, // can be empty
+) *HookEIBCtoHL {
+	return &HookEIBCtoHL{
+		Recovery: recovery,
+		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
+			TokenId:            tokenId,
+			DestinationDomain:  destinationDomain,
+			Recipient:          recipient,
+			Amount:             amount,
+			CustomHookId:       customHookId,
+			GasLimit:           gasLimit,
+			MaxFee:             maxFee,
+			CustomHookMetadata: customHookMetadata,
+		},
+	}
 }
 
 func (h *HookHLtoIBC) ValidateBasic() error {
@@ -23,26 +53,50 @@ func (h *HookHLtoIBC) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	// TODO: can check timeout height is zero(?)
-
 	return nil
+}
+
+// token is computed
+// sender is computed
+// timeout height not supported
+// next memo should go together in the top level of the HL memo
+func NewHookHLtoIBC(
+	sourcePort string,
+	sourceChannel string,
+	token sdk.Coin,
+	receiver string,
+	timeoutTimestamp uint64,
+) *HookHLtoIBC {
+	return &HookHLtoIBC{
+		Transfer: &ibctransfertypes.MsgTransfer{
+			SourcePort:       sourcePort,
+			SourceChannel:    sourceChannel,
+			Token:            token,
+			Receiver:         receiver,
+			TimeoutTimestamp: timeoutTimestamp,
+		},
+	}
 }
 
 func (r *Recovery) ValidateBasic() error {
-	addr := r.GetAddress()
-	if addr == "" {
-		return errors.New("address is empty")
+	_, err := r.AccAddr()
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (r *Recovery) AccAddr() string {
-	// from bech32
-	addr, err := sdk.AccAddressFromBech32(r.Address)
-	if err != nil {
-		panic(err)
+func NewRecovery(
+	address string,
+) *Recovery {
+	return &Recovery{
+		Address: address,
 	}
-	return addr.String()
+}
+
+func (r *Recovery) AccAddr() (sdk.AccAddress, error) {
+	addr, err := sdk.AccAddressFromBech32(r.Address)
+	return addr, err
 }
 
 func (r *Recovery) MustAddr() sdk.AccAddress {

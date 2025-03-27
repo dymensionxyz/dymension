@@ -6,16 +6,20 @@ import (
 )
 
 func (k Keeper) escrowFromModule(ctx sdk.Context, srcModule string, c sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, srcModule, types.ModuleName, c)
+	return k.bankK.SendCoinsFromModuleToModule(ctx, srcModule, types.ModuleName, c)
 }
 
-func (k Keeper) escrowFromUser(ctx sdk.Context, srcAcc sdk.AccAddress, c sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, srcAcc, types.ModuleName, c)
+func (k Keeper) escrowFromAccount(ctx sdk.Context, srcAcc sdk.AccAddress, c sdk.Coins) error {
+	return k.bankK.SendCoinsFromAccountToModule(ctx, srcAcc, types.ModuleName, c)
 }
 
 func (k Keeper) refundFromModule(ctx sdk.Context, dstAddr sdk.AccAddress, c sdk.Coins) error {
-	// TODO: event
-	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, dstAddr, c)
+	return k.bankK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, dstAddr, c)
+}
+
+// func to get module account adddress
+func (k Keeper) getModuleAddr(ctx sdk.Context) sdk.AccAddress {
+	return k.accountK.GetModuleAddress(types.ModuleName)
 }
 
 func getRefundAddr(recovery types.Recovery) sdk.AccAddress {

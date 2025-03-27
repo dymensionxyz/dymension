@@ -9,3 +9,5 @@ message EventWillRefund {
     // what caused the problem
     string errCause = 1;
 }
+
+    
