@@ -5,5 +5,11 @@ func (h *HookEIBCtoHL) ValidateBasic() error {
 }
 
 func (h *HookHLtoIBC) ValidateBasic() error {
+	err := h.Transfer.ValidateBasic()
+	if err != nil {
+		return err
+	}
+	// TODO: can check timeout height is zero(?)
+
 	return nil
 }

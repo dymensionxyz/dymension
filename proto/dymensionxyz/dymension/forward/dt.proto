@@ -8,12 +8,20 @@ import "ibc/applications/transfer/v1/tx.proto";
 
 // TODO: might need to add recovery address...
 
+
+// Used to deposit funds if something fails
+message Recovery {
+  
+  // This should be the hex address of the rollup chain. 
+  // All relevant transfers end up at the rollup or come from the rollupp, 
+  // so we can just use the same hex address as the recovery on the hub.
+  string address = 1;
+}
+
 // for eibc -> hyperlane
 message HookEIBCtoHL {
-  // TODO:
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
-  string foo = 2;
-  int64 bar = 3;
+  Recovery recovery = 4;
 }
 
 /*
@@ -25,4 +33,5 @@ How to test?
 */
 message HookHLtoIBC {
   ibc.applications.transfer.v1.MsgTransfer transfer = 1;
+  Recovery recovery = 2;
 }

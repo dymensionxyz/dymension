@@ -5,9 +5,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	types "github.com/dymensionxyz/dymension/v3/x/forward/types"
@@ -64,48 +66,37 @@ func (k Keeper) doForwardHook(ctx sdk.Context, order *eibctypes.DemandOrder, fun
 // for transfers coming from eibc which are being forwarded (to HL)
 func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, d types.HookEIBCtoHL) error {
 
-	// m := warptypes.MsgRemoteTransfer{
-	// 	TokenId:            tokenId,
-	// 	DestinationDomain:  uint32(destinationDomain),
-	// 	Sender:             clientCtx.GetFromAddress().String(),
-	// 	Recipient:          recipient,
-	// 	Amount:             argAmount,
-	// 	CustomHookId:       parsedHookId,
-	// 	GasLimit:           gasLimitInt,
-	// 	MaxFee:             maxFeeCoin,
-	// 	CustomHookMetadata: customHookMetadata,
-	// }
+	// TODO: anything to change?
+	m := &warptypes.MsgRemoteTransfer{
+		Sender:             d.HyperlaneTransfer.Sender,
+		TokenId:            d.HyperlaneTransfer.TokenId,
+		DestinationDomain:  d.HyperlaneTransfer.DestinationDomain,
+		Recipient:          d.HyperlaneTransfer.Recipient,
+		Amount:             d.HyperlaneTransfer.Amount,
+		CustomHookId:       d.HyperlaneTransfer.CustomHookId,
+		GasLimit:           d.HyperlaneTransfer.GasLimit,
+		MaxFee:             d.HyperlaneTransfer.MaxFee,
+		CustomHookMetadata: d.HyperlaneTransfer.CustomHookMetadata,
+	}
 
-	res, err := k.warpServer.RemoteTransfer(ctx, d.HyperlaneTransfer)
+	res, err := k.warpServer.RemoteTransfer(ctx, m)
 	if err != nil {
 		return errorsmod.Wrap(err, "remote transfer")
 	}
 	_ = res
 
-	// var token warptypes.HypToken
-	// var dst uint32
-	// var recipient util.HexAddress
-	// var amount math.Int
-	// var customHookId *util.HexAddress
-	// var gasLimit math.Int
-	// var maxFee sdk.Coin
-	// var customHookMetadata []byte
-
-	// k.warpKeeper.RemoteTransferCollateral(ctx,
-	// 	token,
-	// 	fundsSource.String(),
-	// 	dst,
-	// 	recipient,
-	// 	amount,
-	// 	customHookId,
-	// 	gasLimit,
-	// 	maxFee,
-	// 	customHookMetadata,
-	// )
-
 	return nil
 
 }
+
+/*
+TODO's when I get back:
+	- Can write the refunds to the recovery address
+		HL -> EIBC, tokens are in module account
+		EIBC -> Hyperlane, tokens are in user account
+	- Should test the happy path e2e
+	- Need to also reanalize the ibc test I wrote to see if I can include finalization or something
+*/
 
 /*
 Does it make sense to store funds directly in module?
@@ -172,6 +163,8 @@ High level investigations:
 
 // for inbound warp route transfers. At this point, the tokens are in the hyperlane warp module still
 func (k Keeper) Handle(goCtx context.Context, args warpkeeper.DymHookArgs) error {
+	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
+	// it would be more flexible and allow memo forwarding
 	var d types.HookHLtoIBC
 	err := proto.Unmarshal(args.Memo, &d)
 	if err != nil {
@@ -184,28 +177,28 @@ func (k Keeper) Handle(goCtx context.Context, args warpkeeper.DymHookArgs) error
 }
 
 func (k Keeper) transferTokensHyperlaneToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer) error {
+	var (
+		token            = transfer.Token
+		sender           = transfer.Sender
+		recipient        = transfer.Receiver
+		timeoutTimestamp = transfer.TimeoutTimestamp
+		memo             string
+	)
+	ibctransfertypes.NewMsgTransfer(
+		"transfer",
+		"channel-0",
+		token,
+		sender,
+		recipient,
+		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
+		timeoutTimestamp,
+		memo,
+	)
+	res, err := k.transferKeeper.Transfer(ctx, transfer)
+	if err != nil {
+		return errorsmod.Wrap(err, "transfer")
+	}
+	_ = res
+	// TODO:
 	return nil
-
 }
-
-// func (k Keeper) transferTokensHyperlaneToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer) error {
-// 	var (
-// 		token         = transfer.Token
-// 		amount        = transfer.Amount
-// 		sender        = transfer.Sender
-// 		recipient     = transfer.Receiver
-// 		timeoutHeight = transfer.TimeoutHeight
-// 	)
-// 	k.transferKeeper.Transfer(
-// 		ctx,
-// 		&ibctransfertypes.MsgTransfer{
-// 			SourcePort:       "transfer",
-// 			SourceChannel:    "channel-0",
-// 			Token:            token,
-// 			Sender:           sender,
-// 			Receiver:         recipient,
-// 			TimeoutHeight:    &types.Height{},
-// 			TimeoutTimestamp: 0,
-// 		},
-// 	)
-// }
