@@ -43,25 +43,24 @@ func CmdForwardMemo() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			eibcFee := args[0]
-
 			_, err := strconv.Atoi(eibcFee)
 			if err != nil {
-				return fmt.Errorf("invalid eibc fee")
+				return fmt.Errorf("invalid eibc fee: %w", err)
 			}
 
 			tokenId, err := hyperutil.DecodeHexAddress(args[1])
 			if err != nil {
-				return err
+				return fmt.Errorf("invalid token id: %w", err)
 			}
 
 			destinationDomain, err := strconv.ParseUint(args[2], 10, 32)
 			if err != nil {
-				return err
+				return fmt.Errorf("invalid destination domain: %w", err)
 			}
 
 			recipient, err := hyperutil.DecodeHexAddress(args[3])
 			if err != nil {
-				return err
+				return fmt.Errorf("invalid recipient: %w", err)
 			}
 
 			amount, ok := math.NewIntFromString(args[4])
@@ -71,7 +70,7 @@ func CmdForwardMemo() *cobra.Command {
 
 			maxFee, err := sdk.ParseCoinNormalized(args[5])
 			if err != nil {
-				return err
+				return fmt.Errorf("invalid max fee: %w", err)
 			}
 
 			// TODO: fix
