@@ -98,6 +98,7 @@ func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.Ms
 		transfer.TimeoutTimestamp,
 		string(memo), // TODO: conversion ok?
 	)
+
 	_, err := k.transferK.Transfer(ctx, transfer) // TODO: response?
 	return err
 }

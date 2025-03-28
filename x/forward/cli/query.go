@@ -6,12 +6,14 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	"github.com/dymensionxyz/dymension/v3/x/forward/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
@@ -100,6 +102,22 @@ func CmdForwardMemo() *cobra.Command {
 	return cmd
 }
 
+/*
+What is the memo actually supposed to be
+{
+eibc:..,
+fulfill_hook:
+
+	BYTES(
+		type FulfillHook struct {
+			HookName string = 'forward'
+			HookData BYTES(HookEIBCtoHL)
+		}
+	)
+
+)
+}
+*/
 func NewForwardMemo(
 	eibcFee string,
 	tokenId hyperutil.HexAddress,
@@ -134,5 +152,10 @@ func NewForwardMemo(
 		return "", err
 	}
 
-	return utransfer.CreateMemo(eibcFee, hook.HookData), nil
+	bz, err := proto.Marshal(&hook)
+	if err != nil {
+		return "", err
+	}
+
+	return utransfer.CreateMemo(eibcFee, bz), nil
 }

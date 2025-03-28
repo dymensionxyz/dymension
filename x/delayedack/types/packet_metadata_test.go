@@ -42,7 +42,19 @@ func Test_parsePacketMetadata(t *testing.T) {
 			},
 			false,
 		},
-
+		{
+			"real hook",
+			args{
+				` "{"eibc":{"fee":"100","fulfill_hook":"Ct4BEkIweDcyNmY3NTc0NjU3MjVmNjE3MDcwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMTAwMDAwMDAwMDAwMDAwMDEYASJCMHg5MzRiODY3MDUyY2E5YzY1ZTMzMzYyMTEyZjM1ZmI1NDhmODczMmMyZmU0NWYwN2I5YzU5MTk1OGU4NjVkZWYwKgMyOTk6ATBCSgpEaWJjLzlBMUVBQ0Q1M0E2QTE5N0FEQzgxREY5QTQ5RjBDNEEyNkY3RkY2ODVBQ0Y0MTVFRTcyNkQ3RDU5Nzk2RTcxQTcSAjIwIiwKKmR5bTEzOW1xNzUyZGVseHY3OGp2dG13eGhhc3lyeWN1ZnN2cnc0YWthOQ=="}}"`,
+			},
+			&PacketMetadata{
+				EIBC: &EIBCMetadata{
+					Fee:         "100",
+					FulfillHook: []byte{123},
+				},
+			},
+			false,
+		},
 		{
 			"invalid - misquoted fee",
 			args{

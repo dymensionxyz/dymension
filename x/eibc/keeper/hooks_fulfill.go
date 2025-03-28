@@ -26,7 +26,7 @@ type FulfillHooks map[string]FulfillHook
 func (h FulfillHooks) validate(info types.FulfillHook) error {
 	f, ok := h[info.HookName]
 	if !ok {
-		return gerrc.ErrNotFound.Wrapf("hook %s", info.HookName)
+		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
 	}
 	return f.ValidateData(info.HookData)
 }
