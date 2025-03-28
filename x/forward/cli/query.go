@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -152,7 +151,7 @@ func NewForwardMemo(
 		return "", err
 	}
 
-	bz, err := proto.Marshal(&hook)
+	bz, err := proto.Marshal(hook)
 	if err != nil {
 		return "", err
 	}

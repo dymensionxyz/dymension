@@ -32,7 +32,7 @@ hub tx hyperlane mailbox set $MAILBOX --default-hook $NOOP_HOOK --required-hook 
 # create warp route
 DENOM="adym" # TODO: check
 hub tx hyperlane-transfer create-collateral-token $MAILBOX $DENOM "${DAN_FLAGS[@]}"
-TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[0].id' -r); echo $TOKEN_ID;
+TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[1].id' -r); echo $TOKEN_ID;
 
 # TODO: can optionally set override ISM for this token
 

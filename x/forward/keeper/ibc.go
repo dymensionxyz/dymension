@@ -17,13 +17,13 @@ const (
 
 var _ eibckeeper.FulfillHook = eIBCHook{}
 
-func NewEIBCFulfillHook(payload *types.HookEIBCtoHL) (eibctypes.FulfillHook, error) {
+func NewEIBCFulfillHook(payload *types.HookEIBCtoHL) (*eibctypes.FulfillHook, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
-		return eibctypes.FulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
+		return &eibctypes.FulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
 	}
 
-	return eibctypes.FulfillHook{
+	return &eibctypes.FulfillHook{
 		HookName: HookNameForward,
 		HookData: bz,
 	}, nil
