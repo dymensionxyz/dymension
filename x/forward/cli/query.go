@@ -34,8 +34,8 @@ func GetQueryCmd() *cobra.Command {
 
 func CmdForwardMemo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "forward [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee]",
-		Args:  cobra.ExactArgs(6),
+		Use:   "forward [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address]",
+		Args:  cobra.ExactArgs(7),
 		Short: "Create a forward memo for IBC transfer",
 
 		DisableFlagParsing:         true,
@@ -74,7 +74,8 @@ func CmdForwardMemo() *cobra.Command {
 			}
 
 			// TODO: fix
-			recovery := "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
+			// recovery := "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
+			recovery := args[6]
 
 			memo, err := NewForwardMemo(
 				eibcFee,
@@ -127,6 +128,9 @@ func NewForwardMemo(
 		),
 	)
 	if err != nil {
+		return "", err
+	}
+	if err := hook.ValidateBasic(); err != nil {
 		return "", err
 	}
 

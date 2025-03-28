@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // sender is computed
@@ -42,6 +43,9 @@ func (h *HookEIBCtoHL) ValidateBasic() error {
 	err := h.Recovery.ValidateBasic()
 	if err != nil {
 		return err
+	}
+	if h.HyperlaneTransfer == nil {
+		return gerrc.ErrInvalidArgument
 	}
 	return nil
 }
