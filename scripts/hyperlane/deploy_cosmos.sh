@@ -46,17 +46,18 @@ ETH_TOKEN_CONTRACT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e8
 DST_DOMAIN=1
 # token, dst domain, recipient contract, gas required on dst chain
 hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${DAN_FLAGS[@]}"
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers
 
 # transfer
 # token, dst domain, recipient, amount
-ETH_RECIPIENT="0xc5a5C42992dECbae36851359345FE25997F5C42d" # TODO: check
+ETH_RECIPIENT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0" # TODO: check
 # optionally
 # 	custom-hook-id: ""
 # 	custom-hook-metadata: ""
 # 	gas-limit: 0
 # 	max-hyperlane-fee 0
 TOKEN_AMT=1000
-hub tx hyperlane-transfer transfer $TOKEN_ID $DST_DOMAIN $ETH_RECIPIENT $TOKEN_AMT --max-hyperlane-fee 0adym "${DAN_FLAGS[@]}"
+hub tx hyperlane-transfer transfer $TOKEN_ID $DST_DOMAIN $ETH_RECIPIENT $TOKEN_AMT --max-hyperlane-fee 200adym "${DAN_FLAGS[@]}"
 curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
 
 # Queries
