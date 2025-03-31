@@ -72,17 +72,17 @@ func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTran
 
 func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo []byte) error {
 
-	ibctransfertypes.NewMsgTransfer(
+	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
 		transfer.SourceChannel,
 		maxBudget,
-		k.getModuleAddr(ctx).String(), // sender is module
+		k.getModuleAddr().String(), // sender is module
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
 		string(memo), // TODO: conversion ok?
 	)
 
-	_, err := k.transferK.Transfer(ctx, transfer) // TODO: response?
+	_, err := k.transferK.Transfer(ctx, m) // TODO: response?
 	return err
 }

@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -71,9 +72,7 @@ func NewHookHLtoIBC(
 	recoveryAddr string,
 ) *HookHLtoIBC {
 
-	// use some abitrary sender address to pass validate basic
-	pref := sdk.GetConfig().GetBech32AccountAddrPrefix()
-	arbSender := sdk.AccAddress(pref + "1")
+	arbSender, _ := sample.AccFromSecret("foo")
 
 	return &HookHLtoIBC{
 		Transfer: &ibctransfertypes.MsgTransfer{
@@ -100,6 +99,12 @@ func UnpackMemoFromHyperlane(bz []byte) (*HookHLtoIBC, []byte, error) {
 }
 
 func (h *HookHLtoIBC) ValidateBasic() error {
+	if h.Transfer == nil {
+		return gerrc.ErrInvalidArgument.Wrap("transfer is nil")
+	}
+	if h.Recovery == nil {
+		return gerrc.ErrInvalidArgument.Wrap("recovery is nil")
+	}
 	err := h.Transfer.ValidateBasic()
 	if err != nil {
 		return errorsmod.Wrap(err, "transfer")

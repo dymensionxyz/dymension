@@ -18,7 +18,7 @@ func (k Keeper) refundFromModule(ctx sdk.Context, dstAddr sdk.AccAddress, c sdk.
 }
 
 // func to get module account adddress
-func (k Keeper) getModuleAddr(ctx sdk.Context) sdk.AccAddress {
+func (k Keeper) getModuleAddr() sdk.AccAddress {
 	return k.accountK.GetModuleAddress(types.ModuleName)
 }
 

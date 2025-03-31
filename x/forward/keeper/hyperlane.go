@@ -75,7 +75,7 @@ func (k Keeper) forwardToHyperlaneInner(ctx sdk.Context, order *eibctypes.Demand
 	m := &warptypes.MsgDymRemoteTransfer{
 		Inner: &warptypes.MsgRemoteTransfer{
 
-			Sender:            k.getModuleAddr(ctx).String(),
+			Sender:            k.getModuleAddr().String(),
 			TokenId:           d.HyperlaneTransfer.TokenId,
 			DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
 			Recipient:         d.HyperlaneTransfer.Recipient,
