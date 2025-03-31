@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 
-	// import eibc transfer keeper
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
@@ -35,6 +34,10 @@ func NewKeeper(
 	service storetypes.KVStoreService,
 	warpKeeper types.WarpRouteKeeper,
 	bankKeeper types.BankKeeper,
+	accountKeeper types.AccountKeeper,
+	transferKeeper transferkeeper.Keeper,
+	warpQueryServer warptypes.QueryServer,
+	warpMsgServer warptypes.MsgServer,
 ) *Keeper {
 
 	sb := collections.NewSchemaBuilder(service)
@@ -47,10 +50,14 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:    cdc,
-		Schema: schema,
-		warpK:  warpKeeper,
-		bankK:  bankKeeper,
+		cdc:       cdc,
+		Schema:    schema,
+		warpK:     warpKeeper,
+		bankK:     bankKeeper,
+		accountK:  accountKeeper,
+		transferK: transferKeeper,
+		warpQ:     warpQueryServer,
+		warpS:     warpMsgServer,
 	}
 }
 
