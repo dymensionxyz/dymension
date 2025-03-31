@@ -4,13 +4,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	warpkeeper "github.com/dymensionxyz/dymension/v3/x/warp/keeper"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -182,29 +182,58 @@ func NewForwardMemo(
 }
 
 func NewHyperlaneMessage(
-	counterpartyDomain uint32, // e.g. 1 for Ethereum
-	counterpartyContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
-	localDomain uint32, // e.g. 0 for Dymension
-	tokenId hyperutil.HexAddress,
-	recipient sdk.AccAddress,
-	amount math.Int,
+	hyperlaneNonce uint32,
+	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
+	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
+	hyperlaneDstDomain uint32, // e.g. 0 for Dymension
+	hyperlaneTokenID hyperutil.HexAddress,
+	hyperlaneRecipient sdk.AccAddress, // TODO: explain, ignored?
+	hyperlaneTokenAmt math.Int, // must be at least hub token amount
+	ibcSourceChan string, // e.g. channel-0
+	ibcRecipient string, // address e.g. ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk
+	hubToken sdk.Coin, // e.g. 50ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7
+	ibcTimeoutTimestamp uint64, // e.g. 1000000000000000000
 ) (hyperutil.HyperlaneMessage, error) {
 
-	var memoBz []byte
+	hook := NewHookHLtoIBC(
+		"transfer",
+		ibcSourceChan,
+		hubToken,
+		ibcRecipient,
+		ibcTimeoutTimestamp,
+	)
+
+	memoBz, err := proto.Marshal(hook)
+	if err != nil {
+		return hyperutil.HyperlaneMessage{}, err
+	}
 
 	hlM, err := warpkeeper.CreateTestMessage(
 		1,
-		1,
-		counterpartyDomain,
-		counterpartyContract,
-		localDomain,
-		tokenId,
-		recipient,
-		amount,
+		hyperlaneNonce,
+		hyperlaneSrcDomain,
+		hyperlaneSrcContract,
+		hyperlaneDstDomain,
+		hyperlaneTokenID,
+		hyperlaneRecipient,
+		hyperlaneTokenAmt,
 		memoBz,
 	)
 	if err != nil {
 		return hyperutil.HyperlaneMessage{}, err
+	}
+
+	// sanity
+	{
+		s := hlM.String()
+		decded, err := hyperutil.DecodeEthHex(s)
+		if err != nil {
+			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
+		}
+		_, err = hyperutil.ParseHyperlaneMessage(decded)
+		if err != nil {
+			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "parse hl message")
+		}
 	}
 
 	return hlM, nil

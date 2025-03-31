@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/spf13/cobra"
@@ -121,59 +122,86 @@ func CmdForwardMemo() *cobra.Command {
 
 func CmdHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "hyperlane-message [counterparty-domain] [counterparty-contract] [local-domain] [token-id] [recipient] [amount]",
-		Args:  cobra.ExactArgs(6),
-		Short: "Create a forward memo for IBC transfer",
+		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyplerlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
+		Args:  cobra.ExactArgs(11),
+		Short: "Create a hyperlane message for IBC transfer",
+		Example: `
+		hyperlane-message 1 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			counterpartyDomain, err := strconv.ParseUint(args[0], 10, 32)
+			hlNonce, err := strconv.ParseUint(args[0], 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid nonce: %w", err)
+			}
+
+			hlSrcDomain, err := strconv.ParseUint(args[1], 10, 32)
 			if err != nil {
 				return fmt.Errorf("invalid counterparty domain: %w", err)
 			}
 
-			// need to decode hex addresses
-			counterpartyContract, err := hyperutil.DecodeHexAddress(args[1])
+			hlSrcContract, err := hyperutil.DecodeHexAddress(args[2])
 			if err != nil {
 				return fmt.Errorf("invalid counterparty contract: %w", err)
 			}
 
-			localDomain, err := strconv.ParseUint(args[2], 10, 32)
+			hlDstDomain, err := strconv.ParseUint(args[3], 10, 32)
 			if err != nil {
 				return fmt.Errorf("invalid local domain: %w", err)
 			}
 
-			tokenId, err := hyperutil.DecodeHexAddress(args[3])
+			hlTokenID, err := hyperutil.DecodeHexAddress(args[4])
 			if err != nil {
 				return fmt.Errorf("invalid token id: %w", err)
 			}
 
-			recipient, err := sdk.AccAddressFromBech32(args[4])
+			hlRecipient, err := sdk.AccAddressFromBech32(args[5])
 			if err != nil {
 				return fmt.Errorf("invalid recipient address: %w", err)
 			}
 
-			amount, ok := math.NewIntFromString(args[5])
+			hlAmt, ok := math.NewIntFromString(args[6])
 			if !ok {
 				return fmt.Errorf("invalid amount")
 			}
 
-			m, err := types.NewHyperlaneMessage(
-				uint32(counterpartyDomain),
-				counterpartyContract,
-				uint32(localDomain),
-				tokenId,
-				recipient,
-				amount,
-			)
+			ibcSourceChan := args[7]
+
+			ibcRecipient := args[8]
+
+			hubToken, err := sdk.ParseCoinNormalized(args[9])
 			if err != nil {
-				return fmt.Errorf("invalid memo: %w", err)
+				return fmt.Errorf("invalid hub token: %w", err)
 			}
 
-			bz := m.Bytes()
-			fmt.Println(bz)
+			ibcTimeoutDuration, err := time.ParseDuration(args[10])
+			if err != nil {
+				return fmt.Errorf("invalid ibc timeout duration: %w", err)
+			}
+
+			ibcTimeoutTimestamp := uint64(ibcTimeoutDuration.Seconds())
+
+			m, err := types.NewHyperlaneMessage(
+				uint32(hlNonce),
+				uint32(hlSrcDomain),
+				hlSrcContract,
+				uint32(hlDstDomain),
+				hlTokenID,
+				hlRecipient,
+				hlAmt,
+				ibcSourceChan,
+				ibcRecipient,
+				hubToken,
+				ibcTimeoutTimestamp,
+			)
+			if err != nil {
+				return fmt.Errorf("new hl message: %w", err)
+			}
+
+			s := m.String()
+			fmt.Println(s)
 			return nil
 		},
 	}
