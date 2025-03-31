@@ -11,23 +11,7 @@ import (
 	types "github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
-const (
-	HookNameForward = "forward"
-)
-
 var _ eibckeeper.FulfillHook = eIBCHook{}
-
-func NewEIBCFulfillHook(payload *types.HookEIBCtoHL) (*eibctypes.FulfillHook, error) {
-	bz, err := proto.Marshal(payload)
-	if err != nil {
-		return &eibctypes.FulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
-	}
-
-	return &eibctypes.FulfillHook{
-		HookName: HookNameForward,
-		HookData: bz,
-	}, nil
-}
 
 func (k Keeper) Hook() eIBCHook {
 	return eIBCHook{

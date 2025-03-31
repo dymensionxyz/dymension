@@ -8,7 +8,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+)
+
+const (
+	HookNameForward = "forward"
 )
 
 // sender is computed
@@ -118,4 +124,58 @@ func (r *Recovery) AccAddr() (sdk.AccAddress, error) {
 
 func (r *Recovery) MustAddr() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(r.Address)
+}
+
+func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*eibctypes.FulfillHook, error) {
+	bz, err := proto.Marshal(payload)
+	if err != nil {
+		return &eibctypes.FulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
+	}
+
+	return &eibctypes.FulfillHook{
+		HookName: HookNameForward,
+		HookData: bz,
+	}, nil
+}
+
+func NewForwardMemo(
+	eibcFee string,
+	tokenId hyperutil.HexAddress,
+	destinationDomain uint32,
+	recipient hyperutil.HexAddress,
+	amount math.Int,
+	maxFee sdk.Coin,
+
+	recoveryAddr string,
+
+	gasLimit math.Int,
+	customHookId *hyperutil.HexAddress,
+	customHookMetadata string) (string, error) {
+
+	hook, err := NewEIBCFulfillHook(
+		NewHookEIBCtoHL(
+			NewRecovery(recoveryAddr),
+			tokenId,
+			destinationDomain,
+			recipient,
+			amount,
+			maxFee,
+			gasLimit,
+			customHookId,
+			customHookMetadata,
+		),
+	)
+	if err != nil {
+		return "", err
+	}
+	if err := hook.ValidateBasic(); err != nil {
+		return "", err
+	}
+
+	bz, err := proto.Marshal(hook)
+	if err != nil {
+		return "", err
+	}
+
+	return utransfer.CreateMemo(eibcFee, bz), nil
 }

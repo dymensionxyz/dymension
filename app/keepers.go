@@ -555,7 +555,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.EIBCKeeper.SetFulfillHooks(
 		map[string]eibckeeper.FulfillHook{
-			forwardkeeper.HookNameForward: a.ForwardKeeper.Hook(),
+			forwardtypes.HookNameForward: a.ForwardKeeper.Hook(),
 		},
 	)
 

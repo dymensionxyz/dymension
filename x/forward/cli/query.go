@@ -12,9 +12,6 @@ import (
 
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
-	"github.com/dymensionxyz/dymension/v3/x/forward/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
@@ -78,7 +75,7 @@ func CmdForwardMemo() *cobra.Command {
 			// recovery := "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
 			recovery := args[6]
 
-			memo, err := NewForwardMemo(
+			memo, err := types.NewForwardMemo(
 				eibcFee,
 				tokenId,
 				uint32(destinationDomain),
@@ -117,44 +114,3 @@ fulfill_hook:
 )
 }
 */
-func NewForwardMemo(
-	eibcFee string,
-	tokenId hyperutil.HexAddress,
-	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
-	amount math.Int,
-	maxFee sdk.Coin,
-
-	recoveryAddr string,
-
-	gasLimit math.Int,
-	customHookId *hyperutil.HexAddress,
-	customHookMetadata string) (string, error) {
-
-	hook, err := keeper.NewEIBCFulfillHook(
-		types.NewHookEIBCtoHL(
-			types.NewRecovery(recoveryAddr),
-			tokenId,
-			destinationDomain,
-			recipient,
-			amount,
-			maxFee,
-			gasLimit,
-			customHookId,
-			customHookMetadata,
-		),
-	)
-	if err != nil {
-		return "", err
-	}
-	if err := hook.ValidateBasic(); err != nil {
-		return "", err
-	}
-
-	bz, err := proto.Marshal(hook)
-	if err != nil {
-		return "", err
-	}
-
-	return utransfer.CreateMemo(eibcFee, bz), nil
-}
