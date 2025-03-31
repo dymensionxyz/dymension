@@ -4,6 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,15 +68,23 @@ func NewHookHLtoIBC(
 	token sdk.Coin,
 	receiver string,
 	timeoutTimestamp uint64,
+	recoveryAddr string,
 ) *HookHLtoIBC {
+
+	// use some abitrary sender address to pass validate basic
+	pref := sdk.GetConfig().GetBech32AccountAddrPrefix()
+	arbSender := sdk.AccAddress(pref + "1")
+
 	return &HookHLtoIBC{
 		Transfer: &ibctransfertypes.MsgTransfer{
 			SourcePort:       sourcePort,
 			SourceChannel:    sourceChannel,
 			Token:            token,
+			Sender:           arbSender.String(),
 			Receiver:         receiver,
 			TimeoutTimestamp: timeoutTimestamp,
 		},
+		Recovery: NewRecovery(recoveryAddr),
 	}
 }
 
@@ -93,11 +102,11 @@ func UnpackMemoFromHyperlane(bz []byte) (*HookHLtoIBC, []byte, error) {
 func (h *HookHLtoIBC) ValidateBasic() error {
 	err := h.Transfer.ValidateBasic()
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "transfer")
 	}
 	err = h.Recovery.ValidateBasic()
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "recovery")
 	}
 	return nil
 }
@@ -193,6 +202,7 @@ func NewHyperlaneMessage(
 	ibcRecipient string, // address e.g. ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk
 	hubToken sdk.Coin, // e.g. 50ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7
 	ibcTimeoutTimestamp uint64, // e.g. 1000000000000000000
+	recoveryAddr string, // funds recovery address on hub, e.g. dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz
 ) (hyperutil.HyperlaneMessage, error) {
 
 	hook := NewHookHLtoIBC(
@@ -201,7 +211,12 @@ func NewHyperlaneMessage(
 		hubToken,
 		ibcRecipient,
 		ibcTimeoutTimestamp,
+		recoveryAddr,
 	)
+
+	if err := hook.ValidateBasic(); err != nil {
+		return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
+	}
 
 	memoBz, err := proto.Marshal(hook)
 	if err != nil {
@@ -209,7 +224,7 @@ func NewHyperlaneMessage(
 	}
 
 	hlM, err := warpkeeper.CreateTestMessage(
-		1,
+		hypercoretypes.MESSAGE_VERSION,
 		hyperlaneNonce,
 		hyperlaneSrcDomain,
 		hyperlaneSrcContract,
@@ -226,11 +241,11 @@ func NewHyperlaneMessage(
 	// sanity
 	{
 		s := hlM.String()
-		decded, err := hyperutil.DecodeEthHex(s)
+		decoded, err := hyperutil.DecodeEthHex(s)
 		if err != nil {
 			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
 		}
-		_, err = hyperutil.ParseHyperlaneMessage(decded)
+		_, err = hyperutil.ParseHyperlaneMessage(decoded)
 		if err != nil {
 			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "parse hl message")
 		}

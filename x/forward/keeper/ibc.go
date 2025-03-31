@@ -76,7 +76,7 @@ func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.Ms
 		transfer.SourcePort,
 		transfer.SourceChannel,
 		maxBudget,
-		k.getModuleAddr(ctx).String(),
+		k.getModuleAddr(ctx).String(), // sender is module
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,

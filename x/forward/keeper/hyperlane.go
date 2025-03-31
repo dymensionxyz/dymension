@@ -28,10 +28,15 @@ func (k Keeper) OnHyperlane(goCtx context.Context, args warpkeeper.DymHookArgs) 
 		return err
 	}
 
+	// TODO: impl next memo fetching properly
 	d, nextMemo, err := types.UnpackMemoFromHyperlane(args.Memo)
 	if err != nil {
 		// user is a bit screwed in this case since the tokens can never be refunded
 		return errorsmod.Wrap(err, "unpack memo from hyperlane")
+	}
+
+	if err := d.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "validate basic")
 	}
 
 	k.forwardToIBC(ctx, d.Transfer, *d.Recovery, args.Coins[0], nextMemo)

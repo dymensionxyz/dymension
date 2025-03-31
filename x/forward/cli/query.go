@@ -122,11 +122,11 @@ func CmdForwardMemo() *cobra.Command {
 
 func CmdHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyplerlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
-		Args:  cobra.ExactArgs(11),
-		Short: "Create a hyperlane message for IBC transfer",
+		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
+		Args:  cobra.ExactArgs(12),
+		Short: "Create a hyperlane message for testing Hl -> IBC",
 		Example: `
-		hyperlane-message 1 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
+		dymd q forward hyperlane-message 1 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -183,6 +183,8 @@ func CmdHyperlaneMessage() *cobra.Command {
 
 			ibcTimeoutTimestamp := uint64(ibcTimeoutDuration.Seconds())
 
+			recovery := args[11]
+
 			m, err := types.NewHyperlaneMessage(
 				uint32(hlNonce),
 				uint32(hlSrcDomain),
@@ -195,6 +197,7 @@ func CmdHyperlaneMessage() *cobra.Command {
 				ibcRecipient,
 				hubToken,
 				ibcTimeoutTimestamp,
+				recovery,
 			)
 			if err != nil {
 				return fmt.Errorf("new hl message: %w", err)
