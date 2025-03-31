@@ -87,6 +87,9 @@ func CmdForwardMemo() *cobra.Command {
 				nil,
 				"",
 			)
+			if err != nil {
+				return fmt.Errorf("invalid memo: %w", err)
+			}
 
 			fmt.Println(memo)
 			return nil
