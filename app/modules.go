@@ -173,6 +173,8 @@ func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(forwardtypes.ModuleName).String()] = false // allowed because it invokes IBC transfers
+
 	// TODO: need HL?
 	return modAccAddrs
 }
