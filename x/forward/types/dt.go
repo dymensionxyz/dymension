@@ -10,6 +10,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	warpkeeper "github.com/dymensionxyz/dymension/v3/x/warp/keeper"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -178,4 +179,33 @@ func NewForwardMemo(
 	}
 
 	return utransfer.CreateMemo(eibcFee, bz), nil
+}
+
+func NewHyperlaneMessage(
+	counterpartyDomain uint32, // e.g. 1 for Ethereum
+	counterpartyContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
+	localDomain uint32, // e.g. 0 for Dymension
+	tokenId hyperutil.HexAddress,
+	recipient sdk.AccAddress,
+	amount math.Int,
+) (hyperutil.HyperlaneMessage, error) {
+
+	var memoBz []byte
+
+	hlM, err := warpkeeper.CreateTestMessage(
+		1,
+		1,
+		counterpartyDomain,
+		counterpartyContract,
+		localDomain,
+		tokenId,
+		recipient,
+		amount,
+		memoBz,
+	)
+	if err != nil {
+		return hyperutil.HyperlaneMessage{}, err
+	}
+
+	return hlM, nil
 }

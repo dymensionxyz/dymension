@@ -26,6 +26,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdForwardMemo())
+	cmd.AddCommand(CmdHyperlaneMessage())
 
 	return cmd
 }
@@ -39,6 +40,23 @@ func CmdForwardMemo() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			/*
+			   What is the memo actually supposed to be
+			   {
+			   eibc:..,
+			   fulfill_hook:
+
+			   	BYTES(
+			   		type FulfillHook struct {
+			   			HookName string = 'forward'
+			   			HookData BYTES(HookEIBCtoHL)
+			   		}
+			   	)
+
+			   )
+			   }
+			*/
 
 			eibcFee := args[0]
 			_, err := strconv.Atoi(eibcFee)
@@ -101,19 +119,66 @@ func CmdForwardMemo() *cobra.Command {
 	return cmd
 }
 
-/*
-What is the memo actually supposed to be
-{
-eibc:..,
-fulfill_hook:
+func CmdHyperlaneMessage() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "hyperlane-message [counterparty-domain] [counterparty-contract] [local-domain] [token-id] [recipient] [amount]",
+		Args:  cobra.ExactArgs(6),
+		Short: "Create a forward memo for IBC transfer",
 
-	BYTES(
-		type FulfillHook struct {
-			HookName string = 'forward'
-			HookData BYTES(HookEIBCtoHL)
-		}
-	)
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
 
-)
+			counterpartyDomain, err := strconv.ParseUint(args[0], 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid counterparty domain: %w", err)
+			}
+
+			// need to decode hex addresses
+			counterpartyContract, err := hyperutil.DecodeHexAddress(args[1])
+			if err != nil {
+				return fmt.Errorf("invalid counterparty contract: %w", err)
+			}
+
+			localDomain, err := strconv.ParseUint(args[2], 10, 32)
+			if err != nil {
+				return fmt.Errorf("invalid local domain: %w", err)
+			}
+
+			tokenId, err := hyperutil.DecodeHexAddress(args[3])
+			if err != nil {
+				return fmt.Errorf("invalid token id: %w", err)
+			}
+
+			recipient, err := sdk.AccAddressFromBech32(args[4])
+			if err != nil {
+				return fmt.Errorf("invalid recipient address: %w", err)
+			}
+
+			amount, ok := math.NewIntFromString(args[5])
+			if !ok {
+				return fmt.Errorf("invalid amount")
+			}
+
+			m, err := types.NewHyperlaneMessage(
+				uint32(counterpartyDomain),
+				counterpartyContract,
+				uint32(localDomain),
+				tokenId,
+				recipient,
+				amount,
+			)
+			if err != nil {
+				return fmt.Errorf("invalid memo: %w", err)
+			}
+
+			bz := m.Bytes()
+			fmt.Println(bz)
+			return nil
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
-*/
