@@ -181,7 +181,7 @@ func CmdHyperlaneMessage() *cobra.Command {
 				return fmt.Errorf("invalid ibc timeout duration: %w", err)
 			}
 
-			ibcTimeoutTimestamp := uint64(ibcTimeoutDuration.Seconds())
+			ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
 
 			recovery := args[11]
 
