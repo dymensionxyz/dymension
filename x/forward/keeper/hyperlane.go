@@ -87,6 +87,7 @@ func (k Keeper) forwardToHyperlaneInner(ctx sdk.Context, order *eibctypes.Demand
 	}
 
 	_, err = k.warpS.DymRemoteTransfer(ctx, m) // TODO: responsse?
+	err = errorsmod.Wrap(err, "dym remote transfer")
 	return err
 
 }
