@@ -49,7 +49,7 @@ func CreateUpgradeHandler(
 		// fix V50 x/gov params
 		migrateGovParams(ctx, keepers.GovKeeper)
 
-		// FIXME: initilize endorsments object per rollapp
+		// FIXME: initialize endorsements object per rollapp
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
