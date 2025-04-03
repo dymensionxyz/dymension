@@ -110,7 +110,10 @@ func CmdHyperlaneMessage() *cobra.Command {
 		Args:  cobra.ExactArgs(12),
 		Short: "Create a hyperlane message for testing Hl -> IBC",
 		Example: `
-		dymd q forward hyperlane-message 1 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
+		dymd q forward hyperlane-message 1 1
+0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0
+dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m
+dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
