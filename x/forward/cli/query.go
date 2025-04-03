@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"cosmossdk.io/math"
@@ -29,6 +30,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdForwardMemo())
 	cmd.AddCommand(CmdHyperlaneMessage())
+	cmd.AddCommand(CmdDecodeHyperlane())
 
 	return cmd
 }
@@ -201,7 +203,7 @@ func CmdDecodeHyperlane() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "hyperlane-decode (body | message) [hexstring]",
 		Args:                       cobra.ExactArgs(2),
-		Short:                      "Create a hyperlane message for testing Hl -> IBC",
+		Short:                      "Decode a message or message body from an ethereum hex string",
 		Example:                    `dymd q forward hyperlane-message-decode message 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -212,6 +214,9 @@ func CmdDecodeHyperlane() *cobra.Command {
 				return fmt.Errorf("invalid message type: %s", kind)
 			}
 			d := args[1]
+
+			d = strings.TrimSpace(d)
+			d = strings.ReplaceAll(d, "\"", "")
 
 			bz, err := hyperutil.DecodeEthHex(d)
 			if err != nil {
