@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
@@ -41,23 +42,6 @@ func CmdForwardMemo() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			/*
-			   What is the memo actually supposed to be
-			   {
-			   eibc:..,
-			   fulfill_hook:
-
-			   	BYTES(
-			   		type FulfillHook struct {
-			   			HookName string = 'forward'
-			   			HookData BYTES(HookEIBCtoHL)
-			   		}
-			   	)
-
-			   )
-			   }
-			*/
 
 			eibcFee := args[0]
 			_, err := strconv.Atoi(eibcFee)
@@ -90,8 +74,6 @@ func CmdForwardMemo() *cobra.Command {
 				return fmt.Errorf("invalid max fee: %w", err)
 			}
 
-			// TODO: fix
-			// recovery := "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
 			recovery := args[6]
 
 			memo, err := types.NewForwardMemo(
@@ -205,6 +187,59 @@ func CmdHyperlaneMessage() *cobra.Command {
 
 			s := m.String()
 			fmt.Println(s)
+			return nil
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// A quick util to debug hyperlane messages (including show the memo if there is one). Expects Ethereum Hex bytes
+func CmdDecodeHyperlane() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "hyperlane-decode (body | message) [hexstring]",
+		Args:                       cobra.ExactArgs(2),
+		Short:                      "Create a hyperlane message for testing Hl -> IBC",
+		Example:                    `dymd q forward hyperlane-message-decode message 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000`,
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			kind := args[0]
+			if kind != "body" && kind != "message" {
+				return fmt.Errorf("invalid message type: %s", kind)
+			}
+			d := args[1]
+
+			bz, err := hyperutil.DecodeEthHex(d)
+			if err != nil {
+				return fmt.Errorf("invalid hexstring: %w", err)
+			}
+
+			var message *hyperutil.HyperlaneMessage
+			var body []byte
+			if kind == "message" {
+				m, err := hyperutil.ParseHyperlaneMessage(bz)
+				if err != nil {
+					return fmt.Errorf("invalid: %w", err)
+				}
+				body = m.Body
+				message = &m
+			}
+			payload, err := warptypes.ParseWarpMemoPayload(body)
+			if err != nil {
+				return fmt.Errorf("invalid hexstring: %w", err)
+			}
+			fmt.Printf("hyperlane message: %+v\n", message)
+			fmt.Printf("token message: %+v\n", payload)
+
+			memo, _, err := types.UnpackMemoFromHyperlane(payload.Memo)
+			if err != nil {
+				return fmt.Errorf("invalid memo: %w", err)
+			}
+			fmt.Printf("eibc memo: %+v\n", memo)
 			return nil
 		},
 	}
