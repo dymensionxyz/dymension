@@ -31,10 +31,10 @@ func validEIBCForward(data []byte) error {
 	var d types.HookEIBCtoHL
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
-		return errorsmod.Wrap(err, "unmarshal forward hook")
+		return errorsmod.Wrap(err, "unmarshal")
 	}
 	if err := d.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "validate forward hook")
+		return errorsmod.Wrap(err, "validate")
 	}
 	return nil
 
@@ -51,7 +51,7 @@ func (k Keeper) onEIBC(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSourc
 	var d types.HookEIBCtoHL
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
-		return errorsmod.Wrap(err, "unmarshal forward hook")
+		return errorsmod.Wrap(err, "unmarshal")
 	}
 	err = k.escrowFromAccount(ctx, fundsSource, order.Price)
 	if err != nil {

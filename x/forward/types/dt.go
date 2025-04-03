@@ -195,6 +195,7 @@ func NewForwardMemo(
 	return utransfer.CreateMemo(eibcFee, bz), nil
 }
 
+// note, potentially expensive
 func NewHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
@@ -246,15 +247,32 @@ func NewHyperlaneMessage(
 	// sanity
 	{
 		s := hlM.String()
-		decoded, err := hyperutil.DecodeEthHex(s)
+		_, err := DecodeEthereumHexMessageToForwardMemo(s)
 		if err != nil {
 			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
-		}
-		_, err = hyperutil.ParseHyperlaneMessage(decoded)
-		if err != nil {
-			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "parse hl message")
 		}
 	}
 
 	return hlM, nil
+}
+
+// intended for tests/clients, expensive
+func DecodeEthereumHexMessageToForwardMemo(s string) (*HookHLtoIBC, error) {
+	decoded, err := hyperutil.DecodeEthHex(s)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "decode eth hex")
+	}
+	warpM, err := hyperutil.ParseHyperlaneMessage(decoded)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse hl message")
+	}
+	pl, err := warptypes.ParseWarpMemoPayload(warpM.Body)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse warp memo")
+	}
+	d, _, err := UnpackMemoFromHyperlane(pl.Memo)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
+	}
+	return d, nil
 }
