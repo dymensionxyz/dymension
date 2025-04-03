@@ -29,7 +29,7 @@ func (k Keeper) OnHyperlane(goCtx context.Context, args warpkeeper.DymHookArgs) 
 	}
 
 	// TODO: impl next memo fetching properly
-	d, nextMemo, err := types.UnpackMemoFromHyperlane(args.Memo)
+	d, nextMemo, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
 	if err != nil {
 		// user is a bit screwed in this case since the tokens can never be refunded
 		return errorsmod.Wrap(err, "unpack memo from hyperlane")

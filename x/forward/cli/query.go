@@ -29,10 +29,10 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdMemoEIBCtoHL())
-	cmd.AddCommand(CmdMemoHLtoEIBC())
-	cmd.AddCommand(CmdHyperlaneMessage())
-	cmd.AddCommand(CmdDecodeHyperlane())
+	cmd.AddCommand(CmdMemoEIBCtoHLRaw())
+	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
+	cmd.AddCommand(CmdHLtoIBCTestHyperlaneMessage())
+	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 
 	return cmd
 }
@@ -42,7 +42,7 @@ const (
 )
 
 // get a memo for the direction (E)IBC -> HL
-func CmdMemoEIBCtoHL() *cobra.Command {
+func CmdMemoEIBCtoHLRaw() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address]",
 		Args:  cobra.ExactArgs(7),
@@ -85,7 +85,7 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 
 			recovery := args[6]
 
-			memo, err := types.NewForwardMemo(
+			memo, err := types.NewEIBCToHLMemoRaw(
 				eibcFee,
 				tokenId,
 				uint32(destinationDomain),
@@ -112,7 +112,7 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 }
 
 // Get a message for the direction HL -> (E)IBC
-func CmdMemoHLtoEIBC() *cobra.Command {
+func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
 		Args:  cobra.ExactArgs(5),
@@ -184,7 +184,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 }
 
 // Get a message for the direction HL -> (E)IBC
-func CmdHyperlaneMessage() *cobra.Command {
+func CmdHLtoIBCTestHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
 		Args:  cobra.ExactArgs(12),
@@ -257,7 +257,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			m, err := types.NewHyperlaneMessage(
+			m, err := types.NewHyperlaneToIBCHyperlaneMessage(
 				uint32(hlNonce),
 				uint32(hlSrcDomain),
 				hlSrcContract,
@@ -292,7 +292,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 }
 
 // A quick util to debug hyperlane messages (including show the memo if there is one). Expects Ethereum Hex bytes
-func CmdDecodeHyperlane() *cobra.Command {
+func CmdDecodeHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "hyperlane-decode (body | message) [hexstring]",
 		Args:                       cobra.ExactArgs(2),
@@ -336,7 +336,7 @@ func CmdDecodeHyperlane() *cobra.Command {
 			fmt.Printf("hyperlane message: %+v\n", message)
 			fmt.Printf("token message: %+v\n", payload)
 
-			memo, _, err := types.UnpackMemoFromHyperlane(payload.Memo)
+			memo, _, err := types.UnpackAppMemoFromHyperlaneMemo(payload.Memo)
 			if err != nil {
 				return fmt.Errorf("unpack memo from warp message: %w", err)
 			}

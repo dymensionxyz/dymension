@@ -89,7 +89,7 @@ func NewHookHLtoIBC(
 
 // WARNING: assumes the memo is entirely dedicated to the HL->IBC forwarder
 // TODO: also extract and then forward the rest of the memo, so that it can be used for other things later
-func UnpackMemoFromHyperlane(bz []byte) (*HookHLtoIBC, []byte, error) {
+func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookHLtoIBC, []byte, error) {
 	var d HookHLtoIBC
 	err := proto.Unmarshal(bz, &d)
 	if err != nil {
@@ -153,7 +153,7 @@ func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*eibctypes.FulfillHook, error) {
 	}, nil
 }
 
-func NewForwardMemo(
+func NewEIBCToHLMemoRaw(
 	eibcFee string,
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
@@ -196,7 +196,7 @@ func NewForwardMemo(
 }
 
 // note, potentially expensive
-func NewHyperlaneMessage(
+func NewHyperlaneToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
 	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
@@ -229,7 +229,7 @@ func NewHyperlaneMessage(
 		return hyperutil.HyperlaneMessage{}, err
 	}
 
-	hlM, err := warpkeeper.CreateTestMessage(
+	hlM, err := warpkeeper.CreateTestHyperlaneMessage(
 		hypercoretypes.MESSAGE_VERSION,
 		hyperlaneNonce,
 		hyperlaneSrcDomain,
@@ -247,7 +247,7 @@ func NewHyperlaneMessage(
 	// sanity
 	{
 		s := hlM.String()
-		_, err := DecodeEthereumHexMessageToForwardMemo(s)
+		_, err := decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s)
 		if err != nil {
 			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
 		}
@@ -257,7 +257,7 @@ func NewHyperlaneMessage(
 }
 
 // intended for tests/clients, expensive
-func DecodeEthereumHexMessageToForwardMemo(s string) (*HookHLtoIBC, error) {
+func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookHLtoIBC, error) {
 	decoded, err := hyperutil.DecodeEthHex(s)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "decode eth hex")
@@ -270,7 +270,7 @@ func DecodeEthereumHexMessageToForwardMemo(s string) (*HookHLtoIBC, error) {
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, _, err := UnpackMemoFromHyperlane(pl.Memo)
+	d, _, err := UnpackAppMemoFromHyperlaneMemo(pl.Memo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
