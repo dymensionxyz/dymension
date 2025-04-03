@@ -7,10 +7,8 @@ import (
 	"math/big"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
@@ -385,7 +383,7 @@ func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, l
 func (k Keeper) sendToCommunityPool(ctx context.Context, coin sdk.Coin) error {
 	senderAddr := k.ak.GetModuleAddress(types.ModuleName)
 	if senderAddr == nil {
-		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", types.ModuleName))
+		return fmt.Errorf("sendToCommunityPool: sender address is nil")
 	}
 
 	if err := k.cpk.FundCommunityPool(ctx, sdk.Coins{coin}, senderAddr); err != nil {
