@@ -4,9 +4,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-	"github.com/stretchr/testify/suite"
 )
 
 var _ = suite.TestingSuite(nil)
@@ -17,12 +18,12 @@ func (suite *KeeperTestSuite) TestDistribute() {
 	defaultGauge := perpGaugeDesc{
 		lockDenom:    defaultLPDenom,
 		lockDuration: defaultLockDuration,
-		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
+		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 300000000000000000)},
 	}
 	doubleLengthGauge := perpGaugeDesc{
 		lockDenom:    defaultLPDenom,
 		lockDuration: 2 * defaultLockDuration,
-		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
+		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 300000000000000000)},
 	}
 	noRewardGauge := perpGaugeDesc{
 		lockDenom:    defaultLPDenom,
@@ -30,9 +31,9 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		rewardAmount: sdk.Coins{},
 	}
 	noRewardCoins := sdk.Coins{}
-	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
-	twoKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 2000)}
-	fiveKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 5000)}
+	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 100000000000000000)}
+	twoKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 200000000000000000)}
+	fiveKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 500000000000000000)}
 	tests := []struct {
 		name            string
 		users           []userLocks
@@ -105,14 +106,14 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	suite.Require().Equal(coins, gaugeCoins)
 
 	// add coins to the previous gauge and check that the sum of coins yet to be distributed includes these new coins
-	addCoins := sdk.Coins{sdk.NewInt64Coin("stake", 200)}
+	addCoins := sdk.Coins{sdk.NewInt64Coin("adym", 200000000000000000)}
 	suite.AddToGauge(addCoins, gaugeID)
 	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(coins, gaugeCoins.Add(addCoins...))
 
 	// create a new gauge
 	// check that the sum of coins yet to be distributed is equal to the gauge1 and gauge2 coins combined
-	_, _, gaugeCoins2, _ := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("stake", 1000)})
+	_, _, gaugeCoins2, _ := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("adym", 1000)})
 	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(coins, gaugeCoins.Add(addCoins...).Add(gaugeCoins2...))
 
@@ -126,7 +127,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	// distribute coins to stakers
 	distrCoins, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 105)})
+	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("adym", 150000000000000000)})
 
 	// check gauge changes after distribution
 	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
@@ -158,7 +159,7 @@ func (suite *KeeperTestSuite) TestGetModuleDistributedCoins() {
 	// distribute coins to stakers
 	distrCoins, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge})
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 5)})
+	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("adym", 50000000000000000)})
 
 	// check gauge changes after distribution
 	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)

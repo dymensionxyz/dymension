@@ -3,6 +3,7 @@ package dymensionxyz.dymension.incentives;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 // Params holds parameters for the incentives module
@@ -33,4 +34,11 @@ message Params {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
+  // min_value_for_distribution is the minimum amount a token must be worth
+  // in order to be eligible for distribution. If the token is worth
+  // less than this amount (or the route between the two denoms is not
+  // registered), it will not be distributed and is forfeited to the remaining
+  // distributees that are eligible.
+  cosmos.base.v1beta1.Coin min_value_for_distribution = 5
+  [ (gogoproto.nullable) = false ];
 }

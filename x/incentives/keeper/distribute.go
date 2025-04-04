@@ -1,11 +1,15 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
@@ -38,6 +42,37 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 	lockHolders := NewRewardDistributionTracker()
 	totalDistributedCoins := sdk.Coins{}
 
+	poolsMap := make(map[string]poolmanagertypes.PoolI)
+	lastPoolID := int(k.pmk.GetNextPoolId(ctx) - 1)
+
+	for id := 1; id <= lastPoolID; id++ {
+		// TODO: be aware of the potential number of pools increase
+		pool, err := k.gk.GetPool(ctx, uint64(id))
+		if err != nil {
+			if errors.Is(err, gammtypes.PoolDoesNotExistError{PoolId: uint64(id)}) {
+				continue
+			}
+			return nil, err
+		}
+
+		assets := pool.GetTotalPoolLiquidity(ctx)
+		if len(assets) != 2 {
+			continue
+		}
+
+		key1 := assets[0].Denom + "_" + assets[1].Denom
+		poolsMap[key1] = pool
+		key2 := assets[1].Denom + "_" + assets[0].Denom
+		poolsMap[key2] = pool
+	}
+
+	// Get minimum distribution value from params
+	minDistrValueCache := &DistributionValueCache{
+		minDistrValue:      k.GetParams(ctx).MinValueForDistribution,
+		denomToMinValueMap: make(map[string]math.Int),
+		poolsMap:           poolsMap,
+	}
+
 	for _, gauge := range gauges {
 		var (
 			gaugeDistributedCoins sdk.Coins
@@ -46,7 +81,7 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 		switch gauge.DistributeTo.(type) {
 		case *types.Gauge_Asset:
 			filteredLocks := k.GetDistributeToBaseLocks(ctx, gauge, cache) // get all locks that satisfy the gauge
-			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders)
+			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders, minDistrValueCache)
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.calculateRollappGaugeRewards(ctx, gauge, &lockHolders)
 		case *types.Gauge_Endorsement:
