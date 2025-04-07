@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
-	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -42,8 +41,4 @@ type TxFeesKeeper interface {
 
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
-}
-
-type IROKeeper interface {
-	GetPlanByRollapp(ctx sdk.Context, rollappId string) (irotypes.Plan, bool)
 }

@@ -35,10 +35,10 @@ message Params {
   ];
 
   enum EndorsementMode {
-    EndorsementModeRollapp = 0;
-    EndorsementModeRollappAndIRO = 1;
+    ActiveOnly = 0;
+    AllRollapps = 1;
   }
-
-  // EndorsementMode switches between endorsing only active Rollapps and endorsing both active Rollapps and IROs
+  
+  // EndorsementMode switches between endorsing only active rollapps or all rollapps
   EndorsementMode endorsement_mode = 5;
 }

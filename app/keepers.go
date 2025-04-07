@@ -389,7 +389,6 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
-		a.IROKeeper,
 	)
 
 	a.IROKeeper = irokeeper.NewKeeper(

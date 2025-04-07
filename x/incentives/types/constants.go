@@ -9,7 +9,7 @@ var (
 	DefaultCreateGaugeFee  = DYM.MulRaw(1)  // 1 DYM
 	DefaultAddToGaugeFee   = math.ZeroInt() // 0 DYM
 	DefaultAddDenomFee     = DYM            // 1 DYM
-	DefaultEndorsementMode = Params_EndorsementModeRollapp
+	DefaultEndorsementMode = Params_ActiveOnly
 )
 
 const DefaultDistrEpochIdentifier = "week"
