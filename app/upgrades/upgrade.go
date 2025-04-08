@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
@@ -31,8 +32,9 @@ type Upgrade struct {
 }
 
 type UpgradeKeepers struct {
-	LockupKeeper *lockupkeeper.Keeper
-	IROKeeper    *irokeeper.Keeper
-	GAMMKeeper   *gammkeeper.Keeper
-	GovKeeper    *govkeeper.Keeper
+	LockupKeeper     *lockupkeeper.Keeper
+	IROKeeper        *irokeeper.Keeper
+	GAMMKeeper       *gammkeeper.Keeper
+	GovKeeper        *govkeeper.Keeper
+	IncentivesKeeper *incentiveskeeper.Keeper
 }
