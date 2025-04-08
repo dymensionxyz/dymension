@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 
 			// Create rollapp and check rollapp gauge created
 			_ = suite.CreateDefaultRollapp(tc.rollappOwner)
-			res, err := suite.querier.RollappGauges(sdk.WrapSDKContext(suite.Ctx), new(types.GaugesRequest))
+			res, err := suite.querier.RollappGauges(suite.Ctx, new(types.GaugesRequest))
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
 			suite.Require().Len(res.Data, 1)
@@ -143,5 +143,65 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGaugesAfterOwnerChange() {
 			finalOwnerBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, tc.finalOwner)
 			suite.Require().ElementsMatch(tc.rewards, finalOwnerBalances, "expect: %v, actual: %v", tc.rewards, finalOwnerBalances)
 		})
+	}
+}
+
+// TestDistributeToRollappGaugesWithEndorsementModes tests distributing rewards to rollapp gauges with different endorsement modes
+func (suite *KeeperTestSuite) TestDistributeToRollappGaugesWithEndorsementModes() {
+	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
+	addrs := apptesting.CreateRandomAccounts(2)
+	endorsementModes := []types.Params_EndorsementMode{types.Params_ActiveOnly, types.Params_AllRollapps}
+
+	for _, mode := range endorsementModes {
+		// Your code here
+		suite.SetupTest()
+
+		// Create 1st rollapp and set it as launched
+		rollapp_launched := suite.CreateDefaultRollapp(addrs[0])
+		rollapp := suite.App.RollappKeeper.MustGetRollapp(suite.Ctx, rollapp_launched)
+		rollapp.Launched = true
+		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+		// Create 2nd rollapp (not launched)
+		_ = suite.CreateDefaultRollapp(addrs[1])
+
+		res, err := suite.querier.RollappGauges(suite.Ctx, new(types.GaugesRequest))
+		suite.Require().NoError(err)
+		suite.Require().NotNil(res)
+		suite.Require().Len(res.Data, 2)
+		suite.Require().NotNil(res.Data[0].GetRollapp())
+		suite.Require().NotNil(res.Data[1].GetRollapp())
+		gaugeId1 := res.Data[0].Id
+		gaugeId2 := res.Data[1].Id
+
+		// set endorsement mode
+		params := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
+		params.EndorsementMode = mode
+		suite.App.IncentivesKeeper.SetParams(suite.Ctx, params)
+
+		// Top up the gauge before distributing
+		suite.AddToGauge(oneKRewardCoins, gaugeId1)
+		suite.AddToGauge(oneKRewardCoins, gaugeId2)
+		gauge1, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId1)
+		suite.Require().NoError(err)
+		gauge2, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId2)
+		suite.Require().NoError(err)
+		_, err = suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, []types.Gauge{*gauge1, *gauge2})
+		suite.Require().NoError(err)
+
+		// Check if rewards were distributed to all rollapps
+		activeOwnerBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, addrs[0])
+		suite.Require().ElementsMatch(oneKRewardCoins, activeOwnerBalances, "active rollapp should receive rewards")
+
+		nonActiveOwnerBalances := suite.App.BankKeeper.GetAllBalances(suite.Ctx, addrs[1])
+		if mode == types.Params_AllRollapps {
+			suite.Require().ElementsMatch(oneKRewardCoins, nonActiveOwnerBalances, "inactive rollapp should receive rewards")
+		} else {
+			suite.Require().Empty(nonActiveOwnerBalances, "inactive rollapp should not receive rewards")
+			// assert the non active gauge still holds it's coins
+			gauge2, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId2)
+			suite.Require().NoError(err)
+			suite.Require().ElementsMatch(oneKRewardCoins, gauge2.GetCoins())
+		}
 	}
 }

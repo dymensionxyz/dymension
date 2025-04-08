@@ -457,10 +457,11 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.mm,
 			app.configurator,
 			&upgrades.UpgradeKeepers{
-				LockupKeeper: app.AppKeepers.LockupKeeper,
-				IROKeeper:    app.AppKeepers.IROKeeper,
-				GAMMKeeper:   app.AppKeepers.GAMMKeeper,
-				GovKeeper:    app.AppKeepers.GovKeeper,
+				LockupKeeper:     app.AppKeepers.LockupKeeper,
+				IROKeeper:        app.AppKeepers.IROKeeper,
+				GAMMKeeper:       app.AppKeepers.GAMMKeeper,
+				GovKeeper:        app.AppKeepers.GovKeeper,
+				IncentivesKeeper: app.AppKeepers.IncentivesKeeper,
 			},
 		),
 	)
