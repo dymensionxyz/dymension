@@ -14,8 +14,6 @@ import (
 
 // HardFork handles the fraud evidence submitted by the user.
 func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint64) error {
-	var err error
-
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return gerrc.ErrNotFound
@@ -25,16 +23,15 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint
 		return gerrc.ErrFailedPrecondition.Wrap("fork not allowed")
 	}
 
-	// If states exist, revert them and bump revision
-	// If no states, skip this part
-	_, statesExists := k.GetLatestStateInfoIndex(ctx, rollappID)
-	if statesExists {
-		lastValidHeight, err = k.RevertPendingStates(ctx, rollappID, lastValidHeight)
-		if err != nil {
-			return errorsmod.Wrap(err, "revert pending states")
-		}
-		rollapp.BumpRevision(lastValidHeight + 1)
+	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, lastValidHeight+1)
+	if err != nil {
+		return errorsmod.Wrap(err, "revert pending states")
 	}
+
+	newRevisionHeight := lastValidHeight + 1
+
+	// update revision number
+	rollapp.BumpRevision(newRevisionHeight)
 
 	// stop liveness events
 	k.ResetLivenessClock(ctx, &rollapp)
@@ -51,7 +48,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint
 		sdk.NewEvent(
 			types.EventTypeHardFork,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
-			sdk.NewAttribute(types.AttributeKeyNewRevisionHeight, fmt.Sprint(lastValidHeight+1)),
+			sdk.NewAttribute(types.AttributeKeyNewRevisionHeight, fmt.Sprint(newRevisionHeight)),
 		),
 	)
 
@@ -60,10 +57,7 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint
 
 // RevertPendingStates removes state updates until the one specified and included
 // returns the latest height of the state info
-func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, lastValidHeight uint64) (uint64, error) {
-	// FIXME: can't revert the 1st block (revert to genesis). (this function will error for lastValidHeight == 0)
-
-	newRevisionHeight := lastValidHeight + 1
+func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, newRevisionHeight uint64) (uint64, error) {
 	// find the affected state info index
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, newRevisionHeight)
 	if err == nil {
@@ -128,23 +122,23 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, lastValid
 	return lastStateInfo.GetLatestHeight(), nil
 }
 
-// UpdateLastStateInfo truncates the state info to the last valid block before the new revision height.
+// UpdateLastStateInfo truncates the state info to the last valid block before the fraud height.
 // It returns the last state
-func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, newRevisionHeight uint64) (*types.StateInfo, error) {
-	if newRevisionHeight < stateInfo.StartHeight {
+func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo, fraudHeight uint64) (*types.StateInfo, error) {
+	if fraudHeight < stateInfo.StartHeight {
 		return nil, errorsmod.Wrapf(gerrc.ErrInternal, "state info start height is greater than fraud height")
 	}
 
-	if stateInfo.StartHeight == newRevisionHeight {
+	if stateInfo.StartHeight == fraudHeight {
 		// If fraud height is at the beginning of the state info, return the previous index to keep
 		var ok bool
 		*stateInfo, ok = k.GetStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index-1)
 		if !ok {
 			return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "no state info found for rollapp: %s", stateInfo.StateInfoIndex.RollappId)
 		}
-	} else if stateInfo.GetLatestHeight() >= newRevisionHeight {
+	} else if stateInfo.GetLatestHeight() >= fraudHeight {
 		// Remove block descriptors until the one we need to rollback to
-		truncatedBDs := stateInfo.BDs.BD[:newRevisionHeight-stateInfo.StartHeight]
+		truncatedBDs := stateInfo.BDs.BD[:fraudHeight-stateInfo.StartHeight]
 
 		// Update the state info to reflect truncated data
 		stateInfo.NumBlocks = uint64(len(truncatedBDs))
@@ -157,18 +151,18 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 	return stateInfo, nil
 }
 
-// HardForkToLatest attempts to hard fork the rollapp to the latest state.
+// HardForkToLatest attempts to hard fork the rollapp to the latest committed state.
 // It retrieves the latest state information for the given rollappID and,
 // if found, initiates a hard fork process to the latest valid height.
 // Returns an error if the hard fork operation fails.
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
-	latestValidHeight := uint64(0)
 	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
-	if ok {
-		latestValidHeight = lastBatch.GetLatestHeight()
+	if !ok {
+		// nothing to do. no states to revert
+		return nil
 	}
 
-	return k.HardFork(ctx, rollappID, latestValidHeight)
+	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight())
 }
 
 func mapKeysToSlice(m map[string]struct{}) []string {
@@ -221,34 +215,16 @@ func (k Keeper) IsFirstHeightOfLatestFork(ctx sdk.Context, rollappId string, rev
 
 // is forking to the latest height going to violate assumptions?
 func (k Keeper) ForkLatestAllowed(ctx sdk.Context, rollapp string) bool {
-	lastHeight := uint64(0)
-	lastBatch, ok := k.GetLatestStateInfo(ctx, rollapp)
-	if ok {
-		lastHeight = lastBatch.GetLatestHeight()
-	}
+	lastHeight, _ := k.GetLatestHeight(ctx, rollapp)
 	return k.ForkAllowed(ctx, rollapp, lastHeight)
 }
 
 // is the rollback fork going to violate assumptions?
-// we can't fork prior to the genesis bridge height
 func (k Keeper) ForkAllowed(ctx sdk.Context, rollapp string, lastValidHeight uint64) bool {
 	ra := k.MustGetRollapp(ctx, rollapp)
-
-	// allows forking if canonical client not set
-	_, isClientSet := k.canonicalClientKeeper.GetCanonicalClient(ctx, rollapp)
-	if !isClientSet {
-		return true
-	}
-
-	// can't fork until genesis bridge is open
-	if ra.GenesisState.TransferProofHeight == 0 {
-		return false
-	}
-
-	// can't fork prior to the genesis bridge height
-	if lastValidHeight < ra.GenesisState.TransferProofHeight {
-		return false
-	}
-
-	return true
+	// we can fork if
+	// - genesis bridge not opened
+	// or
+	// - genesis bridge opened and we don't rollback the past the proof height
+	return 0 == ra.GenesisState.TransferProofHeight || ra.GenesisState.TransferProofHeight <= lastValidHeight
 }

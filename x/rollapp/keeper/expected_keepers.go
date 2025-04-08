@@ -31,7 +31,6 @@ type BankKeeper interface {
 
 type CanonicalLightClientKeeper interface {
 	GetRollappForClientID(ctx sdk.Context, clientID string) (string, bool)
-	GetCanonicalClient(ctx sdk.Context, rollappId string) (string, bool)
 }
 
 type TransferKeeper interface {
