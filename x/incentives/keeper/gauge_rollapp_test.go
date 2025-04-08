@@ -146,13 +146,13 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGaugesAfterOwnerChange() {
 	}
 }
 
-// TestDistributeToRollappGaugesWithEndorsementModes tests distributing rewards to rollapp gauges with different endorsement modes
-func (suite *KeeperTestSuite) TestDistributeToRollappGaugesWithEndorsementModes() {
+// TestDistributeToRollappGaugesWithRollappGaugesModes tests distributing rewards to rollapp gauges with different endorsement modes
+func (suite *KeeperTestSuite) TestDistributeToRollappGaugesWithRollappGaugesModes() {
 	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
 	addrs := apptesting.CreateRandomAccounts(2)
-	endorsementModes := []types.Params_EndorsementMode{types.Params_ActiveOnly, types.Params_AllRollapps}
+	rollappGaugesModes := []types.Params_RollappGaugesModes{types.Params_ActiveOnly, types.Params_AllRollapps}
 
-	for _, mode := range endorsementModes {
+	for _, mode := range rollappGaugesModes {
 		// Your code here
 		suite.SetupTest()
 
@@ -176,7 +176,7 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGaugesWithEndorsementModes(
 
 		// set endorsement mode
 		params := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
-		params.EndorsementMode = mode
+		params.RollappGaugesMode = mode
 		suite.App.IncentivesKeeper.SetParams(suite.Ctx, params)
 
 		// Top up the gauge before distributing

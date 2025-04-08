@@ -36,6 +36,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	// Set endorsement mode for all rollapps
 	params := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
-	params.EndorsementMode = types.Params_AllRollapps
+	params.RollappGaugesMode = types.Params_AllRollapps
 	suite.App.IncentivesKeeper.SetParams(suite.Ctx, params)
 }

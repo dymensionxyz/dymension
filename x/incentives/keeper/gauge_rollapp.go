@@ -42,7 +42,7 @@ func (k Keeper) calculateRollappGaugeRewards(ctx sdk.Context, gauge types.Gauge,
 		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
 	}
 
-	if k.EndorsementMode(ctx) == types.Params_ActiveOnly && !rollapp.Launched {
+	if k.RollappGaugesMode(ctx) == types.Params_ActiveOnly && !rollapp.Launched {
 		ctx.Logger().Debug("non-launched rollapps are not endorsed")
 		return sdk.Coins{}, nil
 	}

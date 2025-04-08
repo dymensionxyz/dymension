@@ -66,7 +66,7 @@ func migrateIncentivesParams(ctx sdk.Context, k *incentiveskeeper.Keeper) {
 	params := k.GetParams(ctx)
 
 	// default mode is active rollapps only
-	params.EndorsementMode = incentivestypes.DefaultEndorsementMode
+	params.RollappGaugesMode = incentivestypes.DefaultRollappGaugesMode
 	k.SetParams(ctx, params)
 }
 

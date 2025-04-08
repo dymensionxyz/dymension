@@ -16,7 +16,7 @@ var (
 	KeyCreateGaugeFee       = []byte("CreateGaugeFee")
 	KeyAddToGaugeFee        = []byte("AddToGaugeFee")
 	KeyAddDenomFee          = []byte("AddDenomFee")
-	KeyEndorsementMode      = []byte("EndorsementMode")
+	KeyRollappGaugesMode    = []byte("RollappGaugesMode")
 )
 
 // ParamKeyTable returns the key table for the incentive module's parameters.
@@ -25,13 +25,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams takes an epoch distribution identifier, then returns an incentives Params struct.
-func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, endorsementMode Params_EndorsementMode) Params {
+func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, rollappGaugesMode Params_RollappGaugesModes) Params {
 	return Params{
 		DistrEpochIdentifier: distrEpochIdentifier,
 		CreateGaugeBaseFee:   createGaugeFee,
 		AddToGaugeBaseFee:    addToGaugeFee,
 		AddDenomFee:          addDenomFee,
-		EndorsementMode:      endorsementMode,
+		RollappGaugesMode:    rollappGaugesMode,
 	}
 }
 
@@ -42,7 +42,7 @@ func DefaultParams() Params {
 		CreateGaugeBaseFee:   DefaultCreateGaugeFee,
 		AddToGaugeBaseFee:    DefaultAddToGaugeFee,
 		AddDenomFee:          DefaultAddDenomFee,
-		EndorsementMode:      DefaultEndorsementMode,
+		RollappGaugesMode:    DefaultRollappGaugesMode,
 	}
 }
 
@@ -60,7 +60,7 @@ func (p Params) Validate() error {
 	if err := validateAddDenomFee(p.AddDenomFee); err != nil {
 		return err
 	}
-	if err := validateEndorsementMode(p.EndorsementMode); err != nil {
+	if err := validateRollappGaugesMode(p.RollappGaugesMode); err != nil {
 		return err
 	}
 	return nil
@@ -73,7 +73,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyCreateGaugeFee, &p.CreateGaugeBaseFee, validateCreateGaugeFeeInterface),
 		paramtypes.NewParamSetPair(KeyAddToGaugeFee, &p.AddToGaugeBaseFee, validateAddToGaugeFeeInterface),
 		paramtypes.NewParamSetPair(KeyAddDenomFee, &p.AddDenomFee, validateAddDenomFee),
-		paramtypes.NewParamSetPair(KeyEndorsementMode, &p.EndorsementMode, validateEndorsementMode),
+		paramtypes.NewParamSetPair(KeyRollappGaugesMode, &p.RollappGaugesMode, validateRollappGaugesMode),
 	}
 }
 
@@ -110,8 +110,8 @@ func validateAddDenomFee(i interface{}) error {
 	return nil
 }
 
-func validateEndorsementMode(i interface{}) error {
-	_, ok := i.(Params_EndorsementMode)
+func validateRollappGaugesMode(i interface{}) error {
+	_, ok := i.(Params_RollappGaugesModes)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

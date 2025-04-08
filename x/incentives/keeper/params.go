@@ -22,7 +22,7 @@ func (k Keeper) DistrEpochIdentifier(ctx sdk.Context) (res string) {
 	return
 }
 
-func (k Keeper) EndorsementMode(ctx sdk.Context) (res types.Params_EndorsementMode) {
-	k.paramSpace.Get(ctx, types.KeyEndorsementMode, &res)
+func (k Keeper) RollappGaugesMode(ctx sdk.Context) (res types.Params_RollappGaugesModes) {
+	k.paramSpace.Get(ctx, types.KeyRollappGaugesMode, &res)
 	return
 }
