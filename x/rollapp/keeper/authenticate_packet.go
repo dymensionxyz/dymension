@@ -32,7 +32,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	ra, err := k.GetRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
+	ra, err := k.GetRollappByCanonicalChan(ctx, raPortOnHub, raChanOnHub)
 	if errorsmod.IsOf(err, types.ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		err = nil
@@ -48,14 +48,42 @@ func (k Keeper) GetValidTransfer(
 	return
 }
 
-// GetRollappByPortChan will get the rollapp for a transfer
-// if the transfer did not original from a rollapp, will return rollapp not found error
-// if the transfer did originate from a rollapp, but on the wrong channel, returns error
-//
-// in order to allow rollapp and non rollapps to have the same chain ID, the (possible)
-// rollapp is looked up by light client ID rather than chain ID. That requires the canonical
-// light client for the rollapp to have been set. That should always be the case for
-// correctly operated rollapps.
+// GetRollappByCanonicalChan retrieves the rollapp associated with a specific canonical channel.
+// It checks if the rollapp's canonical channel ID matches the provided channel ID.
+// This function ensures that the rollapp has a canonical channel set and that the packet
+// is being transferred on the correct channel, which is essential after the genesis bridge
+// has been opened. It returns an error if the rollapp does not have a canonical channel set
+// or if the packet is not on the canonical channel.
+func (k Keeper) GetRollappByCanonicalChan(ctx sdk.Context,
+	raPortOnHub, raChanOnHub string,
+) (*types.Rollapp, error) {
+	rollapp, err := k.GetRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
+	if err != nil {
+		return nil, err
+	}
+
+	// if canonical channel is not set, return error
+	if rollapp.ChannelId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInternal, "canonical client for rollapp is set, but canonical channel is missing")
+	}
+
+	// if the channel id does not match, return error
+	if rollapp.ChannelId != raChanOnHub {
+		return nil, errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"transfer from rollapp is not on canonical channel, packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
+		)
+	}
+
+	return rollapp, nil
+}
+
+// GetRollappByPortChan retrieves the rollapp for a transfer based on the port and channel.
+// This function checks for any channel of a rollapp, not necessarily the canonical one.
+// It uses the light client ID to find the rollapp, which means the canonical light client
+// must be set for the rollapp. This is suitable for scenarios where the genesis bridge
+// has not yet been opened. It returns an error if the rollapp is not found or if the
+// rollapp does not have a canonical client set.
 func (k Keeper) GetRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
@@ -73,14 +101,6 @@ func (k Keeper) GetRollappByPortChan(ctx sdk.Context,
 	if !ok {
 		return nil, errorsmod.Wrap(gerrc.ErrInternal, "have canonical client id but rollapp not found")
 	}
-	if rollapp.ChannelId == "" {
-		return nil, errorsmod.Wrap(gerrc.ErrInternal, "canonical client for rollapp is set, but canonical channel is missing")
-	}
-	if rollapp.ChannelId != raChanOnHub {
-		return nil, errorsmod.Wrapf(
-			gerrc.ErrInvalidArgument,
-			"transfer from rollapp is not on canonical channel, packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
-		)
-	}
+
 	return &rollapp, nil
 }
