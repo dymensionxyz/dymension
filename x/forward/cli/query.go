@@ -31,7 +31,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdMemoEIBCtoHLRaw())
 	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
-	cmd.AddCommand(CmdHLtoIBCTestHyperlaneMessage())
+	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 
 	return cmd
@@ -44,7 +44,9 @@ const (
 // get a memo for the direction (E)IBC -> HL
 func CmdMemoEIBCtoHLRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address]",
+		// TODO: clarify if recipient is the remote token contract, or the actual remote user
+		// TODO: need to improve the UX here to make sure that the transferred amount is approx equal to HL amount + HL fee - (EIBC fee + other fees)
+		Use:   "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [recipient] [hl-amount] [max-hl-fee] [recovery-address]",
 		Args:  cobra.ExactArgs(7),
 		Short: "Create a memo for the direction (E)IBC -> HL",
 
@@ -117,7 +119,7 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
 		Args:    cobra.ExactArgs(5),
-		Short:   "Create a hyperlane message for testing Hl -> IBC",
+		Short:   "Get the memo for the direction HL -> IBC or EIBC",
 		Example: `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m dym12v7503afd5nwc9p0cd8vf264dayedfqvzkezl4`,
 
 		DisableFlagParsing:         true,
@@ -182,7 +184,7 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 
 // Get a message for the direction HL -> (E)IBC. Useful for testing.
 // TODO: reuse raw query code (memo-hl-to-ibc)
-func CmdHLtoIBCTestHyperlaneMessage() *cobra.Command {
+func CmdTestHLtoIBCMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
 		Args:  cobra.ExactArgs(12),

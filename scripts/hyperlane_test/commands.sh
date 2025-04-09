@@ -158,7 +158,7 @@ curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers
 RECOVERY_ADDR=$(hub keys show user -a) # use a different addr, to make it easier to check when a refund occurs
 # args are [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address] [flags]
 EIBC_FEE=100
-MEMO=$(hub q forward forward $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 10000 20"$DENOM" $RECOVERY_ADDR)
+MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 10000 20"$DENOM" $RECOVERY_ADDR)
 
 # note, make sure to relay here! If relayer is crashed, restart before initiating the transfer on the next step!
 
