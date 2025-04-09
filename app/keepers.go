@@ -364,6 +364,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[lightclientmoduletypes.StoreKey],
 		a.IBCKeeper,
 		a.IBCKeeper.ClientKeeper,
+		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.SequencerKeeper,
 		a.RollappKeeper,
@@ -552,7 +553,7 @@ func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
-			// insert lockup hooks receivers here
+		// insert lockup hooks receivers here
 		),
 	)
 
@@ -572,7 +573,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
-			// insert incentive hooks receivers here
+		// insert incentive hooks receivers here
 		),
 	)
 

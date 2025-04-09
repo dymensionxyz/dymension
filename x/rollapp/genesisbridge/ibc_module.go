@@ -137,6 +137,7 @@ func (w IBCModule) OnRecvPacket(
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
 		sdk.NewAttribute(types.AttributeRollappIBCdenom, raDenomOnHUb),
+		sdk.NewAttribute(types.AttributeKeyCanonicalChannelId, ra.ChannelId), // set on EnableTransfers
 	))
 
 	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}) // core ibc writes it
