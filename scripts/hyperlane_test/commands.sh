@@ -120,5 +120,98 @@ PACKET_SEQ=$(hub q delayedack packets-by-rollapp $ROLLAPP_CHAIN_ID -o json | jq 
 hub tx delayedack finalize-packet $ROLLAPP_CHAIN_ID $PROOF_HEIGHT ON_RECV channel-0 $PACKET_SEQ --from hub-user --gas auto --gas-adjustment 1.5 --fees 1dym -y
 
 ############################
-# STEP: DEPLOY HYPERLANE CONFIG TO HUB
-# for this, it might be out of date, so check the rollapp-evm repo scripts, and the dymension//scripts/setup_local.sh if something doesn't work
+# STEP: DEPLOY HYPERLANE ENTITIES TO HUB
+
+# create noop ism
+hub tx hyperlane ism create-noop "${HUB_FLAGS[@]}"
+ISM=$(curl -s http://localhost:1318/hyperlane/v1/isms | jq '.isms.[0].id' -r); echo $ISM;
+LOCAL_DOMAIN=0
+
+# create mailbox
+# ism, local domain
+hub tx hyperlane mailbox create  $ISM $LOCAL_DOMAIN "${HUB_FLAGS[@]}"
+MAILBOX=$(curl -s http://localhost:1318/hyperlane/v1/mailboxes   | jq '.mailboxes.[0].id' -r); echo $MAILBOX;
+
+# create noop hook
+hub tx hyperlane hooks noop create "${HUB_FLAGS[@]}"
+NOOP_HOOK=$(curl -s http://localhost:1318/hyperlane/v1/noop_hooks | jq '.noop_hooks.[0].id' -r); echo $NOOP_HOOK;
+
+# TODO: IGP needed? Gas config?!!
+
+# update mailbox
+# mailbox, default hook (e.g. IGP), required hook (e.g. merkle tree)
+hub tx hyperlane mailbox set $MAILBOX --default-hook $NOOP_HOOK --required-hook $NOOP_HOOK "${HUB_FLAGS[@]}"
+
+############################
+# STEP: TEST END-TO-END: ROLLAPP -> HUB -> HYPERLANE
+
+# create the Hyperlane token 
+# NOTE: MUST wait for the ibc token to arrive from the genesis bridge transfer to be able to make the collateral token with the right denom
+DENOM=$(hub q bank balances $HUB_USER_ADDR -o json | jq '.balances.[1].denom' -r); echo $DENOM; # The IBC denom
+hub tx hyperlane-transfer dym-create-collateral-token $MAILBOX $DENOM "${DAN_FLAGS[@]}"
+TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[0].id' -r); echo $TOKEN_ID
+
+# setup the router
+hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${DAN_FLAGS[@]}"
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers
+
+# prepare the memo which will be included in the rollapp outbound transfer
+RECOVERY_ADDR=$(hub keys show user -a) # use a different addr, to make it easier to check when a refund occurs
+# args are [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address] [flags]
+EIBC_FEE=100
+MEMO=$(hub q forward forward $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 10000 20"$DENOM" $RECOVERY_ADDR)
+
+# note, make sure to relay here! If relayer is crashed, restart before initiating the transfer on the next step!
+
+# initiate the transfer from the rollapp
+HUB_USER_ADDR=$(dymd keys show hub-user -a)
+ra tx ibc-transfer transfer transfer channel-0 $HUB_USER_ADDR 20000arax\
+ --memo $MEMO --fees 20000000000000arax --from rol-user -b block --gas auto --gas-adjustment 1.5 -y
+
+# wait for relaying, then fulfill the order with EIBC
+ORDER_ID=$(hub q eibc list-demand-orders pending -o json | jq '.demand_orders.[0].id' -r); echo $ORDER_ID; # TODO: check index
+hub tx eibc fulfill-order $ORDER_ID $EIBC_FEE --from hub-user --fees 1dym --gas auto --gas-adjustment 1.5 -y
+
+# confirm the result, the token should be bridged: 
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
+
+############################
+# STEP: TEST END-TO-END: HYPERLANE -> HUB -> ROLLAPP
+
+# create warp route
+DENOM="adym" # TODO: check
+hub tx hyperlane-transfer create-collateral-token $MAILBOX $DENOM "${HUB_FLAGS[@]}"
+TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[1].id' -r); echo $TOKEN_ID;
+
+# create remote router 
+ETH_TOKEN_CONTRACT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0"
+ETH_RECIPIENT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0" # TODO: check
+DST_DOMAIN=1
+hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${HUB_FLAGS[@]}"
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers
+
+# do one transfer to verify setup
+TOKEN_AMT=1000
+hub tx hyperlane-transfer transfer $TOKEN_ID $DST_DOMAIN $ETH_RECIPIENT $TOKEN_AMT --max-hyperlane-fee 200adym "${HUB_FLAGS[@]}"
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
+
+############################
+# APPENDIX: EXTRA DEBUG TOOLS
+
+# Queries
+# http://localhost:1318/hyperlane/v1/tokens
+# http://localhost:1318/hyperlane/v1/tokens/{id}
+# http://localhost:1318/hyperlane/v1/tokens/{id}/bridged_supply
+# http://localhost:1318/hyperlane/v1/tokens/{id}/remote_routers
+# http://localhost:1318/hyperlane/v1/isms
+# http://localhost:1318/hyperlane/v1/isms/{id}
+# http://localhost:1318/hyperlane/v1/mailboxes
+# http://localhost:1318/hyperlane/v1/mailboxes/{id}
+# http://localhost:1318/hyperlane/v1/recipient_ism/{recipient}
+# http://localhost:1318/hyperlane/v1/verify_dry_run
+# http://localhost:1318/hyperlane/v1/igps
+# http://localhost:1318/hyperlane/v1/igps/{id}
+# http://localhost:1318/hyperlane/v1/merkle_tree_hooks
+# http://localhost:1318/hyperlane/v1/merkle_tree_hooks/{id}
+# http://localhost:1318/hyperlane/v1/noop_hooks
+# http://localhost:1318/hyperlane/v1/noop_hooks/{id}
