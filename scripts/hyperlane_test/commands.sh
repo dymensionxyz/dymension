@@ -202,23 +202,6 @@ dymd tx hyperlane mailbox process $MAILBOX 0x $HL_MESSAGE --from hub-user --fees
 # while waiting for the tokens to arrive on the rollapp, can check the escrow address on the hub
 ESCROW_ADDR=$(dymd q auth module-account forward -o json | jq '.account.value.address' -r); echo $ESCROW_ADDR;
 
-# create warp route
-DENOM="adym" # TODO: check
-hub tx hyperlane-transfer create-collateral-token $MAILBOX $DENOM "${HUB_FLAGS[@]}"
-TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[1].id' -r); echo $TOKEN_ID;
-
-# create remote router 
-ETH_TOKEN_CONTRACT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0"
-ETH_RECIPIENT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0" # TODO: check
-DST_DOMAIN=1
-hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${HUB_FLAGS[@]}"
-curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers
-
-# do one transfer to verify setup
-TOKEN_AMT=1000
-hub tx hyperlane-transfer transfer $TOKEN_ID $DST_DOMAIN $ETH_RECIPIENT $TOKEN_AMT --max-hyperlane-fee 200adym "${HUB_FLAGS[@]}"
-curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
-
 ############################
 # APPENDIX: EXTRA DEBUG TOOLS
 
