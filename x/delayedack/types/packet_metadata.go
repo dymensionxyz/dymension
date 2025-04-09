@@ -22,6 +22,7 @@ func (p PacketMetadata) ValidateBasic() error {
 	return p.EIBC.ValidateBasic()
 }
 
+// TODO: avoid duplicate calls
 func (e EIBCMetadata) GetFulfillHook() (*eibctypes.FulfillHook, error) {
 	if len(e.FulfillHook) == 0 {
 		return nil, nil
