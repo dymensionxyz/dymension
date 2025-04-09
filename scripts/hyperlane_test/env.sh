@@ -23,3 +23,5 @@ export SKIP_EVM_BASE_FEE=true # optional, disables rollapp fees
 export HUB_FLAGS=(--from hub-user --fees 20000000000000adym -y)
 export ETH_TOKEN_CONTRACT="0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0" # arb
 export DST_DOMAIN=1 # arb
+export LOCAL_DOMAIN=0 # arb
+export HL_NONCE=1

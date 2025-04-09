@@ -125,7 +125,6 @@ hub tx delayedack finalize-packet $ROLLAPP_CHAIN_ID $PROOF_HEIGHT ON_RECV channe
 # create noop ism
 hub tx hyperlane ism create-noop "${HUB_FLAGS[@]}"
 ISM=$(curl -s http://localhost:1318/hyperlane/v1/isms | jq '.isms.[0].id' -r); echo $ISM;
-LOCAL_DOMAIN=0
 
 # create mailbox
 # ism, local domain
@@ -177,6 +176,31 @@ curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
 
 ############################
 # STEP: TEST END-TO-END: HYPERLANE -> HUB -> ROLLAPP
+# We have now bridged tokens into the collateral warp route, so we can test the reverse direction immediately with the same token
+
+ROL_USER_ADDR=$($EXECUTABLE keys show $KEY_NAME_ROLLAPP -a)
+
+# get the message to be sent directly the HL server on the Hub. This is just a test utility.
+HL_MESSAGE=$(dymd q forward hyperlane-message\
+ $HL_NONCE\
+ $DST_DOMAIN\
+ $ETH_TOKEN_CONTRACT\
+ $LOCAL_DOMAIN\
+ $TOKEN_ID\
+ $HUB_USER_ADDR\
+ 50\
+ "channel-0"\
+ $ROL_USER_ADDR\
+ 50$DENOM\
+ 5m\
+ $RECOVERY_ADDR\
+ ); echo $HL_MESSAGE;
+
+# again, make sure relayer is up and running before initiating the transfer
+dymd tx hyperlane mailbox process $MAILBOX 0x $HL_MESSAGE --from hub-user --fees 60000000000000adym --gas auto --gas-adjustment 1.5 -y
+
+# while waiting for the tokens to arrive on the rollapp, can check the escrow address on the hub
+ESCROW_ADDR=$(dymd q auth module-account forward -o json | jq '.account.value.address' -r); echo $ESCROW_ADDR;
 
 # create warp route
 DENOM="adym" # TODO: check
