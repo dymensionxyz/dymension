@@ -9,51 +9,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/utils/uhyp"
 )
 
-/*
-Synthesis
-	Flow
-		Send (assume Dym from Hub to Ethereum)
-			WR:
-				Pass token, real recipient, dst, amt
-				Need an (enrolled) router: mapping <token, dst, dst contract (warp route)>
-				Dispatches a message with src mailbox as origin (token.OriginMailbox)
-				Target is the dst contract
-			Dispatch:
-				Need required and default hooks: the Kyve test used default=Noop and Required=IGP
-					Required fires first THEN the default or override
-				Does post dispatch with the required hook
-				Message origin is src, destination is dst
-		Receive (assume Dym from Hub to Ethereum)
-			Process:
-				Pass mailbox and the message
-				Uses the mailbox default ISM, so long as the warp route does not override it
-				Verifies via ISM, then calls Handle
-			Handle:
-				Need an (enrolled) router: mapping <recipient, src>
-	Setup (from the flow we can derive the setup)
-		Hub:
-			Create noop ISM
-			Create mailbox with noop ISM
-			Create a noop hook
-			On mailbox, set required and default hooks to noop
-			Create a collateral token 'adym' on top of the mailbox (thus, noop ISM will be used)
-		Now do the same on Ethereum
-			...
-			Also need to enroll the remote router to be able to receive tokens
-		Back to Hub:
-			Enroll a remote router <token, <dst, Ethereum warp route (token) address, Gas=0>
-
-	Questions:
-		Necessity of IGP?
-			...
-		What is remote router gas?
-			It can be used as a default so that transfers don't need to specify it.
-			It acts a bound for the price calculation done in the IGP
-		Is the test setup of default=Noop and required=IGP correct? Is it what Kyve does? It that what is done in practice?
-			...
-
-*/
-
 func (s *KeeperTestHelper) SetupHyperlane() {
 
 	server := uhyp.NewServer(&s.App.HyperCoreKeeper, &s.App.HyperCoreKeeper.PostDispatchKeeper, &s.App.HyperCoreKeeper.IsmKeeper, s.App.HyperWarpKeeper)
