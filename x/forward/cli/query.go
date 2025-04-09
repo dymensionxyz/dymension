@@ -111,17 +111,14 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 	return cmd
 }
 
-// Get a message for the direction HL -> (E)IBC
+// Get a memo for the direction HL -> (E)IBC
+// TODO: make work with solana too(?) need to change output encoding?
 func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
-		Args:  cobra.ExactArgs(5),
-		Short: "Create a hyperlane message for testing Hl -> IBC",
-		Example: `
-		dymd q forward hyperlane-message 1 1
-0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0
-dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m
-dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
+		Use:     "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
+		Args:    cobra.ExactArgs(5),
+		Short:   "Create a hyperlane message for testing Hl -> IBC",
+		Example: `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m dym12v7503afd5nwc9p0cd8vf264dayedfqvzkezl4`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -183,7 +180,8 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-// Get a message for the direction HL -> (E)IBC
+// Get a message for the direction HL -> (E)IBC. Useful for testing.
+// TODO: reuse raw query code (memo-hl-to-ibc)
 func CmdHLtoIBCTestHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
@@ -291,7 +289,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-// A quick util to debug hyperlane messages (including show the memo if there is one). Expects Ethereum Hex bytes
+// Util to debug a hyperlane message or hyperlane body (including show the memo if there is one). Expects Ethereum Hex bytes
 func CmdDecodeHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "hyperlane-decode (body | message) [hexstring]",
