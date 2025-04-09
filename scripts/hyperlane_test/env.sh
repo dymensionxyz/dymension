@@ -20,3 +20,4 @@ export ROLLAPP_SETTLEMENT_INIT_DIR_PATH="${ROLLAPP_HOME_DIR}/init"
 export SETTLEMENT_EXECUTABLE=$(which dymd)
 export SETTLEMENT_LAYER="dymension" # when running a local hub or a public network use "dymension"
 export SKIP_EVM_BASE_FEE=true # optional, disables rollapp fees
+export HUB_FLAGS=(--from hub-user --fees 20000000000000adym -y)
