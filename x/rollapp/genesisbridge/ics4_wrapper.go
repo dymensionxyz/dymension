@@ -72,5 +72,11 @@ func (w *ICS4Wrapper) transferAllowed(ctx sdk.Context, sourcePort string, source
 	if !ra.GenesisState.IsTransferEnabled() {
 		return gerrc.ErrFailedPrecondition.Wrap("transfers disabled for rollapp")
 	}
+
+	// check if the channel is canonical
+	if ra.ChannelId != sourceChannel {
+		return gerrc.ErrFailedPrecondition.Wrap("transfer not allowed on non canonical channel")
+	}
+
 	return nil
 }
