@@ -50,6 +50,12 @@ func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 		return errorsmod.Wrapf(err, "set client canonical")
 	}
 
+	// Check if the clientID has any connections
+	_, found := k.ibcConnectionK.GetClientConnectionPaths(ctx, clientID)
+	if found {
+		return gerrc.ErrInvalidArgument.Wrap("client already has connections")
+	}
+
 	k.SetCanonicalClient(ctx, rollappID, clientID)
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventSetCanonicalClient{
