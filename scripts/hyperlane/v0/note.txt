@@ -1,0 +1,1 @@
+This is a test for locally having hub + rollapp, and sending to the hyperlane bridge on the hub to confirm escrow, and delivering from hyperlane (with injecting tx to the hub), rather than with real hyperlane connnection
