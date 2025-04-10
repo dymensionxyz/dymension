@@ -309,6 +309,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			}
 			d := args[1]
 
+			// be a bit kinder to what can be passed into the terminal
 			d = strings.TrimSpace(d)
 			d = strings.ReplaceAll(d, `\`, "")
 			d = strings.ReplaceAll(d, " ", "")
