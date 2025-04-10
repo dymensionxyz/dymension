@@ -150,7 +150,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterName() {
 			duration:         2,
 			confirmPayment:   s.coin(1),
 			wantErr:          true,
-			wantErrContains:  "actual payment is is different with provided by user",
+			wantErrContains:  "actual payment is different with provided by user",
 			wantLaterBalance: firstYearPrice5PlusL + extendsPrice + 3,
 		},
 		{
