@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	HookNameForward = "forward"
+	// not to be confused with ibc apps PFM which uses 'forward' as the fungible packet json memo key
+	HookNameForward = "dym-forward"
 )
 
 // sender is computed

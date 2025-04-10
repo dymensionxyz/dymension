@@ -6,10 +6,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-const (
-	HookNameForward = "forward"
-)
-
 type FulfillHook interface {
 	ValidateData(hookData []byte) error
 	Run(ctx sdk.Context, order *types.DemandOrder,
