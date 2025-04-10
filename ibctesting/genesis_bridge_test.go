@@ -339,6 +339,10 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 
+	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
+	s.Require().Equal(rollapp.ChannelId, packet.GetDestChannel())
+
 	// assert the ack succeeded
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
