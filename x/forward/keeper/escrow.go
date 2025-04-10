@@ -29,11 +29,12 @@ func getRefundAddr(recovery types.Recovery) sdk.AccAddress {
 func (k Keeper) refundOnError(ctx sdk.Context, f func() error, r types.Recovery, coins sdk.Coins) {
 	err := f()
 	if err != nil {
+		refundAddr := getRefundAddr(r)
 		_ = ctx.EventManager().EmitTypedEvent(&types.EventWillRefund{
-			ErrCause: err.Error(),
+			ErrCause:   err.Error(),
+			RefundAddr: refundAddr.String(),
 		})
 
-		refundAddr := getRefundAddr(r)
 		errRefund := k.refundFromModule(ctx, refundAddr, coins)
 		if errRefund != nil {
 			// should never happen

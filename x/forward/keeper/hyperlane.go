@@ -28,15 +28,10 @@ func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHype
 		return err
 	}
 
-	// TODO: impl forwarding of embedded memos NOT MVP
 	d, nextMemo, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
 	if err != nil {
 		// user is a bit screwed in this case since the tokens can never be refunded
 		return errorsmod.Wrap(err, "unpack memo from hyperlane")
-	}
-
-	if err := d.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "validate basic")
 	}
 
 	k.forwardToIBC(ctx, d.Transfer, *d.Recovery, args.Coins[0], nextMemo)

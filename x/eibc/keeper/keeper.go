@@ -323,7 +323,7 @@ func (k Keeper) fulfill(ctx sdk.Context,
 			return errorsmod.Wrap(err, "do fulfill hook")
 		}
 	} else {
-		// TODO: can make this an instance of a hook / type of hook
+		// TODO: could make this an instance of a hook / type of hook, then instead of branching it would be one flow
 		err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
 		if err != nil {
 			return errorsmod.Wrap(err, "send coins")

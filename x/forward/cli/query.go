@@ -44,9 +44,8 @@ const (
 // get a memo for the direction (E)IBC -> HL
 func CmdMemoEIBCtoHLRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		// TODO: clarify if recipient is the remote token contract, or the actual remote user
 		// TODO: need to improve the UX here to make sure that the transferred amount is approx equal to HL amount + HL fee - (EIBC fee + other fees)
-		Use:     "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [recipient] [hl-amount] [max-hl-fee] [recovery-address]",
+		Use:     "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee] [recovery-address]",
 		Args:    cobra.ExactArgs(7),
 		Short:   "Create a memo for the direction (E)IBC -> HL",
 		Example: `dymd q forward memo-eibc-to-hl 100 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo dym12v7503afd5nwc9p0cd8vf264dayedfqvzkezl4`,
@@ -118,7 +117,7 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 // TODO: make work with solana too(?) need to change output encoding?
 func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
+		Use:     "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [hub-recovery-address]",
 		Args:    cobra.ExactArgs(5),
 		Short:   "Get the memo for the direction HL -> IBC or EIBC",
 		Example: `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m dym12v7503afd5nwc9p0cd8vf264dayedfqvzkezl4`,

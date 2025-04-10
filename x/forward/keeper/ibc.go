@@ -72,6 +72,22 @@ func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTran
 
 func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo []byte) error {
 
+	// Case analysis: if the IBC transfer fails due to error ack or timeout...
+	//
+	// Case a, finalize:
+	//  - Packet is passed to the rest of the transfer stack
+	//  - Ultimately ends up in refundPacketToken func of transfer keeper. It will send coins to back to this module.
+	// Case b, fulfill:
+	//  - Funds are sent from eibc fulfiller to this module.
+	//    (new recipient becomes whatever fulfiller specified, but that's not interesting here)
+	//
+	// So in either case the funds are given back to this module, but we can't easily hook onto this occurring (in finalize case)
+	// The cleanest solution is to have
+
+	// TODO:, it occurs to me the simplest thing to do is:
+	// - make the sender the recovery addr
+	// - then in ibc case, this guy automatically gets the tokens back
+
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
 		transfer.SourceChannel,
@@ -80,9 +96,10 @@ func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.Ms
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
-		string(memo), // TODO: conversion ok?
+		string(memo),
 	)
 
 	_, err := k.transferK.Transfer(ctx, m) // TODO: response?
+
 	return err
 }
