@@ -10,6 +10,7 @@ import (
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/utest"
 
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -195,27 +196,25 @@ func (s *lightClientSuite) TestSetCanonicalClient_MultipleClients_Succeeds() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 
-	// Create multiple IBC endpoints
-	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
-	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
-	endpointC := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig()) // Additional client
+	// create dummy clients
 	endpointD := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())               // Additional client
-
-	endpointA.Counterparty = endpointB
-	endpointB.Counterparty = endpointA
-	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
-
-	// create dummy channels
+	endpointC := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig()) // Additional client
 	endpointC.Counterparty = endpointD
 	endpointD.Counterparty = endpointC
 	s.NoError(endpointC.CreateClient())
 	s.NoError(endpointD.CreateClient())
 
+	// Create the IBC clients
+	endpointA := ibctesting.NewEndpoint(s.hubChain(), &canonicalClientConfig, ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointB := ibctesting.NewEndpoint(s.rollappChain(), ibctesting.NewTendermintConfig(), ibctesting.NewConnectionConfig(), ibctesting.NewChannelConfig())
+	endpointA.Counterparty = endpointB
+	endpointB.Counterparty = endpointA
+	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
+
 	currentHeader := s.rollappChain().CurrentHeader
 	startHeight := uint64(currentHeader.Height)
 	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
-	// Create the IBC clients
 	s.NoError(s.path.EndpointA.CreateClient())
 
 	currentHeader = s.rollappChain().CurrentHeader
@@ -245,6 +244,43 @@ func (s *lightClientSuite) TestSetCanonicalClient_MultipleClients_Succeeds() {
 	s.Equal(endpointA.ClientID, canonClientID)
 }
 
+func (s *lightClientSuite) TestSetCanonicalClient_FailsWithExistingConnections() {
+	s.createRollapp(false, nil)
+	s.registerSequencer()
+
+	h := s.rollappChain().CurrentHeader
+	startHeight := uint64(h.Height)
+	bd := rollapptypes.BlockDescriptor{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time}
+
+	s.createCompatibleClient()
+
+	h = s.rollappChain().CurrentHeader
+	bdNext := rollapptypes.BlockDescriptor{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time}
+
+	// Update the rollapp state so we could attempt to set the canonical client
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		"mock-da-path",
+		startHeight,
+		2,
+		2, // revision
+		&rollapptypes.BlockDescriptors{BD: []rollapptypes.BlockDescriptor{bd, bdNext}},
+	)
+	_, err := s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
+	s.Require().NoError(err)
+
+	// create connection, which should invalidated the client for canonical client
+	s.coordinator.SetupConnections(s.path)
+
+	// Attempt to set the canonical client
+	setCanonMsg := &types.MsgSetCanonicalClient{
+		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
+	}
+	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
+	utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
+}
+
 func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
@@ -252,7 +288,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 	s.updateRollappState(currentRollappBlockHeight)
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupClients(s.path)
-	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+	s.setRollappLightClientID(s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 
 	for i := 0; i < 10; i++ {
 		s.hubChain().NextBlock()
@@ -272,7 +308,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupClients(s.path)
 	s.NoError(s.path.EndpointA.UpdateClient())
-	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+	s.setRollappLightClientID(s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
@@ -325,7 +361,7 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible()
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupClients(s.path)
 	s.NoError(s.path.EndpointA.UpdateClient())
-	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+	s.setRollappLightClientID(s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
@@ -372,7 +408,7 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupClients(s.path)
 	s.NoError(s.path.EndpointA.UpdateClient())
-	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+	s.setRollappLightClientID(s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
@@ -428,7 +464,7 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 	s.registerSequencer()
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupConnections(s.path)
-	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+	s.setRollappLightClientID(s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 	s.coordinator.CreateChannels(s.path)
 	s.NoError(s.path.EndpointA.UpdateClient())
 
@@ -491,7 +527,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	s.registerSequencer()
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupConnections(s.path)
-	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), s.rollappChain().ChainID, s.path.EndpointA.ClientID)
+	s.setRollappLightClientID(s.rollappChain().ChainID, s.path.EndpointA.ClientID)
 	s.coordinator.CreateChannels(s.path)
 
 	bds := rollapptypes.BlockDescriptors{}

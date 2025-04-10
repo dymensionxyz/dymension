@@ -76,6 +76,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		nil,
 		mockIBCKeeper,
 		nil,
+		nil,
 		mockSequencerKeeper,
 		mockRollappKeeper,
 	)
