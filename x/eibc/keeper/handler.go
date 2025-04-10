@@ -108,6 +108,26 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	return order, nil
 }
 
+func UnpackFungiblePacketMemo(memo string) (dacktypes.EIBCMetadata, error) {
+
+	if memo != "" {
+		packetMetaData, err := dacktypes.ParsePacketMetadata(memo)
+		if err == nil {
+			eibcData = *packetMetaData.EIBC
+		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
+			return nil, fmt.Errorf("parse packet metadata: %w", err)
+		}
+	}
+	if err := eibcData.ValidateBasic(); err != nil {
+		return nil, fmt.Errorf("validate eibc metadata: %w", err)
+	}
+
+	fulfillHook, err := eibcData.GetFulfillHook()
+	if err != nil {
+		return nil, fmt.Errorf("get fulfill hook: %w", err)
+	}
+}
+
 // CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.
 // The fee multiplier is read from params and used to calculate the fee.
 func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
