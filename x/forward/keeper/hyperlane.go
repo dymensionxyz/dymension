@@ -14,7 +14,7 @@ import (
 )
 
 // for inbound warp route transfers. At this point, the tokens are in the hyperlane warp module still
-func (k Keeper) OnHyperlane(goCtx context.Context, args warpkeeper.DymHookArgs) error {
+func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
 	// it would be more flexible and allow memo forwarding
 

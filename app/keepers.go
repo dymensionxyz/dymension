@@ -554,6 +554,7 @@ func (a *AppKeepers) InitKeepers(
 
 	{
 		h := hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper)
+		h.RegisterDymensionTokens()
 		h.SetHook(a.ForwardKeeper.Hook())
 	}
 
