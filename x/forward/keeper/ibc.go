@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -81,14 +82,14 @@ func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTran
 		transfer.SourcePort,
 		transfer.SourceChannel,
 		maxBudget,
-		k.getModuleAddr().String(), // sender is module
+		warptypes.ModuleName,
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
 		string(memo),
 	)
 
-	_, err := k.transferK.Transfer(ctx, m) // TODO: response?
+	_, err := k.transferK.Transfer(ctx, m)
 
 	return err
 }
