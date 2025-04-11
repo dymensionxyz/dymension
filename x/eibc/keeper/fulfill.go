@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -16,7 +15,7 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 	fulfiller sdk.AccAddress,
 ) error {
 
-	err := k.fulfill(ctx, o, transfer.EIBCFulfillArgs{
+	err := k.fulfill(ctx, o, fulfillArgs{
 		FundsSource:          fulfiller,
 		NewTransferRecipient: fulfiller,
 		Fulfiller:            fulfiller,
