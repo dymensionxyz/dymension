@@ -337,7 +337,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 	return cmd
 }
 
-func Foo() *cobra.Command {
+func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "foo [hl receive amt] [hl max gas] [eibc fee] [bridge fee mul]",
 		Args:                       cobra.ExactArgs(2),
@@ -368,20 +368,11 @@ func Foo() *cobra.Command {
 
 			// price calculation always includes the bridge fee, so we don't need to do another calculation for the finalize case
 
-			var x math.Int
-
-			price, err := eibctypes.CalcPriceWithBridgingFee(x, eibcFee, bridgeFeeMul)
-			if err != nil {
-				return fmt.Errorf("calc price: %w", err)
-			}
-
 			needForHl := hlReceiveAmt.Add(hlMaxGas)
 
-			// user should transfer X st . price(x) = hlReceiveAmt + hlMaxGas
-			transferAmt := price.Add(hlReceiveAmt)
+			transferAmt := eibctypes.SolvePrice(needForHl, eibcFee, bridgeFeeMul)
 
 			fmt.Printf("transfer amt: %s\n", transferAmt)
-			// in eibc fulfill case,
 			return nil
 		},
 	}
