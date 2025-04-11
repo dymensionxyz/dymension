@@ -146,13 +146,13 @@ func (r *Recovery) MustAddr() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(r.Address)
 }
 
-func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*eibctypes.FulfillHook, error) {
+func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*eibctypes.OnFulfillHook, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
-		return &eibctypes.FulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
+		return &eibctypes.OnFulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
 	}
 
-	return &eibctypes.FulfillHook{
+	return &eibctypes.OnFulfillHook{
 		HookName: HookNameForward,
 		HookData: bz,
 	}, nil

@@ -6,7 +6,7 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 )
 
-func (m FulfillHook) ValidateBasic() error {
+func (m OnFulfillHook) ValidateBasic() error {
 	if m.HookName == "" {
 		return fmt.Errorf("hook name is empty")
 	}

@@ -19,7 +19,7 @@ type FulfillHook interface {
 type FulfillHooks map[string]FulfillHook
 
 // assumed already passed validate basic
-func (h FulfillHooks) validate(info types.FulfillHook) error {
+func (h FulfillHooks) validate(info types.OnFulfillHook) error {
 	f, ok := h[info.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
@@ -28,9 +28,9 @@ func (h FulfillHooks) validate(info types.FulfillHook) error {
 }
 
 func (h FulfillHooks) exec(ctx sdk.Context, order *types.DemandOrder, args fulfillArgs) error {
-	f, ok := h[order.FulfillHook.HookName]
+	f, ok := h[order.OnFulfillHook.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, order, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, order.FulfillHook.HookData)
+	return f.Run(ctx, order, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, order.OnFulfillHook.HookData)
 }

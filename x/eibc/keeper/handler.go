@@ -68,28 +68,18 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
 	// zero fee demand order by default
-	eibcMetaData := dacktypes.EIBCMetadata{Fee: "0"}
+	eibcMetaData := dacktypes.EIBCMemo{Fee: "0"}
 
 	if fungibleTokenPacketData.Memo != "" {
-		packetMetaData, err := dacktypes.ParsePacketMetadata(fungibleTokenPacketData.Memo)
+		packetMetaData, err := dacktypes.ParseMemo(fungibleTokenPacketData.Memo)
 		if err == nil {
 			eibcMetaData = *packetMetaData.EIBC
-		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
+		} else if !errors.Is(err, dacktypes.ErrEIBCMemoEmpty) {
 			return nil, fmt.Errorf("parse packet metadata: %w", err)
 		}
 	}
 	if err := eibcMetaData.ValidateBasic(); err != nil {
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
-	}
-
-	fulfillHook, err := eibcMetaData.GetFulfillHook()
-	if err != nil {
-		return nil, fmt.Errorf("get fulfill hook: %w", err)
-	}
-	if fulfillHook != nil {
-		if err := k.fulfillHooks.validate(*fulfillHook); err != nil {
-			return nil, fmt.Errorf("validate fulfill hook: %w", err)
-		}
 	}
 
 	// Calculate the demand order price and validate it,
@@ -104,29 +94,37 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 	creationHeight := uint64(ctx.BlockHeight())
 
+	fulfillHook, err := eibcMetaData.GetFulfillHook()
+	if err != nil {
+		return nil, fmt.Errorf("get fulfill hook: %w", err)
+	}
+	if fulfillHook != nil {
+		if err := k.fulfillHooks.validate(*fulfillHook); err != nil {
+			return nil, fmt.Errorf("validate fulfill hook: %w", err)
+		}
+	}
+
 	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, fulfillHook)
 	return order, nil
 }
 
 // TODO: finish, to be able to have the transfer stack bit
-func UnpackFungiblePacketMemo(memo string) (dacktypes.EIBCMetadata, error) {
+func UnpackFungiblePacketMemo(memoS string) (dacktypes.EIBCMemo, error) {
 
-	if memo != "" {
-		packetMetaData, err := dacktypes.ParsePacketMetadata(memo)
+	mEIBC := dacktypes.MakeEIBCMemo()
+
+	if memoS != "" {
+		m, err := dacktypes.ParseMemo(memoS)
 		if err == nil {
-			eibcData = *packetMetaData.EIBC
-		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
-			return nil, fmt.Errorf("parse packet metadata: %w", err)
+			mEIBC = *m.EIBC
+		} else if !errors.Is(err, dacktypes.ErrEIBCMemoEmpty) {
+			return mEIBC, fmt.Errorf("parse packet metadata: %w", err)
 		}
 	}
-	if err := eibcData.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate eibc metadata: %w", err)
+	if err := mEIBC.ValidateBasic(); err != nil {
+		return mEIBC, fmt.Errorf("validate eibc metadata: %w", err)
 	}
-
-	fulfillHook, err := eibcData.GetFulfillHook()
-	if err != nil {
-		return nil, fmt.Errorf("get fulfill hook: %w", err)
-	}
+	return mEIBC, nil
 }
 
 // CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.

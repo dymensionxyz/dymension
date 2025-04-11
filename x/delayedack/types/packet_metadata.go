@@ -7,27 +7,34 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-type PacketMetadata struct {
-	EIBC *EIBCMetadata `json:"eibc"`
+type Memo struct {
+	EIBC *EIBCMemo `json:"eibc"`
 }
 
-type EIBCMetadata struct {
-	Fee         string `json:"fee"`
-	FulfillHook []byte `json:"fulfill_hook,omitempty"` // TODO: would be better to rework this whole thing into a pb message
+type EIBCMemo struct {
+	// mandatory
+	Fee string `json:"fee"`
+	// can be nil
+	FulfillHook []byte `json:"on_fulfill,omitempty"` // TODO: would be better to rework this whole thing into a pb message
 }
 
-func (p PacketMetadata) ValidateBasic() error {
+func MakeEIBCMemo() EIBCMemo {
+	return EIBCMemo{Fee: "0"}
+}
+
+func (p Memo) ValidateBasic() error {
 	return p.EIBC.ValidateBasic()
 }
 
 // TODO: avoid duplicate calls
-func (e EIBCMetadata) GetFulfillHook() (*eibctypes.FulfillHook, error) {
+func (e EIBCMemo) GetFulfillHook() (*eibctypes.OnFulfillHook, error) {
 	if len(e.FulfillHook) == 0 {
 		return nil, nil
 	}
-	var hook eibctypes.FulfillHook
+	var hook eibctypes.OnFulfillHook
 	// unmarshal with protobuf
 	err := proto.Unmarshal(e.FulfillHook, &hook)
 	if err != nil {
@@ -39,7 +46,7 @@ func (e EIBCMetadata) GetFulfillHook() (*eibctypes.FulfillHook, error) {
 	return &hook, nil
 }
 
-func (e EIBCMetadata) ValidateBasic() error {
+func (e EIBCMemo) ValidateBasic() error {
 	_, err := e.FeeInt()
 	if err != nil {
 		return fmt.Errorf("fee: %w", err)
@@ -50,7 +57,7 @@ func (e EIBCMetadata) ValidateBasic() error {
 	return nil
 }
 
-func (e EIBCMetadata) FeeInt() (math.Int, error) {
+func (e EIBCMemo) FeeInt() (math.Int, error) {
 	i, ok := math.NewIntFromString(e.Fee)
 	if !ok || i.IsNegative() {
 		return math.Int{}, ErrBadEIBCFee
@@ -60,17 +67,17 @@ func (e EIBCMetadata) FeeInt() (math.Int, error) {
 
 const (
 	memoObjectKeyEIBC = "eibc"
-	memoObjectKeyPFM  = "forward"
+	memoObjectKeyPFM  = "forward" // not to be confused with dymension/x/forward
 )
 
 var (
-	ErrMemoUnmarshal         = fmt.Errorf("unmarshal memo")
-	ErrEIBCMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
-	ErrMemoHashPFMandEIBC    = fmt.Errorf("EIBC packet with PFM is currently not supported")
-	ErrMemoEibcEmpty         = fmt.Errorf("memo eIBC field is missing")
+	ErrMemoUnmarshal     = gerrc.ErrInvalidArgument.Wrap("unmarshal memo")
+	ErrMemoClashPFM      = gerrc.ErrUnimplemented.Wrap("EIBC packet with PFM is currently not supported")
+	ErrEIBCMemoUnmarshal = gerrc.ErrInvalidArgument.Wrap("unmarshal eibc metadata")
+	ErrEIBCMemoEmpty     = gerrc.ErrNotFound.Wrap("memo eIBC field is missing")
 )
 
-func ParsePacketMetadata(input string) (*PacketMetadata, error) {
+func ParseMemo(input string) (*Memo, error) {
 	bz := []byte(input)
 
 	memo := make(map[string]any)
@@ -80,15 +87,15 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	}
 	if memo[memoObjectKeyPFM] != nil {
 		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
-		return nil, ErrMemoHashPFMandEIBC
+		return nil, ErrMemoClashPFM
 	}
 	if memo[memoObjectKeyEIBC] == nil {
-		return nil, ErrMemoEibcEmpty
+		return nil, ErrEIBCMemoEmpty
 	}
-	var metadata PacketMetadata
+	var metadata Memo
 	err = json.Unmarshal(bz, &metadata)
 	if err != nil {
-		return nil, ErrEIBCMetadataUnmarshal
+		return nil, ErrEIBCMemoUnmarshal
 	}
 	return &metadata, nil
 }

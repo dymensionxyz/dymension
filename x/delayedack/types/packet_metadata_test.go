@@ -14,7 +14,7 @@ func Test_parsePacketMetadata(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *PacketMetadata
+		want    *Memo
 		wantErr bool
 	}{
 		{
@@ -22,8 +22,8 @@ func Test_parsePacketMetadata(t *testing.T) {
 			args{
 				`{"eibc":{"fee":"100"}}`,
 			},
-			&PacketMetadata{
-				EIBC: &EIBCMetadata{
+			&Memo{
+				EIBC: &EIBCMemo{
 					Fee: "100",
 				},
 			},
@@ -34,8 +34,8 @@ func Test_parsePacketMetadata(t *testing.T) {
 			args{
 				utransfer.CreateMemo("100", []byte{123}),
 			},
-			&PacketMetadata{
-				EIBC: &EIBCMetadata{
+			&Memo{
+				EIBC: &EIBCMemo{
 					Fee:         "100",
 					FulfillHook: []byte{123},
 				},
@@ -69,7 +69,7 @@ func Test_parsePacketMetadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParsePacketMetadata(tt.args.input)
+			got, err := ParseMemo(tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parsePacketMetadata() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -25,25 +25,26 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // if given in eibc metadata, eibc fullfillment funds will be directed to a module address
 // and a hook will be executed
-type FulfillHook struct {
+// note: only for onRecvPacket
+type OnFulfillHook struct {
 	// name of hook
 	HookName string `protobuf:"bytes,1,opt,name=hook_name,json=hookName,proto3" json:"hook_name,omitempty"`
-	// opaque data to be interpreted by the hook
+	// opaque data to be interpreted by the hook (passed in as arg)
 	HookData []byte `protobuf:"bytes,2,opt,name=hook_data,json=hookData,proto3" json:"hook_data,omitempty"`
 }
 
-func (m *FulfillHook) Reset()         { *m = FulfillHook{} }
-func (m *FulfillHook) String() string { return proto.CompactTextString(m) }
-func (*FulfillHook) ProtoMessage()    {}
-func (*FulfillHook) Descriptor() ([]byte, []int) {
+func (m *OnFulfillHook) Reset()         { *m = OnFulfillHook{} }
+func (m *OnFulfillHook) String() string { return proto.CompactTextString(m) }
+func (*OnFulfillHook) ProtoMessage()    {}
+func (*OnFulfillHook) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ea3cde8909fd511c, []int{0}
 }
-func (m *FulfillHook) XXX_Unmarshal(b []byte) error {
+func (m *OnFulfillHook) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *FulfillHook) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *OnFulfillHook) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_FulfillHook.Marshal(b, m, deterministic)
+		return xxx_messageInfo_OnFulfillHook.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -53,26 +54,26 @@ func (m *FulfillHook) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *FulfillHook) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FulfillHook.Merge(m, src)
+func (m *OnFulfillHook) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OnFulfillHook.Merge(m, src)
 }
-func (m *FulfillHook) XXX_Size() int {
+func (m *OnFulfillHook) XXX_Size() int {
 	return m.Size()
 }
-func (m *FulfillHook) XXX_DiscardUnknown() {
-	xxx_messageInfo_FulfillHook.DiscardUnknown(m)
+func (m *OnFulfillHook) XXX_DiscardUnknown() {
+	xxx_messageInfo_OnFulfillHook.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_FulfillHook proto.InternalMessageInfo
+var xxx_messageInfo_OnFulfillHook proto.InternalMessageInfo
 
-func (m *FulfillHook) GetHookName() string {
+func (m *OnFulfillHook) GetHookName() string {
 	if m != nil {
 		return m.HookName
 	}
 	return ""
 }
 
-func (m *FulfillHook) GetHookData() []byte {
+func (m *OnFulfillHook) GetHookData() []byte {
 	if m != nil {
 		return m.HookData
 	}
@@ -80,7 +81,7 @@ func (m *FulfillHook) GetHookData() []byte {
 }
 
 func init() {
-	proto.RegisterType((*FulfillHook)(nil), "dymensionxyz.dymension.eibc.FulfillHook")
+	proto.RegisterType((*OnFulfillHook)(nil), "dymensionxyz.dymension.eibc.OnFulfillHook")
 }
 
 func init() {
@@ -88,23 +89,23 @@ func init() {
 }
 
 var fileDescriptor_ea3cde8909fd511c = []byte{
-	// 200 bytes of a gzipped FileDescriptorProto
+	// 202 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4b, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x53, 0x33, 0x93, 0x92,
 	0xf5, 0xd3, 0x4a, 0x73, 0xd2, 0x32, 0x73, 0x72, 0xe2, 0x33, 0xf2, 0xf3, 0xb3, 0xf5, 0x0a, 0x8a,
 	0xf2, 0x4b, 0xf2, 0x85, 0xa4, 0x91, 0xd5, 0x23, 0x34, 0xeb, 0x81, 0xd4, 0x4b, 0x89, 0xa4, 0xe7,
-	0xa7, 0xe7, 0x83, 0xd5, 0xe9, 0x83, 0x58, 0x10, 0x2d, 0x4a, 0xee, 0x5c, 0xdc, 0x6e, 0x10, 0x83,
-	0x3c, 0xf2, 0xf3, 0xb3, 0x85, 0xa4, 0xb9, 0x38, 0x41, 0xe6, 0xc5, 0xe7, 0x25, 0xe6, 0xa6, 0x4a,
-	0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x71, 0x80, 0x04, 0xfc, 0x12, 0x73, 0x53, 0xe1, 0x92, 0x29,
-	0x89, 0x25, 0x89, 0x12, 0x4c, 0x0a, 0x8c, 0x1a, 0x3c, 0x10, 0x49, 0x97, 0xc4, 0x92, 0x44, 0x27,
-	0xef, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2, 0x63,
-	0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e, 0x3c, 0x96, 0x63, 0x88, 0x32, 0x4c, 0xcf, 0x2c, 0xc9,
-	0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0xc7, 0xe1, 0xa1, 0x32, 0x63, 0xfd, 0x0a, 0x88, 0xaf,
-	0x4a, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0, 0x8e, 0x33, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff,
-	0x3a, 0x35, 0xfa, 0xaa, 0x01, 0x01, 0x00, 0x00,
+	0xa7, 0xe7, 0x83, 0xd5, 0xe9, 0x83, 0x58, 0x10, 0x2d, 0x4a, 0x9e, 0x5c, 0xbc, 0xfe, 0x79, 0x6e,
+	0x10, 0xa3, 0x3c, 0xf2, 0xf3, 0xb3, 0x85, 0xa4, 0xb9, 0x38, 0x41, 0x26, 0xc6, 0xe7, 0x25, 0xe6,
+	0xa6, 0x4a, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x71, 0x80, 0x04, 0xfc, 0x12, 0x73, 0x53, 0xe1,
+	0x92, 0x29, 0x89, 0x25, 0x89, 0x12, 0x4c, 0x0a, 0x8c, 0x1a, 0x3c, 0x10, 0x49, 0x97, 0xc4, 0x92,
+	0x44, 0x27, 0xef, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71,
+	0xc2, 0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e, 0x3c, 0x96, 0x63, 0x88, 0x32, 0x4c, 0xcf,
+	0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0xc7, 0xe1, 0xa5, 0x32, 0x63, 0xfd, 0x0a,
+	0x88, 0xbf, 0x4a, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0, 0xce, 0x33, 0x06, 0x04, 0x00, 0x00,
+	0xff, 0xff, 0x73, 0x47, 0x99, 0x40, 0x03, 0x01, 0x00, 0x00,
 }
 
-func (m *FulfillHook) Marshal() (dAtA []byte, err error) {
+func (m *OnFulfillHook) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -114,12 +115,12 @@ func (m *FulfillHook) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *FulfillHook) MarshalTo(dAtA []byte) (int, error) {
+func (m *OnFulfillHook) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *FulfillHook) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *OnFulfillHook) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -152,7 +153,7 @@ func encodeVarintFulfillHook(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *FulfillHook) Size() (n int) {
+func (m *OnFulfillHook) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -175,7 +176,7 @@ func sovFulfillHook(x uint64) (n int) {
 func sozFulfillHook(x uint64) (n int) {
 	return sovFulfillHook(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *FulfillHook) Unmarshal(dAtA []byte) error {
+func (m *OnFulfillHook) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -198,10 +199,10 @@ func (m *FulfillHook) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: FulfillHook: wiretype end group for non-group")
+			return fmt.Errorf("proto: OnFulfillHook: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: FulfillHook: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: OnFulfillHook: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
