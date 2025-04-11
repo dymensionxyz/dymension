@@ -29,7 +29,11 @@ func (k Keeper) BridgingFee(ctx sdk.Context) (res math.LegacyDec) {
 }
 
 func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt math.Int) (res math.Int) {
-	return k.BridgingFee(ctx).MulInt(amt).TruncateInt()
+	return BridgeFeeFromAmt(ctx, k.BridgingFee(ctx), amt)
+}
+
+func BridgeFeeFromAmt(ctx sdk.Context, feeMul math.LegacyDec, transferAmt math.Int) (res math.Int) {
+	return feeMul.MulInt(transferAmt).TruncateInt()
 }
 
 func (k Keeper) DeletePacketsEpochLimit(ctx sdk.Context) (res int64) {

@@ -115,7 +115,7 @@ MAILBOX=$(curl -s http://localhost:1318/hyperlane/v1/mailboxes   | jq '.mailboxe
 hub tx hyperlane hooks noop create "${HUB_FLAGS[@]}"
 NOOP_HOOK=$(curl -s http://localhost:1318/hyperlane/v1/noop_hooks | jq '.noop_hooks.[0].id' -r); echo $NOOP_HOOK;
 
-# TODO: IGP needed? Gas config?!!
+# TODO: IGP needed? Gas config?!! (don't think so, for this test)
 
 # update mailbox
 # mailbox, default hook (e.g. IGP), required hook (e.g. merkle tree)
@@ -127,18 +127,17 @@ hub tx hyperlane mailbox set $MAILBOX --default-hook $NOOP_HOOK --required-hook 
 # create the Hyperlane token 
 # NOTE: MUST wait for the ibc token to arrive from the genesis bridge transfer to be able to make the collateral token with the right denom
 DENOM=$(hub q bank balances $HUB_USER_ADDR -o json | jq '.balances.[1].denom' -r); echo $DENOM; # The IBC denom
-hub tx hyperlane-transfer dym-create-collateral-token $MAILBOX $DENOM "${DAN_FLAGS[@]}"
+hub tx hyperlane-transfer dym-create-collateral-token $MAILBOX $DENOM "${HUB_FLAGS[@]}"
 TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[0].id' -r); echo $TOKEN_ID
 
 # setup the router
-hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${DAN_FLAGS[@]}"
-curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers
+hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${HUB_FLAGS[@]}"
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers # check
 
 # prepare the memo which will be included in the rollapp outbound transfer
-RECOVERY_ADDR=$(hub keys show user -a) # use a different addr, to make it easier to check when a refund occurs
 # args are [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address] [flags]
 EIBC_FEE=100
-MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 10000 20"$DENOM" $RECOVERY_ADDR)
+MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 10000 20"$DENOM")
 
 # note, make sure to relay here! If relayer is crashed, restart before initiating the transfer on the next step!
 

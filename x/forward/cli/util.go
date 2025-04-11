@@ -6,16 +6,17 @@ import (
 	"strings"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
+	math "cosmossdk.io/math"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
@@ -333,5 +334,56 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
+	return cmd
+}
+
+func Foo() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "foo [hl receive amt] [hl max gas] [eibc fee] [bridge fee mul]",
+		Args:                       cobra.ExactArgs(2),
+		Short:                      "",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			hlReceiveAmt, ok := math.NewIntFromString(args[0])
+			if !ok {
+				return fmt.Errorf("hl receive amt")
+			}
+
+			hlMaxGas, ok := math.NewIntFromString(args[1])
+			if !ok {
+				return fmt.Errorf("max gas")
+			}
+
+			eibcFee, ok := math.NewIntFromString(args[2])
+			if !ok {
+				return fmt.Errorf("eibc fee")
+			}
+
+			bridgeFeeMul, err := math.LegacyNewDecFromStr(args[3])
+			if err != nil {
+				return fmt.Errorf("fee mul: %w", err)
+			}
+
+			// price calculation always includes the bridge fee, so we don't need to do another calculation for the finalize case
+
+			var x math.Int
+
+			price, err := eibctypes.CalcPriceWithBridgingFee(x, eibcFee, bridgeFeeMul)
+			if err != nil {
+				return fmt.Errorf("calc price: %w", err)
+			}
+
+			needForHl := hlReceiveAmt.Add(hlMaxGas)
+
+			// user should transfer X st . price(x) = hlReceiveAmt + hlMaxGas
+			transferAmt := price.Add(hlReceiveAmt)
+
+			fmt.Printf("transfer amt: %s\n", transferAmt)
+			// in eibc fulfill case,
+			return nil
+		},
+	}
 	return cmd
 }
