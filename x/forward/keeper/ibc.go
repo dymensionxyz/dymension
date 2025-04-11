@@ -38,11 +38,11 @@ func (h rollappToHubCompletion) ValidateData(data []byte) error {
 func (h rollappToHubCompletion) Run(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress,
 	newTransferRecipient sdk.AccAddress,
 	fulfiller sdk.AccAddress, hookData []byte) error {
-	return h.onEIBC(ctx, order, fundsSource, hookData)
+	return h.onRollappToHubTransferCompletion(ctx, order, fundsSource, hookData)
 }
 
 // at this point funds have not been sent from the fulfiller/eibc LP/funds provider to the recipient (or anywhere else)
-func (k Keeper) onEIBC(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, data []byte) error {
+func (k Keeper) onRollappToHubTransferCompletion(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, data []byte) error {
 	var d types.HookEIBCtoHL
 	err := proto.Unmarshal(data, &d)
 	if err != nil {

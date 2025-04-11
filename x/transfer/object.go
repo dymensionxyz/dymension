@@ -9,6 +9,10 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+type EIBCK interface {
+	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*eibctypes.DemandOrder, error)
+}
+
 type TransferHooks struct {
 	Keeper EIBCK
 	hooks  map[string]CompletionHookInstance
@@ -27,7 +31,6 @@ type CompletionHookInstance interface {
 		fundsSource sdk.AccAddress,
 		newTransferRecipient sdk.AccAddress,
 		fulfiller sdk.AccAddress,
-
 		hookData []byte) error
 }
 
@@ -38,11 +41,7 @@ func (k TransferHooks) SetHooks(hooks map[string]CompletionHookInstance) {
 	}
 }
 
-type EIBCK interface {
-	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*eibctypes.DemandOrder, error)
-}
-
-// assumed already passed validate basic
+// assumes already passed validate basic
 func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
 	f, ok := h.hooks[info.HookName]
 	if !ok {
@@ -66,6 +65,7 @@ func (m *TransferHooks) AfterRecvPacket(ctx sdk.Context, p *commontypes.RollappP
 		return
 	}
 
+	// for mvp, assume all completion hooks are only executable once
 	if o.IsFulfilled() {
 		// done
 		return
