@@ -33,7 +33,7 @@ func NewTransferHooks(keeper EIBCK) *TransferHooks {
 
 type CompletionHookInstance interface {
 	ValidateData(hookData []byte) error
-	Run(ctx sdk.Context, fundSrc, originalRecipient sdk.AccAddress, budget sdk.Coin, hookData []byte) error
+	Run(ctx sdk.Context, fundSrc sdk.AccAddress, budget sdk.Coin, hookData []byte) error
 }
 
 // map name -> instance
@@ -84,16 +84,15 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 	}
 
 	// the order wasn't fulfilled, so the funds were sent to the original recipient by ibc transfer app
-	fundsSrc := o.GetRecipientBech32Address()
 	budget := sdk.NewCoin(o.Denom(), o.PriceAmount()) // TODO: fix amount, need to account for fees and so on
-	return f.Run(ctx, fundsSrc, o.GetRecipientBech32Address(), budget, o.CompletionHookCall.HookData)
+	return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHookCall.HookData)
 
 }
 
-func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder, fundsSrc sdk.AccAddress) error {
+func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder) error {
 	f, ok := h.hooks[o.CompletionHookCall.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, fundsSrc, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHookCall.HookData)
+	return f.Run(ctx, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHookCall.HookData)
 }

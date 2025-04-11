@@ -46,21 +46,19 @@ func (k Keeper) fulfill(ctx sdk.Context,
 		return errorsmod.Wrap(err, "ensure fulfiller account")
 	}
 
+	err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
+	if err != nil {
+		return errorsmod.Wrap(err, "send coins")
+	}
 	if o.CompletionHookCall != nil {
-		err := k.transferHooks.OnFulfill(ctx, o, args.FundsSource)
+		err := k.transferHooks.OnFulfill(ctx, o)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")
-		}
-	} else {
-		// TODO: could make this an instance of a hook / type of hook, then instead of branching it would be one flow
-		err := k.bk.SendCoins(ctx, args.FundsSource, o.GetRecipientBech32Address(), o.Price)
-		if err != nil {
-			return errorsmod.Wrap(err, "send coins")
 		}
 	}
 
 	o.FulfillerAddress = args.Fulfiller.String()
-	err := k.SetDemandOrder(ctx, o)
+	err = k.SetDemandOrder(ctx, o)
 	if err != nil {
 		return err
 	}

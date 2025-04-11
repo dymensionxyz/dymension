@@ -36,7 +36,7 @@ func (h rollappToHubCompletion) ValidateData(data []byte) error {
 
 // TODO: rename method
 // at this point funds have not been sent from the fulfiller/eibc LP/funds provider to the recipient (or anywhere else)
-func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress, originalTransferRecipient sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
+func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 
 	h.refundOnError(ctx, func() error {
 		var d types.HookEIBCtoHL
