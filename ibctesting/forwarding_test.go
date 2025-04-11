@@ -58,7 +58,7 @@ func (s *forwardSuite) TestForward() {
 	)
 	s.T().Log("running test forward!")
 
-	hookData := eibctypes.FulfillHook{
+	hookData := eibctypes.OnFulfillHook{
 		HookName: dummy,
 		HookData: []byte{},
 	}

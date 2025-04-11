@@ -11,7 +11,7 @@ func CreateMemo(eibcFee string, fulfillHook []byte) string {
 		},
 	}
 	if len(fulfillHook) > 0 {
-		m["eibc"]["fulfill_hook"] = fulfillHook
+		m["eibc"]["on_fulfill"] = fulfillHook
 	}
 
 	eibcJson, _ := json.Marshal(m)

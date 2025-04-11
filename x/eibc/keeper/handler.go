@@ -3,11 +3,11 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/pkg/errors"
 
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -67,24 +67,14 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
-	// zero fee demand order by default
-	eibcMetaData := dacktypes.EIBCMemo{Fee: "0"}
-
-	if fungibleTokenPacketData.Memo != "" {
-		packetMetaData, err := dacktypes.ParseMemo(fungibleTokenPacketData.Memo)
-		if err == nil {
-			eibcMetaData = *packetMetaData.EIBC
-		} else if !errors.Is(err, dacktypes.ErrEIBCMemoEmpty) {
-			return nil, fmt.Errorf("parse packet metadata: %w", err)
-		}
-	}
-	if err := eibcMetaData.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate eibc metadata: %w", err)
+	memoEIBC, err := UnpackEIBCMemo(fungibleTokenPacketData.Memo)
+	if err != nil {
+		return nil, fmt.Errorf("unpack fungible packet memo: %w", err)
 	}
 
 	// Calculate the demand order price and validate it,
 	amt, _ := math.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
-	fee, _ := eibcMetaData.FeeInt()                                 // guaranteed ok by above validation
+	fee, _ := memoEIBC.FeeInt()                                     // guaranteed ok by above validation
 	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
 	if err != nil {
 		return nil, err
@@ -94,7 +84,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 	creationHeight := uint64(ctx.BlockHeight())
 
-	fulfillHook, err := eibcMetaData.GetFulfillHook()
+	fulfillHook, err := memoEIBC.GetFulfillHook()
 	if err != nil {
 		return nil, fmt.Errorf("get fulfill hook: %w", err)
 	}
@@ -108,23 +98,20 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	return order, nil
 }
 
-// TODO: finish, to be able to have the transfer stack bit
-func UnpackFungiblePacketMemo(memoS string) (dacktypes.EIBCMemo, error) {
+func UnpackEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
 
-	mEIBC := dacktypes.MakeEIBCMemo()
+	if memoS == "" {
+		return dacktypes.MakeEIBCMemo(), nil
+	}
+	m, err := dacktypes.ParseMemo(memoS)
 
-	if memoS != "" {
-		m, err := dacktypes.ParseMemo(memoS)
-		if err == nil {
-			mEIBC = *m.EIBC
-		} else if !errors.Is(err, dacktypes.ErrEIBCMemoEmpty) {
-			return mEIBC, fmt.Errorf("parse packet metadata: %w", err)
-		}
+	if err == nil {
+		return *m.EIBC, m.EIBC.ValidateBasic()
 	}
-	if err := mEIBC.ValidateBasic(); err != nil {
-		return mEIBC, fmt.Errorf("validate eibc metadata: %w", err)
+	if errorsmod.IsOf(err, dacktypes.ErrEIBCMemoEmpty) {
+		return dacktypes.MakeEIBCMemo(), nil
 	}
-	return mEIBC, nil
+	return dacktypes.EIBCMemo{}, fmt.Errorf("parse packet metadata: %w", err)
 }
 
 // CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.

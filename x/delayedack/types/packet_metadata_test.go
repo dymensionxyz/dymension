@@ -36,8 +36,8 @@ func Test_parsePacketMetadata(t *testing.T) {
 			},
 			&Memo{
 				EIBC: &EIBCMemo{
-					Fee:         "100",
-					FulfillHook: []byte{123},
+					Fee:           "100",
+					OnFulfillHook: []byte{123},
 				},
 			},
 			false,

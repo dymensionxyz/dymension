@@ -18,7 +18,7 @@ type EIBCMemo struct {
 	// mandatory
 	Fee string `json:"fee"`
 	// can be nil
-	FulfillHook []byte `json:"on_fulfill,omitempty"` // TODO: would be better to rework this whole thing into a pb message
+	OnFulfillHook []byte `json:"on_fulfill,omitempty"` // TODO: would be better to rework this whole thing into a pb message
 }
 
 func MakeEIBCMemo() EIBCMemo {
@@ -31,17 +31,16 @@ func (p Memo) ValidateBasic() error {
 
 // TODO: avoid duplicate calls
 func (e EIBCMemo) GetFulfillHook() (*eibctypes.OnFulfillHook, error) {
-	if len(e.FulfillHook) == 0 {
+	if len(e.OnFulfillHook) == 0 {
 		return nil, nil
 	}
 	var hook eibctypes.OnFulfillHook
-	// unmarshal with protobuf
-	err := proto.Unmarshal(e.FulfillHook, &hook)
+	err := proto.Unmarshal(e.OnFulfillHook, &hook)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal fulfill hook: %w", err)
+		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)
 	}
 	if err := hook.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate fulfill hook: %w", err)
+		return nil, fmt.Errorf("validate on fulfill hook: %w", err)
 	}
 	return &hook, nil
 }
@@ -52,7 +51,7 @@ func (e EIBCMemo) ValidateBasic() error {
 		return fmt.Errorf("fee: %w", err)
 	}
 	if _, err := e.GetFulfillHook(); err != nil {
-		return fmt.Errorf("fulfill hook: %w", err)
+		return fmt.Errorf("get on fulfill hook: %w", err)
 	}
 	return nil
 }
