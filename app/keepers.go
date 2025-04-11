@@ -38,7 +38,6 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -250,7 +249,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewKVStoreService(a.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), a.AccountKeeper)
 
-	groupConfig := grouptypes.DefaultConfig()
+	groupConfig := group.DefaultConfig()
 	groupConfig.MaxMetadataLen = 5500
 	a.GroupKeeper = groupkeeper.NewKeeper(a.keys[group.StoreKey], appCodec, bApp.MsgServiceRouter(), a.AccountKeeper, groupConfig)
 
