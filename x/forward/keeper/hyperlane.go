@@ -12,22 +12,22 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// for inbound warp route transfers. At this point, the tokens are in the hyperlane warp module still
+// at time of calling, funds have been credited to the original hyperlane transfer recipient
 func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
 	// it would be more flexible and allow memo forwarding
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	k.refundOnError(ctx, func() error {
-
+	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
+	k.forwardWithEvent(ctx, func() error {
 		d, nextMemo, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
 		if err != nil {
 			return errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
 
 		return k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin(), nextMemo)
-	}, args.Account, args.Account, args.Coin())
+	})
 
 	return nil
 }

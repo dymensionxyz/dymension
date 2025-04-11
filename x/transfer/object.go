@@ -25,6 +25,7 @@ func (h *TransferHooks) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 func NewTransferHooks(keeper EIBCK) *TransferHooks {
+
 	return &TransferHooks{
 		Keeper: keeper,
 		hooks:  make(map[string]CompletionHookInstance),

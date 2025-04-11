@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/stretchr/testify/suite"
@@ -33,14 +32,7 @@ func (h *mockHook) ValidateData(hookData []byte) error {
 	return nil
 }
 
-func (h *mockHook) Run(ctx sdk.Context, order *types.DemandOrder,
-	fundsSource sdk.AccAddress,
-	newTransferRecipient sdk.AccAddress,
-	fulfiller sdk.AccAddress,
-	hookData []byte) error {
-
-	// mimic the regular transfer for this test
-	h.utilSuite.hubApp().BankKeeper.SendCoins(ctx, fundsSource, order.GetRecipientBech32Address(), order.Price)
+func (h *mockHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 
 	h.called = true
 	return nil

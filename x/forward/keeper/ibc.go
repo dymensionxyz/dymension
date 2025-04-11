@@ -34,19 +34,18 @@ func (h rollappToHubCompletion) ValidateData(data []byte) error {
 	return nil
 }
 
-// TODO: rename method
-// at this point funds have not been sent from the fulfiller/eibc LP/funds provider to the recipient (or anywhere else)
+// at the time of calling, funds have either been sent from the eibc LP to the ibc transfer recipient, or minted/unescrowed from
+// the ibc transfer app to the ibc transfer recipient
 func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
-
-	h.refundOnError(ctx, func() error {
+	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
+	h.forwardWithEvent(ctx, func() error {
 		var d types.HookEIBCtoHL
 		err := proto.Unmarshal(hookData, &d)
 		if err != nil {
 			return errorsmod.Wrap(err, "unmarshal")
 		}
-
 		return h.forwardToHyperlane(ctx, fundsSource, budget, d)
-	}, fundsSource, originalTransferRecipient, budget)
+	})
 	return nil
 }
 
