@@ -62,8 +62,6 @@ import (
 
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	"github.com/dymensionxyz/dymension/v3/x/forward"
-	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -157,8 +155,6 @@ func (app *App) SetupModules(
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
-
-		forward.NewAppModule(appCodec, app.ForwardKeeper),
 	}
 }
 
@@ -173,7 +169,6 @@ func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
-	modAccAddrs[authtypes.NewModuleAddress(forwardtypes.ModuleName).String()] = false // allowed because it invokes IBC transfers
 
 	// TODO: need HL?
 	return modAccAddrs
@@ -203,7 +198,6 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              {}, // TODO: check
 	hyperwarptypes.ModuleName:                          {}, // TODO: check
-	forwardtypes.ModuleName:                            {},
 }
 
 var PreBlockers = []string{
@@ -252,7 +246,6 @@ var BeginBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,     // TODO: check order
 	hyperwarptypes.ModuleName, // TODO: check order
-	forwardtypes.ModuleName,   // TODO: check order
 }
 
 var EndBlockers = []string{
@@ -297,7 +290,6 @@ var EndBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,     // TODO: check order
 	hyperwarptypes.ModuleName, // TODO: check order
-	forwardtypes.ModuleName,   // TODO: check order
 }
 
 var InitGenesis = []string{
@@ -342,5 +334,4 @@ var InitGenesis = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,     // TODO: check order
 	hyperwarptypes.ModuleName, // TODO: check order
-	forwardtypes.ModuleName,   // TODO: check order
 }

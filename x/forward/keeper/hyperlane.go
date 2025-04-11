@@ -13,7 +13,7 @@ import (
 )
 
 // for inbound warp route transfers. At this point, the tokens are in the hyperlane warp module still
-func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) {
+func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
 	// it would be more flexible and allow memo forwarding
 
@@ -28,6 +28,8 @@ func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHype
 
 		return k.forwardToIBC(ctx, d.Transfer, args.Coin(), nextMemo)
 	}, nil, warptypes.ModuleName, args.Account, args.Coin())
+
+	return nil
 }
 
 func (k Keeper) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, d types.HookEIBCtoHL) error {

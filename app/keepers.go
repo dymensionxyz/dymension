@@ -542,8 +542,6 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.ForwardKeeper = *forwardkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(a.keys[forwardtypes.ModuleName]),
 		&a.HyperWarpKeeper,
 		a.BankKeeper,
 		a.AccountKeeper,
@@ -555,7 +553,7 @@ func (a *AppKeepers) InitKeepers(
 	{
 		h := hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper)
 		h.RegisterDymensionTokens()
-		h.SetHook(a.ForwardKeeper.Hook())
+		h.SetHook(a.ForwardKeeper)
 	}
 
 	a.TransferHooks = transfer.NewTransferHooks(a.EIBCKeeper)
