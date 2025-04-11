@@ -108,6 +108,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	return order, nil
 }
 
+// TODO: finish, to be able to have the transfer stack bit
 func UnpackFungiblePacketMemo(memo string) (dacktypes.EIBCMetadata, error) {
 
 	if memo != "" {
