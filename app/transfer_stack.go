@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
-	forward "github.com/dymensionxyz/dymension/v3/x/forward/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 )
 
@@ -30,8 +29,6 @@ func (a *AppKeepers) InitTransferStack() {
 	)
 
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
-
-	a.TransferStack = forward.NewIBCModule(a.ForwardKeeper, a.TransferStack)
 
 	// already instantiated in SetupHooks()
 	a.DelayedAckMiddleware.Setup(

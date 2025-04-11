@@ -71,6 +71,27 @@ func (k Keeper) finalizeRollappPacket(
 		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
+
+		/*
+			SPAGHETTI CODE ALERT:
+
+			*In general* we want a way to do something whenever an ibc transfer happens ("Hook"). It can happen
+				1. on EIBC fulfill
+				2. on finalize to the original recipient, for non fulfilled orders
+				3. on finalize to the fulfiller, for fulfilled orders
+
+			Chosen approach is a bit spaghetti:
+
+			1. Do the hook on EIBC fulfillment, using immediate funds
+			2. On finalize, look up the EIBC demand order to check if it's fulfilled or not.
+				a. If it ISN'T, then do the hook AFTER the ibc transfer stack finishes
+				b. If it IS, then do nothing
+
+			We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
+		*/
+		if k.transferHooks != nil {
+			k.transferHooks.AfterRecvPacket(ctx, &rollappPacket)
+		}
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:

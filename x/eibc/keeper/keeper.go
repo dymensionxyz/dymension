@@ -129,6 +129,12 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 	return demandOrder, nil
 }
 
+func (k Keeper) PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*types.DemandOrder, error) {
+	key := p.RollappPacketKey()
+	id := types.BuildDemandIDFromPacketKey(string(key))
+	return k.GetDemandOrder(ctx, commontypes.Status_PENDING, id)
+}
+
 // GetDemandOrder returns the demand order with the given id and status.
 func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*types.DemandOrder, error) {
 	store := ctx.KVStore(k.storeKey)
