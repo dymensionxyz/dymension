@@ -13,7 +13,6 @@ import (
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type msgServer struct {
@@ -84,7 +83,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
-	err = m.Keeper.fulfill(ctx, demandOrder, transfer.EIBCFulfillArgs{
+	err = m.Keeper.fulfill(ctx, demandOrder, fulfillArgs{
 		FundsSource:          lp,
 		NewTransferRecipient: lp,
 		Fulfiller:            operator,

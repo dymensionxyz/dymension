@@ -33,16 +33,22 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 	return nil
 }
 
+type fulfillArgs struct {
+	FundsSource          sdk.AccAddress
+	NewTransferRecipient sdk.AccAddress
+	Fulfiller            sdk.AccAddress
+}
+
 func (k Keeper) fulfill(ctx sdk.Context,
 	o *types.DemandOrder,
-	args transfer.EIBCFulfillArgs,
+	args fulfillArgs,
 ) error {
 	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {
 		return errorsmod.Wrap(err, "ensure fulfiller account")
 	}
 
 	if o.CompletionHookCall != nil {
-		err := k.transferHooks.OnFulfill(ctx, o, args)
+		err := k.transferHooks.OnFulfill(ctx, o, args.FundsSource)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")
 		}

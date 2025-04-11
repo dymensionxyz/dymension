@@ -1,7 +1,10 @@
 package keeper // have to call it keeper
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -18,6 +21,9 @@ type TransferHooks struct {
 	hooks  map[string]CompletionHookInstance
 }
 
+func (h *TransferHooks) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
 func NewTransferHooks(keeper EIBCK) *TransferHooks {
 	return &TransferHooks{
 		Keeper: keeper,
@@ -27,11 +33,7 @@ func NewTransferHooks(keeper EIBCK) *TransferHooks {
 
 type CompletionHookInstance interface {
 	ValidateData(hookData []byte) error
-	Run(ctx sdk.Context, order *eibctypes.DemandOrder,
-		fundsSource sdk.AccAddress,
-		newTransferRecipient sdk.AccAddress,
-		fulfiller sdk.AccAddress,
-		hookData []byte) error
+	Run(ctx sdk.Context, fundSrc, originalRecipient sdk.AccAddress, budget sdk.Coin, hookData []byte) error
 }
 
 // map name -> instance
@@ -58,11 +60,10 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 	o, err := h.Keeper.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {
 		// not much we can do here, it should exist...
-		// TODO: log
+		h.Logger(ctx).Error("Pending order by packet not found.", "packet", p.LogString())
 		return nil
 	}
 	if err != nil {
-		// TODO: something
 		return errorsmod.Wrap(err, "pending order by packet")
 	}
 
@@ -82,22 +83,17 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
 
-	fundsSrc := p.OriginalTransferTarget
-
-	return f.Run(ctx, o, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, o.CompletionHookCall.HookData)
+	// the order wasn't fulfilled, so the funds were sent to the original recipient by ibc transfer app
+	fundsSrc := o.GetRecipientBech32Address()
+	budget := sdk.NewCoin(o.Denom(), o.PriceAmount()) // TODO: fix amount, need to account for fees and so on
+	return f.Run(ctx, fundsSrc, o.GetRecipientBech32Address(), budget, o.CompletionHookCall.HookData)
 
 }
 
-type EIBCFulfillArgs struct {
-	FundsSource          sdk.AccAddress
-	NewTransferRecipient sdk.AccAddress
-	Fulfiller            sdk.AccAddress
-}
-
-func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args EIBCFulfillArgs) error {
+func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder, fundsSrc sdk.AccAddress) error {
 	f, ok := h.hooks[o.CompletionHookCall.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, o, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, o.CompletionHookCall.HookData)
+	return f.Run(ctx, fundsSrc, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHookCall.HookData)
 }
