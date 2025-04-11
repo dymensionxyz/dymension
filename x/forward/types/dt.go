@@ -64,7 +64,6 @@ func NewHookHLtoIBC(
 	token sdk.Coin,
 	receiver string,
 	timeoutTimestamp uint64,
-	recoveryAddr string,
 ) *HookHLtoIBC {
 
 	arbSender, _ := sample.AccFromSecret("foo")
@@ -79,6 +78,22 @@ func NewHookHLtoIBC(
 			TimeoutTimestamp: timeoutTimestamp,
 		},
 	}
+}
+
+func MakeHookHLtoIBC(
+	sourceChannel string,
+	token sdk.Coin,
+	receiver string,
+	timeoutTimestamp uint64,
+) *HookHLtoIBC {
+	hook := NewHookHLtoIBC(
+		"transfer",
+		sourceChannel,
+		token,
+		receiver,
+		timeoutTimestamp,
+	)
+	return hook
 }
 
 // WARNING: assumes the memo is entirely dedicated to the HL->IBC forwarder
@@ -127,8 +142,6 @@ func NewEIBCToHLMemoRaw(
 	amount math.Int,
 	maxFee sdk.Coin,
 
-	recoveryAddr string,
-
 	gasLimit math.Int,
 	customHookId *hyperutil.HexAddress,
 	customHookMetadata string) (string, error) {
@@ -169,21 +182,8 @@ func NewHyperlaneToIBCHyperlaneMessage(
 	hyperlaneTokenID hyperutil.HexAddress,
 	hyperlaneRecipient sdk.AccAddress, // TODO: explain, ignored?
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
-	ibcSourceChan string, // e.g. channel-0
-	ibcRecipient string, // address e.g. ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk
-	hubToken sdk.Coin, // e.g. 50ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7
-	ibcTimeoutTimestamp uint64, // e.g. 1000000000000000000
-	recoveryAddr string, // funds recovery address on hub, e.g. dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz
+	hook *HookHLtoIBC,
 ) (hyperutil.HyperlaneMessage, error) {
-
-	hook := NewHookHLtoIBC(
-		"transfer",
-		ibcSourceChan,
-		hubToken,
-		ibcRecipient,
-		ibcTimeoutTimestamp,
-		recoveryAddr,
-	)
 
 	if err := hook.ValidateBasic(); err != nil {
 		return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")

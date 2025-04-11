@@ -62,7 +62,7 @@ func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTran
 		string(memo),
 	)
 
-	// If this transfer fails asynchronously (timeout or ack) then the funds will get refunded back to the sender by ibc transfer app
+	// If this transfer fails asynchronously (timeout or ack) then the funds will get refunded back to the fundSrc by ibc transfer app
 	_, err := k.transferK.Transfer(ctx, m)
 
 	return err

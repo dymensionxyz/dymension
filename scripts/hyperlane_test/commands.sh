@@ -63,41 +63,21 @@ $EXECUTABLE validate-genesis
 # will not work unless https://github.com/dymensionxyz/rollapp-evm/pull/471 included
 $EXECUTABLE start --log_level=debug
 
-make install BECH32_PREFIX=$BECH32_PREFIX
-
-$EXECUTABLE config keyring-backend test
-sh scripts/init.sh
-
-dymd keys add sequencer --keyring-dir ~/.rollapp_evm/sequencer_keys --keyring-backend test
-
-SEQUENCER_ADDR=`dymd keys show sequencer --address --keyring-backend test --keyring-dir ~/.rollapp_evm/sequencer_keys`
-BOND_AMOUNT="$(dymd q rollapp params -o json | jq -r '.params.min_sequencer_bond_global.amount')$(dymd q rollapp params -o json | jq -r '.params.min_sequencer_bond_global.denom')"
-NUMERIC_PART=$(echo $BOND_AMOUNT | sed 's/adym//')
-NEW_NUMERIC_PART=$(echo "$NUMERIC_PART + 100000000000000000000" | bc)
-TRANSFER_AMOUNT="${NEW_NUMERIC_PART}adym"
-
-dymd tx bank send $HUB_KEY_WITH_FUNDS $SEQUENCER_ADDR ${TRANSFER_AMOUNT} --keyring-backend test --broadcast-mode sync --fees 1dym -y --node ${HUB_RPC_URL}
-
-sh scripts/settlement/register_rollapp_to_hub.sh
-sh scripts/settlement/register_sequencer_to_hub.sh
-
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "settlement_layer" -v "dymension"
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "node_address" -v "$HUB_RPC_URL"
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "rollapp_id" -v "$ROLLAPP_CHAIN_ID"
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "max_idle_time" -v "2s" # may want to change to something longer after setup (see below)
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "max_proof_time" -v "1s"
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/app.toml "minimum-gas-prices" -v "1arax"
-dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "batch_submit_time" -v "30s"
-
-$EXECUTABLE validate-genesis
-# will not work unless https://github.com/dymensionxyz/rollapp-evm/pull/471 included
-$EXECUTABLE start --log_level=debug
 
 ###########
 # Relayer 
 
-# It will show permission denied at first but should eventually work
+# It will show permission denied at first
 sh scripts/ibc/setup_ibc.sh
+
+# Quickly update whitelist!
+RLY_ADDR=$(rly keys show $ROLLAPP_CHAIN_ID)
+dymd tx sequencer update-whitelisted-relayers $RLY_ADDR --from sequencer --keyring-dir ~/.rollapp_evm/sequencer_keys --keyring-backend test -y --fees 1dym
+# can check with
+hub q sequencer list-sequencer -o json | jq '.sequencers[0].whitelisted_relayers'
+
+# relayer should eventually make the bridge
+
 # Can check with 
 hub q sequencer list-sequencer
 ra q sequencers sequencers
