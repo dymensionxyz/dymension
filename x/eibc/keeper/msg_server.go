@@ -84,7 +84,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
-	err = m.Keeper.fulfill(ctx, demandOrder, transfer.FulfillArgs{
+	err = m.Keeper.fulfill(ctx, demandOrder, transfer.EIBCFulfillArgs{
 		FundsSource:          lp,
 		NewTransferRecipient: lp,
 		Fulfiller:            operator,

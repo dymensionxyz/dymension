@@ -558,13 +558,13 @@ func (a *AppKeepers) InitKeepers(
 		h.SetHook(a.ForwardKeeper.Hook())
 	}
 
-	transferHooks := transfer.NewTransferHooks(a.EIBCKeeper)
-	transferHooks.SetHooks(map[string]transfer.CompletionHookInstance{
+	a.TransferHooks = transfer.NewTransferHooks(a.EIBCKeeper)
+	a.TransferHooks.SetHooks(map[string]transfer.CompletionHookInstance{
 		forwardtypes.HookNameForward: a.ForwardKeeper.Hook(),
 	})
 
-	a.EIBCKeeper.SetTransferHooks(transferHooks)
-	a.DelayedAckKeeper.SetTransferHooks(transferHooks)
+	a.EIBCKeeper.SetTransferHooks(a.TransferHooks)
+	a.DelayedAckKeeper.SetTransferHooks(a.TransferHooks)
 
 }
 

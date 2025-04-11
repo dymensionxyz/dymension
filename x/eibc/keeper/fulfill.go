@@ -16,7 +16,7 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 	fulfiller sdk.AccAddress,
 ) error {
 
-	err := k.fulfill(ctx, o, transfer.FulfillArgs{
+	err := k.fulfill(ctx, o, transfer.EIBCFulfillArgs{
 		FundsSource:          fulfiller,
 		NewTransferRecipient: fulfiller,
 		Fulfiller:            fulfiller,
@@ -35,7 +35,7 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 
 func (k Keeper) fulfill(ctx sdk.Context,
 	o *types.DemandOrder,
-	args transfer.FulfillArgs,
+	args transfer.EIBCFulfillArgs,
 ) error {
 	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {
 		return errorsmod.Wrap(err, "ensure fulfiller account")

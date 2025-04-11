@@ -42,6 +42,15 @@ type EIBCK interface {
 	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*eibctypes.DemandOrder, error)
 }
 
+// assumed already passed validate basic
+func (h *TransferHooks) Validate(info types.CompletionHook) error {
+	f, ok := h.hooks[info.HookName]
+	if !ok {
+		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
+	}
+	return f.ValidateData(info.HookData)
+}
+
 // Should be called after packet finalization
 // Recipient can either be the fulfiller of a hook that already occurred, or the original recipient still, who probably still wants the hook to happen
 // NOTE: there is an asymmetry currently because on fulfill supports multiple hooks, but this finalization onRecv is hardcoded for x/forward atm
@@ -71,29 +80,16 @@ func (m *TransferHooks) AfterRecvPacket(ctx sdk.Context, p *commontypes.RollappP
 
 }
 
-type FulfillArgs struct {
+type EIBCFulfillArgs struct {
 	FundsSource          sdk.AccAddress
 	NewTransferRecipient sdk.AccAddress
 	Fulfiller            sdk.AccAddress
 }
 
-func (m *TransferHooks) Fulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args FulfillArgs) error {
-	return nil
-}
-
-// assumed already passed validate basic
-func (h *TransferHooks) Validate(info types.CompletionHook) error {
-	f, ok := h.hooks[info.HookName]
-	if !ok {
-		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
-	}
-	return f.ValidateData(info.HookData)
-}
-
-func (h *TransferHooks) Exec(ctx sdk.Context, order *eibctypes.DemandOrder, args FulfillArgs) error {
-	f, ok := h.hooks[order.CompletionHook.HookName]
+func (h *TransferHooks) Fulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args EIBCFulfillArgs) error {
+	f, ok := h.hooks[o.CompletionHook.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, order, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, order.CompletionHook.HookData)
+	return f.Run(ctx, o, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, o.CompletionHook.HookData)
 }

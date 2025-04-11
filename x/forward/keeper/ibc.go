@@ -11,23 +11,19 @@ import (
 	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
-var _ transfer.CompletionHookInstance = eIBCHook{}
+var _ transfer.CompletionHookInstance = rollappToHubCompletion{}
 
-func (k Keeper) Hook() eIBCHook {
-	return eIBCHook{
+func (k Keeper) Hook() rollappToHubCompletion {
+	return rollappToHubCompletion{
 		Keeper: &k,
 	}
 }
 
-type eIBCHook struct {
+type rollappToHubCompletion struct {
 	*Keeper
 }
 
-func (h eIBCHook) ValidateData(data []byte) error {
-	return validEIBCForward(data)
-}
-
-func validEIBCForward(data []byte) error {
+func (h rollappToHubCompletion) ValidateData(data []byte) error {
 	var d types.HookEIBCtoHL
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
@@ -37,10 +33,9 @@ func validEIBCForward(data []byte) error {
 		return errorsmod.Wrap(err, "validate")
 	}
 	return nil
-
 }
 
-func (h eIBCHook) Run(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress,
+func (h rollappToHubCompletion) Run(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress,
 	newTransferRecipient sdk.AccAddress,
 	fulfiller sdk.AccAddress, hookData []byte) error {
 	return h.onEIBC(ctx, order, fundsSource, hookData)
