@@ -8,7 +8,6 @@ import (
 	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -28,14 +27,10 @@ func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHype
 		}
 
 		return k.forwardToIBC(ctx, d.Transfer, args.Coin(), nextMemo)
-	}, nil, warptypes.ModuleName, args.Account, args.Coins)
+	}, nil, warptypes.ModuleName, args.Account, args.Coin())
 }
 
-func (k Keeper) forwardToHyperlaneX(ctx sdk.Context, order *eibctypes.DemandOrder, d types.HookEIBCtoHL) error {
-	return k.forwardToHyperlane(ctx, sdk.NewCoin(order.Denom(), order.PriceAmount()), d)
-}
-
-func (k Keeper) forwardToHyperlane(ctx sdk.Context, sender sdk.AccAddress, budget sdk.Coin, d types.HookEIBCtoHL) error {
+func (k Keeper) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, d types.HookEIBCtoHL) error {
 
 	token, err := k.getHypToken(ctx, hyperutil.HexAddress(d.HyperlaneTransfer.TokenId))
 	if err != nil {
@@ -58,7 +53,7 @@ func (k Keeper) forwardToHyperlane(ctx sdk.Context, sender sdk.AccAddress, budge
 	m := &warptypes.MsgDymRemoteTransfer{
 		Inner: &warptypes.MsgRemoteTransfer{
 
-			Sender:            sender.String(),
+			Sender:            fundsSrc.String(),
 			TokenId:           d.HyperlaneTransfer.TokenId,
 			DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
 			Recipient:         d.HyperlaneTransfer.Recipient,

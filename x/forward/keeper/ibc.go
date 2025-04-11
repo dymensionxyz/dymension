@@ -36,27 +36,22 @@ func (h rollappToHubCompletion) ValidateData(data []byte) error {
 	return nil
 }
 
+// TODO: rename method
+// at this point funds have not been sent from the fulfiller/eibc LP/funds provider to the recipient (or anywhere else)
 func (h rollappToHubCompletion) Run(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress,
 	newTransferRecipient sdk.AccAddress,
 	fulfiller sdk.AccAddress, hookData []byte) error {
-	return h.onRollappToHubTransferCompletion(ctx, order, fundsSource, hookData)
-}
 
-// at this point funds have not been sent from the fulfiller/eibc LP/funds provider to the recipient (or anywhere else)
-func (k Keeper) onRollappToHubTransferCompletion(ctx sdk.Context, order *eibctypes.DemandOrder, fundsSource sdk.AccAddress, data []byte) error {
-	var d types.HookEIBCtoHL
-	err := proto.Unmarshal(data, &d)
-	if err != nil {
-		return errorsmod.Wrap(err, "unmarshal")
-	}
-	err = k.escrowFromAccount(ctx, fundsSource, order.Price)
-	if err != nil {
-		// should never happen
-		err = errorsmod.Wrap(err, "escrow from user")
-		k.Logger(ctx).Error("doForwardHook", "error", err)
-		return err
-	}
-	k.forwardToHyperlane(ctx, order, d)
+	budget := sdk.NewCoin(order.Denom(), order.PriceAmount())
+	h.refundOnError(ctx, func() error {
+		var d types.HookEIBCtoHL
+		err := proto.Unmarshal(hookData, &d)
+		if err != nil {
+			return errorsmod.Wrap(err, "unmarshal")
+		}
+
+		return h.forwardToHyperlane(ctx, fundsSource, budget, d)
+	}, nil, "", order.GetRecipientBech32Address(), budget)
 	return nil
 }
 

@@ -8,7 +8,7 @@ import (
 func (k Keeper) refundOnError(ctx sdk.Context, f func() error,
 	srcAddr sdk.AccAddress,
 	srcModule string,
-	dstAddr sdk.AccAddress, coins sdk.Coins) {
+	dstAddr sdk.AccAddress, coin sdk.Coin) {
 
 	// avoid footguns
 	if srcModule != "" && 0 < len(srcAddr) {
@@ -24,16 +24,16 @@ func (k Keeper) refundOnError(ctx sdk.Context, f func() error,
 
 		var errRefund error
 		if srcModule != "" {
-			errRefund = k.bankK.SendCoinsFromModuleToAccount(ctx, srcModule, dstAddr, coins)
+			errRefund = k.bankK.SendCoinsFromModuleToAccount(ctx, srcModule, dstAddr, sdk.NewCoins(coin))
 		} else {
-			errRefund = k.bankK.SendCoins(ctx, srcAddr, dstAddr, coins)
+			errRefund = k.bankK.SendCoins(ctx, srcAddr, dstAddr, sdk.NewCoins(coin))
 		}
 
 		if errRefund != nil {
 			// should never happen
 			errLog := types.RefundFail{
 				Addr:      dstAddr.String(),
-				Coins:     coins,
+				Coins:     coin,
 				ErrCause:  err,
 				ErrRefund: errRefund,
 			}

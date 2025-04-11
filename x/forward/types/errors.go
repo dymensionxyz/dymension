@@ -8,7 +8,7 @@ import (
 
 type RefundFail struct {
 	Addr      string
-	Coins     sdk.Coins
+	Coins     sdk.Coin
 	ErrCause  error
 	ErrRefund error
 }
