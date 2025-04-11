@@ -7,13 +7,7 @@ import (
 
 func (k Keeper) refundOnError(ctx sdk.Context, f func() error,
 	srcAddr sdk.AccAddress,
-	srcModule string,
 	dstAddr sdk.AccAddress, coin sdk.Coin) {
-
-	// avoid footguns
-	if srcModule != "" && 0 < len(srcAddr) {
-		panic("srcModule and srcAddr cannot both be set")
-	}
 
 	err := f()
 	if err != nil {
@@ -22,12 +16,7 @@ func (k Keeper) refundOnError(ctx sdk.Context, f func() error,
 			RefundAddr: dstAddr.String(),
 		})
 
-		var errRefund error
-		if srcModule != "" {
-			errRefund = k.bankK.SendCoinsFromModuleToAccount(ctx, srcModule, dstAddr, sdk.NewCoins(coin))
-		} else {
-			errRefund = k.bankK.SendCoins(ctx, srcAddr, dstAddr, sdk.NewCoins(coin))
-		}
+		errRefund := k.bankK.SendCoins(ctx, srcAddr, dstAddr, sdk.NewCoins(coin))
 
 		if errRefund != nil {
 			// should never happen

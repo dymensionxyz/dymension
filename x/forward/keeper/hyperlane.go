@@ -26,8 +26,8 @@ func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHype
 			return errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
 
-		return k.forwardToIBC(ctx, d.Transfer, args.Coin(), nextMemo)
-	}, nil, warptypes.ModuleName, args.Account, args.Coin())
+		return k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin(), nextMemo)
+	}, args.Account, args.Account, args.Coin())
 
 	return nil
 }

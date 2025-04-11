@@ -2,7 +2,6 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -47,24 +46,24 @@ func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress,
 		}
 
 		return h.forwardToHyperlane(ctx, fundsSource, budget, d)
-	}, fundsSource, "", originalTransferRecipient, budget)
+	}, fundsSource, originalTransferRecipient, budget)
 	return nil
 }
 
-func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo []byte) error {
+func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin, memo []byte) error {
 
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
 		transfer.SourceChannel,
 		maxBudget,
-		warptypes.ModuleName, // TODO: should be the real user actually
+		fundsSrc.String(),
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
 		string(memo),
 	)
 
-	// If this transfer fails asynchronously (timeout or ack) then the funds will get refunded back to the
+	// If this transfer fails asynchronously (timeout or ack) then the funds will get refunded back to the sender by ibc transfer app
 	_, err := k.transferK.Transfer(ctx, m)
 
 	return err
