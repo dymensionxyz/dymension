@@ -14,28 +14,21 @@ import (
 )
 
 // for inbound warp route transfers. At this point, the tokens are in the hyperlane warp module still
-func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
+func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) {
 	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
 	// it would be more flexible and allow memo forwarding
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := k.escrowFromModule(ctx, warptypes.ModuleName, args.Coins)
-	if err != nil {
-		// should never happen
-		err = errorsmod.Wrap(err, "escrow from module")
-		k.Logger(ctx).Error("onHyperlane", "error", err)
-		return err
-	}
+	k.refundOnError(ctx, func() error {
 
-	d, nextMemo, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
-	if err != nil {
-		// user is a bit screwed in this case since the tokens can never be refunded
-		return errorsmod.Wrap(err, "unpack memo from hyperlane")
-	}
+		d, nextMemo, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
+		if err != nil {
+			return errorsmod.Wrap(err, "unpack memo from hyperlane")
+		}
 
-	k.forwardToIBC(ctx, d.Transfer, *d.Recovery, args.Coins[0], nextMemo)
-	return nil
+		return k.forwardToIBC(ctx, d.Transfer, args.Coin(), nextMemo)
+	}, nil, warptypes.ModuleName, args.Account, args.Coins)
 }
 
 func (k Keeper) forwardToHyperlane(ctx sdk.Context, order *eibctypes.DemandOrder, d types.HookEIBCtoHL) {
@@ -70,7 +63,7 @@ func (k Keeper) forwardToHyperlaneInner(ctx sdk.Context, order *eibctypes.Demand
 	m := &warptypes.MsgDymRemoteTransfer{
 		Inner: &warptypes.MsgRemoteTransfer{
 
-			Sender:            k.getModuleAddr().String(),
+			Sender:            warptypes.ModuleName,
 			TokenId:           d.HyperlaneTransfer.TokenId,
 			DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
 			Recipient:         d.HyperlaneTransfer.Recipient,

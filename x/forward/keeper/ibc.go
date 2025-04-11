@@ -59,13 +59,7 @@ func (k Keeper) onRollappToHubTransferCompletion(ctx sdk.Context, order *eibctyp
 	return nil
 }
 
-func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, r types.Recovery, maxBudget sdk.Coin, memo []byte) {
-	k.refundOnError(ctx, func() error {
-		return k.forwardToIBCInner(ctx, transfer, maxBudget, memo)
-	}, r, sdk.NewCoins(transfer.Token))
-}
-
-func (k Keeper) forwardToIBCInner(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo []byte) error {
+func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, maxBudget sdk.Coin, memo []byte) error {
 
 	// Case analysis: if the IBC transfer fails due to error ack or timeout...
 	//

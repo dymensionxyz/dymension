@@ -23,7 +23,6 @@ const (
 
 // sender is computed
 func NewHookEIBCtoHL(
-	recovery *Recovery,
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
 	recipient hyperutil.HexAddress,
@@ -35,7 +34,6 @@ func NewHookEIBCtoHL(
 	customHookMetadata string, // can be empty
 ) *HookEIBCtoHL {
 	return &HookEIBCtoHL{
-		Recovery: recovery,
 		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
 			TokenId:            tokenId,
 			DestinationDomain:  destinationDomain,
@@ -50,10 +48,6 @@ func NewHookEIBCtoHL(
 }
 
 func (h *HookEIBCtoHL) ValidateBasic() error {
-	err := h.Recovery.ValidateBasic()
-	if err != nil {
-		return err
-	}
 	if h.HyperlaneTransfer == nil {
 		return gerrc.ErrInvalidArgument
 	}
@@ -84,7 +78,6 @@ func NewHookHLtoIBC(
 			Receiver:         receiver,
 			TimeoutTimestamp: timeoutTimestamp,
 		},
-		Recovery: NewRecovery(recoveryAddr),
 	}
 }
 
@@ -107,43 +100,11 @@ func (h *HookHLtoIBC) ValidateBasic() error {
 	if h.Transfer == nil {
 		return gerrc.ErrInvalidArgument.Wrap("transfer is nil")
 	}
-	if h.Recovery == nil {
-		return gerrc.ErrInvalidArgument.Wrap("recovery is nil")
-	}
 	err := h.Transfer.ValidateBasic()
 	if err != nil {
 		return errorsmod.Wrap(err, "transfer")
 	}
-	err = h.Recovery.ValidateBasic()
-	if err != nil {
-		return errorsmod.Wrap(err, "recovery")
-	}
 	return nil
-}
-
-func NewRecovery(
-	address string,
-) *Recovery {
-	return &Recovery{
-		Address: address,
-	}
-}
-
-func (r *Recovery) ValidateBasic() error {
-	_, err := r.AccAddr()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *Recovery) AccAddr() (sdk.AccAddress, error) {
-	addr, err := sdk.AccAddressFromBech32(r.Address)
-	return addr, err
-}
-
-func (r *Recovery) MustAddr() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(r.Address)
 }
 
 func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*transfertypes.CompletionHookCall, error) {
@@ -174,7 +135,6 @@ func NewEIBCToHLMemoRaw(
 
 	hook, err := NewEIBCFulfillHook(
 		NewHookEIBCtoHL(
-			NewRecovery(recoveryAddr),
 			tokenId,
 			destinationDomain,
 			recipient,
