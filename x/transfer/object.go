@@ -35,9 +35,9 @@ type CompletionHookInstance interface {
 }
 
 // map name -> instance
-func (k TransferHooks) SetHooks(hooks map[string]CompletionHookInstance) {
+func (h TransferHooks) SetHooks(hooks map[string]CompletionHookInstance) {
 	for name, hook := range hooks {
-		k.hooks[name] = hook
+		h.hooks[name] = hook
 	}
 }
 
@@ -53,30 +53,38 @@ func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
 // Should be called after packet finalization
 // Recipient can either be the fulfiller of a hook that already occurred, or the original recipient still, who probably still wants the hook to happen
 // NOTE: there is an asymmetry currently because on fulfill supports multiple hooks, but this finalization onRecv is hardcoded for x/forward atm
-func (m *TransferHooks) AfterRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) {
+func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) error {
 
-	o, err := m.Keeper.PendingOrderByPacket(ctx, p)
+	o, err := h.Keeper.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {
 		// not much we can do here, it should exist...
-		return
+		// TODO: log
+		return nil
 	}
 	if err != nil {
 		// TODO: something
-		return
+		return errorsmod.Wrap(err, "pending order by packet")
 	}
 
 	// for mvp, assume all completion hooks are only executable once
 	if o.IsFulfilled() {
 		// done
-		return
+		return nil
 	}
 
 	if o.CompletionHookCall == nil {
 		// done
-		return
+		return nil
 	}
 
-	// TODO: do it
+	f, ok := h.hooks[o.CompletionHookCall.HookName]
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("hook")
+	}
+
+	fundsSrc := p.OriginalTransferTarget
+
+	return f.Run(ctx, o, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, o.CompletionHookCall.HookData)
 
 }
 
@@ -86,7 +94,7 @@ type EIBCFulfillArgs struct {
 	Fulfiller            sdk.AccAddress
 }
 
-func (h *TransferHooks) Fulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args EIBCFulfillArgs) error {
+func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args EIBCFulfillArgs) error {
 	f, ok := h.hooks[o.CompletionHookCall.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")

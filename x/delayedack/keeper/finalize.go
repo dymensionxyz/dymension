@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -90,7 +91,9 @@ func (k Keeper) finalizeRollappPacket(
 			We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
 		*/
 		if k.transferHooks != nil {
-			k.transferHooks.AfterRecvPacket(ctx, &rollappPacket)
+			if err := k.transferHooks.OnRecvPacket(ctx, &rollappPacket); err != nil {
+				return errorsmod.Wrap(err, "transfer hooks on recv packet")
+			}
 		}
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))

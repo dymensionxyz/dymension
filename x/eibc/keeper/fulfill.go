@@ -42,7 +42,7 @@ func (k Keeper) fulfill(ctx sdk.Context,
 	}
 
 	if o.CompletionHookCall != nil {
-		err := k.transferHooks.Fulfill(ctx, o, args)
+		err := k.transferHooks.OnFulfill(ctx, o, args)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")
 		}
