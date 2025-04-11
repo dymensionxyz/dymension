@@ -51,7 +51,6 @@ func NewKeeper(
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	eibcKeeper types.EIBCKeeper,
-	transferHooks *transfer.TransferHooks,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -72,8 +71,11 @@ func NewKeeper(
 		ICS4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		EIBCKeeper:    eibcKeeper,
-		transferHooks: transferHooks,
 	}
+}
+
+func (k *Keeper) SetTransferHooks(hooks *transfer.TransferHooks) {
+	k.transferHooks = hooks
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

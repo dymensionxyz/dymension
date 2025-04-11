@@ -115,6 +115,7 @@ import (
 
 	forwardkeeper "github.com/dymensionxyz/dymension/v3/x/forward/keeper"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
+	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type AppKeepers struct {
@@ -191,6 +192,7 @@ func (a *AppKeepers) InitKeepers(
 	moduleAccountAddrs map[string]bool,
 	appOpts servertypes.AppOptions,
 ) {
+
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// get skipUpgradeHeights from the app options
@@ -554,11 +556,13 @@ func (a *AppKeepers) InitKeepers(
 		h.SetHook(a.ForwardKeeper.Hook())
 	}
 
-	a.EIBCKeeper.SetFulfillHooks(
-		map[string]eibckeeper.FulfillHook{
-			forwardtypes.HookNameForward: a.ForwardKeeper.Hook(),
-		},
-	)
+	transferHooks := transfer.NewTransferHooks(a.EIBCKeeper)
+	transferHooks.SetFulfillHooks(map[string]transfer.FulfillHook{
+		forwardtypes.HookNameForward: a.ForwardKeeper.Hook(),
+	})
+
+	a.EIBCKeeper.SetTransferHooks(transferHooks)
+	a.DelayedAckKeeper.SetTransferHooks(transferHooks)
 
 }
 

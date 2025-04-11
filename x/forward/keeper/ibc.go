@@ -6,12 +6,12 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	types "github.com/dymensionxyz/dymension/v3/x/forward/types"
+	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
-var _ eibckeeper.FulfillHook = eIBCHook{}
+var _ transfer.FulfillHook = eIBCHook{}
 
 func (k Keeper) Hook() eIBCHook {
 	return eIBCHook{

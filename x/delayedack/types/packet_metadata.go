@@ -6,7 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -30,11 +30,11 @@ func (p Memo) ValidateBasic() error {
 }
 
 // TODO: avoid duplicate calls
-func (e EIBCMemo) GetFulfillHook() (*eibctypes.OnFulfillHook, error) {
+func (e EIBCMemo) GetFulfillHook() (*transfertypes.CompletionHook, error) {
 	if len(e.OnFulfillHook) == 0 {
 		return nil, nil
 	}
-	var hook eibctypes.OnFulfillHook
+	var hook transfertypes.CompletionHook
 	err := proto.Unmarshal(e.OnFulfillHook, &hook)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)

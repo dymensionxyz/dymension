@@ -11,7 +11,14 @@ import (
 
 type TransferHooks struct {
 	Keeper EIBCK
-	hooks  FulfillHooks
+	hooks  map[string]FulfillHook
+}
+
+func NewTransferHooks(keeper EIBCK) *TransferHooks {
+	return &TransferHooks{
+		Keeper: keeper,
+		hooks:  make(map[string]FulfillHook),
+	}
 }
 
 func (k TransferHooks) SetFulfillHooks(hooks map[string]FulfillHook) {
@@ -73,19 +80,17 @@ type FulfillHook interface {
 		hookData []byte) error
 }
 
-type FulfillHooks map[string]FulfillHook
-
 // assumed already passed validate basic
-func (h FulfillHooks) validate(info types.CompletionHook) error {
-	f, ok := h[info.HookName]
+func (h *TransferHooks) Validate(info types.CompletionHook) error {
+	f, ok := h.hooks[info.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
 	}
 	return f.ValidateData(info.HookData)
 }
 
-func (h FulfillHooks) exec(ctx sdk.Context, order *eibctypes.DemandOrder, args FulfillArgs) error {
-	f, ok := h[order.CompletionHook.HookName]
+func (h *TransferHooks) Exec(ctx sdk.Context, order *eibctypes.DemandOrder, args FulfillArgs) error {
+	f, ok := h.hooks[order.CompletionHook.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}

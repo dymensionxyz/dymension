@@ -12,7 +12,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -146,13 +146,13 @@ func (r *Recovery) MustAddr() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(r.Address)
 }
 
-func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*eibctypes.OnFulfillHook, error) {
+func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*transfertypes.CompletionHook, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
-		return &eibctypes.OnFulfillHook{}, errorsmod.Wrap(err, "marshal forward hook")
+		return &transfertypes.CompletionHook{}, errorsmod.Wrap(err, "marshal forward hook")
 	}
 
-	return &eibctypes.OnFulfillHook{
+	return &transfertypes.CompletionHook{
 		HookName: HookNameForward,
 		HookData: bz,
 	}, nil

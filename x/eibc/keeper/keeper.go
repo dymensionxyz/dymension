@@ -35,7 +35,7 @@ type (
 		rk            types.RollappKeeper
 		Schema        collections.Schema
 		LPs           LPs
-		transferHooks transfer.TransferHooks
+		transferHooks *transfer.TransferHooks
 	}
 )
 
@@ -48,7 +48,6 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
 	rk types.RollappKeeper,
-	transferHooks transfer.TransferHooks,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -66,18 +65,21 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramstore:    ps,
-		ak:            accountKeeper,
-		bk:            bankKeeper,
-		dack:          delayedAckKeeper,
-		rk:            rk,
-		Schema:        schema,
-		LPs:           lps,
-		transferHooks: transferHooks,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		memKey:     memKey,
+		paramstore: ps,
+		ak:         accountKeeper,
+		bk:         bankKeeper,
+		dack:       delayedAckKeeper,
+		rk:         rk,
+		Schema:     schema,
+		LPs:        lps,
 	}
+}
+
+func (k *Keeper) SetTransferHooks(hooks *transfer.TransferHooks) {
+	k.transferHooks = hooks
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
