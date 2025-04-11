@@ -19,22 +19,23 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type (
 	Keeper struct {
-		cdc          codec.BinaryCodec
-		storeKey     storetypes.StoreKey
-		memKey       storetypes.StoreKey
-		hooks        types.EIBCHooks
-		paramstore   paramtypes.Subspace
-		ak           types.AccountKeeper
-		bk           types.BankKeeper
-		dack         types.DelayedAckKeeper
-		rk           types.RollappKeeper
-		Schema       collections.Schema
-		LPs          LPs
-		fulfillHooks FulfillHooks
+		cdc           codec.BinaryCodec
+		storeKey      storetypes.StoreKey
+		memKey        storetypes.StoreKey
+		hooks         types.EIBCHooks
+		paramstore    paramtypes.Subspace
+		ak            types.AccountKeeper
+		bk            types.BankKeeper
+		dack          types.DelayedAckKeeper
+		rk            types.RollappKeeper
+		Schema        collections.Schema
+		LPs           LPs
+		transferHooks transfer.TransferHooks
 	}
 )
 
@@ -47,6 +48,7 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
 	rk types.RollappKeeper,
+	transferHooks transfer.TransferHooks,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -64,28 +66,22 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:          cdc,
-		storeKey:     storeKey,
-		memKey:       memKey,
-		paramstore:   ps,
-		ak:           accountKeeper,
-		bk:           bankKeeper,
-		dack:         delayedAckKeeper,
-		rk:           rk,
-		Schema:       schema,
-		LPs:          lps,
-		fulfillHooks: make(FulfillHooks),
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramstore:    ps,
+		ak:            accountKeeper,
+		bk:            bankKeeper,
+		dack:          delayedAckKeeper,
+		rk:            rk,
+		Schema:        schema,
+		LPs:           lps,
+		transferHooks: transferHooks,
 	}
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-func (k Keeper) SetFulfillHooks(hooks map[string]FulfillHook) {
-	for name, hook := range hooks {
-		k.fulfillHooks[name] = hook
-	}
 }
 
 func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {

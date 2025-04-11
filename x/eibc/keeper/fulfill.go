@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -15,7 +16,7 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 	fulfiller sdk.AccAddress,
 ) error {
 
-	err := k.fulfill(ctx, o, fulfillArgs{
+	err := k.fulfill(ctx, o, transfer.FulfillArgs{
 		FundsSource:          fulfiller,
 		NewTransferRecipient: fulfiller,
 		Fulfiller:            fulfiller,
@@ -32,22 +33,16 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 	return nil
 }
 
-type fulfillArgs struct {
-	FundsSource          sdk.AccAddress
-	NewTransferRecipient sdk.AccAddress
-	Fulfiller            sdk.AccAddress
-}
-
 func (k Keeper) fulfill(ctx sdk.Context,
 	o *types.DemandOrder,
-	args fulfillArgs,
+	args transfer.FulfillArgs,
 ) error {
 	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {
 		return errorsmod.Wrap(err, "ensure fulfiller account")
 	}
 
-	if o.OnFulfillHook != nil {
-		err := k.fulfillHooks.exec(ctx, o, args)
+	if o.CompletionHook != nil {
+		err := k.transferHooks.Fulfill(ctx, o, args)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")
 		}

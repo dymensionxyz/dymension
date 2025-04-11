@@ -16,7 +16,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	transferhooks "github.com/dymensionxyz/dymension/v3/x/transfer"
+	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type Keeper struct {
@@ -39,7 +39,7 @@ type Keeper struct {
 	channelKeeper types.ChannelKeeper
 	types.EIBCKeeper
 
-	transferHooks *transferhooks.TransferHooks
+	transferHooks *transfer.TransferHooks
 }
 
 func NewKeeper(
@@ -51,7 +51,7 @@ func NewKeeper(
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	eibcKeeper types.EIBCKeeper,
-	transferHooks *transferhooks.TransferHooks,
+	transferHooks *transfer.TransferHooks,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
