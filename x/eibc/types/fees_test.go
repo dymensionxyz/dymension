@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: fuzz test
 func TestSolvePrice(t *testing.T) {
 
 	target := math.NewInt(1000000000000000000)
@@ -18,5 +19,6 @@ func TestSolvePrice(t *testing.T) {
 
 	eventualPrice, err := CalcPriceWithBridgingFee(amt, fee, bridgeFee)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, eventualPrice, target)
+	require.True(t, eventualPrice.GTE(target))
+	t.Logf("amt: %s, eventualPrice: %s", amt, eventualPrice)
 }
