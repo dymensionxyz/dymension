@@ -18,7 +18,7 @@ import (
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *transfertypes.CompletionHook) *DemandOrder {
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, CompletionHookCall *transfertypes.CompletionHookCall) *DemandOrder {
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
@@ -30,7 +30,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
 		CreationHeight:       creationHeight,
-		CompletionHook:       completionHook,
+		CompletionHookCall:   CompletionHookCall,
 	}
 }
 

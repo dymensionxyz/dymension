@@ -43,7 +43,7 @@ type EIBCK interface {
 }
 
 // assumed already passed validate basic
-func (h *TransferHooks) Validate(info types.CompletionHook) error {
+func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
 	f, ok := h.hooks[info.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
@@ -71,7 +71,7 @@ func (m *TransferHooks) AfterRecvPacket(ctx sdk.Context, p *commontypes.RollappP
 		return
 	}
 
-	if o.CompletionHook == nil {
+	if o.CompletionHookCall == nil {
 		// done
 		return
 	}
@@ -87,9 +87,9 @@ type EIBCFulfillArgs struct {
 }
 
 func (h *TransferHooks) Fulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args EIBCFulfillArgs) error {
-	f, ok := h.hooks[o.CompletionHook.HookName]
+	f, ok := h.hooks[o.CompletionHookCall.HookName]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, o, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, o.CompletionHook.HookData)
+	return f.Run(ctx, o, args.FundsSource, args.NewTransferRecipient, args.Fulfiller, o.CompletionHookCall.HookData)
 }

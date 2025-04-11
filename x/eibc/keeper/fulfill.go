@@ -41,7 +41,7 @@ func (k Keeper) fulfill(ctx sdk.Context,
 		return errorsmod.Wrap(err, "ensure fulfiller account")
 	}
 
-	if o.CompletionHook != nil {
+	if o.CompletionHookCall != nil {
 		err := k.transferHooks.Fulfill(ctx, o, args)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")

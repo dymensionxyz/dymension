@@ -30,11 +30,11 @@ func (p Memo) ValidateBasic() error {
 }
 
 // TODO: avoid duplicate calls
-func (e EIBCMemo) GetFulfillHook() (*transfertypes.CompletionHook, error) {
+func (e EIBCMemo) GetFulfillHook() (*transfertypes.CompletionHookCall, error) {
 	if len(e.OnFulfillHook) == 0 {
 		return nil, nil
 	}
-	var hook transfertypes.CompletionHook
+	var hook transfertypes.CompletionHookCall
 	err := proto.Unmarshal(e.OnFulfillHook, &hook)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)
