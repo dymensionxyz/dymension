@@ -177,6 +177,8 @@ type AppKeepers struct {
 
 	ForwardKeeper forwardkeeper.Keeper
 
+	TransferHooks *transfer.TransferHooks
+
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
 	tkeys   map[string]*storetypes.TransientStoreKey
@@ -557,7 +559,7 @@ func (a *AppKeepers) InitKeepers(
 	}
 
 	transferHooks := transfer.NewTransferHooks(a.EIBCKeeper)
-	transferHooks.SetFulfillHooks(map[string]transfer.FulfillHook{
+	transferHooks.SetHooks(map[string]transfer.CompletionHookInstance{
 		forwardtypes.HookNameForward: a.ForwardKeeper.Hook(),
 	})
 

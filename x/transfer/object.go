@@ -11,17 +11,28 @@ import (
 
 type TransferHooks struct {
 	Keeper EIBCK
-	hooks  map[string]FulfillHook
+	hooks  map[string]CompletionHookInstance
 }
 
 func NewTransferHooks(keeper EIBCK) *TransferHooks {
 	return &TransferHooks{
 		Keeper: keeper,
-		hooks:  make(map[string]FulfillHook),
+		hooks:  make(map[string]CompletionHookInstance),
 	}
 }
 
-func (k TransferHooks) SetFulfillHooks(hooks map[string]FulfillHook) {
+type CompletionHookInstance interface {
+	ValidateData(hookData []byte) error
+	Run(ctx sdk.Context, order *eibctypes.DemandOrder,
+		fundsSource sdk.AccAddress,
+		newTransferRecipient sdk.AccAddress,
+		fulfiller sdk.AccAddress,
+
+		hookData []byte) error
+}
+
+// map name -> instance
+func (k TransferHooks) SetHooks(hooks map[string]CompletionHookInstance) {
 	for name, hook := range hooks {
 		k.hooks[name] = hook
 	}
@@ -68,16 +79,6 @@ type FulfillArgs struct {
 
 func (m *TransferHooks) Fulfill(ctx sdk.Context, o *eibctypes.DemandOrder, args FulfillArgs) error {
 	return nil
-}
-
-type FulfillHook interface {
-	ValidateData(hookData []byte) error
-	Run(ctx sdk.Context, order *eibctypes.DemandOrder,
-		fundsSource sdk.AccAddress,
-		newTransferRecipient sdk.AccAddress,
-		fulfiller sdk.AccAddress,
-
-		hookData []byte) error
 }
 
 // assumed already passed validate basic

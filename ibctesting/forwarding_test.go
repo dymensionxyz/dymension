@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
-	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
+	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -51,14 +51,14 @@ func (s *forwardSuite) TestForward() {
 	h := mockHook{
 		forwardSuite: s,
 	}
-	s.utilSuite.hubApp().EIBCKeeper.SetFulfillHooks(
-		map[string]eibckeeper.FulfillHook{
+	s.utilSuite.hubApp().TransferHooks.SetHooks(
+		map[string]transfer.CompletionHookInstance{
 			dummy: &h,
 		},
 	)
 	s.T().Log("running test forward!")
 
-	hookData := eibctypes.OnFulfillHook{
+	hookData := transfertypes.CompletionHook{
 		HookName: dummy,
 		HookData: []byte{},
 	}

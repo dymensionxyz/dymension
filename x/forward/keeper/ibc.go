@@ -11,7 +11,7 @@ import (
 	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
-var _ transfer.FulfillHook = eIBCHook{}
+var _ transfer.CompletionHookInstance = eIBCHook{}
 
 func (k Keeper) Hook() eIBCHook {
 	return eIBCHook{
