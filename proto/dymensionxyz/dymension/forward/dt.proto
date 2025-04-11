@@ -6,32 +6,11 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 import "hyperlane/warp/v1/tx.proto";
 import "ibc/applications/transfer/v1/tx.proto";
 
-// TODO: might need to add recovery address...
-
-
-// Used to deposit funds if something fails
-message Recovery {
-  
-  // This should be the hex address of the rollup chain. 
-  // All relevant transfers end up at the rollup or come from the rollupp, 
-  // so we can just use the same hex address as the recovery on the hub.
-  string address = 1;
-}
-
 // for eibc -> hyperlane
 message HookEIBCtoHL {
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
-  Recovery recovery = 4;
 }
 
-/*
-How to test?
-- Make sure the cosmos account in the original HL recipient is the forward module account
-  (conflict with the usage of send coins from module to account in the HL code?)
-- Use the tokens to immediately do a transfer to the rollapp
-- On refund... hmmmmmmmm, also someone can fast fulfill the refund :(
-*/
 message HookHLtoIBC {
   ibc.applications.transfer.v1.MsgTransfer transfer = 1;
-  Recovery recovery = 2;
 }

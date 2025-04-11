@@ -14,9 +14,6 @@ import (
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
-var _ types.MsgServer = Keeper{}
-var _ types.QueryServer = Keeper{}
-
 type Keeper struct {
 	cdc    codec.BinaryCodec
 	Schema collections.Schema
@@ -40,18 +37,8 @@ func NewKeeper(
 	warpMsgServer warptypes.MsgServer,
 ) *Keeper {
 
-	sb := collections.NewSchemaBuilder(service)
-	// TODO: Add collections
-	_ = sb
-
-	schema, err := sb.Build()
-	if err != nil {
-		panic(err)
-	}
-
 	return &Keeper{
 		cdc:       cdc,
-		Schema:    schema,
 		warpK:     warpKeeper,
 		bankK:     bankKeeper,
 		accountK:  accountKeeper,

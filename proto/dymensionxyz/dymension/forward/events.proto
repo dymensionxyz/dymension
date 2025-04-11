@@ -8,8 +8,8 @@ message EventFoo {}
 message EventWillRefund {
     // what caused the problem
     string errCause = 1;
+    // sdk addr
     string refundAddr = 2;
 }
-
 
     

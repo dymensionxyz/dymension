@@ -60,7 +60,8 @@ var xxx_messageInfo_EventFoo proto.InternalMessageInfo
 
 type EventWillRefund struct {
 	// what caused the problem
-	ErrCause   string `protobuf:"bytes,1,opt,name=errCause,proto3" json:"errCause,omitempty"`
+	ErrCause string `protobuf:"bytes,1,opt,name=errCause,proto3" json:"errCause,omitempty"`
+	// sdk addr
 	RefundAddr string `protobuf:"bytes,2,opt,name=refundAddr,proto3" json:"refundAddr,omitempty"`
 }
 
