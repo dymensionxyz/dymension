@@ -49,6 +49,7 @@ TRANSFER_AMOUNT="${NEW_NUMERIC_PART}adym"
 dymd tx bank send $HUB_KEY_WITH_FUNDS $SEQUENCER_ADDR ${TRANSFER_AMOUNT} --keyring-backend test --broadcast-mode sync --fees 1dym -y --node ${HUB_RPC_URL}
 
 sh scripts/settlement/register_rollapp_to_hub.sh
+sleep 0.5
 sh scripts/settlement/register_sequencer_to_hub.sh
 
 dasel put -f "${ROLLAPP_HOME_DIR}"/config/dymint.toml "settlement_layer" -v "dymension"
@@ -80,9 +81,10 @@ hub q sequencer list-sequencer -o json | jq '.sequencers[0].whitelisted_relayers
 
 # Can check with 
 hub q sequencer list-sequencer
-ra q sequencers sequencers
-ra q sequencers whitelisted-relayers $SEQUENCER_ID
+ra q sequencers sequencers # populate sequencer addr
+ra q sequencers whitelisted-relayers $SEQUENCER_ADDR # It can take a while for this to show up
 
+# after channel etc finished:
 rly start hub-rollapp
 
 ###########
@@ -123,6 +125,7 @@ hub tx hyperlane mailbox set $MAILBOX --default-hook $NOOP_HOOK --required-hook 
 
 ############################
 # STEP: TEST END-TO-END: ROLLAPP -> HUB -> HYPERLANE
+# (First we test putting collateral tokens into the HL warp route, then we test the other direction using those escrowed tokens)
 
 # create the Hyperlane token 
 # NOTE: MUST wait for the ibc token to arrive from the genesis bridge transfer to be able to make the collateral token with the right denom
