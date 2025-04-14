@@ -234,7 +234,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 			if readable {
 				fmt.Printf("hyperlane message: %+v\n", m)
 			} else {
-				fmt.Printf("hyperlane message: %s\n", m) // encodes with .String()
+				fmt.Print(m) // encodes with .String()
 			}
 
 			return nil

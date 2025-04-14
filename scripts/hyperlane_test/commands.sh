@@ -140,13 +140,22 @@ curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers # che
 # prepare the memo which will be included in the rollapp outbound transfer
 # args are [eibc-fee] [token-id] [destination-domain] [recipient] [amount] [max-fee] [recovery-address] [flags]
 EIBC_FEE=100
-MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 10000 20"$DENOM")
+TRANSFER_AMT=10000
+HL_FEE=20
+MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT $TRANSFER_AMT $HL_FEE"$DENOM"); echo $MEMO;
+
+# dymd q forward amt-eibc-to-hl 125000000000000 200000 2000 0.01
+BRIDGE_FEE=$(hub q delayedack params -o json | jq '.params.bridging_fee' -r)
+IBC_AMT=$(dymd q forward amt-eibc-to-hl $TRANSFER_AMT $HL_FEE $EIBC_FEE $BRIDGE_FEE); echo $IBC_AMT;
+
+# make a recovery recipient, which will get funds in case of failure
+hub keys add recovery
+RECOVERY_ADDR=$(hub keys show recovery -a); echo $RECOVERY_ADDR;
 
 # note, make sure to relay here! If relayer is crashed, restart before initiating the transfer on the next step!
-
 # initiate the transfer from the rollapp
 HUB_USER_ADDR=$(dymd keys show hub-user -a)
-ra tx ibc-transfer transfer transfer channel-0 $HUB_USER_ADDR 20000arax\
+ra tx ibc-transfer transfer transfer channel-0 $HUB_USER_ADDR "$IBC_AMT"arax\
  --memo $MEMO --fees 20000000000000arax --from rol-user -b block --gas auto --gas-adjustment 1.5 -y
 
 # wait for relaying, then fulfill the order with EIBC
@@ -163,7 +172,7 @@ curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
 ROL_USER_ADDR=$($EXECUTABLE keys show $KEY_NAME_ROLLAPP -a)
 
 # get the message to be sent directly the HL server on the Hub. This is just a test utility.
-HL_MESSAGE=$(dymd q forward hyperlane-message\
+HL_MESSAGE=$(dymd q forward hl-message\
  $HL_NONCE\
  $DST_DOMAIN\
  $ETH_TOKEN_CONTRACT\
@@ -181,8 +190,11 @@ HL_MESSAGE=$(dymd q forward hyperlane-message\
 # again, make sure relayer is up and running before initiating the transfer
 dymd tx hyperlane mailbox process $MAILBOX 0x $HL_MESSAGE --from hub-user --fees 60000000000000adym --gas auto --gas-adjustment 1.5 -y
 
-# while waiting for the tokens to arrive on the rollapp, can check the escrow address on the hub
-ESCROW_ADDR=$(dymd q auth module-account forward -o json | jq '.account.value.address' -r); echo $ESCROW_ADDR;
+# checks
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply # should be less now
+# easiest way to check is looking at relayer log for rollapp msg recv packet tx and checking the transfer events
+
+
 
 ############################
 # APPENDIX: EXTRA DEBUG TOOLS
