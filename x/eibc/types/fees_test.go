@@ -27,8 +27,7 @@ func TestCalcTargetPriceAmt(t *testing.T) {
 }
 
 func testCalcTargetPriceAmt(t require.TestingT, target, fee math.Int, bridgeFee math.LegacyDec) {
-	amt, err := CalcTargetPriceAmt(target, fee, bridgeFee)
-	require.NoError(t, err)
+	amt := CalcTargetPriceAmt(target, fee, bridgeFee)
 	price, err := CalcPriceWithBridgingFee(amt, fee, bridgeFee)
 	require.NoError(t, err)
 	require.True(t, price.GTE(target), "price < target: %s < %s", price, target)

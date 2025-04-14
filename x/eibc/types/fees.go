@@ -20,7 +20,7 @@ func CalcPriceWithBridgingFee(amt math.Int, eibcFee math.Int, bridgeFeeMul math.
 // returns an ibc-transfer amount sufficient to have a order price of target after fees (bridge + eibc)
 // note that in the finalize without fulfillment case, the eibc fee is not applied, so the recipient will get approx target + eibcFee
 // WARNING: not intended for on-chain code
-func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) (math.Int, error) {
+func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) math.Int {
 	var ret math.Int
 
 	l := target
@@ -40,7 +40,7 @@ func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.Leg
 		}
 	}
 
-	return ret, nil
+	return ret
 }
 
 // (2^255 - 1)
