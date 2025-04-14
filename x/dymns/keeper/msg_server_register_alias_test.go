@@ -248,7 +248,7 @@ func (s *KeeperTestSuite) Test_msgServer_RegisterAlias() {
 			},
 			buyerBalance:                   price1L,
 			wantErr:                        true,
-			wantErrContains:                "actual payment is is different with provided by user",
+			wantErrContains:                "actual payment is different with provided by user",
 			wantLaterAliasLinkedTo:         "",
 			wantLaterBuyerBalance:          price1L,
 			wantLaterAliasesOwnedByRollApp: rollApp1.aliases,

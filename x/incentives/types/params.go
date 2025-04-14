@@ -18,6 +18,7 @@ var (
 	KeyAddToGaugeFee        = []byte("AddToGaugeFee")
 	KeyAddDenomFee          = []byte("AddDenomFee")
 	KeyMinValueForDistr     = []byte("MinValueForDistr")
+	KeyRollappGaugesMode    = []byte("RollappGaugesMode")
 )
 
 // ParamKeyTable returns the key table for the incentive module's parameters.
@@ -26,13 +27,14 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams takes an epoch distribution identifier, then returns an incentives Params struct.
-func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, minValueForDistr sdk.Coin) Params {
+func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, minValueForDistr sdk.Coin, rollappGaugesMode Params_RollappGaugesModes) Params {
 	return Params{
 		DistrEpochIdentifier:    distrEpochIdentifier,
 		CreateGaugeBaseFee:      createGaugeFee,
 		AddToGaugeBaseFee:       addToGaugeFee,
 		AddDenomFee:             addDenomFee,
 		MinValueForDistribution: minValueForDistr,
+		RollappGaugesMode:       rollappGaugesMode,
 	}
 }
 
@@ -44,6 +46,7 @@ func DefaultParams() Params {
 		AddToGaugeBaseFee:       DefaultAddToGaugeFee,
 		AddDenomFee:             DefaultAddDenomFee,
 		MinValueForDistribution: DefaultMinValueForDistr,
+		RollappGaugesMode:       DefaultRollappGaugesMode,
 	}
 }
 
@@ -66,6 +69,9 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validateRollappGaugesMode(p.RollappGaugesMode); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -77,6 +83,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyAddToGaugeFee, &p.AddToGaugeBaseFee, validateAddToGaugeFeeInterface),
 		paramtypes.NewParamSetPair(KeyAddDenomFee, &p.AddDenomFee, validateAddDenomFee),
 		paramtypes.NewParamSetPair(KeyMinValueForDistr, &p.MinValueForDistribution, validateMinValueForDistr),
+		paramtypes.NewParamSetPair(KeyRollappGaugesMode, &p.RollappGaugesMode, validateRollappGaugesMode),
 	}
 }
 
@@ -118,5 +125,14 @@ func validateMinValueForDistr(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
+	return nil
+}
+
+func validateRollappGaugesMode(i interface{}) error {
+	_, ok := i.(Params_RollappGaugesModes)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
 	return nil
 }

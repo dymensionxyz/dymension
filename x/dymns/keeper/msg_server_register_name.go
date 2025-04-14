@@ -126,7 +126,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	if !totalCost.Equal(msg.ConfirmPayment) {
 		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"actual payment is is different with provided by user: %s != %s", totalCost.String(), msg.ConfirmPayment,
+			"actual payment is different with provided by user: %s != %s", totalCost.String(), msg.ConfirmPayment,
 		)
 	}
 
