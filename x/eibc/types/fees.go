@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math/big"
+
 	"cosmossdk.io/math"
 )
 
@@ -17,22 +19,34 @@ func CalcPriceWithBridgingFee(amt math.Int, eibcFee math.Int, bridgeFeeMul math.
 
 // returns an ibc-transfer amount sufficient to have a order price of target after fees (bridge + eibc)
 // note that in the finalize without fulfillment case, the eibc fee is not applied, so the recipient will get approx target + eibcFee
-//
-// equation is:
-// price = amt - eibcFee - floor(bridgeFeeMul*amt)
-// solve for amt
-func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) math.Int {
-	div := math.LegacyNewDec(1).Sub(bridgeFeeMul)
+// WARNING: not intended for on-chain code
+func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) (math.Int, error) {
+	var ret math.Int
 
-	mul := math.LegacyNewDec(1).Quo(div)
+	l := target
+	r := maxMathInt()
 
-	amt := mul.MulInt(target.Add(eibcFee)).Ceil().TruncateInt()
+	for l.LTE(r) {
+		delta := r.Sub(l).Quo(math.NewInt(2))
+		mid := l.Add(delta)
 
-	price, _ := CalcPriceWithBridgingFee(amt, eibcFee, bridgeFeeMul)
+		price, err := CalcPriceWithBridgingFee(mid, eibcFee, bridgeFeeMul)
 
-	if price.LT(target) {
-		return amt.Add(math.OneInt())
+		if err == nil && price.GTE(target) {
+			ret = mid
+			r = mid.Sub(math.OneInt())
+		} else {
+			l = mid.Add(math.OneInt())
+		}
 	}
 
-	return amt
+	return ret, nil
+}
+
+// (2^255 - 1)
+func maxMathInt() math.Int {
+	maxIntBig := new(big.Int)
+	maxIntBig.Lsh(big.NewInt(1), 255)
+	maxIntBig.Sub(maxIntBig, big.NewInt(1))
+	return math.NewIntFromBigInt(maxIntBig)
 }

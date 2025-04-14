@@ -18,16 +18,17 @@ func TestCalcTargetPriceAmt(t *testing.T) {
 		testCalcTargetPriceAmt(t, target, fee, bridgeFee)
 	})
 	_ = flag.Set("rapid.checks", "200")
-	rapid.Check(t, func(t *rapid.T) {
-		target := math.NewInt(rapid.Int64Min(1).Draw(t, "target"))
-		fee := math.NewInt(rapid.Int64Min(0).Draw(t, "fee"))
-		bridgeFee := math.LegacyNewDecFromIntWithPrec(math.NewInt(rapid.Int64Range(0, 99).Draw(t, "bridgeFee")), 2)
-		testCalcTargetPriceAmt(t, target, fee, bridgeFee)
+	rapid.Check(t, func(r *rapid.T) {
+		target := math.NewInt(rapid.Int64Min(1).Draw(r, "target"))
+		fee := math.NewInt(rapid.Int64Min(0).Draw(r, "fee"))
+		bridgeFee := math.LegacyNewDecFromIntWithPrec(math.NewInt(rapid.Int64Range(0, 99).Draw(r, "bridgeFee")), 2)
+		testCalcTargetPriceAmt(r, target, fee, bridgeFee)
 	})
 }
 
 func testCalcTargetPriceAmt(t require.TestingT, target, fee math.Int, bridgeFee math.LegacyDec) {
-	amt := CalcTargetPriceAmt(target, fee, bridgeFee)
+	amt, err := CalcTargetPriceAmt(target, fee, bridgeFee)
+	require.NoError(t, err)
 	price, err := CalcPriceWithBridgingFee(amt, fee, bridgeFee)
 	require.NoError(t, err)
 	require.True(t, price.GTE(target), "price < target: %s < %s", price, target)
