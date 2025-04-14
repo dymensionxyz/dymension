@@ -34,6 +34,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
+	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
 
 	return cmd
 }
@@ -158,11 +159,11 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 // TODO: reuse raw query code (memo-hl-to-ibc)
 func CmdTestHLtoIBCMessage() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "hyperlane-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
+		Use:   "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
 		Args:  cobra.ExactArgs(12),
 		Short: "Create a hyperlane message for testing Hl -> IBC",
 		Example: `
-		dymd q forward hyperlane-message 1 1
+		dymd q forward hl-message 1 1
 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0
 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m
 dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
@@ -280,10 +281,10 @@ func memoHLtoIBC(args []string) (*types.HookHLtoIBC, error) {
 // Util to debug a hyperlane message or hyperlane body (including show the memo if there is one). Expects Ethereum Hex bytes
 func CmdDecodeHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        "hyperlane-decode (body | message) [hexstring]",
+		Use:                        "hl-decode (body | message) [hexstring]",
 		Args:                       cobra.ExactArgs(2),
 		Short:                      "Decode a message or message body from an ethereum hex string",
-		Example:                    `dymd q forward hyperlane-message-decode message 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000`,
+		Example:                    `dymd q forward hl-decode message 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -339,9 +340,10 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 
 func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        "foo [hl receive amt] [hl max gas] [eibc fee] [bridge fee mul]",
-		Args:                       cobra.ExactArgs(2),
-		Short:                      "",
+		Use:                        "amt-eibc-to-hl [hl receive amt] [hl max gas] [eibc fee] [bridge fee mul]",
+		Args:                       cobra.ExactArgs(4),
+		Short:                      "Estimate the amount of EIBC to send to HL to receive the specified amount",
+		Example:                    `dymd q forward amt-eibc-to-hl 125000000000000 200000 2000 0.01`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -372,7 +374,7 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 
 			transferAmt := eibctypes.CalcTargetPriceAmt(needForHl, eibcFee, bridgeFeeMul)
 
-			fmt.Printf("transfer amt: %s\n", transferAmt)
+			fmt.Print(transferAmt)
 			return nil
 		},
 	}
