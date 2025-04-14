@@ -154,8 +154,7 @@ RECOVERY_ADDR=$(hub keys show recovery -a); echo $RECOVERY_ADDR;
 
 # note, make sure to relay here! If relayer is crashed, restart before initiating the transfer on the next step!
 # initiate the transfer from the rollapp
-HUB_USER_ADDR=$(dymd keys show hub-user -a)
-ra tx ibc-transfer transfer transfer channel-0 $HUB_USER_ADDR "$IBC_AMT"arax\
+ra tx ibc-transfer transfer transfer channel-0 $RECOVERY_ADDR "$IBC_AMT"arax\
  --memo $MEMO --fees 20000000000000arax --from rol-user -b block --gas auto --gas-adjustment 1.5 -y
 
 # wait for relaying, then fulfill the order with EIBC
@@ -163,6 +162,18 @@ ORDER_ID=$(hub q eibc list-demand-orders pending -o json | jq '.demand_orders.[0
 hub tx eibc fulfill-order $ORDER_ID $EIBC_FEE --from hub-user --fees 1dym --gas auto --gas-adjustment 1.5 -y
 
 # confirm the result, the token should be bridged: 
+curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
+
+#################
+# sub test: with finalization and no EIBC fulfillment
+# repeat above, but instead of fulfilling the order, finalize it once it can be finalized
+
+# get the proof height and sequence from 
+hub q delayedack packets-by-rollapp $ROLLAPP_CHAIN_ID
+PROOF_HEIGHT=??
+PACKET_SEQ=??
+hub tx delayedack finalize-packet $ROLLAPP_CHAIN_ID $PROOF_HEIGHT ON_RECV channel-0 $PACKET_SEQ --from hub-user --gas auto --gas-adjustment 1.5 --fees 1dym -
+
 curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply
 
 ############################
@@ -193,6 +204,7 @@ dymd tx hyperlane mailbox process $MAILBOX 0x $HL_MESSAGE --from hub-user --fees
 # checks
 curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply # should be less now
 # easiest way to check is looking at relayer log for rollapp msg recv packet tx and checking the transfer events
+
 
 
 
