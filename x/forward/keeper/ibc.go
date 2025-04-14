@@ -49,7 +49,7 @@ func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress,
 	return nil
 }
 
-func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin, memo []byte) error {
+func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
 
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
@@ -59,7 +59,7 @@ func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTran
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
-		string(memo),
+		transfer.Memo,
 	)
 
 	// If this transfer fails asynchronously (timeout or ack) then the funds will get refunded back to the fundSrc by ibc transfer app

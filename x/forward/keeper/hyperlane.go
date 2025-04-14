@@ -21,12 +21,12 @@ func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHype
 
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
 	k.forwardWithEvent(ctx, func() error {
-		d, nextMemo, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
+		d, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
 		if err != nil {
 			return errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
 
-		return k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin(), nextMemo)
+		return k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin())
 	})
 
 	return nil

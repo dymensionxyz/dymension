@@ -324,7 +324,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			fmt.Printf("hyperlane message: %+v\n", message)
 			fmt.Printf("token message: %+v\n", payload)
 
-			memo, _, err := types.UnpackAppMemoFromHyperlaneMemo(payload.Memo)
+			memo, err := types.UnpackAppMemoFromHyperlaneMemo(payload.Memo)
 			if err != nil {
 				return fmt.Errorf("unpack memo from warp message: %w", err)
 			}

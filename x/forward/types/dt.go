@@ -98,17 +98,16 @@ func MakeHookHLtoIBC(
 
 // WARNING: assumes the memo is entirely dedicated to the HL->IBC forwarder
 // TODO: also extract and then forward the rest of the memo, so that it can be used for other things later (include memo in ibc transfer so rollapp can use it)
-func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookHLtoIBC, []byte, error) {
+func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookHLtoIBC, error) {
 	var d HookHLtoIBC
 	err := proto.Unmarshal(bz, &d)
 	if err != nil {
-		return nil, nil, errorsmod.Wrap(err, "unmarshal forward hook")
+		return nil, errorsmod.Wrap(err, "unmarshal forward hook")
 	}
 	if err := d.ValidateBasic(); err != nil {
-		return nil, nil, errorsmod.Wrap(err, "validate basic")
+		return nil, errorsmod.Wrap(err, "validate basic")
 	}
-	var memo []byte
-	return &d, memo, nil
+	return &d, nil
 }
 
 func (h *HookHLtoIBC) ValidateBasic() error {
@@ -235,7 +234,7 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookHLtoIBC, 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, _, err := UnpackAppMemoFromHyperlaneMemo(pl.Memo)
+	d, err := UnpackAppMemoFromHyperlaneMemo(pl.Memo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
