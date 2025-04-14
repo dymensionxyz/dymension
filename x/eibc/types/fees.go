@@ -26,5 +26,13 @@ func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.Leg
 
 	mul := math.LegacyNewDec(1).Quo(div)
 
-	return mul.MulInt(target.Add(eibcFee)).Ceil().TruncateInt()
+	amt := mul.MulInt(target.Add(eibcFee)).Ceil().TruncateInt()
+
+	price, _ := CalcPriceWithBridgingFee(amt, eibcFee, bridgeFeeMul)
+
+	if price.LT(target) {
+		return amt.Add(math.OneInt())
+	}
+
+	return amt
 }
