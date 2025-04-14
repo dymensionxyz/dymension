@@ -370,7 +370,7 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 
 			needForHl := hlReceiveAmt.Add(hlMaxGas)
 
-			transferAmt := eibctypes.SolvePrice(needForHl, eibcFee, bridgeFeeMul)
+			transferAmt := eibctypes.CalcTargetPriceAmt(needForHl, eibcFee, bridgeFeeMul)
 
 			fmt.Printf("transfer amt: %s\n", transferAmt)
 			return nil

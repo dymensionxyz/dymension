@@ -5,9 +5,9 @@ import (
 )
 
 // calculate the new price: transferTotal - fee - bridgingFee. Ensures fulfiller does not lose due to bridge fee
-func CalcPriceWithBridgingFee(amt math.Int, feeInt math.Int, bridgingFeeMultiplier math.LegacyDec) (math.Int, error) {
-	bridgingFee := bridgingFeeMultiplier.MulInt(amt).TruncateInt()
-	price := amt.Sub(feeInt).Sub(bridgingFee)
+func CalcPriceWithBridgingFee(amt math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) (math.Int, error) {
+	bridgingFee := bridgeFeeMul.MulInt(amt).TruncateInt()
+	price := amt.Sub(eibcFee).Sub(bridgingFee)
 	// Check that the price is positive
 	if !price.IsPositive() {
 		return math.ZeroInt(), ErrFeeTooHigh
@@ -15,11 +15,16 @@ func CalcPriceWithBridgingFee(amt math.Int, feeInt math.Int, bridgingFeeMultipli
 	return price, nil
 }
 
-// returns an amount sufficient to have a price of target after fees
-func SolvePrice(target math.Int, feeInt math.Int, bridgingFeeMultiplier math.LegacyDec) math.Int {
-	div := math.LegacyNewDec(1).Sub(bridgingFeeMultiplier)
+// returns an ibc-transfer amount sufficient to have a order price of target after fees (bridge + eibc)
+// note that in the finalize without fulfillment case, the eibc fee is not applied, so the recipient will get approx target + eibcFee
+//
+// equation is:
+// price = amt - eibcFee - floor(bridgeFeeMul*amt)
+// solve for amt
+func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) math.Int {
+	div := math.LegacyNewDec(1).Sub(bridgeFeeMul)
 
 	mul := math.LegacyNewDec(1).Quo(div)
 
-	return mul.MulInt(target.Add(feeInt)).TruncateInt()
+	return mul.MulInt(target.Add(eibcFee)).Ceil().TruncateInt()
 }

@@ -15,7 +15,7 @@ func TestSolvePrice(t *testing.T) {
 	bridgeFee, err := math.LegacyNewDecFromStr("0.01")
 	require.NoError(t, err)
 
-	amt := SolvePrice(target, fee, bridgeFee)
+	amt := CalcTargetPriceAmt(target, fee, bridgeFee)
 
 	eventualPrice, err := CalcPriceWithBridgingFee(amt, fee, bridgeFee)
 	require.NoError(t, err)
