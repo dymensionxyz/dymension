@@ -1,17 +1,15 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
-	"math/big"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 // CreateAssetGauge creates a gauge and sends coins to the gauge.
@@ -194,7 +192,6 @@ func (k Keeper) distributeTrackedRewards(ctx sdk.Context, tracker *RewardDistrib
 type DistributionValueCache struct {
 	minDistrValue      sdk.Coin
 	denomToMinValueMap map[string]math.Int
-	poolsMap           map[string]poolmanagertypes.PoolI
 }
 
 // calculateAssetGaugeRewards computes the reward distribution for an asset gauge based on lock amounts.
@@ -242,129 +239,66 @@ func (k Keeper) calculateAssetGaugeRewards(
 
 	totalDistrCoins := sdk.NewCoins()
 
-	// Calculate lockSum * remainEpochs once to avoid repeated calculations
-	lockSumTimesRemainingEpochs := lockSum.Mul(math.NewInt(int64(remainEpochs)))
-	lockSumTimesRemainingEpochsBig := lockSumTimesRemainingEpochs.BigInt()
-
 	for _, lock := range locks {
-		distrCoins := sdk.Coins{}
-		denomLockAmt := lock.Coins.AmountOfNoDenomValidation(denom)
-		denomLockAmtBig := denomLockAmt.BigInt()
+		lockRewardCoins := sdk.Coins{}
+		lockedAmt := lock.Coins.AmountOfNoDenomValidation(denom)
 
 		for _, coin := range remainCoins {
-			// TODO: optimize this to avoid division in the loop:
-			// 	gauge_size / (total_denom_lock_amount * remain_epochs) is const and may be precomputed
-			//
-			amtBig := new(big.Int).Set(denomLockAmtBig)
-
-			// distribution amount = gauge_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
-			amtBig.Mul(amtBig, coin.Amount.BigInt())
-			amtBig.Quo(amtBig, lockSumTimesRemainingEpochsBig)
-
-			// Convert back to math.Int
-			amt := math.NewIntFromBigInt(amtBig)
-
-			// Check if the amount is worth distributing based on the minimum distribution value
-			if coin.Denom == minDistrValueCache.minDistrValue.Denom {
-				// Direct comparison if same denom
-				if amt.LT(minDistrValueCache.minDistrValue.Amount) {
+			// Check the cached minimum value for this denom
+			minTokenRequired, ok := minDistrValueCache.denomToMinValueMap[coin.Denom]
+			if !ok {
+				// get the minimal amount allowed for distribution for this coin
+				convertedCoin, err := k.tk.CalcBaseInCoin(ctx, minDistrValueCache.minDistrValue, coin.Denom)
+				if err != nil {
+					minDistrValueCache.denomToMinValueMap[coin.Denom] = math.OneInt().Neg()
+					// send unknown denoms to txfees module
+					err := k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, txfeestypes.ModuleName, sdk.NewCoins(coin))
+					if err != nil {
+						k.Logger(ctx).Error("gauge %d send to community pool failed", gauge.Id)
+					} else {
+						totalDistrCoins = totalDistrCoins.Add(coin)
+					}
 					continue
 				}
-			} else {
-				// Check the cached minimum value for this denom
-				minValue, ok := minDistrValueCache.denomToMinValueMap[coin.Denom]
-				if !ok {
-					// If not cached, try to find the exchange rate through pool routing
-					poolKey := minDistrValueCache.minDistrValue.Denom + "_" + coin.Denom
+				minDistrValueCache.denomToMinValueMap[coin.Denom] = convertedCoin.Amount
+				minTokenRequired = convertedCoin.Amount
+			}
+			// unsupported reward denom
+			if minTokenRequired.IsNegative() {
+				continue
+			}
 
-					// If no pool found, continue
-					pool, ok := minDistrValueCache.poolsMap[poolKey]
-					if !ok {
-						if err := k.sendToCommunityPool(ctx, sdk.NewCoin(coin.Denom, amt)); err != nil {
-							k.Logger(ctx).Error("gauge %d send to community pool failed", gauge.Id)
-						}
-						continue
-					}
+			// (gauge_size / remain_epochs) * (denom_lock_amount / total_denom_lock_amount)
+			amt := lockedAmt.Mul(coin.Amount).ToLegacyDec().QuoInt(lockSum).QuoInt64(int64(remainEpochs)).TruncateInt()
 
-					// Get the pool and swap module
-					pool, err := k.gk.GetPool(ctx, pool.GetId())
-					if err != nil {
-						return nil, err
-					}
-
-					// check if pool is active, if not error
-					if !pool.IsActive(ctx) {
-						return nil, fmt.Errorf("pool %d is not active", pool.GetId())
-					}
-
-					swapModule, err := k.pmk.GetPoolModule(ctx, pool.GetId())
-					if err != nil {
-						return nil, err
-					}
-
-					minTokenRequiredForDistr, err := swapModule.CalcOutAmtGivenIn(ctx, pool, minDistrValueCache.minDistrValue, coin.Denom, math.LegacyZeroDec())
-					if err != nil {
-						return nil, err
-					}
-
-					minTokenRequired := minTokenRequiredForDistr.Amount
-
-					// Cache the result
-					minDistrValueCache.denomToMinValueMap[coin.Denom] = minTokenRequired
-
-					// Check if the amount is worth distributing
-					if amt.LT(minTokenRequired) {
-						continue
-					}
-				} else {
-					// Use cached value
-					if minValue.IsZero() {
-						// Zero means no valid route exists
-						continue
-					}
-
-					if amt.LT(minValue) {
-						continue
-					}
-				}
+			// Check if the amount is worth distributing based on the minimum distribution value
+			if amt.LT(minTokenRequired) {
+				continue
 			}
 
 			if amt.IsPositive() {
 				newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: amt}
-				distrCoins = distrCoins.Add(newlyDistributedCoin)
+				lockRewardCoins = lockRewardCoins.Add(newlyDistributedCoin)
 			}
 		}
 
-		if distrCoins.Empty() {
+		if lockRewardCoins.Empty() {
 			continue
 		}
-		if distrCoins.Len() > 1 {
-			distrCoins = distrCoins.Sort()
+		if lockRewardCoins.Len() > 1 {
+			lockRewardCoins = lockRewardCoins.Sort()
 		}
 
 		// update the amount for that address
-		err := tracker.addLockRewards(lock.Owner, gauge.Id, distrCoins)
+		err := tracker.addLockRewards(lock.Owner, gauge.Id, lockRewardCoins)
 		if err != nil {
 			return sdk.Coins{}, err
 		}
 
-		totalDistrCoins = totalDistrCoins.Add(distrCoins...)
+		totalDistrCoins = totalDistrCoins.Add(lockRewardCoins...)
 	}
 
 	return totalDistrCoins, nil
-}
-
-func (k Keeper) sendToCommunityPool(ctx context.Context, coin sdk.Coin) error {
-	senderAddr := k.ak.GetModuleAddress(types.ModuleName)
-	if senderAddr == nil {
-		return fmt.Errorf("sendToCommunityPool: sender address is nil")
-	}
-
-	if err := k.cpk.FundCommunityPool(ctx, sdk.Coins{coin}, senderAddr); err != nil {
-		return fmt.Errorf("sendToCommunityPool: %w", err)
-	}
-
-	return nil
 }
 
 // GetDistributeToBaseLocks takes a gauge along with cached period locks by denom and returns locks that must be distributed to
