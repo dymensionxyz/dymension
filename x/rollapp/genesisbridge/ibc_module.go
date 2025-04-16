@@ -128,13 +128,13 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	// validate the proof height is already committed
-	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	proofHeight, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unpack packet proof height"))
 	}
 
 	latestHeight, _ := w.rollappKeeper.GetLatestHeight(ctx, ra.RollappId)
-	if height < latestHeight {
+	if proofHeight > latestHeight {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "height not committed"))
 	}
 
