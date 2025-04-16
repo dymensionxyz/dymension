@@ -362,6 +362,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[lightclientmoduletypes.StoreKey],
 		a.IBCKeeper,
 		a.IBCKeeper.ClientKeeper,
+		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.SequencerKeeper,
 		a.RollappKeeper,

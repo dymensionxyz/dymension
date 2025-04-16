@@ -38,6 +38,10 @@ type IBCClientKeeperExpected interface {
 	IterateConsensusStates(ctx sdk.Context, cb func(clientID string, cs ibcclienttypes.ConsensusStateWithHeight) bool)
 }
 
+type IBCConnectionKeeperExpected interface {
+	GetClientConnectionPaths(ctx sdk.Context, clientID string) ([]string, bool)
+}
+
 type IBCChannelKeeperExpected interface {
 	GetChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool)
 	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
