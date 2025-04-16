@@ -151,10 +151,9 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 	return stateInfo, nil
 }
 
-// HardForkToLatest attempts to hard fork the rollapp to the latest committed state.
-// It retrieves the latest state information for the given rollappID and,
-// if found, initiates a hard fork process to the latest valid height.
-// Returns an error if the hard fork operation fails.
+// HardForkToLatest tries to hard fork the rollapp to the latest committed state.
+// It gets the latest state information for the given rollappID and,
+// if found, starts a hard fork process to the latest valid height.
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
 	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
 	if !ok {
@@ -226,5 +225,5 @@ func (k Keeper) ForkAllowed(ctx sdk.Context, rollapp string, lastValidHeight uin
 	// - genesis bridge not opened
 	// or
 	// - genesis bridge opened and we don't rollback the past the proof height
-	return 0 == ra.GenesisState.TransferProofHeight || ra.GenesisState.TransferProofHeight <= lastValidHeight
+	return !ra.IsTransferEnabled() || ra.GenesisState.TransferProofHeight <= lastValidHeight
 }

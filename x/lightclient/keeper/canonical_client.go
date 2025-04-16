@@ -53,7 +53,7 @@ func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 	// Check if the clientID has any connections
 	_, found := k.ibcConnectionK.GetClientConnectionPaths(ctx, clientID)
 	if found {
-		return gerrc.ErrInvalidArgument.Wrap("client already has connections")
+		return gerrc.ErrFailedPrecondition.Wrap("client already has connections")
 	}
 
 	k.SetCanonicalClient(ctx, rollappID, clientID)

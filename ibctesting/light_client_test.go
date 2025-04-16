@@ -278,7 +278,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_FailsWithExistingConnections()
 		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
 	}
 	_, err = s.lightclientMsgServer().SetCanonicalClient(s.hubCtx(), setCanonMsg)
-	utest.IsErr(s.Require(), err, gerrc.ErrInvalidArgument)
+	utest.IsErr(s.Require(), err, gerrc.ErrFailedPrecondition)
 }
 
 func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
