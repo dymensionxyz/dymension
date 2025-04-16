@@ -64,8 +64,8 @@ func (k Keeper) GetValidTransfer(
 	return
 }
 
-// GetRollappByPortChan retrieves the rollapp for a transfer based on the port and channel.
-// This function checks for any channel of a rollapp, not necessarily the canonical one.
+// GetRollappByPortChan gets the rollapp for a transfer based on the port and channel.
+// Checks for any channel of a rollapp, not necessarily the canonical one.
 // It uses the light client ID to find the rollapp, which means the canonical light client
 // must be set for the rollapp. This is suitable for scenarios where the genesis bridge
 // has not yet been opened. It returns an error if the rollapp is not found or if the
