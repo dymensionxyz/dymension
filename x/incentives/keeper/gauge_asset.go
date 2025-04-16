@@ -9,6 +9,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 // CreateAssetGauge creates a gauge and sends coins to the gauge.
@@ -187,10 +188,22 @@ func (k Keeper) distributeTrackedRewards(ctx sdk.Context, tracker *RewardDistrib
 	return nil
 }
 
+// DistributionValueCache caches minimum values for token distribution
+type DistributionValueCache struct {
+	minDistrValue      sdk.Coin
+	denomToMinValueMap map[string]math.Int
+}
+
 // calculateAssetGaugeRewards computes the reward distribution for an asset gauge based on lock amounts.
 // It calculates rewards for each qualifying lock and tracks them in the distribution tracker.
 // Returns the total coins allocated for distribution.
-func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, locks []lockuptypes.PeriodLock, tracker *RewardDistributionTracker) (sdk.Coins, error) {
+func (k Keeper) calculateAssetGaugeRewards(
+	ctx sdk.Context,
+	gauge types.Gauge,
+	locks []lockuptypes.PeriodLock,
+	tracker *RewardDistributionTracker,
+	minDistrValueCache *DistributionValueCache,
+) (sdk.Coins, error) {
 	assetDist := gauge.GetAsset()
 	if assetDist == nil {
 		return sdk.Coins{}, fmt.Errorf("gauge %d is not an asset gauge", gauge.Id)
@@ -225,31 +238,64 @@ func (k Keeper) calculateAssetGaugeRewards(ctx sdk.Context, gauge types.Gauge, l
 	}
 
 	totalDistrCoins := sdk.NewCoins()
+
 	for _, lock := range locks {
-		distrCoins := sdk.Coins{}
+		lockRewardCoins := sdk.Coins{}
+		lockedAmt := lock.Coins.AmountOfNoDenomValidation(denom)
+
 		for _, coin := range remainCoins {
-			// TODO: optimize this to avoid division in the loop:
-			// 	gauge_size / (total_denom_lock_amount * remain_epochs) is const and may be precomputed
-			//
-			// distribution amount = gauge_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
-			denomLockAmt := lock.Coins.AmountOfNoDenomValidation(denom)
-			amt := coin.Amount.Mul(denomLockAmt).Quo(lockSum.Mul(math.NewInt(int64(remainEpochs))))
+			// Check the cached minimum value for this denom
+			minTokenRequired, ok := minDistrValueCache.denomToMinValueMap[coin.Denom]
+			if !ok {
+				// get the minimal amount allowed for distribution for this coin
+				convertedCoin, err := k.tk.CalcBaseInCoin(ctx, minDistrValueCache.minDistrValue, coin.Denom)
+				if err != nil {
+					minDistrValueCache.denomToMinValueMap[coin.Denom] = math.OneInt().Neg()
+					// send unknown denoms to txfees module
+					err := k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, txfeestypes.ModuleName, sdk.NewCoins(coin))
+					if err != nil {
+						k.Logger(ctx).Error("gauge %d send to community pool failed", gauge.Id)
+					} else {
+						totalDistrCoins = totalDistrCoins.Add(coin)
+					}
+					continue
+				}
+				minDistrValueCache.denomToMinValueMap[coin.Denom] = convertedCoin.Amount
+				minTokenRequired = convertedCoin.Amount
+			}
+			// unsupported reward denom
+			if minTokenRequired.IsNegative() {
+				continue
+			}
+
+			// (gauge_size / remain_epochs) * (denom_lock_amount / total_denom_lock_amount)
+			amt := lockedAmt.Mul(coin.Amount).ToLegacyDec().QuoInt(lockSum).QuoInt64(int64(remainEpochs)).TruncateInt()
+
+			// Check if the amount is worth distributing based on the minimum distribution value
+			if amt.LT(minTokenRequired) {
+				continue
+			}
+
 			if amt.IsPositive() {
 				newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: amt}
-				distrCoins = distrCoins.Add(newlyDistributedCoin)
+				lockRewardCoins = lockRewardCoins.Add(newlyDistributedCoin)
 			}
 		}
-		distrCoins = distrCoins.Sort()
-		if distrCoins.Empty() {
+
+		if lockRewardCoins.Empty() {
 			continue
 		}
+		if lockRewardCoins.Len() > 1 {
+			lockRewardCoins = lockRewardCoins.Sort()
+		}
+
 		// update the amount for that address
-		err := tracker.addLockRewards(lock.Owner, gauge.Id, distrCoins)
+		err := tracker.addLockRewards(lock.Owner, gauge.Id, lockRewardCoins)
 		if err != nil {
 			return sdk.Coins{}, err
 		}
 
-		totalDistrCoins = totalDistrCoins.Add(distrCoins...)
+		totalDistrCoins = totalDistrCoins.Add(lockRewardCoins...)
 	}
 
 	return totalDistrCoins, nil

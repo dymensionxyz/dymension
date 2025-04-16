@@ -67,6 +67,10 @@ func migrateIncentivesParams(ctx sdk.Context, k *incentiveskeeper.Keeper) {
 
 	// default mode is active rollapps only
 	params.RollappGaugesMode = incentivestypes.DefaultRollappGaugesMode
+
+	// set default min value for distribution (0.01 DYM)
+	params.MinValueForDistribution = incentivestypes.DefaultMinValueForDistr
+
 	k.SetParams(ctx, params)
 }
 

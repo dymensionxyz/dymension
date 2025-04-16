@@ -14,6 +14,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 
 // SetParams sets all of the parameters in the incentive module.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	// TODO: make sure MinValueForDistribution is same as txfees basedenom
 	k.paramSpace.SetParamSet(ctx, &params)
 }
 

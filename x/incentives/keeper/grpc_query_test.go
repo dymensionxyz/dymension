@@ -341,7 +341,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.LockTokens(addr2, sdk.Coins{sdk.NewInt64Coin("lptoken", 10)}, 2*time.Second)
 
 	// setup a non perpetual gauge
-	gaugeID, _, coins, startTime := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
+	gaugeID, _, coins, startTime := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("adym", 40000000000000000)})
 	gauge, err := suite.querier.GetGaugeByID(suite.Ctx, gaugeID)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(gauge)
@@ -356,7 +356,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// distribute coins to stakers
 	distrCoins, err := suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 4)})
+	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("adym", 20000000000000000)}, distrCoins)
 
 	// check gauge changes after distribution
 	// ensure the gauge's filled epochs have been increased by 1
@@ -365,7 +365,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(gauge)
 	suite.Require().Equal(gauge.FilledEpochs, uint64(1))
-	suite.Require().Equal(gauge.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 4)})
+	suite.Require().Equal(gauge.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("adym", 20000000000000000)})
 	gauges = []types.Gauge{*gauge}
 
 	// move gauge from an upcoming to an active status
@@ -381,7 +381,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// distribute second round to stakers
 	distrCoins, err = suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 6)}, distrCoins)
+	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("adym", 20000000000000000)})
 
 	// now that all coins have been distributed (4 in first found 6 in the second round)
 	// to distribute coins should be null
@@ -399,7 +399,7 @@ func (suite *KeeperTestSuite) TestGRPCDistributedCoins() {
 	suite.LockTokens(addr2, sdk.Coins{sdk.NewInt64Coin("lptoken", 10)}, 2*time.Second)
 
 	// setup a non perpetual gauge
-	gaugeID, _, _, startTime := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
+	gaugeID, _, _, startTime := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("adym", 100000000000000000)})
 	gauge, err := suite.querier.GetGaugeByID(suite.Ctx, gaugeID)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(gauge)
@@ -413,7 +413,7 @@ func (suite *KeeperTestSuite) TestGRPCDistributedCoins() {
 	// distribute coins to stakers
 	distrCoins, err := suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 4)})
+	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("adym", 50000000000000000)}, distrCoins)
 
 	// check gauge changes after distribution
 	// ensure the gauge's filled epochs have been increased by 1
@@ -422,11 +422,11 @@ func (suite *KeeperTestSuite) TestGRPCDistributedCoins() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(gauge)
 	suite.Require().Equal(gauge.FilledEpochs, uint64(1))
-	suite.Require().Equal(gauge.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("stake", 4)})
+	suite.Require().Equal(gauge.DistributedCoins, sdk.Coins{sdk.NewInt64Coin("adym", 50000000000000000)})
 	gauges = []types.Gauge{*gauge}
 
 	// distribute second round to stakers
 	distrCoins, err = suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 6)}, distrCoins)
+	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("adym", 50000000000000000)}, distrCoins)
 }

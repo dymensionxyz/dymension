@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -38,6 +39,12 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 	lockHolders := NewRewardDistributionTracker()
 	totalDistributedCoins := sdk.Coins{}
 
+	// Get minimum distribution value from params
+	minDistrValueCache := &DistributionValueCache{
+		minDistrValue:      k.GetParams(ctx).MinValueForDistribution,
+		denomToMinValueMap: make(map[string]math.Int),
+	}
+
 	for _, gauge := range gauges {
 		var (
 			gaugeDistributedCoins sdk.Coins
@@ -46,7 +53,7 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 		switch gauge.DistributeTo.(type) {
 		case *types.Gauge_Asset:
 			filteredLocks := k.GetDistributeToBaseLocks(ctx, gauge, cache) // get all locks that satisfy the gauge
-			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders)
+			gaugeDistributedCoins, err = k.calculateAssetGaugeRewards(ctx, gauge, filteredLocks, &lockHolders, minDistrValueCache)
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.calculateRollappGaugeRewards(ctx, gauge, &lockHolders)
 		case *types.Gauge_Endorsement:

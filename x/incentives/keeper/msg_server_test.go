@@ -125,6 +125,8 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+			err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "stake")
+			suite.Require().NoError(err)
 
 			ctx := suite.Ctx
 			bankKeeper := suite.App.BankKeeper
@@ -154,7 +156,7 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 			txfeesBalanceBefore := bankKeeper.GetBalance(ctx, accountKeeper.GetModuleAddress(txfees.ModuleName), "stake")
 
 			// System under test.
-			_, err := msgServer.CreateGauge(sdk.WrapSDKContext(ctx), msg)
+			_, err = msgServer.CreateGauge(ctx, msg)
 
 			if tc.expectErr {
 				suite.Require().Error(err, "test: %v", tc.name)
@@ -285,7 +287,6 @@ func (suite *KeeperTestSuite) TestAddToGauge() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-
 			err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "stake")
 			suite.Require().NoError(err)
 
@@ -406,9 +407,6 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 		suite.Run(name, func() {
 			suite.SetupTest()
 
-			err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
-			suite.Require().NoError(err)
-
 			testAccount := apptesting.CreateRandomAccounts(1)[0]
 			ctx := suite.Ctx
 			incentivesKeepers := suite.App.IncentivesKeeper
@@ -421,7 +419,7 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 			oldBalanceAmount := bankKeeper.GetBalance(ctx, testAccount, "adym").Amount
 
 			// System under test.
-			err = incentivesKeepers.ChargeGaugesFee(ctx, testAccount, math.NewInt(tc.feeToCharge), tc.gaugeCoins)
+			err := incentivesKeepers.ChargeGaugesFee(ctx, testAccount, math.NewInt(tc.feeToCharge), tc.gaugeCoins)
 
 			// Assertions.
 			newBalanceAmount := bankKeeper.GetBalance(ctx, testAccount, "adym").Amount
