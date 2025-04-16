@@ -13,6 +13,7 @@ type RollappKeeper interface {
 	RollappKeeperMinimal
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	GetHooks() rollapptypes.MultiRollappHooks
+	GetLatestHeight(ctx sdk.Context, rollappId string) (uint64, bool)
 }
 
 type RollappKeeperMinimal interface {
