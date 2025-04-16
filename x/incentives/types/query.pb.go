@@ -1002,9 +1002,9 @@ type QueryClient interface {
 	ActiveGauges(ctx context.Context, in *ActiveGaugesRequest, opts ...grpc.CallOption) (*ActiveGaugesResponse, error)
 	// ActiveGaugesPerDenom returns active gauges by denom
 	ActiveGaugesPerDenom(ctx context.Context, in *ActiveGaugesPerDenomRequest, opts ...grpc.CallOption) (*ActiveGaugesPerDenomResponse, error)
-	// Returns scheduled gauges that have not yet occured
+	// Returns scheduled gauges that have not yet occurred
 	UpcomingGauges(ctx context.Context, in *UpcomingGaugesRequest, opts ...grpc.CallOption) (*UpcomingGaugesResponse, error)
-	// UpcomingGaugesPerDenom returns scheduled gauges that have not yet occured
+	// UpcomingGaugesPerDenom returns scheduled gauges that have not yet occurred
 	// by denom
 	UpcomingGaugesPerDenom(ctx context.Context, in *UpcomingGaugesPerDenomRequest, opts ...grpc.CallOption) (*UpcomingGaugesPerDenomResponse, error)
 	// LockableDurations returns lockable durations that are valid to distribute
@@ -1125,9 +1125,9 @@ type QueryServer interface {
 	ActiveGauges(context.Context, *ActiveGaugesRequest) (*ActiveGaugesResponse, error)
 	// ActiveGaugesPerDenom returns active gauges by denom
 	ActiveGaugesPerDenom(context.Context, *ActiveGaugesPerDenomRequest) (*ActiveGaugesPerDenomResponse, error)
-	// Returns scheduled gauges that have not yet occured
+	// Returns scheduled gauges that have not yet occurred
 	UpcomingGauges(context.Context, *UpcomingGaugesRequest) (*UpcomingGaugesResponse, error)
-	// UpcomingGaugesPerDenom returns scheduled gauges that have not yet occured
+	// UpcomingGaugesPerDenom returns scheduled gauges that have not yet occurred
 	// by denom
 	UpcomingGaugesPerDenom(context.Context, *UpcomingGaugesPerDenomRequest) (*UpcomingGaugesPerDenomResponse, error)
 	// LockableDurations returns lockable durations that are valid to distribute

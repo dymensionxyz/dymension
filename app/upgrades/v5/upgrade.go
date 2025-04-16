@@ -10,6 +10,8 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
@@ -37,6 +39,9 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		// Incentives module params migration
+		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
+
 		// lockup module params migrations
 		migrateLockupParams(ctx, keepers.LockupKeeper)
 
@@ -55,6 +60,14 @@ func CreateUpgradeHandler(
 		logger.Debug("running module migrations ...")
 		return migrations, nil
 	}
+}
+
+func migrateIncentivesParams(ctx sdk.Context, k *incentiveskeeper.Keeper) {
+	params := k.GetParams(ctx)
+
+	// default mode is active rollapps only
+	params.RollappGaugesMode = incentivestypes.DefaultRollappGaugesMode
+	k.SetParams(ctx, params)
 }
 
 func migrateLockupParams(ctx sdk.Context, k *lockupkeeper.Keeper) {

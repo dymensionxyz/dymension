@@ -16,6 +16,7 @@ var (
 	KeyCreateGaugeFee       = []byte("CreateGaugeFee")
 	KeyAddToGaugeFee        = []byte("AddToGaugeFee")
 	KeyAddDenomFee          = []byte("AddDenomFee")
+	KeyRollappGaugesMode    = []byte("RollappGaugesMode")
 )
 
 // ParamKeyTable returns the key table for the incentive module's parameters.
@@ -24,12 +25,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams takes an epoch distribution identifier, then returns an incentives Params struct.
-func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int) Params {
+func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, rollappGaugesMode Params_RollappGaugesModes) Params {
 	return Params{
 		DistrEpochIdentifier: distrEpochIdentifier,
 		CreateGaugeBaseFee:   createGaugeFee,
 		AddToGaugeBaseFee:    addToGaugeFee,
 		AddDenomFee:          addDenomFee,
+		RollappGaugesMode:    rollappGaugesMode,
 	}
 }
 
@@ -40,6 +42,7 @@ func DefaultParams() Params {
 		CreateGaugeBaseFee:   DefaultCreateGaugeFee,
 		AddToGaugeBaseFee:    DefaultAddToGaugeFee,
 		AddDenomFee:          DefaultAddDenomFee,
+		RollappGaugesMode:    DefaultRollappGaugesMode,
 	}
 }
 
@@ -57,6 +60,9 @@ func (p Params) Validate() error {
 	if err := validateAddDenomFee(p.AddDenomFee); err != nil {
 		return err
 	}
+	if err := validateRollappGaugesMode(p.RollappGaugesMode); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -67,6 +73,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyCreateGaugeFee, &p.CreateGaugeBaseFee, validateCreateGaugeFeeInterface),
 		paramtypes.NewParamSetPair(KeyAddToGaugeFee, &p.AddToGaugeBaseFee, validateAddToGaugeFeeInterface),
 		paramtypes.NewParamSetPair(KeyAddDenomFee, &p.AddDenomFee, validateAddDenomFee),
+		paramtypes.NewParamSetPair(KeyRollappGaugesMode, &p.RollappGaugesMode, validateRollappGaugesMode),
 	}
 }
 
@@ -100,5 +107,14 @@ func validateAddDenomFee(i interface{}) error {
 	if v.IsNegative() {
 		return gerrc.ErrInvalidArgument.Wrapf("must be >= 0, got %s", v)
 	}
+	return nil
+}
+
+func validateRollappGaugesMode(i interface{}) error {
+	_, ok := i.(Params_RollappGaugesModes)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
 	return nil
 }

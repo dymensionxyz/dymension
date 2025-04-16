@@ -84,7 +84,7 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, time.Now(), true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
-	// creating a a plan for same rollapp should fail
+	// creating a plan for same rollapp should fail
 	_, err = k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, time.Now(), true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().Error(err)
 
