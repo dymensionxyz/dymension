@@ -127,6 +127,17 @@ func (w IBCModule) OnRecvPacket(
 		}
 	}
 
+	// validate the proof height is already committed
+	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unpack packet proof height"))
+	}
+
+	latestHeight, _ := w.rollappKeeper.GetLatestHeight(ctx, ra.RollappId)
+	if height < latestHeight {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "height not committed"))
+	}
+
 	// open the bridge!
 	err = w.EnableTransfers(ctx, packet, ra, raDenomOnHUb)
 	if err != nil {
