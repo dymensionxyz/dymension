@@ -230,5 +230,5 @@ curl http://localhost:1318/hyperlane/v1/noop_hooks
 curl http://localhost:1318/hyperlane/v1/noop_hooks/{id}
 curl http://localhost:1318/hyperlane/v1/isms
 curl http://localhost:1318/hyperlane/v1/isms/{id}
-curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/
-curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/
+curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/{validator_address}
+curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/{validator_address}/latest
