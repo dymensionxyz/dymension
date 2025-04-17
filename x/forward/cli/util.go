@@ -46,11 +46,10 @@ const (
 // get a memo for the direction (E)IBC -> HL
 func CmdMemoEIBCtoHLRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		// TODO: need to improve the UX here to make sure that the transferred amount is approx equal to HL amount + HL fee - (EIBC fee + other fees)
 		Use:     "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
 		Args:    cobra.ExactArgs(6),
 		Short:   "Create a memo for the direction (E)IBC -> HL",
-		Example: `dymd q forward memo-eibc-to-hl 100 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo dym12v7503afd5nwc9p0cd8vf264dayedfqvzkezl4`,
+		Example: `dymd q forward memo-eibc-to-hl 100 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,

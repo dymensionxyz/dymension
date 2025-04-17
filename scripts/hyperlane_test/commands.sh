@@ -206,25 +206,29 @@ curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/bridged_supply # sho
 # easiest way to check is looking at relayer log for rollapp msg recv packet tx and checking the transfer events
 
 
-
-
 ############################
 # APPENDIX: EXTRA DEBUG TOOLS
 
 # Queries
-# http://localhost:1318/hyperlane/v1/tokens
-# http://localhost:1318/hyperlane/v1/tokens/{id}
-# http://localhost:1318/hyperlane/v1/tokens/{id}/bridged_supply
-# http://localhost:1318/hyperlane/v1/tokens/{id}/remote_routers
-# http://localhost:1318/hyperlane/v1/isms
-# http://localhost:1318/hyperlane/v1/isms/{id}
-# http://localhost:1318/hyperlane/v1/mailboxes
-# http://localhost:1318/hyperlane/v1/mailboxes/{id}
-# http://localhost:1318/hyperlane/v1/recipient_ism/{recipient}
-# http://localhost:1318/hyperlane/v1/verify_dry_run
-# http://localhost:1318/hyperlane/v1/igps
-# http://localhost:1318/hyperlane/v1/igps/{id}
-# http://localhost:1318/hyperlane/v1/merkle_tree_hooks
-# http://localhost:1318/hyperlane/v1/merkle_tree_hooks/{id}
-# http://localhost:1318/hyperlane/v1/noop_hooks
-# http://localhost:1318/hyperlane/v1/noop_hooks/{id}
+curl http://localhost:1318/hyperlane/v1/tokens
+curl http://localhost:1318/hyperlane/v1/tokens/{id}
+curl http://localhost:1318/hyperlane/v1/tokens/{id}/bridged_supply
+curl http://localhost:1318/hyperlane/v1/tokens/{id}/remote_routers
+curl http://localhost:1318/hyperlane/v1/tokens/{id}/quote_remote_transfer/{destination_domain}
+curl http://localhost:1318/hyperlane/v1/mailboxes
+curl http://localhost:1318/hyperlane/v1/mailboxes/{id}
+curl http://localhost:1318/hyperlane/v1/mailboxes/{id}/delivered/{message_id}
+curl http://localhost:1318/hyperlane/v1/recipient_ism/{recipient}
+curl http://localhost:1318/hyperlane/v1/verify_dry_run
+curl http://localhost:1318/hyperlane/v1/igps
+curl http://localhost:1318/hyperlane/v1/igps/{id}
+curl http://localhost:1318/hyperlane/v1/igps/{id}/destination_gas_configs
+curl http://localhost:1318/hyperlane/v1/igps/{igp_id}/quote_gas_payment
+curl http://localhost:1318/hyperlane/v1/merkle_tree_hooks
+curl http://localhost:1318/hyperlane/v1/merkle_tree_hooks/{id}
+curl http://localhost:1318/hyperlane/v1/noop_hooks
+curl http://localhost:1318/hyperlane/v1/noop_hooks/{id}
+curl http://localhost:1318/hyperlane/v1/isms
+curl http://localhost:1318/hyperlane/v1/isms/{id}
+curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/
+curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/
