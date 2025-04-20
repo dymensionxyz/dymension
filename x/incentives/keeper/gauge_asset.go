@@ -216,22 +216,18 @@ func (k Keeper) calculateAssetGaugeRewards(
 		return sdk.Coins{}, nil
 	}
 
-	remainCoins := gauge.Coins.Sub(gauge.DistributedCoins...)
 	// if it's a perpetual gauge, we set remaining epochs to 1.
 	// otherwise it is a non perpetual gauge and we determine how many epoch payouts are left
-	remainEpochs := uint64(1)
+	remainEpochs := int64(1)
 	if !gauge.IsPerpetual {
-		remainEpochs = gauge.NumEpochsPaidOver - gauge.FilledEpochs
+		// this should never happen in practice since gauge passed in should always be an active gauge.
+		if gauge.NumEpochsPaidOver <= gauge.FilledEpochs {
+			return sdk.Coins{}, fmt.Errorf("gauge %d is not active. num_epochs_paid_over: %d, filled_epochs: %d", gauge.Id, gauge.NumEpochsPaidOver, gauge.FilledEpochs)
+		}
+		remainEpochs = int64(gauge.NumEpochsPaidOver - gauge.FilledEpochs) //nolint:gosec
 	}
 
-	/* ---------------------------- defense in depth ---------------------------- */
-	// this should never happen in practice since gauge passed in should always be an active gauge.
-	if remainEpochs == 0 {
-		ctx.Logger().Error(fmt.Sprintf("gauge %d has no remaining epochs, skipping", gauge.Id))
-		return sdk.Coins{}, nil
-	}
-
-	// this should never happen in practice
+	remainCoins := gauge.Coins.Sub(gauge.DistributedCoins...)
 	if remainCoins.Empty() {
 		ctx.Logger().Error(fmt.Sprintf("gauge %d is empty, skipping", gauge.Id))
 		return sdk.Coins{}, nil
@@ -248,28 +244,32 @@ func (k Keeper) calculateAssetGaugeRewards(
 			minTokenRequired, ok := minDistrValueCache.denomToMinValueMap[coin.Denom]
 			if !ok {
 				// get the minimal amount allowed for distribution for this coin
-				convertedCoin, err := k.tk.CalcBaseInCoin(ctx, minDistrValueCache.minDistrValue, coin.Denom)
+				minAmtForNewCoin, err := k.tk.CalcBaseInCoin(ctx, minDistrValueCache.minDistrValue, coin.Denom)
 				if err != nil {
+					k.Logger(ctx).Debug("failed to calculate minimal value for denom", "denom", coin.Denom, "error", err)
 					minDistrValueCache.denomToMinValueMap[coin.Denom] = math.OneInt().Neg()
 					// send unknown denoms to txfees module
 					err := k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, txfeestypes.ModuleName, sdk.NewCoins(coin))
 					if err != nil {
-						k.Logger(ctx).Error("gauge %d send to community pool failed", gauge.Id)
+						k.Logger(ctx).Error("failed to send unknown denom to txfees module", "denom", coin.Denom, "error", err)
 					} else {
+						// mark this denom as distributed
 						totalDistrCoins = totalDistrCoins.Add(coin)
 					}
 					continue
 				}
-				minDistrValueCache.denomToMinValueMap[coin.Denom] = convertedCoin.Amount
-				minTokenRequired = convertedCoin.Amount
+				minDistrValueCache.denomToMinValueMap[coin.Denom] = minAmtForNewCoin.Amount
+				minTokenRequired = minAmtForNewCoin.Amount
 			}
 			// unsupported reward denom
 			if minTokenRequired.IsNegative() {
 				continue
 			}
 
-			// (gauge_size / remain_epochs) * (denom_lock_amount / total_denom_lock_amount)
-			amt := lockedAmt.Mul(coin.Amount).ToLegacyDec().QuoInt(lockSum).QuoInt64(int64(remainEpochs)).TruncateInt()
+			// reward for the lock: (lock_amount / total_lock_amount) * (rewards / remain_epochs)
+			// to minimize truncation effects, we use
+			// (lock_amount * rewards) / (total_lock_amount * remain_epochs)
+			amt := lockedAmt.Mul(coin.Amount).ToLegacyDec().QuoInt(lockSum).QuoInt64(remainEpochs).TruncateInt()
 
 			// Check if the amount is worth distributing based on the minimum distribution value
 			if amt.LT(minTokenRequired) {
@@ -285,11 +285,9 @@ func (k Keeper) calculateAssetGaugeRewards(
 		if lockRewardCoins.Empty() {
 			continue
 		}
-		if lockRewardCoins.Len() > 1 {
-			lockRewardCoins = lockRewardCoins.Sort()
-		}
 
 		// update the amount for that address
+		lockRewardCoins = lockRewardCoins.Sort()
 		err := tracker.addLockRewards(lock.Owner, gauge.Id, lockRewardCoins)
 		if err != nil {
 			return sdk.Coins{}, err

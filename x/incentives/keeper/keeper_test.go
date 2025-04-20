@@ -39,5 +39,5 @@ func (suite *KeeperTestSuite) SetupTest() {
 	params.RollappGaugesMode = types.Params_AllRollapps
 	suite.App.IncentivesKeeper.SetParams(suite.Ctx, params)
 
-	suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
+	_ = suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
 }
