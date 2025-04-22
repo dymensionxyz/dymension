@@ -31,6 +31,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdMemoEIBCtoHLRaw())
+	cmd.AddCommand(CmdMemoEIBCtoIBCRaw())
 	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
@@ -111,6 +112,75 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 	return cmd
 }
 
+// get a memo for the direction (E)IBC -> HL
+// TODO: just use the existing func below
+func CmdMemoEIBCtoIBCRaw() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
+		Args:    cobra.ExactArgs(6),
+		Short:   "Create a memo for the direction (E)IBC -> IBC",
+		Example: `dymd q forward memo-eibc-to-ibc 100 "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
+
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			eibcFee := args[0]
+			_, err := strconv.Atoi(eibcFee)
+			if err != nil {
+				return fmt.Errorf("eibc fee: %w", err)
+			}
+
+			tokenId, err := hyperutil.DecodeHexAddress(args[1])
+			if err != nil {
+				return fmt.Errorf("token id: %w", err)
+			}
+
+			destinationDomain, err := strconv.ParseUint(args[2], 10, 32)
+			if err != nil {
+				return fmt.Errorf("destination domain: %w", err)
+			}
+
+			recipient, err := hyperutil.DecodeHexAddress(args[3])
+			if err != nil {
+				return fmt.Errorf("recipient: %w", err)
+			}
+
+			amount, ok := math.NewIntFromString(args[4])
+			if !ok {
+				return fmt.Errorf("amount")
+			}
+
+			maxFee, err := sdk.ParseCoinNormalized(args[5])
+			if err != nil {
+				return fmt.Errorf("max fee: %w", err)
+			}
+
+			memo, err := types.NewRollToHLMemoRaw(
+				eibcFee,
+				tokenId,
+				uint32(destinationDomain),
+				recipient,
+				amount,
+				maxFee,
+				math.ZeroInt(),
+				nil,
+				"",
+			)
+			if err != nil {
+				return fmt.Errorf("memo: %w", err)
+			}
+
+			fmt.Println(memo)
+			return nil
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // Get a memo for the direction HL -> (E)IBC
 // TODO: make work with solana too(?) need to change output encoding?
 func CmdMemoHLtoEIBCRaw() *cobra.Command {
@@ -124,7 +194,7 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			hook, err := memoHLtoIBC(args)
+			hook, err := memoForwardToIBC(args)
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
@@ -206,7 +276,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("amount")
 			}
 
-			hook, err := memoHLtoIBC(args[7:])
+			hook, err := memoForwardToIBC(args[7:])
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
@@ -246,7 +316,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-func memoHLtoIBC(args []string) (*types.HookForwardToIBC, error) {
+func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 
 	ibcSourceChan := args[0]
 
