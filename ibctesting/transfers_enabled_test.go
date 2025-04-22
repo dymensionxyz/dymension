@@ -15,7 +15,7 @@ import (
 )
 
 type transfersEnabledSuite struct {
-	utilSuite
+	ibcTestingSuite
 	path *ibctesting.Path
 }
 
