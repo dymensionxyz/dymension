@@ -14,6 +14,7 @@ import (
 
 // HardFork handles the fraud evidence submitted by the user.
 func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint64) error {
+	var newRevisionHeight uint64
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return gerrc.ErrNotFound
@@ -23,23 +24,23 @@ func (k Keeper) HardFork(ctx sdk.Context, rollappID string, lastValidHeight uint
 		return gerrc.ErrFailedPrecondition.Wrap("fork not allowed")
 	}
 
-	lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, lastValidHeight+1)
-	if err != nil {
-		return errorsmod.Wrap(err, "revert pending states")
+	_, ok := k.GetLatestStateInfo(ctx, rollappID)
+	if ok {
+		lastValidHeight, err := k.RevertPendingStates(ctx, rollappID, lastValidHeight+1)
+		if err != nil {
+			return errorsmod.Wrap(err, "revert pending states")
+		}
+		newRevisionHeight = lastValidHeight + 1
+		// update revision number
+		rollapp.BumpRevision(newRevisionHeight)
 	}
-
-	newRevisionHeight := lastValidHeight + 1
-
-	// update revision number
-	rollapp.BumpRevision(newRevisionHeight)
 
 	// stop liveness events
 	k.ResetLivenessClock(ctx, &rollapp)
-
 	k.SetRollapp(ctx, rollapp)
 
 	// handle the sequencers, clean delayed packets, handle light client
-	err = k.hooks.OnHardFork(ctx, rollappID, lastValidHeight)
+	err := k.hooks.OnHardFork(ctx, rollappID, lastValidHeight)
 	if err != nil {
 		return errorsmod.Wrap(err, "hard fork callback")
 	}
@@ -155,12 +156,7 @@ func (k Keeper) UpdateLastStateInfo(ctx sdk.Context, stateInfo *types.StateInfo,
 // It gets the latest state information for the given rollappID and,
 // if found, starts a hard fork process to the latest valid height.
 func (k Keeper) HardForkToLatest(ctx sdk.Context, rollappID string) error {
-	lastBatch, ok := k.GetLatestStateInfo(ctx, rollappID)
-	if !ok {
-		// nothing to do. no states to revert
-		return nil
-	}
-
+	lastBatch, _ := k.GetLatestStateInfo(ctx, rollappID)
 	return k.HardFork(ctx, rollappID, lastBatch.GetLatestHeight())
 }
 
