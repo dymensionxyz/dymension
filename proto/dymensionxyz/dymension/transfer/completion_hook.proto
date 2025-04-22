@@ -10,7 +10,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/transfer/types";
 // note: only for onRecvPacket
 message CompletionHookCall {
   // name of hook
-  string hook_name = 1;
+  string name = 1;
   // opaque data to be interpreted by the hook (passed in as arg)
-  bytes hook_data = 2;
+  bytes data = 2;
 }

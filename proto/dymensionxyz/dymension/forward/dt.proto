@@ -6,11 +6,12 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 import "hyperlane/warp/v1/tx.proto";
 import "ibc/applications/transfer/v1/tx.proto";
 
-// for eibc -> hyperlane
-message HookEIBCtoHL {
+message HookForwardToHL {
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
 }
 
-message HookHLtoIBC {
+message HookForwardToIBC {
   ibc.applications.transfer.v1.MsgTransfer transfer = 1;
 }
+
+

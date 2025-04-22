@@ -50,7 +50,7 @@ func (k Keeper) fulfill(ctx sdk.Context,
 	if err != nil {
 		return errorsmod.Wrap(err, "send coins")
 	}
-	if o.CompletionHookCall != nil {
+	if o.CompletionHook != nil {
 		err := k.transferHooks.OnFulfill(ctx, o)
 		if err != nil {
 			return errorsmod.Wrap(err, "do fulfill hook")

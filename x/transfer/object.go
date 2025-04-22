@@ -46,11 +46,11 @@ func (h TransferHooks) SetHooks(hooks map[string]CompletionHookInstance) {
 
 // assumes already passed validate basic
 func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
-	f, ok := h.hooks[info.HookName]
+	f, ok := h.hooks[info.Name]
 	if !ok {
-		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.HookName)
+		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.Name)
 	}
-	return f.ValidateData(info.HookData)
+	return f.ValidateData(info.Data)
 }
 
 // Should be called after packet finalization
@@ -74,26 +74,26 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 		return nil
 	}
 
-	if o.CompletionHookCall == nil {
+	if o.CompletionHook == nil {
 		// done
 		return nil
 	}
 
-	f, ok := h.hooks[o.CompletionHookCall.HookName]
+	f, ok := h.hooks[o.CompletionHook.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
 
 	// the order wasn't fulfilled, so the funds were sent to the original recipient by ibc transfer app
 	budget := sdk.NewCoin(o.Denom(), o.PriceAmount()) // TODO: fix amount, need to account for fees and so on
-	return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHookCall.HookData)
+	return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHook.Data)
 
 }
 
 func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder) error {
-	f, ok := h.hooks[o.CompletionHookCall.HookName]
+	f, ok := h.hooks[o.CompletionHook.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
-	return f.Run(ctx, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHookCall.HookData)
+	return f.Run(ctx, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHook.Data)
 }

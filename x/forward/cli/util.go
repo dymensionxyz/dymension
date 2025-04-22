@@ -246,7 +246,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-func memoHLtoIBC(args []string) (*types.HookHLtoIBC, error) {
+func memoHLtoIBC(args []string) (*types.HookForwardToIBC, error) {
 
 	ibcSourceChan := args[0]
 
@@ -264,7 +264,7 @@ func memoHLtoIBC(args []string) (*types.HookHLtoIBC, error) {
 
 	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
 
-	hook := types.MakeHookHLtoIBC(
+	hook := types.MakeHookForwardToIBC(
 		ibcSourceChan,
 		hubToken,
 		ibcRecipient,

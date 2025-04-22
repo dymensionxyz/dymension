@@ -51,8 +51,8 @@ func (s *forwardSuite) TestForward() {
 	s.T().Log("running test forward!")
 
 	hookData := transfertypes.CompletionHookCall{
-		HookName: dummy,
-		HookData: []byte{},
+		Name: dummy,
+		Data: []byte{},
 	}
 	raw, err := proto.Marshal(&hookData)
 	s.Require().NoError(err)

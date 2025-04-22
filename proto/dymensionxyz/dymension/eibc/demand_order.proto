@@ -46,5 +46,5 @@ message DemandOrder {
   // created.
   uint64 creation_height = 12;
   // an optional hook which uses the funds when the order is fulfilled
-  transfer.CompletionHookCall completion_hook_call = 13; // TODO: need to write a migration for this?
+  transfer.CompletionHookCall completion_hook = 13; 
 }

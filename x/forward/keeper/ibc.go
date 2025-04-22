@@ -23,7 +23,7 @@ type rollappToHubCompletion struct {
 }
 
 func (h rollappToHubCompletion) ValidateData(data []byte) error {
-	var d types.HookEIBCtoHL
+	var d types.HookForwardToHL
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
 		return errorsmod.Wrap(err, "unmarshal")
@@ -39,7 +39,7 @@ func (h rollappToHubCompletion) ValidateData(data []byte) error {
 func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
 	h.forwardWithEvent(ctx, func() error {
-		var d types.HookEIBCtoHL
+		var d types.HookForwardToHL
 		err := proto.Unmarshal(hookData, &d)
 		if err != nil {
 			return errorsmod.Wrap(err, "unmarshal")

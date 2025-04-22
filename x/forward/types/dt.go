@@ -18,7 +18,7 @@ import (
 
 const (
 	// not to be confused with ibc apps PFM which uses 'forward' as the fungible packet json memo key
-	HookNameForward = "dym-forward"
+	HookNameForwardToHL = "dym-forward"
 )
 
 // sender is computed
@@ -32,8 +32,8 @@ func NewHookEIBCtoHL(
 	gasLimit math.Int, // can be zero
 	customHookId *hyperutil.HexAddress, // optional
 	customHookMetadata string, // can be empty
-) *HookEIBCtoHL {
-	return &HookEIBCtoHL{
+) *HookForwardToHL {
+	return &HookForwardToHL{
 		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
 			TokenId:            tokenId,
 			DestinationDomain:  destinationDomain,
@@ -47,7 +47,7 @@ func NewHookEIBCtoHL(
 	}
 }
 
-func (h *HookEIBCtoHL) ValidateBasic() error {
+func (h *HookForwardToHL) ValidateBasic() error {
 	if h.HyperlaneTransfer == nil {
 		return gerrc.ErrInvalidArgument
 	}
@@ -58,17 +58,17 @@ func (h *HookEIBCtoHL) ValidateBasic() error {
 // sender is computed
 // timeout height not supported
 // next memo should go together in the top level of the HL memo
-func NewHookHLtoIBC(
+func NewHookForwardToIBC(
 	sourcePort string,
 	sourceChannel string,
 	token sdk.Coin,
 	receiver string,
 	timeoutTimestamp uint64,
-) *HookHLtoIBC {
+) *HookForwardToIBC {
 
 	arbSender, _ := sample.AccFromSecret("foo")
 
-	return &HookHLtoIBC{
+	return &HookForwardToIBC{
 		Transfer: &ibctransfertypes.MsgTransfer{
 			SourcePort:       sourcePort,
 			SourceChannel:    sourceChannel,
@@ -80,13 +80,13 @@ func NewHookHLtoIBC(
 	}
 }
 
-func MakeHookHLtoIBC(
+func MakeHookForwardToIBC(
 	sourceChannel string,
 	token sdk.Coin,
 	receiver string,
 	timeoutTimestamp uint64,
-) *HookHLtoIBC {
-	hook := NewHookHLtoIBC(
+) *HookForwardToIBC {
+	hook := NewHookForwardToIBC(
 		"transfer",
 		sourceChannel,
 		token,
@@ -98,8 +98,8 @@ func MakeHookHLtoIBC(
 
 // WARNING: assumes the memo is entirely dedicated to the HL->IBC forwarder
 // TODO: also extract and then forward the rest of the memo, so that it can be used for other things later (include memo in ibc transfer so rollapp can use it)
-func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookHLtoIBC, error) {
-	var d HookHLtoIBC
+func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookForwardToIBC, error) {
+	var d HookForwardToIBC
 	err := proto.Unmarshal(bz, &d)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unmarshal forward hook")
@@ -110,7 +110,7 @@ func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookHLtoIBC, error) {
 	return &d, nil
 }
 
-func (h *HookHLtoIBC) ValidateBasic() error {
+func (h *HookForwardToIBC) ValidateBasic() error {
 	if h.Transfer == nil {
 		return gerrc.ErrInvalidArgument.Wrap("transfer is nil")
 	}
@@ -121,15 +121,15 @@ func (h *HookHLtoIBC) ValidateBasic() error {
 	return nil
 }
 
-func NewEIBCFulfillHook(payload *HookEIBCtoHL) (*transfertypes.CompletionHookCall, error) {
+func NewEIBCFulfillHook(payload *HookForwardToHL) (*transfertypes.CompletionHookCall, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
 		return &transfertypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
 	}
 
 	return &transfertypes.CompletionHookCall{
-		HookName: HookNameForward,
-		HookData: bz,
+		Name: HookNameForwardToHL,
+		Data: bz,
 	}, nil
 }
 
@@ -181,7 +181,7 @@ func NewHyperlaneToIBCHyperlaneMessage(
 	hyperlaneTokenID hyperutil.HexAddress,
 	hyperlaneRecipient sdk.AccAddress, // TODO: explain, ignored?
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
-	hook *HookHLtoIBC,
+	hook *HookForwardToIBC,
 ) (hyperutil.HyperlaneMessage, error) {
 
 	if err := hook.ValidateBasic(); err != nil {
@@ -221,7 +221,7 @@ func NewHyperlaneToIBCHyperlaneMessage(
 }
 
 // intended for tests/clients, expensive
-func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookHLtoIBC, error) {
+func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookForwardToIBC, error) {
 	decoded, err := hyperutil.DecodeEthHex(s)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "decode eth hex")
