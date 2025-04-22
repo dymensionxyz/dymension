@@ -61,21 +61,16 @@ func (w *ICS4Wrapper) transferAllowed(ctx sdk.Context, sourcePort string, source
 	if err != nil {
 		if errorsmod.IsOf(err, types.ErrRollappNotFound) {
 			// Two cases
-			// 1. Non rollapp
-			//    Transfers are enabled
+			// 1. Non rollapp - Transfers are allowed
 			// 2. It is for rollapp but the light client of this transfer is not canonical and will never
 			//    be marked canonical: we can't set a canonical client if it's already have channels, so this transfer corresponds to a not-relevant channel.
 			return nil
 		}
 		return errorsmod.Wrap(err, "rollapp by port chan")
 	}
-	if !ra.GenesisState.IsTransferEnabled() {
-		return gerrc.ErrFailedPrecondition.Wrap("transfers disabled for rollapp")
-	}
 
-	// check if the channel is canonical
-	if ra.ChannelId != sourceChannel {
-		return gerrc.ErrFailedPrecondition.Wrap("transfer not allowed on non canonical channel")
+	if !w.rollappK.IsCanonicalChannel(ctx, ra.RollappId, sourcePort, sourceChannel) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "non canonical channel %s for rollapp %s", sourceChannel, ra.RollappId)
 	}
 
 	return nil
