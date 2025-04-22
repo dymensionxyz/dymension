@@ -32,7 +32,7 @@ type AccountKeeper interface {
 
 // IncentivesKeeper creates and gets gauges, and also allows additions to gauge rewards.
 type IncentivesKeeper interface {
-	CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
+	CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
 	CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, error)
 	GetLockableDurations(ctx sdk.Context) []time.Duration
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
@@ -42,4 +42,5 @@ type IncentivesKeeper interface {
 
 type SponsorshipKeeper interface {
 	GetDistribution(ctx sdk.Context) (types.Distribution, error)
+	SaveEndorsement(ctx sdk.Context, e types.Endorsement) error
 }

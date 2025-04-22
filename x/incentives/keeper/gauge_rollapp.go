@@ -41,6 +41,12 @@ func (k Keeper) calculateRollappGaugeRewards(ctx sdk.Context, gauge types.Gauge,
 	if !found {
 		return sdk.Coins{}, fmt.Errorf("gauge %d: rollapp %s not found", gauge.Id, gauge.GetRollapp().RollappId)
 	}
+
+	if k.RollappGaugesMode(ctx) == types.Params_ActiveOnly && !rollapp.Launched {
+		ctx.Logger().Debug("non-launched rollapps are not endorsed")
+		return sdk.Coins{}, nil
+	}
+
 	// Ignore the error since the owner must always be valid in x/rollapp
 	owner := rollapp.Owner
 

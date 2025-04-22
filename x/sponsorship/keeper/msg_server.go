@@ -57,6 +57,24 @@ func (m MsgServer) RevokeVote(goCtx context.Context, msg *types.MsgRevokeVote) (
 	return &types.MsgRevokeVoteResponse{}, nil
 }
 
+func (m MsgServer) ClaimRewards(goCtx context.Context, msg *types.MsgClaimRewards) (*types.MsgClaimRewardsResponse, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	// Don't check the error since it's part of validation
+	sender := sdk.MustAccAddressFromBech32(msg.Sender)
+
+	err = m.k.Claim(ctx, sender, msg.GaugeId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgClaimRewardsResponse{}, nil
+}
+
 func (m MsgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {

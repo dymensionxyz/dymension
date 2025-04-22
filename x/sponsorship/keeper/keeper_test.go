@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -51,10 +52,10 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.SetDefaultTestParams()
 }
 
-func (s *KeeperTestSuite) CreateGauge() uint64 {
+func (s *KeeperTestSuite) CreateAssetGauge() uint64 {
 	s.T().Helper()
 
-	gaugeID, err := s.App.IncentivesKeeper.CreateGauge(
+	gaugeID, err := s.App.IncentivesKeeper.CreateAssetGauge(
 		s.Ctx,
 		true,
 		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
@@ -64,6 +65,25 @@ func (s *KeeperTestSuite) CreateGauge() uint64 {
 			Denom:         "stake",
 			Duration:      time.Hour,
 			Timestamp:     time.Time{},
+		},
+		s.Ctx.BlockTime(),
+		1,
+	)
+	s.Require().NoError(err)
+	return gaugeID
+}
+
+func (s *KeeperTestSuite) CreateEndorsementGauge(rollappId string) uint64 {
+	s.T().Helper()
+
+	gaugeID, err := s.App.IncentivesKeeper.CreateEndorsementGauge(
+		s.Ctx,
+		true,
+		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
+		sdk.Coins{},
+		incentivestypes.EndorsementGauge{
+			RollappId:    rollappId,
+			EpochRewards: nil,
 		},
 		time.Now(),
 		1,
@@ -76,7 +96,7 @@ func (s *KeeperTestSuite) CreateGauges(num int) {
 	s.T().Helper()
 
 	for i := 0; i < num; i++ {
-		s.CreateGauge()
+		s.CreateAssetGauge()
 	}
 }
 
@@ -124,7 +144,7 @@ func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 		valAddr.String(),
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000_000)),
-		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
 		math.OneInt(),
 	)
@@ -159,7 +179,7 @@ func (s *KeeperTestSuite) CreateValidatorWithAddress(acc sdk.AccAddress, balance
 		valAddr.String(),
 		privEd.PubKey(),
 		initCoin,
-		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(math.LegacyOneDec(), math.LegacyOneDec(), math.LegacyOneDec()),
 		math.OneInt(),
 	)

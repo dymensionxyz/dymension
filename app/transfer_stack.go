@@ -29,7 +29,6 @@ func (a *AppKeepers) InitTransferStack() {
 	)
 
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
-
 	// already instantiated in SetupHooks()
 	a.DelayedAckMiddleware.Setup(
 		delayedackmodule.WithIBCModule(a.TransferStack),

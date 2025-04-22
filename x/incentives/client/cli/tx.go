@@ -92,7 +92,7 @@ func NewCreateGaugeCmd() *cobra.Command {
 				Timestamp:     time.Unix(0, 0), // XXX check
 			}
 
-			msg := types.NewMsgCreateGauge(
+			msg := types.NewMsgCreateAssetGauge(
 				epochs == 1,
 				clientCtx.GetFromAddress(),
 				distributeTo,

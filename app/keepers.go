@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/log"
 
-	flags "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	ethflags "github.com/evmos/ethermint/server/flags"
 
@@ -59,7 +59,6 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -75,6 +74,8 @@ import (
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/spf13/cast"
+
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -423,7 +424,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.StakingKeeper,
 		a.IncentivesKeeper,
-		a.SequencerKeeper,
+		a.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -571,7 +572,7 @@ func (a *AppKeepers) SetupHooks() {
 		stakingtypes.NewMultiStakingHooks(
 			a.DistrKeeper.Hooks(),
 			a.SlashingKeeper.Hooks(),
-			a.SponsorshipKeeper.Hooks(),
+			a.SponsorshipKeeper.StakingHooks(),
 		),
 	)
 
@@ -614,6 +615,7 @@ func (a *AppKeepers) SetupHooks() {
 			a.IncentivesKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
+			a.SponsorshipKeeper.EpochHooks(),
 		),
 	)
 
@@ -688,7 +690,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	return paramsKeeper
 }
 
-// this is a workaround to get rid of the denommetadata set automaticlly by ibc-go v8.x
+// this is a workaround to get rid of the denommetadata set automatically by ibc-go v8.x
 // it has 2 issues:
 // - it's not valid metadata struct
 // - it has no exponent

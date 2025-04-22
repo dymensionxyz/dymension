@@ -1,8 +1,8 @@
 package types
 
 import (
-	context "context"
-	time "time"
+	"context"
+	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

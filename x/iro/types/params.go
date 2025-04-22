@@ -16,7 +16,7 @@ var (
 	DefaultIncentivePlanMinimumNumEpochsPaidOver        = uint64(364)                 // default: min 364 days (based on 1 day distribution epoch)
 	DefaultIncentivePlanMinimumStartTimeAfterSettlement = 60 * time.Minute            // default: min 1 hour after settlement
 	DefaultMinLiquidityPart                             = "0.4"                       // default: at least 40% goes to the liquidity pool
-	DefaultMinVestingDuration                           = 100 * 24 * time.Hour        // default: min 100 days
+	DefaultMinVestingDuration                           = 7 * 24 * time.Hour          // default: min 7 days
 	DefaultMinVestingStartTimeAfterSettlement           = 0 * time.Minute             // default: no enforced minimum by default
 )
 
