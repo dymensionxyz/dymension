@@ -26,7 +26,7 @@ import (
 var successAck = channeltypes.CommitAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement())
 
 type transferGenesisSuite struct {
-	utilSuite
+	ibcTestingSuite
 	path *ibctesting.Path
 }
 
@@ -35,14 +35,15 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 }
 
 func (s *transferGenesisSuite) SetupTest() {
-	s.utilSuite.SetupTest()
-	s.hubApp().LightClientKeeper.SetEnabled(false)
+	s.ibcTestingSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false) // disable state validation against light client
 
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
 	s.path = path
 
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
+	s.registerSequencer()
 
 	// force set the canonical client for the rollapp
 	s.setRollappLightClientID(rollappChainID(), s.path.EndpointA.ClientID)
@@ -445,4 +446,16 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string) *types.Ms
 	)
 
 	return msg
+}
+
+// method to update the rollapp genesis info
+func (s *transferGenesisSuite) addGenesisAccounts(genesisAccounts []rollapptypes.GenesisAccount) {
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	s.Require().False(rollapp.GenesisInfo.Sealed)
+
+	if rollapp.GenesisInfo.GenesisAccounts == nil {
+		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{}
+	}
+	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.Accounts(), genesisAccounts...)
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }

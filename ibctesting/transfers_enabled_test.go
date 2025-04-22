@@ -24,7 +24,7 @@ func TestTransfersEnabledTestSuite(t *testing.T) {
 }
 
 func (s *transfersEnabledSuite) SetupTest() {
-	s.utilSuite.SetupTest()
+	s.ibcTestingSuite.SetupTest()
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
 	s.createRollapp(false, nil)

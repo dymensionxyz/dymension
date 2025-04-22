@@ -21,7 +21,7 @@ const (
 )
 
 type delayedAckSuite struct {
-	utilSuite
+	ibcTestingSuite
 }
 
 func TestDelayedAckTestSuite(t *testing.T) {
@@ -29,7 +29,7 @@ func TestDelayedAckTestSuite(t *testing.T) {
 }
 
 func (s *delayedAckSuite) SetupTest() {
-	s.utilSuite.SetupTest()
+	s.ibcTestingSuite.SetupTest()
 	s.hubApp().LightClientKeeper.SetEnabled(false)
 
 	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{
