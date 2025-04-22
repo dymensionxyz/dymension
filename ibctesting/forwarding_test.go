@@ -28,7 +28,7 @@ type mockHook struct {
 	called bool
 }
 
-func (h *mockHook) ValidateData(hookData []byte) error {
+func (h *mockHook) ValidateArg(hookData []byte) error {
 	return nil
 }
 

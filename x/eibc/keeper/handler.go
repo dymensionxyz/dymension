@@ -84,17 +84,17 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 	creationHeight := uint64(ctx.BlockHeight())
 
-	fulfillHook, err := memoEIBC.GetFulfillHook()
+	onComplete, err := memoEIBC.GetCompletionHook()
 	if err != nil {
-		return nil, fmt.Errorf("get fulfill hook: %w", err)
+		return nil, fmt.Errorf("get on complete hook: %w", err)
 	}
-	if fulfillHook != nil {
-		if err := k.transferHooks.Validate(*fulfillHook); err != nil {
+	if onComplete != nil {
+		if err := k.transferHooks.Validate(*onComplete); err != nil {
 			return nil, fmt.Errorf("validate fulfill hook: %w", err)
 		}
 	}
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, fulfillHook)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)
 	return order, nil
 }
 

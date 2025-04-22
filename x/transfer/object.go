@@ -33,7 +33,7 @@ func NewTransferHooks(keeper EIBCK) *TransferHooks {
 }
 
 type CompletionHookInstance interface {
-	ValidateData(hookData []byte) error
+	ValidateArg(hookData []byte) error
 	Run(ctx sdk.Context, fundSrc sdk.AccAddress, budget sdk.Coin, hookData []byte) error
 }
 
@@ -50,7 +50,7 @@ func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.Name)
 	}
-	return f.ValidateData(info.Data)
+	return f.ValidateArg(info.Data)
 }
 
 // Should be called after packet finalization

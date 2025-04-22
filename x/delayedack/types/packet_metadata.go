@@ -14,11 +14,12 @@ type Memo struct {
 	EIBC *EIBCMemo `json:"eibc"`
 }
 
+// TODO: would be better to rework this whole thing into a pb message
 type EIBCMemo struct {
 	// mandatory
 	Fee string `json:"fee"`
 	// can be nil
-	OnFulfillHook []byte `json:"on_fulfill,omitempty"` // TODO: would be better to rework this whole thing into a pb message
+	OnCompletionHook []byte `json:"on_completion,omitempty"`
 }
 
 func MakeEIBCMemo() EIBCMemo {
@@ -30,12 +31,12 @@ func (p Memo) ValidateBasic() error {
 }
 
 // TODO: avoid duplicate calls
-func (e EIBCMemo) GetFulfillHook() (*transfertypes.CompletionHookCall, error) {
-	if len(e.OnFulfillHook) == 0 {
+func (e EIBCMemo) GetCompletionHook() (*transfertypes.CompletionHookCall, error) {
+	if len(e.OnCompletionHook) == 0 {
 		return nil, nil
 	}
 	var hook transfertypes.CompletionHookCall
-	err := proto.Unmarshal(e.OnFulfillHook, &hook)
+	err := proto.Unmarshal(e.OnCompletionHook, &hook)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)
 	}
@@ -50,7 +51,7 @@ func (e EIBCMemo) ValidateBasic() error {
 	if err != nil {
 		return fmt.Errorf("fee: %w", err)
 	}
-	if _, err := e.GetFulfillHook(); err != nil {
+	if _, err := e.GetCompletionHook(); err != nil {
 		return fmt.Errorf("get on fulfill hook: %w", err)
 	}
 	return nil

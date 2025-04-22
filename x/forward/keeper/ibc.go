@@ -10,19 +10,19 @@ import (
 	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
-var _ transfer.CompletionHookInstance = rollappToHubCompletion{}
+var _ transfer.CompletionHookInstance = rollToHLHook{}
 
-func (k Keeper) Hook() rollappToHubCompletion {
-	return rollappToHubCompletion{
+func (k Keeper) Hook() rollToHLHook {
+	return rollToHLHook{
 		Keeper: &k,
 	}
 }
 
-type rollappToHubCompletion struct {
+type rollToHLHook struct {
 	*Keeper
 }
 
-func (h rollappToHubCompletion) ValidateData(data []byte) error {
+func (h rollToHLHook) ValidateArg(data []byte) error {
 	var d types.HookForwardToHL
 	err := proto.Unmarshal(data, &d)
 	if err != nil {
@@ -36,7 +36,7 @@ func (h rollappToHubCompletion) ValidateData(data []byte) error {
 
 // at the time of calling, funds have either been sent from the eibc LP to the ibc transfer recipient, or minted/unescrowed from
 // the ibc transfer app to the ibc transfer recipient
-func (h rollappToHubCompletion) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
+func (h rollToHLHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
 	h.forwardWithEvent(ctx, func() error {
 		var d types.HookForwardToHL
