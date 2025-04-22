@@ -64,7 +64,7 @@ sequencers can only be proposer at most once`)
 	// maybe set as proposer if one is needed
 	proposer := k.GetProposer(ctx, seq.RollappId)
 	if proposer.Sentinel() {
-		if err := k.RecoverFromSentinel(ctx, seq.RollappId); err != nil {
+		if err := k.ChooseProposerAfterSentinel(ctx, seq.RollappId); err != nil {
 			return nil, err
 		}
 	}
