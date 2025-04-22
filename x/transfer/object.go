@@ -68,7 +68,7 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 		return errorsmod.Wrap(err, "pending order by packet")
 	}
 
-	// for mvp, assume all completion hooks are only executable once
+	// !! for mvp, we assume all completion hooks are only executable once !!
 	if o.IsFulfilled() {
 		// done
 		return nil

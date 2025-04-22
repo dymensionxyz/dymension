@@ -14,18 +14,18 @@ import (
 
 // at time of calling, funds have been credited to the original hyperlane transfer recipient
 func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
-	// TODO: should allow another level of indirection (e.g. Memo is json containing what we want in bytes?)
-	// it would be more flexible and allow memo forwarding
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
-	k.forwardWithEvent(ctx, func() error {
+	k.executeWithErrEvent(ctx, func() error {
 		d, err := types.UnpackAppMemoFromHyperlaneMemo(args.Memo)
 		if err != nil {
 			return errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
 
+		// funds src is the hyperlane transfer recipient, which should have same priv key as rollapp recipient
+		// so in case of async failure, the funds will get refunded back there.
 		return k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin())
 	})
 

@@ -5,7 +5,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
-func (k Keeper) forwardWithEvent(ctx sdk.Context, f func() error) {
+func (k Keeper) executeWithErrEvent(ctx sdk.Context, f func() error) {
 	err := f()
 	evt := &types.EventForward{
 		Ok: err == nil,
