@@ -18,7 +18,8 @@ import (
 
 const (
 	// not to be confused with ibc apps PFM which uses 'forward' as the fungible packet json memo key
-	HookNameForwardToHL = "dym-forward"
+	HookNameRollToHL  = "dym-fwd-roll-hl"
+	HookNameRollToIBC = "dym-fwd-roll-ibc"
 )
 
 // sender is computed
@@ -121,19 +122,19 @@ func (h *HookForwardToIBC) ValidateBasic() error {
 	return nil
 }
 
-func NewEIBCFulfillHook(payload *HookForwardToHL) (*transfertypes.CompletionHookCall, error) {
+func NewRollToHLHook(payload *HookForwardToHL) (*transfertypes.CompletionHookCall, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
 		return &transfertypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
 	}
 
 	return &transfertypes.CompletionHookCall{
-		Name: HookNameForwardToHL,
+		Name: HookNameRollToHL,
 		Data: bz,
 	}, nil
 }
 
-func NewEIBCToHLMemoRaw(
+func NewRollToHLMemoRaw(
 	eibcFee string,
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
@@ -145,7 +146,7 @@ func NewEIBCToHLMemoRaw(
 	customHookId *hyperutil.HexAddress,
 	customHookMetadata string) (string, error) {
 
-	hook, err := NewEIBCFulfillHook(
+	hook, err := NewRollToHLHook(
 		NewHookEIBCtoHL(
 			tokenId,
 			destinationDomain,
@@ -173,7 +174,7 @@ func NewEIBCToHLMemoRaw(
 }
 
 // note, potentially expensive
-func NewHyperlaneToIBCHyperlaneMessage(
+func NewHLToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
 	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router

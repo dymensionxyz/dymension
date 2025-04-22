@@ -12,7 +12,7 @@ import (
 
 var _ transfer.CompletionHookInstance = rollToHLHook{}
 
-func (k Keeper) Hook() rollToHLHook {
+func (k Keeper) RollToHLHook() rollToHLHook {
 	return rollToHLHook{
 		Keeper: &k,
 	}
@@ -45,6 +45,45 @@ func (h rollToHLHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sd
 			return errorsmod.Wrap(err, "unmarshal")
 		}
 		return h.forwardToHyperlane(ctx, fundsSource, budget, d)
+	})
+	return nil
+}
+
+var _ transfer.CompletionHookInstance = rollToIBCHook{}
+
+func (k Keeper) RollToIBCHook() rollToIBCHook {
+	return rollToIBCHook{
+		Keeper: &k,
+	}
+}
+
+type rollToIBCHook struct {
+	*Keeper
+}
+
+func (h rollToIBCHook) ValidateArg(data []byte) error {
+	var d types.HookForwardToIBC
+	err := proto.Unmarshal(data, &d)
+	if err != nil {
+		return errorsmod.Wrap(err, "unmarshal")
+	}
+	if err := d.ValidateBasic(); err != nil {
+		return errorsmod.Wrap(err, "validate")
+	}
+	return nil
+}
+
+// at the time of calling, funds have either been sent from the eibc LP to the ibc transfer recipient, or minted/unescrowed from
+// the ibc transfer app to the ibc transfer recipient
+func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
+	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
+	h.forwardWithEvent(ctx, func() error {
+		var d types.HookForwardToIBC
+		err := proto.Unmarshal(hookData, &d)
+		if err != nil {
+			return errorsmod.Wrap(err, "unmarshal")
+		}
+		return h.forwardToIBC(ctx, d.Transfer, fundsSource, budget)
 	})
 	return nil
 }

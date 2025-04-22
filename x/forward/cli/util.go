@@ -86,7 +86,7 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 				return fmt.Errorf("max fee: %w", err)
 			}
 
-			memo, err := types.NewEIBCToHLMemoRaw(
+			memo, err := types.NewRollToHLMemoRaw(
 				eibcFee,
 				tokenId,
 				uint32(destinationDomain),
@@ -216,7 +216,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			m, err := types.NewHyperlaneToIBCHyperlaneMessage(
+			m, err := types.NewHLToIBCHyperlaneMessage(
 				uint32(hlNonce),
 				uint32(hlSrcDomain),
 				hlSrcContract,

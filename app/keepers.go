@@ -559,7 +559,8 @@ func (a *AppKeepers) InitKeepers(
 
 	a.TransferHooks = transfer.NewTransferHooks(a.EIBCKeeper)
 	a.TransferHooks.SetHooks(map[string]transfer.CompletionHookInstance{
-		forwardtypes.HookNameForwardToHL: a.ForwardKeeper.Hook(),
+		forwardtypes.HookNameRollToHL:  a.ForwardKeeper.RollToHLHook(),
+		forwardtypes.HookNameRollToIBC: a.ForwardKeeper.RollToIBCHook(),
 	})
 
 	a.EIBCKeeper.SetTransferHooks(a.TransferHooks)
