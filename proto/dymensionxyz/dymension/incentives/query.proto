@@ -49,12 +49,12 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/incentives/v1beta1/active_gauges_per_denom";
   }
-  // Returns scheduled gauges that have not yet occured
+  // Returns scheduled gauges that have not yet occurred
   rpc UpcomingGauges(UpcomingGaugesRequest) returns (UpcomingGaugesResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges";
   }
-  // UpcomingGaugesPerDenom returns scheduled gauges that have not yet occured
+  // UpcomingGaugesPerDenom returns scheduled gauges that have not yet occurred
   // by denom
   rpc UpcomingGaugesPerDenom(UpcomingGaugesPerDenomRequest)
       returns (UpcomingGaugesPerDenomResponse) {

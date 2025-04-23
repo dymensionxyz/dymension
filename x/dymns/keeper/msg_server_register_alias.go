@@ -30,7 +30,7 @@ func (k msgServer) RegisterAlias(goCtx context.Context, msg *dymnstypes.MsgRegis
 	if !registrationCost.Equal(msg.ConfirmPayment) {
 		return nil, errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"actual payment is is different with provided by user: %s != %s", registrationCost.String(), msg.ConfirmPayment,
+			"actual payment is different with provided by user: %s != %s", registrationCost.String(), msg.ConfirmPayment,
 		)
 	}
 
