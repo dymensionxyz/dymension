@@ -1,4 +1,4 @@
-package keeper
+package forward
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -12,14 +12,14 @@ import (
 
 var _ transfer.CompletionHookInstance = rollToHLHook{}
 
-func (k Keeper) RollToHLHook() rollToHLHook {
+func (k Forward) RollToHLHook() rollToHLHook {
 	return rollToHLHook{
-		Keeper: &k,
+		Forward: &k,
 	}
 }
 
 type rollToHLHook struct {
-	*Keeper
+	*Forward
 }
 
 func (h rollToHLHook) ValidateArg(data []byte) error {
@@ -51,14 +51,14 @@ func (h rollToHLHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sd
 
 var _ transfer.CompletionHookInstance = rollToIBCHook{}
 
-func (k Keeper) RollToIBCHook() rollToIBCHook {
+func (k Forward) RollToIBCHook() rollToIBCHook {
 	return rollToIBCHook{
-		Keeper: &k,
+		Forward: &k,
 	}
 }
 
 type rollToIBCHook struct {
-	*Keeper
+	*Forward
 }
 
 func (h rollToIBCHook) ValidateArg(data []byte) error {
@@ -89,7 +89,7 @@ func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget s
 	return nil
 }
 
-func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
+func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
 
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,

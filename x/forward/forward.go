@@ -1,4 +1,4 @@
-package keeper
+package forward
 
 import (
 	"cosmossdk.io/log"
@@ -9,24 +9,23 @@ import (
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
-type Keeper struct {
-	// TODO: params collection
+type Forward struct {
 	warpQ     types.WarpQuery
 	warpS     warptypes.MsgServer
-	transferK transferkeeper.Keeper // TODO: interface
+	transferK transferkeeper.Keeper
 	bankK     types.BankKeeper
 	accountK  types.AccountKeeper
 }
 
-func NewKeeper(
+func New(
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
 	transferKeeper transferkeeper.Keeper,
 	warpQueryServer warptypes.QueryServer,
 	warpMsgServer warptypes.MsgServer,
-) *Keeper {
+) *Forward {
 
-	return &Keeper{
+	return &Forward{
 		bankK:     bankKeeper,
 		accountK:  accountKeeper,
 		transferK: transferKeeper,
@@ -35,6 +34,6 @@ func NewKeeper(
 	}
 }
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k Forward) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/forward")
 }

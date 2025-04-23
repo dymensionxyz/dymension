@@ -114,7 +114,7 @@ import (
 	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 
-	forwardkeeper "github.com/dymensionxyz/dymension/v3/x/forward/keeper"
+	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
@@ -176,8 +176,7 @@ type AppKeepers struct {
 	HyperCoreKeeper hypercorekeeper.Keeper
 	HyperWarpKeeper hyperwarpkeeper.Keeper
 
-	// note: no module for forward
-	Forward forwardkeeper.Keeper
+	Forward *forward.Forward
 
 	TransferHooks *transfer.TransferHooks
 
@@ -543,7 +542,7 @@ func (a *AppKeepers) InitKeepers(
 		},
 	)
 
-	a.Forward = *forwardkeeper.NewKeeper(
+	a.Forward = forward.New(
 		a.BankKeeper,
 		a.AccountKeeper,
 		a.TransferKeeper,

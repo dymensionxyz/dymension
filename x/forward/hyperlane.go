@@ -1,4 +1,4 @@
-package keeper
+package forward
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 // this is called by hyperlane on an inbound transfer
 // at time of calling, funds have already been credited to the original hyperlane transfer recipient
-func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
+func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -33,7 +33,7 @@ func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHype
 	return nil
 }
 
-func (k Keeper) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, d types.HookForwardToHL) error {
+func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, d types.HookForwardToHL) error {
 
 	token, err := k.getHypToken(ctx, hyperutil.HexAddress(d.HyperlaneTransfer.TokenId))
 	if err != nil {
@@ -78,7 +78,7 @@ func (k Keeper) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, bud
 
 }
 
-func (k Keeper) getHypToken(ctx context.Context, tokenId hyperutil.HexAddress) (*warptypes.WrappedHypToken, error) {
+func (k Forward) getHypToken(ctx context.Context, tokenId hyperutil.HexAddress) (*warptypes.WrappedHypToken, error) {
 	res, err := k.warpQ.Token(ctx, &warptypes.QueryTokenRequest{Id: tokenId.String()})
 	if err != nil {
 		return nil, err
