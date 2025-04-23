@@ -32,9 +32,9 @@ require (
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/dymensionxyz/gerr-cosmos v1.1.0
+	github.com/dymensionxyz/go-ethereum v0.0.0-20250423141914-5810ac34b7cf
 	github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250423143054-8a3aff8df981
 	github.com/dymensionxyz/sdk-utils v0.2.13-0.20250114202609-b3e820f5b629
-	github.com/dymensionxyz/go-ethereum 5810ac34b
 	github.com/evmos/ethermint v0.22.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.4
@@ -114,6 +114,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
+	github.com/ethereum/go-ethereum v1.14.12 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240829091221-dffa7562dbe9 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -262,4 +263,4 @@ replace (
 
 )
 
-// replace github.com/bcp-innovations/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos // TODO: fix
+replace github.com/bcp-innovations/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos // TODO: fix
