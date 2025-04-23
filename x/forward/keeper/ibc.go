@@ -99,7 +99,7 @@ func (k Keeper) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTran
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
 		transfer.TimeoutTimestamp,
-		transfer.Memo,
+		transfer.Memo, // include the original memo, so that we can have more functionality down the road (.e.g actions on rollapp)
 	)
 
 	// If this transfer fails asynchronously (timeout or ack) then the funds will get refunded back to the fundSrc by ibc transfer app

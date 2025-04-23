@@ -32,7 +32,7 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdMemoEIBCtoHLRaw())
+	cmd.AddCommand(CmdMemoEIBCtoHL())
 	cmd.AddCommand(CmdMemoEIBCtoIBC())
 	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
@@ -46,8 +46,8 @@ const (
 	MessageReadableFlag = "readable"
 )
 
-// get a memo for the direction (E)IBC -> HL
-func CmdMemoEIBCtoHLRaw() *cobra.Command {
+// get a memo for the direction (E)IBC -> HL. This should be directly included in the memo of the ibc transfer.
+func CmdMemoEIBCtoHL() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
 		Args:    cobra.ExactArgs(6),
@@ -89,7 +89,7 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 				return fmt.Errorf("max fee: %w", err)
 			}
 
-			memo, err := types.NewRollToHLMemoRaw(
+			memo, err := types.NewRollToHLMemoS(
 				eibcFee,
 				tokenId,
 				uint32(destinationDomain),
@@ -101,7 +101,7 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 				"",
 			)
 			if err != nil {
-				return fmt.Errorf("memo: %w", err)
+				return fmt.Errorf("new: %w", err)
 			}
 
 			fmt.Println(memo)
@@ -337,7 +337,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			fmt.Printf("hyperlane message: %+v\n", message)
 			fmt.Printf("token message: %+v\n", payload)
 
-			memo, err := types.UnpackForwardToIBCFromHyperlaneMemo(payload.Memo)
+			memo, err := types.UnpackForwardToIBC(payload.Memo)
 			if err != nil {
 				return fmt.Errorf("unpack memo from warp message: %w", err)
 			}

@@ -552,6 +552,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	{
+		// hook onto the hyperlane inbound message event with our forward hook
 		h := hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper)
 		h.RegisterDymensionTokens()
 		h.SetHook(a.ForwardKeeper)

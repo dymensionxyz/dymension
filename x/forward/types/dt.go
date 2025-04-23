@@ -23,7 +23,7 @@ const (
 )
 
 // sender is computed
-func NewHookEIBCtoHL(
+func NewHookForwardToHL(
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
 	recipient hyperutil.HexAddress,
@@ -55,22 +55,19 @@ func (h *HookForwardToHL) ValidateBasic() error {
 	return nil
 }
 
-// token is computed
-// sender is computed
-// timeout height not supported
-func NewHookForwardToIBC(
-	sourcePort string,
+func MakeHookForwardToIBC(
 	sourceChannel string,
 	token sdk.Coin,
 	receiver string,
 	timeoutTimestamp uint64,
 ) *HookForwardToIBC {
 
+	// sender will be ignored anyway, and replaced by the funds src (eibc fulfiller or HL recipient)
 	arbSender, _ := sample.AccFromSecret("foo")
 
 	return &HookForwardToIBC{
 		Transfer: &ibctransfertypes.MsgTransfer{
-			SourcePort:       sourcePort,
+			SourcePort:       "transfer",
 			SourceChannel:    sourceChannel,
 			Token:            token,
 			Sender:           arbSender.String(),
@@ -80,23 +77,7 @@ func NewHookForwardToIBC(
 	}
 }
 
-func MakeHookForwardToIBC(
-	sourceChannel string,
-	token sdk.Coin,
-	receiver string,
-	timeoutTimestamp uint64,
-) *HookForwardToIBC {
-	hook := NewHookForwardToIBC(
-		"transfer",
-		sourceChannel,
-		token,
-		receiver,
-		timeoutTimestamp,
-	)
-	return hook
-}
-
-func UnpackForwardToIBCFromHyperlaneMemo(bz []byte) (*HookForwardToIBC, error) {
+func UnpackForwardToIBC(bz []byte) (*HookForwardToIBC, error) {
 	var d HookForwardToIBC
 	err := proto.Unmarshal(bz, &d)
 	if err != nil {
@@ -131,7 +112,7 @@ func NewRollToHLHook(payload *HookForwardToHL) (*transfertypes.CompletionHookCal
 	}, nil
 }
 
-func NewRollToHLMemoRaw(
+func NewRollToHLMemoS(
 	eibcFee string,
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
@@ -144,7 +125,7 @@ func NewRollToHLMemoRaw(
 	customHookMetadata string) (string, error) {
 
 	hook, err := NewRollToHLHook(
-		NewHookEIBCtoHL(
+		NewHookForwardToHL(
 			tokenId,
 			destinationDomain,
 			recipient,
@@ -156,15 +137,15 @@ func NewRollToHLMemoRaw(
 		),
 	)
 	if err != nil {
-		return "", err
+		return "", errorsmod.Wrap(err, "new roll to hl hook")
 	}
 	if err := hook.ValidateBasic(); err != nil {
-		return "", err
+		return "", errorsmod.Wrap(err, "validate basic")
 	}
 
 	bz, err := proto.Marshal(hook)
 	if err != nil {
-		return "", err
+		return "", errorsmod.Wrap(err, "marshal")
 	}
 
 	return utransfer.CreateMemo(eibcFee, bz), nil
@@ -232,7 +213,7 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookForwardTo
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, err := UnpackForwardToIBCFromHyperlaneMemo(pl.Memo)
+	d, err := UnpackForwardToIBC(pl.Memo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}

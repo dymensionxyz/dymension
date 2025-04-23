@@ -12,14 +12,15 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// at time of calling, funds have been credited to the original hyperlane transfer recipient
+// this is called by hyperlane on an inbound transfer
+// at time of calling, funds have already been credited to the original hyperlane transfer recipient
 func (k Keeper) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
 	k.executeWithErrEvent(ctx, func() error {
-		d, err := types.UnpackForwardToIBCFromHyperlaneMemo(args.Memo)
+		d, err := types.UnpackForwardToIBC(args.Memo)
 		if err != nil {
 			return errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
