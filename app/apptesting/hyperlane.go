@@ -9,6 +9,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/utils/uhyp"
 )
 
+// configures the hyperlane modules with the minimal necessary stuff to allow some basic integration testing
+// funds an owner (Alice) and uses her to create a mailbox + token + remote router, and
 func (s *KeeperTestHelper) SetupHyperlane() {
 
 	server := uhyp.NewServer(&s.App.HyperCoreKeeper, &s.App.HyperCoreKeeper.PostDispatchKeeper, &s.App.HyperCoreKeeper.IsmKeeper, s.App.HyperWarpKeeper)
