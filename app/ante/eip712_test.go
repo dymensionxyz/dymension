@@ -22,7 +22,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"github.com/dymensionxyz/go-ethereum/signer/core/apitypes"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"

@@ -34,7 +34,7 @@ require (
 	github.com/dymensionxyz/gerr-cosmos v1.1.0
 	github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250423143054-8a3aff8df981
 	github.com/dymensionxyz/sdk-utils v0.2.13-0.20250114202609-b3e820f5b629
-	github.com/ethereum/go-ethereum v1.14.12
+	github.com/dymensionxyz/go-ethereum 5810ac34b
 	github.com/evmos/ethermint v0.22.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.4

@@ -466,6 +466,10 @@ github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a/go.mod h1:7Olvfv96cvfqhwMm/4fIWgQDQaUqbfcUtrp5fgRQU1U=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
+github.com/dymensionxyz/go-ethereum v0.0.0-20250326232313-18b28aa27ff2 h1:3i/sEDuDQKrBeUZDXHA6PLVgcKqmSy8CCFSNcZ7Nmok=
+github.com/dymensionxyz/go-ethereum v0.0.0-20250326232313-18b28aa27ff2/go.mod h1:zG7++f5PmzY2yJVjMthMNuFN3CHgesi3NW7oEUVe0kU=
+github.com/dymensionxyz/go-ethereum v1.14.12 h1:8hl57x77HSUo+cXExrURjU/w1VhL+ShCTJrTwcCQSe4=
+github.com/dymensionxyz/go-ethereum v1.14.12/go.mod h1:RAC2gVMWJ6FkxSPESfbshrcKpIokgQKsVKmAuqdekDY=
 github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250423143054-8a3aff8df981 h1:IQzql0ENh67HOc56MVAaq8pPI5vrFLG7mEOQkAKFznA=
 github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250423143054-8a3aff8df981/go.mod h1:Yc6RreHxVCLK/xSrUi2RtUbvA5K5Hv+4fFbvELNtOQs=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2 h1:/hXBQnPaH7gNvT37/br73OyaF55iq5TK8fcsvYcGcNg=
