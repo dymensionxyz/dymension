@@ -524,7 +524,7 @@ func (a *AppKeepers) InitKeepers(
 	a.HyperCoreKeeper = hypercorekeeper.NewKeeper(
 		appCodec,
 		a.AccountKeeper.AddressCodec(),
-		runtime.NewKVStoreService(a.keys[hypercoretypes.ModuleName]), // TODO: check
+		runtime.NewKVStoreService(a.keys[hypercoretypes.ModuleName]),
 		govModuleAddress,
 		a.BankKeeper,
 	)
@@ -532,7 +532,7 @@ func (a *AppKeepers) InitKeepers(
 	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
 		appCodec,
 		a.AccountKeeper.AddressCodec(),
-		runtime.NewKVStoreService(a.keys[hyperwarptypes.ModuleName]), // TODO: check
+		runtime.NewKVStoreService(a.keys[hyperwarptypes.ModuleName]),
 		govModuleAddress,
 		a.BankKeeper,
 		&a.HyperCoreKeeper,
