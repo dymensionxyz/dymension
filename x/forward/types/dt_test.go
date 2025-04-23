@@ -21,7 +21,7 @@ func TestNewForwardMemo(t *testing.T) {
 	var customHookId *hyperutil.HexAddress
 	customHookMetadata := ""
 
-	_, err := NewRollToHLMemoS(
+	_, err := NewRollToHLMemoString(
 		eibcFee,
 		tokenId,
 		destinationDomain,

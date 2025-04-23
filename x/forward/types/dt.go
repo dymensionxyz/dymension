@@ -112,7 +112,8 @@ func NewRollToHLHook(payload *HookForwardToHL) (*transfertypes.CompletionHookCal
 	}, nil
 }
 
-func NewRollToHLMemoS(
+// returns memo as string to be directly included in outbound eibc transfer from rollapp
+func NewRollToHLMemoString(
 	eibcFee string,
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
@@ -151,7 +152,34 @@ func NewRollToHLMemoS(
 	return utransfer.CreateMemo(eibcFee, bz), nil
 }
 
-// note, potentially expensive due to many encodes/decodes, avoid using on chain
+// returns memo as string to be directly included in outbound eibc transfer from rollapp
+func NewRollToIBCMemoString(
+	eibcFee string,
+	data *HookForwardToIBC,
+) (string, error) {
+
+	bz, err := proto.Marshal(data)
+	if err != nil {
+		return "", errorsmod.Wrap(err, "marshal")
+	}
+
+	hook := transfertypes.CompletionHookCall{
+		Name: HookNameRollToIBC,
+		Data: bz,
+	}
+
+	bz, err = proto.Marshal(&hook)
+	if err != nil {
+		return "", errorsmod.Wrap(err, "marshal")
+	}
+
+	memo := utransfer.CreateMemo(eibcFee, bz)
+	return memo, nil
+}
+
+// get a message for sending directly to hyperlane module on hub
+// for testing
+// potentially computationally expensive
 func NewForwardToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum

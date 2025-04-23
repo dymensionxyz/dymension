@@ -16,10 +16,8 @@ import (
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
-	utransfer "github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
-	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 )
 
 func GetQueryCmd() *cobra.Command {
@@ -89,16 +87,16 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 				return fmt.Errorf("max fee: %w", err)
 			}
 
-			memo, err := types.NewRollToHLMemoS(
+			memo, err := types.NewRollToHLMemoString(
 				eibcFee,
 				tokenId,
 				uint32(destinationDomain),
 				recipient,
 				amount,
 				maxFee,
-				math.ZeroInt(),
-				nil,
-				"",
+				math.ZeroInt(), // ignored
+				nil,            // ignored
+				"",             // ignored
 			)
 			if err != nil {
 				return fmt.Errorf("new: %w", err)
@@ -114,7 +112,7 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 	return cmd
 }
 
-// get a memo for the direction (E)IBC -> HL
+// get a memo for the direction (E)IBC -> IBC
 func CmdMemoEIBCtoIBC() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
@@ -131,22 +129,10 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
 
-			bz, err := proto.Marshal(data)
+			memo, err := types.NewRollToIBCMemoString(args[0], data)
 			if err != nil {
-				return fmt.Errorf("marshal: %w", err)
+				return fmt.Errorf("new memo: %w", err)
 			}
-
-			hook := transfertypes.CompletionHookCall{
-				Name: types.HookNameRollToIBC,
-				Data: bz,
-			}
-
-			bz, err = proto.Marshal(&hook)
-			if err != nil {
-				return fmt.Errorf("marshal: %w", err)
-			}
-
-			memo := utransfer.CreateMemo(args[0], bz)
 
 			fmt.Println(memo)
 			return nil
