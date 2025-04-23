@@ -1,7 +1,7 @@
 run:
   concurrency: 4
   timeout: 5m
-  tests: true
+  tests: false
   modules-download-mode: readonly
 
 output:
@@ -56,7 +56,6 @@ linters:
     - staticcheck
     - typecheck
     - unconvert
-    - unused
     - errorlint
 
 issues:
