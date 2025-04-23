@@ -34,6 +34,19 @@ func (p Memo) ValidateBasic() error {
 	return p.EIBC.ValidateBasic()
 }
 
+// Returns a memo that can be passed to the rollapp for an ibc transfer to the hub
+func CreateMemo(eibcFee string, onComplete []byte) string {
+
+	eibcM := MakeEIBCMemo(eibcFee, onComplete)
+	m := Memo{
+		EIBC: &eibcM,
+	}
+
+	eibcJson, _ := json.Marshal(m)
+
+	return string(eibcJson)
+}
+
 // TODO: avoid duplicate calls
 func (e EIBCMemo) GetCompletionHook() (*transfertypes.CompletionHookCall, error) {
 	if len(e.OnCompletionHook) == 0 {

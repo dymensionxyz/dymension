@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -149,7 +149,7 @@ func NewRollToHLMemoString(
 		return "", errorsmod.Wrap(err, "marshal")
 	}
 
-	return utransfer.CreateMemo(eibcFee, bz), nil
+	return delayedacktypes.CreateMemo(eibcFee, bz), nil
 }
 
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
@@ -173,7 +173,7 @@ func NewRollToIBCMemoString(
 		return "", errorsmod.Wrap(err, "marshal")
 	}
 
-	memo := utransfer.CreateMemo(eibcFee, bz)
+	memo := delayedacktypes.CreateMemo(eibcFee, bz)
 	return memo, nil
 }
 

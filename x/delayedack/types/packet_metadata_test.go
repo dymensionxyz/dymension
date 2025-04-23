@@ -3,8 +3,6 @@ package types
 import (
 	"reflect"
 	"testing"
-
-	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 )
 
 func Test_parsePacketMetadata(t *testing.T) {
@@ -32,7 +30,7 @@ func Test_parsePacketMetadata(t *testing.T) {
 		{
 			"valid with hook",
 			args{
-				utransfer.CreateMemo("100", []byte{123}),
+				CreateMemo("100", []byte{123}),
 			},
 			&Memo{
 				EIBC: &EIBCMemo{

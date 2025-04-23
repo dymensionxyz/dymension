@@ -20,8 +20,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -258,7 +258,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolH := uint64(s.rollappCtx().BlockHeight())
 			s.updateRollappState(rolH)
 
-			memo := utransfer.CreateMemo(tc.eibcFee, nil)
+			memo := delayedacktypes.CreateMemo(tc.eibcFee, nil)
 			var IBCDenom string
 
 			// transfer to fulfiller so he has money to spend
@@ -298,7 +298,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			}
 
 			// now include the fulfill hook in the memo
-			memo = utransfer.CreateMemo(tc.eibcFee, tc.fulfillHook)
+			memo = delayedacktypes.CreateMemo(tc.eibcFee, tc.fulfillHook)
 
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			s.rollappChain().NextBlock()
