@@ -18,7 +18,7 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/tx v0.13.8
 	cosmossdk.io/x/upgrade v0.1.4
-	github.com/bcp-innovations/hyperlane-cosmos v0.0.0-20250319112518-e26f472da4f9
+	github.com/dymensionxyz/hyperlane-cosmos 6f6c875
 	github.com/cockroachdb/errors v1.11.3
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cometbft/cometbft-db v0.14.1

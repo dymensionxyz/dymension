@@ -2,9 +2,9 @@ package forward
 
 import (
 	"cosmossdk.io/log"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
+	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )

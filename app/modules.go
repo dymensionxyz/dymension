@@ -88,10 +88,10 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	//hypercoretypes "/Users/danwt/Documents/dym/danwt-hyperlane-cosmos/x/core/types"
-	hypercore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
-	hypertypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	hyperwarp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
-	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	hypercore "github.com/dymensionxyz/hyperlane-cosmos/x/core"
+	hypertypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
+	hyperwarp "github.com/dymensionxyz/hyperlane-cosmos/x/warp"
+	hyperwarptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 var _ = hypercore.ConsensusVersion

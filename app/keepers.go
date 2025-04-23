@@ -109,10 +109,10 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
-	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
-	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
-	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	hypercorekeeper "github.com/dymensionxyz/hyperlane-cosmos/x/core/keeper"
+	hypercoretypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
+	hyperwarpkeeper "github.com/dymensionxyz/hyperlane-cosmos/x/warp/keeper"
+	hyperwarptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 
 	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"

@@ -3,9 +3,9 @@ package v5
 import (
 	storetypes "cosmossdk.io/store/types"
 
-	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	hypercoretypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
+	hyperwarptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 const (

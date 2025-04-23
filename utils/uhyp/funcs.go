@@ -2,16 +2,16 @@ package uhyp
 
 import (
 	"cosmossdk.io/math"
-	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	ismkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/keeper"
-	ismtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
-	pdkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/keeper"
-	pdtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
-	corekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
-	types "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	hyperutil "github.com/dymensionxyz/hyperlane-cosmos/util"
+	ismkeeper "github.com/dymensionxyz/hyperlane-cosmos/x/core/01_interchain_security/keeper"
+	ismtypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/01_interchain_security/types"
+	pdkeeper "github.com/dymensionxyz/hyperlane-cosmos/x/core/02_post_dispatch/keeper"
+	pdtypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/02_post_dispatch/types"
+	corekeeper "github.com/dymensionxyz/hyperlane-cosmos/x/core/keeper"
+	types "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
+	warpkeeper "github.com/dymensionxyz/hyperlane-cosmos/x/warp/keeper"
+	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 /*

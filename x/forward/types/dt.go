@@ -3,10 +3,6 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -14,6 +10,10 @@ import (
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	hyperutil "github.com/dymensionxyz/hyperlane-cosmos/util"
+	hypercoretypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
+	warpkeeper "github.com/dymensionxyz/hyperlane-cosmos/x/warp/keeper"
+	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 const (
