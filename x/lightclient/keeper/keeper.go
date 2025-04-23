@@ -38,6 +38,7 @@ type Keeper struct {
 	storeKey        storetypes.Key
 	ibcKeeper       types.IBCKeeperExpected
 	ibcClientKeeper types.IBCClientKeeperExpected
+	ibcConnectionK  types.IBCConnectionKeeperExpected
 	ibcChannelK     types.IBCChannelKeeperExpected
 	SeqK            types.SequencerKeeperExpected
 	rollappKeeper   types.RollappKeeperExpected
@@ -61,6 +62,7 @@ func NewKeeper(
 	storeKey storetypes.Key,
 	ibcKeeper types.IBCKeeperExpected,
 	ibcClientKeeper types.IBCClientKeeperExpected,
+	ibcConnectionK types.IBCConnectionKeeperExpected,
 	ibcChannelK types.IBCChannelKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
@@ -73,6 +75,7 @@ func NewKeeper(
 		storeKey:        storeKey,
 		ibcKeeper:       ibcKeeper,
 		ibcClientKeeper: ibcClientKeeper,
+		ibcConnectionK:  ibcConnectionK,
 		ibcChannelK:     ibcChannelK,
 		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,

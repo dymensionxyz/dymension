@@ -5,11 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
+// This decorator enforces that once we have canonical channel set for a rollapp, no more channels can be opened.
 func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcchanneltypes.MsgChannelOpenAck) error {
 	if msg.PortId != ibctransfertypes.PortID { // We only care about transfer channels to mark them as canonical
 		return nil
@@ -31,16 +30,6 @@ func (i IBCMessagesDecorator) HandleMsgChannelOpenAck(ctx sdk.Context, msg *ibcc
 	}
 	if rollapp.ChannelId != "" {
 		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "canonical channel already exists for the rollapp")
-	}
-	// Set this channel as the canonical channel for the rollapp
-	rollapp.ChannelId = msg.ChannelId
-	i.raK.SetRollapp(ctx, rollapp)
-
-	if err := uevent.EmitTypedEvent(ctx, &types.EventSetCanonicalChannel{
-		RollappId: rollappID,
-		ChannelId: rollapp.ChannelId,
-	}); err != nil {
-		return errorsmod.Wrap(err, "emit typed event")
 	}
 
 	return nil
