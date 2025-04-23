@@ -16,8 +16,10 @@ import (
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+	utransfer "github.com/dymensionxyz/dymension/v3/utils/utransfer"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
+	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 )
 
 func GetQueryCmd() *cobra.Command {
@@ -31,7 +33,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdMemoEIBCtoHLRaw())
-	cmd.AddCommand(CmdMemoEIBCtoIBCRaw())
+	cmd.AddCommand(CmdMemoEIBCtoIBC())
 	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
@@ -114,10 +116,10 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 
 // get a memo for the direction (E)IBC -> HL
 // TODO: just use the existing func below
-func CmdMemoEIBCtoIBCRaw() *cobra.Command {
+func CmdMemoEIBCtoIBC() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
-		Args:    cobra.ExactArgs(6),
+		Args:    cobra.ExactArgs(5),
 		Short:   "Create a memo for the direction (E)IBC -> IBC",
 		Example: `dymd q forward memo-eibc-to-ibc 100 "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
 
@@ -125,51 +127,27 @@ func CmdMemoEIBCtoIBCRaw() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			eibcFee := args[0]
-			_, err := strconv.Atoi(eibcFee)
+			data, err := memoForwardToIBC(args[1:])
 			if err != nil {
-				return fmt.Errorf("eibc fee: %w", err)
+				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
 
-			tokenId, err := hyperutil.DecodeHexAddress(args[1])
+			bz, err := proto.Marshal(data)
 			if err != nil {
-				return fmt.Errorf("token id: %w", err)
+				return fmt.Errorf("marshal: %w", err)
 			}
 
-			destinationDomain, err := strconv.ParseUint(args[2], 10, 32)
-			if err != nil {
-				return fmt.Errorf("destination domain: %w", err)
+			hook := transfertypes.CompletionHookCall{
+				Name: types.HookNameRollToIBC,
+				Data: bz,
 			}
 
-			recipient, err := hyperutil.DecodeHexAddress(args[3])
+			bz, err = proto.Marshal(&hook)
 			if err != nil {
-				return fmt.Errorf("recipient: %w", err)
+				return fmt.Errorf("marshal: %w", err)
 			}
 
-			amount, ok := math.NewIntFromString(args[4])
-			if !ok {
-				return fmt.Errorf("amount")
-			}
-
-			maxFee, err := sdk.ParseCoinNormalized(args[5])
-			if err != nil {
-				return fmt.Errorf("max fee: %w", err)
-			}
-
-			memo, err := types.NewRollToHLMemoRaw(
-				eibcFee,
-				tokenId,
-				uint32(destinationDomain),
-				recipient,
-				amount,
-				maxFee,
-				math.ZeroInt(),
-				nil,
-				"",
-			)
-			if err != nil {
-				return fmt.Errorf("memo: %w", err)
-			}
+			memo := utransfer.CreateMemo(args[0], bz)
 
 			fmt.Println(memo)
 			return nil
@@ -286,7 +264,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			m, err := types.NewHLToIBCHyperlaneMessage(
+			m, err := types.NewForwardToIBCHyperlaneMessage(
 				uint32(hlNonce),
 				uint32(hlSrcDomain),
 				hlSrcContract,

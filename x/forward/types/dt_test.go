@@ -41,7 +41,7 @@ func TestNewHyperlaneMessage(t *testing.T) {
 	srcContract, _ := hyperutil.DecodeHexAddress("0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0")
 	tokenId, _ := hyperutil.DecodeHexAddress("0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0")
 
-	_, err := NewHLToIBCHyperlaneMessage(
+	_, err := NewForwardToIBCHyperlaneMessage(
 		1,
 		1,
 		srcContract,

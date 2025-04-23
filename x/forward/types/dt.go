@@ -174,7 +174,7 @@ func NewRollToHLMemoRaw(
 }
 
 // note, potentially expensive
-func NewHLToIBCHyperlaneMessage(
+func NewForwardToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
 	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router

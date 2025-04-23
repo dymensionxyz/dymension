@@ -101,7 +101,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 func UnpackEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
 
 	if memoS == "" {
-		return dacktypes.MakeEIBCMemo(), nil
+		return dacktypes.DefaultEIBCMemo(), nil
 	}
 	m, err := dacktypes.ParseMemo(memoS)
 
@@ -109,7 +109,7 @@ func UnpackEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
 		return *m.EIBC, m.EIBC.ValidateBasic()
 	}
 	if errorsmod.IsOf(err, dacktypes.ErrEIBCMemoEmpty) {
-		return dacktypes.MakeEIBCMemo(), nil
+		return dacktypes.DefaultEIBCMemo(), nil
 	}
 	return dacktypes.EIBCMemo{}, fmt.Errorf("parse packet metadata: %w", err)
 }

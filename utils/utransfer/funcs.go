@@ -2,6 +2,7 @@ package utransfer
 
 import "encoding/json"
 
+// Returns a memo that can be passed to the rollapp for an ibc transfer to the hub
 // TODO: need to check determinism hazards
 func CreateMemo(eibcFee string, onComplete []byte) string {
 

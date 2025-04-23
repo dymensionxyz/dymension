@@ -22,8 +22,12 @@ type EIBCMemo struct {
 	OnCompletionHook []byte `json:"on_completion,omitempty"`
 }
 
-func MakeEIBCMemo() EIBCMemo {
+func DefaultEIBCMemo() EIBCMemo {
 	return EIBCMemo{Fee: "0"}
+}
+
+func MakeEIBCMemo(fee string, onComplete []byte) EIBCMemo {
+	return EIBCMemo{Fee: fee, OnCompletionHook: onComplete}
 }
 
 func (p Memo) ValidateBasic() error {
