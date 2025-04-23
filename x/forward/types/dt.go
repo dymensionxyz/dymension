@@ -58,7 +58,6 @@ func (h *HookForwardToHL) ValidateBasic() error {
 // token is computed
 // sender is computed
 // timeout height not supported
-// next memo should go together in the top level of the HL memo
 func NewHookForwardToIBC(
 	sourcePort string,
 	sourceChannel string,
@@ -97,9 +96,7 @@ func MakeHookForwardToIBC(
 	return hook
 }
 
-// WARNING: assumes the memo is entirely dedicated to the HL->IBC forwarder
-// TODO: also extract and then forward the rest of the memo, so that it can be used for other things later (include memo in ibc transfer so rollapp can use it)
-func UnpackAppMemoFromHyperlaneMemo(bz []byte) (*HookForwardToIBC, error) {
+func UnpackForwardToIBCFromHyperlaneMemo(bz []byte) (*HookForwardToIBC, error) {
 	var d HookForwardToIBC
 	err := proto.Unmarshal(bz, &d)
 	if err != nil {
@@ -173,7 +170,7 @@ func NewRollToHLMemoRaw(
 	return utransfer.CreateMemo(eibcFee, bz), nil
 }
 
-// note, potentially expensive
+// note, potentially expensive due to many encodes/decodes, avoid using on chain
 func NewForwardToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
@@ -235,7 +232,7 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookForwardTo
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, err := UnpackAppMemoFromHyperlaneMemo(pl.Memo)
+	d, err := UnpackForwardToIBCFromHyperlaneMemo(pl.Memo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}

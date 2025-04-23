@@ -26,7 +26,7 @@ func GetQueryCmd() *cobra.Command {
 	// Group eibc queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		Short:                      fmt.Sprintf("Utility commands for %s logic", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -115,7 +115,6 @@ func CmdMemoEIBCtoHLRaw() *cobra.Command {
 }
 
 // get a memo for the direction (E)IBC -> HL
-// TODO: just use the existing func below
 func CmdMemoEIBCtoIBC() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
@@ -160,14 +159,12 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 }
 
 // Get a memo for the direction HL -> (E)IBC
-// TODO: make work with solana too(?) need to change output encoding?
 func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
-		Args:    cobra.ExactArgs(4),
-		Short:   "Get the memo for the direction HL -> IBC or EIBC",
-		Example: `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m dym12v7503afd5nwc9p0cd8vf264dayedfqvzkezl4`,
-
+		Use:                        "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
+		Args:                       cobra.ExactArgs(4),
+		Short:                      "Get the memo for the direction HL -> IBC or EIBC",
+		Example:                    `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -196,14 +193,13 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a readable format")
+	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a human readable format (for debug)")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
 
-// Get a message for the direction HL -> (E)IBC. Useful for testing.
-// TODO: reuse raw query code (memo-hl-to-ibc)
+// Get a message for the direction HL -> (E)IBC. Intended for testing (check that the hub handles inbound messages correctly.)
 func CmdTestHLtoIBCMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
@@ -294,43 +290,13 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
-
-	ibcSourceChan := args[0]
-
-	ibcRecipient := args[1]
-
-	hubToken, err := sdk.ParseCoinNormalized(args[2])
-	if err != nil {
-		return nil, fmt.Errorf("hub token: %w", err)
-	}
-
-	ibcTimeoutDuration, err := time.ParseDuration(args[3])
-	if err != nil {
-		return nil, fmt.Errorf("ibc timeout duration: %w", err)
-	}
-
-	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
-
-	hook := types.MakeHookForwardToIBC(
-		ibcSourceChan,
-		hubToken,
-		ibcRecipient,
-		ibcTimeoutTimestamp,
-	)
-	err = hook.ValidateBasic()
-	if err != nil {
-		return nil, fmt.Errorf("new hl message: %w", err)
-	}
-	return hook, nil
-}
-
 // Util to debug a hyperlane message or hyperlane body (including show the memo if there is one). Expects Ethereum Hex bytes
 func CmdDecodeHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "hl-decode (body | message) [hexstring]",
 		Args:                       cobra.ExactArgs(2),
-		Short:                      "Decode a message or message body from an ethereum hex string",
+		Short:                      "Decode a message or message body from an hex string",
+		Long:                       "Provide a HL message or message body string in hex form and see what it decodes to",
 		Example:                    `dymd q forward hl-decode message 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -371,7 +337,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			fmt.Printf("hyperlane message: %+v\n", message)
 			fmt.Printf("token message: %+v\n", payload)
 
-			memo, err := types.UnpackAppMemoFromHyperlaneMemo(payload.Memo)
+			memo, err := types.UnpackForwardToIBCFromHyperlaneMemo(payload.Memo)
 			if err != nil {
 				return fmt.Errorf("unpack memo from warp message: %w", err)
 			}
@@ -389,7 +355,8 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "amt-eibc-to-hl [hl receive amt] [hl max gas] [eibc fee] [bridge fee mul]",
 		Args:                       cobra.ExactArgs(4),
-		Short:                      "Estimate the amount of EIBC to send to HL to receive the specified amount",
+		Short:                      "Get amount of tokens for ibc transfer to ensure enough arrive on final destination after fees and HL",
+		Long:                       "Estimate the amount of tokens to send over EIBC to be forwarded to HL and to make sure to receive the specified amount on the final destination",
 		Example:                    `dymd q forward amt-eibc-to-hl 125000000000000 200000 2000 0.01`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -426,4 +393,35 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
+
+	ibcSourceChan := args[0]
+
+	ibcRecipient := args[1]
+
+	hubToken, err := sdk.ParseCoinNormalized(args[2])
+	if err != nil {
+		return nil, fmt.Errorf("hub token: %w", err)
+	}
+
+	ibcTimeoutDuration, err := time.ParseDuration(args[3])
+	if err != nil {
+		return nil, fmt.Errorf("ibc timeout duration: %w", err)
+	}
+
+	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
+
+	hook := types.MakeHookForwardToIBC(
+		ibcSourceChan,
+		hubToken,
+		ibcRecipient,
+		ibcTimeoutTimestamp,
+	)
+	err = hook.ValidateBasic()
+	if err != nil {
+		return nil, fmt.Errorf("new hl message: %w", err)
+	}
+	return hook, nil
 }
