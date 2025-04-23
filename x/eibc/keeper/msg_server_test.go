@@ -508,7 +508,6 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 			// Check for expected errors
 			if tc.expectError != nil {
 				suite.Require().Error(err, tc.name)
-				// suite.Require().True(errorsmod.IsOf(err, tc.expectError), tc.name)
 				suite.Require().ErrorContains(err, tc.expectError.Error(), tc.name)
 			} else {
 				suite.Require().NoError(err, tc.name)
