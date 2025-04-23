@@ -9,7 +9,7 @@ import (
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func (s *KeeperTestSuite) TestKeeper_GetSetDeleteDymName() {

@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/dymensionxyz/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

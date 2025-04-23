@@ -3,7 +3,7 @@ package hooks_test
 import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
-	"github.com/dymensionxyz/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dymensionxyz/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	address "cosmossdk.io/core/address"

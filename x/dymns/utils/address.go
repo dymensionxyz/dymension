@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // IsValidBech32AccountAddress returns true if the given string is a valid bech32 account address.
