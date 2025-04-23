@@ -176,7 +176,8 @@ type AppKeepers struct {
 	HyperCoreKeeper hypercorekeeper.Keeper
 	HyperWarpKeeper hyperwarpkeeper.Keeper
 
-	ForwardKeeper forwardkeeper.Keeper
+	// note: no module for forward
+	Forward forwardkeeper.Keeper
 
 	TransferHooks *transfer.TransferHooks
 
@@ -542,8 +543,7 @@ func (a *AppKeepers) InitKeepers(
 		},
 	)
 
-	a.ForwardKeeper = *forwardkeeper.NewKeeper(
-		&a.HyperWarpKeeper,
+	a.Forward = *forwardkeeper.NewKeeper(
 		a.BankKeeper,
 		a.AccountKeeper,
 		a.TransferKeeper,
@@ -555,13 +555,13 @@ func (a *AppKeepers) InitKeepers(
 		// hook onto the hyperlane inbound message event with our forward hook
 		h := hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper)
 		h.RegisterDymensionTokens()
-		h.SetHook(a.ForwardKeeper)
+		h.SetHook(a.Forward)
 	}
 
 	a.TransferHooks = transfer.NewTransferHooks(a.EIBCKeeper)
 	a.TransferHooks.SetHooks(map[string]transfer.CompletionHookInstance{
-		forwardtypes.HookNameRollToHL:  a.ForwardKeeper.RollToHLHook(),
-		forwardtypes.HookNameRollToIBC: a.ForwardKeeper.RollToIBCHook(),
+		forwardtypes.HookNameRollToHL:  a.Forward.RollToHLHook(),
+		forwardtypes.HookNameRollToIBC: a.Forward.RollToIBCHook(),
 	})
 
 	a.EIBCKeeper.SetTransferHooks(a.TransferHooks)

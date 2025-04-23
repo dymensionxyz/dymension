@@ -11,7 +11,6 @@ import (
 
 type Keeper struct {
 	// TODO: params collection
-	warpK     types.WarpRouteKeeper
 	warpQ     types.WarpQuery
 	warpS     warptypes.MsgServer
 	transferK transferkeeper.Keeper // TODO: interface
@@ -20,7 +19,6 @@ type Keeper struct {
 }
 
 func NewKeeper(
-	warpKeeper types.WarpRouteKeeper,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
 	transferKeeper transferkeeper.Keeper,
@@ -29,7 +27,6 @@ func NewKeeper(
 ) *Keeper {
 
 	return &Keeper{
-		warpK:     warpKeeper,
 		bankK:     bankKeeper,
 		accountK:  accountKeeper,
 		transferK: transferKeeper,

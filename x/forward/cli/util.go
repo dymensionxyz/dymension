@@ -21,7 +21,6 @@ import (
 )
 
 func GetQueryCmd() *cobra.Command {
-	// Group eibc queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Utility commands for %s logic", types.ModuleName),
