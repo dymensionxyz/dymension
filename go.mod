@@ -263,4 +263,3 @@ replace (
 
 )
 
-replace github.com/bcp-innovations/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos // TODO: fix
