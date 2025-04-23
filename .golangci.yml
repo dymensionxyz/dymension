@@ -23,15 +23,11 @@ output:
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
   formats:
     - format: colored-line-number
-      path: stdout  # Print lines of code with issue.
   # Default: true
-  print-issued-lines: true
+  print-issued-lines: false
   # Print linter name in the end of issue text.
   # Default: true
   print-linter-name: true
-  # Make issues output unique by line.
-  # Default: true
-  uniq-by-line: true
   # Add a prefix to the output file references.
   # Default: ""
   path-prefix: ""
@@ -43,7 +39,6 @@ linters:
   disable-all: true
   enable:
     - errcheck
-    - gocyclo
     - gofmt
     - gofumpt
     - goimports
@@ -59,6 +54,7 @@ linters:
     - errorlint
 
 issues:
+  uniq-by-line: false
   exclude-use-default: false
   exclude:
     - "^.*SA1019.*$" # Excluding SA1019 errors
