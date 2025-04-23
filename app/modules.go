@@ -165,12 +165,12 @@ func ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	// set false not-blocked addresses
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
 
-	// TODO: need HL?
 	return modAccAddrs
 }
 
@@ -196,8 +196,8 @@ var maccPerms = map[string][]string{
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
-	hypertypes.ModuleName:                              {}, // TODO: check
-	hyperwarptypes.ModuleName:                          {}, // TODO: check
+	hypertypes.ModuleName:                              nil,
+	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 }
 
 var PreBlockers = []string{
@@ -244,8 +244,8 @@ var BeginBlockers = []string{
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
 	grouptypes.ModuleName,
-	hypertypes.ModuleName,     // TODO: check order
-	hyperwarptypes.ModuleName, // TODO: check order
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -288,8 +288,8 @@ var EndBlockers = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
-	hypertypes.ModuleName,     // TODO: check order
-	hyperwarptypes.ModuleName, // TODO: check order
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -332,6 +332,6 @@ var InitGenesis = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
-	hypertypes.ModuleName,     // TODO: check order
-	hyperwarptypes.ModuleName, // TODO: check order
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 }

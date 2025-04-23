@@ -22,25 +22,23 @@ func (s *forwardSuite) SetupTest() {
 	s.eibcSuite.SetupTest()
 }
 
-// TODO: use mock generation
-type mockHook struct {
+type mockTransferCompletionHook struct {
 	*forwardSuite
 	called bool
 }
 
-func (h *mockHook) ValidateArg(hookData []byte) error {
+func (h *mockTransferCompletionHook) ValidateArg(hookData []byte) error {
 	return nil
 }
 
-func (h *mockHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
-
+func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	h.called = true
 	return nil
 }
 
-func (s *forwardSuite) TestForward() {
+func (s *forwardSuite) TestCompletionHookIsCalled() {
 	dummy := "dummy"
-	h := mockHook{
+	h := mockTransferCompletionHook{
 		forwardSuite: s,
 	}
 	s.utilSuite.hubApp().TransferHooks.SetHooks(
@@ -54,15 +52,15 @@ func (s *forwardSuite) TestForward() {
 		Name: dummy,
 		Data: []byte{},
 	}
-	raw, err := proto.Marshal(&hookData)
+	bz, err := proto.Marshal(&hookData)
 	s.Require().NoError(err)
 	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
 		{
 			name:              "forwarding works",
 			fulfillerStartBal: "300",
-			eibcTransferFee:   "150",
+			eibcFee:           "150",
 			transferAmt:       "200",
-			fulfillHook:       raw,
+			fulfillHook:       bz,
 		},
 	})
 	s.Require().True(h.called)

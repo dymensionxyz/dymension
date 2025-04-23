@@ -14,7 +14,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// TODO: move
+/*
+This function exposes some functions publicly (via copy paste) for easier integration testing.
+*/
+
 var LocalDomain = uint32(1)
 var RemoteDomain = uint32(2)
 

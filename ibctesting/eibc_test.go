@@ -203,33 +203,40 @@ func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
 		{
-			"fulfill demand order successfully",
-			"200",
-			"150",
-			"300",
-			false,
-			nil,
+			name:              "fulfill demand order successfully",
+			transferAmt:       "200",
+			eibcFee:           "150",
+			fulfillerStartBal: "300",
+			expectFulfillFail: false,
+			fulfillHook:       nil,
 		},
 		{
-			"fulfill demand order fail - insufficient balance",
-			"200",
-			"40",
-			"49",
-			true,
-			nil,
+			name:              "fulfill demand order fail - insufficient balance",
+			transferAmt:       "200",
+			eibcFee:           "40",
+			fulfillerStartBal: "49",
+			expectFulfillFail: true,
+			fulfillHook:       nil,
 		},
 	})
 }
 
 type eibcTransferFulfillmentTC struct {
-	name              string
-	transferAmt       string
-	eibcTransferFee   string
+	name string
+	// amount to transfer from rollapp to hub
+	transferAmt string
+	// fee paid to fulfiller
+	eibcFee string
+	// start balance of fulfiller
 	fulfillerStartBal string
+	// should the fulfill action by the fulfiller fail?
 	expectFulfillFail bool
-	fulfillHook       []byte
+	// post fulfillment hook
+	fulfillHook []byte
 }
 
+// includes a memo in the rollapp transfer to the hub
+// tries to fulfill with the fulfiller
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 	numOrdersTotal := 0
 	eibcK := s.hubApp().EIBCKeeper
@@ -251,10 +258,10 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolH := uint64(s.rollappCtx().BlockHeight())
 			s.updateRollappState(rolH)
 
-			memo := utransfer.CreateMemo(tc.eibcTransferFee, nil) // TODO: can erase completely?
+			memo := utransfer.CreateMemo(tc.eibcFee, nil)
 			var IBCDenom string
 
-			// transfer to fulfiller so he has money
+			// transfer to fulfiller so he has money to spend
 			{
 
 				packet := s.transferRollappToHub(s.path, transferSrcAcc, fulfiller.String(), tc.fulfillerStartBal, memo, false)
@@ -289,7 +296,9 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 				s.Require().False(lastOrder.IsFulfilled())
 				s.Require().Equal(commontypes.Status_FINALIZED, lastOrder.TrackingPacketStatus)
 			}
-			memo = utransfer.CreateMemo(tc.eibcTransferFee, tc.fulfillHook)
+
+			// now include the fulfill hook in the memo
+			memo = utransfer.CreateMemo(tc.eibcFee, tc.fulfillHook)
 
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			s.rollappChain().NextBlock()
@@ -315,7 +324,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			mFulfill := &eibctypes.MsgFulfillOrder{
 				FulfillerAddress: fulfiller.String(),
 				OrderId:          lastOrder.Id,
-				ExpectedFee:      tc.eibcTransferFee,
+				ExpectedFee:      tc.eibcFee,
 			}
 			_, err = s.msgServer().FulfillOrder(s.hubCtx(), mFulfill)
 			if tc.expectFulfillFail {
@@ -336,7 +345,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			fulfillerBal := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
 			recipientBal := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 			transferAmt, _ := strconv.ParseInt(tc.transferAmt, 10, 64)
-			fee, _ := strconv.ParseInt(tc.eibcTransferFee, 10, 64)
+			fee, _ := strconv.ParseInt(tc.eibcFee, 10, 64)
 			feeCoin := sdk.NewCoin(IBCDenom, math.NewInt(fee))
 			price := transferAmt - fee
 			priceCoin := sdk.NewCoin(IBCDenom, math.NewInt(price))
