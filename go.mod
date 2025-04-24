@@ -257,4 +257,5 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 
+	github.com/dymensionxyz/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos
 )

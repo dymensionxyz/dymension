@@ -18,6 +18,11 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if len(args.Memo) == 0 {
+		// Equivalent to the vanilla token standard. Might be used to provide EIBC or LP funds.
+		return nil
+	}
+
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
 	k.executeWithErrEvent(ctx, func() error {
 		d, err := types.UnpackForwardToIBC(args.Memo)
