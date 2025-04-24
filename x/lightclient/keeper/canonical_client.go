@@ -50,12 +50,6 @@ func (k *Keeper) TrySetCanonicalClient(ctx sdk.Context, clientID string) error {
 		return errorsmod.Wrapf(err, "set client canonical")
 	}
 
-	// Check if the clientID has any connections
-	_, found := k.ibcConnectionK.GetClientConnectionPaths(ctx, clientID)
-	if found {
-		return gerrc.ErrFailedPrecondition.Wrap("client already has connections")
-	}
-
 	k.SetCanonicalClient(ctx, rollappID, clientID)
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventSetCanonicalClient{
@@ -123,7 +117,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		return gerrc.ErrNotFound.Wrap("latest height")
 	}
 	if latestCommittedHeight < cs.GetLatestHeight().GetRevisionHeight() {
-		return gerrc.ErrInvalidArgument.Wrap("client's latest height not committed")
+		return gerrc.ErrInvalidArgument.Wrap("clients latest height not committed")
 	}
 
 	sinfo, ok := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollappId)
