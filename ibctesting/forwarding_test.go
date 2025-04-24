@@ -36,7 +36,7 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 	return nil
 }
 
-func (s *forwardSuite) TestCompletionHookIsCalled() {
+func (s *forwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
 	h := mockTransferCompletionHook{
 		forwardSuite: s,
