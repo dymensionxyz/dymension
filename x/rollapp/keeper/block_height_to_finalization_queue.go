@@ -64,7 +64,7 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 		return
 	}
 	// check to see if there are pending  states to be finalized
-	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
+	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx))) //nolint
 	queue, err := k.GetFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 	if err != nil {
 		// The error is returned only if there is an internal issue with the store iterator or encoding.

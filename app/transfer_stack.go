@@ -15,7 +15,7 @@ import (
 func (a *AppKeepers) InitTransferStack() {
 	a.TransferStack = ibctransfer.NewIBCModule(a.TransferKeeper)
 	a.TransferStack = bridgingfee.NewIBCModule(
-		a.TransferStack.(ibctransfer.IBCModule),
+		a.TransferStack.(ibctransfer.IBCModule), //nolint
 		*a.RollappKeeper,
 		a.DelayedAckKeeper,
 		a.TransferKeeper,

@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // CreateEndorsementGauge creates a gauge and sends coins to the gauge.
@@ -49,7 +50,12 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 		epochRewards = gaugeBalance.QuoInt(remainingEpochs)
 	}
 
-	endorsement := gauge.DistributeTo.(*types.Gauge_Endorsement).Endorsement
+	endorsementG, ok := gauge.DistributeTo.(*types.Gauge_Endorsement)
+	if !ok {
+		return gerrc.ErrInternal.Wrapf("gauge %d is not an endorsement gauge", gauge.Id)
+	}
+	endorsement := endorsementG.Endorsement
+
 	endorsement.EpochRewards = epochRewards // we operate a pointer
 	gauge.FilledEpochs += 1
 

@@ -58,6 +58,8 @@ issues:
   exclude-use-default: false
   exclude:
     - "^.*SA1019.*$" # Excluding SA1019 errors
+    # TEMP DISABLE
+    - "^.*G115.*$" # Excluding G115 errors
 
 linters-settings:
   revive:

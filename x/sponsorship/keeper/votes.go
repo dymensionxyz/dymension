@@ -36,7 +36,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		}
 	}
 
-	// Get the user’s total voting power from the x/staking
+	// Get the user's total voting power from the x/staking
 	vpBreakdown, err := k.GetValidatorBreakdown(ctx, voter)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to get voting power from x/staking: %w", err)
@@ -109,7 +109,7 @@ func (k Keeper) RevokeVote(ctx sdk.Context, voter sdk.AccAddress) (types.Distrib
 // revokeVote revokes a vote by applying the negative user's vote to the current distribution.
 // It updates the distribution and prunes the vote and voting power of the voter.
 func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vote) (types.Distribution, error) {
-	// Apply the weights to the user’s voting power -> now the weights are in absolute values
+	// Apply the weights to the user's voting power -> now the weights are in absolute values
 	update := vote.ToDistribution().Negate()
 
 	// Update the current distribution
@@ -124,7 +124,7 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 		return types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
 	}
 
-	// Prune the user’s vote and voting power
+	// Prune the user's vote and voting power
 	err = k.DeleteVote(ctx, voter)
 	if err != nil {
 		return types.Distribution{}, fmt.Errorf("failed to delete vote: %w", err)
@@ -189,7 +189,7 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 	const Break = true
 	const Continue = false
 
-	k.stakingKeeper.IterateDelegatorDelegations(ctx, voter, func(d stakingtypes.Delegation) (stop bool) {
+	err2 := k.stakingKeeper.IterateDelegatorDelegations(ctx, voter, func(d stakingtypes.Delegation) (stop bool) {
 		var valAddr sdk.ValAddress
 		valAddr, err = sdk.ValAddressFromBech32(d.GetValidatorAddr())
 		if err != nil {
@@ -214,8 +214,13 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 
 		return Continue
 	})
+	if err2 != nil {
+		return ValidatorBreakdown{}, fmt.Errorf("failed to iterate delegator delegations: %w", err2)
+	}
+
+	// Check if there was an error during the iteration
 	if err != nil {
-		return ValidatorBreakdown{}, fmt.Errorf("failed to iterate delegator delegations: %w", err)
+		return ValidatorBreakdown{}, fmt.Errorf("iteration stopped with error: %w", err)
 	}
 
 	return ValidatorBreakdown{

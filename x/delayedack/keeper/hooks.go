@@ -72,20 +72,20 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	}
 
 	listFilter := types.ByStatus(commontypes.Status_FINALIZED).Take(int(deletePacketsBatchSize))
-	count := 0
+	count := int64(0)
 
 	// Get batch of rollapp packets with status != PENDING and delete them
 	for toDeletePackets := e.ListRollappPackets(ctx, listFilter); len(toDeletePackets) > 0; toDeletePackets = e.ListRollappPackets(ctx, listFilter) {
 		e.Logger(ctx).Debug("Deleting rollapp packets", "num_packets", len(toDeletePackets))
 
-		count += len(toDeletePackets)
+		count += int64(len(toDeletePackets))
 
 		for _, packet := range toDeletePackets {
 			e.DeleteRollappPacket(ctx, &packet)
 		}
 
 		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets
-		if int32(count) >= params.DeletePacketsEpochLimit {
+		if count >= int64(params.DeletePacketsEpochLimit) {
 			break
 		}
 	}

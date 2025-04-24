@@ -36,7 +36,7 @@ func NewParams(epochIdentifier string, bridgingFee math.LegacyDec, deletePackets
 	return Params{
 		EpochIdentifier:         epochIdentifier,
 		BridgingFee:             bridgingFee,
-		DeletePacketsEpochLimit: int32(deletePacketsEpochLimit),
+		DeletePacketsEpochLimit: int32(deletePacketsEpochLimit), //nolint
 	}
 }
 

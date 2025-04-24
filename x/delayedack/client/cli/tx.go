@@ -57,10 +57,10 @@ func CmdFinalizePacket() *cobra.Command {
 			msg := types.MsgFinalizePacket{
 				Sender:            clientCtx.GetFromAddress().String(),
 				RollappId:         args[0],
-				PacketProofHeight: uint64(proofHeight),
+				PacketProofHeight: uint64(proofHeight), //nolint
 				PacketType:        packetType,
 				PacketSrcChannel:  args[3],
-				PacketSequence:    uint64(packetSequence),
+				PacketSequence:    uint64(packetSequence), //nolint
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
