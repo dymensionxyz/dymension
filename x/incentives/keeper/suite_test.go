@@ -31,7 +31,7 @@ var (
 		lockAmounts:   []sdk.Coins{defaultLPTokens, defaultLPTokens},
 	}
 
-	defaultRewardDenom string = "rewardDenom"
+	defaultRewardDenom string = "adym"
 )
 
 // TODO: Switch more code to use userLocks and perpGaugeDesc
@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 	suite.LockTokens(lockOwner, sdk.Coins{sdk.NewInt64Coin("lptoken", 10)}, time.Second)
 
 	// create gauge
-	gaugeID, _, gaugeCoins, startTime := suite.SetupNewGauge(isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
+	gaugeID, _, gaugeCoins, startTime := suite.SetupNewGauge(isPerpetual, sdk.Coins{sdk.NewInt64Coin("adym", 100000000000000000)})
 
 	return lockOwner, gaugeID, gaugeCoins, startTime
 }
