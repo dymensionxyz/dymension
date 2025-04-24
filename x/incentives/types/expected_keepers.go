@@ -18,6 +18,7 @@ type BankKeeper interface {
 	HasSupply(ctx context.Context, denom string) bool
 	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx context.Context, senderModule string, recipientModule string, amt sdk.Coins) error
 }
 
 // LockupKeeper defines the expected interface needed to retrieve locks.
@@ -37,6 +38,7 @@ type EpochKeeper interface {
 type TxFeesKeeper interface {
 	GetBaseDenom(ctx sdk.Context) (denom string, err error)
 	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
+	CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error)
 }
 
 type RollappKeeper interface {
