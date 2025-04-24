@@ -27,7 +27,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if len(gs.Streams) != int(gs.LastStreamId) {
+	if len(gs.Streams) != int(gs.LastStreamId) { //nolint
 		return fmt.Errorf("streams length does not match last stream id")
 	}
 

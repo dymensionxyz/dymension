@@ -20,7 +20,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	plans := make([]types.Plan, numPlans)
 
 	for i := 0; i < numPlans; i++ {
-		plan := generateRandomPlan(simState.Rand, uint64(i+1))
+		plan := generateRandomPlan(simState.Rand, uint64(i+1)) //nolint
 		plans[i] = plan
 	}
 

@@ -46,7 +46,7 @@ func CmdAddApp() *cobra.Command {
 				description,
 				logo,
 				url,
-				int32(order),
+				int32(order), //nolint
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
