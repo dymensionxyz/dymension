@@ -43,19 +43,31 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
+	// transfers allowed on canonical channel only
+	if !k.IsCanonicalChannel(ctx, ra.RollappId, raPortOnHub, raChanOnHub) {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "non canonical channel %s for rollapp %s", raChanOnHub, ra.RollappId)
+		return
+	}
+
 	data.Rollapp = ra
 
 	return
 }
 
-// GetRollappByPortChan will get the rollapp for a transfer
-// if the transfer did not original from a rollapp, will return rollapp not found error
-// if the transfer did originate from a rollapp, but on the wrong channel, returns error
-//
-// in order to allow rollapp and non rollapps to have the same chain ID, the (possible)
-// rollapp is looked up by light client ID rather than chain ID. That requires the canonical
-// light client for the rollapp to have been set. That should always be the case for
-// correctly operated rollapps.
+// Check if a channel is a canonical channel for a rollapp
+func (k Keeper) IsCanonicalChannel(ctx sdk.Context, rollappId, portID, channelID string) bool {
+	rollapp, ok := k.GetRollapp(ctx, rollappId)
+	if !ok {
+		return false
+	}
+	return rollapp.ChannelId == channelID
+}
+
+// GetRollappByPortChan gets the rollapp for a transfer based on the port and channel.
+// Checks for any channel of a rollapp, not necessarily the canonical one.
+// It uses the light client ID to find the rollapp, which means the canonical light client
+// must be set for the rollapp.
+// It returns an error if the rollapp is not found or if the channel is over non canonical client.
 func (k Keeper) GetRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
@@ -73,14 +85,6 @@ func (k Keeper) GetRollappByPortChan(ctx sdk.Context,
 	if !ok {
 		return nil, errorsmod.Wrap(gerrc.ErrInternal, "have canonical client id but rollapp not found")
 	}
-	if rollapp.ChannelId == "" {
-		return nil, errorsmod.Wrap(gerrc.ErrInternal, "canonical client for rollapp is set, but canonical channel is missing")
-	}
-	if rollapp.ChannelId != raChanOnHub {
-		return nil, errorsmod.Wrapf(
-			gerrc.ErrInvalidArgument,
-			"transfer from rollapp is not on canonical channel, packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
-		)
-	}
+
 	return &rollapp, nil
 }
