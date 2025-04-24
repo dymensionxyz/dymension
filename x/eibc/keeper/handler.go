@@ -67,7 +67,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
-	memoEIBC, err := UnpackEIBCMemo(fungibleTokenPacketData.Memo)
+	memoEIBC, err := GetEIBCMemo(fungibleTokenPacketData.Memo)
 	if err != nil {
 		return nil, fmt.Errorf("unpack fungible packet memo: %w", err)
 	}
@@ -98,20 +98,18 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	return order, nil
 }
 
-func UnpackEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
-
+func GetEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
 	if memoS == "" {
 		return dacktypes.DefaultEIBCMemo(), nil
 	}
 	m, err := dacktypes.ParseMemo(memoS)
-
-	if err == nil {
-		return *m.EIBC, m.EIBC.ValidateBasic()
+	if err != nil {
+		if errorsmod.IsOf(err, dacktypes.ErrEIBCMemoEmpty) {
+			return dacktypes.DefaultEIBCMemo(), nil
+		}
+		return dacktypes.EIBCMemo{}, fmt.Errorf("parse packet metadata: %w", err)
 	}
-	if errorsmod.IsOf(err, dacktypes.ErrEIBCMemoEmpty) {
-		return dacktypes.DefaultEIBCMemo(), nil
-	}
-	return dacktypes.EIBCMemo{}, fmt.Errorf("parse packet metadata: %w", err)
+	return *m.EIBC, m.EIBC.ValidateBasic()
 }
 
 // CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.

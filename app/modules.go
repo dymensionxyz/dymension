@@ -87,7 +87,6 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
-	//hypercoretypes "/Users/danwt/Documents/dym/danwt-hyperlane-cosmos/x/core/types"
 	hypercore "github.com/dymensionxyz/hyperlane-cosmos/x/core"
 	hypertypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
 	hyperwarp "github.com/dymensionxyz/hyperlane-cosmos/x/warp"
