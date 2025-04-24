@@ -54,7 +54,6 @@ linters:
     - errorlint
 
 issues:
-  uniq-by-line: false
   exclude-use-default: false
   exclude:
     - "^.*SA1019.*$" # Excluding SA1019 errors
