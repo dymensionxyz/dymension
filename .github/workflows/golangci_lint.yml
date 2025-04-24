@@ -21,4 +21,5 @@ jobs:
         with:
           version: v1.58
           skip-cache: true
-          args: --timeout=10m
+          args: --config=.golangci.yml --timeout=10m
+
