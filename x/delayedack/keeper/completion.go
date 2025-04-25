@@ -21,7 +21,7 @@ func (h Keeper) SetCompletionHooks(hooks map[string]CompletionHookInstance) {
 }
 
 // assumes already passed validate basic
-func (h Keeper) Validate(info commontypes.CompletionHookCall) error {
+func (h Keeper) ValidateCompletionHook(info commontypes.CompletionHookCall) error {
 	f, ok := h.completionHooks[info.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.Name)
