@@ -13,7 +13,7 @@ import (
 	"io"
 	"net/http"
 
-	types_4 "github.com/dymensionxyz/dymension/v3/x/common/types"
+	types_0 "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -127,13 +127,13 @@ func request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler runtime
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	e, err = runtime.Enum(val, types_4.Status_value)
+	e, err = runtime.Enum(val, types_0.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
 	}
 
-	protoReq.Status = types_4.Status(e)
+	protoReq.Status = types_0.Status(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -164,13 +164,13 @@ func local_request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler r
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	e, err = runtime.Enum(val, types_4.Status_value)
+	e, err = runtime.Enum(val, types_0.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
 	}
 
-	protoReq.Status = types_4.Status(e)
+	protoReq.Status = types_0.Status(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)

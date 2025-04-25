@@ -1,7 +1,7 @@
 syntax = "proto3";
-package dymensionxyz.dymension.delayedack;
+package dymensionxyz.dymension.common;
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
 
 // if given in eibc metadata, eibc fullfillment funds will be directed to a module address
 // and a hook will be executed, and finalize will also call the hook

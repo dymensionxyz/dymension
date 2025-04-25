@@ -2,7 +2,6 @@ package types
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 
@@ -10,15 +9,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *dacktypes.CompletionHookCall) *DemandOrder {
+func NewDemandOrder(rollappPacket RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *CompletionHookCall) *DemandOrder {
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
@@ -26,7 +22,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
 		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
-		TrackingPacketStatus: commontypes.Status_PENDING,
+		TrackingPacketStatus: Status_PENDING,
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
 		CreationHeight:       creationHeight,
@@ -79,73 +75,6 @@ func (m *DemandOrder) Validate() error {
 	return nil
 }
 
-func (m *DemandOrder) GetCreatedEvent(proofHeight uint64, amount string) *EventDemandOrderCreated {
-	packetKey := base64.StdEncoding.EncodeToString([]byte(m.TrackingPacketKey))
-	return &EventDemandOrderCreated{
-		OrderId:      m.Id,
-		Price:        m.Price.String(),
-		Fee:          m.Fee.String(),
-		PacketStatus: m.TrackingPacketStatus.String(),
-		PacketKey:    packetKey,
-		RollappId:    m.RollappId,
-		Recipient:    m.Recipient,
-		PacketType:   m.Type.String(),
-		ProofHeight:  proofHeight,
-		Amount:       amount,
-	}
-}
-
-func (m *DemandOrder) GetFulfilledEvent() *EventDemandOrderFulfilled {
-	return &EventDemandOrderFulfilled{
-		OrderId:      m.Id,
-		Price:        m.Price.String(),
-		Fee:          m.Fee.String(),
-		IsFulfilled:  true,
-		PacketStatus: m.TrackingPacketStatus.String(),
-		Fulfiller:    m.FulfillerAddress,
-		PacketType:   m.Type.String(),
-	}
-}
-
-func (m *DemandOrder) GetFulfilledAuthorizedEvent(
-	creationHeight uint64,
-	lpAddress, operatorAddress, operatorFee string,
-) *EventDemandOrderFulfilledAuthorized {
-	return &EventDemandOrderFulfilledAuthorized{
-		OrderId:         m.Id,
-		Price:           m.Price.String(),
-		Fee:             m.Fee.String(),
-		IsFulfilled:     true,
-		PacketStatus:    m.TrackingPacketStatus.String(),
-		Fulfiller:       m.FulfillerAddress,
-		PacketType:      m.Type.String(),
-		CreationHeight:  creationHeight,
-		LpAddress:       lpAddress,
-		OperatorAddress: operatorAddress,
-		OperatorFee:     operatorFee,
-	}
-}
-
-func (m *DemandOrder) GetUpdatedEvent(proofHeight uint64, amount string) *EventDemandOrderFeeUpdated {
-	return &EventDemandOrderFeeUpdated{
-		OrderId:      m.Id,
-		NewFee:       m.Fee.String(),
-		Price:        m.Price.String(),
-		PacketStatus: m.TrackingPacketStatus.String(),
-		RollappId:    m.RollappId,
-		ProofHeight:  proofHeight,
-		Amount:       amount,
-	}
-}
-
-func (m *DemandOrder) GetPacketStatusUpdatedEvent() *EventDemandOrderPacketStatusUpdated {
-	return &EventDemandOrderPacketStatusUpdated{
-		OrderId:         m.Id,
-		NewPacketStatus: m.TrackingPacketStatus,
-		IsFulfilled:     m.IsFulfilled(),
-	}
-}
-
 // GetRecipientBech32Address returns the recipient address as a string.
 // Should be called after ValidateBasic hence should not panic.
 func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
@@ -172,7 +101,7 @@ func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 		return ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
-	if m.TrackingPacketStatus != commontypes.Status_PENDING { // TODO:remove, there is only one callsite and it already knows it's pending
+	if m.TrackingPacketStatus != Status_PENDING { // TODO:remove, there is only one callsite and it already knows it's pending
 		return ErrDemandOrderInactive
 	}
 	return nil

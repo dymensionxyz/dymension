@@ -247,7 +247,6 @@ require (
 )
 
 replace (
-
 	github.com/dymensionxyz/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a
 	// use dymension forks
