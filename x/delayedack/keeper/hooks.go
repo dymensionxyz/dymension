@@ -37,7 +37,7 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 // Once it is fulfilled the underlying packet recipient should be updated to the fulfiller.
 func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, o *commontypes.DemandOrder, receiverAddr string) error {
 	if o.CompletionHook != nil {
-		err := k.RunCompletionHook(ctx, o)
+		err := k.RunCompletionHook(ctx, o, o.PriceAmount())
 		if err != nil {
 			return errorsmod.Wrap(err, "run completion hook")
 		}

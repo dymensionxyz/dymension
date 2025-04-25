@@ -2,6 +2,7 @@ package keeper // have to call it keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -31,12 +32,12 @@ func (k Keeper) ValidateCompletionHook(info commontypes.CompletionHookCall) erro
 	return f.ValidateArg(info.Data)
 }
 
-func (k Keeper) RunCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder) error {
+func (k Keeper) RunCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder, amt math.Int) error {
 	f, ok := k.completionHooks[o.CompletionHook.Name]
 	if !ok {
 		return gerrc.ErrInternal.Wrapf("completion hook not registered but should have been checked before order creation: %s", o.CompletionHook.Name)
 	}
-	budget := sdk.NewCoin(o.Denom(), o.PriceAmount()) // TODO: fix amount, need to account for fees and so on
+	budget := sdk.NewCoin(o.Denom(), amt)
 	return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHook.Data)
 }
 
@@ -102,5 +103,13 @@ func (k Keeper) FinalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *comm
 		return nil
 	}
 
-	return k.RunCompletionHook(ctx, o)
+	port, channel := commontypes.PacketHubPortChan(commontypes.RollappPacket_ON_RECV, *p.Packet)
+	pTransfer, err := k.rollappKeeper.GetValidTransfer(ctx, p.Packet.Data, port, channel)
+	if err != nil {
+		return errorsmod.Wrap(err, "get valid transfer")
+	}
+	amt := pTransfer.MustAmountInt()
+	// account for the bridge fee which happened before the receiver got the funds
+	amt = amt.Sub(k.BridgingFeeFromAmt(ctx, amt))
+	return k.RunCompletionHook(ctx, o, amt)
 }
