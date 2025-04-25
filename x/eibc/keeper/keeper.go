@@ -17,6 +17,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
