@@ -114,10 +114,10 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 // get a memo for the direction (E)IBC -> IBC
 func CmdMemoEIBCtoIBC() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
-		Args:    cobra.ExactArgs(5),
+		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
+		Args:    cobra.ExactArgs(4),
 		Short:   "Create a memo for the direction (E)IBC -> IBC",
-		Example: `dymd q forward memo-eibc-to-ibc 100 "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
+		Example: `dymd q forward memo-eibc-to-ibc 100 "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -146,10 +146,10 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 // Get a memo for the direction HL -> (E)IBC
 func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                        "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration]",
-		Args:                       cobra.ExactArgs(4),
+		Use:                        "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
+		Args:                       cobra.ExactArgs(3),
 		Short:                      "Get the memo for the direction HL -> IBC or EIBC",
-		Example:                    `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m`,
+		Example:                    `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -187,13 +187,13 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 // Get a message for the direction HL -> (E)IBC. Intended for testing (check that the hub handles inbound messages correctly.)
 func CmdTestHLtoIBCMessage() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [hub-token] [ibc timeout duration] [recovery-address]",
-		Args:  cobra.ExactArgs(12),
+		Use:   "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [ibc timeout duration] [recovery-address]",
+		Args:  cobra.ExactArgs(11),
 		Short: "Create a hyperlane message for testing Hl -> IBC",
 		Example: `
 		dymd q forward hl-message 1 1
 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0
-dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 100ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7 5m
+dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 5m
 dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 
 		DisableFlagParsing:         true,
@@ -386,12 +386,7 @@ func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 
 	ibcRecipient := args[1]
 
-	hubToken, err := sdk.ParseCoinNormalized(args[2])
-	if err != nil {
-		return nil, fmt.Errorf("hub token: %w", err)
-	}
-
-	ibcTimeoutDuration, err := time.ParseDuration(args[3])
+	ibcTimeoutDuration, err := time.ParseDuration(args[2])
 	if err != nil {
 		return nil, fmt.Errorf("ibc timeout duration: %w", err)
 	}
@@ -400,7 +395,6 @@ func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 
 	hook := types.MakeHookForwardToIBC(
 		ibcSourceChan,
-		hubToken,
 		ibcRecipient,
 		ibcTimeoutTimestamp,
 	)

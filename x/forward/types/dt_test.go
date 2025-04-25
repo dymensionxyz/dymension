@@ -51,7 +51,6 @@ func TestNewHyperlaneMessage(t *testing.T) {
 		math.NewInt(100),
 		MakeHookForwardToIBC(
 			"channel-0",
-			sdk.NewCoin("adym", math.NewInt(100)),
 			"ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk",
 			1000000000000000000,
 		),

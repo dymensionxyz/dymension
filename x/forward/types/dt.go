@@ -58,7 +58,6 @@ func (h *HookForwardToHL) ValidateBasic() error {
 
 func MakeHookForwardToIBC(
 	sourceChannel string,
-	token sdk.Coin,
 	receiver string,
 	timeoutTimestamp uint64,
 ) *HookForwardToIBC {
@@ -70,8 +69,8 @@ func MakeHookForwardToIBC(
 		Transfer: &ibctransfertypes.MsgTransfer{
 			SourcePort:       "transfer",
 			SourceChannel:    sourceChannel,
-			Token:            token,
 			Sender:           arbSender.String(),
+			Token:            sdk.NewCoin("foo", math.NewInt(1)),
 			Receiver:         receiver,
 			TimeoutTimestamp: timeoutTimestamp,
 		},

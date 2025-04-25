@@ -77,7 +77,6 @@ func (s *forwardSuite) TestFulfillHookIsCalled() {
 type FinalizeFwdTC struct {
 	bridgeFee      int64 // percentage
 	forwardChannel string
-	forwardAmt     int64
 	ibcAmt         string
 	expectOK       bool
 }
@@ -85,7 +84,6 @@ type FinalizeFwdTC struct {
 var FinalizeFwdTCOK = FinalizeFwdTC{
 	bridgeFee:      1,
 	forwardChannel: "channel-0",
-	forwardAmt:     100,
 	ibcAmt:         "200",
 	expectOK:       true,
 }
@@ -101,24 +99,17 @@ func (s *forwardSuite) TestFinalizeRolToRolWrongChan() {
 	s.runFinalizeFwdTC(tc)
 }
 
-func (s *forwardSuite) TestFinalizeRolToRolBudgetExceeded() {
-	tc := FinalizeFwdTCOK
-	tc.forwardChannel = "channel-999"
-	tc.expectOK = false
-	s.runFinalizeFwdTC(tc)
-}
-
 func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
 	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
 	s.dackK().SetParams(s.hubCtx(), p)
-	ibcDenom := "ibc/C053D637CCA2A2BA030E2C5EE1B28A16F71CCB0E45E8BE52766DC1B241B77878" // found in debugger :/
 	hookPayload := forwardtypes.MakeHookForwardToIBC(
 		tc.forwardChannel,
-		sdk.NewCoin(ibcDenom, math.NewInt(tc.forwardAmt)),
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
+	err := hookPayload.ValidateBasic()
+	s.Require().NoError(err)
 	hook, err := forwardtypes.NewRollToIBCHook(hookPayload)
 	s.Require().NoError(err)
 	hookBz, err := proto.Marshal(hook)
@@ -157,6 +148,7 @@ func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 		// recipient still has funds
 		extra, _ := math.NewIntFromString(tc.ibcAmt)
 		extra = extra.Sub(s.dackK().BridgingFeeFromAmt(s.hubCtx(), extra))
+		ibcDenom := "ibc/C053D637CCA2A2BA030E2C5EE1B28A16F71CCB0E45E8BE52766DC1B241B77878" // found in debugger :/
 		extraCoin := sdk.NewCoin(ibcDenom, extra)
 		s.Require().Equal(ibcRecipientBalBefore.Add(extraCoin), ibcRecipientBalAfter)
 	}
