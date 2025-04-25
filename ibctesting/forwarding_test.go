@@ -78,20 +78,27 @@ type FinalizeFwdTC struct {
 	bridgeFee      int64 // percentage
 	forwardChannel string
 	forwardAmt     int64
-	forwardDst     string
 	ibcAmt         string
 	expectOK       bool
 }
 
-func (s *forwardSuite) TestFinalizeRolToRol() {
-	s.runFinalizeFwdTC(FinalizeFwdTC{
-		bridgeFee:      1,
-		forwardChannel: "channel-0",
-		forwardAmt:     100,
-		forwardDst:     "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
-		ibcAmt:         "200",
-		expectOK:       true,
-	})
+var FinalizeFwdTCOK = FinalizeFwdTC{
+	bridgeFee:      1,
+	forwardChannel: "channel-0",
+	forwardAmt:     100,
+	ibcAmt:         "200",
+	expectOK:       true,
+}
+
+func (s *forwardSuite) TestFinalizeRolToRolOK() {
+	tc := FinalizeFwdTCOK
+	s.runFinalizeFwdTC(tc)
+}
+func (s *forwardSuite) TestFinalizeRolToRolWrongChan() {
+	tc := FinalizeFwdTCOK
+	tc.forwardChannel = "channel-999"
+	tc.expectOK = false
+	s.runFinalizeFwdTC(tc)
 }
 
 func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
@@ -102,7 +109,7 @@ func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	hookPayload := forwardtypes.MakeHookForwardToIBC(
 		tc.forwardChannel,
 		sdk.NewCoin(ibcDenom, math.NewInt(tc.forwardAmt)),
-		tc.forwardDst,
+		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
 	hook, err := forwardtypes.NewRollToIBCHook(hookPayload)
@@ -132,11 +139,21 @@ func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 
 	ok, err := parseFwdErrFromEvents(evts.ToABCIEvents())
 	s.Require().NoError(err)
-	s.Require().Equal(ok, tc.expectOK)
 
-	// no change, all the funds are used for forwarding!
 	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
-	s.Require().Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
+	if tc.expectOK {
+		s.Require().True(ok)
+		// no change, all the funds are used for forwarding!
+		s.Require().Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
+	} else {
+		s.Require().False(ok)
+		// recipient still has funds
+		extra, _ := math.NewIntFromString(tc.ibcAmt)
+		extra = extra.Sub(s.dackK().BridgingFeeFromAmt(s.hubCtx(), extra))
+		extraCoin := sdk.NewCoin(ibcDenom, extra)
+		s.Require().Equal(ibcRecipientBalBefore.Add(extraCoin), ibcRecipientBalAfter)
+	}
+
 }
 
 func parseFwdErrFromEvents(events []comettypes.Event) (bool, error) {
