@@ -257,8 +257,9 @@ type fulfillmentHelper struct {
 func (h *fulfillmentHelper) initTc() {
 }
 
-func (s *fulfillmentHelper) fundFulfiller(fulfiller, ibcRecipient sdk.AccAddress, startBal string, memo string) string {
-	packet := s.transferRollappToHub(s.path, s.transferSrcAcc(), fulfiller.String(), startBal, memo, false)
+func (s *fulfillmentHelper) fundFulfiller(fulfiller sdk.AccAddress, bal string, eibcFee string) string {
+	memo := delayedacktypes.CreateMemo(eibcFee, nil)
+	p := s.transferRollappToHub(s.path, s.transferSrcAcc(), fulfiller.String(), bal, memo, false)
 	// just finalize immediately, no eibc
 	rolH := uint64(s.rollappCtx().BlockHeight())
 	_, err := s.finalizeRollappState(s.rollappStateIx, rolH)
@@ -267,12 +268,12 @@ func (s *fulfillmentHelper) fundFulfiller(fulfiller, ibcRecipient sdk.AccAddress
 
 	// check it worked (balance + demand order)
 	pass := false
-	bal := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
-	IBCDenom := s.getRollappToHubIBCDenomFromPacket(packet)
-	expect, ok := math.NewIntFromString(startBal)
+	got := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
+	expect, ok := math.NewIntFromString(bal)
 	s.Require().True(ok)
-	for _, coin := range bal {
-		if coin.Denom == IBCDenom && coin.Amount.Equal(expect) {
+	denom := s.getRollappToHubIBCDenomFromPacket(p)
+	for _, coin := range got {
+		if coin.Denom == denom && coin.Amount.Equal(expect) {
 			pass = true
 			break
 		}
@@ -289,14 +290,14 @@ func (s *fulfillmentHelper) fundFulfiller(fulfiller, ibcRecipient sdk.AccAddress
 	// Check wasn't fulfilled but finalized
 	s.Require().False(lastOrder.IsFulfilled())
 	s.Require().Equal(commontypes.Status_FINALIZED, lastOrder.TrackingPacketStatus)
-	return IBCDenom
+	return denom
 }
 
 // includes a memo in the rollapp transfer to the hub
 // tries to fulfill with the fulfiller
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 
-	helper := &fulfillmentHelper{
+	h := &fulfillmentHelper{
 		eibcSuite: s,
 	}
 
@@ -304,7 +305,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 		s.Run(tc.name, func() {
 			ibcRecipientIx := idx
 			fulfillerIx := idx + 1 // offset
-			helper.rollappStateIx++
+			h.rollappStateIx++
 
 			ibcRecipient := s.hubChain().SenderAccounts[ibcRecipientIx].SenderAccount.GetAddress()
 			ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
@@ -314,20 +315,18 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolH := uint64(s.rollappCtx().BlockHeight())
 			s.updateRollappState(rolH)
 
-			memo := delayedacktypes.CreateMemo(tc.eibcFee, nil)
-
 			// transfer to fulfiller so he has money to spend
-			IBCDenom := helper.fundFulfiller(fulfiller, ibcRecipient, tc.fulfillerStartBal, memo)
+			denom := h.fundFulfiller(fulfiller, tc.fulfillerStartBal, tc.eibcFee)
 
 			// now include the fulfill hook in the memo
-			memo = delayedacktypes.CreateMemo(tc.eibcFee, tc.fulfillHook)
+			memo := delayedacktypes.CreateMemo(tc.eibcFee, tc.fulfillHook)
 
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			s.rollappChain().NextBlock()
 			// increase the block height to make sure the next ibc packet won't be considered already finalized when sent
 			rolH = uint64(s.rollappCtx().BlockHeight())
-			helper.rollappStateIx++
-			helper.updateRollappState(rolH)
+			h.rollappStateIx++
+			h.updateRollappState(rolH)
 			packet := s.transferRollappToHub(s.path, s.transferSrcAcc(), ibcRecipient.String(), tc.transferAmt, memo, false)
 			s.Require().True(s.rollappHasPacketCommitment(packet))
 
@@ -337,8 +336,8 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			orders, err := s.eibcKeeper().ListAllDemandOrders(s.hubCtx())
 
 			s.Require().NoError(err)
-			s.Require().Greater(len(orders), helper.numOrdersTotal)
-			helper.numOrdersTotal = len(orders)
+			s.Require().Greater(len(orders), h.numOrdersTotal)
+			h.numOrdersTotal = len(orders)
 			lastOrder := getLastDemandOrderByChannelAndSequence(orders)
 
 			// Try and fulfill the demand order
@@ -368,16 +367,16 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			recipientBal := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 			transferAmt, _ := strconv.ParseInt(tc.transferAmt, 10, 64)
 			fee, _ := strconv.ParseInt(tc.eibcFee, 10, 64)
-			feeCoin := sdk.NewCoin(IBCDenom, math.NewInt(fee))
+			feeCoin := sdk.NewCoin(denom, math.NewInt(fee))
 			price := transferAmt - fee
-			priceCoin := sdk.NewCoin(IBCDenom, math.NewInt(price))
+			priceCoin := sdk.NewCoin(denom, math.NewInt(price))
 
 			s.Require().True(fulfillerBal.Equal(fulfillerBalBefore.Sub(priceCoin)))
 			s.Require().True(recipientBal.Equal(ibcRecipientBalBefore.Add(priceCoin)))
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			rolH = uint64(s.rollappCtx().BlockHeight())
-			_, err = s.finalizeRollappState(helper.rollappStateIx, rolH)
+			_, err = s.finalizeRollappState(h.rollappStateIx, rolH)
 			s.Require().NoError(err)
 			evts := s.finalizePacketsByAddr(fulfiller.String())
 
