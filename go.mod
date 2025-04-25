@@ -32,7 +32,7 @@ require (
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/dymensionxyz/gerr-cosmos v1.1.0
-	github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250423163000-36b4cd49d7fa
+	github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250425090254-94c146949618
 	github.com/dymensionxyz/sdk-utils v0.2.13-0.20250114202609-b3e820f5b629
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
@@ -247,7 +247,6 @@ require (
 )
 
 replace (
-	github.com/dymensionxyz/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a
 	// use dymension forks
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
