@@ -290,6 +290,57 @@ func (s *fulfillmentHelper) fundFulfiller(fulfiller sdk.AccAddress, bal string, 
 	return denom
 }
 
+func (s *eibcSuite) eibcTransferFinalize(
+	hook []byte,
+	transferAmt string,
+	eibcFee string,
+	fulfillerStartBal string,
+) {
+
+	h := &fulfillmentHelper{
+		eibcSuite: s,
+	}
+	idx := 0
+	ibcRecipientIx := idx
+	fulfillerIx := idx + 1 // offset
+	h.rollappStateIx++
+
+	ibcRecipient := s.hubChain().SenderAccounts[ibcRecipientIx].SenderAccount.GetAddress()
+	ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
+	fulfiller := s.hubChain().SenderAccounts[fulfillerIx].SenderAccount.GetAddress()
+
+	s.rollappChain().NextBlock()
+	rolH := uint64(s.rollappCtx().BlockHeight())
+	s.updateRollappState(rolH)
+
+	// transfer to fulfiller so he has money to spend
+	denom := h.fundFulfiller(fulfiller, fulfillerStartBal, eibcFee)
+
+	// Send another EIBC packet but this time fulfill it with the fulfiller balance.
+	s.rollappChain().NextBlock()
+	// increase the block height to make sure the next ibc packet won't be considered already finalized when sent
+	rolH = uint64(s.rollappCtx().BlockHeight())
+	h.rollappStateIx++
+	h.updateRollappState(rolH)
+
+	// now include the fulfill hook in the memo
+	memo := delayedacktypes.CreateMemo(eibcFee, hook)
+	packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), transferAmt, memo, false)
+	s.Require().True(s.rollappHasPacketCommitment(packet))
+
+	// Finalize rollapp and check fulfiller balance was updated with fee
+	rolH = uint64(s.rollappCtx().BlockHeight())
+	_, err := s.finalizeRollappState(h.rollappStateIx, rolH)
+	s.Require().NoError(err)
+	evts := s.finalizePacketsByAddr(fulfiller.String())
+
+	_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
+	s.Require().NoError(err)
+
+	_ = ibcRecipientBalBefore
+	_ = denom
+}
+
 // includes a memo in the rollapp transfer to the hub
 // tries to fulfill with the fulfiller
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {

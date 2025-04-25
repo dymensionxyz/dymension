@@ -71,16 +71,6 @@ func (s *forwardSuite) TestFulfillHookIsCalled() {
 
 func (s *forwardSuite) TestFulfillRolToRol() {
 	s.coordinator.Skip()
-	dummy := "dummy"
-	h := mockTransferCompletionHook{
-		forwardSuite: s,
-	}
-	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
-		map[string]delayedackkeeper.CompletionHookInstance{
-			dummy: &h,
-		},
-	)
-	s.T().Log("running test forward!")
 
 	hook := forwardtypes.MakeHookForwardToIBC(
 		"transfer",
@@ -88,13 +78,10 @@ func (s *forwardSuite) TestFulfillRolToRol() {
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
-	_ = hook
 
-	hookData := commontypes.CompletionHookCall{
-		Name: forwardtypes.HookNameRollToIBC,
-		Data: []byte{},
-	}
-	bz, err := proto.Marshal(&hookData)
+	call, err := forwardtypes.NewRollToIBCHook(hook)
+
+	bz, err := proto.Marshal(call)
 	s.Require().NoError(err)
 	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
 		{
@@ -105,5 +92,5 @@ func (s *forwardSuite) TestFulfillRolToRol() {
 			fulfillHook:       bz,
 		},
 	})
-	s.Require().True(h.called)
+	s.eibcTransferFinalize(bz, "200", "150", "300")
 }
