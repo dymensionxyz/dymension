@@ -7,6 +7,8 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 type Memo struct {
@@ -47,11 +49,11 @@ func CreateMemo(eibcFee string, onComplete []byte) string {
 }
 
 // TODO: avoid duplicate calls
-func (e EIBCMemo) GetCompletionHook() (*CompletionHookCall, error) {
+func (e EIBCMemo) GetCompletionHook() (*commontypes.CompletionHookCall, error) {
 	if len(e.OnCompletionHook) == 0 {
 		return nil, nil
 	}
-	var hook CompletionHookCall
+	var hook commontypes.CompletionHookCall
 	err := proto.Unmarshal(e.OnCompletionHook, &hook)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)

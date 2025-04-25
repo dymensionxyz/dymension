@@ -5,13 +5,14 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 // basic i.e. not authorized
 func (k Keeper) fulfillBasic(ctx sdk.Context,
-	o *types.DemandOrder,
+	o *commontypes.DemandOrder,
 	fulfiller sdk.AccAddress,
 ) error {
 
@@ -25,7 +26,7 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 		return err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, o.GetFulfilledEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, types.GetFulfilledEvent(o)); err != nil {
 		return fmt.Errorf("emit event: %w", err)
 	}
 
@@ -39,7 +40,7 @@ type fulfillArgs struct {
 }
 
 func (k Keeper) fulfill(ctx sdk.Context,
-	o *types.DemandOrder,
+	o *commontypes.DemandOrder,
 	args fulfillArgs,
 ) error {
 	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {

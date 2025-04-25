@@ -1,8 +1,8 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -35,15 +35,16 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 
 // AfterDemandOrderFulfilled is called every time a demand order is fulfilled.
 // Once it is fulfilled the underlying packet recipient should be updated to the fulfiller.
-func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, receiverAddr string) error {
-	if demandOrder.CompletionHook != nil {
-		err := k.transferHooks.OnFulfill(ctx, demandOrder)
-		if err != nil {
-			return errorsmod.Wrap(err, "do fulfill hook")
+func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, o *commontypes.DemandOrder, receiverAddr string) error {
+	if o.CompletionHook != nil {
+		f, ok := k.completionHooks[o.CompletionHook.Name]
+		if !ok {
+			return gerrc.ErrNotFound.Wrap("hook")
 		}
+		return f.Run(ctx, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHook.Data)
 	}
 
-	err := k.UpdateRollappPacketTransferAddress(ctx, demandOrder.TrackingPacketKey, receiverAddr)
+	err := k.UpdateRollappPacketTransferAddress(ctx, o.TrackingPacketKey, receiverAddr)
 	if err != nil {
 		return err
 	}

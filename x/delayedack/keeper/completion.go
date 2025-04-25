@@ -4,7 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -15,14 +14,14 @@ type CompletionHookInstance interface {
 }
 
 // map name -> instance
-func (h Keeper) SetHooks(hooks map[string]CompletionHookInstance) {
+func (h Keeper) SetCompletionHooks(hooks map[string]CompletionHookInstance) {
 	for name, hook := range hooks {
 		h.completionHooks[name] = hook
 	}
 }
 
 // assumes already passed validate basic
-func (h Keeper) Validate(info types.CompletionHookCall) error {
+func (h Keeper) Validate(info commontypes.CompletionHookCall) error {
 	f, ok := h.completionHooks[info.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.Name)
@@ -33,7 +32,7 @@ func (h Keeper) Validate(info types.CompletionHookCall) error {
 // Should be called after packet finalization
 // Recipient can either be the fulfiller of a hook that already occurred, or the original recipient still, who probably still wants the hook to happen
 // NOTE: there is an asymmetry currently because on fulfill supports multiple hooks, but this finalization onRecv is hardcoded for x/forward atm
-func (h Keeper) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) error {
+func (h Keeper) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) error { // TODO: rename func
 
 	o, err := h.EIBCKeeper.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {
@@ -65,12 +64,4 @@ func (h Keeper) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) erro
 	budget := sdk.NewCoin(o.Denom(), o.PriceAmount()) // TODO: fix amount, need to account for fees and so on
 	return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHook.Data)
 
-}
-
-func (h Keeper) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder) error {
-	f, ok := h.completionHooks[o.CompletionHook.Name]
-	if !ok {
-		return gerrc.ErrNotFound.Wrap("hook")
-	}
-	return f.Run(ctx, o.GetRecipientBech32Address(), sdk.NewCoin(o.Denom(), o.PriceAmount()), o.CompletionHook.Data)
 }

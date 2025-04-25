@@ -73,8 +73,8 @@ func NewKeeper(
 	}
 }
 
-func (k *Keeper) SetTransferHooks(hooks *TransferHooks) {
-	k.transferHooks = hooks
+func (k *Keeper) SetTransferHooks(hooks map[string]CompletionHookInstance) {
+	k.completionHooks = hooks
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

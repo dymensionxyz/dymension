@@ -90,8 +90,8 @@ func (k Keeper) finalizeRollappPacket(
 
 			We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
 		*/
-		if k.transferHooks != nil {
-			if err := k.transferHooks.OnRecvPacket(ctx, &rollappPacket); err != nil {
+		if k.completionHooks != nil {
+			if err := k.OnRecvPacket(ctx, &rollappPacket); err != nil {
 				return errorsmod.Wrap(err, "transfer hooks on recv packet")
 			}
 		}
