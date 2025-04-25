@@ -101,6 +101,13 @@ func (s *forwardSuite) TestFinalizeRolToRolWrongChan() {
 	s.runFinalizeFwdTC(tc)
 }
 
+func (s *forwardSuite) TestFinalizeRolToRolBudgetExceeded() {
+	tc := FinalizeFwdTCOK
+	tc.forwardChannel = "channel-999"
+	tc.expectOK = false
+	s.runFinalizeFwdTC(tc)
+}
+
 func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
 	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%

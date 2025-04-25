@@ -1,6 +1,8 @@
 package forward
 
 import (
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -90,6 +92,10 @@ func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget s
 }
 
 func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
+
+	maxAmt := maxBudget.Amount
+	desiredAmt := transfer.Token.Amount
+	amt := math.MinInt(maxAmt, desiredAmt)
 
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
