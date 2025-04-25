@@ -38,7 +38,7 @@ type Keeper struct {
 	channelKeeper types.ChannelKeeper
 	types.EIBCKeeper
 
-	transferHooks *TransferHooks
+	completionHooks map[string]CompletionHookInstance
 }
 
 func NewKeeper(

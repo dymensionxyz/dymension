@@ -1,10 +1,7 @@
 package keeper // have to call it keeper
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -12,41 +9,21 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-type EIBCK interface {
-	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*eibctypes.DemandOrder, error)
-}
-
-type TransferHooks struct {
-	Keeper EIBCK
-	hooks  map[string]CompletionHookInstance
-}
-
-func (h *TransferHooks) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-func NewTransferHooks(keeper EIBCK) *TransferHooks {
-
-	return &TransferHooks{
-		Keeper: keeper,
-		hooks:  make(map[string]CompletionHookInstance),
-	}
-}
-
 type CompletionHookInstance interface {
 	ValidateArg(hookData []byte) error
 	Run(ctx sdk.Context, fundSrc sdk.AccAddress, budget sdk.Coin, hookData []byte) error
 }
 
 // map name -> instance
-func (h TransferHooks) SetHooks(hooks map[string]CompletionHookInstance) {
+func (h Keeper) SetHooks(hooks map[string]CompletionHookInstance) {
 	for name, hook := range hooks {
-		h.hooks[name] = hook
+		h.completionHooks[name] = hook
 	}
 }
 
 // assumes already passed validate basic
-func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
-	f, ok := h.hooks[info.Name]
+func (h Keeper) Validate(info types.CompletionHookCall) error {
+	f, ok := h.completionHooks[info.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrapf("hook: name: %s", info.Name)
 	}
@@ -56,9 +33,9 @@ func (h *TransferHooks) Validate(info types.CompletionHookCall) error {
 // Should be called after packet finalization
 // Recipient can either be the fulfiller of a hook that already occurred, or the original recipient still, who probably still wants the hook to happen
 // NOTE: there is an asymmetry currently because on fulfill supports multiple hooks, but this finalization onRecv is hardcoded for x/forward atm
-func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) error {
+func (h Keeper) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPacket) error {
 
-	o, err := h.Keeper.PendingOrderByPacket(ctx, p)
+	o, err := h.EIBCKeeper.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {
 		// not much we can do here, it should exist...
 		h.Logger(ctx).Error("Pending order by packet not found.", "packet", p.LogString())
@@ -79,7 +56,7 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 		return nil
 	}
 
-	f, ok := h.hooks[o.CompletionHook.Name]
+	f, ok := h.completionHooks[o.CompletionHook.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
@@ -90,8 +67,8 @@ func (h *TransferHooks) OnRecvPacket(ctx sdk.Context, p *commontypes.RollappPack
 
 }
 
-func (h *TransferHooks) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder) error {
-	f, ok := h.hooks[o.CompletionHook.Name]
+func (h Keeper) OnFulfill(ctx sdk.Context, o *eibctypes.DemandOrder) error {
+	f, ok := h.completionHooks[o.CompletionHook.Name]
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("hook")
 	}
