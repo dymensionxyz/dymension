@@ -153,23 +153,30 @@ func NewRollToHLMemoString(
 	return delayedacktypes.CreateMemo(eibcFee, bz), nil
 }
 
+func NewRollToIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHookCall, error) {
+	bz, err := proto.Marshal(payload)
+	if err != nil {
+		return &commontypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
+	}
+
+	return &commontypes.CompletionHookCall{
+		Name: HookNameRollToIBC,
+		Data: bz,
+	}, nil
+}
+
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
 func NewRollToIBCMemoString(
 	eibcFee string,
 	data *HookForwardToIBC,
 ) (string, error) {
 
-	bz, err := proto.Marshal(data)
+	hook, err := NewRollToIBCHook(data)
 	if err != nil {
-		return "", errorsmod.Wrap(err, "marshal")
+		return "", errorsmod.Wrap(err, "new roll to ibc hook")
 	}
 
-	hook := commontypes.CompletionHookCall{
-		Name: HookNameRollToIBC,
-		Data: bz,
-	}
-
-	bz, err = proto.Marshal(&hook)
+	bz, err := proto.Marshal(hook)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "marshal")
 	}
