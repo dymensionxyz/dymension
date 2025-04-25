@@ -1,10 +1,12 @@
 package ibctesting_test
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	comettypes "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -12,6 +14,7 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -74,7 +77,7 @@ func (s *forwardSuite) TestFulfillHookIsCalled() {
 func (s *forwardSuite) TestFinalizeRolToRol() {
 
 	type TC struct {
-		bridgeFee      int // percentage
+		bridgeFee      int64 // percentage
 		forwardChannel string
 		forwardAmt     int64
 		forwardDst     string
@@ -92,7 +95,7 @@ func (s *forwardSuite) TestFinalizeRolToRol() {
 	}
 
 	p := s.dackK().GetParams(s.hubCtx())
-	p.BridgingFee = math.LegacyNewDecWithPrec(1, 2) // 1%
+	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
 	s.dackK().SetParams(s.hubCtx(), p)
 	ibcDenom := "ibc/C053D637CCA2A2BA030E2C5EE1B28A16F71CCB0E45E8BE52766DC1B241B77878" // found in debugger :/
 	hookPayload := forwardtypes.MakeHookForwardToIBC(
@@ -113,11 +116,11 @@ func (s *forwardSuite) TestFinalizeRolToRol() {
 	rolH := uint64(s.rollappCtx().BlockHeight())
 	s.updateRollappState(rolH)
 
-	memo := delayedacktypes.CreateMemo("100", hookBz)
+	eibcFee := "100" // arbitrary, shouldn't have an effect because we don't fulfil
+	memo := delayedacktypes.CreateMemo(eibcFee, hookBz)
 	packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), tc.ibcAmt, memo, false)
 	s.Require().True(s.rollappHasPacketCommitment(packet))
 
-	// Finalize rollapp and check fulfiller balance was updated with fee
 	rolH = uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, rolH)
 	s.Require().NoError(err)
@@ -126,5 +129,25 @@ func (s *forwardSuite) TestFinalizeRolToRol() {
 	_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
 	s.Require().NoError(err)
 
-	_ = ibcRecipientBalBefore
+	ok, err := parseFwdErrFromEvents(evts.ToABCIEvents())
+	s.Require().NoError(err)
+	s.Require().Equal(ok, tc.expectOK)
+
+	// no change, all the funds are used for forwarding!
+	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
+	s.Require().Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
+}
+
+func parseFwdErrFromEvents(events []comettypes.Event) (bool, error) {
+	for _, ev := range events {
+		if ev.Type == forwardtypes.EvtTypeForward {
+			for _, attr := range ev.Attributes {
+				if attr.Key == forwardtypes.EvtAttrOK {
+					ok, err := strconv.ParseBool(attr.Value)
+					return ok, err
+				}
+			}
+		}
+	}
+	return false, gerrc.ErrNotFound
 }
