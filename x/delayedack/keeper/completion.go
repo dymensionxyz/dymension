@@ -44,7 +44,7 @@ func (k Keeper) RunCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder, a
 // Should be called after packet finalization
 // Recipient can either be the fulfiller of a hook that already occurred, or the original recipient still, who probably still wants the hook to happen
 // NOTE: there is an asymmetry currently because on fulfill supports multiple hooks, but this finalization onRecv is hardcoded for x/forward atm
-func (k Keeper) FinalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *commontypes.RollappPacket) error { // TODO: rename func
+func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *commontypes.RollappPacket) error { // TODO: rename func
 	// Because we intercepted the packet, the core ibc library wasn't able to write the ack when we first
 	// got the packet. So we try to write it here.
 

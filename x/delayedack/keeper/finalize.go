@@ -53,7 +53,7 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		packetErr = k.FinalizeOnRecv(ctx, ibc, &rollappPacket)
+		packetErr = k.finalizeOnRecv(ctx, ibc, &rollappPacket)
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
