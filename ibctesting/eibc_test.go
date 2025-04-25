@@ -21,6 +21,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -33,6 +34,18 @@ type eibcSuite struct {
 
 func (s *eibcSuite) msgServer() eibctypes.MsgServer {
 	return eibckeeper.NewMsgServerImpl(s.hubApp().EIBCKeeper)
+}
+
+func (s *eibcSuite) eibcKeeper() eibckeeper.Keeper {
+	return s.hubApp().EIBCKeeper
+}
+
+func (s *eibcSuite) delayedAckKeeper() delayedackkeeper.Keeper {
+	return s.hubApp().DelayedAckKeeper
+}
+
+func (s *eibcSuite) transferSrcAcc() string {
+	return s.rollappChain().SenderAccount.GetAddress().String()
 }
 
 func TestEIBCTestSuite(t *testing.T) {
@@ -235,20 +248,63 @@ type eibcTransferFulfillmentTC struct {
 	fulfillHook []byte
 }
 
+type fulfillmentHelper struct {
+	*eibcSuite
+	numOrdersTotal int
+	rollappStateIx uint64
+}
+
+func (h *fulfillmentHelper) initTc() {
+}
+
+func (s *fulfillmentHelper) fundFulfiller(fulfiller, ibcRecipient sdk.AccAddress, startBal string, memo string) string {
+	packet := s.transferRollappToHub(s.path, s.transferSrcAcc(), fulfiller.String(), startBal, memo, false)
+	// just finalize immediately, no eibc
+	rolH := uint64(s.rollappCtx().BlockHeight())
+	_, err := s.finalizeRollappState(s.rollappStateIx, rolH)
+	s.Require().NoError(err)
+	s.finalizePacketsByAddr(fulfiller.String())
+
+	// check it worked (balance + demand order)
+	pass := false
+	bal := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
+	IBCDenom := s.getRollappToHubIBCDenomFromPacket(packet)
+	expect, ok := math.NewIntFromString(startBal)
+	s.Require().True(ok)
+	for _, coin := range bal {
+		if coin.Denom == IBCDenom && coin.Amount.Equal(expect) {
+			pass = true
+			break
+		}
+	}
+
+	// TODO: why is demand order checked, why pass eibc in memo at all?
+	s.Require().True(pass)
+	orders, err := s.eibcKeeper().ListAllDemandOrders(s.hubCtx())
+	s.Require().NoError(err)
+	s.Require().Greater(len(orders), s.numOrdersTotal)
+	s.numOrdersTotal = len(orders)
+	// Get last demand order created by TrackingPacketKey. Last part of the key is the sequence
+	lastOrder := getLastDemandOrderByChannelAndSequence(orders)
+	// Check wasn't fulfilled but finalized
+	s.Require().False(lastOrder.IsFulfilled())
+	s.Require().Equal(commontypes.Status_FINALIZED, lastOrder.TrackingPacketStatus)
+	return IBCDenom
+}
+
 // includes a memo in the rollapp transfer to the hub
 // tries to fulfill with the fulfiller
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
-	numOrdersTotal := 0
-	eibcK := s.hubApp().EIBCKeeper
-	delayedackK := s.hubApp().DelayedAckKeeper
-	transferSrcAcc := s.rollappChain().SenderAccount.GetAddress().String()
-	rolStateIx := uint64(0) // FIXME: why is this shared...
+
+	helper := &fulfillmentHelper{
+		eibcSuite: s,
+	}
 
 	for idx, tc := range cases {
 		s.Run(tc.name, func() {
 			ibcRecipientIx := idx
 			fulfillerIx := idx + 1 // offset
-			rolStateIx++
+			helper.rollappStateIx++
 
 			ibcRecipient := s.hubChain().SenderAccounts[ibcRecipientIx].SenderAccount.GetAddress()
 			ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
@@ -259,43 +315,9 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			s.updateRollappState(rolH)
 
 			memo := delayedacktypes.CreateMemo(tc.eibcFee, nil)
-			var IBCDenom string
 
 			// transfer to fulfiller so he has money to spend
-			{
-
-				packet := s.transferRollappToHub(s.path, transferSrcAcc, fulfiller.String(), tc.fulfillerStartBal, memo, false)
-				// just finalize immediately, no eibc
-				rolH = uint64(s.rollappCtx().BlockHeight())
-				_, err := s.finalizeRollappState(rolStateIx, rolH)
-				s.Require().NoError(err)
-				s.finalizePacketsByAddr(fulfiller.String())
-
-				// check it worked (balance + demand order)
-				pass := false
-				bal := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
-				IBCDenom = s.getRollappToHubIBCDenomFromPacket(packet)
-				expect, ok := math.NewIntFromString(tc.fulfillerStartBal)
-				s.Require().True(ok)
-				for _, coin := range bal {
-					if coin.Denom == IBCDenom && coin.Amount.Equal(expect) {
-						pass = true
-						break
-					}
-				}
-
-				// TODO: why is demand order checked, why pass eibc in memo at all?
-				s.Require().True(pass)
-				orders, err := eibcK.ListAllDemandOrders(s.hubCtx())
-				s.Require().NoError(err)
-				s.Require().Greater(len(orders), numOrdersTotal)
-				numOrdersTotal = len(orders)
-				// Get last demand order created by TrackingPacketKey. Last part of the key is the sequence
-				lastOrder := getLastDemandOrderByChannelAndSequence(orders)
-				// Check wasn't fulfilled but finalized
-				s.Require().False(lastOrder.IsFulfilled())
-				s.Require().Equal(commontypes.Status_FINALIZED, lastOrder.TrackingPacketStatus)
-			}
+			IBCDenom := helper.fundFulfiller(fulfiller, ibcRecipient, tc.fulfillerStartBal, memo)
 
 			// now include the fulfill hook in the memo
 			memo = delayedacktypes.CreateMemo(tc.eibcFee, tc.fulfillHook)
@@ -304,19 +326,19 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			s.rollappChain().NextBlock()
 			// increase the block height to make sure the next ibc packet won't be considered already finalized when sent
 			rolH = uint64(s.rollappCtx().BlockHeight())
-			rolStateIx = rolStateIx + 1
-			s.updateRollappState(rolH)
-			packet := s.transferRollappToHub(s.path, transferSrcAcc, ibcRecipient.String(), tc.transferAmt, memo, false)
+			helper.rollappStateIx++
+			helper.updateRollappState(rolH)
+			packet := s.transferRollappToHub(s.path, s.transferSrcAcc(), ibcRecipient.String(), tc.transferAmt, memo, false)
 			s.Require().True(s.rollappHasPacketCommitment(packet))
 
 			// Validate demand order created. Calling TransferRollappToHub also promotes the block time for
 			// ibc purposes which causes the AfterEpochEnd of the rollapp packet deletion to fire (which also deletes the demand order)
 			// hence we should only expect 1 demand order created
-			orders, err := eibcK.ListAllDemandOrders(s.hubCtx())
+			orders, err := s.eibcKeeper().ListAllDemandOrders(s.hubCtx())
 
 			s.Require().NoError(err)
-			s.Require().Greater(len(orders), numOrdersTotal)
-			numOrdersTotal = len(orders)
+			s.Require().Greater(len(orders), helper.numOrdersTotal)
+			helper.numOrdersTotal = len(orders)
 			lastOrder := getLastDemandOrderByChannelAndSequence(orders)
 
 			// Try and fulfill the demand order
@@ -334,7 +356,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			s.Require().NoError(err)
 
 			// Check packet recipient is updated
-			rolPacket, err := delayedackK.GetRollappPacket(s.hubCtx(), lastOrder.TrackingPacketKey)
+			rolPacket, err := s.delayedAckKeeper().GetRollappPacket(s.hubCtx(), lastOrder.TrackingPacketKey)
 			s.Require().NoError(err)
 			var transferData types.FungibleTokenPacketData
 			err = types.ModuleCdc.UnmarshalJSON(rolPacket.Packet.GetData(), &transferData)
@@ -355,7 +377,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			rolH = uint64(s.rollappCtx().BlockHeight())
-			_, err = s.finalizeRollappState(rolStateIx, rolH)
+			_, err = s.finalizeRollappState(helper.rollappStateIx, rolH)
 			s.Require().NoError(err)
 			evts := s.finalizePacketsByAddr(fulfiller.String())
 
@@ -366,7 +388,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			s.Require().True(fulfillerBalAfter.Equal(fulfillerBalBefore.Add(feeCoin)))
 
 			// Check order fulfilled and packet status
-			finalizedOrders, err := eibcK.ListDemandOrdersByStatus(s.hubCtx(), commontypes.Status_FINALIZED, 0)
+			finalizedOrders, err := s.eibcKeeper().ListDemandOrdersByStatus(s.hubCtx(), commontypes.Status_FINALIZED, 0)
 			s.Require().NoError(err)
 			var finalizedO *commontypes.DemandOrder
 			for _, o := range finalizedOrders {
