@@ -116,7 +116,6 @@ import (
 
 	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
-	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type AppKeepers struct {
@@ -178,7 +177,7 @@ type AppKeepers struct {
 
 	Forward *forward.Forward
 
-	TransferHooks *transfer.TransferHooks
+	TransferHooks *delayedackkeeper.TransferHooks
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey

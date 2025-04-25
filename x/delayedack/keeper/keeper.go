@@ -16,7 +16,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type Keeper struct {
@@ -39,7 +38,7 @@ type Keeper struct {
 	channelKeeper types.ChannelKeeper
 	types.EIBCKeeper
 
-	transferHooks *transfer.TransferHooks
+	transferHooks *TransferHooks
 }
 
 func NewKeeper(
@@ -74,7 +73,7 @@ func NewKeeper(
 	}
 }
 
-func (k *Keeper) SetTransferHooks(hooks *transfer.TransferHooks) {
+func (k *Keeper) SetTransferHooks(hooks *TransferHooks) {
 	k.transferHooks = hooks
 }
 

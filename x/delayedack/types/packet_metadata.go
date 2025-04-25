@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
-	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -48,11 +47,11 @@ func CreateMemo(eibcFee string, onComplete []byte) string {
 }
 
 // TODO: avoid duplicate calls
-func (e EIBCMemo) GetCompletionHook() (*transfertypes.CompletionHookCall, error) {
+func (e EIBCMemo) GetCompletionHook() (*CompletionHookCall, error) {
 	if len(e.OnCompletionHook) == 0 {
 		return nil, nil
 	}
-	var hook transfertypes.CompletionHookCall
+	var hook CompletionHookCall
 	err := proto.Unmarshal(e.OnCompletionHook, &hook)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)

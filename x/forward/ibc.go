@@ -6,11 +6,11 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	dackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	types "github.com/dymensionxyz/dymension/v3/x/forward/types"
-	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
-var _ transfer.CompletionHookInstance = rollToHLHook{}
+var _ dackkeeper.CompletionHookInstance = rollToHLHook{}
 
 func (k Forward) RollToHLHook() rollToHLHook {
 	return rollToHLHook{
@@ -49,7 +49,7 @@ func (h rollToHLHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sd
 	return nil
 }
 
-var _ transfer.CompletionHookInstance = rollToIBCHook{}
+var _ dackkeeper.CompletionHookInstance = rollToIBCHook{}
 
 func (k Forward) RollToIBCHook() rollToIBCHook {
 	return rollToIBCHook{

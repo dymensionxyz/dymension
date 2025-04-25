@@ -19,7 +19,6 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	transfer "github.com/dymensionxyz/dymension/v3/x/transfer"
 )
 
 type (
@@ -35,7 +34,7 @@ type (
 		rk            types.RollappKeeper
 		Schema        collections.Schema
 		LPs           LPs
-		transferHooks *transfer.TransferHooks
+		transferHooks *delayedackkeeper.TransferHooks
 	}
 )
 
@@ -78,7 +77,7 @@ func NewKeeper(
 	}
 }
 
-func (k *Keeper) SetTransferHooks(hooks *transfer.TransferHooks) {
+func (k *Keeper) SetTransferHooks(hooks *delayedackkeeper.TransferHooks) {
 	k.transferHooks = hooks
 }
 

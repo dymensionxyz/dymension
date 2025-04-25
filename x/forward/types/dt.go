@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	transfertypes "github.com/dymensionxyz/dymension/v3/x/transfer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	hyperutil "github.com/dymensionxyz/hyperlane-cosmos/util"
 	hypercoretypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
@@ -100,13 +100,13 @@ func (h *HookForwardToIBC) ValidateBasic() error {
 	return nil
 }
 
-func NewRollToHLHook(payload *HookForwardToHL) (*transfertypes.CompletionHookCall, error) {
+func NewRollToHLHook(payload *HookForwardToHL) (*dacktypes.CompletionHookCall, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
-		return &transfertypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
+		return &dacktypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
 	}
 
-	return &transfertypes.CompletionHookCall{
+	return &dacktypes.CompletionHookCall{
 		Name: HookNameRollToHL,
 		Data: bz,
 	}, nil
@@ -163,7 +163,7 @@ func NewRollToIBCMemoString(
 		return "", errorsmod.Wrap(err, "marshal")
 	}
 
-	hook := transfertypes.CompletionHookCall{
+	hook := dacktypes.CompletionHookCall{
 		Name: HookNameRollToIBC,
 		Data: bz,
 	}

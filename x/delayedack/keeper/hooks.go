@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,6 +36,13 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 // AfterDemandOrderFulfilled is called every time a demand order is fulfilled.
 // Once it is fulfilled the underlying packet recipient should be updated to the fulfiller.
 func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, receiverAddr string) error {
+	if demandOrder.CompletionHook != nil {
+		err := k.transferHooks.OnFulfill(ctx, demandOrder)
+		if err != nil {
+			return errorsmod.Wrap(err, "do fulfill hook")
+		}
+	}
+
 	err := k.UpdateRollappPacketTransferAddress(ctx, demandOrder.TrackingPacketKey, receiverAddr)
 	if err != nil {
 		return err
