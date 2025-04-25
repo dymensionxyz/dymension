@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -41,14 +41,14 @@ func (s *forwardSuite) TestFulfillHookIsCalled() {
 	h := mockTransferCompletionHook{
 		forwardSuite: s,
 	}
-	s.utilSuite.hubApp().TransferHooks.SetHooks(
+	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
 		},
 	)
 	s.T().Log("running test forward!")
 
-	hookData := dacktypes.CompletionHookCall{
+	hookData := commontypes.CompletionHookCall{
 		Name: dummy,
 		Data: []byte{},
 	}

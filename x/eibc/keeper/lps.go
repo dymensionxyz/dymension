@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -165,7 +166,7 @@ func (s LPs) GetByAddr(ctx sdk.Context, addr sdk.AccAddress) ([]*types.OnDemandL
 	return ret, err
 }
 
-func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
+func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o commontypes.DemandOrder) ([]types.OnDemandLPRecord, error) {
 	rol := o.RollappId
 	denom := o.Denom()
 	ranger := collections.NewSuperPrefixedTripleRange[string, string, uint64](rol, denom)

@@ -104,7 +104,8 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		}
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledAuthorizedEvent(
+	if err = uevent.EmitTypedEvent(ctx, types.GetFulfilledAuthorizedEvent(
+		demandOrder,
 		demandOrder.CreationHeight,
 		msg.LpAddress,
 		operator.String(),
@@ -117,7 +118,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 }
 
 // TODO: rename and fix signature (ctx first)
-func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
+func (m msgServer) validateOrder(demandOrder *commontypes.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
 	if demandOrder.RollappId != msg.RollappId {
 		return types.ErrRollappIdMismatch
 	}
@@ -146,7 +147,7 @@ func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgF
 	return nil
 }
 
-func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *types.DemandOrder) (bool, error) {
+func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *commontypes.DemandOrder) (bool, error) {
 	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 	if err != nil {
 		return false, fmt.Errorf("get rollapp packet: %w", err)
@@ -223,7 +224,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent(raPacket.ProofHeight, data.Amount)); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, types.GetUpdatedEvent(demandOrder, raPacket.ProofHeight, data.Amount)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 

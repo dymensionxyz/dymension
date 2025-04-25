@@ -66,10 +66,11 @@ func NewKeeper(
 			"pending_packets_by_receiver",
 			collections.PairKeyCodec(collections.StringKey, collcodec.NewBytesKey[[]byte]()),
 		),
-		rollappKeeper: rollappKeeper,
-		ICS4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		EIBCKeeper:    eibcKeeper,
+		rollappKeeper:   rollappKeeper,
+		ICS4Wrapper:     ics4Wrapper,
+		channelKeeper:   channelKeeper,
+		EIBCKeeper:      eibcKeeper,
+		completionHooks: make(map[string]CompletionHookInstance),
 	}
 }
 

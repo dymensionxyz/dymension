@@ -35,7 +35,7 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket,
 	oldPacketKey string, newPacketKey string,
 ) error {
-	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
+	demandOrderID := commontypes.BuildDemandIDFromPacketKey(oldPacketKey)
 	demandOrder, err := d.GetDemandOrder(ctx, commontypes.Status_PENDING, demandOrderID)
 	if err != nil {
 		// If demand order does not exist, then we don't need to do anything // TODO: why
@@ -61,7 +61,7 @@ func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *comm
 	// the packet was created, hence with PENDING status.
 	rollappPacket.Status = commontypes.Status_PENDING
 	packetKey := rollappPacket.RollappPacketKey()
-	demandOrderID := types.BuildDemandIDFromPacketKey(string(packetKey))
+	demandOrderID := commontypes.BuildDemandIDFromPacketKey(string(packetKey))
 
 	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 	for _, status := range statuses {

@@ -177,8 +177,6 @@ type AppKeepers struct {
 
 	Forward *forward.Forward
 
-	TransferHooks *delayedackkeeper.TransferHooks
-
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
 	tkeys   map[string]*storetypes.TransientStoreKey
@@ -556,14 +554,10 @@ func (a *AppKeepers) InitKeepers(
 		h.SetHook(a.Forward)
 	}
 
-	a.TransferHooks = delayedackkeeper.NewTransferHooks(a.EIBCKeeper)
-	a.TransferHooks.SetHooks(map[string]delayedackkeeper.CompletionHookInstance{
+	a.DelayedAckKeeper.SetCompletionHooks(map[string]delayedackkeeper.CompletionHookInstance{
 		forwardtypes.HookNameRollToHL:  a.Forward.RollToHLHook(),
 		forwardtypes.HookNameRollToIBC: a.Forward.RollToIBCHook(),
 	})
-
-	a.EIBCKeeper.SetTransferHooks(a.TransferHooks)
-	a.DelayedAckKeeper.SetTransferHooks(a.TransferHooks)
 
 }
 

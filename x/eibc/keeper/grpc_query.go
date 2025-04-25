@@ -41,7 +41,7 @@ func (q Querier) DemandOrderById(goCtx context.Context, req *types.QueryGetDeman
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get the demand order by its ID and search for it in all statuses
-	var demandOrder *types.DemandOrder
+	var demandOrder *commontypes.DemandOrder
 	var err error
 	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 	for _, status := range statuses {
@@ -92,16 +92,16 @@ func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
 	return opts
 }
 
-type filterOption func(order types.DemandOrder) bool
+type filterOption func(order commontypes.DemandOrder) bool
 
 func isRollappId(rollappId string) filterOption {
-	return func(order types.DemandOrder) bool {
+	return func(order commontypes.DemandOrder) bool {
 		return order.RollappId == rollappId
 	}
 }
 
 func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
-	return func(order types.DemandOrder) bool {
+	return func(order commontypes.DemandOrder) bool {
 		for _, ot := range orderType {
 			if order.Type == ot {
 				return true
@@ -112,25 +112,25 @@ func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 }
 
 func isFulfiller(fulfiller string) filterOption {
-	return func(order types.DemandOrder) bool {
+	return func(order commontypes.DemandOrder) bool {
 		return order.Recipient == fulfiller
 	}
 }
 
 func isFulfillmentState(fulfillmentState types.FulfillmentState) filterOption {
-	return func(order types.DemandOrder) bool {
+	return func(order commontypes.DemandOrder) bool {
 		return order.IsFulfilled() == (types.FulfillmentState_FULFILLED == fulfillmentState)
 	}
 }
 
 func isDenom(denom string) filterOption {
-	return func(order types.DemandOrder) bool {
+	return func(order commontypes.DemandOrder) bool {
 		return order.Price.AmountOf(denom).IsPositive()
 	}
 }
 
 func isRecipient(recipient string) filterOption {
-	return func(order types.DemandOrder) bool {
+	return func(order commontypes.DemandOrder) bool {
 		return order.Recipient == recipient
 	}
 }
