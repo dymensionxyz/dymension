@@ -175,7 +175,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, tc.fulfillmentExpectedFee)
 			_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
 			if tc.expectedFulfillmentError != nil {
-				suite.Require().ErrorIs(err, tc.expectedFulfillmentError, tc.name)
+				suite.Require().True(errorsmod.IsOf(err, tc.expectedFulfillmentError), tc.name)
+				// suite.Require().ErrorIs(err, tc.expectedFulfillmentError, tc.name)
 			} else {
 				suite.Require().NoError(err, tc.name)
 			}

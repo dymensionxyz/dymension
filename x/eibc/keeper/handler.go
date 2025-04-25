@@ -88,8 +88,10 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	if err != nil {
 		return nil, fmt.Errorf("get on complete hook: %w", err)
 	}
-	if err := k.dack.ValidateCompletionHook(*onComplete); err != nil {
-		return nil, fmt.Errorf("validate on complete hook: %w", err)
+	if onComplete != nil {
+		if err := k.dack.ValidateCompletionHook(*onComplete); err != nil {
+			return nil, fmt.Errorf("validate on complete hook: %w", err)
+		}
 	}
 
 	order := commontypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)

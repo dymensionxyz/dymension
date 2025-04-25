@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -54,47 +53,7 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		// Because we intercepted the packet, the core ibc library wasn't able to write the ack when we first
-		// got the packet. So we try to write it here.
-
-		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		/*
-				We only write the ack if writing it succeeds:
-				1. Transfer fails and writing ack fails - In this case, the funds will never be refunded on the RA.
-						non-eibc: sender will never get the funds back
-						eibc:     the fulfiller will never get the funds back, the original target has already been paid
-				2. Transfer succeeds and writing ack fails - In this case, the packet is never cleared on the RA.
-				3. Transfer succeeds and writing succeeds - happy path
-				4. Transfer fails and ack succeeds - we write the err ack and the funds will be refunded on the RA
-						non-eibc: sender will get the funds back
-			            eibc:     effective transfer from fulfiller to original target
-		*/
-		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
-			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
-		}
-
-		/*
-			SPAGHETTI CODE ALERT:
-
-			*In general* we want a way to do something whenever an ibc transfer happens ("Hook"). It can happen
-				1. on EIBC fulfill
-				2. on finalize to the original recipient, for non fulfilled orders
-				3. on finalize to the fulfiller, for fulfilled orders
-
-			Chosen approach is a bit spaghetti:
-
-			1. Do the hook on EIBC fulfillment, using immediate funds
-			2. On finalize, look up the EIBC demand order to check if it's fulfilled or not.
-				a. If it ISN'T, then do the hook AFTER the ibc transfer stack finishes
-				b. If it IS, then do nothing
-
-			We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
-		*/
-		if k.completionHooks != nil {
-			if err := k.OnRecvPacket(ctx, &rollappPacket); err != nil {
-				return errorsmod.Wrap(err, "transfer hooks on recv packet")
-			}
-		}
+		packetErr = k.FinalizeOnRecv(ctx, ibc, &rollappPacket)
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
