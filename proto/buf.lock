@@ -29,8 +29,8 @@ deps:
   - remote: buf.build
     owner: danwt
     repository: d-hyperlane-cosmos
-    commit: 216b170d54ea4bd9bef8323409e75fb9
-    digest: shake256:de4e31a08ccac92e4d06aeccdfaad9ffb11771556aa7672fd5d8c69f0ee3e16b4b22c86d18295137cea346f39f26053d90791543c058bb7fa878d5bc114fc788
+    commit: aa15d6657435444ab28b63593c2f2619
+    digest: shake256:b2d6bebc7d8878f77301c9a782757ec7aeb254815c5944f20e40014cc86eceefadde10952d6c4039e1379d47595aea6d66584157955916829c1555af74366946
   - remote: buf.build
     owner: googleapis
     repository: googleapis
