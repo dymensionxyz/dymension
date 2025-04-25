@@ -74,26 +74,27 @@ func (s *forwardSuite) TestFulfillHookIsCalled() {
 	s.Require().True(h.called)
 }
 
+type FinalizeFwdTC struct {
+	bridgeFee      int64 // percentage
+	forwardChannel string
+	forwardAmt     int64
+	forwardDst     string
+	ibcAmt         string
+	expectOK       bool
+}
+
 func (s *forwardSuite) TestFinalizeRolToRol() {
-
-	type TC struct {
-		bridgeFee      int64 // percentage
-		forwardChannel string
-		forwardAmt     int64
-		forwardDst     string
-		ibcAmt         string
-		expectOK       bool
-	}
-
-	tc := TC{
+	s.runFinalizeFwdTC(FinalizeFwdTC{
 		bridgeFee:      1,
 		forwardChannel: "channel-0",
 		forwardAmt:     100,
 		forwardDst:     "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		ibcAmt:         "200",
 		expectOK:       true,
-	}
+	})
+}
 
+func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
 	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
 	s.dackK().SetParams(s.hubCtx(), p)
