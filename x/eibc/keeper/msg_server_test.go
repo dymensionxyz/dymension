@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderPrice:                     150,
 			demandOrderFee:                       50,
 			demandOrderFulfillmentStatus:         true,
-			expectedFulfillmentError:             types.ErrDemandAlreadyFulfilled,
+			expectedFulfillmentError:             commontypes.ErrDemandAlreadyFulfilled,
 			eIBCdemandAddrBalance:                math.NewInt(300),
 			latestFinalizedStateIndex:            10,
 			proofHeight:                          10,
@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			eIBCdemandAddrBalance:                math.NewInt(1000),
 			latestFinalizedStateIndex:            10,
 			proofHeight:                          9,
-			expectedFulfillmentError:             types.ErrDemandOrderInactive,
+			expectedFulfillmentError:             commontypes.ErrDemandOrderInactive,
 			expectedDemandOrdefFulfillmentStatus: false,
 		},
 	}
@@ -461,7 +461,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderAuthorized() {
 					Status:         commontypes.Status_PENDING,
 				})
 			},
-			expectError:              types.ErrDemandOrderInactive,
+			expectError:              commontypes.ErrDemandOrderInactive,
 			expectOrderFulfilled:     false,
 			expectedLPAccountBalance: sdk.NewCoins(sdk.NewInt64Coin("adym", 200)), // Unchanged
 		},
