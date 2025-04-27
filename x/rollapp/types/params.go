@@ -70,7 +70,7 @@ func (p Params) WithLivenessSlashInterval(x uint64) Params {
 }
 
 // Validate validates the set of params
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
 		return errorsmod.Wrap(err, "dispute period")
 	}
@@ -97,21 +97,16 @@ func (p Params) String() string {
 	return string(out)
 }
 
-func validateLivenessSlashBlocks(i interface{}) error {
-	return uparam.ValidatePositiveUint64(i)
+func validateLivenessSlashBlocks(v uint64) error {
+	return uparam.ValidatePositiveUint64(v)
 }
 
-func validateLivenessSlashInterval(i interface{}) error {
-	return uparam.ValidatePositiveUint64(i)
+func validateLivenessSlashInterval(v uint64) error {
+	return uparam.ValidatePositiveUint64(v)
 }
 
 // validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
-func validateDisputePeriodInBlocks(v interface{}) error {
-	disputePeriodInBlocks, ok := v.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", v)
-	}
-
+func validateDisputePeriodInBlocks(disputePeriodInBlocks uint64) error {
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
 	}
@@ -119,11 +114,7 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 	return nil
 }
 
-func validateAppRegistrationFee(i interface{}) error {
-	v, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateAppRegistrationFee(v sdk.Coin) error {
 	if !v.IsValid() {
 		return fmt.Errorf("invalid app creation cost: %s", v)
 	}

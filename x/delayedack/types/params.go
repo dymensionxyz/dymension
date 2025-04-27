@@ -60,7 +60,7 @@ func validateDeletePacketsEpochLimit(v int32) error {
 }
 
 // Validate validates the set of params
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := validateBridgingFee(p.BridgingFee); err != nil {
 		return err
 	}

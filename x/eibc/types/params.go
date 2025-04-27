@@ -28,7 +28,7 @@ func DefaultParams() Params {
 }
 
 // Validate validates the set of params
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
 		return fmt.Errorf("epoch identifier: %w", err)
 	}
@@ -47,24 +47,16 @@ func (p Params) String() string {
 	return string(out)
 }
 
-func validateEpochIdentifier(i interface{}) error {
-	v, ok := i.(string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateEpochIdentifier(v string) error {
 	if len(v) == 0 {
 		return fmt.Errorf("epoch identifier cannot be empty")
 	}
 	return nil
 }
 
-func validateTimeoutFee(i interface{}) error {
-	v, ok := i.(math.LegacyDec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateTimeoutFee(v math.LegacyDec) error {
 	if v.IsNil() {
-		return fmt.Errorf("invalid global pool params: %+v", i)
+		return fmt.Errorf("invalid global pool params: %+v", v)
 	}
 	if v.IsNegative() {
 		return ErrNegativeFee
@@ -77,13 +69,9 @@ func validateTimeoutFee(i interface{}) error {
 	return nil
 }
 
-func validateErrAckFee(i any) error {
-	v, ok := i.(math.LegacyDec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateErrAckFee(v math.LegacyDec) error {
 	if v.IsNil() {
-		return fmt.Errorf("invalid global pool params: %+v", i)
+		return fmt.Errorf("invalid global pool params: %+v", v)
 	}
 	if v.IsNegative() {
 		return ErrNegativeFee

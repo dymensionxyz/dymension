@@ -26,7 +26,7 @@ func DefaultParams() Params {
 }
 
 // Validate validates params.
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := validateAddresses(p.ForceUnlockAllowedAddresses); err != nil {
 		return err
 	}
@@ -41,11 +41,7 @@ func (p Params) Validate() error {
 	return nil
 }
 
-func validateAddresses(i interface{}) error {
-	addresses, ok := i.([]string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateAddresses(addresses []string) error {
 	for _, address := range addresses {
 		_, err := sdk.AccAddressFromBech32(address)
 		if err != nil {
@@ -56,12 +52,7 @@ func validateAddresses(i interface{}) error {
 	return nil
 }
 
-func validateLockCreationFee(i interface{}) error {
-	fee, ok := i.(math.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
+func validateLockCreationFee(fee math.Int) error {
 	if !fee.IsNil() && fee.IsNegative() {
 		return fmt.Errorf("lock creation fee must be non-negative: %d", fee.Int64())
 	}
@@ -69,11 +60,7 @@ func validateLockCreationFee(i interface{}) error {
 	return nil
 }
 
-func validateMinLockDuration(i interface{}) error {
-	duration, ok := i.(time.Duration)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateMinLockDuration(duration time.Duration) error {
 	if duration < 0 {
 		return fmt.Errorf("duration should be non-negative: %d", duration)
 	}

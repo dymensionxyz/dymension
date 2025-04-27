@@ -36,13 +36,12 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
 	}
 
-	err := req.NewParams.Validate()
+	err := req.NewParams.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
 
 	m.Keeper.SetParams(ctx, req.NewParams)
-
 	return &types.MsgUpdateParamsResponse{}, nil
 }
 
@@ -50,7 +49,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic() // TODO: remove, sdk does this
+	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +79,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic() // TODO: remove, sdk does this
+	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +193,7 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdateDemandOrder) (*types.MsgUpdateDemandOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := msg.ValidateBasic() // TODO: remove, sdk does this
+	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}

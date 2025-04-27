@@ -35,14 +35,14 @@ func DefaultParams() Params {
 }
 
 // Validate checks that the incentives module parameters are valid.
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := epochtypes.ValidateEpochIdentifierInterface(p.DistrEpochIdentifier); err != nil {
 		return err
 	}
-	if err := validateCreateGaugeFeeInterface(p.CreateGaugeBaseFee); err != nil {
+	if err := validateCreateGaugeFee(p.CreateGaugeBaseFee); err != nil {
 		return err
 	}
-	if err := validateAddToGaugeFeeInterface(p.AddToGaugeBaseFee); err != nil {
+	if err := validateAddToGaugeFee(p.AddToGaugeBaseFee); err != nil {
 		return err
 	}
 	if err := validateAddDenomFee(p.AddDenomFee); err != nil {
@@ -59,52 +59,31 @@ func (p Params) Validate() error {
 	return nil
 }
 
-func validateCreateGaugeFeeInterface(i interface{}) error {
-	v, ok := i.(math.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateCreateGaugeFee(v math.Int) error {
 	if v.IsNegative() {
 		return gerrc.ErrInvalidArgument.Wrapf("must be >= 0, got %s", v)
 	}
 	return nil
 }
 
-func validateAddToGaugeFeeInterface(i interface{}) error {
-	v, ok := i.(math.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateAddToGaugeFee(v math.Int) error {
 	if v.IsNegative() {
 		return gerrc.ErrInvalidArgument.Wrapf("must be >= 0, got %s", v)
 	}
 	return nil
 }
 
-func validateAddDenomFee(i interface{}) error {
-	v, ok := i.(math.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateAddDenomFee(v math.Int) error {
 	if v.IsNegative() {
 		return gerrc.ErrInvalidArgument.Wrapf("must be >= 0, got %s", v)
 	}
 	return nil
 }
 
-func validateMinValueForDistr(i interface{}) error {
-	_, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
+func validateMinValueForDistr(v sdk.Coin) error {
 	return nil
 }
 
-func validateRollappGaugesMode(i interface{}) error {
-	_, ok := i.(Params_RollappGaugesModes)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
+func validateRollappGaugesMode(v Params_RollappGaugesModes) error {
 	return nil
 }

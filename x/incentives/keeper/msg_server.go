@@ -36,12 +36,12 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
 	}
 
-	err := req.Params.Validate()
+	err := req.Params.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: make sure MinValueForDistribution is same as txfees basedenom
+	// FIXME: make sure MinValueForDistribution is same as txfees basedenom
 
 	m.keeper.SetParams(ctx, req.Params)
 
