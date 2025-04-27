@@ -16,10 +16,10 @@ import "cosmos/base/v1beta1/coin.proto";
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  
+
   // UpdateParams is used for updating module params.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  
+
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateRollappInformation(MsgUpdateRollappInformation)
       returns (MsgUpdateRollappInformationResponse);

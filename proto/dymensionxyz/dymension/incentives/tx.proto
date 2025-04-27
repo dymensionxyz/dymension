@@ -13,10 +13,10 @@ import "dymensionxyz/dymension/incentives/params.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  
+
   // UpdateParams is used for updating module params.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  
+
   rpc CreateGauge(MsgCreateGauge) returns (MsgCreateGaugeResponse);
   rpc AddToGauge(MsgAddToGauge) returns (MsgAddToGaugeResponse);
 }

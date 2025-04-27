@@ -13,10 +13,10 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  
+
   // UpdateParams is used for updating module params.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  
+
   rpc TryFulfillOnDemand(MsgTryFulfillOnDemand)
       returns (MsgTryFulfillOnDemandResponse) {}
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
