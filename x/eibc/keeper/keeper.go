@@ -34,6 +34,7 @@ type (
 		rk         types.RollappKeeper
 		Schema     collections.Schema
 		LPs        LPs
+		authority  string
 	}
 )
 
@@ -46,6 +47,7 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
 	rk types.RollappKeeper,
+	authority string,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -73,6 +75,7 @@ func NewKeeper(
 		rk:         rk,
 		Schema:     schema,
 		LPs:        lps,
+		authority:  authority,
 	}
 }
 

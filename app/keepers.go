@@ -321,6 +321,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.TxFeesKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create IBC Keeper
@@ -387,6 +388,7 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.IROKeeper = irokeeper.NewKeeper(
@@ -433,6 +435,7 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.DelayedAckKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.DymNSKeeper = dymnskeeper.NewKeeper(

@@ -23,10 +23,12 @@ type Keeper struct {
 	ak types.AccountKeeper
 	bk types.BankKeeper
 	tk types.TxFeesKeeper
+
+	authority string
 }
 
 // NewKeeper returns an instance of Keeper.
-func NewKeeper(storeKey stroretypes.StoreKey, paramSpace paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper, tk types.TxFeesKeeper) *Keeper {
+func NewKeeper(storeKey stroretypes.StoreKey, paramSpace paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper, tk types.TxFeesKeeper, authority string) *Keeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -38,6 +40,7 @@ func NewKeeper(storeKey stroretypes.StoreKey, paramSpace paramtypes.Subspace, ak
 		ak:         ak,
 		bk:         bk,
 		tk:         tk,
+		authority:  authority,
 	}
 }
 
