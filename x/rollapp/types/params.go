@@ -7,26 +7,12 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
-var _ paramtypes.ParamSet = (*Params)(nil)
-
 var (
-	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
-	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
-
-	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
-	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
-
-	// KeyAppRegistrationFee defines the key to store the cost of the app
-	KeyAppRegistrationFee = []byte("AppRegistrationFee")
-
-	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
-
 	DefaultAppRegistrationFee         = commontypes.Dym(math.NewInt(1))
 	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(math.NewInt(100))
 )
@@ -39,11 +25,6 @@ const (
 	DefaultLivenessSlashBlocks   = uint64(7200) // 12 hours worth of blocks at 1 block per 6 seconds
 	DefaultLivenessSlashInterval = uint64(600)  // 1 hour worth of blocks at 1 block per 6 seconds
 )
-
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
 
 // NewParams creates a new Params instance
 func NewParams(
@@ -71,17 +52,6 @@ func DefaultParams() Params {
 		DefaultAppRegistrationFee,
 		DefaultMinSequencerBondGlobalCoin,
 	)
-}
-
-// ParamSetPairs get the params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
-		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
-		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
-		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
-		paramtypes.NewParamSetPair(KeyMinSequencerBondGlobal, &p.MinSequencerBondGlobal, uparam.ValidateCoin),
-	}
 }
 
 func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
