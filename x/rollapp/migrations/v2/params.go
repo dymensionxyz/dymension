@@ -1,4 +1,4 @@
-package types
+package v2
 
 import (
 	"errors"
@@ -7,12 +7,26 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
+var _ paramtypes.ParamSet = (*Params)(nil)
+
 var (
+	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
+	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
+
+	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
+	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
+
+	// KeyAppRegistrationFee defines the key to store the cost of the app
+	KeyAppRegistrationFee = []byte("AppRegistrationFee")
+
+	KeyMinSequencerBondGlobal = []byte("KeyMinSequencerBondGlobal")
+
 	DefaultAppRegistrationFee         = commontypes.Dym(math.NewInt(1))
 	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(math.NewInt(100))
 )
@@ -25,6 +39,11 @@ const (
 	DefaultLivenessSlashBlocks   = uint64(7200) // 12 hours worth of blocks at 1 block per 6 seconds
 	DefaultLivenessSlashInterval = uint64(600)  // 1 hour worth of blocks at 1 block per 6 seconds
 )
+
+// ParamKeyTable the param key table for launch module
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
+}
 
 // NewParams creates a new Params instance
 func NewParams(
@@ -54,6 +73,17 @@ func DefaultParams() Params {
 	)
 }
 
+// ParamSetPairs get the params.ParamSet
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
+		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
+		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
+		paramtypes.NewParamSetPair(KeyAppRegistrationFee, &p.AppRegistrationFee, validateAppRegistrationFee),
+		paramtypes.NewParamSetPair(KeyMinSequencerBondGlobal, &p.MinSequencerBondGlobal, uparam.ValidateCoin),
+	}
+}
+
 func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
 	p.DisputePeriodInBlocks = x
 	return p
@@ -70,7 +100,7 @@ func (p Params) WithLivenessSlashInterval(x uint64) Params {
 }
 
 // Validate validates the set of params
-func (p Params) ValidateBasic() error {
+func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
 		return errorsmod.Wrap(err, "dispute period")
 	}
@@ -91,27 +121,27 @@ func (p Params) ValidateBasic() error {
 	return nil
 }
 
-// Validate implements the ParamSet interface
-func (p Params) Validate() error {
-	return p.ValidateBasic()
-}
-
 // String implements the Stringer interface.
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
 }
 
-func validateLivenessSlashBlocks(v uint64) error {
-	return uparam.ValidatePositiveUint64(v)
+func validateLivenessSlashBlocks(i interface{}) error {
+	return uparam.ValidatePositiveUint64(i)
 }
 
-func validateLivenessSlashInterval(v uint64) error {
-	return uparam.ValidatePositiveUint64(v)
+func validateLivenessSlashInterval(i interface{}) error {
+	return uparam.ValidatePositiveUint64(i)
 }
 
 // validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
-func validateDisputePeriodInBlocks(disputePeriodInBlocks uint64) error {
+func validateDisputePeriodInBlocks(v interface{}) error {
+	disputePeriodInBlocks, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
 	}
@@ -119,7 +149,11 @@ func validateDisputePeriodInBlocks(disputePeriodInBlocks uint64) error {
 	return nil
 }
 
-func validateAppRegistrationFee(v sdk.Coin) error {
+func validateAppRegistrationFee(i interface{}) error {
+	v, ok := i.(sdk.Coin)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
 	if !v.IsValid() {
 		return fmt.Errorf("invalid app creation cost: %s", v)
 	}
