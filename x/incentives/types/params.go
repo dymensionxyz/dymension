@@ -8,23 +8,7 @@ import (
 	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
-
-// Incentives parameters key store.
-var (
-	KeyDistrEpochIdentifier = []byte("DistrEpochIdentifier")
-	KeyCreateGaugeFee       = []byte("CreateGaugeFee")
-	KeyAddToGaugeFee        = []byte("AddToGaugeFee")
-	KeyAddDenomFee          = []byte("AddDenomFee")
-	KeyMinValueForDistr     = []byte("MinValueForDistr")
-	KeyRollappGaugesMode    = []byte("RollappGaugesMode")
-)
-
-// ParamKeyTable returns the key table for the incentive module's parameters.
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
 
 // NewParams takes an epoch distribution identifier, then returns an incentives Params struct.
 func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, minValueForDistr sdk.Coin, rollappGaugesMode Params_RollappGaugesModes) Params {
@@ -73,18 +57,6 @@ func (p Params) Validate() error {
 		return err
 	}
 	return nil
-}
-
-// ParamSetPairs takes the parameter struct and associates the paramsubspace key and field of the parameters as a KVStore.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyDistrEpochIdentifier, &p.DistrEpochIdentifier, epochtypes.ValidateEpochIdentifierInterface),
-		paramtypes.NewParamSetPair(KeyCreateGaugeFee, &p.CreateGaugeBaseFee, validateCreateGaugeFeeInterface),
-		paramtypes.NewParamSetPair(KeyAddToGaugeFee, &p.AddToGaugeBaseFee, validateAddToGaugeFeeInterface),
-		paramtypes.NewParamSetPair(KeyAddDenomFee, &p.AddDenomFee, validateAddDenomFee),
-		paramtypes.NewParamSetPair(KeyMinValueForDistr, &p.MinValueForDistribution, validateMinValueForDistr),
-		paramtypes.NewParamSetPair(KeyRollappGaugesMode, &p.RollappGaugesMode, validateRollappGaugesMode),
-	}
 }
 
 func validateCreateGaugeFeeInterface(i interface{}) error {

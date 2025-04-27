@@ -41,6 +41,8 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, err
 	}
 
+	// TODO: make sure MinValueForDistribution is same as txfees basedenom
+
 	m.keeper.SetParams(ctx, req.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil
