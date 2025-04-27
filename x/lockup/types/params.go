@@ -6,22 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
-
-// Parameter store keys.
-var (
-	KeyForceUnlockAllowedAddresses = []byte("ForceUnlockAllowedAddresses")
-	KeyLockCreationFee             = []byte("LockCreationFee")
-	KeyMinLockDuration             = []byte("MinLockDuration")
-
-	_ paramtypes.ParamSet = &Params{}
-)
-
-// ParamKeyTable for lockup module.
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
 
 func NewParams(forceUnlockAllowedAddresses []string, lockCreationFee math.Int, minLockDuration time.Duration) Params {
 	return Params{
@@ -48,16 +33,12 @@ func (p Params) Validate() error {
 	if err := validateLockCreationFee(p.LockCreationFee); err != nil {
 		return err
 	}
-	return nil
-}
 
-// ParamSetPairs implements params.ParamSet.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyForceUnlockAllowedAddresses, &p.ForceUnlockAllowedAddresses, validateAddresses),
-		paramtypes.NewParamSetPair(KeyLockCreationFee, &p.LockCreationFee, validateLockCreationFee),
-		paramtypes.NewParamSetPair(KeyMinLockDuration, &p.MinLockDuration, validateMinLockDuration),
+	if err := validateMinLockDuration(p.MinLockDuration); err != nil {
+		return err
 	}
+
+	return nil
 }
 
 func validateAddresses(i interface{}) error {
