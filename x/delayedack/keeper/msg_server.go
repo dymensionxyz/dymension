@@ -22,13 +22,12 @@ type DelayedAckIBCModule interface {
 var _ types.MsgServer = MsgServer{}
 
 type MsgServer struct {
-	k         Keeper
-	ibc       DelayedAckIBCModule // x/delayedack IBC module
-	authority string
+	k   Keeper
+	ibc DelayedAckIBCModule // x/delayedack IBC module
 }
 
-func NewMsgServer(k Keeper, ibc DelayedAckIBCModule, authority string) MsgServer {
-	return MsgServer{k: k, ibc: ibc, authority: authority}
+func NewMsgServer(k Keeper, ibc DelayedAckIBCModule) MsgServer {
+	return MsgServer{k: k, ibc: ibc}
 }
 
 // UpdateParams is a governance operation to update the module parameters.
@@ -36,7 +35,7 @@ func (m MsgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Check if the sender is the authority
-	if req.Authority != m.authority {
+	if req.Authority != m.k.authority {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
 	}
 
