@@ -23,5 +23,5 @@ func (gs GenesisState) Validate() error {
 		}
 		demandOrdersMap[demandOrder.Id] = struct{}{}
 	}
-	return gs.Params.Validate()
+	return gs.Params.ValidateBasic()
 }

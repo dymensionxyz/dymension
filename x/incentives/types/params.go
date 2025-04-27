@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"cosmossdk.io/math"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -80,10 +78,10 @@ func validateAddDenomFee(v math.Int) error {
 	return nil
 }
 
-func validateMinValueForDistr(v sdk.Coin) error {
+func validateMinValueForDistr(_ sdk.Coin) error {
 	return nil
 }
 
-func validateRollappGaugesMode(v Params_RollappGaugesModes) error {
+func validateRollappGaugesMode(_ Params_RollappGaugesModes) error {
 	return nil
 }
