@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
@@ -23,18 +22,17 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		hooks      types.EIBCHooks
-		paramstore paramtypes.Subspace
-		ak         types.AccountKeeper
-		bk         types.BankKeeper
-		dack       types.DelayedAckKeeper
-		rk         types.RollappKeeper
-		Schema     collections.Schema
-		LPs        LPs
-		authority  string
+		cdc       codec.BinaryCodec
+		storeKey  storetypes.StoreKey
+		memKey    storetypes.StoreKey
+		hooks     types.EIBCHooks
+		ak        types.AccountKeeper
+		bk        types.BankKeeper
+		dack      types.DelayedAckKeeper
+		rk        types.RollappKeeper
+		Schema    collections.Schema
+		LPs       LPs
+		authority string
 	}
 )
 
@@ -42,20 +40,13 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey,
 	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
 	rk types.RollappKeeper,
 	authority string,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	service := collcompat.NewKVStoreService(storeKey)
-
 	sb := collections.NewSchemaBuilder(service)
 	lps := makeLPsStore(sb, cdc)
 
@@ -65,17 +56,16 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		ak:         accountKeeper,
-		bk:         bankKeeper,
-		dack:       delayedAckKeeper,
-		rk:         rk,
-		Schema:     schema,
-		LPs:        lps,
-		authority:  authority,
+		cdc:       cdc,
+		storeKey:  storeKey,
+		memKey:    memKey,
+		ak:        accountKeeper,
+		bk:        bankKeeper,
+		dack:      delayedAckKeeper,
+		rk:        rk,
+		Schema:    schema,
+		LPs:       lps,
+		authority: authority,
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgFulfillOrder{}
 	_ sdk.Msg = &MsgFulfillOrderAuthorized{}
 	_ sdk.Msg = &MsgUpdateDemandOrder{}
