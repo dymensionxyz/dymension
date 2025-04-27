@@ -1,6 +1,6 @@
 run:
-  concurrency: 4
-  timeout: 10m
+  concurrency: 2
+  timeout: 5m
   tests: false
   modules-download-mode: readonly
 
@@ -43,7 +43,6 @@ linters:
     - gofumpt
     - goimports
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
