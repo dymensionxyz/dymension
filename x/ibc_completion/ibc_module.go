@@ -14,8 +14,7 @@ import (
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -27,20 +26,29 @@ var _ porttypes.IBCModule = &IBCModule{}
 
 type IBCModule struct {
 	porttypes.IBCModule
-	rollappK rollappkeeper.Keeper
-	dackK    delayedackkeeper.Keeper
+	rollappK RolKeeper
+	dackK    DackKeeper
 }
 
 func NewIBCModule(
 	next porttypes.IBCModule,
-	rollappKeeper rollappkeeper.Keeper,
-	dackKeeper delayedackkeeper.Keeper,
+	rollappKeeper RolKeeper,
+	dackKeeper DackKeeper,
 ) IBCModule {
 	return IBCModule{
 		IBCModule: next,
 		rollappK:  rollappKeeper,
 		dackK:     dackKeeper,
 	}
+}
+
+type RolKeeper interface {
+	GetValidTransfer(ctx sdk.Context, data []byte, destPort string, destChannel string) (rollapptypes.TransferData, error)
+}
+
+type DackKeeper interface {
+	ValidateCompletionHook(info commontypes.CompletionHookCall) error
+	RunCompletionHook(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error
 }
 
 func (m IBCModule) logger(
@@ -65,7 +73,7 @@ type Memo struct {
 }
 
 const (
-	memoObjectKey = ""
+	pfmKey = "forward"
 )
 
 // for non-rollapp packets only, process any completion hooks
@@ -89,7 +97,7 @@ func (m IBCModule) OnRecvPacket(
 	memoBz := []byte(transfer.Memo)
 	d := make(map[string]interface{})
 	err = json.Unmarshal(memoBz, &d)
-	if err != nil || d["forward"] != nil {
+	if err != nil || d[pfmKey] != nil {
 		// for PFM or something else
 		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -110,11 +118,18 @@ func (m IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("unmarshal completion hook: %w", err))
 	}
 	if err := hook.ValidateBasic(); err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("validate completion hook: %w", err))
+		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("val basic completion hook: %w", err))
 	}
-
 	if err := m.dackK.ValidateCompletionHook(hook); err != nil {
-		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("validate completion hook: %w", err))
+		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("full validate completion hook: %w", err))
 	}
 
+	var budget sdk.Coin
+	var fundsSrc sdk.AccAddress
+	err = m.dackK.RunCompletionHook(ctx, fundsSrc, budget, hook)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("run completion hook: %w", err))
+	}
+
+	return nil
 }

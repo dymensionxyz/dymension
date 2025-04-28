@@ -32,20 +32,16 @@ func (k Keeper) ValidateCompletionHook(info commontypes.CompletionHookCall) erro
 	return f.ValidateArg(info.Data)
 }
 
-func (k Keeper) RunCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder, amt math.Int) error {
-	f, ok := k.completionHooks[o.CompletionHook.Name]
-	if !ok {
-		return gerrc.ErrInternal.Wrapf("completion hook not registered but should have been checked before order creation: %s", o.CompletionHook.Name)
-	}
+func (k Keeper) RunOrderCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder, amt math.Int) error {
+	fundsSrc := o.GetRecipientBech32Address()
 	budget := sdk.NewCoin(o.Denom(), amt)
-	// return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHook.Data)
-	return k.RunCompletionHook2(ctx, o.GetRecipientBech32Address(), budget, *o.CompletionHook)
+	return k.RunCompletionHook(ctx, fundsSrc, budget, *o.CompletionHook)
 }
 
-func (k Keeper) RunCompletionHook2(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error {
+func (k Keeper) RunCompletionHook(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error {
 	f, ok := k.completionHooks[call.Name]
 	if !ok {
-		return gerrc.ErrInternal.Wrapf("completion hook not registere, should have been checked already", call.Name)
+		return gerrc.ErrInternal.Wrapf("completion hook not registered, should have been checked already: %s", call.Name)
 	}
 	return f.Run(ctx, fundsSrc, budget, call.Data)
 }
@@ -120,5 +116,5 @@ func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *comm
 	amt := pTransfer.MustAmountInt()
 	// account for the bridge fee which happened before the receiver got the funds
 	amt = amt.Sub(k.BridgingFeeFromAmt(ctx, amt))
-	return k.RunCompletionHook(ctx, o, amt)
+	return k.RunOrderCompletionHook(ctx, o, amt)
 }
