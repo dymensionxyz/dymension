@@ -38,7 +38,16 @@ func (k Keeper) RunCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder, a
 		return gerrc.ErrInternal.Wrapf("completion hook not registered but should have been checked before order creation: %s", o.CompletionHook.Name)
 	}
 	budget := sdk.NewCoin(o.Denom(), amt)
-	return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHook.Data)
+	// return f.Run(ctx, o.GetRecipientBech32Address(), budget, o.CompletionHook.Data)
+	return k.RunCompletionHook2(ctx, o.GetRecipientBech32Address(), budget, *o.CompletionHook)
+}
+
+func (k Keeper) RunCompletionHook2(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error {
+	f, ok := k.completionHooks[call.Name]
+	if !ok {
+		return gerrc.ErrInternal.Wrapf("completion hook not registere, should have been checked already", call.Name)
+	}
+	return f.Run(ctx, fundsSrc, budget, call.Data)
 }
 
 // Should be called after packet finalization
