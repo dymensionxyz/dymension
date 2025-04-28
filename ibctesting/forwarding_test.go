@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -35,7 +36,9 @@ func (s *eibcForwardSuite) SetupTest() {
 }
 
 type mockTransferCompletionHook struct {
-	called bool
+	called   bool
+	checkBal bool
+	s        *utilSuite
 }
 
 func (h *mockTransferCompletionHook) ValidateArg(hookData []byte) error {
@@ -44,12 +47,23 @@ func (h *mockTransferCompletionHook) ValidateArg(hookData []byte) error {
 
 func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	h.called = true
+	if !h.checkBal {
+		return nil
+	}
+	balances, err := h.s.hubApp().BankKeeper.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: fundsSource.String(),
+		Denom:   budget.Denom,
+	})
+	h.s.Require().NoError(err)
+	h.s.Require().Equal(balances, sdk.NewCoins(budget))
 	return nil
 }
 
 func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
-	h := mockTransferCompletionHook{}
+	h := mockTransferCompletionHook{
+		s: &s.eibcSuite.utilSuite,
+	}
 	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
@@ -187,10 +201,14 @@ func (s *osmosisForwardSuite) TestForward() {
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
-	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+
+	coinToSendToB := sdk.NewCoin("foo", amount)
+	apptesting.FundAccount(s.hubApp(), s.cosmosCtx(), s.cosmosChain().SenderAccount.GetAddress(), sdk.NewCoins(coinToSendToB))
 
 	dummy := "dummy"
-	h := mockTransferCompletionHook{}
+	h := mockTransferCompletionHook{
+		s: &s.utilSuite,
+	}
 	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
