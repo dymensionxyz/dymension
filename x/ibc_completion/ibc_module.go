@@ -17,6 +17,7 @@ import (
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
+	"github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
@@ -69,11 +70,6 @@ func (m IBCModule) logger(
 	)
 }
 
-type Memo struct {
-	// can be nil
-	OnCompletionHook []byte `json:"on_completion,omitempty"`
-}
-
 // for non-rollapp packets only, process any completion hooks
 func (m IBCModule) OnRecvPacket(
 	ctx sdk.Context,
@@ -97,7 +93,7 @@ func (m IBCModule) OnRecvPacket(
 		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	var memo Memo
+	var memo types.Memo
 	err = json.Unmarshal(memoBz, &memo)
 	if err != nil {
 		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -134,7 +130,7 @@ func (m IBCModule) OnRecvPacket(
 	budget := sdk.NewCoin(denom, amt)
 
 	ack := m.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	if ack != nil {
+	if !ack.Success() {
 		return ack
 	}
 
@@ -143,7 +139,7 @@ func (m IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("run completion hook: %w", err))
 	}
 
-	return nil
+	return ack
 }
 
 func memoHasConflictingMiddleware(memoBz []byte) bool {

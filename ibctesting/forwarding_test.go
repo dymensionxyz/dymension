@@ -17,6 +17,7 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
+	ibccompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
 )
@@ -34,7 +35,6 @@ func (s *eibcForwardSuite) SetupTest() {
 }
 
 type mockTransferCompletionHook struct {
-	*eibcForwardSuite
 	called bool
 }
 
@@ -49,9 +49,7 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 
 func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
-	h := mockTransferCompletionHook{
-		eibcForwardSuite: s,
-	}
+	h := mockTransferCompletionHook{}
 	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
@@ -191,8 +189,34 @@ func (s *osmosisForwardSuite) TestForward() {
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
-	// send from cosmosChain to hubChain
-	msg := types.NewMsgTransfer(cosmosEndpoint.ChannelConfig.PortID, cosmosEndpoint.ChannelID, coinToSendToB, s.cosmosChain().SenderAccount.GetAddress().String(), s.hubChain().SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	dummy := "dummy"
+	h := mockTransferCompletionHook{}
+	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
+		map[string]delayedackkeeper.CompletionHookInstance{
+			dummy: &h,
+		},
+	)
+	s.T().Log("running test forward!")
+
+	hookData := commontypes.CompletionHookCall{
+		Name: dummy,
+		Data: []byte{},
+	}
+	bz, err := proto.Marshal(&hookData)
+	s.Require().NoError(err)
+
+	memo, err := ibccompletiontypes.MakeMemo(bz)
+	s.Require().NoError(err)
+	msg := types.NewMsgTransfer(
+		cosmosEndpoint.ChannelConfig.PortID,
+		cosmosEndpoint.ChannelID,
+		coinToSendToB,
+		s.cosmosChain().SenderAccount.GetAddress().String(),
+		s.hubChain().SenderAccount.GetAddress().String(),
+		timeoutHeight,
+		0,
+		memo,
+	)
 	res, err := s.cosmosChain().SendMsgs(msg)
 	s.Require().NoError(err) // message committed
 
@@ -204,6 +228,8 @@ func (s *osmosisForwardSuite) TestForward() {
 
 	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
+
+	s.Require().True(h.called)
 }
 
 func (s *osmosisForwardSuite) SetupTest() {
