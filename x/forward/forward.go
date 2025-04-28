@@ -5,14 +5,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
-
-	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
 type Forward struct {
 	warpQ     types.WarpQuery
 	warpS     warptypes.MsgServer
-	transferK transferkeeper.Keeper
+	transferK types.TransferKeeper
 	bankK     types.BankKeeper
 	accountK  types.AccountKeeper
 }
@@ -20,8 +18,8 @@ type Forward struct {
 func New(
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
-	transferKeeper transferkeeper.Keeper,
-	warpQueryServer warptypes.QueryServer,
+	transferKeeper types.TransferKeeper,
+	warpQueryServer types.WarpQuery,
 	warpMsgServer warptypes.MsgServer,
 ) *Forward {
 
@@ -35,5 +33,5 @@ func New(
 }
 
 func (k Forward) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/forward")
+	return ctx.Logger().With("module", types.ModuleName)
 }

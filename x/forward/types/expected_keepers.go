@@ -4,6 +4,7 @@ import (
 	context "context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
@@ -20,4 +21,8 @@ type BankKeeper interface {
 
 type AccountKeeper interface {
 	GetModuleAddress(moduleName string) sdk.AccAddress
+}
+
+type TransferKeeper interface {
+	Transfer(ctx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
 }

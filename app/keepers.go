@@ -541,7 +541,6 @@ func (a *AppKeepers) InitKeepers(
 
 	a.Forward = forward.New(
 		a.BankKeeper,
-		a.AccountKeeper,
 		a.TransferKeeper,
 		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
