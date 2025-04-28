@@ -8,7 +8,10 @@ import (
 	"cosmossdk.io/math"
 	comettypes "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -18,20 +21,20 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type forwardSuite struct {
+type eibcForwardSuite struct {
 	eibcSuite
 }
 
 func TestForwardSuite(t *testing.T) {
-	suite.Run(t, new(forwardSuite))
+	suite.Run(t, new(eibcForwardSuite))
 }
 
-func (s *forwardSuite) SetupTest() {
+func (s *eibcForwardSuite) SetupTest() {
 	s.eibcSuite.SetupTest()
 }
 
 type mockTransferCompletionHook struct {
-	*forwardSuite
+	*eibcForwardSuite
 	called bool
 }
 
@@ -44,10 +47,10 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 	return nil
 }
 
-func (s *forwardSuite) TestFulfillHookIsCalled() {
+func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
 	h := mockTransferCompletionHook{
-		forwardSuite: s,
+		eibcForwardSuite: s,
 	}
 	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
@@ -88,18 +91,18 @@ var FinalizeFwdTCOK = FinalizeFwdTC{
 	expectOK:       true,
 }
 
-func (s *forwardSuite) TestFinalizeRolToRolOK() {
+func (s *eibcForwardSuite) TestFinalizeRolToRolOK() {
 	tc := FinalizeFwdTCOK
 	s.runFinalizeFwdTC(tc)
 }
-func (s *forwardSuite) TestFinalizeRolToRolWrongChan() {
+func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 	tc := FinalizeFwdTCOK
 	tc.forwardChannel = "channel-999"
 	tc.expectOK = false
 	s.runFinalizeFwdTC(tc)
 }
 
-func (s *forwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
+func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
 	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
 	s.dackK().SetParams(s.hubCtx(), p)
@@ -167,4 +170,51 @@ func parseFwdErrFromEvents(events []comettypes.Event) (bool, error) {
 		}
 	}
 	return false, gerrc.ErrNotFound
+}
+
+type osmosisForwardSuite struct {
+	utilSuite
+	path *ibctesting.Path
+}
+
+func TestOsmosisForwardSuite(t *testing.T) {
+	suite.Run(t, new(osmosisForwardSuite))
+}
+
+func (s *osmosisForwardSuite) TestForward() {
+	cosmosEndpoint := s.path.EndpointB
+
+	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
+
+	timeoutHeight := clienttypes.NewHeight(100, 110)
+	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
+	s.Require().True(ok)
+	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+
+	// send from cosmosChain to hubChain
+	msg := types.NewMsgTransfer(cosmosEndpoint.ChannelConfig.PortID, cosmosEndpoint.ChannelID, coinToSendToB, s.cosmosChain().SenderAccount.GetAddress().String(), s.hubChain().SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	res, err := s.cosmosChain().SendMsgs(msg)
+	s.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err) // relay committed
+
+	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+}
+
+func (s *osmosisForwardSuite) SetupTest() {
+	s.utilSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false)
+
+	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{
+		Base: sdk.DefaultBondDenom,
+	})
+
+	s.path = s.newTransferPath(s.hubChain(), s.cosmosChain())
+	s.coordinator.Setup(s.path)
+
 }
