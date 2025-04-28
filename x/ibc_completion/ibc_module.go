@@ -23,6 +23,7 @@ import (
 
 const (
 	ModuleName = "ibc_completion"
+	pfmKey     = "forward"
 )
 
 var _ porttypes.IBCModule = &IBCModule{}
@@ -71,13 +72,7 @@ func (m IBCModule) logger(
 type Memo struct {
 	// can be nil
 	OnCompletionHook []byte `json:"on_completion,omitempty"`
-	// can be nil
-	PFM []byte `json:"forward,omitempty"`
 }
-
-const (
-	pfmKey = "forward"
-)
 
 // for non-rollapp packets only, process any completion hooks
 func (m IBCModule) OnRecvPacket(
