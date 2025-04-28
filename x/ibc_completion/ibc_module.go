@@ -2,16 +2,19 @@ package ibc_completion
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
+	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -95,10 +98,7 @@ func (m IBCModule) OnRecvPacket(
 	}
 
 	memoBz := []byte(transfer.Memo)
-	d := make(map[string]interface{})
-	err = json.Unmarshal(memoBz, &d)
-	if err != nil || d[pfmKey] != nil {
-		// for PFM or something else
+	if memoHasConflictingMiddleware(memoBz) {
 		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -124,12 +124,35 @@ func (m IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("full validate completion hook: %w", err))
 	}
 
-	var budget sdk.Coin
-	var fundsSrc sdk.AccAddress
+	// first need to complete the inbound transfer so that the funds are available
+	// (that's why we cant allow PFM or other middlewares which conflict)
+
+	amt, ok := math.NewIntFromString(transfer.Amount)
+	if !ok {
+		return uevent.NewErrorAcknowledgement(ctx, errors.New("invalid amount string"))
+	}
+	denom := denomutils.GetIncomingTransferDenom(packet, transfer.FungibleTokenPacketData)
+	fundsSrc, err := sdk.AccAddressFromBech32(transfer.Receiver)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("invalid recipient address: %w", err))
+	}
+	budget := sdk.NewCoin(denom, amt)
+
+	ack := m.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	if ack != nil {
+		return ack
+	}
+
 	err = m.dackK.RunCompletionHook(ctx, fundsSrc, budget, hook)
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, fmt.Errorf("run completion hook: %w", err))
 	}
 
 	return nil
+}
+
+func memoHasConflictingMiddleware(memoBz []byte) bool {
+	d := make(map[string]interface{})
+	err := json.Unmarshal(memoBz, &d)
+	return err != nil || d[pfmKey] != nil
 }
