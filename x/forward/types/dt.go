@@ -15,6 +15,7 @@ import (
 	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	ibccompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 )
 
 const (
@@ -152,7 +153,7 @@ func NewRollToHLMemoString(
 	return delayedacktypes.CreateMemo(eibcFee, bz), nil
 }
 
-func NewRollToIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHookCall, error) {
+func NewForwardtoIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHookCall, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
 		return &commontypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
@@ -164,24 +165,47 @@ func NewRollToIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHookCal
 	}, nil
 }
 
+func NewForwardtoIBCHookBz(payload *HookForwardToIBC) ([]byte, error) {
+	h, err := NewForwardtoIBCHook(payload)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "new forward to ibc hook")
+	}
+
+	bz, err := proto.Marshal(h)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "marshal forward hook")
+	}
+
+	return bz, nil
+}
+
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
 func NewRollToIBCMemoString(
 	eibcFee string,
 	data *HookForwardToIBC,
 ) (string, error) {
 
-	hook, err := NewRollToIBCHook(data)
+	bz, err := NewForwardtoIBCHookBz(data)
 	if err != nil {
-		return "", errorsmod.Wrap(err, "new roll to ibc hook")
-	}
-
-	bz, err := proto.Marshal(hook)
-	if err != nil {
-		return "", errorsmod.Wrap(err, "marshal")
+		return "", errorsmod.Wrap(err, "new forward to ibc hook")
 	}
 
 	memo := delayedacktypes.CreateMemo(eibcFee, bz)
 	return memo, nil
+}
+
+// returns memo as string to be directly included in outbound eibc transfer from rollapp
+func NewIBCToIBCMemoString(
+	eibcFee string,
+	data *HookForwardToIBC,
+) (string, error) {
+
+	bz, err := NewForwardtoIBCHookBz(data)
+	if err != nil {
+		return "", errorsmod.Wrap(err, "new forward to ibc hook")
+	}
+
+	return ibccompletiontypes.MakeMemo(bz)
 }
 
 // get a message for sending directly to hyperlane module on hub

@@ -31,6 +31,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdMemoEIBCtoHL())
 	cmd.AddCommand(CmdMemoEIBCtoIBC())
+	cmd.AddCommand(CmdMemoIBCtoIBC())
 	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
@@ -43,6 +44,7 @@ const (
 	MessageReadableFlag = "readable"
 )
 
+// TODO: extract and reuse for ibc-to-hl
 // get a memo for the direction (E)IBC -> HL. This should be directly included in the memo of the ibc transfer.
 func CmdMemoEIBCtoHL() *cobra.Command {
 	cmd := &cobra.Command{
@@ -134,6 +136,38 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 			}
 
 			fmt.Println(memo)
+			return nil
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// get a memo for the direction (E)IBC -> IBC
+func CmdMemoIBCtoIBC() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "memo-ibc-to-ibc [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
+		Args:    cobra.ExactArgs(3),
+		Short:   "Create a memo for the direction IBC -> IBC",
+		Example: `dymd q forward memo-ibc-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
+
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			data, err := memoForwardToIBC(args[1:])
+			if err != nil {
+				return fmt.Errorf("memo hl to ibc: %w", err)
+			}
+
+			s, err := types.NewIBCToIBCMemoString(args[0], data)
+			if err != nil {
+				return fmt.Errorf("new memo: %w", err)
+			}
+
+			fmt.Println(s)
 			return nil
 		},
 	}

@@ -125,7 +125,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	)
 	err := hookPayload.ValidateBasic()
 	s.Require().NoError(err)
-	hook, err := forwardtypes.NewRollToIBCHook(hookPayload)
+	hook, err := forwardtypes.NewForwardtoIBCHook(hookPayload)
 	s.Require().NoError(err)
 	hookBz, err := proto.Marshal(hook)
 	s.Require().NoError(err)
