@@ -4,28 +4,21 @@ import (
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
-	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 type Forward struct {
 	warpQ     types.WarpQuery
-	warpS     warptypes.MsgServer
+	warpS     types.WarpMsgServer
 	transferK types.TransferKeeper
-	bankK     types.BankKeeper
-	accountK  types.AccountKeeper
 }
 
 func New(
-	bankKeeper types.BankKeeper,
-	accountKeeper types.AccountKeeper,
 	transferKeeper types.TransferKeeper,
 	warpQueryServer types.WarpQuery,
-	warpMsgServer warptypes.MsgServer,
+	warpMsgServer types.WarpMsgServer,
 ) *Forward {
 
 	return &Forward{
-		bankK:     bankKeeper,
-		accountK:  accountKeeper,
 		transferK: transferKeeper,
 		warpQ:     warpQueryServer,
 		warpS:     warpMsgServer,

@@ -157,7 +157,7 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*commontyp
 	}
 
 	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
-	packet, err := k.OrderPacket(ctx, orderId)
+	packet, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 	if err != nil {
 		return nil, err
 	}
@@ -169,20 +169,6 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*commontyp
 	}
 
 	return demandOrder, nil
-}
-
-func (k Keeper) OrderPacket(ctx sdk.Context, orderId string) (*commontypes.RollappPacket, error) {
-	demandOrder, err := k.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
-	packet, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
-	if err != nil {
-		return nil, err
-	}
-	return packet, nil
 }
 
 // ListAllDemandOrders returns all demand orders.

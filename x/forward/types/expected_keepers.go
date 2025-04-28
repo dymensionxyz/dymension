@@ -26,3 +26,7 @@ type AccountKeeper interface {
 type TransferKeeper interface {
 	Transfer(ctx context.Context, msg *ibctransfertypes.MsgTransfer) (*ibctransfertypes.MsgTransferResponse, error)
 }
+
+type WarpMsgServer interface {
+	DymRemoteTransfer(ctx context.Context, msg *types.MsgDymRemoteTransfer) (*types.MsgDymRemoteTransferResponse, error)
+}
