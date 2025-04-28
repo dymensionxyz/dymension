@@ -20,7 +20,7 @@ type EIBCMemo struct {
 	// mandatory
 	Fee string `json:"fee"`
 	// can be nil
-	OnCompletionHook []byte `json:"on_completion,omitempty"`
+	OnCompletionHook []byte `json:"dym_on_completion,omitempty"`
 }
 
 func DefaultEIBCMemo() EIBCMemo {
@@ -56,10 +56,10 @@ func (e EIBCMemo) GetCompletionHook() (*commontypes.CompletionHookCall, error) {
 	var hook commontypes.CompletionHookCall
 	err := proto.Unmarshal(e.OnCompletionHook, &hook)
 	if err != nil {
-		return nil, fmt.Errorf("unmarshal on fulfill hook: %w", err)
+		return nil, fmt.Errorf("unmarshal on completion hook: %w", err)
 	}
 	if err := hook.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate on fulfill hook: %w", err)
+		return nil, fmt.Errorf("validate on completion hook: %w", err)
 	}
 	return &hook, nil
 }
@@ -70,7 +70,7 @@ func (e EIBCMemo) ValidateBasic() error {
 		return fmt.Errorf("fee: %w", err)
 	}
 	if _, err := e.GetCompletionHook(); err != nil {
-		return fmt.Errorf("get on fulfill hook: %w", err)
+		return fmt.Errorf("get on completion hook: %w", err)
 	}
 	return nil
 }
