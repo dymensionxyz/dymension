@@ -170,11 +170,16 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 
 }
 
+const (
+	ForwardEvtTypeForward = "dymensionxyz.dymension.forward.EventForward"
+	ForwardEvtAttrOK      = "ok"
+)
+
 func parseFwdErrFromEvents(events []comettypes.Event) (bool, error) {
 	for _, ev := range events {
-		if ev.Type == forwardtypes.EvtTypeForward {
+		if ev.Type == ForwardEvtTypeForward {
 			for _, attr := range ev.Attributes {
-				if attr.Key == forwardtypes.EvtAttrOK {
+				if attr.Key == ForwardEvtAttrOK {
 					ok, err := strconv.ParseBool(attr.Value)
 					return ok, err
 				}
