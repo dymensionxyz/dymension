@@ -4,7 +4,6 @@ package dymensionxyz.dymension.eibc;
 import "gogoproto/gogo.proto";
 
 import "dymensionxyz/dymension/common/status.proto";
-import "dymensionxyz/dymension/eibc/demand_order.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 import "cosmos/base/v1beta1/coin.proto";

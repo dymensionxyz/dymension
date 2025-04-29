@@ -21,6 +21,8 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	hypercoretypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
+	hyperwarptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -137,4 +139,6 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	txfeestypes.StoreKey,
 	lightcliendmoduletypes.StoreKey,
 	grouptypes.StoreKey,
+	hypercoretypes.ModuleName,
+	hyperwarptypes.ModuleName,
 )

@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -165,7 +166,7 @@ func (s LPs) GetByAddr(ctx sdk.Context, addr sdk.AccAddress) ([]*types.OnDemandL
 	return ret, err
 }
 
-func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]types.OnDemandLPRecord, error) {
+func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o commontypes.DemandOrder) ([]types.OnDemandLPRecord, error) {
 	rol := o.RollappId
 	denom := o.Denom()
 	ranger := collections.NewSuperPrefixedTripleRange[string, string, uint64](rol, denom)
@@ -208,7 +209,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 		lps[i], lps[j] = lps[j], lps[i]
 	})
 	for _, lp := range lps {
-		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
+		err := k.fulfillBasic(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
 			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
 				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {

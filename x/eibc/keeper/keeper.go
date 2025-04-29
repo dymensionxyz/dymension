@@ -80,7 +80,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
+func (k Keeper) SetDemandOrder(ctx sdk.Context, order *commontypes.DemandOrder) error {
 	store := ctx.KVStore(k.storeKey)
 	demandOrderKey, err := types.GetDemandOrderKey(order.TrackingPacketStatus, order.Id)
 	if err != nil {
@@ -105,7 +105,7 @@ func (k Keeper) deleteDemandOrder(ctx sdk.Context, status commontypes.Status, or
 // UpdateDemandOrderWithStatus deletes the current demand order and creates a new one with and updated packet status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed demand order packet status field is not updated directly.
-func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types.DemandOrder, newStatus commontypes.Status) (*types.DemandOrder, error) {
+func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *commontypes.DemandOrder, newStatus commontypes.Status) (*commontypes.DemandOrder, error) {
 	k.deleteDemandOrder(ctx, demandOrder.TrackingPacketStatus, demandOrder.Id)
 
 	demandOrder.TrackingPacketStatus = newStatus
@@ -114,41 +114,21 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetPacketStatusUpdatedEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, types.GetPacketStatusUpdatedEvent(demandOrder)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return demandOrder, nil
 }
 
-// SetOrderFulfilled should be called only at most once per order.
-func (k Keeper) SetOrderFulfilled(
-	ctx sdk.Context,
-	order *types.DemandOrder,
-	fulfillerAddress sdk.AccAddress,
-	collectorAddress sdk.AccAddress,
-) error {
-	order.FulfillerAddress = fulfillerAddress.String()
-	err := k.SetDemandOrder(ctx, order)
-	if err != nil {
-		return err
-	}
-	receiverAddress := fulfillerAddress
-	if collectorAddress != nil {
-		// optional override
-		receiverAddress = collectorAddress
-	}
-	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, receiverAddress.String())
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (k Keeper) PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*commontypes.DemandOrder, error) {
+	key := p.RollappPacketKey()
+	id := commontypes.BuildDemandIDFromPacketKey(string(key))
+	return k.GetDemandOrder(ctx, commontypes.Status_PENDING, id)
 }
 
 // GetDemandOrder returns the demand order with the given id and status.
-func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*types.DemandOrder, error) {
+func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*commontypes.DemandOrder, error) {
 	store := ctx.KVStore(k.storeKey)
 	demandOrderKey, err := types.GetDemandOrderKey(status, id)
 	if err != nil {
@@ -158,7 +138,7 @@ func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id st
 	if bz == nil {
 		return nil, types.ErrDemandOrderDoesNotExist
 	}
-	var order types.DemandOrder
+	var order commontypes.DemandOrder
 	err = k.cdc.Unmarshal(bz, &order)
 	if err != nil {
 		return nil, err
@@ -166,10 +146,13 @@ func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id st
 	return &order, nil
 }
 
-func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
+func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*commontypes.DemandOrder, error) {
 	// Check that the order exists in status PENDING
 	demandOrder, err := k.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
 	if err != nil {
+		return nil, err
+	}
+	if err := demandOrder.ValidateOrderIsOutstanding(); err != nil {
 		return nil, err
 	}
 
@@ -182,22 +165,22 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.Dem
 	// No error means the order is due to be finalized,
 	// in which case the order is not outstanding anymore
 	if err = k.dack.VerifyHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight); err == nil {
-		return nil, types.ErrDemandOrderInactive
+		return nil, commontypes.ErrDemandOrderInactive
 	}
 
-	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
+	return demandOrder, nil
 }
 
 // ListAllDemandOrders returns all demand orders.
 func (k Keeper) ListAllDemandOrders(
 	ctx sdk.Context,
-) (list []*types.DemandOrder, err error) {
+) (list []*commontypes.DemandOrder, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, types.AllDemandOrdersKeyPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.DemandOrder
+		var val commontypes.DemandOrder
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, &val)
 	}
@@ -205,7 +188,7 @@ func (k Keeper) ListAllDemandOrders(
 	return list, nil
 }
 
-func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status, limit int, opts ...filterOption) (list []*types.DemandOrder, err error) {
+func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status, limit int, opts ...filterOption) (list []*commontypes.DemandOrder, err error) {
 	store := ctx.KVStore(k.storeKey)
 
 	var statusPrefix []byte
@@ -226,7 +209,7 @@ outer:
 		if limit > 0 && len(list) >= limit {
 			break
 		}
-		var val types.DemandOrder
+		var val commontypes.DemandOrder
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		for _, opt := range opts {
 			if !opt(val) {
@@ -244,7 +227,7 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 	status commontypes.Status,
 	pageReq *query.PageRequest,
 	opts ...filterOption,
-) (list []*types.DemandOrder, pageResp *query.PageResponse, err error) {
+) (list []*commontypes.DemandOrder, pageResp *query.PageResponse, err error) {
 	store := ctx.KVStore(k.storeKey)
 
 	var statusPrefix []byte
@@ -265,7 +248,7 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 	}
 
 	pageResp, err = query.Paginate(prefixStore, pageReq, func(key []byte, value []byte) error {
-		var val types.DemandOrder
+		var val commontypes.DemandOrder
 		if err := k.cdc.Unmarshal(value, &val); err != nil {
 			return err
 		}
@@ -281,28 +264,11 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 	return
 }
 
-func (k Keeper) Fulfill(ctx sdk.Context,
-	o *types.DemandOrder,
-	fulfiller sdk.AccAddress,
-) error {
-	fulfillerAccount := k.ak.GetAccount(ctx, fulfiller) // TODO: can omit?
-	if fulfillerAccount == nil {
-		return types.ErrFulfillerAddressDoesNotExist
+func (k Keeper) ensureAccount(ctx sdk.Context, address sdk.AccAddress) error {
+	account := k.ak.GetAccount(ctx, address)
+	if account == nil {
+		return errorsmod.Wrapf(types.ErrAccountDoesNotExist, "address: %s", address)
 	}
-
-	err := k.bk.SendCoins(ctx, fulfiller, o.GetRecipientBech32Address(), o.Price)
-	if err != nil {
-		return errorsmod.Wrap(err, "send coins")
-	}
-
-	if err = k.SetOrderFulfilled(ctx, o, fulfiller, nil); err != nil {
-		return errorsmod.Wrap(err, "set fulfilled")
-	}
-
-	if err = uevent.EmitTypedEvent(ctx, o.GetFulfilledEvent()); err != nil {
-		return fmt.Errorf("emit event: %w", err)
-	}
-
 	return nil
 }
 

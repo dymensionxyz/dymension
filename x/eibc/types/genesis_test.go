@@ -8,11 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {
-	validDemandOrder := types.DemandOrder{
+	validDemandOrder := commontypes.DemandOrder{
 		Id:             "1",
 		Price:          sdk.Coins{sdk.NewInt64Coin("denom", 2)},
 		Fee:            sdk.Coins{sdk.NewInt64Coin("denom", 1)},
@@ -39,7 +40,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params:       validParams,
-				DemandOrders: []types.DemandOrder{validDemandOrder},
+				DemandOrders: []commontypes.DemandOrder{validDemandOrder},
 			},
 			valid: true,
 		}, {
@@ -53,11 +54,11 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		}, {
 			desc:     "invalid demand order",
-			genState: &types.GenesisState{DemandOrders: []types.DemandOrder{{}}, Params: types.DefaultParams()},
+			genState: &types.GenesisState{DemandOrders: []commontypes.DemandOrder{{}}, Params: types.DefaultParams()},
 			valid:    false,
 		}, {
 			desc: "duplicate demand order",
-			genState: &types.GenesisState{DemandOrders: []types.DemandOrder{
+			genState: &types.GenesisState{DemandOrders: []commontypes.DemandOrder{
 				validDemandOrder,
 				validDemandOrder,
 			}, Params: types.DefaultParams()},

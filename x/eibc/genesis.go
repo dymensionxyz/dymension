@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -44,7 +45,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
-	genesis.DemandOrders = make([]types.DemandOrder, len(allDemandOrders))
+	genesis.DemandOrders = make([]commontypes.DemandOrder, len(allDemandOrders))
 	for i, order := range allDemandOrders {
 		// Create a copy to avoid modifying the original
 		orderCopy := *order
