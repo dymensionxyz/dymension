@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-04-24)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-04-29)
 
 
 ### Bug Fixes
@@ -42,6 +42,7 @@
 * **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
 * **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
 * **sponsorship:** added endorsement yielding ([#1748](https://github.com/dymensionxyz/dymension/issues/1748)) ([2dc6b08](https://github.com/dymensionxyz/dymension/commit/2dc6b08cca590d5978202ac49d16271746b93b90))
+* **upgrade:** upgrade handler to initialize endorsements for existing rollapps ([#1821](https://github.com/dymensionxyz/dymension/issues/1821)) ([43d5686](https://github.com/dymensionxyz/dymension/commit/43d5686ca949dd282fb2e5910f050e49b3243f41))
 
 
 
