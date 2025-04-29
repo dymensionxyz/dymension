@@ -1,6 +1,7 @@
 package ante
 
 import (
+	circuitante "cosmossdk.io/x/circuit/ante"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethante "github.com/evmos/ethermint/app/ante"
 )
@@ -8,6 +9,7 @@ import (
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ethante.NewEthSetUpContextDecorator(options.EvmKeeper),
+		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 
 		// TODO: need to allow universal fees for Eth as well
 		ethante.NewEthMempoolFeeDecorator(options.EvmKeeper),                           // Check eth effective gas price against minimal-gas-prices
