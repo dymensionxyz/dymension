@@ -190,7 +190,7 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
 
-			memo, err := types.NewRollToIBCMemoString(args[0], data)
+			memo, err := types.MakeRolForwardToIBCMemoString(args[0], data)
 			if err != nil {
 				return fmt.Errorf("new memo: %w", err)
 			}
@@ -222,7 +222,7 @@ func CmdMemoIBCtoIBC() *cobra.Command {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
 
-			s, err := types.NewIBCToIBCMemoString(args[0], data)
+			s, err := types.MakeIBCForwardToIBCMemoString(args[0], data)
 			if err != nil {
 				return fmt.Errorf("new memo: %w", err)
 			}
@@ -339,7 +339,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			m, err := types.NewForwardToIBCHyperlaneMessage(
+			m, err := types.MakeForwardToIBCHyperlaneMessage(
 				uint32(hlNonce),
 				uint32(hlSrcDomain),
 				hlSrcContract,
@@ -416,7 +416,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			fmt.Printf("hyperlane message: %+v\n", message)
 			fmt.Printf("token message: %+v\n", payload)
 
-			memo, err := types.UnpackToIBC(payload.Memo)
+			memo, err := types.UnpackForwardToIBC(payload.Memo)
 			if err != nil {
 				return fmt.Errorf("unpack memo from warp message: %w", err)
 			}
@@ -487,7 +487,7 @@ func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 
 	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
 
-	hook := types.NewToIBC(
+	hook := types.NewHookForwardToIBC(
 		ibcSourceChan,
 		ibcRecipient,
 		ibcTimeoutTimestamp,

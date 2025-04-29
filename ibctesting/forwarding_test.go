@@ -118,14 +118,14 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
 	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
 	s.dackK().SetParams(s.hubCtx(), p)
-	hookPayload := forwardtypes.NewToIBC(
+	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
 	err := hookPayload.ValidateBasic()
 	s.Require().NoError(err)
-	hook, err := forwardtypes.NewForwardtoIBCHook(hookPayload)
+	hook, err := forwardtypes.NewHookForwardToIBCCall(hookPayload)
 	s.Require().NoError(err)
 	hookBz, err := proto.Marshal(hook)
 	s.Require().NoError(err)

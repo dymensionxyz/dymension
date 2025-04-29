@@ -18,7 +18,7 @@ import (
 	ibccompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 )
 
-func NewToIBC(
+func NewHookForwardToIBC(
 	sourceChannel string,
 	receiver string,
 	timeoutTimestamp uint64,
@@ -39,18 +39,6 @@ func NewToIBC(
 	}
 }
 
-func UnpackToIBC(bz []byte) (*HookForwardToIBC, error) {
-	var d HookForwardToIBC
-	err := proto.Unmarshal(bz, &d)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "unmarshal forward hook")
-	}
-	if err := d.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrap(err, "validate basic")
-	}
-	return &d, nil
-}
-
 func (h *HookForwardToIBC) ValidateBasic() error {
 	if h.Transfer == nil {
 		return gerrc.ErrInvalidArgument.Wrap("transfer is nil")
@@ -62,7 +50,19 @@ func (h *HookForwardToIBC) ValidateBasic() error {
 	return nil
 }
 
-func NewForwardtoIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHookCall, error) {
+func UnpackForwardToIBC(bz []byte) (*HookForwardToIBC, error) {
+	var d HookForwardToIBC
+	err := proto.Unmarshal(bz, &d)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unmarshal forward hook")
+	}
+	if err := d.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+	return &d, nil
+}
+
+func NewHookForwardToIBCCall(payload *HookForwardToIBC) (*commontypes.CompletionHookCall, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
 		return &commontypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
@@ -74,8 +74,8 @@ func NewForwardtoIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHook
 	}, nil
 }
 
-func NewForwardtoIBCHookBz(payload *HookForwardToIBC) ([]byte, error) {
-	h, err := NewForwardtoIBCHook(payload)
+func NewHookForwardToIBCCallBz(payload *HookForwardToIBC) ([]byte, error) {
+	h, err := NewHookForwardToIBCCall(payload)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "new forward to ibc hook")
 	}
@@ -89,12 +89,12 @@ func NewForwardtoIBCHookBz(payload *HookForwardToIBC) ([]byte, error) {
 }
 
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
-func NewRollToIBCMemoString(
+func MakeRolForwardToIBCMemoString(
 	eibcFee string,
 	data *HookForwardToIBC,
 ) (string, error) {
 
-	bz, err := NewForwardtoIBCHookBz(data)
+	bz, err := NewHookForwardToIBCCallBz(data)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "new forward to ibc hook")
 	}
@@ -104,12 +104,12 @@ func NewRollToIBCMemoString(
 }
 
 // returns memo as string to be directly included in outbound ibc transfer from e.g. osmosis
-func NewIBCToIBCMemoString(
+func MakeIBCForwardToIBCMemoString(
 	eibcFee string,
 	data *HookForwardToIBC,
 ) (string, error) {
 
-	bz, err := NewForwardtoIBCHookBz(data)
+	bz, err := NewHookForwardToIBCCallBz(data)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "new forward to ibc hook")
 	}
@@ -120,7 +120,7 @@ func NewIBCToIBCMemoString(
 // get a message for sending directly to hyperlane module on hub
 // for testing
 // potentially computationally expensive
-func NewForwardToIBCHyperlaneMessage(
+func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
 	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
@@ -181,7 +181,7 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookForwardTo
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, err := UnpackToIBC(pl.Memo)
+	d, err := UnpackForwardToIBC(pl.Memo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
