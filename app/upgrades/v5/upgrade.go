@@ -2,6 +2,7 @@ package v5
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -16,6 +17,8 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 )
@@ -33,7 +36,7 @@ func CreateUpgradeHandler(
 		// Run migrations before applying any other state changes.
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
 		// IRO store upgraded through module migrations
-		// TXFEES store upgraded through module migrations
+		// x/txfees and x/iro upgraded through module migrations
 		migrations, err := mm.RunMigrations(ctx, configurator, fromVM)
 		if err != nil {
 			return nil, err
@@ -54,7 +57,8 @@ func CreateUpgradeHandler(
 		// fix V50 x/gov params
 		migrateGovParams(ctx, keepers.GovKeeper)
 
-		// FIXME: initilize endorsments object per rollapp
+		// Initialize endorsements for existing rollapps
+		migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -115,5 +119,22 @@ func migrateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
 	err = k.Params.Set(ctx, params)
 	if err != nil {
 		panic(err)
+	}
+}
+
+// Create endorsment objects for existing rollapps
+// we iterate over rollapp gauges as we have one per rollapp
+func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Keeper, sponsorshipKeeper *sponsorshipkeeper.Keeper) {
+	gauges := incentivesKeeper.GetGauges(ctx)
+	for _, gauge := range gauges {
+		if rollappGauge := gauge.GetRollapp(); rollappGauge != nil {
+			// Create endorsement for this rollapp gauge
+			endorsement := sponsorshiptypes.NewEndorsement(rollappGauge.RollappId, gauge.Id)
+			err := sponsorshipKeeper.SaveEndorsement(ctx, endorsement)
+			if err != nil {
+				panic(fmt.Errorf("failed to save endorsement: %w", err))
+			}
+			ctx.Logger().Info(fmt.Sprintf("Created endorsement for rollapp %s with gauge %d", rollappGauge.RollappId, gauge.Id))
+		}
 	}
 }

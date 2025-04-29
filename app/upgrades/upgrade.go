@@ -9,6 +9,8 @@ import (
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 )
 
@@ -32,9 +34,11 @@ type Upgrade struct {
 }
 
 type UpgradeKeepers struct {
-	LockupKeeper     *lockupkeeper.Keeper
-	IROKeeper        *irokeeper.Keeper
-	GAMMKeeper       *gammkeeper.Keeper
-	GovKeeper        *govkeeper.Keeper
-	IncentivesKeeper *incentiveskeeper.Keeper
+	LockupKeeper      *lockupkeeper.Keeper
+	IROKeeper         *irokeeper.Keeper
+	GAMMKeeper        *gammkeeper.Keeper
+	GovKeeper         *govkeeper.Keeper
+	IncentivesKeeper  *incentiveskeeper.Keeper
+	RollappKeeper     *rollappkeeper.Keeper
+	SponsorshipKeeper *sponsorshipkeeper.Keeper
 }
