@@ -63,6 +63,7 @@ func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 			FeegrantKeeper:    s.app.FeeGrantKeeper,
 			SignModeHandler:   txConfig.SignModeHandler(),
 			LightClientKeeper: &s.app.LightClientKeeper,
+			CircuitKeeper:     &s.app.CircuitBreakerKeeper,
 		},
 	)
 

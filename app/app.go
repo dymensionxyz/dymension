@@ -275,6 +275,7 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		RollappKeeper:          *app.RollappKeeper,
 		LightClientKeeper:      &app.LightClientKeeper,
+		CircuitKeeper:          &app.CircuitBreakerKeeper,
 	})
 	if err != nil {
 		panic(fmt.Errorf("failed to create ante handler: %w", err))
