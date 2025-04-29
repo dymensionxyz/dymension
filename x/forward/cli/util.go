@@ -29,10 +29,11 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	cmd.AddCommand(CmdMemoIBCtoHL())
+	cmd.AddCommand(CmdMemoIBCtoIBC())
 	cmd.AddCommand(CmdMemoEIBCtoHL())
 	cmd.AddCommand(CmdMemoEIBCtoIBC())
-	cmd.AddCommand(CmdMemoIBCtoIBC())
-	cmd.AddCommand(CmdMemoHLtoEIBCRaw())
+	cmd.AddCommand(CmdMemoHLtoIBCRaw())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
@@ -62,44 +63,14 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 				return fmt.Errorf("eibc fee: %w", err)
 			}
 
-			tokenId, err := hyperutil.DecodeHexAddress(args[1])
+			hook, err := hookForwardToHL(args[1:])
 			if err != nil {
-				return fmt.Errorf("token id: %w", err)
+				return fmt.Errorf("hook forward to hl: %w", err)
 			}
 
-			destinationDomain, err := strconv.ParseUint(args[2], 10, 32)
+			memo, err := types.MakeRolForwardToHLMemoString(eibcFee, hook)
 			if err != nil {
-				return fmt.Errorf("destination domain: %w", err)
-			}
-
-			recipient, err := hyperutil.DecodeHexAddress(args[3])
-			if err != nil {
-				return fmt.Errorf("recipient: %w", err)
-			}
-
-			amount, ok := math.NewIntFromString(args[4])
-			if !ok {
-				return fmt.Errorf("amount")
-			}
-
-			maxFee, err := sdk.ParseCoinNormalized(args[5])
-			if err != nil {
-				return fmt.Errorf("max fee: %w", err)
-			}
-
-			memo, err := types.MakeRolForwardToHLMemoString(
-				eibcFee,
-				tokenId,
-				uint32(destinationDomain),
-				recipient,
-				amount,
-				maxFee,
-				math.ZeroInt(), // ignored
-				nil,            // ignored
-				"",             // ignored
-			)
-			if err != nil {
-				return fmt.Errorf("new: %w", err)
+				return fmt.Errorf("new memo: %w", err)
 			}
 
 			fmt.Println(memo)
@@ -124,45 +95,15 @@ func CmdMemoIBCtoHL() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			tokenId, err := hyperutil.DecodeHexAddress(args[0])
+			hook, err := hookForwardToHL(args)
 			if err != nil {
-				return fmt.Errorf("token id: %w", err)
+				return fmt.Errorf("hook forward to hl: %w", err)
 			}
 
-			destinationDomain, err := strconv.ParseUint(args[1], 10, 32)
+			memo, err := types.MakeIBCForwardToHLMemoString(hook)
 			if err != nil {
-				return fmt.Errorf("destination domain: %w", err)
+				return fmt.Errorf("new memo: %w", err)
 			}
-
-			recipient, err := hyperutil.DecodeHexAddress(args[2])
-			if err != nil {
-				return fmt.Errorf("recipient: %w", err)
-			}
-
-			amount, ok := math.NewIntFromString(args[3])
-			if !ok {
-				return fmt.Errorf("amount")
-			}
-
-			maxFee, err := sdk.ParseCoinNormalized(args[4])
-			if err != nil {
-				return fmt.Errorf("max fee: %w", err)
-			}
-
-			memo, err := types.MakeIBCForwardToHLMemoString(
-				tokenId,
-				uint32(destinationDomain),
-				recipient,
-				amount,
-				maxFee,
-				math.ZeroInt(), // ignored
-				nil,            // ignored
-				"",             // ignored
-			)
-			if err != nil {
-				return fmt.Errorf("new: %w", err)
-			}
-
 			fmt.Println(memo)
 			return nil
 		},
@@ -171,6 +112,45 @@ func CmdMemoIBCtoHL() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func hookForwardToHL(args []string) (*types.HookForwardToHL, error) {
+
+	tokenId, err := hyperutil.DecodeHexAddress(args[0])
+	if err != nil {
+		return nil, fmt.Errorf("token id: %w", err)
+	}
+
+	destinationDomain, err := strconv.ParseUint(args[1], 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("destination domain: %w", err)
+	}
+
+	recipient, err := hyperutil.DecodeHexAddress(args[2])
+	if err != nil {
+		return nil, fmt.Errorf("recipient: %w", err)
+	}
+
+	amount, ok := math.NewIntFromString(args[3])
+	if !ok {
+		return nil, fmt.Errorf("amount")
+	}
+
+	maxFee, err := sdk.ParseCoinNormalized(args[4])
+	if err != nil {
+		return nil, fmt.Errorf("max fee: %w", err)
+	}
+
+	return types.NewHookForwardToHL(
+		tokenId,
+		uint32(destinationDomain),
+		recipient,
+		amount,
+		maxFee,
+		math.ZeroInt(), // ignored
+		nil,            // ignored
+		"",             // ignored
+	), nil
 }
 
 // get a memo for the direction (E)IBC -> IBC
@@ -185,12 +165,12 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			data, err := memoForwardToIBC(args[1:])
+			hook, err := hookForwardToIBC(args[1:])
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
 
-			memo, err := types.MakeRolForwardToIBCMemoString(args[0], data)
+			memo, err := types.MakeRolForwardToIBCMemoString(args[0], hook)
 			if err != nil {
 				return fmt.Errorf("new memo: %w", err)
 			}
@@ -217,12 +197,12 @@ func CmdMemoIBCtoIBC() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			data, err := memoForwardToIBC(args[1:])
+			hook, err := hookForwardToIBC(args[1:])
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
 
-			s, err := types.MakeIBCForwardToIBCMemoString(args[0], data)
+			s, err := types.MakeIBCForwardToIBCMemoString(hook)
 			if err != nil {
 				return fmt.Errorf("new memo: %w", err)
 			}
@@ -238,7 +218,7 @@ func CmdMemoIBCtoIBC() *cobra.Command {
 }
 
 // Get a memo for the direction HL -> (E)IBC
-func CmdMemoHLtoEIBCRaw() *cobra.Command {
+func CmdMemoHLtoIBCRaw() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
 		Args:                       cobra.ExactArgs(3),
@@ -248,7 +228,7 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			hook, err := memoForwardToIBC(args)
+			hook, err := hookForwardToIBC(args)
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
@@ -276,6 +256,31 @@ func CmdMemoHLtoEIBCRaw() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func hookForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
+
+	ibcSourceChan := args[0]
+
+	ibcRecipient := args[1]
+
+	ibcTimeoutDuration, err := time.ParseDuration(args[2])
+	if err != nil {
+		return nil, fmt.Errorf("ibc timeout duration: %w", err)
+	}
+
+	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
+
+	hook := types.NewHookForwardToIBC(
+		ibcSourceChan,
+		ibcRecipient,
+		ibcTimeoutTimestamp,
+	)
+	err = hook.ValidateBasic()
+	if err != nil {
+		return nil, fmt.Errorf("new hl message: %w", err)
+	}
+	return hook, nil
 }
 
 // Get a message for the direction HL -> (E)IBC. Intended for testing (check that the hub handles inbound messages correctly.)
@@ -329,7 +334,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("amount")
 			}
 
-			hook, err := memoForwardToIBC(args[7:])
+			hook, err := hookForwardToIBC(args[7:])
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
 			}
@@ -472,29 +477,4 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
-
-	ibcSourceChan := args[0]
-
-	ibcRecipient := args[1]
-
-	ibcTimeoutDuration, err := time.ParseDuration(args[2])
-	if err != nil {
-		return nil, fmt.Errorf("ibc timeout duration: %w", err)
-	}
-
-	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
-
-	hook := types.NewHookForwardToIBC(
-		ibcSourceChan,
-		ibcRecipient,
-		ibcTimeoutTimestamp,
-	)
-	err = hook.ValidateBasic()
-	if err != nil {
-		return nil, fmt.Errorf("new hl message: %w", err)
-	}
-	return hook, nil
 }

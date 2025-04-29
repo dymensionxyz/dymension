@@ -72,55 +72,12 @@ func NewHookForwardToHLCallBz(payload *HookForwardToHL) ([]byte, error) {
 }
 
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
-func MakeHookForwardToHLCallBytes(
-	tokenId hyperutil.HexAddress,
-	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
-	amount math.Int,
-	maxFee sdk.Coin,
-	gasLimit math.Int,
-	customHookId *hyperutil.HexAddress,
-	customHookMetadata string) ([]byte, error) {
-
-	hook := NewHookForwardToHL(
-		tokenId,
-		destinationDomain,
-		recipient,
-		amount,
-		maxFee,
-		gasLimit,
-		customHookId,
-		customHookMetadata,
-	)
-	if err := hook.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrap(err, "validate basic")
-	}
-
-	return NewHookForwardToHLCallBz(hook)
-}
-
-// returns memo as string to be directly included in outbound eibc transfer from rollapp
 func MakeRolForwardToHLMemoString(
 	eibcFee string,
-	tokenId hyperutil.HexAddress,
-	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
-	amount math.Int,
-	maxFee sdk.Coin,
-	gasLimit math.Int,
-	customHookId *hyperutil.HexAddress,
-	customHookMetadata string) (string, error) {
+	payload *HookForwardToHL,
+) (string, error) {
 
-	bz, err := MakeHookForwardToHLCallBytes(
-		tokenId,
-		destinationDomain,
-		recipient,
-		amount,
-		maxFee,
-		gasLimit,
-		customHookId,
-		customHookMetadata,
-	)
+	bz, err := NewHookForwardToHLCallBz(payload)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "make hook forward to hl call bytes")
 	}
@@ -130,25 +87,9 @@ func MakeRolForwardToHLMemoString(
 
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
 func MakeIBCForwardToHLMemoString(
-	tokenId hyperutil.HexAddress,
-	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
-	amount math.Int,
-	maxFee sdk.Coin,
-	gasLimit math.Int,
-	customHookId *hyperutil.HexAddress,
-	customHookMetadata string) (string, error) {
+	payload *HookForwardToHL) (string, error) {
 
-	bz, err := MakeHookForwardToHLCallBytes(
-		tokenId,
-		destinationDomain,
-		recipient,
-		amount,
-		maxFee,
-		gasLimit,
-		customHookId,
-		customHookMetadata,
-	)
+	bz, err := NewHookForwardToHLCallBz(payload)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "make hook forward to hl call bytes")
 	}
