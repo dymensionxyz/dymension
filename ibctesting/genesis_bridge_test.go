@@ -25,18 +25,18 @@ import (
 
 var successAck = channeltypes.CommitAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement())
 
-type transferGenesisSuite struct {
-	utilSuite
+type GenesisBridgeSuite struct {
+	ibcTestingSuite
 	path *ibctesting.Path
 }
 
-func TestTransferGenesisTestSuite(t *testing.T) {
-	suite.Run(t, new(transferGenesisSuite))
+func TestGenesisBridgeTestSuite(t *testing.T) {
+	suite.Run(t, new(GenesisBridgeSuite))
 }
 
-func (s *transferGenesisSuite) SetupTest() {
-	s.utilSuite.SetupTest()
-	s.hubApp().LightClientKeeper.SetEnabled(false)
+func (s *GenesisBridgeSuite) SetupTest() {
+	s.ibcTestingSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false) // disable state validation against light client
 
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
@@ -53,15 +53,19 @@ func (s *transferGenesisSuite) SetupTest() {
 }
 
 // TestHappyPath_NoGenesisAccounts tests a valid genesis info with no genesis accounts
-func (s *transferGenesisSuite) TestHappyPath_NoGenesisAccounts() {
+func (s *GenesisBridgeSuite) TestHappyPath_NoGenesisAccounts() {
 	// create the expected genesis bridge packet
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
+	s.registerSequencer()
 
 	// send the packet on the rollapp chain
+	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -83,7 +87,7 @@ func (s *transferGenesisSuite) TestHappyPath_NoGenesisAccounts() {
 }
 
 // TestHappyPath_GenesisAccounts tests a valid genesis info with genesis accounts
-func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
+func (s *GenesisBridgeSuite) TestHappyPath_GenesisAccounts() {
 	gAddr := s.rollappChain().SenderAccount.GetAddress()
 	gAccounts := []rollapptypes.GenesisAccount{
 		{
@@ -92,6 +96,7 @@ func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
 		},
 	}
 	s.addGenesisAccounts(gAccounts)
+	s.registerSequencer()
 
 	// create the expected genesis bridge packet
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
@@ -101,6 +106,9 @@ func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -118,7 +126,7 @@ func (s *transferGenesisSuite) TestHappyPath_GenesisAccounts() {
 
 // TestHappyPath_GenesisAccounts_IRO tests a valid genesis info with genesis accounts, including IRO plan
 // We expect the IRO plan to be settled once the genesis bridge is completed
-func (s *transferGenesisSuite) TestIRO() {
+func (s *GenesisBridgeSuite) TestIRO() {
 	// fund the rollapp owner account for iro creation fee
 	iroFee := sdk.NewCoin(appparams.BaseDenom, s.hubApp().IROKeeper.GetParams(s.hubCtx()).CreationFee)
 	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(iroFee))
@@ -135,11 +143,13 @@ func (s *transferGenesisSuite) TestIRO() {
 	}
 	s.addGenesisAccounts(gAccounts)
 
-	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-
 	// create IRO plan
-	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), "adym", amt, time.Hour, time.Now(), true, rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams(), irotypes.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), "adym", amt, 0, time.Time{}, true, rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams(), irotypes.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
+
+	// register the sequencer
+	s.registerSequencer()
 
 	// create the expected genesis bridge packet
 	rollapp = s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
@@ -149,6 +159,9 @@ func (s *transferGenesisSuite) TestIRO() {
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -170,8 +183,9 @@ func (s *transferGenesisSuite) TestIRO() {
 }
 
 // TestInvalidGenesisInfo tests an invalid genesis info
-func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
+func (s *GenesisBridgeSuite) TestInvalidGenesisInfo() {
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	s.registerSequencer()
 
 	// invalid native denom
 	gInfoCopy := rollapp.GenesisInfo
@@ -182,6 +196,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -197,6 +215,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
 	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -219,6 +241,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
 	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -227,8 +253,9 @@ func (s *transferGenesisSuite) TestInvalidGenesisInfo() {
 }
 
 // TestInvalidGenesisDenomMetadata tests an invalid genesis denom metadata
-func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
+func (s *GenesisBridgeSuite) TestInvalidGenesisDenomMetadata() {
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	s.registerSequencer()
 
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 	var gb rollapptypes.GenesisBridgeData
@@ -245,6 +272,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -256,6 +287,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
 	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -264,7 +299,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisDenomMetadata() {
 }
 
 // TestInvalidGenesisTransfer tests an invalid genesis transfer
-func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
+func (s *GenesisBridgeSuite) TestInvalidGenesisTransfer() {
 	s.addGenesisAccounts([]rollapptypes.GenesisAccount{
 		{
 			Address: sample.AccAddress(),
@@ -272,6 +307,7 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 		},
 	})
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	s.registerSequencer()
 
 	packet := s.genesisBridgePacket(rollapp.GenesisInfo)
 
@@ -287,6 +323,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -298,6 +338,10 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 	seq, err = s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
 	ack, found = s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -307,7 +351,8 @@ func (s *transferGenesisSuite) TestInvalidGenesisTransfer() {
 
 // TestBridgeDisabledEnabled tests that the bridge is disabled until the genesis bridge is completed
 // after the genesis bridge is completed, the bridge should be enabled
-func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
+func (s *GenesisBridgeSuite) TestBridgeDisabledEnabled() {
+	s.registerSequencer()
 	amt := math.NewIntFromUint64(10000000000000000000)
 	denom := "foo"
 	coin := sdk.NewCoin(denom, amt)
@@ -333,8 +378,10 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 	// send the packet on the rollapp chain
 	seq, err := s.path.EndpointB.SendPacket(packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data)
 	s.Require().NoError(err)
-
 	packet.Sequence = seq
+
+	// submit rollapp's state update
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -364,7 +411,7 @@ func (s *transferGenesisSuite) TestBridgeDisabledEnabled() {
 
 /* ---------------------------------- utils --------------------------------- */
 // genesisBridgePacket creates a genesis bridge packet with the given parameters
-func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.GenesisInfo) channeltypes.Packet {
+func (s *GenesisBridgeSuite) genesisBridgePacket(raGenesisInfo rollapptypes.GenesisInfo) channeltypes.Packet {
 	denom := raGenesisInfo.NativeDenom.Base
 	display := raGenesisInfo.NativeDenom.Display
 	initialSupply := raGenesisInfo.InitialSupply
@@ -432,7 +479,7 @@ func (s *transferGenesisSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Ge
 	return msg
 }
 
-func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string) *types.MsgTransfer {
+func (s *GenesisBridgeSuite) transferMsg(amt math.Int, denom string) *types.MsgTransfer {
 	msg := types.NewMsgTransfer(
 		s.path.EndpointB.ChannelConfig.PortID,
 		s.path.EndpointB.ChannelID,
@@ -445,4 +492,15 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string) *types.Ms
 	)
 
 	return msg
+}
+
+// method to update the rollapp genesis info
+func (s *GenesisBridgeSuite) addGenesisAccounts(genesisAccounts []rollapptypes.GenesisAccount) {
+	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+
+	if rollapp.GenesisInfo.GenesisAccounts == nil {
+		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{}
+	}
+	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.Accounts(), genesisAccounts...)
+	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }
