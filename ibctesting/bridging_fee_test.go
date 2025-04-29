@@ -13,7 +13,7 @@ import (
 )
 
 type bridgingFeeSuite struct {
-	utilSuite
+	ibcTestingSuite
 }
 
 func TestBridgingFeeTestSuite(t *testing.T) {
@@ -21,8 +21,8 @@ func TestBridgingFeeTestSuite(t *testing.T) {
 }
 
 func (s *bridgingFeeSuite) SetupTest() {
-	s.utilSuite.SetupTest()
-	s.hubApp().LightClientKeeper.SetEnabled(false)
+	s.ibcTestingSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false) // disable state validation against light client
 }
 
 func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {

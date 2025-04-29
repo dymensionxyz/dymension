@@ -27,7 +27,7 @@ import (
 )
 
 type eibcSuite struct {
-	utilSuite
+	ibcTestingSuite
 	path *ibctesting.Path
 }
 
@@ -40,7 +40,7 @@ func TestEIBCTestSuite(t *testing.T) {
 }
 
 func (s *eibcSuite) SetupTest() {
-	s.utilSuite.SetupTest()
+	s.ibcTestingSuite.SetupTest()
 	s.hubApp().LightClientKeeper.SetEnabled(false)
 
 	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{
