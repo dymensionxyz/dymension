@@ -39,6 +39,7 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTo
 // Define RaisedLiquidity(x)=(mx^(n+1))/(n+1) [by integral]
 // Define SpotPool(x)=(r*RaisedLiquidity(x))/(totalAllocation-x)  [x is sold amt]
 // Solve SpotIRO=SpotPool [cancel x^n terms and rearrange linear eq]
+// => x=((n+1)*T)/(r+n+1)
 func FindEquilibrium(curve BondingCurve, totalAllocation math.Int, r math.LegacyDec) math.Int {
 	n := curve.N
 
