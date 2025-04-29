@@ -105,7 +105,6 @@ func MakeRolForwardToIBCMemoString(
 
 // returns memo as string to be directly included in outbound ibc transfer from e.g. osmosis
 func MakeIBCForwardToIBCMemoString(
-	eibcFee string,
 	data *HookForwardToIBC,
 ) (string, error) {
 
