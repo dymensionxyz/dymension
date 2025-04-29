@@ -18,46 +18,7 @@ import (
 	ibccompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 )
 
-const (
-	// not to be confused with ibc apps PFM which uses 'forward' as the fungible packet json memo key
-	HookNameRollToHL  = "dym-fwd-roll-hl"
-	HookNameRollToIBC = "dym-fwd-roll-ibc"
-)
-
-// sender is computed
-func NewHookForwardToHL(
-	tokenId hyperutil.HexAddress,
-	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
-	amount math.Int,
-	maxFee sdk.Coin,
-
-	gasLimit math.Int, // can be zero
-	customHookId *hyperutil.HexAddress, // optional
-	customHookMetadata string, // can be empty
-) *HookForwardToHL {
-	return &HookForwardToHL{
-		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
-			TokenId:            tokenId,
-			DestinationDomain:  destinationDomain,
-			Recipient:          recipient,
-			Amount:             amount,
-			CustomHookId:       customHookId,
-			GasLimit:           gasLimit,
-			MaxFee:             maxFee,
-			CustomHookMetadata: customHookMetadata,
-		},
-	}
-}
-
-func (h *HookForwardToHL) ValidateBasic() error {
-	if h.HyperlaneTransfer == nil {
-		return gerrc.ErrInvalidArgument
-	}
-	return nil
-}
-
-func MakeHookForwardToIBC(
+func NewToIBC(
 	sourceChannel string,
 	receiver string,
 	timeoutTimestamp uint64,
@@ -78,7 +39,7 @@ func MakeHookForwardToIBC(
 	}
 }
 
-func UnpackForwardToIBC(bz []byte) (*HookForwardToIBC, error) {
+func UnpackToIBC(bz []byte) (*HookForwardToIBC, error) {
 	var d HookForwardToIBC
 	err := proto.Unmarshal(bz, &d)
 	if err != nil {
@@ -99,58 +60,6 @@ func (h *HookForwardToIBC) ValidateBasic() error {
 		return errorsmod.Wrap(err, "transfer")
 	}
 	return nil
-}
-
-func NewRollToHLHook(payload *HookForwardToHL) (*commontypes.CompletionHookCall, error) {
-	bz, err := proto.Marshal(payload)
-	if err != nil {
-		return &commontypes.CompletionHookCall{}, errorsmod.Wrap(err, "marshal forward hook")
-	}
-
-	return &commontypes.CompletionHookCall{
-		Name: HookNameRollToHL,
-		Data: bz,
-	}, nil
-}
-
-// returns memo as string to be directly included in outbound eibc transfer from rollapp
-func NewRollToHLMemoString(
-	eibcFee string,
-	tokenId hyperutil.HexAddress,
-	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
-	amount math.Int,
-	maxFee sdk.Coin,
-
-	gasLimit math.Int,
-	customHookId *hyperutil.HexAddress,
-	customHookMetadata string) (string, error) {
-
-	hook, err := NewRollToHLHook(
-		NewHookForwardToHL(
-			tokenId,
-			destinationDomain,
-			recipient,
-			amount,
-			maxFee,
-			gasLimit,
-			customHookId,
-			customHookMetadata,
-		),
-	)
-	if err != nil {
-		return "", errorsmod.Wrap(err, "new roll to hl hook")
-	}
-	if err := hook.ValidateBasic(); err != nil {
-		return "", errorsmod.Wrap(err, "validate basic")
-	}
-
-	bz, err := proto.Marshal(hook)
-	if err != nil {
-		return "", errorsmod.Wrap(err, "marshal")
-	}
-
-	return delayedacktypes.CreateMemo(eibcFee, bz), nil
 }
 
 func NewForwardtoIBCHook(payload *HookForwardToIBC) (*commontypes.CompletionHookCall, error) {
@@ -194,7 +103,7 @@ func NewRollToIBCMemoString(
 	return memo, nil
 }
 
-// returns memo as string to be directly included in outbound eibc transfer from rollapp
+// returns memo as string to be directly included in outbound ibc transfer from e.g. osmosis
 func NewIBCToIBCMemoString(
 	eibcFee string,
 	data *HookForwardToIBC,
@@ -272,7 +181,7 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookForwardTo
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, err := UnpackForwardToIBC(pl.Memo)
+	d, err := UnpackToIBC(pl.Memo)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}

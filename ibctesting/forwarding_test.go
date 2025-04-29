@@ -118,7 +118,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
 	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
 	s.dackK().SetParams(s.hubCtx(), p)
-	hookPayload := forwardtypes.MakeHookForwardToIBC(
+	hookPayload := forwardtypes.NewToIBC(
 		tc.forwardChannel,
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),

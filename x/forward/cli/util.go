@@ -44,7 +44,6 @@ const (
 	MessageReadableFlag = "readable"
 )
 
-// TODO: extract and reuse for ibc-to-hl
 // get a memo for the direction (E)IBC -> HL. This should be directly included in the memo of the ibc transfer.
 func CmdMemoEIBCtoHL() *cobra.Command {
 	cmd := &cobra.Command{
@@ -88,8 +87,69 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 				return fmt.Errorf("max fee: %w", err)
 			}
 
-			memo, err := types.NewRollToHLMemoString(
+			memo, err := types.MakeRolForwardToHLMemoString(
 				eibcFee,
+				tokenId,
+				uint32(destinationDomain),
+				recipient,
+				amount,
+				maxFee,
+				math.ZeroInt(), // ignored
+				nil,            // ignored
+				"",             // ignored
+			)
+			if err != nil {
+				return fmt.Errorf("new: %w", err)
+			}
+
+			fmt.Println(memo)
+			return nil
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// get a memo for the direction IBC -> HL. This should be directly included in the memo of the ibc transfer.
+func CmdMemoIBCtoHL() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "memo-ibc-to-hl [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
+		Args:    cobra.ExactArgs(5),
+		Short:   "Create a memo for the direction IBC -> HL",
+		Example: `dymd q forward memo-ibc-to-hl 100 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
+
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			tokenId, err := hyperutil.DecodeHexAddress(args[0])
+			if err != nil {
+				return fmt.Errorf("token id: %w", err)
+			}
+
+			destinationDomain, err := strconv.ParseUint(args[1], 10, 32)
+			if err != nil {
+				return fmt.Errorf("destination domain: %w", err)
+			}
+
+			recipient, err := hyperutil.DecodeHexAddress(args[2])
+			if err != nil {
+				return fmt.Errorf("recipient: %w", err)
+			}
+
+			amount, ok := math.NewIntFromString(args[3])
+			if !ok {
+				return fmt.Errorf("amount")
+			}
+
+			maxFee, err := sdk.ParseCoinNormalized(args[4])
+			if err != nil {
+				return fmt.Errorf("max fee: %w", err)
+			}
+
+			memo, err := types.MakeIBCForwardToHLMemoString(
 				tokenId,
 				uint32(destinationDomain),
 				recipient,
@@ -356,7 +416,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			fmt.Printf("hyperlane message: %+v\n", message)
 			fmt.Printf("token message: %+v\n", payload)
 
-			memo, err := types.UnpackForwardToIBC(payload.Memo)
+			memo, err := types.UnpackToIBC(payload.Memo)
 			if err != nil {
 				return fmt.Errorf("unpack memo from warp message: %w", err)
 			}
@@ -427,7 +487,7 @@ func memoForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 
 	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
 
-	hook := types.MakeHookForwardToIBC(
+	hook := types.NewToIBC(
 		ibcSourceChan,
 		ibcRecipient,
 		ibcTimeoutTimestamp,
