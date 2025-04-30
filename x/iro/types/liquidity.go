@@ -54,8 +54,7 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTo
 func FindEquilibrium(curve BondingCurve, totalAllocation math.Int, r math.LegacyDec) math.Int {
 	n := curve.N
 
-	// hack for fixed price (as we set N=1 with M=0 instead of N=0)
-	if curve.M.IsZero() {
+	if curve.M.IsZero() { // c is allowed to be non-zero
 		n = math.LegacyZeroDec()
 	}
 
