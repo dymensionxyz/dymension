@@ -21,8 +21,6 @@ type Keeper struct {
 	distribution            collections.Item[types.Distribution]
 	votes                   collections.Map[sdk.AccAddress, types.Vote]
 	// rollapp ID -> types.Endorsement mapping
-	// TODO: write a migration that creates Endorsement objects for existing rollapps
-	//  https://github.com/dymensionxyz/research/issues/458
 	raEndorsements collections.Map[string, types.Endorsement]
 	// the list of the users who do not have the right to claim rewards on this epoch
 	// the index is refreshed every epoch

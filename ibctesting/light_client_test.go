@@ -25,8 +25,12 @@ var canonicalClientConfig = ibctesting.TendermintConfig{
 }
 
 type lightClientSuite struct {
-	utilSuite
+	ibcTestingSuite
 	path *ibctesting.Path
+}
+
+func (s *lightClientSuite) lightclientMsgServer() types.MsgServer {
+	return lightclientkeeper.NewMsgServerImpl(&s.hubApp().LightClientKeeper)
 }
 
 func TestLightClientSuite(t *testing.T) {

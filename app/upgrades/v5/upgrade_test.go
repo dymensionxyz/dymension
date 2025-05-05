@@ -29,7 +29,7 @@ type UpgradeTestSuite struct {
 	App *app.App
 }
 
-// SetupTest initializes the necessary items for each test
+// SetupTestCustom initializes the necessary items for each test
 func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
 	s.App = apptesting.Setup(t)
 	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeader(cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()}).WithChainID("dymension_100-1")

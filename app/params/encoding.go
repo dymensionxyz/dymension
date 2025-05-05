@@ -33,7 +33,7 @@ type EncodingConfig struct {
 	Amino             *codec.LegacyAmino
 }
 
-// encodingConfig creates a new EncodingConfig and returns it
+// MakeEncodingConfig creates a new EncodingConfig and returns it
 func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 	cdc := amino.NewLegacyAmino()
 	signingOptions := signing.Options{
