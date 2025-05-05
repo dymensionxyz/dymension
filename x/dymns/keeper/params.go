@@ -16,6 +16,10 @@ func (k Keeper) GetParams(ctx sdk.Context) dymnstypes.Params {
 
 // SetParams set the params
 func (k Keeper) SetParams(ctx sdk.Context, params dymnstypes.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set(dymnstypes.KeyParams, bz)

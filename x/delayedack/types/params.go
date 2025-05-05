@@ -30,45 +30,28 @@ func DefaultParams() Params {
 	)
 }
 
-func validateBridgingFee(fee math.LegacyDec) error {
-	if fee.IsNil() {
-		return fmt.Errorf("invalid global pool params: %+v", fee)
-	}
-	if fee.IsNegative() {
-		return fmt.Errorf("bridging fee must be positive: %s", fee)
-	}
-
-	if fee.GTE(math.LegacyOneDec()) {
-		return fmt.Errorf("bridging fee too large: %s", fee)
-	}
-
-	return nil
-}
-
-func validateEpochIdentifier(i string) error {
-	if i == "" {
-		return fmt.Errorf("epoch identifier cannot be empty")
-	}
-	return nil
-}
-
-func validateDeletePacketsEpochLimit(v int32) error {
-	if v < 0 {
-		return fmt.Errorf("delete packet epoch limit must not be negative: %d", v)
-	}
-	return nil
-}
-
 // Validate validates the set of params
 func (p Params) ValidateBasic() error {
-	if err := validateBridgingFee(p.BridgingFee); err != nil {
-		return err
+	// validate bridging fee
+	if p.BridgingFee.IsNil() {
+		return fmt.Errorf("invalid global pool params: %+v", p.BridgingFee)
 	}
-	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
-		return err
+	if p.BridgingFee.IsNegative() {
+		return fmt.Errorf("bridging fee must be positive: %s", p.BridgingFee)
 	}
-	if err := validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit); err != nil {
-		return err
+
+	if p.BridgingFee.GTE(math.LegacyOneDec()) {
+		return fmt.Errorf("bridging fee too large: %s", p.BridgingFee)
+	}
+
+	// validate epoch identifier
+	if p.EpochIdentifier == "" {
+		return fmt.Errorf("epoch identifier cannot be empty")
+	}
+
+	// validate delete packets epoch limit
+	if p.DeletePacketsEpochLimit < 0 {
+		return fmt.Errorf("delete packet epoch limit must not be negative: %d", p.DeletePacketsEpochLimit)
 	}
 	return nil
 }

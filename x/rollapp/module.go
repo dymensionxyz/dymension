@@ -134,12 +134,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterProposalMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	// Register migrations
-	m := keeper.NewMigrator(*am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3); err != nil {
-		panic(err)
-	}
 }
 
 // RegisterInvariants registers the module's invariants.
@@ -162,8 +156,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements ConsensusVersion.
-// 3 - migrate params from x/params to x/rollapp
-func (AppModule) ConsensusVersion() uint64 { return 3 }
+func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 func (am AppModule) GetHooks() []types.RollappHooks {
 	return am.keeper.GetHooks()

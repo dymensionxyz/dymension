@@ -317,7 +317,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.LockupKeeper = lockupkeeper.NewKeeper(
 		a.keys[lockuptypes.StoreKey],
-		a.GetSubspace(lockuptypes.ModuleName),
+		appCodec,
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.TxFeesKeeper,
@@ -338,7 +338,6 @@ func (a *AppKeepers) InitKeepers(
 	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
-		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
 		nil,
 		a.BankKeeper,
@@ -382,7 +381,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
-		a.GetSubspace(incentivestypes.ModuleName),
+		appCodec,
 		a.BankKeeper,
 		a.LockupKeeper,
 		a.EpochsKeeper,
@@ -418,19 +417,18 @@ func (a *AppKeepers) InitKeepers(
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[streamermoduletypes.StoreKey],
-		a.GetSubspace(streamermoduletypes.ModuleName),
 		a.BankKeeper,
 		a.EpochsKeeper,
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
+		govModuleAddress,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
 		appCodec,
 		a.keys[eibcmoduletypes.StoreKey],
 		a.keys[eibcmoduletypes.MemStoreKey],
-		a.GetSubspace(eibcmoduletypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DelayedAckKeeper,
@@ -441,7 +439,6 @@ func (a *AppKeepers) InitKeepers(
 	a.DymNSKeeper = dymnskeeper.NewKeeper(
 		appCodec,
 		a.keys[dymnstypes.StoreKey],
-		a.GetSubspace(dymnstypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -470,7 +467,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[delayedacktypes.StoreKey],
 		a.keys[ibcexported.StoreKey],
-		a.GetSubspace(delayedacktypes.ModuleName),
+		govModuleAddress,
 		a.RollappKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
