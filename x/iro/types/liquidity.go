@@ -34,15 +34,27 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTo
 	return
 }
 
-// find equilibrium amount that will satisfy:
-// curve price (x) = balancer pool price (y/x)
-// for p(x) = mx^N
-// eq = ((N+1) * T) / (R + N + 1)
+// Find the max selling amt such that the price of the liquidity pool is is equal to the last spot price of the bonding curve
+//
+// Assuming c=0 (enforced in curve valiation):
+//
+//	    Define SpotIRO(x)=mx^n
+//	    Define RaisedLiquidity(x)=(mx^(n+1))/(n+1) [by integral]
+//	    Define SpotPool(x)=(r*RaisedLiquidity(x))/(totalAllocation-x)  [x is sold amt]
+//	    Solve SpotIRO=SpotPool [cancel x^n terms and rearrange linear eq]
+//	=> x=((n+1)*totalAllocation)/(r+n+1)
+//
+// If c!=0 and m=0:
+//
+//		SpotIRO(x)=c
+//		RaisedLiquidity(x)=cx
+//		SpotPool(x)=(r*cx)/(totalAllocation-x)
+//		Solve SpotIRO=SpotPool [cancel c terms and rearrange linear eq]
+//	 => x=totalAllocation/(r+1) [same as above calculation but n=0]
 func FindEquilibrium(curve BondingCurve, totalAllocation math.Int, r math.LegacyDec) math.Int {
 	n := curve.N
 
-	// hack for fixed price (as we set N=1 with M=0 instead of N=0)
-	if curve.M.IsZero() {
+	if curve.M.IsZero() { // c is allowed to be non-zero
 		n = math.LegacyZeroDec()
 	}
 
