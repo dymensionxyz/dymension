@@ -19,7 +19,7 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if len(args.Memo) == 0 {
-		// Equivalent to the vanilla token standard. Might be used to provide EIBC or LP funds.
+		// Equivalent to the vanilla token standard.
 		return nil
 	}
 
