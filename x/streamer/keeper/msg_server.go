@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ types.MsgServer = msgServer{}
@@ -26,7 +27,7 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.Authority != s.authority {
-		return nil, errorsmod.Wrapf(types.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
 	streamID, err := s.Keeper.CreateStream(
@@ -52,7 +53,7 @@ func (s msgServer) TerminateStream(goCtx context.Context, msg *types.MsgTerminat
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.Authority != s.authority {
-		return nil, errorsmod.Wrapf(types.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
 	err := s.Keeper.TerminateStream(ctx, msg.StreamId)
@@ -68,7 +69,7 @@ func (s msgServer) ReplaceStream(goCtx context.Context, msg *types.MsgReplaceStr
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.Authority != s.authority {
-		return nil, errorsmod.Wrapf(types.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
 	err := s.Keeper.ReplaceDistrRecords(ctx, msg.StreamId, msg.Records)
@@ -84,7 +85,7 @@ func (s msgServer) UpdateStream(goCtx context.Context, msg *types.MsgUpdateStrea
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.Authority != s.authority {
-		return nil, errorsmod.Wrapf(types.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
 	err := s.Keeper.UpdateDistrRecords(ctx, msg.StreamId, msg.Records)
