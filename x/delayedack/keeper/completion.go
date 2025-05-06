@@ -49,7 +49,7 @@ func (k Keeper) RunCompletionHook(ctx sdk.Context, fundsSrc sdk.AccAddress, budg
 // Should be called after packet finalization
 // Recipient can either be the fulfiller of a hook that already occurred, or the original recipient still, who probably still wants the hook to happen
 // NOTE: there is an asymmetry currently because on fulfill supports multiple hooks, but this finalization onRecv is hardcoded for x/forward atm
-func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *commontypes.RollappPacket) error { // TODO: rename func
+func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *commontypes.RollappPacket) error {
 	// Because we intercepted the packet, the core ibc library wasn't able to write the ack when we first
 	// got the packet. So we try to write it here.
 
@@ -72,21 +72,22 @@ func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *comm
 		}
 	}
 
-	/*
+	return k.finalizeCompletionHook(ctx, p)
 
-		*In general* we want a way to do something whenever an ibc transfer happens ("Hook"). It can happen
-			1. on EIBC fulfill
-			2. on finalize to the original recipient, for non fulfilled orders
-			3. on finalize to the fulfiller, for fulfilled orders
+}
 
-		1. Do the hook on EIBC fulfillment, using immediate funds
-		2. On finalize, look up the EIBC demand order to check if it's fulfilled or not.
-			a. If it ISN'T, then do the hook AFTER the ibc transfer stack finishes
-			b. If it IS, then do nothing
-
-		We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
-	*/
-
+// *In general* we want a way to do something whenever an ibc transfer happens ("Hook"). It can happen
+// 1. on EIBC fulfill
+// 2. on finalize to the original recipient, for non fulfilled orders
+// 3. on finalize to the fulfiller, for fulfilled orders
+//
+// 1. Do the hook on EIBC fulfillment, using immediate funds
+// 2. On finalize, look up the EIBC demand order to check if it's fulfilled or not.
+// a. If it ISN'T, then do the hook AFTER the ibc transfer stack finishes
+// b. If it IS, then do nothing
+//
+// We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
+func (k Keeper) finalizeCompletionHook(ctx sdk.Context, p *commontypes.RollappPacket) error {
 	o, err := k.EIBCKeeper.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {
 		// not much we can do here, it should exist...
