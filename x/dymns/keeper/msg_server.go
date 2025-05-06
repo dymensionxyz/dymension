@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,4 +41,34 @@ func consumeMinimumGas(ctx sdk.Context, minimumGas, originalConsumedGas uint64, 
 			ctx.GasMeter().ConsumeGas(gasToConsume, actionName)
 		}
 	}
+}
+
+// MigrateChainIds implements the Msg/MigrateChainIds RPC method
+func (k msgServer) MigrateChainIds(goCtx context.Context, msg *dymnstypes.MsgMigrateChainIds) (*dymnstypes.MsgMigrateChainIdsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	if err := k.Keeper.MigrateChainIds(ctx, msg.Replacement); err != nil {
+		return nil, err
+	}
+
+	return &dymnstypes.MsgMigrateChainIdsResponse{}, nil
+}
+
+// UpdateAliases implements the Msg/UpdateAliases RPC method
+func (k msgServer) UpdateAliases(goCtx context.Context, msg *dymnstypes.MsgUpdateAliases) (*dymnstypes.MsgUpdateAliasesResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	if err := k.Keeper.UpdateAliases(ctx, msg.Add, msg.Remove); err != nil {
+		return nil, err
+	}
+
+	return &dymnstypes.MsgUpdateAliasesResponse{}, nil
 }

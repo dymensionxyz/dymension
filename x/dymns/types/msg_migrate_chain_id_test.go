@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
+func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
 		title           string
@@ -169,9 +169,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := MigrateChainIdsProposal{
-				Title:       tt.title,
-				Description: tt.description,
+			m := MsgMigrateChainIds{
 				Replacement: tt.replacement,
 			}
 

@@ -5,7 +5,6 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // RegisterCodec registers the necessary types and interfaces for the module
@@ -23,6 +22,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCancelBuyOrder{}, "dymns/CancelBuyOrder", nil)
 	cdc.RegisterConcrete(&MsgAcceptBuyOrder{}, "dymns/AcceptBuyOrder", nil)
 	cdc.RegisterConcrete(&MsgPurchaseOrder{}, "dymns/PurchaseName", nil)
+	cdc.RegisterConcrete(&MsgMigrateChainIds{}, "dymns/MigrateChainIds", nil)
+	cdc.RegisterConcrete(&MsgUpdateAliases{}, "dymns/UpdateAliases", nil)
 }
 
 // RegisterInterfaces registers implementations by its interface, for the module
@@ -42,12 +43,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgCancelBuyOrder{},
 		&MsgAcceptBuyOrder{},
 		&MsgPurchaseOrder{},
-	)
-
-	registry.RegisterImplementations(
-		(*govtypes.Content)(nil),
-		&MigrateChainIdsProposal{},
-		&UpdateAliasesProposal{},
+		&MsgMigrateChainIds{},
+		&MsgUpdateAliases{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

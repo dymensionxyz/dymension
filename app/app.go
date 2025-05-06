@@ -28,7 +28,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
-	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
 
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 
@@ -184,8 +183,6 @@ func New(
 					paramsclient.ProposalHandler,
 					denommetadatamoduleclient.CreateDenomMetadataHandler,
 					denommetadatamoduleclient.UpdateDenomMetadataHandler,
-					dymnsmoduleclient.MigrateChainIdsProposalHandler,
-					dymnsmoduleclient.UpdateAliasesProposalHandler,
 					evmclient.UpdateVirtualFrontierBankContractProposalHandler,
 				},
 			),

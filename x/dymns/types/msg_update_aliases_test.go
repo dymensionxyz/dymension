@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
+func TestMsgUpdateAliases_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
 		title           string
@@ -259,11 +259,9 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := UpdateAliasesProposal{
-				Title:       tt.title,
-				Description: tt.description,
-				Add:         tt.add,
-				Remove:      tt.remove,
+			m := MsgUpdateAliases{
+				Add:    tt.add,
+				Remove: tt.remove,
 			}
 
 			err := m.ValidateBasic()
