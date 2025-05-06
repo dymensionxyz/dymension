@@ -78,9 +78,7 @@ func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, bu
 	}
 
 	_, err = k.warpS.DymRemoteTransfer(ctx, m) // TODO: responsse?
-	err = errorsmod.Wrap(err, "dym remote transfer")
-	return err
-
+	return errorsmod.Wrap(err, "dym remote transfer")
 }
 
 func (k Forward) getHypToken(ctx context.Context, tokenId hyperutil.HexAddress) (*warptypes.WrappedHypToken, error) {
