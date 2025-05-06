@@ -29,7 +29,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
-	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
 
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 
@@ -66,7 +65,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
@@ -131,7 +129,7 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	encoding := params.MakeEncodingConfig()
+	encoding := appparams.MakeEncodingConfig()
 	appCodec := encoding.Codec
 	legacyAmino := encoding.Amino
 	txConfig := encoding.TxConfig
@@ -184,7 +182,6 @@ func New(
 			govtypes.ModuleName: gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
 					paramsclient.ProposalHandler,
-					sequencermoduleclient.PunishSequencerHandler,
 					denommetadatamoduleclient.CreateDenomMetadataHandler,
 					denommetadatamoduleclient.UpdateDenomMetadataHandler,
 					dymnsmoduleclient.MigrateChainIdsProposalHandler,
