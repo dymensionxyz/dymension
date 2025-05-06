@@ -7,7 +7,7 @@ deps:
   - buf.build/cosmos/gogo-proto
   - buf.build/cosmos/ibc:442292b00c1649c1b2e0881f942d3b53
   - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
-  - buf.build/danwt/d-hyperlane-cosmos:aa15d6657435444ab28b63593c2f2619
+  - buf.build/danwt/d-hyperlane-cosmos:6cbaef011e0e4eccaca429a88bae3b04
   
 breaking:
   use:

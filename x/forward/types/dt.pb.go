@@ -5,9 +5,9 @@ package types
 
 import (
 	fmt "fmt"
+	types "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	proto "github.com/cosmos/gogoproto/proto"
 	types1 "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	types "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
