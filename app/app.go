@@ -30,7 +30,6 @@ import (
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
 	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
-	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 
@@ -185,10 +184,6 @@ func New(
 			govtypes.ModuleName: gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
 					paramsclient.ProposalHandler,
-					streamermoduleclient.CreateStreamHandler,
-					streamermoduleclient.TerminateStreamHandler,
-					streamermoduleclient.ReplaceStreamHandler,
-					streamermoduleclient.UpdateStreamHandler,
 					sequencermoduleclient.PunishSequencerHandler,
 					denommetadatamoduleclient.CreateDenomMetadataHandler,
 					denommetadatamoduleclient.UpdateDenomMetadataHandler,
