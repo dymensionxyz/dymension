@@ -1,11 +1,22 @@
 package eibc
 
 import (
+	fmt "fmt"
+
+	"cosmossdk.io/math"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
 
-var ModuleName = "eibc"
+const ModuleName = "eibc"
+
+// Params defines the parameters for the module.
+type Params struct {
+	EpochIdentifier string         `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
+	TimeoutFee      math.LegacyDec `protobuf:"bytes,2,opt,name=timeout_fee,json=timeoutFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"timeout_fee" yaml:"timeout_fee"`
+	ErrackFee       math.LegacyDec `protobuf:"bytes,3,opt,name=errack_fee,json=errackFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"errack_fee" yaml:"errack_fee"`
+}
+
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
@@ -25,9 +36,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, nil),
-		paramtypes.NewParamSetPair(KeyTimeoutFee, &p.TimeoutFee, nil),
-		paramtypes.NewParamSetPair(KeyErrAckFee, &p.ErrackFee, nil),
+		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, validateEpochIdentifier),
+		paramtypes.NewParamSetPair(KeyTimeoutFee, &p.TimeoutFee, validateTimeoutFee),
+		paramtypes.NewParamSetPair(KeyErrAckFee, &p.ErrackFee, validateErrAckFee),
 	}
 }
 
@@ -35,4 +46,53 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+func validateEpochIdentifier(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if len(v) == 0 {
+		return fmt.Errorf("epoch identifier cannot be empty")
+	}
+	return nil
+}
+
+func validateTimeoutFee(i interface{}) error {
+	v, ok := i.(math.LegacyDec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNil() {
+		return fmt.Errorf("invalid global pool params: %+v", i)
+	}
+	if v.IsNegative() {
+		return fmt.Errorf("negative fee: %s", v)
+	}
+
+	if v.GTE(math.LegacyOneDec()) {
+		return fmt.Errorf("fee too high: %s", v)
+	}
+
+	return nil
+}
+
+func validateErrAckFee(i any) error {
+	v, ok := i.(math.LegacyDec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNil() {
+		return fmt.Errorf("invalid global pool params: %+v", i)
+	}
+	if v.IsNegative() {
+		return fmt.Errorf("negative fee: %s", v)
+	}
+
+	if v.GTE(math.LegacyOneDec()) {
+		return fmt.Errorf("fee too high: %s", v)
+	}
+
+	return nil
 }

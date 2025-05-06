@@ -81,8 +81,10 @@ func CreateUpgradeHandler(
 
 func migrateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
 	// Incentives module
-	incentivesSubspace := keepers.ParamsKeeper.Subspace(incentives.ModuleName)
-	incentivesSubspace = incentivesSubspace.WithKeyTable(incentives.ParamKeyTable())
+	incentivesSubspace, ok := keepers.ParamsKeeper.GetSubspace(incentives.ModuleName)
+	if !ok {
+		incentivesSubspace = keepers.ParamsKeeper.Subspace(incentives.ModuleName).WithKeyTable(incentives.ParamKeyTable())
+	}
 	var incentivesParams incentives.Params
 	incentivesSubspace.GetParamSetIfExists(ctx, &incentivesParams)
 
@@ -100,8 +102,10 @@ func migrateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) 
 
 // Lockup module
 func migrateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
-	lockupSubspace := keepers.ParamsKeeper.Subspace(lockup.ModuleName)
-	lockupSubspace = lockupSubspace.WithKeyTable(lockup.ParamKeyTable())
+	lockupSubspace, ok := keepers.ParamsKeeper.GetSubspace(lockup.ModuleName)
+	if !ok {
+		lockupSubspace = keepers.ParamsKeeper.Subspace(lockup.ModuleName).WithKeyTable(lockup.ParamKeyTable())
+	}
 	var lockupParams lockup.Params
 	lockupSubspace.GetParamSetIfExists(ctx, &lockupParams)
 
