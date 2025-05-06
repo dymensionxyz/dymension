@@ -597,15 +597,6 @@ func (a *AppKeepers) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	// deprecated subspaces. loaded only for migration
-	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
-	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
-	paramsKeeper.Subspace(delayedacktypes.ModuleName)
-	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	paramsKeeper.Subspace(dymnstypes.ModuleName)
-	paramsKeeper.Subspace(lockuptypes.ModuleName)
-	paramsKeeper.Subspace(incentivestypes.ModuleName)
-
 	// ibc-go subspaces
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)

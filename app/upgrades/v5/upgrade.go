@@ -25,7 +25,6 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
-	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
@@ -57,10 +56,10 @@ func CreateUpgradeHandler(
 		migrateDeprecatedParamsKeeperSubspaces(ctx, keepers)
 
 		// Incentives module params migration
-		migrateIncentivesParams(ctx, keepers.IncentivesKeeper)
+		migrateIncentivesParams(ctx, keepers)
 
 		// lockup module params migrations
-		migrateLockupParams(ctx, keepers.LockupKeeper)
+		migrateLockupParams(ctx, keepers)
 
 		// IRO module params migration
 		migrateIROParams(ctx, keepers.IROKeeper)
@@ -80,25 +79,38 @@ func CreateUpgradeHandler(
 	}
 }
 
-func migrateIncentivesParams(ctx sdk.Context, k *incentiveskeeper.Keeper) {
-	params := k.GetParams(ctx)
+func migrateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
+	// Incentives module
+	incentivesSubspace := keepers.ParamsKeeper.Subspace(incentives.ModuleName)
+	incentivesSubspace = incentivesSubspace.WithKeyTable(incentives.ParamKeyTable())
+	var incentivesParams incentives.Params
+	incentivesSubspace.GetParamSetIfExists(ctx, &incentivesParams)
 
-	// default mode is active rollapps only
-	params.RollappGaugesMode = incentivestypes.DefaultRollappGaugesMode
+	newParams := incentivestypes.NewParams(
+		incentivesParams.DistrEpochIdentifier,
+		incentivesParams.CreateGaugeBaseFee,
+		incentivesParams.AddToGaugeBaseFee,
+		incentivesParams.AddDenomFee,
+		incentivestypes.DefaultMinValueForDistr,  // Default to 0.01 DYM
+		incentivestypes.DefaultRollappGaugesMode, // Default to active rollapps only
+	)
 
-	// set default min value for distribution (0.01 DYM)
-	params.MinValueForDistribution = incentivestypes.DefaultMinValueForDistr
-
-	k.SetParams(ctx, params)
+	keepers.IncentivesKeeper.SetParams(ctx, newParams)
 }
 
-func migrateLockupParams(ctx sdk.Context, k *lockupkeeper.Keeper) {
-	params := k.GetParams(ctx)
+// Lockup module
+func migrateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
+	lockupSubspace := keepers.ParamsKeeper.Subspace(lockup.ModuleName)
+	lockupSubspace = lockupSubspace.WithKeyTable(lockup.ParamKeyTable())
+	var lockupParams lockup.Params
+	lockupSubspace.GetParamSetIfExists(ctx, &lockupParams)
 
-	params.LockCreationFee = lockuptypes.DefaultLockFee
-	params.MinLockDuration = 24 * time.Hour
-
-	k.SetParams(ctx, params)
+	newParams := lockuptypes.NewParams(
+		lockupParams.ForceUnlockAllowedAddresses,
+		lockuptypes.DefaultLockFee, // Default to 0.05 DYM
+		24*time.Hour,               // Minimum lock duration is 24 hours
+	)
+	keepers.LockupKeeper.SetParams(ctx, newParams)
 }
 
 func migrateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
@@ -173,8 +185,8 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	eibcSubspace.GetParamSetIfExists(ctx, &eibcParams)
 	keepers.EIBCKeeper.SetParams(ctx, eibcmoduletypes.NewParams(
 		eibcParams.EpochIdentifier,
-		eibcParams.BridgeFee,
-		eibcParams.BridgeFee,
+		eibcParams.TimeoutFee,
+		eibcParams.ErrackFee,
 	))
 
 	// DymNS module
@@ -196,20 +208,6 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 		},
 	))
 
-	// Incentives module
-	incentivesSubspace := keepers.ParamsKeeper.Subspace(incentives.ModuleName)
-	incentivesSubspace = incentivesSubspace.WithKeyTable(incentives.ParamKeyTable())
-	var incentivesParams incentives.Params
-	incentivesSubspace.GetParamSetIfExists(ctx, &incentivesParams)
-	keepers.IncentivesKeeper.SetParams(ctx, incentivestypes.NewParams(
-		incentivesParams.DistrEpochIdentifier,
-		incentivesParams.CreateGaugeBaseFee,
-		incentivesParams.AddToGaugeBaseFee,
-		incentivesParams.AddDenomFee,
-		incentivesParams.MinValueForDistribution,
-		incentivestypes.Params_RollappGaugesModes(incentivesParams.RollappGaugesMode),
-	))
-
 	// Rollapp module
 	rollappSubspace := keepers.ParamsKeeper.Subspace(rollapp.ModuleName)
 	rollappSubspace = rollappSubspace.WithKeyTable(rollapp.ParamKeyTable())
@@ -223,17 +221,6 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 		rollappParams.MinSequencerBondGlobal,
 	))
 
-	// Lockup module
-	lockupSubspace := keepers.ParamsKeeper.Subspace(lockup.ModuleName)
-	lockupSubspace = lockupSubspace.WithKeyTable(lockup.ParamKeyTable())
-	var lockupParams lockup.Params
-	lockupSubspace.GetParamSetIfExists(ctx, &lockupParams)
-	keepers.LockupKeeper.SetParams(ctx, lockuptypes.NewParams(
-		lockupParams.ForceUnlockAllowedAddresses,
-		lockupParams.LockCreationFee,
-		lockupParams.MinLockDuration,
-	))
-
 	// Streamer module
 	streamerSubspace := keepers.ParamsKeeper.Subspace(streamer.ModuleName)
 	streamerSubspace = streamerSubspace.WithKeyTable(streamer.ParamKeyTable())
@@ -243,13 +230,3 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 		streamerParams.MaxIterationsPerBlock,
 	))
 }
-
-// func migrateParamsKeeper(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
-// app.GetSubspace(minttypes.ModuleName)
-
-// // GetSubspace gets existing substore from keeper.
-// func (a *AppKeepers) GetSubspace(moduleName string) paramstypes.Subspace {
-// 	subspace, _ := a.ParamsKeeper.GetSubspace(moduleName)
-// 	return subspace
-// }
-// }
