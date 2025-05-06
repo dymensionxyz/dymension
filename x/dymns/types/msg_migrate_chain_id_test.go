@@ -9,16 +9,12 @@ import (
 func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
-		title           string
-		description     string
 		replacement     []MigrateChainId
 		wantErr         bool
 		wantErrContains string
 	}{
 		{
-			name:        "pass - valid, single",
-			title:       "T",
-			description: "D",
+			name: "pass - valid, single",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "cosmoshub-3",
@@ -28,9 +24,7 @@ func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "pass - valid, multiple",
-			title:       "T",
-			description: "D",
+			name: "pass - valid, multiple",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "cosmoshub-3",
@@ -45,50 +39,19 @@ func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "fail - reject empty replacement",
-			title:           "T",
-			description:     "D",
 			replacement:     []MigrateChainId{},
 			wantErr:         true,
 			wantErrContains: "replacement cannot be empty",
 		},
 		{
 			name:            "fail - reject empty replacement",
-			title:           "T",
-			description:     "D",
 			replacement:     nil,
 			wantErr:         true,
 			wantErrContains: "replacement cannot be empty",
 		},
+
 		{
-			name:        "fail - reject empty title",
-			title:       "",
-			description: "D",
-			replacement: []MigrateChainId{
-				{
-					PreviousChainId: "cosmoshub-3",
-					NewChainId:      "cosmoshub-4",
-				},
-			},
-			wantErr:         true,
-			wantErrContains: "proposal title cannot be blank",
-		},
-		{
-			name:        "fail - reject empty description",
-			title:       "T",
-			description: "",
-			replacement: []MigrateChainId{
-				{
-					PreviousChainId: "cosmoshub-3",
-					NewChainId:      "cosmoshub-4",
-				},
-			},
-			wantErr:         true,
-			wantErrContains: "proposal description cannot be blank",
-		},
-		{
-			name:        "fail - reject invalid replacement",
-			title:       "T",
-			description: "D",
+			name: "fail - reject invalid replacement",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "",
@@ -99,9 +62,7 @@ func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 			wantErrContains: "previous chain id cannot be empty",
 		},
 		{
-			name:        "fail - reject duplicate replacement",
-			title:       "T",
-			description: "D",
+			name: "fail - reject duplicate replacement",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "cosmoshub-3",
@@ -116,9 +77,7 @@ func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id",
 		},
 		{
-			name:        "fail - reject duplicate replacement",
-			title:       "T",
-			description: "D",
+			name: "fail - reject duplicate replacement",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "cosmoshub-3",
@@ -133,9 +92,7 @@ func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id",
 		},
 		{
-			name:        "fail - reject duplicate replacement",
-			title:       "T",
-			description: "D",
+			name: "fail - reject duplicate replacement",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "cosmoshub-3",
@@ -150,9 +107,7 @@ func TestMsgMigrateChainIds_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id",
 		},
 		{
-			name:        "fail - reject duplicate replacement",
-			title:       "T",
-			description: "D",
+			name: "fail - reject duplicate replacement",
 			replacement: []MigrateChainId{
 				{
 					PreviousChainId: "cosmoshub-3",
