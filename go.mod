@@ -250,6 +250,8 @@ require (
 )
 
 replace (
+
+	github.com/bcp-innovations/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a
 	// use dymension forks
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
@@ -259,6 +261,4 @@ replace (
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
-
-	github.com/bcp-innovations/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos
 )
