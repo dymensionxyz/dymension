@@ -3,9 +3,9 @@ package types
 import (
 	context "context"
 
+	"github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	"github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 type WarpQuery interface {

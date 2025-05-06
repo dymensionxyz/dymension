@@ -12,12 +12,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	math "cosmossdk.io/math"
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
-	hyperutil "github.com/dymensionxyz/hyperlane-cosmos/util"
-	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 )
 
 func GetQueryCmd() *cobra.Command {

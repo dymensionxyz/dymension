@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	hyperutil "github.com/dymensionxyz/hyperlane-cosmos/util"
 	"github.com/stretchr/testify/require"
 )
 

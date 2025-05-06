@@ -3,12 +3,12 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	hyperutil "github.com/dymensionxyz/hyperlane-cosmos/util"
-	warptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	ibcompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"

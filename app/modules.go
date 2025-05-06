@@ -87,10 +87,10 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
-	hypercore "github.com/dymensionxyz/hyperlane-cosmos/x/core"
-	hypertypes "github.com/dymensionxyz/hyperlane-cosmos/x/core/types"
-	hyperwarp "github.com/dymensionxyz/hyperlane-cosmos/x/warp"
-	hyperwarptypes "github.com/dymensionxyz/hyperlane-cosmos/x/warp/types"
+	hypercore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
+	hypertypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
 var _ = hypercore.ConsensusVersion
