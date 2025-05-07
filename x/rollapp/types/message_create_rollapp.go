@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgCreateRollapp = "create_rollapp"
-
 var _ sdk.Msg = &MsgCreateRollapp{}
 
 func NewMsgCreateRollapp(
@@ -28,22 +26,6 @@ func NewMsgCreateRollapp(
 		Metadata:         metadata,
 		GenesisInfo:      genesisInfo,
 	}
-}
-
-func (msg *MsgCreateRollapp) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgCreateRollapp) Type() string {
-	return TypeMsgCreateRollapp
-}
-
-func (msg *MsgCreateRollapp) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {

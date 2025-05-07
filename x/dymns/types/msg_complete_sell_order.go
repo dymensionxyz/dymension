@@ -30,22 +30,3 @@ func (m *MsgCompleteSellOrder) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners returns the required signers for the MsgCompleteSellOrder.
-func (m *MsgCompleteSellOrder) GetSigners() []sdk.AccAddress {
-	participant, err := sdk.AccAddressFromBech32(m.Participant)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{participant}
-}
-
-// Route returns the message router key for the MsgCompleteSellOrder.
-func (m *MsgCompleteSellOrder) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgCompleteSellOrder.
-func (m *MsgCompleteSellOrder) Type() string {
-	return TypeMsgCompleteSellOrder
-}

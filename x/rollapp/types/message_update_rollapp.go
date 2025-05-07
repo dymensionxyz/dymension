@@ -9,8 +9,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-const TypeMsgUpdateRollappInformation = "update_rollapp"
-
 var (
 	_ sdk.Msg = &MsgUpdateRollappInformation{}
 	_ sdk.Msg = &MsgForceGenesisInfoChange{}
@@ -33,22 +31,6 @@ func NewMsgUpdateRollappInformation(
 		Metadata:         metadata,
 		GenesisInfo:      genesisInfo,
 	}
-}
-
-func (msg *MsgUpdateRollappInformation) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateRollappInformation) Type() string {
-	return TypeMsgUpdateRollappInformation
-}
-
-func (msg *MsgUpdateRollappInformation) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
@@ -122,10 +104,4 @@ func (m *MsgForceGenesisInfoChange) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners returns the expected signers for a MsgForceGenesisInfoChange.
-func (m *MsgForceGenesisInfoChange) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
 }

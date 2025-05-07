@@ -7,8 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgRemoveApp = "remove_app"
-
 var _ sdk.Msg = &MsgRemoveApp{}
 
 func NewMsgRemoveApp(creator string, id uint64, rollappId string) *MsgRemoveApp {
@@ -17,22 +15,6 @@ func NewMsgRemoveApp(creator string, id uint64, rollappId string) *MsgRemoveApp 
 		Id:        id,
 		RollappId: rollappId,
 	}
-}
-
-func (msg *MsgRemoveApp) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgRemoveApp) Type() string {
-	return TypeMsgRemoveApp
-}
-
-func (msg *MsgRemoveApp) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgRemoveApp) GetApp() App {

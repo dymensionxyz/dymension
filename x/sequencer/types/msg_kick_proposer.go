@@ -23,11 +23,3 @@ func (m *MsgKickProposer) ValidateBasic() error {
 	}
 	return nil
 }
-
-func (m *MsgKickProposer) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(m.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}

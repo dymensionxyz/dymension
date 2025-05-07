@@ -6,9 +6,12 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
+
+var _ sdk.Msg = &MsgMigrateChainIds{}
 
 // ValidateBasic performs basic validation for the MsgMigrateChainIds.
 func (m *MsgMigrateChainIds) ValidateBasic() error {

@@ -125,7 +125,7 @@ func SimulateMsgCreateGauge(
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		simCoins := bk.SpendableCoins(ctx, simAccount.Address)
 		if simCoins.AmountOf(sdk.DefaultBondDenom).LT(fee) {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgCreateGauge, "Account have no coin"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgCreateGauge{}), "Account have no coin"), nil, nil
 		}
 
 		distributeTo := genQueryCondition(r, ctx.BlockTime(), simCoins, types.DefaultGenesis().LockableDurations)
@@ -171,10 +171,10 @@ func SimulateMsgAddToGauge(
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		gauge := dymsimtypes.RandomGauge(ctx, r, k)
 		if gauge == nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgAddToGauge, "No gauge exists"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgAddToGauge{}), "No gauge exists"), nil, nil
 		} else if gauge.IsFinishedGauge(ctx.BlockTime()) {
 			// TODO: Ideally we'd still run this but expect failure.
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgAddToGauge, "Selected a gauge that is finished"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgAddToGauge{}), "Selected a gauge that is finished"), nil, nil
 		}
 
 		params := k.GetParams(ctx)
@@ -186,7 +186,7 @@ func SimulateMsgAddToGauge(
 		simCoins := bk.SpendableCoins(ctx, simAccount.Address)
 		if simCoins.AmountOf(sdk.DefaultBondDenom).LT(fee) {
 			return simtypes.NoOpMsg(
-				types.ModuleName, types.TypeMsgAddToGauge, "Account have no coin"), nil, nil
+				types.ModuleName, sdk.MsgTypeURL(&types.MsgAddToGauge{}), "Account have no coin"), nil, nil
 		}
 
 		rewards := genRewardCoins(r, simCoins, fee)

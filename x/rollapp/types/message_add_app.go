@@ -6,8 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgAddApp = "add_app"
-
 var _ sdk.Msg = &MsgAddApp{}
 
 func NewMsgAddApp(creator, name, rollappId, description, image, url string, order int32) *MsgAddApp {
@@ -20,22 +18,6 @@ func NewMsgAddApp(creator, name, rollappId, description, image, url string, orde
 		Url:         url,
 		Order:       order,
 	}
-}
-
-func (msg *MsgAddApp) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgAddApp) Type() string {
-	return TypeMsgAddApp
-}
-
-func (msg *MsgAddApp) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgAddApp) GetApp() App {

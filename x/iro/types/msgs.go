@@ -9,15 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	TypeMsgCreatePlan = "create_plan"
-	TypeMsgBuy        = "buy"
-	TypeMsgExactSpend = "buy_exact_spend"
-	TypeMsgSell       = "sell"
-	TypeMsgClaim      = "claim"
-	TypeUpdateParams  = "update_params"
-)
-
 var (
 	_ sdk.Msg = &MsgCreatePlan{}
 	_ sdk.Msg = &MsgBuy{}
@@ -79,59 +70,6 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgCreatePlan) Route() string {
-	return RouterKey
-}
-
-func (m *MsgBuy) Route() string {
-	return RouterKey
-}
-
-func (m *MsgSell) Route() string {
-	return RouterKey
-}
-
-func (m *MsgClaim) Route() string {
-	return RouterKey
-}
-
-func (m *MsgBuyExactSpend) Route() string {
-	return RouterKey
-}
-
-func (m *MsgUpdateParams) Route() string {
-	return RouterKey
-}
-
-func (m *MsgCreatePlan) Type() string {
-	return TypeMsgCreatePlan
-}
-
-func (m *MsgBuy) Type() string {
-	return TypeMsgBuy
-}
-
-func (m *MsgSell) Type() string {
-	return TypeMsgSell
-}
-
-func (m *MsgClaim) Type() string {
-	return TypeMsgClaim
-}
-
-func (m *MsgBuyExactSpend) Type() string {
-	return TypeMsgExactSpend
-}
-
-func (m *MsgUpdateParams) Type() string {
-	return TypeUpdateParams
-}
-
-func (m *MsgCreatePlan) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{addr}
-}
-
 func (m *MsgBuy) ValidateBasic() error {
 	// buyer bech32
 	_, err := sdk.AccAddressFromBech32(m.Buyer)
@@ -149,11 +87,6 @@ func (m *MsgBuy) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (m *MsgBuy) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Buyer)
-	return []sdk.AccAddress{addr}
 }
 
 func (m *MsgSell) ValidateBasic() error {
@@ -175,11 +108,6 @@ func (m *MsgSell) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgSell) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Seller)
-	return []sdk.AccAddress{addr}
-}
-
 func (m *MsgClaim) ValidateBasic() error {
 	// claimer bech32
 	_, err := sdk.AccAddressFromBech32(m.Claimer)
@@ -188,16 +116,6 @@ func (m *MsgClaim) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (m *MsgClaim) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Claimer)
-	return []sdk.AccAddress{addr}
-}
-
-func (m *MsgClaimVested) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Claimer)
-	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic implements types.Msg.
@@ -228,11 +146,6 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
-}
-
 // ValidateBasic implements types.Msg.
 func (m *MsgBuyExactSpend) ValidateBasic() error {
 	// buyer bech32
@@ -251,18 +164,6 @@ func (m *MsgBuyExactSpend) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements types.Msg.
-func (m *MsgBuyExactSpend) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Buyer)
-	return []sdk.AccAddress{addr}
-}
-
-// GetSigners implements types.Msg.
-func (m *MsgEnableTrading) GetSigners() []sdk.AccAddress {
-	addr := sdk.MustAccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{addr}
 }
 
 func (m *MsgEnableTrading) ValidateBasic() error {

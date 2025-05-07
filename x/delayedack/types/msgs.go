@@ -12,9 +12,10 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-const (
-	TypeMsgFinalizedPacket            = "finalized_packet"
-	TypeMsgFinalizedPacketByPacketKey = "finalized_packet_by_packet_key"
+var (
+	_ sdk.Msg = &MsgFinalizePacket{}
+	_ sdk.Msg = &MsgFinalizePacketByPacketKey{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 func (m MsgFinalizePacket) ValidateBasic() error {
@@ -32,11 +33,6 @@ func (m MsgFinalizePacket) ValidateBasic() error {
 		return gerrc.ErrInvalidArgument.Wrap("packet src channel must be non-empty")
 	}
 	return nil
-}
-
-func (m MsgFinalizePacket) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
 }
 
 func (m MsgFinalizePacket) PendingPacketKey() []byte {
@@ -68,11 +64,6 @@ func (m MsgFinalizePacketByPacketKey) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgFinalizePacketByPacketKey) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
-}
-
 func (m MsgFinalizePacketByPacketKey) MustDecodePacketKey() []byte {
 	packetKey, err := commontypes.DecodePacketKey(m.PacketKey)
 	if err != nil {
@@ -81,18 +72,22 @@ func (m MsgFinalizePacketByPacketKey) MustDecodePacketKey() []byte {
 	return packetKey
 }
 
-func (m *MsgFinalizePacket) Route() string {
-	return RouterKey
-}
+func (m MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidAddress,
+			errorsmod.Wrapf(err, "authority must be a valid bech32 address: %s", m.Authority),
+		)
+	}
 
-func (m *MsgFinalizePacket) Type() string {
-	return TypeMsgFinalizedPacket
-}
+	err = m.Params.ValidateBasic()
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidRequest,
+			errorsmod.Wrapf(err, "failed to validate params"),
+		)
+	}
 
-func (m *MsgFinalizePacketByPacketKey) Route() string {
-	return RouterKey
-}
-
-func (m *MsgFinalizePacketByPacketKey) Type() string {
-	return TypeMsgFinalizedPacketByPacketKey
+	return nil
 }

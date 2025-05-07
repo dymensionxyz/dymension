@@ -56,22 +56,3 @@ func (m *MsgPlaceSellOrder) ToSellOrder() SellOrder {
 
 	return so
 }
-
-// GetSigners returns the required signers for the MsgPlaceSellOrder.
-func (m *MsgPlaceSellOrder) GetSigners() []sdk.AccAddress {
-	owner, err := sdk.AccAddressFromBech32(m.Owner)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{owner}
-}
-
-// Route returns the message router key for the MsgPlaceSellOrder.
-func (m *MsgPlaceSellOrder) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgPlaceSellOrder.
-func (m *MsgPlaceSellOrder) Type() string {
-	return TypeMsgPlaceSellOrder
-}

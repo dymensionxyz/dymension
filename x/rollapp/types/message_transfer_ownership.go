@@ -4,8 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgTransferOwnership = "transfer_ownership"
-
 var _ sdk.Msg = &MsgTransferOwnership{}
 
 func NewMsgTransferOwnership(
@@ -18,22 +16,6 @@ func NewMsgTransferOwnership(
 		NewOwner:     newOwner,
 		RollappId:    rollappId,
 	}
-}
-
-func (msg *MsgTransferOwnership) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgTransferOwnership) Type() string {
-	return TypeMsgTransferOwnership
-}
-
-func (msg *MsgTransferOwnership) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.CurrentOwner)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgTransferOwnership) ValidateBasic() error {

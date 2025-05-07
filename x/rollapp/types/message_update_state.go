@@ -7,10 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const (
-	TypeMsgUpdateState = "update_state"
-)
-
 var _ sdk.Msg = &MsgUpdateState{}
 
 func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks, revision uint64, bDs *BlockDescriptors) *MsgUpdateState {
@@ -23,22 +19,6 @@ func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks
 		BDs:             *bDs,
 		RollappRevision: revision,
 	}
-}
-
-func (msg *MsgUpdateState) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateState) Type() string {
-	return TypeMsgUpdateState
-}
-
-func (msg *MsgUpdateState) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgUpdateState) ValidateBasic() error {

@@ -6,17 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const (
-	TypeMsgUpdateParams = "update_params"
-)
-
 var _ sdk.Msg = &MsgUpdateParams{}
-
-// GetSigners implements types.Msg.
-func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Authority)
-	return []sdk.AccAddress{addr}
-}
 
 // ValidateBasic implements types.Msg.
 func (m *MsgUpdateParams) ValidateBasic() error {
@@ -29,12 +19,4 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (m *MsgUpdateParams) Route() string {
-	return RouterKey
-}
-
-func (m *MsgUpdateParams) Type() string {
-	return TypeMsgUpdateParams
 }
