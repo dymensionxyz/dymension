@@ -82,6 +82,9 @@ func validateMinValueForDistr(_ sdk.Coin) error {
 	return nil
 }
 
-func validateRollappGaugesMode(_ Params_RollappGaugesModes) error {
+func validateRollappGaugesMode(mode Params_RollappGaugesModes) error {
+	if mode != Params_ActiveOnly && mode != Params_AllRollapps {
+		return gerrc.ErrInvalidArgument.Wrapf("invalid RollappGaugesMode: %d", mode)
+	}
 	return nil
 }
