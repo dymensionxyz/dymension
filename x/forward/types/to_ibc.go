@@ -125,7 +125,7 @@ func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
 	hyperlaneDstDomain uint32, // e.g. 0 for Dymension
 	hyperlaneTokenID hyperutil.HexAddress,
-	hyperlaneRecipient sdk.AccAddress, // TODO: explain, ignored?
+	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
 	hook *HookForwardToIBC,
 ) (hyperutil.HyperlaneMessage, error) {

@@ -34,6 +34,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdMemoEIBCtoHL())
 	cmd.AddCommand(CmdMemoEIBCtoIBC())
 	cmd.AddCommand(CmdMemoHLtoIBCRaw())
+	cmd.AddCommand(CmdHLEthTransferRecipientHubAccount())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
@@ -43,6 +44,7 @@ func GetQueryCmd() *cobra.Command {
 
 const (
 	MessageReadableFlag = "readable"
+	DecodeMemoFlag      = "memo"
 )
 
 // get a memo for the direction (E)IBC -> HL. This should be directly included in the memo of the ibc transfer.
@@ -374,6 +376,33 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
+// Get a value to pass to Ethereum as the recipient of a token transfer on the hub
+func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "hl-eth-recipient [addr]",
+		Args:                       cobra.ExactArgs(1),
+		Short:                      "",
+		Example:                    `dymd q forward eth-hub-recipient dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9`,
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			addr, err := sdk.GetFromBech32(args[0], "dym")
+			if err != nil {
+				return fmt.Errorf("addr address from bech32: %w", err)
+			}
+
+			fmt.Printf("%x\n", addr)
+
+			return nil
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // Util to debug a hyperlane message or hyperlane body (including show the memo if there is one). Expects Ethereum Hex bytes
 func CmdDecodeHyperlaneMessage() *cobra.Command {
 	cmd := &cobra.Command{
@@ -413,23 +442,38 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				}
 				body = m.Body
 				message = &m
+				fmt.Printf("hyperlane message: %+v\n", message)
 			}
-			payload, err := warptypes.ParseWarpMemoPayload(body)
-			if err != nil {
-				return fmt.Errorf("parse warp memo payload: %w", err)
-			}
-			fmt.Printf("hyperlane message: %+v\n", message)
-			fmt.Printf("token message: %+v\n", payload)
 
-			memo, err := types.UnpackForwardToIBC(payload.Memo)
+			memo, err := cmd.Flags().GetBool(DecodeMemoFlag)
 			if err != nil {
-				return fmt.Errorf("unpack memo from warp message: %w", err)
+				return fmt.Errorf("encode flag: %w", err)
 			}
-			fmt.Printf("eibc memo: %+v\n", memo)
+
+			if memo {
+				payload, err := warptypes.ParseWarpMemoPayload(body)
+				if err != nil {
+					return fmt.Errorf("parse warp memo payload: %w", err)
+				}
+				fmt.Printf("warp payload message: %+v\n", payload)
+
+				memo, err := types.UnpackForwardToIBC(payload.Memo)
+				if err != nil {
+					return fmt.Errorf("unpack memo from warp message: %w", err)
+				}
+				fmt.Printf("ibc memo: %+v\n", memo)
+			} else {
+				payload, err := warptypes.ParseWarpPayload(body)
+				if err != nil {
+					return fmt.Errorf("parse warp payload: %w", err)
+				}
+				fmt.Printf("warp payload message: %+v\n", payload)
+			}
 			return nil
 		},
 	}
 
+	cmd.Flags().Bool(DecodeMemoFlag, false, "Decode the memo from the payload")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
