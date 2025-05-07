@@ -46,9 +46,18 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 	}
 
 	// validate state info against optimistically accepted headers
-	_, err := hook.k.ValidateStateInfoAgainstConsensusStates(ctx, client, stateInfo)
+	ok, err := hook.k.ValidateStateInfoAgainstConsensusStates(ctx, client, stateInfo)
 	if err != nil {
 		return errorsmod.Wrap(err, "validate optimistic update")
+	}
+
+	// we  didn't validate any IBC headers, check if we can update headers from the state info
+	if !ok {
+		cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+		lastestH := cs.GetLatestHeight().GetRevisionHeight()
+		if lastestH < stateInfo.GetStartHeight() {
+			hook.k.UpdateClientFromStateInfo(ctx, hook.k.ibcClientKeeper.ClientStore(ctx, client), stateInfo)
+		}
 	}
 
 	// we now verified everything up to and including stateInfo.GetLatestHeight()

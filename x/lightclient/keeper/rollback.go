@@ -5,6 +5,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -75,11 +76,19 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 		)
 	}
 
-	bd := stateinfo.BDs.BD[0]
+	k.UpdateClientFromStateInfo(ctx, clientStore, &stateinfo)
+	return nil
+}
+
+// UpdateClientFromStateInfo sets the consensus state from the state info
+// and sets the metadata for the consensus state
+// CONTRACT: canonical client is already set, state info exists
+func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientStore storetypes.KVStore, stateInfo *rollapptypes.StateInfo) {
+	height := stateInfo.StartHeight
+	bd := stateInfo.BDs.BD[0]
 
 	// get the valHash of this sequencer
-	// we assume the proposer of the first state update after the hard fork won't be rotated in the next block
-	proposer, _ := k.SeqK.RealSequencer(ctx, stateinfo.Sequencer)
+	proposer, _ := k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
 	valHash, _ := proposer.ValsetHash()
 
 	// add consensus states based on the block descriptors
@@ -92,9 +101,7 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
 	setConsensusMetadata(ctx, clientStore, clienttypes.NewHeight(1, height))
 
-	k.unfreezeClient(clientStore, height)
-
-	return nil
+	k.updateClientState(clientStore, height)
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
@@ -118,12 +125,12 @@ func (k Keeper) freezeClient(clientStore storetypes.KVStore, heightI exported.He
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height
-func (k Keeper) unfreezeClient(clientStore storetypes.KVStore, height uint64) {
+func (k Keeper) updateClientState(clientStore storetypes.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
-	// unfreeze the client and set the latest height
-	tmClientState.FrozenHeight = clienttypes.ZeroHeight()
+	// set the latest height
 	tmClientState.LatestHeight = clienttypes.NewHeight(1, height)
+	tmClientState.FrozenHeight = clienttypes.ZeroHeight() // just to be sure
 
 	setClientState(clientStore, k.cdc, tmClientState)
 }
