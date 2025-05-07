@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/suite"
 
+	circuitkeeper "cosmossdk.io/x/circuit/keeper"
+	circuittypes "cosmossdk.io/x/circuit/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -24,7 +25,6 @@ import (
 	ethermint "github.com/evmos/ethermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/ante"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 )
@@ -53,22 +53,7 @@ func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 		WithTxConfig(txConfig).
 		WithCodec(s.app.AppCodec())
 
-	anteHandler, err := ante.NewAnteHandler(
-		ante.HandlerOptions{
-			AccountKeeper:     &s.app.AccountKeeper,
-			BankKeeper:        s.app.BankKeeper,
-			IBCKeeper:         s.app.IBCKeeper,
-			EvmKeeper:         s.app.EvmKeeper,
-			FeeMarketKeeper:   s.app.FeeMarketKeeper,
-			TxFeesKeeper:      s.app.TxFeesKeeper,
-			FeegrantKeeper:    s.app.FeeGrantKeeper,
-			SignModeHandler:   txConfig.SignModeHandler(),
-			LightClientKeeper: &s.app.LightClientKeeper,
-		},
-	)
-
-	s.Require().NoError(err)
-	s.anteHandler = anteHandler
+	s.anteHandler = s.app.AnteHandler()
 }
 
 func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
@@ -99,6 +84,43 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	_, err = suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
 
 	suite.Require().NoError(err)
+}
+
+func (suite *AnteTestSuite) TestCircuitBreaker() {
+	suite.SetupTestCheckTx(false)
+
+	circuitMsgServ := circuitkeeper.NewMsgServerImpl(suite.app.CircuitBreakerKeeper)
+	address, err := suite.app.AccountKeeper.AddressCodec().BytesToString(suite.app.CircuitBreakerKeeper.GetAuthority())
+	suite.Require().NoError(err)
+
+	// Add MsgSend to blocked messages
+	msgSend := &banktypes.MsgSend{}
+	_, err = circuitMsgServ.TripCircuitBreaker(suite.ctx, &circuittypes.MsgTripCircuitBreaker{
+		Authority:   address,
+		MsgTypeUrls: []string{sdk.MsgTypeURL(msgSend)},
+	})
+	suite.Require().NoError(err)
+
+	// Create and try to execute transaction - should fail
+	txConfig := suite.clientCtx.TxConfig
+	suite.txBuilder = txConfig.NewTxBuilder()
+	suite.txBuilder.SetGasLimit(200000)
+	err = suite.txBuilder.SetMsgs(msgSend)
+	suite.Require().NoError(err)
+
+	_, err1 := suite.anteHandler(suite.ctx, suite.txBuilder.GetTx(), false)
+	suite.Require().ErrorContains(err1, "tx type not allowed") // circuit breaker error
+
+	// Reset circuit breaker
+	_, err = circuitMsgServ.ResetCircuitBreaker(suite.ctx, &circuittypes.MsgResetCircuitBreaker{
+		Authority:   address,
+		MsgTypeUrls: []string{sdk.MsgTypeURL(msgSend)},
+	})
+	suite.Require().NoError(err)
+
+	// Try again - should pass
+	_, err = suite.anteHandler(suite.ctx, suite.txBuilder.GetTx(), false)
+	suite.Require().NotContains(err.Error(), "tx type not allowed") // not circuit breaker error
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
@@ -153,7 +175,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	keyringSigner := NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signingtypes.SignMode_SIGN_MODE_DIRECT)
+	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signing.SignMode_SIGN_MODE_DIRECT)
 	suite.Require().NoError(err)
 
 	sigsV2 := signing.SignatureV2{
