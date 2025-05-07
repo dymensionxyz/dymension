@@ -12,11 +12,9 @@ import (
 
 const (
 	maxWhitelistedRelayers = 10
-
-	TypeMsgUpdateWhitelistedRelayers = "update_whitelisted_relayers"
 )
 
-var _ sdk.Msg = new(MsgUpdateWhitelistedRelayers)
+var _ sdk.Msg = &MsgUpdateWhitelistedRelayers{}
 
 func (m *MsgUpdateWhitelistedRelayers) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)
@@ -51,17 +49,4 @@ func ValidateWhitelistedRelayers(wr []string) error {
 		}
 	}
 	return nil
-}
-
-func (m *MsgUpdateWhitelistedRelayers) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{addr}
-}
-
-func (m *MsgUpdateWhitelistedRelayers) Route() string {
-	return RouterKey
-}
-
-func (m *MsgUpdateWhitelistedRelayers) Type() string {
-	return TypeMsgUpdateWhitelistedRelayers
 }

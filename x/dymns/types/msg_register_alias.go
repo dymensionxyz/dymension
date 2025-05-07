@@ -39,22 +39,3 @@ func (m *MsgRegisterAlias) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners returns the required signers for the MsgRegisterAlias.
-func (m *MsgRegisterAlias) GetSigners() []sdk.AccAddress {
-	owner, err := sdk.AccAddressFromBech32(m.Owner)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{owner}
-}
-
-// Route returns the message router key for the MsgRegisterAlias.
-func (m *MsgRegisterAlias) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgRegisterAlias.
-func (m *MsgRegisterAlias) Type() string {
-	return TypeMsgRegisterAlias
-}

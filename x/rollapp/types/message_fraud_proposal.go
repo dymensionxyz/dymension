@@ -39,12 +39,3 @@ func (m *MsgRollappFraudProposal) MustRewardee() *sdk.AccAddress {
 	rewardee, _ := sdk.AccAddressFromBech32(m.Rewardee)
 	return &rewardee
 }
-
-// GetSigners returns the required signers for the MsgRollappFraudProposal.
-func (m *MsgRollappFraudProposal) GetSigners() []sdk.AccAddress {
-	authority, err := sdk.AccAddressFromBech32(m.Authority)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{authority}
-}

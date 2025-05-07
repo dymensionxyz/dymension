@@ -4,14 +4,11 @@ import (
 	"errors"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-)
-
-const (
-	TypeMsgCreateGauge = "create_gauge"
-	TypeMsgAddToGauge  = "add_to_gauge"
 )
 
 var (
@@ -31,12 +28,6 @@ func NewMsgCreateAssetGauge(isPerpetual bool, owner sdk.AccAddress, distributeTo
 		NumEpochsPaidOver: numEpochsPaidOver,
 	}
 }
-
-// Route takes a create gauge message, then returns the RouterKey used for slashing.
-func (m MsgCreateGauge) Route() string { return RouterKey }
-
-// Type takes a create gauge message, then returns a create gauge message type.
-func (m MsgCreateGauge) Type() string { return TypeMsgCreateGauge }
 
 // ValidateBasic checks that the create gauge message is valid.
 func (m MsgCreateGauge) ValidateBasic() error {
@@ -70,12 +61,6 @@ func (m MsgCreateGauge) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners takes a create gauge message and returns the owner in a byte array.
-func (m MsgCreateGauge) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
-}
-
 // NewMsgAddToGauge creates a message to add rewards to a specific gauge.
 func NewMsgAddToGauge(owner sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) *MsgAddToGauge {
 	return &MsgAddToGauge{
@@ -84,12 +69,6 @@ func NewMsgAddToGauge(owner sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) *
 		Rewards: rewards,
 	}
 }
-
-// Route takes an add to gauge message, then returns the RouterKey used for slashing.
-func (m MsgAddToGauge) Route() string { return RouterKey }
-
-// Type takes an add to gauge message, then returns an add to gauge message type.
-func (m MsgAddToGauge) Type() string { return TypeMsgAddToGauge }
 
 // ValidateBasic checks that the add to gauge message is valid.
 func (m MsgAddToGauge) ValidateBasic() error {
@@ -103,8 +82,22 @@ func (m MsgAddToGauge) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners takes an add to gauge message and returns the owner in a byte array.
-func (m MsgAddToGauge) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
+func (m MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidAddress,
+			errorsmod.Wrapf(err, "authority must be a valid bech32 address: %s", m.Authority),
+		)
+	}
+
+	err = m.Params.ValidateBasic()
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidRequest,
+			errorsmod.Wrapf(err, "failed to validate params"),
+		)
+	}
+
+	return nil
 }
