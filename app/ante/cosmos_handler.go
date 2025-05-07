@@ -1,6 +1,7 @@
 package ante
 
 import (
+	circuitante "cosmossdk.io/x/circuit/ante"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -20,6 +21,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
 		NewRejectMessagesDecorator().WithPredicate(
 			BlockTypeUrls(

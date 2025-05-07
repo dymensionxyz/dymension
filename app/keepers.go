@@ -10,6 +10,7 @@ import (
 	ethflags "github.com/evmos/ethermint/server/flags"
 
 	storetypes "cosmossdk.io/store/types"
+	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
@@ -78,6 +79,7 @@ import (
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
+	circuittypes "cosmossdk.io/x/circuit/types"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -128,6 +130,7 @@ type AppKeepers struct {
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	CircuitBreakerKeeper  circuitkeeper.Keeper
 
 	// IBC keepers
 	IBCKeeper                     *ibckeeper.Keeper
@@ -505,6 +508,15 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		govModuleAddress,
 	)
+
+	// Initialize circuit breaker keeper
+	a.CircuitBreakerKeeper = circuitkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[circuittypes.StoreKey]),
+		govModuleAddress,
+		a.AccountKeeper.AddressCodec(),
+	)
+	bApp.SetCircuitBreaker(&a.CircuitBreakerKeeper)
 }
 
 func (a *AppKeepers) SetupHooks() {
