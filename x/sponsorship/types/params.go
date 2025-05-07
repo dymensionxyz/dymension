@@ -7,7 +7,7 @@ func DefaultParams() Params {
 	}
 }
 
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if p.MinAllocationWeight.IsNegative() {
 		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %s", p.MinAllocationWeight)
 	}

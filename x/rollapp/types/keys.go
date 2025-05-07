@@ -19,6 +19,11 @@ const (
 	MemStoreKey = "mem_rollapp"
 )
 
+var (
+	// KeyParams defines the module parameters key
+	KeyParams = []byte{0x00}
+)
+
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }

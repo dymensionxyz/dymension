@@ -11,32 +11,13 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-)
-
-var _ paramtypes.ParamSet = (*Params)(nil)
-
-var (
-	// KeyPriceParams is the key for the price params
-	KeyPriceParams = []byte("PriceParams")
-
-	// KeyChainsParams is the key for the chains params
-	KeyChainsParams = []byte("ChainsParams")
-
-	// KeyMiscParams is the key for the misc params
-	KeyMiscParams = []byte("MiscParams")
 )
 
 const (
 	defaultEndEpochHookIdentifier = "hour"
 )
-
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
@@ -167,15 +148,6 @@ func NewParams(
 		Price:  price,
 		Chains: chains,
 		Misc:   misc,
-	}
-}
-
-// ParamSetPairs get the params.ParamSet
-func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyPriceParams, &m.Price, validatePriceParams),
-		paramtypes.NewParamSetPair(KeyChainsParams, &m.Chains, validateChainsParams),
-		paramtypes.NewParamSetPair(KeyMiscParams, &m.Misc, validateMiscParams),
 	}
 }
 

@@ -37,7 +37,7 @@ func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.R
 
 // Validate performs basic genesis state validation, returning an error upon any failure.
 func (gs GenesisState) Validate() error {
-	if err := gs.Params.Validate(); err != nil {
+	if err := gs.Params.ValidateBasic(); err != nil {
 		return err
 	}
 

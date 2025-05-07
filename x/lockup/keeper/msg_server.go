@@ -26,6 +26,25 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// UpdateParams implements types.MsgServer.
+func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Check if the sender is the authority
+	if req.Authority != m.keeper.authority {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
+	}
+
+	err := req.Params.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	m.keeper.SetParams(ctx, req.Params)
+
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
 // LockTokens locks tokens in either two ways.
 // 1. Add to an existing lock if a lock with the same owner and same duration exists.
 // 2. Create a new lock if not.

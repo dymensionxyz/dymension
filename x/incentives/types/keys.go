@@ -16,6 +16,9 @@ var (
 	// MemStoreKey defines the in-memory store key.
 	MemStoreKey = "mem_capability"
 
+	// KeyParams defines the module parameters key.
+	KeyParams = []byte{0x00}
+
 	// KeyPrefixTimestamp defines prefix key for timestamp iterator key.
 	KeyPrefixTimestamp = []byte{0x01}
 

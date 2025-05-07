@@ -15,6 +15,7 @@ const (
 )
 
 var (
+	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgCreateGauge{}
 	_ sdk.Msg = &MsgAddToGauge{}
 )

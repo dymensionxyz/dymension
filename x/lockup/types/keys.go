@@ -13,6 +13,9 @@ var (
 	// QuerierRoute defines the module's query routing key.
 	QuerierRoute = ModuleName
 
+	// KeyParams defines the module parameters key.
+	KeyParams = []byte{0x00}
+
 	// KeyLastLockID defines key to store lock ID used by last.
 	KeyLastLockID = []byte{0x01}
 

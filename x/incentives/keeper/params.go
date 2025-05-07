@@ -8,22 +8,23 @@ import (
 
 // GetParams returns all of the parameters in the incentive module.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSetIfExists(ctx, &params)
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.KeyParams)
+	k.cdc.MustUnmarshal(b, &params)
 	return params
 }
 
 // SetParams sets all of the parameters in the incentive module.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	// TODO: make sure MinValueForDistribution is same as txfees basedenom
-	k.paramSpace.SetParamSet(ctx, &params)
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&params)
+	store.Set(types.KeyParams, b)
 }
 
 func (k Keeper) DistrEpochIdentifier(ctx sdk.Context) (res string) {
-	k.paramSpace.Get(ctx, types.KeyDistrEpochIdentifier, &res)
-	return
+	return k.GetParams(ctx).DistrEpochIdentifier
 }
 
 func (k Keeper) RollappGaugesMode(ctx sdk.Context) (res types.Params_RollappGaugesModes) {
-	k.paramSpace.Get(ctx, types.KeyRollappGaugesMode, &res)
-	return
+	return k.GetParams(ctx).RollappGaugesMode
 }

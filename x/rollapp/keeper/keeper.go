@@ -10,7 +10,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -28,11 +27,10 @@ func (b finalizationQueueIndex) IndexesList() []collections.Index[collections.Pa
 }
 
 type Keeper struct {
-	cdc        codec.BinaryCodec
-	storeKey   storetypes.StoreKey
-	hooks      types.MultiRollappHooks
-	paramstore paramtypes.Subspace
-	authority  string // authority is the x/gov module account
+	cdc       codec.BinaryCodec
+	storeKey  storetypes.StoreKey
+	hooks     types.MultiRollappHooks
+	authority string // authority is the x/gov module account
 
 	canonicalClientKeeper CanonicalLightClientKeeper
 	channelKeeper         ChannelKeeper
@@ -55,7 +53,6 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
 	channelKeeper ChannelKeeper,
 	sequencerKeeper SequencerKeeper,
 	bankKeeper BankKeeper,
@@ -63,11 +60,6 @@ func NewKeeper(
 	authority string,
 	canonicalClientKeeper CanonicalLightClientKeeper,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
 		panic(fmt.Errorf("invalid x/rollapp authority address: %w", err))
 	}
@@ -78,7 +70,6 @@ func NewKeeper(
 	k := &Keeper{
 		cdc:            cdc,
 		storeKey:       storeKey,
-		paramstore:     ps,
 		hooks:          nil,
 		channelKeeper:  channelKeeper,
 		authority:      authority,

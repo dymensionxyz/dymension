@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
@@ -20,13 +19,14 @@ import (
 
 // Keeper provides a way to manage streamer module storage.
 type Keeper struct {
-	storeKey   storetypes.StoreKey
-	paramSpace paramtypes.Subspace
-	bk         types.BankKeeper
-	ek         types.EpochKeeper
-	ak         types.AccountKeeper
-	ik         types.IncentivesKeeper
-	sk         types.SponsorshipKeeper
+	cdc       codec.BinaryCodec
+	storeKey  storetypes.StoreKey
+	bk        types.BankKeeper
+	ek        types.EpochKeeper
+	ak        types.AccountKeeper
+	ik        types.IncentivesKeeper
+	sk        types.SponsorshipKeeper
+	authority string
 
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
 	epochPointers collections.Map[string, types.EpochPointer]
@@ -36,27 +36,24 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	paramSpace paramtypes.Subspace,
 	bk types.BankKeeper,
 	ek types.EpochKeeper,
 	ak types.AccountKeeper,
 	ik types.IncentivesKeeper,
 	sk types.SponsorshipKeeper,
+	authority string,
 ) *Keeper {
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
 	return &Keeper{
-		storeKey:   storeKey,
-		paramSpace: paramSpace,
-		bk:         bk,
-		ek:         ek,
-		ak:         ak,
-		ik:         ik,
-		sk:         sk,
+		cdc:       cdc,
+		storeKey:  storeKey,
+		bk:        bk,
+		ek:        ek,
+		ak:        ak,
+		ik:        ik,
+		sk:        sk,
+		authority: authority,
 		epochPointers: collections.NewMap(
 			sb,
 			types.KeyPrefixEpochPointers,

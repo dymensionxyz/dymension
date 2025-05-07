@@ -27,11 +27,29 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// UpdateParams implements types.MsgServer.
+func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Check if the sender is the authority
+	if req.Authority != m.authority {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
+	}
+
+	err := req.NewParams.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	m.Keeper.SetParams(ctx, req.NewParams)
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
 func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrder) (*types.MsgFulfillOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic() // TODO: remove, sdk does this
+	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +79,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 
-	err := msg.ValidateBasic() // TODO: remove, sdk does this
+	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +193,7 @@ func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *type
 func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdateDemandOrder) (*types.MsgUpdateDemandOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := msg.ValidateBasic() // TODO: remove, sdk does this
+	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}

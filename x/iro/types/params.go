@@ -49,7 +49,7 @@ func DefaultParams() Params {
 }
 
 // Validate checks that the parameters have valid values.
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := validateTakerFee(p.TakerFee); err != nil {
 		return err
 	}
@@ -81,12 +81,7 @@ func (p Params) Validate() error {
 	return nil
 }
 
-func validateTakerFee(i interface{}) error {
-	v, ok := i.(math.LegacyDec)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
+func validateTakerFee(v math.LegacyDec) error {
 	if v.IsNil() || v.IsNegative() {
 		return fmt.Errorf("taker fee must be a non-negative decimal: %s", v)
 	}
@@ -98,12 +93,7 @@ func validateTakerFee(i interface{}) error {
 	return nil
 }
 
-func validateCreationFee(i interface{}) error {
-	v, ok := i.(math.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
+func validateCreationFee(v math.Int) error {
 	// creation fee must be a positive integer greater than 1^18 (1 Rollapp token)
 	if v.LT(math.NewIntWithDecimal(1, 18)) {
 		return fmt.Errorf("creation fee must be a positive integer: %s", v)

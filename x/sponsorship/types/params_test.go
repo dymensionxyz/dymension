@@ -62,7 +62,7 @@ func TestParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.input.Validate()
+			err := tt.input.ValidateBasic()
 
 			expectError := tt.errorIs != nil
 			switch expectError {

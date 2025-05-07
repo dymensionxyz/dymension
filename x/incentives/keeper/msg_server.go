@@ -27,6 +27,27 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// UpdateParams implements types.MsgServer.
+func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Check if the sender is the authority
+	if req.Authority != m.keeper.authority {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
+	}
+
+	err := req.Params.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: make sure MinValueForDistribution is same as txfees basedenom
+
+	m.keeper.SetParams(ctx, req.Params)
+
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
 // CreateGauge creates a gauge and sends coins to the gauge.
 // Creation fee is charged from the address and sent to the txfees module to be burned.
 // Emits create gauge event and returns the create gauge response.

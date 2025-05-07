@@ -7,25 +7,27 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-// GetParams get all parameters as types.Params
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramstore.GetParamSet(ctx, &params)
-	return
+// SetParams sets the module parameters in the store
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, b)
 }
 
-// SetParams set the params
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramstore.SetParamSet(ctx, &params)
+// GetParams returns the module parameters from the store
+func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.ParamsKey)
+	k.cdc.MustUnmarshal(b, &params)
+	return params
 }
 
 func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
-	k.paramstore.Get(ctx, types.KeyEpochIdentifier, &res)
-	return
+	return k.GetParams(ctx).EpochIdentifier
 }
 
 func (k Keeper) BridgingFee(ctx sdk.Context) (res math.LegacyDec) {
-	k.paramstore.Get(ctx, types.KeyBridgeFee, &res)
-	return
+	return k.GetParams(ctx).BridgingFee
 }
 
 func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt math.Int) (res math.Int) {
@@ -33,6 +35,5 @@ func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt math.Int) (res math.Int)
 }
 
 func (k Keeper) DeletePacketsEpochLimit(ctx sdk.Context) (res int64) {
-	k.paramstore.Get(ctx, types.KeyDeletePacketsEpochLimit, &res)
-	return
+	return int64(k.GetParams(ctx).DeletePacketsEpochLimit)
 }

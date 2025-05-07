@@ -20,5 +20,5 @@ func (gs GenesisState) Validate() error {
 		}
 		rollappPacketMap[string(rollappPacket.RollappPacketKey())] = struct{}{}
 	}
-	return gs.Params.Validate()
+	return gs.Params.ValidateBasic()
 }

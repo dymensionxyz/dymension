@@ -31,5 +31,5 @@ func (gs GenesisState) Validate() error {
 		ids[plan.Id] = true
 	}
 
-	return gs.Params.Validate()
+	return gs.Params.ValidateBasic()
 }

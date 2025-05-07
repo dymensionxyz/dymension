@@ -79,7 +79,7 @@ func (m MsgUpdateParams) ValidateBasic() error {
 		)
 	}
 
-	err = m.NewParams.Validate()
+	err = m.NewParams.ValidateBasic()
 	if err != nil {
 		return ErrInvalidParams.Wrap(err.Error())
 	}

@@ -6,12 +6,17 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/eibc/lp.proto";
+import "dymensionxyz/dymension/eibc/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
+  // UpdateParams is used for updating module params.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
   rpc TryFulfillOnDemand(MsgTryFulfillOnDemand)
       returns (MsgTryFulfillOnDemandResponse) {}
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
@@ -24,6 +29,18 @@ service Msg {
   rpc DeleteOnDemandLP(MsgDeleteOnDemandLP)
       returns (MsgDeleteOnDemandLPResponse) {}
 }
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // NewParams should be fully populated.
+  Params new_params = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateParamsResponse {}
 
 // MsgFulfillOrder defines the FulfillOrder request type.
 message MsgFulfillOrder {

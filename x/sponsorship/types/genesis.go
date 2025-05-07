@@ -16,7 +16,7 @@ func DefaultGenesis() *GenesisState {
 }
 
 func (g GenesisState) Validate() error {
-	err := g.Params.Validate()
+	err := g.Params.ValidateBasic()
 	if err != nil {
 		return errors.Join(ErrInvalidGenesis, err)
 	}
