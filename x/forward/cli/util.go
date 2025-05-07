@@ -387,12 +387,12 @@ func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			addr, err := sdk.GetFromBech32(args[0], "dym")
+			addr, err := warptypes.HexCosmosAddr(args[0])
 			if err != nil {
-				return fmt.Errorf("addr address from bech32: %w", err)
+				return fmt.Errorf("hl eth addr: %w", err)
 			}
 
-			fmt.Printf("%x\n", addr)
+			fmt.Println(addr)
 
 			return nil
 		},
@@ -433,9 +433,9 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				return fmt.Errorf("decode eth hex: %w", err)
 			}
 
-			var message *hyperutil.HyperlaneMessage
-			var body []byte
+			body := bz
 			if kind == "message" {
+				var message *hyperutil.HyperlaneMessage
 				m, err := hyperutil.ParseHyperlaneMessage(bz)
 				if err != nil {
 					return fmt.Errorf(" %w", err)
@@ -449,6 +449,8 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("encode flag: %w", err)
 			}
+
+			var warpPL warptypes.WarpPayload
 
 			if memo {
 				payload, err := warptypes.ParseWarpMemoPayload(body)
@@ -467,8 +469,11 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("parse warp payload: %w", err)
 				}
-				fmt.Printf("warp payload message: %+v\n", payload)
+				warpPL = payload
 			}
+			fmt.Printf("warp payload message: %+v\n", warpPL)
+			fmt.Printf("cosmos account: %s\n", warpPL.GetCosmosAccount().String())
+			fmt.Printf("amount: %s\n", warpPL.Amount().String())
 			return nil
 		},
 	}
