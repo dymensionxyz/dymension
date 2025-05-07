@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-05)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-07)
 
 
 ### Bug Fixes
@@ -28,6 +28,7 @@
 
 ### Features
 
+* **app:** add circuit breaker module ([#1828](https://github.com/dymensionxyz/dymension/issues/1828)) ([2c71be2](https://github.com/dymensionxyz/dymension/commit/2c71be2e8f09254e7255057fc74bb5d9f357725f))
 * **app:** Upgrading to v50 ([#1736](https://github.com/dymensionxyz/dymension/issues/1736)) ([f2359ac](https://github.com/dymensionxyz/dymension/commit/f2359acdb6d8c4d616d879b6411b0b7067c60447)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
 * **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
 * **eibc:** add ability to find fulfiller on demand ([#1745](https://github.com/dymensionxyz/dymension/issues/1745)) ([5722855](https://github.com/dymensionxyz/dymension/commit/57228557e9f9a2cb58ac411e48bbe90254e540ab)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
