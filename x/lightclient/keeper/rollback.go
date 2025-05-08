@@ -66,26 +66,27 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID) // already checked in the caller
 
-	height := stateinfo.StartHeight
-	// sanity check
-	client := getClientStateTM(clientStore, k.cdc)
-	clientHeight := client.GetLatestHeight().GetRevisionHeight()
-	if height <= clientHeight {
-		return gerrc.ErrInternal.Wrapf("client latest height not less than new latest height: new: %d, client: %d",
-			height, clientHeight,
-		)
+	err := k.UpdateClientFromStateInfo(ctx, clientStore, &stateinfo)
+	if err != nil {
+		return errorsmod.Wrap(err, "update client from state info")
 	}
-
-	k.UpdateClientFromStateInfo(ctx, clientStore, &stateinfo)
 	return nil
 }
 
 // UpdateClientFromStateInfo sets the consensus state from the state info
 // and sets the metadata for the consensus state
 // CONTRACT: canonical client is already set, state info exists
-func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientStore storetypes.KVStore, stateInfo *rollapptypes.StateInfo) {
-	height := stateInfo.StartHeight
-	bd := stateInfo.BDs.BD[0]
+func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientStore storetypes.KVStore, stateInfo *rollapptypes.StateInfo) error {
+	// sanity check
+	clientHeight := getClientStateTM(clientStore, k.cdc).GetLatestHeight().GetRevisionHeight()
+	if stateInfo.StartHeight <= clientHeight {
+		return gerrc.ErrInternal.Wrapf("client latest height not less than new latest height: new: %d, client: %d",
+			stateInfo.StartHeight, clientHeight,
+		)
+	}
+
+	bd := stateInfo.GetLatestBlockDescriptor()
+	height := bd.Height
 
 	// get the valHash of this sequencer
 	proposer, _ := k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
@@ -102,6 +103,7 @@ func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientStore storetype
 	setConsensusMetadata(ctx, clientStore, clienttypes.NewHeight(1, height))
 
 	k.updateClientState(clientStore, height)
+	return nil
 }
 
 // freezeClient freezes the client by setting the frozen height to the current height

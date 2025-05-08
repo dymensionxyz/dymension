@@ -56,7 +56,10 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
 		lastestH := cs.GetLatestHeight().GetRevisionHeight()
 		if lastestH < stateInfo.GetStartHeight() {
-			hook.k.UpdateClientFromStateInfo(ctx, hook.k.ibcClientKeeper.ClientStore(ctx, client), stateInfo)
+			err := hook.k.UpdateClientFromStateInfo(ctx, hook.k.ibcClientKeeper.ClientStore(ctx, client), stateInfo)
+			if err != nil {
+				return errorsmod.Wrap(err, "update client from state info")
+			}
 		}
 	}
 
