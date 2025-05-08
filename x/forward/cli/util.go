@@ -247,7 +247,7 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("marshal: %w", err)
 				}
-				fmt.Printf("hyperlane message: %s\n", hyperutil.EncodeEthHex(bz))
+				fmt.Printf("%s\n", hyperutil.EncodeEthHex(bz))
 			}
 
 			return nil
