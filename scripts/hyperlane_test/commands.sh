@@ -110,7 +110,7 @@ ISM=$(curl -s http://localhost:1318/hyperlane/v1/isms | jq '.isms.[0].id' -r); e
 
 # create mailbox
 # ism, local domain
-hub tx hyperlane mailbox create  $ISM $LOCAL_DOMAIN "${HUB_FLAGS[@]}"
+hub tx hyperlane mailbox create  $ISM $HUB_DOMAIN "${HUB_FLAGS[@]}"
 MAILBOX=$(curl -s http://localhost:1318/hyperlane/v1/mailboxes   | jq '.mailboxes.[0].id' -r); echo $MAILBOX;
 
 # create noop hook
@@ -134,7 +134,7 @@ hub tx hyperlane-transfer dym-create-collateral-token $MAILBOX $DENOM "${HUB_FLA
 TOKEN_ID=$(curl -s http://localhost:1318/hyperlane/v1/tokens | jq '.tokens.[0].id' -r); echo $TOKEN_ID
 
 # setup the router
-hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT 0 "${HUB_FLAGS[@]}"
+hub tx hyperlane-transfer enroll-remote-router $TOKEN_ID $ETH_DOMAIN $ETH_TOKEN_CONTRACT 0 "${HUB_FLAGS[@]}"
 curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers # check
 
 # prepare the memo which will be included in the rollapp outbound transfer
@@ -142,7 +142,7 @@ curl -s http://localhost:1318/hyperlane/v1/tokens/$TOKEN_ID/remote_routers # che
 EIBC_FEE=100
 TRANSFER_AMT=10000
 HL_FEE=20
-MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $DST_DOMAIN $ETH_TOKEN_CONTRACT $TRANSFER_AMT $HL_FEE"$DENOM"); echo $MEMO;
+MEMO=$(hub q forward memo-eibc-to-hl $EIBC_FEE $TOKEN_ID $ETH_DOMAIN $ETH_TOKEN_CONTRACT $TRANSFER_AMT $HL_FEE"$DENOM"); echo $MEMO;
 
 # dymd q forward amt-eibc-to-hl 125000000000000 200000 2000 0.01
 BRIDGE_FEE=$(hub q delayedack params -o json | jq '.params.bridging_fee' -r)
@@ -184,10 +184,10 @@ ROL_USER_ADDR=$($EXECUTABLE keys show $KEY_NAME_ROLLAPP -a)
 
 # get the message to be sent directly the HL server on the Hub. This is just a test utility.
 HL_MESSAGE=$(dymd q forward hl-message\
- $HL_NONCE\
- $DST_DOMAIN\
- $ETH_TOKEN_CONTRACT\
- $LOCAL_DOMAIN\
+ 1\
+ $ETH_DOMAIN\
+ "0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0"\
+ $HUB_DOMAIN\
  $TOKEN_ID\
  $HUB_USER_ADDR\
  50\
