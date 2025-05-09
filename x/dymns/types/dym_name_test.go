@@ -1390,7 +1390,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			}
 
 			if len(gotFallbackAddresses) > 0 {
-				require.Len(t, gotFallbackAddresses, 1, "there is only one default config, therefor only one fallback address")
+				require.Len(t, gotFallbackAddresses, 1, "there is only one default config, therefore only one fallback address")
 			}
 			for fba, cfgs := range gotFallbackAddresses {
 				require.True(t, dymnsutils.IsValidHexAddress(fba))

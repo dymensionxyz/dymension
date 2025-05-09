@@ -111,7 +111,7 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 		return gerrc.ErrFailedPrecondition.Wrap("client already has connections")
 	}
 
-	// validate lastest height is already committed
+	// validate latest height is already committed
 	latestCommittedHeight, ok := k.rollappKeeper.GetLatestHeight(ctx, rollappId)
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("latest height")
