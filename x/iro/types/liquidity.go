@@ -36,7 +36,7 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTo
 
 // Find the max selling amt such that the price of the liquidity pool is is equal to the last spot price of the bonding curve
 //
-// Assuming c=0 (enforced in curve valiation):
+// Assuming c=0 (enforced in curve validation):
 //
 //	    Define SpotIRO(x)=mx^n
 //	    Define RaisedLiquidity(x)=(mx^(n+1))/(n+1) [by integral]
