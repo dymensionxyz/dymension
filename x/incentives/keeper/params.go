@@ -10,9 +10,6 @@ import (
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.KeyParams)
-	if b == nil {
-		panic("params should have been set")
-	}
 	k.cdc.MustUnmarshal(b, &params)
 	return params
 }
