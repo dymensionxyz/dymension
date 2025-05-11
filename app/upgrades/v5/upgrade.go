@@ -52,26 +52,27 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		// instead of writing migrartion in each moudle, we do it here in a centralized place
+		/* ---------------------------- store migrations ---------------------------- */
+		// move params from params keeper to each module's store
 		migrateDeprecatedParamsKeeperSubspaces(ctx, keepers)
-
-		// Incentives module params migration
-		migrateIncentivesParams(ctx, keepers)
-
-		// lockup module params migrations
-		migrateLockupParams(ctx, keepers)
-
-		// IRO module params migration
-		migrateIROParams(ctx, keepers.IROKeeper)
-
-		// GAMM module params migration
-		migrateGAMMParams(ctx, keepers.GAMMKeeper)
-
-		// fix V50 x/gov params
-		migrateGovParams(ctx, keepers.GovKeeper)
-
 		// Initialize endorsements for existing rollapps
 		migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
+
+		/* ----------------------------- params updates ----------------------------- */
+		// Incentives module params migration
+		migrateAndUpdateIncentivesParams(ctx, keepers)
+
+		// lockup module params migrations
+		migrateAndUpdateLockupParams(ctx, keepers)
+
+		// IRO module params migration
+		updateIROParams(ctx, keepers.IROKeeper)
+
+		// GAMM module params migration
+		updateGAMMParams(ctx, keepers.GAMMKeeper)
+
+		// fix V50 x/gov params
+		updateGovParams(ctx, keepers.GovKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -79,7 +80,7 @@ func CreateUpgradeHandler(
 	}
 }
 
-func migrateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
+func migrateAndUpdateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
 	// Incentives module
 	incentivesSubspace, ok := keepers.ParamsKeeper.GetSubspace(incentives.ModuleName)
 	if !ok {
@@ -93,6 +94,7 @@ func migrateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) 
 		incentivesParams.CreateGaugeBaseFee,
 		incentivesParams.AddToGaugeBaseFee,
 		incentivesParams.AddDenomFee,
+		/* ------------------------------- new params ------------------------------- */
 		incentivestypes.DefaultMinValueForDistr,  // Default to 0.01 DYM
 		incentivestypes.DefaultRollappGaugesMode, // Default to active rollapps only
 	)
@@ -101,7 +103,7 @@ func migrateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) 
 }
 
 // Lockup module
-func migrateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
+func migrateAndUpdateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
 	lockupSubspace, ok := keepers.ParamsKeeper.GetSubspace(lockup.ModuleName)
 	if !ok {
 		lockupSubspace = keepers.ParamsKeeper.Subspace(lockup.ModuleName).WithKeyTable(lockup.ParamKeyTable())
@@ -111,13 +113,14 @@ func migrateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
 
 	newParams := lockuptypes.NewParams(
 		lockupParams.ForceUnlockAllowedAddresses,
+		/* ------------------------------- new params ------------------------------- */
 		lockuptypes.DefaultLockFee, // Default to 0.05 DYM
 		24*time.Hour,               // Minimum lock duration is 24 hours
 	)
 	keepers.LockupKeeper.SetParams(ctx, newParams)
 }
 
-func migrateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
+func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 	params := k.GetParams(ctx)
 
 	for _, coin := range params.PoolCreationFee {
@@ -126,18 +129,18 @@ func migrateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 	k.SetParams(ctx, params)
 }
 
-func migrateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
+func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params := k.GetParams(ctx)
 	defParams := irotypes.DefaultParams()
 
-	params.MinLiquidityPart = defParams.MinLiquidityPart
-	params.MinVestingDuration = defParams.MinVestingDuration
-	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement
+	params.MinLiquidityPart = defParams.MinLiquidityPart                                     // default: at least 40% goes to the liquidity pool
+	params.MinVestingDuration = defParams.MinVestingDuration                                 // default: min 7 days
+	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement // default: no enforced minimum by default
 
 	k.SetParams(ctx, params)
 }
 
-func migrateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
+func updateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
 	params, err := k.Params.Get(ctx)
 	if err != nil {
 		panic(err)
@@ -200,15 +203,31 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	dymnsSubspace.GetParamSetIfExists(ctx, &dymnsParams)
 	keepers.DymNSKeeper.SetParams(ctx, dymnstypes.NewParams(
 		dymnstypes.PriceParams{
-			PriceDenom: dymnsParams.Price.PriceDenom,
+			NamePriceSteps:         dymnsParams.Price.NamePriceSteps,
+			AliasPriceSteps:        dymnsParams.Price.AliasPriceSteps,
+			PriceExtends:           dymnsParams.Price.PriceExtends,
+			PriceDenom:             dymnsParams.Price.PriceDenom,
+			MinOfferPrice:          dymnsParams.Price.MinOfferPrice,
+			MinBidIncrementPercent: dymnsParams.Price.MinBidIncrementPercent,
 		},
 		dymnstypes.ChainsParams{
-			AliasesOfChainIds: make([]dymnstypes.AliasesOfChainId, len(dymnsParams.Chains.AliasesOfChainIds)),
+			AliasesOfChainIds: func() []dymnstypes.AliasesOfChainId {
+				converted := make([]dymnstypes.AliasesOfChainId, len(dymnsParams.Chains.AliasesOfChainIds))
+				for i, v := range dymnsParams.Chains.AliasesOfChainIds {
+					converted[i] = dymnstypes.AliasesOfChainId{
+						ChainId: v.ChainId,
+						Aliases: v.Aliases,
+					}
+				}
+				return converted
+			}(),
 		},
 		dymnstypes.MiscParams{
 			EndEpochHookIdentifier: dymnsParams.Misc.EndEpochHookIdentifier,
 			GracePeriodDuration:    dymnsParams.Misc.GracePeriodDuration,
 			SellOrderDuration:      dymnsParams.Misc.SellOrderDuration,
+			EnableTradingName:      dymnsParams.Misc.EnableTradingName,
+			EnableTradingAlias:     dymnsParams.Misc.EnableTradingAlias,
 		},
 	))
 
