@@ -51,7 +51,8 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		return errorsmod.Wrap(err, "validate optimistic update")
 	}
 
-	// we  didn't validate any IBC headers, check if we can update headers from the state info
+	// we didn't validate any optimistic IBC headers, hence the relayer might be down
+	// check if we can update headers from the state info (if it's more recent than the latest consensus state)
 	if !ok {
 		cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
 		lastestH := cs.GetLatestHeight().GetRevisionHeight()
