@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ dymnstypes.MsgServer = msgServer{}
@@ -51,6 +53,10 @@ func (k msgServer) MigrateChainIds(goCtx context.Context, msg *dymnstypes.MsgMig
 		return nil, err
 	}
 
+	if msg.Authority != k.authority {
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
 	if err := k.Keeper.MigrateChainIds(ctx, msg.Replacement); err != nil {
 		return nil, err
 	}
@@ -64,6 +70,10 @@ func (k msgServer) UpdateAliases(goCtx context.Context, msg *dymnstypes.MsgUpdat
 
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
+	}
+
+	if msg.Authority != k.authority {
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
 	}
 
 	if err := k.Keeper.UpdateAliases(ctx, msg.Add, msg.Remove); err != nil {
