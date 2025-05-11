@@ -89,7 +89,7 @@ func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientStore storetype
 	height := bd.Height
 
 	// get the valHash of this sequencer
-	proposer, _ := k.SeqK.RealSequencer(ctx, stateInfo.Sequencer)
+	proposer, _ := k.SeqK.RealSequencer(ctx, stateInfo.NextProposer)
 	valHash, _ := proposer.ValsetHash()
 
 	// add consensus states based on the block descriptors
