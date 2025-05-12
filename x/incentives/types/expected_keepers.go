@@ -10,6 +10,7 @@ import (
 
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -43,4 +44,10 @@ type TxFeesKeeper interface {
 
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
+}
+
+// SequencerKeeper defines the expected interface needed to interact with sequencer module.
+type SequencerKeeper interface {
+	GetProposer(ctx sdk.Context, rollappId string) (sequencer sequencertypes.Sequencer)
+	Kickable(ctx sdk.Context, proposer sequencertypes.Sequencer) bool
 }

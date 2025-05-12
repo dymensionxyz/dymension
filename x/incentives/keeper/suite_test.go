@@ -208,7 +208,7 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 }
 
 // SetupLockAndGauge creates both a lock and a gauge.
-func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
+func (suite *KeeperTestSuite) CreateDefaultRollappFrom(addr sdk.AccAddress) string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          addr.String(),
 		RollappId:        urand.RollappID(),
