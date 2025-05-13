@@ -5,12 +5,17 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
+	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
+	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 )
 
@@ -41,4 +46,9 @@ type UpgradeKeepers struct {
 	IncentivesKeeper  *incentiveskeeper.Keeper
 	RollappKeeper     *rollappkeeper.Keeper
 	SponsorshipKeeper *sponsorshipkeeper.Keeper
+	ParamsKeeper      *paramskeeper.Keeper
+	DelayedAckKeeper  *delayedackkeeper.Keeper
+	EIBCKeeper        *eibckeeper.Keeper
+	DymNSKeeper       *dymnskeeper.Keeper
+	StreamerKeeper    *streamermodulekeeper.Keeper
 }

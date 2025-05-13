@@ -30,14 +30,6 @@ func TestInitGenesis(t *testing.T) {
 			expPanic:       false,
 		},
 		{
-			name: "only params - missing bridging fee - fail",
-			params: types.Params{
-				EpochIdentifier: "week",
-			},
-			rollappPackets: []commontypes.RollappPacket{},
-			expPanic:       true,
-		},
-		{
 			name: "params and rollapp packets - panic",
 			params: types.Params{
 				EpochIdentifier: "week",
