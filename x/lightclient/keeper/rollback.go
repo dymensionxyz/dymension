@@ -103,7 +103,7 @@ func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientID string, stat
 	setConsensusState(clientStore, k.cdc, clienttypes.NewHeight(1, height), &cs)
 	setConsensusMetadata(ctx, clientStore, clienttypes.NewHeight(1, height))
 
-	k.updateClientState(clientStore, height)
+	k.updateClientState(ctx, clientStore, height)
 	return nil
 }
 
@@ -128,7 +128,7 @@ func (k Keeper) freezeClient(clientStore storetypes.KVStore, heightI exported.He
 }
 
 // updateClientState updates the client state by setting the latest height
-func (k Keeper) updateClientState(clientStore storetypes.KVStore, height uint64) {
+func (k Keeper) updateClientState(ctx sdk.Context, clientStore storetypes.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
 	// set the latest height
@@ -136,4 +136,7 @@ func (k Keeper) updateClientState(clientStore storetypes.KVStore, height uint64)
 	tmClientState.FrozenHeight = clienttypes.ZeroHeight() // just to be sure
 
 	setClientState(clientStore, k.cdc, tmClientState)
+
+	// prune the oldest consensus state (similar to the ibc-go vanilla UpdateState flow)
+	pruneOldestConsensusState(ctx, k.cdc, clientStore, *tmClientState)
 }
