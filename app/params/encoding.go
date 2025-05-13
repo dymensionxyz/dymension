@@ -12,6 +12,8 @@ import (
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
 	eip712 "github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"cosmossdk.io/x/tx/signing"
 	amino "github.com/cosmos/cosmos-sdk/codec"
@@ -21,6 +23,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+
 	"github.com/cosmos/gogoproto/proto"
 )
 
@@ -36,6 +39,7 @@ type EncodingConfig struct {
 // MakeEncodingConfig creates a new EncodingConfig and returns it
 func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 	cdc := amino.NewLegacyAmino()
+
 	signingOptions := signing.Options{
 		AddressCodec: address.Bech32Codec{
 			Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
@@ -43,10 +47,9 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 		ValidatorAddressCodec: address.Bech32Codec{
 			Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
 		},
-		// FIXME: needed?
-		// CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
-		// 	evmtypes.MsgEthereumTx.MsgType: evmtypes.MsgEthereumTxCustomGetSigner.Fn,
-		// },
+		CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
+			evmtypes.MsgEthereumTxCustomGetSigner.MsgType: evmtypes.MsgEthereumTxCustomGetSigner.Fn,
+		},
 	}
 
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
@@ -59,7 +62,6 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 
 	// This is needed for the EIP712 txs because currently is using
 	// the deprecated method legacytx.StdSignBytes
-	// FIXME: needed??
 	legacytx.RegressionTestingAminoCodec = cdc
 	eip712.SetEncodingConfig(cdc, interfaceRegistry)
 
