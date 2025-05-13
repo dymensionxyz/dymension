@@ -131,7 +131,8 @@ message MsgTryFulfillOnDemand {
 message MsgTryFulfillOnDemandResponse {}
 
 message MsgCreateOnDemandLP {
-  option (cosmos.msg.v1.signer) = "lp.funds_addr";
+  option (cosmos.msg.v1.signer) = "signer";
+  string signer = 3;
 
   OnDemandLP lp = 2;
 }
