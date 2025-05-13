@@ -107,6 +107,15 @@ func (server msgServer) BeginUnlocking(goCtx context.Context, msg *types.MsgBegi
 		return nil, errorsmod.Wrap(types.ErrNotLockOwner, fmt.Sprintf("msg sender (%s) and lock owner (%s) does not match", msg.Owner, lock.Owner))
 	}
 
+	// we only allow locks with one denom
+	if msg.Coins.Len() != 1 {
+		return nil, fmt.Errorf("lockups can only have one denom per lock ID, got %v", msg.Coins)
+	}
+	coin := msg.Coins[0]
+	if !coin.IsPositive() {
+		return nil, fmt.Errorf("cannot unlock a zero or negative amount")
+	}
+
 	unlockingLock, err := server.keeper.BeginUnlock(ctx, lock.ID, msg.Coins)
 	if err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())

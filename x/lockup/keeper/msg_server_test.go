@@ -57,6 +57,36 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 			},
 			expectPass: false,
 		},
+		{
+			name: "invalid owner",
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+				lockOwner:           sdk.AccAddress("invalid"),
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+			},
+			expectPass: false,
+		},
+		{
+			name: "multiple coins to lock",
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake1", 10), sdk.NewInt64Coin("stake2", 10)},
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")),
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake1", 10), sdk.NewInt64Coin("stake2", 10)},
+			},
+			expectPass: false,
+		},
+		{
+			name: "zero token amount",
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 0)},
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")),
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+			},
+			expectPass: false,
+		},
 	}
 
 	for _, test := range tests {
