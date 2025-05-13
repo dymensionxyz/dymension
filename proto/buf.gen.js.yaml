@@ -1,0 +1,13 @@
+# JavaScript client generation configuration
+#
+# buf.gen.js.yaml
+#
+version: v1
+managed:
+  enabled: true
+plugins:
+  - plugin: buf.build/protocolbuffers/js
+    out: ./js-client
+    opt:
+      - import_style=commonjs
+      - binary
