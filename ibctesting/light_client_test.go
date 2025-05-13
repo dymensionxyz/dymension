@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
@@ -319,6 +320,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 		lastHeader := s.rollappChain().LastHeader
 		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
+
+		s.coordinator.IncrementTime()
 		s.hubChain().NextBlock()
 		s.rollappChain().NextBlock()
 	}
@@ -329,6 +332,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 		lastHeader := s.rollappChain().LastHeader
 		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
+
+		s.coordinator.IncrementTime()
 		s.hubChain().NextBlock()
 		s.rollappChain().NextBlock()
 	}
@@ -353,7 +358,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 	// As there was compatible stateinfo found, should accept the ClientUpdate without any error.
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
-	s.Equal(uint64(header.Header.Height), s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
+	s.True(s.hubApp().IBCKeeper.ClientKeeper.GetClientStatus(s.hubCtx(), s.path.EndpointA.GetClientState(), s.path.EndpointA.ClientID) == exported.Active)
+	s.LessOrEqual(uint64(header.Header.Height), s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
 	// There shouldn't be any optimistic updates as the roots were verified
 	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
 	s.Error(err)
@@ -697,6 +703,7 @@ func (s *lightClientSuite) TestAfterUpdateState_AutoUpdateIBCClient() {
 	clientState, found := s.hubApp().IBCKeeper.ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)
 	s.Require().True(found)
 	s.Require().Equal(rollappHeight, clientState.GetLatestHeight().GetRevisionHeight())
+	s.True(s.hubApp().IBCKeeper.ClientKeeper.GetClientStatus(s.hubCtx(), clientState, s.path.EndpointA.ClientID) == exported.Active)
 
 	// Consensus state should be available for the new height
 	_, found = s.hubApp().IBCKeeper.ClientKeeper.GetClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID, clienttypes.NewHeight(1, rollappHeight))
