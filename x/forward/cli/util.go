@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -11,8 +12,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
+	errorsmod "cosmossdk.io/errors"
 	math "cosmossdk.io/math"
+	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -346,7 +350,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			m, err := types.MakeForwardToIBCHyperlaneMessage(
+			m, err := MakeForwardToIBCHyperlaneMessage(
 				uint32(hlNonce),
 				uint32(hlSrcDomain),
 				hlSrcContract,
@@ -526,4 +530,114 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+// get a message for sending directly to hyperlane module on hub
+// for testing
+// potentially computationally expensive
+func MakeForwardToIBCHyperlaneMessage(
+	hyperlaneNonce uint32,
+	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
+	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
+	hyperlaneDstDomain uint32, // e.g. 0 for Dymension
+	hyperlaneTokenID hyperutil.HexAddress,
+	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
+	hyperlaneTokenAmt math.Int, // must be at least hub token amount
+	hook *types.HookForwardToIBC,
+) (hyperutil.HyperlaneMessage, error) {
+
+	if err := hook.ValidateBasic(); err != nil {
+		return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
+	}
+
+	memoBz, err := proto.Marshal(hook)
+	if err != nil {
+		return hyperutil.HyperlaneMessage{}, err
+	}
+
+	hlM, err := createTestHyperlaneMessage(
+		hypercoretypes.MESSAGE_VERSION,
+		hyperlaneNonce,
+		hyperlaneSrcDomain,
+		hyperlaneSrcContract,
+		hyperlaneDstDomain,
+		hyperlaneTokenID,
+		hyperlaneRecipient,
+		hyperlaneTokenAmt,
+		memoBz,
+	)
+	if err != nil {
+		return hyperutil.HyperlaneMessage{}, err
+	}
+
+	// sanity
+	{
+		s := hlM.String()
+		_, err := decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s)
+		if err != nil {
+			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
+		}
+	}
+
+	return hlM, nil
+}
+
+// A message which can be sent to the mailbox in TX to trigger a transfer
+func createTestHyperlaneMessage(
+	version uint8, // e.g. 1
+	nonce uint32, // e.g. 1
+	srcDomain uint32, // e.g. 1 (Ethereum)
+	srcContract util.HexAddress, // e.g Ethereum token contract
+	dstDomain uint32, // e.g. 0 (Dymension)
+	tokenID util.HexAddress,
+	recipient sdk.AccAddress,
+	amt math.Int,
+	memo []byte,
+) (util.HyperlaneMessage, error) {
+	p := sdk.GetConfig().GetBech32AccountAddrPrefix()
+	bech32, err := sdk.Bech32ifyAddressBytes(p, recipient) // TODO: fix
+	if err != nil {
+		return util.HyperlaneMessage{}, err
+	}
+	recip, err := sdk.GetFromBech32(bech32, p) // TODO: fix
+	if err != nil {
+		return util.HyperlaneMessage{}, err
+	}
+
+	wmpl, err := warptypes.NewWarpMemoPayload(recip, *big.NewInt(amt.Int64()), memo)
+	if err != nil {
+		return util.HyperlaneMessage{}, err
+	}
+
+	body := wmpl.Bytes()
+	return util.HyperlaneMessage{
+		Version:     version,
+		Nonce:       nonce,
+		Origin:      srcDomain,
+		Sender:      srcContract,
+		Destination: dstDomain,
+		Recipient:   tokenID,
+		Body:        body,
+	}, nil
+}
+
+// intended for tests/clients, expensive
+func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookForwardToIBC, error) {
+	decoded, err := hyperutil.DecodeEthHex(s)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "decode eth hex")
+	}
+	warpM, err := hyperutil.ParseHyperlaneMessage(decoded)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse hl message")
+	}
+	pl, err := warptypes.ParseWarpMemoPayload(warpM.Body)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse warp memo")
+	}
+	d, err := types.UnpackForwardToIBC(pl.Memo)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
+	}
+	return d, nil
 }

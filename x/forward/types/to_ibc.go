@@ -3,10 +3,6 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -114,75 +110,4 @@ func MakeIBCForwardToIBCMemoString(
 	}
 
 	return ibccompletiontypes.MakeMemo(bz)
-}
-
-// get a message for sending directly to hyperlane module on hub
-// for testing
-// potentially computationally expensive
-func MakeForwardToIBCHyperlaneMessage(
-	hyperlaneNonce uint32,
-	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
-	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
-	hyperlaneDstDomain uint32, // e.g. 0 for Dymension
-	hyperlaneTokenID hyperutil.HexAddress,
-	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
-	hyperlaneTokenAmt math.Int, // must be at least hub token amount
-	hook *HookForwardToIBC,
-) (hyperutil.HyperlaneMessage, error) {
-
-	if err := hook.ValidateBasic(); err != nil {
-		return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
-	}
-
-	memoBz, err := proto.Marshal(hook)
-	if err != nil {
-		return hyperutil.HyperlaneMessage{}, err
-	}
-
-	hlM, err := warpkeeper.CreateTestHyperlaneMessage(
-		hypercoretypes.MESSAGE_VERSION,
-		hyperlaneNonce,
-		hyperlaneSrcDomain,
-		hyperlaneSrcContract,
-		hyperlaneDstDomain,
-		hyperlaneTokenID,
-		hyperlaneRecipient,
-		hyperlaneTokenAmt,
-		memoBz,
-	)
-	if err != nil {
-		return hyperutil.HyperlaneMessage{}, err
-	}
-
-	// sanity
-	{
-		s := hlM.String()
-		_, err := decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s)
-		if err != nil {
-			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
-		}
-	}
-
-	return hlM, nil
-}
-
-// intended for tests/clients, expensive
-func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*HookForwardToIBC, error) {
-	decoded, err := hyperutil.DecodeEthHex(s)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "decode eth hex")
-	}
-	warpM, err := hyperutil.ParseHyperlaneMessage(decoded)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse hl message")
-	}
-	pl, err := warptypes.ParseWarpMemoPayload(warpM.Body)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "parse warp memo")
-	}
-	d, err := UnpackForwardToIBC(pl.Memo)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
-	}
-	return d, nil
 }
