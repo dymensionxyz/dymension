@@ -116,8 +116,9 @@ func (k Keeper) getStreamFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]ty
 	return streams, nil
 }
 
-// filterByPrefixAndDenom filters streams based on a given key prefix and denom
-func (k Keeper) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, denom string, pagination *query.PageRequest) (*query.PageResponse, []types.Stream, error) {
+// FIXME: denom not used
+// filterByPrefixAndDenom filters streams based on a given key prefix
+func (k Keeper) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, _ string, pagination *query.PageRequest) (*query.PageResponse, []types.Stream, error) {
 	streams := []types.Stream{}
 	store := ctx.KVStore(k.storeKey)
 	valStore := prefix.NewStore(store, prefixType)

@@ -465,6 +465,11 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				IncentivesKeeper:  app.AppKeepers.IncentivesKeeper,
 				RollappKeeper:     app.AppKeepers.RollappKeeper,
 				SponsorshipKeeper: &app.AppKeepers.SponsorshipKeeper,
+				ParamsKeeper:      &app.AppKeepers.ParamsKeeper,
+				DelayedAckKeeper:  &app.AppKeepers.DelayedAckKeeper,
+				EIBCKeeper:        &app.AppKeepers.EIBCKeeper,
+				DymNSKeeper:       &app.AppKeepers.DymNSKeeper,
+				StreamerKeeper:    &app.AppKeepers.StreamerKeeper,
 			},
 		),
 	)

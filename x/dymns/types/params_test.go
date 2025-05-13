@@ -9,11 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParamKeyTable(t *testing.T) {
-	m := ParamKeyTable()
-	require.NotNil(t, m)
-}
-
 func TestDefaultParams(t *testing.T) {
 	moduleParams := DefaultParams()
 	require.NoError(t, (&moduleParams).Validate())
@@ -81,12 +76,6 @@ func TestDefaultChainsParams(t *testing.T) {
 
 func TestDefaultMiscParams(t *testing.T) {
 	require.NoError(t, DefaultMiscParams().Validate())
-}
-
-func TestParams_ParamSetPairs(t *testing.T) {
-	moduleParams := DefaultParams()
-	paramSetPairs := (&moduleParams).ParamSetPairs()
-	require.Len(t, paramSetPairs, 3)
 }
 
 func TestParams_Validate(t *testing.T) {
