@@ -127,7 +127,7 @@ func (k msgServer) processCompleteSellOrderWithAssetTypeAlias(
 	Why some aliases are prohibited to trade? And what are they?
 	In module params, there is a list of alias mapping for some external well-known chains.
 	So those aliases are considered as reserved for the external chains,
-	therefor trading is not allowed.
+	therefore trading is not allowed.
 
 	Why can someone own a prohibited alias?
 	An alias can be bought before the reservation was made.

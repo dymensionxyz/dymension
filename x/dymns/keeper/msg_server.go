@@ -30,7 +30,7 @@ func consumeMinimumGas(ctx sdk.Context, minimumGas, originalConsumedGas uint64, 
 	if minimumGas > 0 {
 		laterConsumedGas := ctx.GasMeter().GasConsumed()
 		if laterConsumedGas < originalConsumedGas {
-			// unexpect gas consumption
+			// unexpected gas consumption
 			panic(fmt.Sprintf(
 				"later gas is less than original gas: %d < %d",
 				laterConsumedGas, originalConsumedGas,

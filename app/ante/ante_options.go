@@ -2,6 +2,7 @@ package ante
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	circuitante "cosmossdk.io/x/circuit/ante"
 	txsigning "cosmossdk.io/x/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -34,6 +35,7 @@ type HandlerOptions struct {
 	MaxTxGasWanted    uint64
 	RollappKeeper     rollappkeeper.Keeper
 	LightClientKeeper *lightclientkeeper.Keeper
+	CircuitKeeper     circuitante.CircuitBreaker
 }
 
 func (options HandlerOptions) validate() error {
@@ -57,6 +59,10 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.LightClientKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "light client keeper is required for AnteHandler")
+	}
+	if options.CircuitKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "circuit breaker keeper is required for AnteHandler")
+
 	}
 	return nil
 }
