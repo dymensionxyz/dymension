@@ -61,12 +61,10 @@ func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastV
 // and adding consensus states based on the block descriptors
 // CONTRACT: canonical client is already set, state info exists
 func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
-	clientID, _ := k.GetCanonicalClient(ctx, rollappID) // already checked in the caller
-	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
-
+	clientID, _ := k.GetCanonicalClient(ctx, rollappID)                // already checked in the caller
 	stateinfo, _ := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID) // already checked in the caller
 
-	err := k.UpdateClientFromStateInfo(ctx, clientStore, &stateinfo)
+	err := k.UpdateClientFromStateInfo(ctx, clientID, &stateinfo)
 	if err != nil {
 		return errorsmod.Wrap(err, "update client from state info")
 	}
@@ -75,18 +73,21 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 
 // UpdateClientFromStateInfo sets the consensus state from the state info
 // and sets the metadata for the consensus state
+// uses the latest height of the state info to set the client state
 // CONTRACT: canonical client is already set, state info exists
-func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientStore storetypes.KVStore, stateInfo *rollapptypes.StateInfo) error {
-	// sanity check
-	clientHeight := getClientStateTM(clientStore, k.cdc).GetLatestHeight().GetRevisionHeight()
-	if stateInfo.StartHeight <= clientHeight {
-		return gerrc.ErrInternal.Wrapf("client latest height not less than new latest height: new: %d, client: %d",
-			stateInfo.StartHeight, clientHeight,
-		)
-	}
+func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientID string, stateInfo *rollapptypes.StateInfo) error {
+	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
 
 	bd := stateInfo.GetLatestBlockDescriptor()
 	height := bd.Height
+
+	// sanity check
+	clientLatestHeight := getClientStateTM(clientStore, k.cdc).GetLatestHeight().GetRevisionHeight()
+	if height <= clientLatestHeight {
+		return gerrc.ErrInternal.Wrapf("client latest height not less than new latest height: new: %d, client: %d",
+			height, clientLatestHeight,
+		)
+	}
 
 	// get the valHash of this sequencer
 	proposer, _ := k.SeqK.RealSequencer(ctx, stateInfo.NextProposer)
@@ -126,7 +127,7 @@ func (k Keeper) freezeClient(clientStore storetypes.KVStore, heightI exported.He
 	return nil
 }
 
-// freezeClient freezes the client by setting the frozen height to the current height
+// updateClientState updates the client state by setting the latest height
 func (k Keeper) updateClientState(clientStore storetypes.KVStore, height uint64) {
 	tmClientState := getClientStateTM(clientStore, k.cdc)
 
