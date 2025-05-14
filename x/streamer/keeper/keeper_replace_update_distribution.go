@@ -3,6 +3,7 @@ package keeper
 import (
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -14,6 +15,10 @@ func (k Keeper) ReplaceDistrRecords(ctx sdk.Context, streamId uint64, records []
 	stream, err := k.GetStreamByID(ctx, streamId)
 	if err != nil {
 		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", stream.Id)
 	}
 
 	distrInfo, err := k.NewDistrInfo(ctx, records)
@@ -38,6 +43,10 @@ func (k Keeper) UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []t
 	stream, err := k.GetStreamByID(ctx, streamId)
 	if err != nil {
 		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", stream.Id)
 	}
 
 	err = k.validateGauges(ctx, records)

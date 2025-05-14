@@ -71,6 +71,14 @@ service Msg {
 
   // UpdateParams is used for updating module params.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // MigrateChainIds defines a method for replacing chain-id in module params
+  // and configurations
+  rpc MigrateChainIds(MsgMigrateChainIds) returns (MsgMigrateChainIdsResponse);
+
+  // UpdateAliases defines a method for updating the aliases associated with
+  // chain-ids
+  rpc UpdateAliases(MsgUpdateAliases) returns (MsgUpdateAliasesResponse);
 }
 
 // MsgRegisterName defines the message used for user to register or extends
@@ -398,3 +406,59 @@ message MsgUpdateParams {
 }
 
 message MsgUpdateParamsResponse {}
+
+// MsgMigrateChainIds defines a message for replacing chain-id in module params
+// and configurations
+message MsgMigrateChainIds {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless
+  // overwritten)
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // replacements is set of chain-id replacements
+  repeated MigrateChainId replacement = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgMigrateChainIdsResponse defines the response structure for executing a
+// MsgMigrateChainIds message
+message MsgMigrateChainIdsResponse {}
+
+// MsgUpdateAliases defines a message for updating the aliases associated with
+// chain-ids
+message MsgUpdateAliases {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless
+  // overwritten)
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // add is set of aliases to be mapped to chain-ids
+  repeated UpdateAlias add = 2 [ (gogoproto.nullable) = false ];
+
+  // remove is set of aliases to remove mapping from chain-ids
+  repeated UpdateAlias remove = 3 [ (gogoproto.nullable) = false ];
+}
+
+// MsgUpdateAliasesResponse defines the response structure for executing a
+// MsgUpdateAliases message
+message MsgUpdateAliasesResponse {}
+
+// MigrateChainId defines a chain-id replacement.
+message MigrateChainId {
+  // previous_chain_id is the chain-id to be replaced
+  string previous_chain_id = 1;
+
+  // new_chain_id is the new chain-id to replace with
+  string new_chain_id = 2;
+}
+
+// UpdateAlias defines an alias to chain-id mapping.
+// It can be used to add or remove alias to chain-id mapping.
+message UpdateAlias {
+  // chain_id is the chain-id to take action on
+  string chain_id = 1;
+
+  // alias is the alias to be mapped to chain-id or removed
+  string alias = 2;
+}
