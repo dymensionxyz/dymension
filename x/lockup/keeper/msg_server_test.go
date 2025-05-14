@@ -204,6 +204,38 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 			},
 			expectPass: true,
 		},
+		{
+			name: "invalid owner",
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+				lockOwner:           sdk.AccAddress("invalid"),
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+			},
+			expectPass: false,
+		},
+		{
+			name: "multiple coins to unlock",
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake1", 10)},
+				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake1", 5), sdk.NewInt64Coin("stake2", 5)},
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")),
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake1", 10), sdk.NewInt64Coin("stake2", 10)},
+			},
+			expectPass: false,
+		},
+		{
+			name: "negative amount",
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake1", 10)},
+				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake1", -5)},
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")),
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake1", 10)},
+			},
+			expectPass: false,
+		},
 	}
 
 	for _, test := range tests {

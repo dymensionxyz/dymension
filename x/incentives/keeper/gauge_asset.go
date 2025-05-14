@@ -16,17 +16,18 @@ import (
 func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error) {
 	// Ensure that this gauge's duration is one of the allowed durations on chain
 	durations := k.GetLockableDurations(ctx)
-	if distrTo.LockQueryType == lockuptypes.ByDuration {
-		durationOk := false
-		for _, duration := range durations {
-			if duration == distrTo.Duration {
-				durationOk = true
-				break
-			}
+	if distrTo.LockQueryType != lockuptypes.ByDuration {
+		return 0, fmt.Errorf("invalid lock query type: %s", distrTo.LockQueryType)
+	}
+	durationOk := false
+	for _, duration := range durations {
+		if duration == distrTo.Duration {
+			durationOk = true
+			break
 		}
-		if !durationOk {
-			return 0, fmt.Errorf("invalid duration: %d", distrTo.Duration)
-		}
+	}
+	if !durationOk {
+		return 0, fmt.Errorf("invalid duration: %d", distrTo.Duration)
 	}
 
 	// Ensure that the denom this gauge pays out to exists on-chain
@@ -35,7 +36,6 @@ func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.Ac
 	}
 
 	gauge := types.NewAssetGauge(k.GetLastGaugeID(ctx)+1, isPerpetual, distrTo, coins, startTime, numEpochsPaidOver)
-
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err
 	}
@@ -79,22 +79,6 @@ func NewRewardDistributionTracker() RewardDistributionTracker {
 		idToDistrCoins:    []sdk.Coins{},
 		idToGaugeRewards:  []map[uint64]sdk.Coins{},
 	}
-}
-
-// getLocksToDistributionWithMaxDuration returns locks that match the provided lockuptypes QueryCondition,
-// are greater than the provided minDuration, AND have yet to be distributed to.
-func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo lockuptypes.QueryCondition, minDuration time.Duration) []lockuptypes.PeriodLock {
-	switch distrTo.LockQueryType {
-	case lockuptypes.ByDuration:
-		// TODO: what the meaning of minDuration here? it's set to time.Millisecond in the caller.
-		duration := min(distrTo.Duration, minDuration)
-		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, duration)
-	case lockuptypes.ByTime:
-		k.Logger(ctx).Error("Gauge by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
-		return []lockuptypes.PeriodLock{}
-	default:
-	}
-	return []lockuptypes.PeriodLock{}
 }
 
 // addLockRewards adds the provided rewards to the lockID mapped to the provided owner address.
@@ -310,7 +294,7 @@ func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	asset := gauge.GetAsset() // this should never be nil
 	distributeBaseDenom := asset.Denom
 	if _, ok := cache[distributeBaseDenom]; !ok {
-		cache[distributeBaseDenom] = k.getLocksToDistributionWithMaxDuration(ctx, *asset, time.Millisecond)
+		cache[distributeBaseDenom] = k.lk.GetLocksLongerThanDurationDenom(ctx, asset.Denom, asset.Duration)
 	}
 	// get this from memory instead of hitting iterators / underlying stores.
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
