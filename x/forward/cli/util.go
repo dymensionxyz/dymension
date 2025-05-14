@@ -391,7 +391,7 @@ func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			addr, err := warptypes.HexCosmosAddr(args[0])
+			addr, err := warptypes.EthRecipient(args[0])
 			if err != nil {
 				return fmt.Errorf("hl eth addr: %w", err)
 			}
@@ -454,26 +454,16 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			var warpPL warptypes.WarpPayload
-
+			warpPL, err := warptypes.ParseWarpPayload(body)
+			if err != nil {
+				return fmt.Errorf("parse warp payload: %w", err)
+			}
 			if memo {
-				payload, err := warptypes.ParseWarpMemoPayload(body)
-				if err != nil {
-					return fmt.Errorf("parse warp memo payload: %w", err)
-				}
-				fmt.Printf("warp payload message: %+v\n", payload)
-
-				memo, err := types.UnpackForwardToIBC(payload.Memo)
+				m, err := types.UnpackForwardToIBC(warpPL.Metadata())
 				if err != nil {
 					return fmt.Errorf("unpack memo from warp message: %w", err)
 				}
-				fmt.Printf("ibc memo: %+v\n", memo)
-			} else {
-				payload, err := warptypes.ParseWarpPayload(body)
-				if err != nil {
-					return fmt.Errorf("parse warp payload: %w", err)
-				}
-				warpPL = payload
+				fmt.Printf("ibc memo: %+v\n", m)
 			}
 			fmt.Printf("warp payload message: %+v\n", warpPL)
 			fmt.Printf("cosmos account: %s\n", warpPL.GetCosmosAccount().String())
@@ -604,7 +594,7 @@ func createTestHyperlaneMessage(
 		return util.HyperlaneMessage{}, err
 	}
 
-	wmpl, err := warptypes.NewWarpMemoPayload(recip, *big.NewInt(amt.Int64()), memo)
+	wmpl, err := warptypes.NewWarpPayload(recip, *big.NewInt(amt.Int64()), memo)
 	if err != nil {
 		return util.HyperlaneMessage{}, err
 	}

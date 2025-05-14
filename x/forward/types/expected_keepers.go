@@ -16,5 +16,5 @@ type TransferKeeper interface {
 }
 
 type WarpMsgServer interface {
-	DymRemoteTransfer(ctx context.Context, msg *types.MsgDymRemoteTransfer) (*types.MsgDymRemoteTransferResponse, error)
+	RemoteTransfer(ctx context.Context, msg *types.MsgRemoteTransfer) (*types.MsgRemoteTransferResponse, error)
 }
