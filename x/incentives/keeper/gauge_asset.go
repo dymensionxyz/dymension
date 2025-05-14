@@ -15,12 +15,12 @@ import (
 // CreateAssetGauge creates a gauge and sends coins to the gauge.
 func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error) {
 	// Ensure that this gauge's duration is one of the allowed durations on chain
-	durations := k.GetLockableDurations(ctx)
 	if distrTo.LockQueryType != lockuptypes.ByDuration {
 		return 0, fmt.Errorf("invalid lock query type: %s", distrTo.LockQueryType)
 	}
+
 	durationOk := false
-	for _, duration := range durations {
+	for _, duration := range k.GetLockableDurations(ctx) {
 		if duration == distrTo.Duration {
 			durationOk = true
 			break
@@ -293,11 +293,13 @@ func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	// All gauges have a precondition of being ByDuration.
 	asset := gauge.GetAsset() // this should never be nil
 	distributeBaseDenom := asset.Denom
-	if _, ok := cache[distributeBaseDenom]; !ok {
-		cache[distributeBaseDenom] = k.lk.GetLocksLongerThanDurationDenom(ctx, asset.Denom, asset.Duration)
-	}
+
 	// get this from memory instead of hitting iterators / underlying stores.
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
-	allLocks := cache[distributeBaseDenom]
-	return FilterLocksByMinDuration(allLocks, asset.Duration)
+	if _, ok := cache[distributeBaseDenom]; !ok {
+		duration := k.GetLockableDurations(ctx)[0] // the duration all gauges been created with
+		cache[distributeBaseDenom] = k.lk.GetLocksLongerThanDurationDenom(ctx, asset.Denom, duration)
+	}
+
+	return cache[distributeBaseDenom]
 }
