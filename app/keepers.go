@@ -533,24 +533,16 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 		a.BankKeeper,
 		&a.HyperCoreKeeper,
-		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL),
-			// Required for our fork:
-			int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC_MEMO), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL_MEMO),
-		},
+		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
 	)
-
 	a.Forward = forward.New(
 		a.TransferKeeper,
+
 		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
 	)
 
-	{
-		// hook onto the hyperlane inbound message event with our forward hook
-		h := hyperwarpkeeper.NewDymensionHandler(&a.HyperWarpKeeper)
-		h.RegisterDymensionTokens()
-		h.SetHook(a.Forward)
-	}
+	a.HyperWarpKeeper.SetHook(a.Forward)
 
 	a.DelayedAckKeeper.SetCompletionHooks(map[string]delayedackkeeper.CompletionHookInstance{
 		forwardtypes.HookNameRollToHL:  a.Forward.RollToHLHook(),

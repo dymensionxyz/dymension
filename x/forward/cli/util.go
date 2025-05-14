@@ -391,7 +391,7 @@ func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			addr, err := warptypes.EthRecipient(args[0])
+			addr, err := EthRecipient(args[0])
 			if err != nil {
 				return fmt.Errorf("hl eth addr: %w", err)
 			}
@@ -405,6 +405,23 @@ func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// addr like dym166kyzqc2e0ewmwmv4vj68pzqp57tgts5lyawlc
+// returns a value which can be passed to ethereum as recipient, e.g 0x000000000000000000000000d6ac41030acbf2edbb6cab25a384400d3cb42e14
+func EthRecipient(addr string) (string, error) {
+	bz, err := sdk.GetFromBech32(addr, sdk.GetConfig().GetBech32AccountAddrPrefix())
+	if err != nil {
+		return "", fmt.Errorf("addr address from bech32: %w", err)
+	}
+
+	ret := hyperutil.EncodeEthHex(bz)
+	ret = strings.TrimPrefix(ret, "0x")
+
+	prefix := "0x000000000000000000000000" // TODO: explain
+	ret = prefix + ret
+
+	return ret, nil
 }
 
 // Util to debug a hyperlane message or hyperlane body (including show the memo if there is one). Expects Ethereum Hex bytes
@@ -621,11 +638,11 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookFor
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse hl message")
 	}
-	pl, err := warptypes.ParseWarpMemoPayload(warpM.Body)
+	pl, err := warptypes.ParseWarpPayload(warpM.Body)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, err := types.UnpackForwardToIBC(pl.Memo)
+	d, err := types.UnpackForwardToIBC(pl.Metadata())
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
