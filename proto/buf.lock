@@ -2,6 +2,11 @@
 version: v1
 deps:
   - remote: buf.build
+    owner: bcp-innovations
+    repository: hyperlane-cosmos
+    commit: 059f9e6501d44fa882f8086d41646fb9
+    digest: shake256:a3a89fd4c2ec796a15718358e8e03fabc67fe8ecac6797733c9818054193d2bcbf30d12b1757a99671c9c645571524bbc4d91cdc464a7c132321918207a70887
+  - remote: buf.build
     owner: cosmos
     repository: cosmos-proto
     commit: 04467658e59e44bbb22fe568206e1f70
@@ -26,11 +31,6 @@ deps:
     repository: ics23
     commit: 55085f7c710a45f58fa09947208eb70b
     digest: shake256:9bf0bc495b5a11c88d163d39ef521bc4b00bc1374a05758c91d82821bdc61f09e8c2c51dda8452529bf80137f34d852561eacbe9550a59015d51cecb0dacb628
-  - remote: buf.build
-    owner: danwt
-    repository: d-hyperlane-cosmos
-    commit: 6cbaef011e0e4eccaca429a88bae3b04
-    digest: shake256:cf522070ed693d42fb584cc8a7982bb8d01790f444610f65687999ad534ab8b24730ec0a0faac10de2aed3a8d60b38fee4a83587af22b4967ea9ea64fa9f3ac7
   - remote: buf.build
     owner: googleapis
     repository: googleapis
