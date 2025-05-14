@@ -89,7 +89,6 @@ func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientID string, stat
 		)
 	}
 
-	// get the valHash of this sequencer
 	proposer, _ := k.SeqK.RealSequencer(ctx, stateInfo.NextProposer)
 	valHash, _ := proposer.ValsetHash()
 
