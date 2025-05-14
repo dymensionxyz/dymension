@@ -40,22 +40,3 @@ func (m *MsgPurchaseOrder) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners returns the required signers for the MsgPurchaseOrder.
-func (m *MsgPurchaseOrder) GetSigners() []sdk.AccAddress {
-	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{buyer}
-}
-
-// Route returns the message router key for the MsgPurchaseOrder.
-func (m *MsgPurchaseOrder) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgPurchaseOrder.
-func (m *MsgPurchaseOrder) Type() string {
-	return TypeMsgPurchaseOrder
-}

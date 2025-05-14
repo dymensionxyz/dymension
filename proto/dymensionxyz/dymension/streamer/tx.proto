@@ -1,0 +1,145 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
+
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/streamer/params.proto";
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
+import "dymensionxyz/dymension/streamer/distr_info.proto";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // UpdateParams is used for updating module params.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // CreateStream creates a new stream
+  rpc CreateStream(MsgCreateStream) returns (MsgCreateStreamResponse);
+
+  // TerminateStream terminates an existing stream
+  rpc TerminateStream(MsgTerminateStream) returns (MsgTerminateStreamResponse);
+
+  // ReplaceStream replaces an existing stream's distribution records
+  rpc ReplaceStream(MsgReplaceStream) returns (MsgReplaceStreamResponse);
+
+  // UpdateStream updates an existing stream's distribution records
+  rpc UpdateStream(MsgUpdateStream) returns (MsgUpdateStreamResponse);
+}
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // NewParams should be fully populated.
+  Params params = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateParamsResponse {}
+
+// MsgCreateStream creates a new stream
+message MsgCreateStream {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // DistributeToRecords defines the distribution records
+  repeated DistrRecord distribute_to_records = 2
+      [ (gogoproto.nullable) = false ];
+
+  // Coins are coin(s) to be distributed by the stream
+  repeated cosmos.base.v1beta1.Coin coins = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+
+  // StartTime is the distribution start time
+  google.protobuf.Timestamp start_time = 4 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"timestamp\""
+  ];
+
+  // DistrEpochIdentifier is the epoch identifier for distribution
+  string distr_epoch_identifier = 5
+      [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+
+  // NumEpochsPaidOver is the number of epochs distribution will be completed
+  // over
+  uint64 num_epochs_paid_over = 6;
+
+  // Sponsored indicates if the stream is based on the sponsorship distribution
+  bool sponsored = 7;
+}
+
+message MsgCreateStreamResponse { uint64 stream_id = 1; }
+
+// MsgTerminateStream terminates an existing stream
+message MsgTerminateStream {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // StreamId is the ID of the stream to terminate
+  uint64 stream_id = 2;
+}
+
+message MsgTerminateStreamResponse {}
+
+// MsgReplaceStream replaces an existing stream's distribution records
+// If a MsgReplaceStream passes, the proposal’s records
+// override the existing DistrRecords set in the module. Each record has a
+// specified gauge id and weight, and the incentives are distributed to each
+// gauge according to weight/total_weight.
+message MsgReplaceStream {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // StreamId is the ID of the stream to replace
+  uint64 stream_id = 2;
+
+  // Records are the new distribution records
+  repeated DistrRecord records = 3 [ (gogoproto.nullable) = false ];
+}
+
+message MsgReplaceStreamResponse {}
+
+// MsgUpdateStream updates an existing stream's distribution records
+// If a MsgUpdateStream passes, all the DistrRecords
+// in the proposals are edited. An existing DistrRecord is not overridden unless
+// explicitly included in the proposal.
+// This differs from an ReplaceStreamDistributionProposal because it only does
+// an in place update of the DistrRecords for gauges explicitly mentioned in the
+// proposal.
+
+// For example: if the existing DistrRecords were:
+// [(Gauge 0, 5), (Gauge 1, 6), (Gauge 2, 6)]
+// An UpdatePoolIncentivesProposal includes
+// [(Gauge 1, 0), (Gauge 2, 4), (Gauge 3, 10)]
+// This would delete Gauge 1, Edit Gauge 2, and Add Gauge 3
+// The result DistrRecords in state would be:
+// [(Gauge 0, 5), (Gauge 2, 4), (Gauge 3, 10)]
+message MsgUpdateStream {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // StreamId is the ID of the stream to update
+  uint64 stream_id = 2;
+
+  // Records are the new distribution records
+  repeated DistrRecord records = 3 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateStreamResponse {}

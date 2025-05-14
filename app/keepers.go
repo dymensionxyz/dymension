@@ -36,7 +36,6 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
@@ -86,7 +85,6 @@ import (
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
@@ -102,12 +100,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
-	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
@@ -320,10 +316,11 @@ func (a *AppKeepers) InitKeepers(
 
 	a.LockupKeeper = lockupkeeper.NewKeeper(
 		a.keys[lockuptypes.StoreKey],
-		a.GetSubspace(lockuptypes.ModuleName),
+		appCodec,
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.TxFeesKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create IBC Keeper
@@ -340,7 +337,6 @@ func (a *AppKeepers) InitKeepers(
 	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
-		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
 		nil,
 		a.BankKeeper,
@@ -384,12 +380,13 @@ func (a *AppKeepers) InitKeepers(
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
-		a.GetSubspace(incentivestypes.ModuleName),
+		appCodec,
 		a.BankKeeper,
 		a.LockupKeeper,
 		a.EpochsKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.IROKeeper = irokeeper.NewKeeper(
@@ -419,29 +416,28 @@ func (a *AppKeepers) InitKeepers(
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[streamermoduletypes.StoreKey],
-		a.GetSubspace(streamermoduletypes.ModuleName),
 		a.BankKeeper,
 		a.EpochsKeeper,
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
+		govModuleAddress,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
 		appCodec,
 		a.keys[eibcmoduletypes.StoreKey],
 		a.keys[eibcmoduletypes.MemStoreKey],
-		a.GetSubspace(eibcmoduletypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DelayedAckKeeper,
 		a.RollappKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.DymNSKeeper = dymnskeeper.NewKeeper(
 		appCodec,
 		a.keys[dymnstypes.StoreKey],
-		a.GetSubspace(dymnstypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -470,7 +466,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[delayedacktypes.StoreKey],
 		a.keys[ibcexported.StoreKey],
-		a.GetSubspace(delayedacktypes.ModuleName),
+		govModuleAddress,
 		a.RollappKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
@@ -486,10 +482,7 @@ func (a *AppKeepers) InitKeepers(
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
-		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
-		AddRoute(sequencermoduletypes.RouterKey, sequencermodule.NewSequencerProposalHandler(*a.SequencerKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
-		AddRoute(dymnstypes.RouterKey, dymnsmodule.NewDymNsProposalHandler(a.DymNSKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
 
 	govConfig := govtypes.DefaultConfig()
@@ -610,33 +603,16 @@ func (a *AppKeepers) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
-	// deprecated subspaces. loaded manually as the keeper doesn't load it
-	paramsKeeper.Subspace(authtypes.ModuleName).WithKeyTable(authtypes.ParamKeyTable())
-	paramsKeeper.Subspace(banktypes.ModuleName).WithKeyTable(banktypes.ParamKeyTable())
-	paramsKeeper.Subspace(stakingtypes.ModuleName).WithKeyTable(stakingtypes.ParamKeyTable())
-	paramsKeeper.Subspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable())
-	paramsKeeper.Subspace(distrtypes.ModuleName).WithKeyTable(distrtypes.ParamKeyTable())
-	paramsKeeper.Subspace(slashingtypes.ModuleName).WithKeyTable(slashingtypes.ParamKeyTable())
-	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
-	paramsKeeper.Subspace(crisistypes.ModuleName).WithKeyTable(crisistypes.ParamKeyTable())
-	paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-
+	// ibc-go subspaces
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)
-	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
-	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
-	paramsKeeper.Subspace(delayedacktypes.ModuleName)
-	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	paramsKeeper.Subspace(dymnstypes.ModuleName)
 
 	// ethermint subspaces (keeper doesn't load key table so we do it manually)
 	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
 
 	// osmosis subspaces
-	paramsKeeper.Subspace(lockuptypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
-	paramsKeeper.Subspace(incentivestypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	return paramsKeeper

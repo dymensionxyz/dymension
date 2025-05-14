@@ -43,6 +43,9 @@ const (
 )
 
 var (
+	// KeyParams is the key for the params
+	KeyParams = []byte("Params")
+
 	// KeyPrefixDymName is the key prefix for the DymName records
 	KeyPrefixDymName = []byte{prefixDymName}
 

@@ -13,10 +13,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-const (
-	TypeMsgCreateSequencer = "create_sequencer"
-)
-
 var (
 	_ sdk.Msg                            = &MsgCreateSequencer{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
@@ -59,22 +55,6 @@ func NewMsgCreateSequencer(
 		RewardAddr:          rewardAddr,
 		WhitelistedRelayers: whitelistedRelayers,
 	}, nil
-}
-
-func (msg *MsgCreateSequencer) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgCreateSequencer) Type() string {
-	return TypeMsgCreateSequencer
-}
-
-func (msg *MsgCreateSequencer) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgCreateSequencer) ValidateBasic() error {
