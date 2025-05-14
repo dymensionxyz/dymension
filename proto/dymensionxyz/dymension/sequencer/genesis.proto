@@ -19,7 +19,7 @@ message GenesisState {
   repeated GenesisProposer genesisSuccessors = 5
       [ (gogoproto.nullable) = false ];
   // list of sequencers in the notice queue
-  repeated string noticeQueue = 4 [ (gogoproto.nullable) = false ];
+  repeated string noticeQueue = 4;
 }
 
 message GenesisProposer {

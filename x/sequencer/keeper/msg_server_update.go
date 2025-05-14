@@ -43,7 +43,7 @@ func (k msgServer) UpdateSequencerInformation(
 // If already chosen as proposer or successor, the change has no effect.
 func (k msgServer) UpdateOptInStatus(goCtx context.Context,
 	msg *types.MsgUpdateOptInStatus,
-) (*types.MsgUpdateOptInStatus, error) {
+) (*types.MsgUpdateOptInStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	seq, err := k.RealSequencer(ctx, msg.Creator)
 	if err != nil {
@@ -68,5 +68,5 @@ sequencers can only be proposer at most once`)
 			return nil, err
 		}
 	}
-	return &types.MsgUpdateOptInStatus{}, nil
+	return &types.MsgUpdateOptInStatusResponse{}, nil
 }

@@ -2,7 +2,6 @@ syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
 import "gogoproto/gogo.proto";
-import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 

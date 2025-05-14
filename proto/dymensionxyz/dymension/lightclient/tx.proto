@@ -37,4 +37,7 @@ message MsgSetCanonicalClient {
 
 message MsgSetCanonicalClientResponse {}
 
-message MsgUpdateClient { ibc.core.client.v1.MsgUpdateClient inner = 1; }
+message MsgUpdateClient {
+  option (cosmos.msg.v1.signer) = "inner";
+  ibc.core.client.v1.MsgUpdateClient inner = 1;
+}

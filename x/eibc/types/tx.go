@@ -185,9 +185,12 @@ func (m *MsgCreateOnDemandLP) ValidateBasic() error {
 	if m.Lp == nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty lp")
 	}
-	_, err := sdk.AccAddressFromBech32(m.Lp.FundsAddr)
+	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		return err
+	}
+	if m.Signer != m.Lp.FundsAddr {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "signer does not match lp address")
 	}
 	return m.Lp.Validate()
 }
