@@ -20,22 +20,3 @@ func (m *MsgCancelBuyOrder) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners returns the required signers for the MsgCancelBuyOrder.
-func (m *MsgCancelBuyOrder) GetSigners() []sdk.AccAddress {
-	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{buyer}
-}
-
-// Route returns the message router key for the MsgCancelBuyOrder.
-func (m *MsgCancelBuyOrder) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgCancelBuyOrder.
-func (m *MsgCancelBuyOrder) Type() string {
-	return TypeMsgCancelBuyOrder
-}

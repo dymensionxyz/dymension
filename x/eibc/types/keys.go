@@ -28,6 +28,9 @@ const (
 
 // Store Key Prefixes
 var (
+	// ParamsKey is the key for the module parameters
+	ParamsKey = []byte{0x02}
+
 	// AllDemandOrdersKeyPrefix is the prefix for all demand orders
 	AllDemandOrdersKeyPrefix = []byte{0x00}
 	// PendingDemandOrderKeyPrefix is the prefix for pending demand orders

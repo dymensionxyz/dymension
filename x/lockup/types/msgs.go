@@ -1,6 +1,8 @@
 package types
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -8,18 +10,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	TypeMsgLockTokens     = "lock_tokens"
-	TypeMsgBeginUnlocking = "begin_unlocking"
-	TypeMsgExtendLockup   = "edit_lockup"
-	TypeForceUnlock       = "force_unlock"
-)
-
 var (
 	_ sdk.Msg = &MsgLockTokens{}
 	_ sdk.Msg = &MsgBeginUnlocking{}
 	_ sdk.Msg = &MsgExtendLockup{}
 	_ sdk.Msg = &MsgForceUnlock{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // NewMsgLockTokens creates a message to lock tokens.
@@ -31,16 +27,6 @@ func NewMsgLockTokens(owner sdk.AccAddress, duration time.Duration, coins sdk.Co
 	}
 }
 
-func (m MsgLockTokens) Route() string { return RouterKey }
-func (m MsgLockTokens) Type() string  { return TypeMsgLockTokens }
-
-func (m MsgLockTokens) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
-}
-
-var _ sdk.Msg = &MsgBeginUnlocking{}
-
 // NewMsgBeginUnlocking creates a message to begin unlocking the tokens of a specific lock.
 func NewMsgBeginUnlocking(owner sdk.AccAddress, id uint64, coins sdk.Coins) *MsgBeginUnlocking {
 	return &MsgBeginUnlocking{
@@ -48,14 +34,6 @@ func NewMsgBeginUnlocking(owner sdk.AccAddress, id uint64, coins sdk.Coins) *Msg
 		ID:    id,
 		Coins: coins,
 	}
-}
-
-func (m MsgBeginUnlocking) Route() string { return RouterKey }
-func (m MsgBeginUnlocking) Type() string  { return TypeMsgBeginUnlocking }
-
-func (m MsgBeginUnlocking) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
 }
 
 // NewMsgExtendLockup creates a message to edit the properties of existing locks
@@ -67,15 +45,19 @@ func NewMsgExtendLockup(owner sdk.AccAddress, id uint64, duration time.Duration)
 	}
 }
 
-func (m MsgExtendLockup) Route() string { return RouterKey }
-func (m MsgExtendLockup) Type() string  { return TypeMsgExtendLockup }
-
-func (m MsgExtendLockup) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
+func (m MsgExtendLockup) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid owner address (%s)", err)
+	}
+	if m.ID == 0 {
+		return fmt.Errorf("id is empty")
+	}
+	if m.Duration <= 0 {
+		return fmt.Errorf("duration should be positive: %d < 0", m.Duration)
+	}
+	return nil
 }
-
-var _ sdk.Msg = &MsgForceUnlock{}
 
 // NewMsgForceUnlock creates a message to begin unlocking tokens.
 func NewMsgForceUnlock(owner sdk.AccAddress, id uint64, coins sdk.Coins) *MsgForceUnlock {
@@ -86,8 +68,6 @@ func NewMsgForceUnlock(owner sdk.AccAddress, id uint64, coins sdk.Coins) *MsgFor
 	}
 }
 
-func (m MsgForceUnlock) Route() string { return RouterKey }
-func (m MsgForceUnlock) Type() string  { return TypeForceUnlock }
 func (m MsgForceUnlock) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
@@ -104,7 +84,22 @@ func (m MsgForceUnlock) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgForceUnlock) GetSigners() []sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{owner}
+func (m MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidAddress,
+			errorsmod.Wrapf(err, "authority must be a valid bech32 address: %s", m.Authority),
+		)
+	}
+
+	err = m.Params.ValidateBasic()
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidRequest,
+			errorsmod.Wrapf(err, "failed to validate params"),
+		)
+	}
+
+	return nil
 }

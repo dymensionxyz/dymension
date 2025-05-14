@@ -46,22 +46,3 @@ func (m *MsgPlaceBuyOrder) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners returns the required signers for the MsgPlaceBuyOrder.
-func (m *MsgPlaceBuyOrder) GetSigners() []sdk.AccAddress {
-	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{buyer}
-}
-
-// Route returns the message router key for the MsgPlaceBuyOrder.
-func (m *MsgPlaceBuyOrder) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgPlaceBuyOrder.
-func (m *MsgPlaceBuyOrder) Type() string {
-	return TypeMsgPlaceBuyOrder
-}

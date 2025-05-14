@@ -79,11 +79,6 @@ func TestMsgBeginUnlocking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			if test.expectPass {
 				require.NoError(t, test.msg.ValidateBasic(), "test: %v", test.name)
-				require.Equal(t, test.msg.Route(), types.RouterKey)
-				require.Equal(t, test.msg.Type(), "begin_unlocking")
-				signers := test.msg.GetSigners()
-				require.Equal(t, len(signers), 1)
-				require.Equal(t, signers[0].String(), addr1)
 			} else {
 				require.Error(t, test.msg.ValidateBasic(), "test: %v", test.name)
 			}
@@ -139,11 +134,6 @@ func TestMsgExtendLockup(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			if test.expectPass {
 				require.NoError(t, test.msg.ValidateBasic(), "test: %v", test.name)
-				require.Equal(t, test.msg.Route(), types.RouterKey)
-				require.Equal(t, test.msg.Type(), "edit_lockup")
-				signers := test.msg.GetSigners()
-				require.Equal(t, len(signers), 1)
-				require.Equal(t, signers[0].String(), addr1)
 			} else {
 				require.Error(t, test.msg.ValidateBasic(), "test: %v", test.name)
 			}

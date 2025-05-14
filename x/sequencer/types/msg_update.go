@@ -11,11 +11,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-const (
-	TypeMsgUpdateSequencerInformation = "update_sequencer_information"
-	TypeMsgUpdateOptInStatus          = "update_opt_in_status"
-)
-
 var (
 	_ sdk.Msg                            = &MsgUpdateSequencerInformation{}
 	_ sdk.Msg                            = &MsgUpdateOptInStatus{}
@@ -30,22 +25,6 @@ func NewMsgUpdateSequencerInformation(creator string, metadata *SequencerMetadat
 		Creator:  creator,
 		Metadata: *metadata,
 	}, nil
-}
-
-func (msg *MsgUpdateSequencerInformation) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateSequencerInformation) Type() string {
-	return TypeMsgUpdateSequencerInformation
-}
-
-func (msg *MsgUpdateSequencerInformation) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgUpdateSequencerInformation) ValidateBasic() error {
@@ -80,25 +59,9 @@ func (m *MsgUpdateOptInStatus) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgUpdateOptInStatus) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(m.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
 func NewMsgUpdateOptInStatus(creator string, optIn bool) *MsgUpdateOptInStatus {
 	return &MsgUpdateOptInStatus{
 		Creator: creator,
 		OptedIn: optIn,
 	}
-}
-
-func (m *MsgUpdateOptInStatus) Route() string {
-	return RouterKey
-}
-
-func (m *MsgUpdateOptInStatus) Type() string {
-	return TypeMsgUpdateOptInStatus
 }

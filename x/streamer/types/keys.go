@@ -15,6 +15,9 @@ const (
 )
 
 var (
+	// KeyParams defines the primary module store key
+	KeyParams = []byte{0x00}
+
 	// KeyPrefixTimestamp defines prefix key for timestamp iterator key.
 	KeyPrefixTimestamp = []byte{0x01}
 
