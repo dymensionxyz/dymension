@@ -418,6 +418,9 @@ func EthRecipient(addr string) (string, error) {
 	ret := hyperutil.EncodeEthHex(bz)
 	ret = strings.TrimPrefix(ret, "0x")
 
+	// an address for eth which will be abi encoded, and then put parsed in the message
+	// the first 24 bytes are for module routing, which aren't needed here, as this is inside the warp payload
+	// https://github.com/dymensionxyz/hyperlane-cosmos/blob/bed4e0313aeddb8d2c59ab98d5e805955e88b300/util/hex_address.go#L29-L30
 	prefix := "0x000000000000000000000000" // TODO: explain
 	ret = prefix + ret
 

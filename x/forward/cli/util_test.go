@@ -1,10 +1,15 @@
 package cli
 
 import (
+	"math/big"
 	"testing"
 
 	math "cosmossdk.io/math"
+	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	"github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	"github.com/stretchr/testify/require"
@@ -30,4 +35,23 @@ func TestMakeForwardToIBCHyperlaneMessage(t *testing.T) {
 		),
 	)
 	require.NoError(t, err)
+}
+
+// does roundtrip to check we get what we expect in the end
+func TestEthRecipient(t *testing.T) {
+	privKey := secp256k1.GenPrivKey()
+	addr := sdk.AccAddress(privKey.PubKey().Address())
+	addrS := addr.String()
+
+	ans, err := EthRecipient(addrS)
+	require.NoError(t, err)
+
+	// mimic decodings
+	decoded, err := util.DecodeEthHex(ans)
+	require.NoError(t, err)
+	pl, err := types.NewWarpPayload(decoded, big.Int{}, nil)
+	require.NoError(t, err)
+	addrSAfter := pl.GetCosmosAccount().String()
+
+	require.Equal(t, addrSAfter, addrS)
 }
