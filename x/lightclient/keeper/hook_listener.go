@@ -51,6 +51,16 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		return errorsmod.Wrap(err, "validate optimistic update")
 	}
 
+	// check if we can update headers from the state info (if it's more recent than the latest consensus state)
+	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+	lastestH := cs.GetLatestHeight().GetRevisionHeight()
+	if lastestH < stateInfo.GetLatestHeight() {
+		err := hook.k.UpdateClientFromStateInfo(ctx, client, stateInfo)
+		if err != nil {
+			return errorsmod.Wrap(err, "update client from state info")
+		}
+	}
+
 	// we now verified everything up to and including stateInfo.GetLatestHeight()
 	// this removes the unbonding condition for the sequencers
 	if err := hook.k.PruneSignersBelow(ctx, client, stateInfo.GetLatestHeight()+1); err != nil {

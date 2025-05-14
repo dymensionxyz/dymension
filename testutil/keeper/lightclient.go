@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -39,12 +40,15 @@ var Alice = func() sequencertypes.Sequencer {
 	return ret
 }()
 
+var keys = storetypes.NewKVStoreKeys(types.StoreKey, "client")
+
 func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	keys := storetypes.NewKVStoreKeys(types.StoreKey)
 	logger := log.NewNopLogger()
 
 	stateStore := integration.CreateMultiStore(keys, logger)
 	params := params.MakeEncodingConfig()
+	ibcclienttypes.RegisterInterfaces(params.InterfaceRegistry)
+	ibctm.RegisterInterfaces(params.InterfaceRegistry)
 
 	seqs := map[string]*sequencertypes.Sequencer{
 		Alice.Address: &Alice,
@@ -63,6 +67,14 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		time.Hour*24*7*2, time.Hour*24*7*3, time.Minute*10,
 		ibcclienttypes.MustParseHeight("1-2"), commitmenttypes.GetSDKSpecs(), []string{},
 	)
+
+	// set client state to the store
+	{
+		key := host.ClientStateKey()
+		val := ibcclienttypes.MustMarshalClientState(params.Codec, cs)
+		stateStore.GetKVStore(keys["client"]).Set(key, val)
+	}
+
 	genesisClients := map[string]exported.ClientState{
 		CanonClientID: cs,
 	}
@@ -98,7 +110,7 @@ func (m *MockIBCCLientKeeper) IterateConsensusStates(ctx sdk.Context, cb func(cl
 
 // ClientStore implements types.IBCClientKeeperExpected.
 func (m *MockIBCCLientKeeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
-	panic("unimplemented")
+	return ctx.KVStore(keys["client"])
 }
 
 func NewMockIBCClientKeeper(
@@ -153,11 +165,10 @@ func (m *MockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr crypto
 
 func (m *MockSequencerKeeper) RealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
 	seq, ok := m.sequencers[addr]
-	var err error
 	if !ok {
-		err = gerrc.ErrNotFound
+		return sequencertypes.Sequencer{}, gerrc.ErrNotFound
 	}
-	return *seq, err
+	return *seq, nil
 }
 
 func (m *MockSequencerKeeper) RollappSequencers(ctx sdk.Context, rollappId string) (list []sequencertypes.Sequencer) {
