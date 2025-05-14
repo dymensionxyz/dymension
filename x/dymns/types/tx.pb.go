@@ -1628,9 +1628,11 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
-// MsgMigrateChainIds defines a message for replacing chain-id in module params and configurations
+// MsgMigrateChainIds defines a message for replacing chain-id in module params
+// and configurations
 type MsgMigrateChainIds struct {
-	// authority is the address that controls the module (defaults to x/gov unless overwritten)
+	// authority is the address that controls the module (defaults to x/gov unless
+	// overwritten)
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// replacements is set of chain-id replacements
 	Replacement []MigrateChainId `protobuf:"bytes,2,rep,name=replacement,proto3" json:"replacement"`
@@ -1683,7 +1685,8 @@ func (m *MsgMigrateChainIds) GetReplacement() []MigrateChainId {
 	return nil
 }
 
-// MsgMigrateChainIdsResponse defines the response structure for executing a MsgMigrateChainIds message
+// MsgMigrateChainIdsResponse defines the response structure for executing a
+// MsgMigrateChainIds message
 type MsgMigrateChainIdsResponse struct {
 }
 
@@ -1720,9 +1723,11 @@ func (m *MsgMigrateChainIdsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMigrateChainIdsResponse proto.InternalMessageInfo
 
-// MsgUpdateAliases defines a message for updating the aliases associated with chain-ids
+// MsgUpdateAliases defines a message for updating the aliases associated with
+// chain-ids
 type MsgUpdateAliases struct {
-	// authority is the address that controls the module (defaults to x/gov unless overwritten)
+	// authority is the address that controls the module (defaults to x/gov unless
+	// overwritten)
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// add is set of aliases to be mapped to chain-ids
 	Add []UpdateAlias `protobuf:"bytes,2,rep,name=add,proto3" json:"add"`
@@ -1784,7 +1789,8 @@ func (m *MsgUpdateAliases) GetRemove() []UpdateAlias {
 	return nil
 }
 
-// MsgUpdateAliasesResponse defines the response structure for executing a MsgUpdateAliases message
+// MsgUpdateAliasesResponse defines the response structure for executing a
+// MsgUpdateAliases message
 type MsgUpdateAliasesResponse struct {
 }
 
@@ -2138,9 +2144,11 @@ type MsgClient interface {
 	AcceptBuyOrder(ctx context.Context, in *MsgAcceptBuyOrder, opts ...grpc.CallOption) (*MsgAcceptBuyOrderResponse, error)
 	// UpdateParams is used for updating module params.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
-	// MigrateChainIds defines a method for replacing chain-id in module params and configurations
+	// MigrateChainIds defines a method for replacing chain-id in module params
+	// and configurations
 	MigrateChainIds(ctx context.Context, in *MsgMigrateChainIds, opts ...grpc.CallOption) (*MsgMigrateChainIdsResponse, error)
-	// UpdateAliases defines a method for updating the aliases associated with chain-ids
+	// UpdateAliases defines a method for updating the aliases associated with
+	// chain-ids
 	UpdateAliases(ctx context.Context, in *MsgUpdateAliases, opts ...grpc.CallOption) (*MsgUpdateAliasesResponse, error)
 }
 
@@ -2349,9 +2357,11 @@ type MsgServer interface {
 	AcceptBuyOrder(context.Context, *MsgAcceptBuyOrder) (*MsgAcceptBuyOrderResponse, error)
 	// UpdateParams is used for updating module params.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
-	// MigrateChainIds defines a method for replacing chain-id in module params and configurations
+	// MigrateChainIds defines a method for replacing chain-id in module params
+	// and configurations
 	MigrateChainIds(context.Context, *MsgMigrateChainIds) (*MsgMigrateChainIdsResponse, error)
-	// UpdateAliases defines a method for updating the aliases associated with chain-ids
+	// UpdateAliases defines a method for updating the aliases associated with
+	// chain-ids
 	UpdateAliases(context.Context, *MsgUpdateAliases) (*MsgUpdateAliasesResponse, error)
 }
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	circuittypes "cosmossdk.io/x/circuit/types"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -114,6 +115,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	evidencetypes.StoreKey,
 	ibctransfertypes.StoreKey,
 	capabilitytypes.StoreKey,
+	circuittypes.StoreKey,
 	crisistypes.StoreKey,
 	consensusparamtypes.StoreKey,
 	irotypes.StoreKey,

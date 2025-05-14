@@ -2,6 +2,7 @@ package v5
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	circuittypes "cosmossdk.io/x/circuit/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 )
@@ -13,5 +14,9 @@ const (
 var Upgrade = upgrades.Upgrade{
 	Name:          UpgradeName,
 	CreateHandler: CreateUpgradeHandler,
-	StoreUpgrades: storetypes.StoreUpgrades{},
+	StoreUpgrades: storetypes.StoreUpgrades{
+		Added: []string{
+			circuittypes.ModuleName,
+		},
+	},
 }
