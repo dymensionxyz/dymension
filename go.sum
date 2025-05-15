@@ -368,8 +368,6 @@ github.com/cockroachdb/redact v1.1.5/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZ
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 h1:zuQyyAKVxetITBuuhv3BI9cMrmStnpT18zmgmTxunpo=
 github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
-github.com/cometbft/cometbft v0.38.15 h1:5veFd8k1uXM27PBg9sMO3hAfRJ3vbh4OmmLf6cVrqXg=
-github.com/cometbft/cometbft v0.38.15/go.mod h1:+wh6ap6xctVG+JOHwbl8pPKZ0GeqdPYqISu7F4b43cQ=
 github.com/cometbft/cometbft-db v0.14.1 h1:SxoamPghqICBAIcGpleHbmoPqy+crij/++eZz3DlerQ=
 github.com/cometbft/cometbft-db v0.14.1/go.mod h1:KHP1YghilyGV/xjD5DP3+2hyigWx0WTp9X+0Gnx0RxQ=
 github.com/containerd/continuity v0.3.0 h1:nisirsYROK15TAMVukJOUyGJjz4BNQJBVsNvAXZJ/eg=
@@ -384,8 +382,6 @@ github.com/cosmos/cosmos-db v1.1.1 h1:FezFSU37AlBC8S98NlSagL76oqBRWq/prTPvFcEJNC
 github.com/cosmos/cosmos-db v1.1.1/go.mod h1:AghjcIPqdhSLP/2Z0yha5xPH3nLnskz81pBx3tcVSAw=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
-github.com/cosmos/cosmos-sdk v0.50.13 h1:xQ32hhzVy7agEe7behMdZN0ezWhPss3KoLZsF9KoBnw=
-github.com/cosmos/cosmos-sdk v0.50.13/go.mod h1:hrWEFMU1eoXqLJeE6VVESpJDQH67FS1nnMrQIjO2daw=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
 github.com/cosmos/go-bip39 v1.0.0/go.mod h1:RNJv0H/pOIVgxw6KS7QeX2a0Uo0aKUlfhZ4xuwvCdJw=
 github.com/cosmos/gogogateway v1.2.0 h1:Ae/OivNhp8DqBi/sh2A8a1D0y638GpL3tkmLQAiKxTE=
@@ -455,8 +451,12 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a h1:w7gKQi5DvTXhsCWSA7TDAPPaCitWj+goiMl2bUvYErc=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a/go.mod h1:7Olvfv96cvfqhwMm/4fIWgQDQaUqbfcUtrp5fgRQU1U=
+github.com/dymensionxyz/cometbft v0.38.6-0.20250514160822-ef32bdee75e3 h1:f9uzAPLFUMn2Aq+/c04/B48eNxeW0U7lJTOS3y1vDxE=
+github.com/dymensionxyz/cometbft v0.38.6-0.20250514160822-ef32bdee75e3/go.mod h1:+wh6ap6xctVG+JOHwbl8pPKZ0GeqdPYqISu7F4b43cQ=
+github.com/dymensionxyz/cosmos-sdk v0.50.4-0.20250514145635-a984105bd68a h1:MIoc9Bx0p5K8KwndT1yuP9Iax/8N25GHkfgDnMFUa1M=
+github.com/dymensionxyz/cosmos-sdk v0.50.4-0.20250514145635-a984105bd68a/go.mod h1:hrWEFMU1eoXqLJeE6VVESpJDQH67FS1nnMrQIjO2daw=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515142040-6fd85f648706 h1:CgyWDhJs6Ec+Ub2WVX3TeaKmQf5ywNfRdKqaTIEyfRY=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515142040-6fd85f648706/go.mod h1:eA60HVW0vtGMLV3Xp3FHLw7/d2w8MTtBv1YyGmlyulg=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2 h1:/hXBQnPaH7gNvT37/br73OyaF55iq5TK8fcsvYcGcNg=
