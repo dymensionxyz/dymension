@@ -246,7 +246,9 @@ require (
 
 replace (
 	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.38.6-0.20250514160822-ef32bdee75e3
+	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.50.4-0.20250514145635-a984105bd68a
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a // TODO: use fake crypto ver
+
 	// TODO: use fake crypto sdk ver
 
 	// use dymension forks
