@@ -38,7 +38,7 @@ func (s *eibcForwardSuite) SetupTest() {
 type mockTransferCompletionHook struct {
 	called   bool
 	checkBal bool
-	s        *utilSuite
+	s        *ibcTestingSuite
 }
 
 func (h *mockTransferCompletionHook) ValidateArg(hookData []byte) error {
@@ -62,9 +62,9 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
 	h := mockTransferCompletionHook{
-		s: &s.eibcSuite.utilSuite,
+		s: &s.eibcSuite.ibcTestingSuite,
 	}
-	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
+	s.ibcTestingSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
 		},
@@ -145,7 +145,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	rolH = uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, rolH)
 	s.Require().NoError(err)
-	evts := s.finalizePacketsByAddr(ibcRecipient.String())
+	evts := s.finalizeRollappPacketsByAddress(ibcRecipient.String())
 
 	_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
 	s.Require().NoError(err)
@@ -190,7 +190,7 @@ func parseFwdErrFromEvents(events []comettypes.Event) (bool, error) {
 }
 
 type osmosisForwardSuite struct {
-	utilSuite
+	ibcTestingSuite
 	path *ibctesting.Path
 }
 
@@ -212,9 +212,9 @@ func (s *osmosisForwardSuite) TestForward() {
 
 	dummy := "dummy"
 	h := mockTransferCompletionHook{
-		s: &s.utilSuite,
+		s: &s.ibcTestingSuite,
 	}
-	s.utilSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
+	s.ibcTestingSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
 		},
@@ -256,7 +256,7 @@ func (s *osmosisForwardSuite) TestForward() {
 }
 
 func (s *osmosisForwardSuite) SetupTest() {
-	s.utilSuite.SetupTest()
+	s.ibcTestingSuite.SetupTest()
 	s.hubApp().LightClientKeeper.SetEnabled(false)
 
 	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{

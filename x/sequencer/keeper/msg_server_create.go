@@ -99,7 +99,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	proposer := k.GetProposer(ctx, msg.RollappId)
 	if proposer.Sentinel() {
-		if err := k.RecoverFromSentinel(ctx, msg.RollappId); err != nil {
+		if err := k.ChooseProposerAfterSentinel(ctx, msg.RollappId); err != nil {
 			return nil, err
 		}
 	}

@@ -45,12 +45,7 @@ func DefaultParams() Params {
 	return NewParams(DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultDishonorStateUpdate, DefaultDishonorLiveness, DefaultDishonorKickThreshold)
 }
 
-func validateTime(i interface{}) error {
-	v, ok := i.(time.Duration)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
+func validateTime(v time.Duration) error {
 	if v <= 0 {
 		return fmt.Errorf("time must be positive: %d", v)
 	}
@@ -58,8 +53,8 @@ func validateTime(i interface{}) error {
 	return nil
 }
 
-func validateLivenessSlashMultiplier(i interface{}) error {
-	return uparam.ValidateZeroToOneDec(i)
+func validateLivenessSlashMultiplier(v math.LegacyDec) error {
+	return uparam.ValidateZeroToOneDec(v)
 }
 
 // ValidateBasic validates the set of params

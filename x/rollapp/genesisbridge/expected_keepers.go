@@ -13,10 +13,12 @@ type RollappKeeper interface {
 	RollappKeeperMinimal
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 	GetHooks() rollapptypes.MultiRollappHooks
+	GetLatestHeight(ctx sdk.Context, rollappId string) (uint64, bool)
 }
 
 type RollappKeeperMinimal interface {
-	GetRollappByPortChan(ctx sdk.Context, raPortOnHub, raChanOnHub string) (*rollapptypes.Rollapp, error)
+	GetRollappByPortChan(ctx sdk.Context, portID, channelID string) (*rollapptypes.Rollapp, error)
+	IsCanonicalChannel(ctx sdk.Context, rollappId, portID, channelID string) bool
 }
 
 type DenomMetadataKeeper interface {

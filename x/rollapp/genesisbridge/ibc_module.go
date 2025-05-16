@@ -77,7 +77,6 @@ func (w IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	// Get rollapp from the packet
-	// we don't use the commonly used GetValidTransfer because we have custom type for genesis bridge
 	ra, err := w.rollappKeeper.GetRollappByPortChan(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if errorsmod.IsOf(err, types.ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
@@ -110,7 +109,7 @@ func (w IBCModule) OnRecvPacket(
 	var raDenomOnHUb string
 	if genesisBridgeData.GenesisInfo.NativeDenom.IsSet() {
 		// if the rollapp has a native denom, we register the denom's metadata with the IBC denom
-		trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, ra.ChannelId)
+		trace, denom, err := genesisBridgeData.IBCDenom(ra.RollappId, packet.GetDestChannel())
 		if err != nil {
 			return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "genesis bridge data: to IBC denom"))
 		}
@@ -128,6 +127,17 @@ func (w IBCModule) OnRecvPacket(
 		}
 	}
 
+	// validate the proof height is already committed
+	proofHeight, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	if err != nil {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unpack packet proof height"))
+	}
+
+	latestHeight, _ := w.rollappKeeper.GetLatestHeight(ctx, ra.RollappId)
+	if proofHeight > latestHeight {
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "height not committed"))
+	}
+
 	// open the bridge!
 	err = w.EnableTransfers(ctx, packet, ra, raDenomOnHUb)
 	if err != nil {
@@ -138,6 +148,7 @@ func (w IBCModule) OnRecvPacket(
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, ra.RollappId),
 		sdk.NewAttribute(types.AttributeRollappIBCdenom, raDenomOnHUb),
+		sdk.NewAttribute(types.AttributeKeyCanonicalChannelId, ra.ChannelId), // set on EnableTransfers
 	))
 
 	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}) // core ibc writes it
@@ -150,12 +161,15 @@ func (w IBCModule) OnRecvPacket(
 // rollappIBCtrace can be empty for non-token rollapps
 // rollappIBC trace like 'ibc/19208310923..' otherwise
 func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
+	// set the transfer proof height
 	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		return errorsmod.Wrap(err, "unpack packet proof height")
 	}
-
 	ra.GenesisState.TransferProofHeight = height
+
+	// set the canonical channel
+	ra.ChannelId = packet.GetDestChannel()
 	w.rollappKeeper.SetRollapp(ctx, *ra)
 
 	// currently, used for IRO settlement

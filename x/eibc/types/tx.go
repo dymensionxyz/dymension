@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -15,9 +16,13 @@ import (
 )
 
 var (
+	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgFulfillOrder{}
 	_ sdk.Msg = &MsgFulfillOrderAuthorized{}
 	_ sdk.Msg = &MsgUpdateDemandOrder{}
+	_ sdk.Msg = &MsgTryFulfillOnDemand{}
+	_ sdk.Msg = &MsgCreateOnDemandLP{}
+	_ sdk.Msg = &MsgDeleteOnDemandLP{}
 )
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {
@@ -26,22 +31,6 @@ func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfi
 		OrderId:          orderId,
 		ExpectedFee:      expectedFee,
 	}
-}
-
-func (msg *MsgFulfillOrder) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgFulfillOrder) Type() string {
-	return sdk.MsgTypeURL(msg)
-}
-
-func (msg *MsgFulfillOrder) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.FulfillerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgFulfillOrder) ValidateBasic() error {
@@ -78,22 +67,6 @@ func NewMsgFulfillOrderAuthorized(
 		OperatorFeeShare:    fulfillerFeePart,
 		SettlementValidated: settlementValidated,
 	}
-}
-
-func (msg *MsgFulfillOrderAuthorized) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgFulfillOrderAuthorized) Type() string {
-	return sdk.MsgTypeURL(msg)
-}
-
-func (msg *MsgFulfillOrderAuthorized) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.LpAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
 
 func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
@@ -140,14 +113,6 @@ func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemand
 	}
 }
 
-func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(m.OwnerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
 func (m *MsgUpdateDemandOrder) ValidateBasic() error {
 	err := validateCommon(m.OrderId, m.NewFee, m.OwnerAddress)
 	if err != nil {
@@ -159,14 +124,6 @@ func (m *MsgUpdateDemandOrder) ValidateBasic() error {
 
 func (m *MsgUpdateDemandOrder) GetSignerAddr() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.OwnerAddress)
-}
-
-func (m *MsgUpdateDemandOrder) Route() string {
-	return RouterKey
-}
-
-func (m *MsgUpdateDemandOrder) Type() string {
-	return sdk.MsgTypeURL(m)
 }
 
 func isValidOrderId(orderId string) bool {
@@ -213,14 +170,6 @@ func validateRollappID(rollappID string) error {
 
 /////////////////////
 
-func (m *MsgTryFulfillOnDemand) GetSigners() []sdk.AccAddress {
-	x, err := sdk.AccAddressFromBech32(m.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{x}
-}
-
 func (m *MsgTryFulfillOnDemand) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
@@ -230,14 +179,6 @@ func (m *MsgTryFulfillOnDemand) ValidateBasic() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty order id")
 	}
 	return nil
-}
-
-func (m *MsgCreateOnDemandLP) GetSigners() []sdk.AccAddress {
-	a, err := sdk.AccAddressFromBech32(m.Lp.FundsAddr)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{a}
 }
 
 func (m *MsgCreateOnDemandLP) ValidateBasic() error {
@@ -259,14 +200,6 @@ func (m *MsgCreateOnDemandLP) MustAcc() sdk.AccAddress {
 	return a
 }
 
-func (m *MsgDeleteOnDemandLP) GetSigners() []sdk.AccAddress {
-	a, err := sdk.AccAddressFromBech32(m.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{a}
-}
-
 func (m *MsgDeleteOnDemandLP) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Signer)
 	return err
@@ -278,4 +211,24 @@ func (m *MsgDeleteOnDemandLP) MustAcc() sdk.AccAddress {
 		panic(err)
 	}
 	return a
+}
+
+func (m MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Authority)
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidAddress,
+			errorsmod.Wrapf(err, "authority must be a valid bech32 address: %s", m.Authority),
+		)
+	}
+
+	err = m.NewParams.ValidateBasic()
+	if err != nil {
+		return errors.Join(
+			sdkerrors.ErrInvalidRequest,
+			errorsmod.Wrapf(err, "failed to validate params"),
+		)
+	}
+
+	return nil
 }

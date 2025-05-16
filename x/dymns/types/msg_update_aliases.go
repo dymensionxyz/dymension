@@ -7,13 +7,15 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-// ValidateBasic performs basic validation for the UpdateAliasesProposal.
-func (m *UpdateAliasesProposal) ValidateBasic() error {
+var _ sdk.Msg = &MsgUpdateAliases{}
+
+// ValidateBasic performs basic validation for the MsgUpdateAliases.
+func (m *MsgUpdateAliases) ValidateBasic() error {
 	if len(m.Add) == 0 && len(m.Remove) == 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "update list can not be empty")
 	}
@@ -33,7 +35,7 @@ func (m *UpdateAliasesProposal) ValidateBasic() error {
 		uniquePairs[pairId] = true
 	}
 
-	return v1beta1.ValidateAbstract(m)
+	return nil
 }
 
 // ValidateBasic performs basic validation for the UpdateAlias operation.

@@ -42,7 +42,7 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 
 	// this will choose kicker as next proposer, since he is the only opted in and bonded
 	// sequencer remaining.
-	if err := k.RecoverFromSentinel(ctx, ra); err != nil {
+	if err := k.ChooseProposerAfterSentinel(ctx, ra); err != nil {
 		return errorsmod.Wrap(err, "choose proposer")
 	}
 

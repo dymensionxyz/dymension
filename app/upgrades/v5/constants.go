@@ -2,6 +2,7 @@ package v5
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	circuittypes "cosmossdk.io/x/circuit/types"
 
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
@@ -19,6 +20,7 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			hypercoretypes.ModuleName,
 			hyperwarptypes.ModuleName,
+			circuittypes.ModuleName,
 		},
 	},
 }

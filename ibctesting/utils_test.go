@@ -22,8 +22,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
-	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
-	lightclienttypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -55,8 +53,8 @@ func convertToApp(chain *ibctesting.TestChain) *app.App {
 	return a
 }
 
-// utilSuite is a testing suite to test keeper functions.
-type utilSuite struct {
+// ibcTestingSuite is a testing suite to test IBC middlewares and functions.
+type ibcTestingSuite struct {
 	suite.Suite
 	coordinator *ibctesting.Coordinator
 }
@@ -73,59 +71,55 @@ func rollappChainID() string {
 	return ibctesting.GetChainID(3)
 }
 
-func (s *utilSuite) hubChain() *ibctesting.TestChain {
+func (s *ibcTestingSuite) hubChain() *ibctesting.TestChain {
 	return s.coordinator.GetChain(hubChainID())
 }
 
-func (s *utilSuite) cosmosChain() *ibctesting.TestChain {
+func (s *ibcTestingSuite) cosmosChain() *ibctesting.TestChain {
 	return s.coordinator.GetChain(cosmosChainID())
 }
 
-func (s *utilSuite) rollappChain() *ibctesting.TestChain {
+func (s *ibcTestingSuite) rollappChain() *ibctesting.TestChain {
 	return s.coordinator.GetChain(rollappChainID())
 }
 
-func (s *utilSuite) hubApp() *app.App {
+func (s *ibcTestingSuite) hubApp() *app.App {
 	return convertToApp(s.hubChain())
 }
 
-func (s *utilSuite) rollappApp() *app.App {
+func (s *ibcTestingSuite) rollappApp() *app.App {
 	return convertToApp(s.rollappChain())
 }
 
-func (s *utilSuite) hubCtx() sdk.Context {
+func (s *ibcTestingSuite) hubCtx() sdk.Context {
 	return s.hubChain().GetContext()
 }
 
-func (s *utilSuite) cosmosCtx() sdk.Context {
+func (s *ibcTestingSuite) cosmosCtx() sdk.Context {
 	return s.cosmosChain().GetContext()
 }
 
-func (s *utilSuite) rollappCtx() sdk.Context {
+func (s *ibcTestingSuite) rollappCtx() sdk.Context {
 	return s.rollappChain().GetContext()
 }
 
-func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
+func (s *ibcTestingSuite) rollappMsgServer() rollapptypes.MsgServer {
 	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
 }
 
-func (s *utilSuite) lightclientMsgServer() lightclienttypes.MsgServer {
-	return lightclientkeeper.NewMsgServerImpl(&s.hubApp().LightClientKeeper)
-}
-
 // SetupTest creates a coordinator with 2 test chains.
-func (s *utilSuite) SetupTest() {
+func (s *ibcTestingSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
 // that is, they have finished all genesis transfers and their bridge is enabled.
-func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) {
+func (s *ibcTestingSuite) createRollappWithFinishedGenesis(canonicalChannelID string) {
 	s.createRollapp(true, &canonicalChannelID)
 }
 
-func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
+func (s *ibcTestingSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
@@ -177,25 +171,13 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
 }
 
-// method to update the rollapp genesis info
-func (s *transferGenesisSuite) addGenesisAccounts(genesisAccounts []rollapptypes.GenesisAccount) {
-	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	s.Require().False(rollapp.GenesisInfo.Sealed)
-
-	if rollapp.GenesisInfo.GenesisAccounts == nil {
-		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{}
-	}
-	rollapp.GenesisInfo.GenesisAccounts.Accounts = append(rollapp.GenesisInfo.Accounts(), genesisAccounts...)
-	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)
-}
-
 // necessary for tests which do not execute the entire light client flow, and just need to make transfers work
 // (all tests except the light client tests themselves)
-func (s *utilSuite) setRollappLightClientID(chainID, clientID string) {
+func (s *ibcTestingSuite) setRollappLightClientID(chainID, clientID string) {
 	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), chainID, clientID)
 }
 
-func (s *utilSuite) registerSequencer() {
+func (s *ibcTestingSuite) registerSequencer() {
 	bond := rollapptypes.DefaultMinSequencerBondGlobalCoin
 	// fund account
 	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
@@ -222,7 +204,9 @@ func (s *utilSuite) registerSequencer() {
 	s.Require().NoError(err) // message committed
 }
 
-func (s *utilSuite) updateRollappState(endHeight uint64) {
+// this method sets "dummy" block descriptors for the rollapp
+// make sure to setup s.hubApp().LightClientKeeper.SetEnabled(false) before calling this method
+func (s *ibcTestingSuite) updateRollappState(endHeight uint64) {
 	// Get the start index and start height based on the latest state info
 	rollappKeeper := s.hubApp().RollappKeeper
 	revision := rollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).Revisions[0].Number
@@ -260,7 +244,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 }
 
 // NOTE: does not use process the queue, it uses intrusive method which breaks invariants
-func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
+func (s *ibcTestingSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := s.hubApp().RollappKeeper
 	ctx := s.hubCtx()
 
@@ -284,7 +268,7 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	return ctx.EventManager().Events(), err
 }
 
-func (s *utilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+func (s *ibcTestingSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
@@ -295,7 +279,7 @@ func (s *utilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibcte
 	return path
 }
 
-func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
+func (s *ibcTestingSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
 	var data transfertypes.FungibleTokenPacketData
 	err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	s.Require().NoError(err)
@@ -303,7 +287,7 @@ func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet
 	return denomutils.GetIncomingTransferDenom(packet, data)
 }
 
-func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
+func (s *ibcTestingSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
 	senderAccs := []ibctesting.SenderAccount{}
@@ -378,8 +362,7 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	return chain
 }
 
-// finalize everything for a given recipient address
-func (s *utilSuite) finalizePacketsByAddr(address string) sdk.Events {
+func (s *ibcTestingSuite) finalizeRollappPacketsByAddress(address string) sdk.Events {
 	s.T().Helper()
 	// Query all pending packets by address
 	querier := delayedackkeeper.NewQuerier(s.hubApp().DelayedAckKeeper)

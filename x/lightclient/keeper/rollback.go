@@ -20,7 +20,7 @@ func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, lastValidH
 func (k Keeper) RollbackCanonicalClient(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {
 	client, found := k.GetCanonicalClient(ctx, rollappId)
 	if !found {
-		return gerrc.ErrFailedPrecondition.Wrap("canonical client not found")
+		return nil
 	}
 	cs := k.ibcClientKeeper.ClientStore(ctx, client)
 

@@ -97,18 +97,33 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 // The canonical client criteria are:
 // 1. The client must be a tendermint client.
 // 2. The client state must match the expected client params as configured by the module
-// 3. All the existing consensus states much match the corresponding height rollapp block descriptors
+// 3. ClientID must not have any connections
+// 4. All the existing consensus states much match the corresponding height rollapp block descriptors
 func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string) error {
 	expClient := k.expectedClient()
 	if err := types.IsCanonicalClientParamsValid(cs, &expClient); err != nil {
 		return errors.Join(err, ErrParamsMismatch)
 	}
 
+	// Check if the clientID has any connections
+	_, found := k.ibcConnectionK.GetClientConnectionPaths(ctx, clientID)
+	if found {
+		return gerrc.ErrFailedPrecondition.Wrap("client already has connections")
+	}
+
+	// validate latest height is already committed
+	latestCommittedHeight, ok := k.rollappKeeper.GetLatestHeight(ctx, rollappId)
+	if !ok {
+		return gerrc.ErrNotFound.Wrap("latest height")
+	}
+	if latestCommittedHeight < cs.GetLatestHeight().GetRevisionHeight() {
+		return gerrc.ErrInvalidArgument.Wrap("clients latest height not committed")
+	}
+
 	sinfo, ok := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollappId)
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("latest state info index")
 	}
-
 	baseHeight := k.GetFirstConsensusStateHeight(ctx, clientID)
 	atLeastOneMatch := false
 	for i := sinfo.Index; i > 0; i-- {

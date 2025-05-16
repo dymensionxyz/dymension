@@ -69,23 +69,23 @@ func SimulateMsgVote(
 
 		delegation := dymsimtypes.RandomDelegation(ctx, r, sk)
 		if delegation == nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "No delegation available"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgVote{}), "No delegation available"), nil, nil
 		}
 
 		delAcc := sdk.MustAccAddressFromBech32(delegation.GetDelegatorAddr())
 		b, err := k.GetValidatorBreakdown(ctx, delAcc)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "Failed to get validator breakdown"), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgVote{}), "Failed to get validator breakdown"), nil, err
 		}
 
 		if b.TotalPower.LT(params.MinVotingPower) {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "Address does not have enough staking power to vote"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgVote{}), "Address does not have enough staking power to vote"), nil, nil
 		}
 
 		// Get a random subset of gauges
 		selectedGauges := dymsimtypes.RandomGaugeSubset(ctx, r, ik)
 		if len(selectedGauges) == 0 {
-			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgVote, "No gauges available"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(&types.MsgVote{}), "No gauges available"), nil, nil
 		}
 
 		// Generate random weights for the selected gauges.
@@ -128,7 +128,7 @@ func SimulateMsgVote(
 		}
 		// If simaccount.PrivKey == nil, delegation address does not exist in accs. However, since smart contracts and module accounts can stake, we can ignore the error.
 		if simAccount.PrivKey == nil {
-			return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "Voter account private key is nil"), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, sdk.MsgTypeURL(msg), "Voter account private key is nil"), nil, nil
 		}
 
 		txCtx := simulation.OperationInput{

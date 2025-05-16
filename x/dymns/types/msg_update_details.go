@@ -32,22 +32,3 @@ func (m *MsgUpdateDetails) ValidateBasic() error {
 
 	return nil
 }
-
-// GetSigners returns the required signers for the MsgUpdateDetails.
-func (m *MsgUpdateDetails) GetSigners() []sdk.AccAddress {
-	controller, err := sdk.AccAddressFromBech32(m.Controller)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{controller}
-}
-
-// Route returns the message router key for the MsgUpdateDetails.
-func (m *MsgUpdateDetails) Route() string {
-	return RouterKey
-}
-
-// Type returns the message type for the MsgUpdateDetails.
-func (m *MsgUpdateDetails) Type() string {
-	return TypeMsgUpdateDetails
-}

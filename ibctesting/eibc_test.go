@@ -28,7 +28,7 @@ import (
 )
 
 type eibcSuite struct {
-	utilSuite
+	ibcTestingSuite
 	path *ibctesting.Path
 }
 
@@ -53,7 +53,7 @@ func TestEIBCTestSuite(t *testing.T) {
 }
 
 func (s *eibcSuite) SetupTest() {
-	s.utilSuite.SetupTest()
+	s.ibcTestingSuite.SetupTest()
 	s.hubApp().LightClientKeeper.SetEnabled(false)
 
 	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{
@@ -261,7 +261,7 @@ func (s *fulfillmentHelper) fundFulfiller(fulfiller sdk.AccAddress, bal string, 
 	rolH := uint64(s.rollappCtx().BlockHeight())
 	_, err := s.finalizeRollappState(s.rollappStateIx, rolH)
 	s.Require().NoError(err)
-	s.finalizePacketsByAddr(fulfiller.String())
+	s.finalizeRollappPacketsByAddress(fulfiller.String())
 
 	// check it worked (balance + demand order)
 	pass := false
@@ -375,7 +375,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			rolH = uint64(s.rollappCtx().BlockHeight())
 			_, err = s.finalizeRollappState(h.rollappStateIx, rolH)
 			s.Require().NoError(err)
-			evts := s.finalizePacketsByAddr(fulfiller.String())
+			evts := s.finalizeRollappPacketsByAddress(fulfiller.String())
 
 			ack, err := ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
 			s.Require().NoError(err)
@@ -535,7 +535,7 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 			s.Require().NoError(err)
 			// manually finalize packets through x/delayedack
-			s.finalizePacketsByAddr(fulfillerAccount.String())
+			s.finalizeRollappPacketsByAddress(fulfillerAccount.String())
 			// Funds are passed to the fulfiller
 			fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(s.hubCtx(), fulfillerAccount, sdk.DefaultBondDenom)
 			s.Require().True(fulfillerAccountBalanceAfterTimeout.IsEqual(fulfillerInitialBalance.Add(lastDemandOrder.Fee[0])))

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -23,12 +24,17 @@ func getFee(r *rand.Rand) math.Int {
 // RandomizedGenState generates a random GenesisState for x/incentives.
 func RandomizedGenState(simState *module.SimulationState) {
 	genesis := types.GenesisState{
-		Params: types.Params{
-			DistrEpochIdentifier: "day",
-			CreateGaugeBaseFee:   getFee(simState.Rand),
-			AddToGaugeBaseFee:    getFee(simState.Rand),
-			AddDenomFee:          getFee(simState.Rand),
-		},
+		Params: types.NewParams(
+			"day",
+			getFee(simState.Rand),
+			getFee(simState.Rand),
+			getFee(simState.Rand),
+			sdk.Coin{
+				Denom:  "stake",
+				Amount: getFee(simState.Rand),
+			},
+			types.DefaultRollappGaugesMode,
+		),
 		LockableDurations: []time.Duration{
 			time.Second,
 			time.Hour,

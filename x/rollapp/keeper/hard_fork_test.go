@@ -27,9 +27,9 @@ func (s *RollappTestSuite) TestHardFork() {
 		{"Fraud in middle of batch", numOfStates, numOfFinalizedStates, 107, false},
 		{"Fraud at end of batch", numOfStates, numOfFinalizedStates, 200, false},
 		{"Fraud at future height", 10, 1, 300, false},
+		{"first batch not committed yet", 0, 0, 1, false},
 
 		// error flows
-		{"first batch not committed yet", 0, 0, 10, true},
 		{"first block of the first batch", 1, 0, 1, true},
 		{"height already finalized", numOfStates, numOfFinalizedStates, 20, true},
 	}
@@ -61,10 +61,6 @@ func (s *RollappTestSuite) TestHardFork() {
 				_ = s.CreateDefaultSequencer(s.Ctx, rollappId)
 			}
 
-			ra := s.k().MustGetRollapp(s.Ctx, rollappId)
-			ra.GenesisState.TransferProofHeight = 1
-			s.k().SetRollapp(s.Ctx, ra)
-
 			// send state updates
 			lastHeight = 1
 			for i := uint64(0); i < tc.statesCommitted; i++ {
@@ -87,8 +83,11 @@ func (s *RollappTestSuite) TestHardFork() {
 				s.Require().Error(err)
 			} else {
 				s.Require().NoError(err)
-				s.assertFraudHandled(rollappId, tc.fraudHeight)
 				s.checkLiveness(rollappId, true, false)
+
+				if tc.statesCommitted > 0 {
+					s.assertFraudHandled(rollappId, tc.fraudHeight)
+				}
 			}
 		})
 	}
@@ -147,6 +146,7 @@ func (s *RollappTestSuite) assertFraudHandled(rollappId string, height uint64) {
 	// check states were deleted
 	// the last state should have height less than the fraud height
 	lastestStateInfo, ok := s.k().GetLatestStateInfo(s.Ctx, rollappId)
+
 	if ok {
 		s.Require().Less(lastestStateInfo.GetLatestHeight(), height)
 	}

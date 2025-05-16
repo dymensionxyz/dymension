@@ -40,16 +40,6 @@ func TestMsgCreateGauge(t *testing.T) {
 		return after(properMsg)
 	}
 
-	// validate createPool message was created as intended
-	msg := createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-		return msg
-	})
-	require.Equal(t, msg.Route(), incentivestypes.RouterKey)
-	require.Equal(t, msg.Type(), "create_gauge")
-	signers := msg.GetSigners()
-	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0].String(), addr1.String())
-
 	tests := []struct {
 		name       string
 		msg        incentivestypes.MsgCreateGauge
@@ -163,16 +153,6 @@ func TestMsgAddToGauge(t *testing.T) {
 
 		return after(properMsg)
 	}
-
-	// validate addToGauge message was created as intended
-	msg := createMsg(func(msg incentivestypes.MsgAddToGauge) incentivestypes.MsgAddToGauge {
-		return msg
-	})
-	require.Equal(t, msg.Route(), incentivestypes.RouterKey)
-	require.Equal(t, msg.Type(), "add_to_gauge")
-	signers := msg.GetSigners()
-	require.Equal(t, len(signers), 1)
-	require.Equal(t, signers[0].String(), addr1.String())
 
 	tests := []struct {
 		name       string

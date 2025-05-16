@@ -9,7 +9,6 @@ import (
 	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 
@@ -25,7 +24,7 @@ type Keeper struct {
 	storeKey              storetypes.Key
 	channelKeeperStoreKey storetypes.Key // we need direct access to the IBC channel store
 	hooks                 types.MultiDelayedAckHooks
-	paramstore            paramtypes.Subspace
+	authority             string
 
 	// pendingPacketsByAddress is an index of all pending packets associated with a Hub address.
 	// In case of ON_RECV packet (Rollapp -> Hub), the address is the packet receiver.
@@ -46,21 +45,17 @@ func NewKeeper(
 	cdc codec.Codec,
 	storeKey storetypes.Key,
 	channelKeeperStoreKey storetypes.Key,
-	ps paramtypes.Subspace,
+	authority string,
 	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	eibcKeeper types.EIBCKeeper,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
 	return &Keeper{
 		cdc:                   cdc,
 		storeKey:              storeKey,
 		channelKeeperStoreKey: channelKeeperStoreKey,
-		paramstore:            ps,
+		authority:             authority,
 		pendingPacketsByAddress: collections.NewKeySet(
 			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
 			collections.NewPrefix(types.PendingPacketsByAddressKeyPrefix),

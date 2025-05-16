@@ -13,7 +13,7 @@ import (
 )
 
 type bridgingFeeSuite struct {
-	utilSuite
+	ibcTestingSuite
 }
 
 func TestBridgingFeeTestSuite(t *testing.T) {
@@ -21,8 +21,8 @@ func TestBridgingFeeTestSuite(t *testing.T) {
 }
 
 func (s *bridgingFeeSuite) SetupTest() {
-	s.utilSuite.SetupTest()
-	s.hubApp().LightClientKeeper.SetEnabled(false)
+	s.ibcTestingSuite.SetupTest()
+	s.hubApp().LightClientKeeper.SetEnabled(false) // disable state validation against light client
 }
 
 func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
@@ -102,7 +102,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.Require().NoError(err)
 
 	// manually finalize packets through x/delayedack
-	s.finalizePacketsByAddr(s.hubChain().SenderAccount.GetAddress().String())
+	s.finalizeRollappPacketsByAddress(s.hubChain().SenderAccount.GetAddress().String())
 
 	// check balance after finalization
 	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubCtx(), transferredCoins.Amount)
@@ -194,7 +194,7 @@ func (s *bridgingFeeSuite) TestBridgingFeeReturnTokens() {
 	s.Require().NoError(err)
 
 	// Manually finalize packets through x/delayedack
-	s.finalizePacketsByAddr(s.hubChain().SenderAccount.GetAddress().String())
+	s.finalizeRollappPacketsByAddress(s.hubChain().SenderAccount.GetAddress().String())
 
 	// Check balance after finalization
 	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubCtx(), rollappReceivedCoin.Amount)

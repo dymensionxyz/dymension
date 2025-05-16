@@ -28,9 +28,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
-	dymnsmoduleclient "github.com/dymensionxyz/dymension/v3/x/dymns/client"
-	sequencermoduleclient "github.com/dymensionxyz/dymension/v3/x/sequencer/client"
-	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 
@@ -67,7 +64,6 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
@@ -132,7 +128,7 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	encoding := params.MakeEncodingConfig()
+	encoding := appparams.MakeEncodingConfig()
 	appCodec := encoding.Codec
 	legacyAmino := encoding.Amino
 	txConfig := encoding.TxConfig
@@ -185,15 +181,8 @@ func New(
 			govtypes.ModuleName: gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
 					paramsclient.ProposalHandler,
-					streamermoduleclient.CreateStreamHandler,
-					streamermoduleclient.TerminateStreamHandler,
-					streamermoduleclient.ReplaceStreamHandler,
-					streamermoduleclient.UpdateStreamHandler,
-					sequencermoduleclient.PunishSequencerHandler,
 					denommetadatamoduleclient.CreateDenomMetadataHandler,
 					denommetadatamoduleclient.UpdateDenomMetadataHandler,
-					dymnsmoduleclient.MigrateChainIdsProposalHandler,
-					dymnsmoduleclient.UpdateAliasesProposalHandler,
 					evmclient.UpdateVirtualFrontierBankContractProposalHandler,
 				},
 			),
@@ -275,6 +264,7 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		RollappKeeper:          *app.RollappKeeper,
 		LightClientKeeper:      &app.LightClientKeeper,
+		CircuitKeeper:          &app.CircuitBreakerKeeper,
 	})
 	if err != nil {
 		panic(fmt.Errorf("failed to create ante handler: %w", err))
@@ -457,11 +447,18 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.mm,
 			app.configurator,
 			&upgrades.UpgradeKeepers{
-				LockupKeeper:     app.AppKeepers.LockupKeeper,
-				IROKeeper:        app.AppKeepers.IROKeeper,
-				GAMMKeeper:       app.AppKeepers.GAMMKeeper,
-				GovKeeper:        app.AppKeepers.GovKeeper,
-				IncentivesKeeper: app.AppKeepers.IncentivesKeeper,
+				LockupKeeper:      app.AppKeepers.LockupKeeper,
+				IROKeeper:         app.AppKeepers.IROKeeper,
+				GAMMKeeper:        app.AppKeepers.GAMMKeeper,
+				GovKeeper:         app.AppKeepers.GovKeeper,
+				IncentivesKeeper:  app.AppKeepers.IncentivesKeeper,
+				RollappKeeper:     app.AppKeepers.RollappKeeper,
+				SponsorshipKeeper: &app.AppKeepers.SponsorshipKeeper,
+				ParamsKeeper:      &app.AppKeepers.ParamsKeeper,
+				DelayedAckKeeper:  &app.AppKeepers.DelayedAckKeeper,
+				EIBCKeeper:        &app.AppKeepers.EIBCKeeper,
+				DymNSKeeper:       &app.AppKeepers.DymNSKeeper,
+				StreamerKeeper:    &app.AppKeepers.StreamerKeeper,
 			},
 		),
 	)

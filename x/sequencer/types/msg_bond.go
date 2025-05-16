@@ -30,14 +30,6 @@ func (msg *MsgIncreaseBond) ValidateBasic() error {
 	return nil
 }
 
-func (msg *MsgIncreaseBond) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
 func NewMsgDecreaseBond(creator string, decreaseBond sdk.Coin) *MsgDecreaseBond {
 	return &MsgDecreaseBond{
 		Creator:        creator,
@@ -58,14 +50,6 @@ func (msg *MsgDecreaseBond) ValidateBasic() error {
 	return nil
 }
 
-func (msg *MsgDecreaseBond) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
 var _ sdk.Msg = &MsgUnbond{}
 
 func NewMsgUnbond(creator string) *MsgUnbond {
@@ -81,12 +65,4 @@ func (msg *MsgUnbond) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
 }
