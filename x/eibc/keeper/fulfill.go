@@ -17,9 +17,8 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 ) error {
 
 	err := k.fulfill(ctx, o, fulfillArgs{
-		FundsSource:          fulfiller,
-		NewTransferRecipient: fulfiller,
-		Fulfiller:            fulfiller,
+		FundsSource: fulfiller,
+		Fulfiller:   fulfiller,
 	})
 
 	if err != nil {
@@ -34,9 +33,8 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 }
 
 type fulfillArgs struct {
-	FundsSource          sdk.AccAddress
-	NewTransferRecipient sdk.AccAddress
-	Fulfiller            sdk.AccAddress
+	FundsSource sdk.AccAddress
+	Fulfiller   sdk.AccAddress
 }
 
 func (k Keeper) fulfill(ctx sdk.Context,
@@ -58,7 +56,7 @@ func (k Keeper) fulfill(ctx sdk.Context,
 		return err
 	}
 
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, o, args.NewTransferRecipient.String())
+	err = k.hooks.AfterDemandOrderFulfilled(ctx, o, args.FundsSource.String())
 	if err != nil {
 		return err
 	}

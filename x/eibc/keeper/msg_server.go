@@ -84,9 +84,8 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	}
 
 	err = m.Keeper.fulfill(ctx, demandOrder, fulfillArgs{
-		FundsSource:          lp,
-		NewTransferRecipient: lp,
-		Fulfiller:            operator,
+		FundsSource: lp,
+		Fulfiller:   operator,
 	})
 	if err != nil {
 		return nil, err
