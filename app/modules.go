@@ -93,9 +93,6 @@ import (
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
-var _ = hypercore.ConsensusVersion
-var _ = hyperwarp.ConsensusVersion
-
 func (app *App) SetupModules(
 	appCodec codec.Codec,
 	bApp *baseapp.BaseApp,

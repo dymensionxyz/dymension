@@ -28,11 +28,8 @@ func (k Keeper) BridgingFee(ctx sdk.Context) (res math.LegacyDec) {
 	return
 }
 
-func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt math.Int) (res math.Int) {
-	return BridgeFeeFromAmt(ctx, k.BridgingFee(ctx), amt)
-}
-
-func BridgeFeeFromAmt(ctx sdk.Context, feeMul math.LegacyDec, transferAmt math.Int) (res math.Int) {
+func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, transferAmt math.Int) (res math.Int) {
+	feeMul := k.BridgingFee(ctx)
 	return feeMul.MulInt(transferAmt).TruncateInt()
 }
 
