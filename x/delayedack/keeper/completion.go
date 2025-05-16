@@ -76,17 +76,22 @@ func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *comm
 
 }
 
-// *In general* we want a way to do something whenever an ibc transfer happens ("Hook"). It can happen
-// 1. on EIBC fulfill
+// *In general* we want a way to do something whenever an ibc transfer finishes ("Hook"). It can happen
+// 1. on EIBC fulfill (transfer does not really 'happen', but there is a movement of funds from fulfiller to recipient)
 // 2. on finalize to the original recipient, for non fulfilled orders
 // 3. on finalize to the fulfiller, for fulfilled orders
+// 4. on getting a packet from a non-rollapp (this is not taken care of by delayedack+eibc)
+//
+// so
 //
 // 1. Do the hook on EIBC fulfillment, using immediate funds
 // 2. On finalize, look up the EIBC demand order to check if it's fulfilled or not.
 // a. If it ISN'T, then do the hook AFTER the ibc transfer stack finishes
 // b. If it IS, then do nothing
 //
-// We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized
+// [We can do (2) by finding the eibc order directly using the packet key, because the status has not yet been update to finalized]
+//
+// NOTE: Case (4) is handled elsewhere
 func (k Keeper) finalizeCompletionHook(ctx sdk.Context, p *commontypes.RollappPacket) error {
 	o, err := k.EIBCKeeper.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {

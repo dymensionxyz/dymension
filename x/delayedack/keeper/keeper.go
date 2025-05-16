@@ -38,6 +38,7 @@ type Keeper struct {
 	channelKeeper types.ChannelKeeper
 	types.EIBCKeeper
 
+	// TODO: refac https://github.com/dymensionxyz/dymension/issues/1849
 	completionHooks map[string]CompletionHookInstance
 }
 
