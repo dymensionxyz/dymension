@@ -7,6 +7,9 @@ deps:
   - buf.build/cosmos/gogo-proto
   - buf.build/cosmos/ibc:442292b00c1649c1b2e0881f942d3b53
   - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
+  - buf.build/bcp-innovations/hyperlane-cosmos:v1.0.0
+  
+  
 breaking:
   use:
     - FILE

@@ -113,7 +113,7 @@ func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*com
 func (k Keeper) UpdateRollappPacketTransferAddress(
 	ctx sdk.Context,
 	rollappPacketKey string,
-	address string, // who will get the funds on finalization
+	newRecipient string, // who will get the funds on finalization
 ) error {
 	rollappPacket, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
@@ -130,17 +130,19 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 
 	// Set the recipient and sender based on the rollapp packet type
 	var (
-		recipient              = transferPacketData.Receiver
-		sender                 = transferPacketData.Sender
-		originalTransferTarget string
+		recipient         = transferPacketData.Receiver
+		sender            = transferPacketData.Sender
+		originalRecipient string
 	)
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		originalTransferTarget = recipient
-		recipient = address
+		// recipient will get credited
+		originalRecipient = recipient
+		recipient = newRecipient
 	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
-		originalTransferTarget = sender
-		sender = address
+		// sender will get refunded
+		originalRecipient = sender
+		sender = newRecipient
 	}
 
 	// Create a new packet data with the updated recipient and sender
@@ -152,18 +154,15 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 		transferPacketData.Memo,
 	)
 
-	// Marshall to binary and update the packet with this data
 	packet := rollappPacket.Packet
 	packet.Data = newPacketData.GetBytes()
-	// Update rollapp packet with the new updated packet and save in the store
 	rollappPacket.Packet = packet
-	rollappPacket.OriginalTransferTarget = originalTransferTarget
+	rollappPacket.OriginalTransferTarget = originalRecipient
 
 	// Update index: delete the old packet and save the new one
-	k.MustDeletePendingPacketByAddress(ctx, originalTransferTarget, []byte(rollappPacketKey))
-	k.MustSetPendingPacketByAddress(ctx, address, rollappPacket.RollappPacketKey())
+	k.MustDeletePendingPacketByAddress(ctx, originalRecipient, []byte(rollappPacketKey))
+	k.MustSetPendingPacketByAddress(ctx, newRecipient, rollappPacket.RollappPacketKey())
 
-	// Save updated rollapp packet
 	k.SetRollappPacket(ctx, *rollappPacket)
 
 	return nil

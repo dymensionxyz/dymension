@@ -7,7 +7,6 @@ import (
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -17,7 +16,7 @@ type ChannelKeeper interface {
 }
 
 type RollappKeeper interface {
-	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
+	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) types.StateInfo
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
 	GetValidTransfer(
@@ -29,4 +28,5 @@ type RollappKeeper interface {
 
 type EIBCKeeper interface {
 	EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error
+	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*commontypes.DemandOrder, error)
 }

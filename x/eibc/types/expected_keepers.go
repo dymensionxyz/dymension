@@ -26,6 +26,7 @@ type DelayedAckKeeper interface {
 	GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error)
 	BridgingFee(ctx sdk.Context) (res math.LegacyDec)
 	VerifyHeightFinalized(ctx sdk.Context, rollappID string, height uint64) error
+	ValidateCompletionHook(info commontypes.CompletionHookCall) error
 }
 
 type RollappKeeper interface {

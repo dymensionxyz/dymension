@@ -88,6 +88,11 @@ import (
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+
+	hypercore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
+	hypertypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
 func (app *App) SetupModules(
@@ -145,6 +150,10 @@ func (app *App) SetupModules(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		txfees.NewAppModule(*app.TxFeesKeeper),
+
+		// Hyperlane modules
+		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
+		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
 	}
 }
 
@@ -155,10 +164,12 @@ func ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	// set false not-blocked addresses
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
+
 	return modAccAddrs
 }
 
@@ -184,6 +195,8 @@ var maccPerms = map[string][]string{
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
+	hypertypes.ModuleName:                              nil,
+	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 }
 
 var PreBlockers = []string{
@@ -230,6 +243,8 @@ var BeginBlockers = []string{
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -272,6 +287,8 @@ var EndBlockers = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -314,5 +331,7 @@ var InitGenesis = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
 }

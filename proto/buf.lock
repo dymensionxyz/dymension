@@ -2,6 +2,11 @@
 version: v1
 deps:
   - remote: buf.build
+    owner: bcp-innovations
+    repository: hyperlane-cosmos
+    commit: 059f9e6501d44fa882f8086d41646fb9
+    digest: shake256:a3a89fd4c2ec796a15718358e8e03fabc67fe8ecac6797733c9818054193d2bcbf30d12b1757a99671c9c645571524bbc4d91cdc464a7c132321918207a70887
+  - remote: buf.build
     owner: cosmos
     repository: cosmos-proto
     commit: 04467658e59e44bbb22fe568206e1f70
@@ -36,3 +41,8 @@ deps:
     repository: grpc-gateway
     commit: 4c5ba75caaf84e928b7137ae5c18c26a
     digest: shake256:e174ad9408f3e608f6157907153ffec8d310783ee354f821f57178ffbeeb8faa6bb70b41b61099c1783c82fe16210ebd1279bc9c9ee6da5cffba9f0e675b8b99
+  - remote: buf.build
+    owner: protocolbuffers
+    repository: wellknowntypes
+    commit: 657250e6a39648cbb169d079a60bd9ba
+    digest: shake256:00de25001b8dd2e29d85fc4bcc3ede7aed886d76d67f5e0f7a9b320b90f871d3eb73507d50818d823a0512f3f8db77a11c043685528403e31ff3fef18323a9fb

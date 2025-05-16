@@ -53,24 +53,7 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		// Because we intercepted the packet, the core ibc library wasn't able to write the ack when we first
-		// got the packet. So we try to write it here.
-
-		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		/*
-				We only write the ack if writing it succeeds:
-				1. Transfer fails and writing ack fails - In this case, the funds will never be refunded on the RA.
-						non-eibc: sender will never get the funds back
-						eibc:     the fulfiller will never get the funds back, the original target has already been paid
-				2. Transfer succeeds and writing ack fails - In this case, the packet is never cleared on the RA.
-				3. Transfer succeeds and writing succeeds - happy path
-				4. Transfer fails and ack succeeds - we write the err ack and the funds will be refunded on the RA
-						non-eibc: sender will get the funds back
-			            eibc:     effective transfer from fulfiller to original target
-		*/
-		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
-			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
-		}
+		packetErr = k.finalizeOnRecv(ctx, ibc, &rollappPacket)
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:

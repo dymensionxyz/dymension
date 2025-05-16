@@ -18,7 +18,7 @@ import (
 func TestInitGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
-		DemandOrders: []types.DemandOrder{
+		DemandOrders: []commontypes.DemandOrder{
 			{
 				Id:                   "1",
 				TrackingPacketKey:    "11/22/33",
@@ -59,7 +59,7 @@ func TestExportGenesis(t *testing.T) {
 		ErrackFee:       math.LegacyNewDecWithPrec(4, 1),
 	}
 	// Set some demand orders
-	demandOrders := []types.DemandOrder{
+	demandOrders := []commontypes.DemandOrder{
 		{
 			Id:                   "1",
 			TrackingPacketKey:    "key",
@@ -90,7 +90,7 @@ func TestExportGenesis(t *testing.T) {
 
 	require.Equal(t, params, got.Params, "Params should match the set params")
 
-	expectedDemandOrders := make([]types.DemandOrder, len(demandOrders))
+	expectedDemandOrders := make([]commontypes.DemandOrder, len(demandOrders))
 	for i, order := range demandOrders {
 		orderCopy := order
 		encodedKey := base64.StdEncoding.EncodeToString([]byte(order.TrackingPacketKey))
