@@ -8,11 +8,10 @@ import (
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) dymnstypes.Params {
-	return dymnstypes.NewParams(
-		k.PriceParams(ctx),
-		k.ChainsParams(ctx),
-		k.MiscParams(ctx),
-	)
+	store := ctx.KVStore(k.storeKey)
+	var params dymnstypes.Params
+	k.cdc.MustUnmarshal(store.Get(dymnstypes.KeyParams), &params)
+	return params
 }
 
 // SetParams set the params
@@ -20,26 +19,26 @@ func (k Keeper) SetParams(ctx sdk.Context, params dymnstypes.Params) error {
 	if err := params.Validate(); err != nil {
 		return err
 	}
-	k.paramStore.SetParamSet(ctx, &params)
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(dymnstypes.KeyParams, bz)
 	return nil
 }
 
 // PriceParams returns the price params
 func (k Keeper) PriceParams(ctx sdk.Context) (res dymnstypes.PriceParams) {
-	k.paramStore.Get(ctx, dymnstypes.KeyPriceParams, &res)
-	return
+	return k.GetParams(ctx).Price
 }
 
 // ChainsParams returns the chains params
 func (k Keeper) ChainsParams(ctx sdk.Context) (res dymnstypes.ChainsParams) {
-	k.paramStore.Get(ctx, dymnstypes.KeyChainsParams, &res)
-	return
+	return k.GetParams(ctx).Chains
 }
 
 // MiscParams returns the miscellaneous params
 func (k Keeper) MiscParams(ctx sdk.Context) (res dymnstypes.MiscParams) {
-	k.paramStore.Get(ctx, dymnstypes.KeyMiscParams, &res)
-	return
+	return k.GetParams(ctx).Misc
 }
 
 // CanUseAliasForNewRegistration checks if the alias can be used for a new alias registration.

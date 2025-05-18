@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
@@ -26,6 +28,24 @@ type MsgServer struct {
 
 func NewMsgServer(k Keeper, ibc DelayedAckIBCModule) MsgServer {
 	return MsgServer{k: k, ibc: ibc}
+}
+
+// UpdateParams is a governance operation to update the module parameters.
+func (m MsgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Check if the sender is the authority
+	if req.Authority != m.k.authority {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
+	}
+
+	err := req.Params.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	m.k.SetParams(ctx, req.Params)
+	return &types.MsgUpdateParamsResponse{}, nil
 }
 
 func (m MsgServer) FinalizePacket(goCtx context.Context, msg *types.MsgFinalizePacket) (*types.MsgFinalizePacketResponse, error) {

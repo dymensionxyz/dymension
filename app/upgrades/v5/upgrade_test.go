@@ -20,6 +20,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+
+	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -129,10 +131,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 }
 
 func (s *UpgradeTestSuite) setLockupParams() {
-	params := lockuptypes.Params{
+	params := lockupmigration.Params{
 		ForceUnlockAllowedAddresses: expectLockupForceUnlockAllowedAddresses,
 	}
-	s.App.LockupKeeper.SetParams(s.Ctx, params)
+	lockupSubspace := s.App.ParamsKeeper.Subspace(lockuptypes.ModuleName)
+	lockupSubspace = lockupSubspace.WithKeyTable(lockupmigration.ParamKeyTable())
+	lockupSubspace.SetParamSet(s.Ctx, &params)
 }
 
 func (s *UpgradeTestSuite) validateLockupParamsMigration() error {

@@ -162,7 +162,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 						return false, nil
 					}
 					if key.K2() != value.RollappId {
-						return false, fmt.Errorf("rollapp (%s) have finalizationQueue with wrong rollappId\n", rollapp.RollappId)
+						return false, fmt.Errorf("rollapp (%s) have finalizationQueue with wrong rollappId", rollapp.RollappId)
 					}
 					for _, idx := range value.FinalizationQueue {
 						if idx.Index <= latestFinalizedStateIdx.Index {

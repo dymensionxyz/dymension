@@ -13,7 +13,6 @@ import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -93,7 +92,6 @@ func (s *KeeperTestSuite) SetupTest() {
 		codec := params.MakeEncodingConfig()
 		registry := codec.InterfaceRegistry
 		cdc = codec.Codec
-		legacyAmino := codec.Amino
 
 		authKeeper := authkeeper.NewAccountKeeper(
 			cdc,
@@ -122,7 +120,6 @@ func (s *KeeperTestSuite) SetupTest() {
 		rk = rollappkeeper.NewKeeper(
 			cdc,
 			keys[rollapptypes.StoreKey],
-			paramstypes.NewSubspace(cdc, legacyAmino, keys[rollapptypes.StoreKey], tkeys[rollapptypes.MemStoreKey], "rollapp"),
 			nil, nil,
 			bk,
 			nil,
@@ -132,7 +129,6 @@ func (s *KeeperTestSuite) SetupTest() {
 
 		dk = dymnskeeper.NewKeeper(cdc,
 			keys[dymnstypes.StoreKey],
-			paramstypes.NewSubspace(cdc, legacyAmino, keys[dymnstypes.StoreKey], tkeys[dymnstypes.MemStoreKey], "dymns"),
 			bk,
 			rk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),

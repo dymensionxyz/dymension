@@ -83,7 +83,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false)
 
 	// checks that the default genesis parameters pass validation
-	validateGenesis := types.DefaultGenesis().Params.Validate()
+	validateGenesis := types.DefaultGenesis().Params.ValidateBasic()
 	require.NoError(t, validateGenesis)
 
 	// create coins, lp tokens with lockup durations, and a stream for this lockup
@@ -144,7 +144,7 @@ func TestStreamerOrder(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false).WithBlockTime(time.Now())
 
 	// checks that the default genesis parameters pass validation
-	validateGenesis := types.DefaultGenesis().Params.Validate()
+	validateGenesis := types.DefaultGenesis().Params.ValidateBasic()
 	require.NoError(t, validateGenesis)
 	// create coins, lp tokens with lockup durations, and a stream for this lockup
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
