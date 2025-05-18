@@ -11,6 +11,7 @@
 * **denommetadata:** wrong key in paginated guery for registered denoms ([#1798](https://github.com/dymensionxyz/dymension/issues/1798)) ([c5d94ab](https://github.com/dymensionxyz/dymension/commit/c5d94ab99849a0a48e855e011ef980b78ed359b6))
 * **eibc:** authorization min fee truncating ([#1756](https://github.com/dymensionxyz/dymension/issues/1756)) ([e4fc14b](https://github.com/dymensionxyz/dymension/commit/e4fc14bb315a083737f81ce8eb3662053a15bc16))
 * **evm:** fix eth custom get signers registry ([#1850](https://github.com/dymensionxyz/dymension/issues/1850)) ([9b7422f](https://github.com/dymensionxyz/dymension/commit/9b7422f605fab58247f3e48fbbc7b95709121e81))
+* **incentives, lockup, gamm:** added missing signer annotation ([#1843](https://github.com/dymensionxyz/dymension/issues/1843)) ([908edb8](https://github.com/dymensionxyz/dymension/commit/908edb84ff15a552ef82e6c987b041ce6af486d4))
 * **incentives:** param switch for endorsement mode ([#1803](https://github.com/dymensionxyz/dymension/issues/1803)) ([548f80c](https://github.com/dymensionxyz/dymension/commit/548f80ceabe86b8adf0220c55714b496c8b88237))
 * **incentives:** set min threshold for gauge incentives distribution ([#1800](https://github.com/dymensionxyz/dymension/issues/1800)) ([b757e1f](https://github.com/dymensionxyz/dymension/commit/b757e1f63334ad2ee765f363697de8ebe1af9a2f))
 * **iro:** first sell tokens, than charge fee ([#1717](https://github.com/dymensionxyz/dymension/issues/1717)) ([9ca4a70](https://github.com/dymensionxyz/dymension/commit/9ca4a7066288bdacb629b4a3b90c4b1922f051cc))
