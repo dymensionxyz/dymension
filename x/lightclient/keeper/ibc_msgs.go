@@ -36,10 +36,6 @@ func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	for _, m := range msgs {
 		// TODO: need to handle authz etc
 		switch msg := m.(type) {
-		case *ibcclienttypes.MsgSubmitMisbehaviour:
-			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "handle MsgSubmitMisbehaviour")
-			}
 		case *ibcclienttypes.MsgUpdateClient:
 			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
 				return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
