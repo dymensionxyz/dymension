@@ -455,8 +455,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a h1:w7gKQi5DvTXhsCWSA7TDAPPaCitWj+goiMl2bUvYErc=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250217105006-7a008c02116a/go.mod h1:7Olvfv96cvfqhwMm/4fIWgQDQaUqbfcUtrp5fgRQU1U=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515141645-7f16f1928018 h1:xKN7YzBy5+sieFJw+nBsNY/cTHSGXk+qMv70+qQ0uPU=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515141645-7f16f1928018/go.mod h1:eA60HVW0vtGMLV3Xp3FHLw7/d2w8MTtBv1YyGmlyulg=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2 h1:/hXBQnPaH7gNvT37/br73OyaF55iq5TK8fcsvYcGcNg=
