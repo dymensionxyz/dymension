@@ -778,6 +778,7 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 					SpendLimit:        tc.lpSpendLimit,
 					OrderMinAgeBlocks: tc.lpOrderMinAgeBlocks,
 				},
+				Signer: fulfillerAddr.String(),
 			}
 			resC, err := suite.msgServer.CreateOnDemandLP(suite.Ctx, &msgC)
 			suite.Require().NoError(err)
