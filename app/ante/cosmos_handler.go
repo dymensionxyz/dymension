@@ -22,9 +22,13 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
+
+		// reject tx with extension options
+		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
-		NewRejectMessagesDecorator().WithPredicate(
-			BlockTypeUrls(
+		NewRejectMessagesDecorator().
+			WithPredicate(BlockTypeUrls(
 				1,
 				// Only blanket rejects depth greater than zero because we have our own custom logic for depth 0
 				// Note that there is never a genuine reason to pass both ibc update client and misbehaviour submission through gov or auth,
