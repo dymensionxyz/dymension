@@ -7,9 +7,12 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
+
+var _ sdk.Msg = &MsgUpdateAliases{}
 
 // ValidateBasic performs basic validation for the MsgUpdateAliases.
 func (m *MsgUpdateAliases) ValidateBasic() error {
