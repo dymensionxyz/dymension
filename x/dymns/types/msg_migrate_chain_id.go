@@ -6,13 +6,15 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-// ValidateBasic performs basic validation for the MigrateChainIdsProposal.
-func (m *MigrateChainIdsProposal) ValidateBasic() error {
+var _ sdk.Msg = &MsgMigrateChainIds{}
+
+// ValidateBasic performs basic validation for the MsgMigrateChainIds.
+func (m *MsgMigrateChainIds) ValidateBasic() error {
 	if len(m.Replacement) == 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "replacement cannot be empty")
 	}
@@ -37,8 +39,7 @@ func (m *MigrateChainIdsProposal) ValidateBasic() error {
 		}
 		uniqueChainIds[normalizedNewChainId] = true
 	}
-
-	return v1beta1.ValidateAbstract(m)
+	return nil
 }
 
 // ValidateBasic performs basic validation for the MigrateChainId operation.

@@ -8,11 +8,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-const (
-	TypeMsgUpdateRewardAddress = "update_reward_address"
-)
-
-var _ sdk.Msg = (*MsgUpdateRewardAddress)(nil)
+var _ sdk.Msg = &MsgUpdateRewardAddress{}
 
 func (m *MsgUpdateRewardAddress) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Creator)
@@ -24,17 +20,4 @@ func (m *MsgUpdateRewardAddress) ValidateBasic() error {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "get reward addr from bech32")
 	}
 	return nil
-}
-
-func (m *MsgUpdateRewardAddress) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{addr}
-}
-
-func (m *MsgUpdateRewardAddress) Route() string {
-	return RouterKey
-}
-
-func (m *MsgUpdateRewardAddress) Type() string {
-	return TypeMsgUpdateRewardAddress
 }

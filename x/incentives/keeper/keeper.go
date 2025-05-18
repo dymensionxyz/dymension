@@ -6,8 +6,8 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
@@ -16,41 +16,41 @@ import (
 
 // Keeper provides a way to manage incentives module storage.
 type Keeper struct {
-	storeKey   storetypes.Key
-	paramSpace paramtypes.Subspace
-	hooks      types.IncentiveHooks
-	bk         types.BankKeeper
-	lk         types.LockupKeeper
-	ek         types.EpochKeeper
-	tk         types.TxFeesKeeper
-	rk         types.RollappKeeper
-	sk         types.SequencerKeeper
+	storeKey  storetypes.Key
+	cdc       codec.BinaryCodec
+	hooks     types.IncentiveHooks
+	bk        types.BankKeeper
+	lk        types.LockupKeeper
+	ek        types.EpochKeeper
+	tk        types.TxFeesKeeper
+	rk        types.RollappKeeper
+	sk        types.SequencerKeeper
+	authority string
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
 func NewKeeper(
 	storeKey storetypes.Key,
-	paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec,
 	bk types.BankKeeper,
 	lk types.LockupKeeper,
 	ek types.EpochKeeper,
 	txfk types.TxFeesKeeper,
 	rk types.RollappKeeper,
 	sk types.SequencerKeeper,
+	authority string,
 ) *Keeper {
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
 
 	return &Keeper{
-		storeKey:   storeKey,
-		paramSpace: paramSpace,
-		bk:         bk,
-		lk:         lk,
-		ek:         ek,
-		tk:         txfk,
-		rk:         rk,
-		sk:         sk,
+		storeKey:  storeKey,
+		cdc:       cdc,
+		bk:        bk,
+		lk:        lk,
+		ek:        ek,
+		tk:        txfk,
+		rk:        rk,
+		sk:        sk,
+		authority: authority,
 	}
 }
 

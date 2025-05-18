@@ -71,7 +71,7 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false)
 
 	// checks that the default genesis parameters pass validation
-	validateGenesis := types.DefaultGenesis().Params.Validate()
+	validateGenesis := types.DefaultGenesis().Params.ValidateBasic()
 	require.NoError(t, validateGenesis)
 
 	// create coins, lp tokens with lockup durations, and a gauge for this lockup

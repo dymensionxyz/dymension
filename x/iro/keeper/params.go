@@ -19,7 +19,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "only the gov module can update params")
 	}
 
-	err := req.NewParams.Validate()
+	err := req.NewParams.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +40,6 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.ParamsKey)
-	if b == nil {
-		panic("params should have been set")
-	}
-
 	k.cdc.MustUnmarshal(b, &params)
 	return params
 }
