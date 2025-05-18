@@ -34,7 +34,8 @@ service Msg {
   // UpdateOptInStatus allows toggling optedIn bool
   // NOTE: arguably should have just used UpdateSequencerInformation instead of
   // having a new message, but want to avoid changing frontends last minute.
-  rpc UpdateOptInStatus(MsgUpdateOptInStatus) returns (MsgUpdateOptInStatus);
+  rpc UpdateOptInStatus(MsgUpdateOptInStatus)
+      returns (MsgUpdateOptInStatusResponse);
   rpc KickProposer(MsgKickProposer) returns (MsgKickProposerResponse);
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond(MsgUnbond) returns (MsgUnbondResponse);

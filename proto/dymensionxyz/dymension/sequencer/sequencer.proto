@@ -8,7 +8,6 @@ import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "cosmos/msg/v1/msg.proto";
 
 import "dymensionxyz/dymension/sequencer/metadata.proto";
 import "dymensionxyz/dymension/sequencer/operating_status.proto";
@@ -16,7 +15,7 @@ import "dymensionxyz/dymension/sequencer/operating_status.proto";
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
 message Sequencer {
-  reserved 5, 9, 10;
+  reserved 5, 6, 9, 10;
 
   // Address is the bech32-encoded address of the sequencer account which is the
   // account that the message was sent from.
@@ -29,8 +28,6 @@ message Sequencer {
   string rollappId = 3;
   // SequencerMetadata defines the extra information for the sequencer.
   SequencerMetadata metadata = 4 [ (gogoproto.nullable) = false ];
-
-  bool proposer = 6 [ deprecated = true ];
 
   // OperatingStatus is the sequencer status (bonded/unbonded).
   OperatingStatus status = 7;
