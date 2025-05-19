@@ -119,7 +119,7 @@ func CmdMemoIBCtoHL() *cobra.Command {
 }
 
 func hookForwardToHL(args []string) (*types.HookForwardToHL, error) {
-	tokenId, err := hyperutil.DecodeHexAddress(args[0])
+	tokenId, err := util.DecodeHexAddress(args[0])
 	if err != nil {
 		return nil, fmt.Errorf("token id: %w", err)
 	}
@@ -129,7 +129,7 @@ func hookForwardToHL(args []string) (*types.HookForwardToHL, error) {
 		return nil, fmt.Errorf("destination domain: %w", err)
 	}
 
-	recipient, err := hyperutil.DecodeHexAddress(args[2])
+	recipient, err := util.DecodeHexAddress(args[2])
 	if err != nil {
 		return nil, fmt.Errorf("recipient: %w", err)
 	}
@@ -245,7 +245,7 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("marshal: %w", err)
 				}
-				fmt.Printf("%s\n", hyperutil.EncodeEthHex(bz))
+				fmt.Printf("%s\n", util.EncodeEthHex(bz))
 			}
 
 			return nil
@@ -307,7 +307,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("counterparty domain: %w", err)
 			}
 
-			hlSrcContract, err := hyperutil.DecodeHexAddress(args[2])
+			hlSrcContract, err := util.DecodeHexAddress(args[2])
 			if err != nil {
 				return fmt.Errorf("counterparty contract: %w", err)
 			}
@@ -317,7 +317,7 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				return fmt.Errorf("local domain: %w", err)
 			}
 
-			hlTokenID, err := hyperutil.DecodeHexAddress(args[4])
+			hlTokenID, err := util.DecodeHexAddress(args[4])
 			if err != nil {
 				return fmt.Errorf("token id: %w", err)
 			}
@@ -406,7 +406,7 @@ func EthRecipient(addr string) (string, error) {
 		return "", fmt.Errorf("addr address from bech32: %w", err)
 	}
 
-	ret := hyperutil.EncodeEthHex(bz)
+	ret := util.EncodeEthHex(bz)
 	ret = strings.TrimPrefix(ret, "0x")
 
 	// an address for eth which will be abi encoded, and then put parsed in the message
@@ -442,15 +442,15 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 
 			fmt.Printf("input: %s\n", d)
 
-			bz, err := hyperutil.DecodeEthHex(d)
+			bz, err := util.DecodeEthHex(d)
 			if err != nil {
 				return fmt.Errorf("decode eth hex: %w", err)
 			}
 
 			body := bz
 			if kind == "message" {
-				var message *hyperutil.HyperlaneMessage
-				m, err := hyperutil.ParseHyperlaneMessage(bz)
+				var message  util.HyperlaneMessage
+				m, err := util.ParseHyperlaneMessage(bz)
 				if err != nil {
 					return fmt.Errorf(" %w", err)
 				}
@@ -537,20 +537,20 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
 	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
-	hyperlaneSrcContract hyperutil.HexAddress, // e.g. Ethereum token contract as defined in token remote router
+	hyperlaneSrcContract util.HexAddress, // e.g. Ethereum token contract as defined in token remote router
 	hyperlaneDstDomain uint32, // e.g. 0 for Dymension
-	hyperlaneTokenID hyperutil.HexAddress,
+	hyperlaneTokenID util.HexAddress,
 	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
 	hook *types.HookForwardToIBC,
-) (hyperutil.HyperlaneMessage, error) {
+)  util.HyperlaneMessage, error) {
 	if err := hook.ValidateBasic(); err != nil {
-		return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
 	}
 
 	memoBz, err := proto.Marshal(hook)
 	if err != nil {
-		return hyperutil.HyperlaneMessage{}, err
+		return util.HyperlaneMessage{}, err
 	}
 
 	hlM, err := createTestHyperlaneMessage(
@@ -565,7 +565,7 @@ func MakeForwardToIBCHyperlaneMessage(
 		memoBz,
 	)
 	if err != nil {
-		return hyperutil.HyperlaneMessage{}, err
+		return util.HyperlaneMessage{}, err
 	}
 
 	// sanity
@@ -573,7 +573,7 @@ func MakeForwardToIBCHyperlaneMessage(
 		s := hlM.String()
 		_, err := decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s)
 		if err != nil {
-			return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
+			return util.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
 		}
 	}
 
@@ -621,11 +621,11 @@ func createTestHyperlaneMessage(
 
 // intended for tests/clients, expensive
 func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookForwardToIBC, error) {
-	decoded, err := hyperutil.DecodeEthHex(s)
+	decoded, err := util.DecodeEthHex(s)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "decode eth hex")
 	}
-	warpM, err := hyperutil.ParseHyperlaneMessage(decoded)
+	warpM, err := util.ParseHyperlaneMessage(decoded)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse hl message")
 	}

@@ -39,7 +39,7 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 }
 
 func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, d types.HookForwardToHL) error {
-	token, err := k.getHypToken(ctx, hyperutil.HexAddress(d.HyperlaneTransfer.TokenId))
+	token, err := k.getHypToken(ctx, d.HyperlaneTransfer.TokenId)
 	if err != nil {
 		return errorsmod.Wrap(err, "get hyp token")
 	}

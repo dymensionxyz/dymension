@@ -92,7 +92,7 @@ func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *comm
 //
 // NOTE: Case (4) is handled elsewhere
 func (k Keeper) finalizeCompletionHook(ctx sdk.Context, p *commontypes.RollappPacket) error {
-	o, err := k.EIBCKeeper.PendingOrderByPacket(ctx, p)
+	o, err := k.PendingOrderByPacket(ctx, p)
 	if errorsmod.IsOf(err, eibctypes.ErrDemandOrderDoesNotExist) {
 		// not much we can do here, it should exist...
 		k.Logger(ctx).Error("Pending order by packet not found.", "packet", p.LogString())
