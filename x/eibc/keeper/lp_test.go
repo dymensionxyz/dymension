@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
@@ -85,7 +84,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	o := commontypes.DemandOrder{
+	o := types.DemandOrder{
 		Price:     sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(5))),
 		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(7))),
 		RollappId: "2",
@@ -112,7 +111,7 @@ func (suite *KeeperTestSuite) TestDebug() {
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
-	compat, err := k.LPs.GetOrderCompatibleLPs(ctx, commontypes.DemandOrder{
+	compat, err := k.LPs.GetOrderCompatibleLPs(ctx, types.DemandOrder{
 		RollappId: rol,
 		Price:     sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(1))),
 		Fee:       sdk.NewCoins(sdk.NewCoin(denom, math.NewInt(1))),
@@ -135,7 +134,7 @@ func (suite *KeeperTestSuite) TestLPCompatibilityHeightAge() {
 		OrderMinAgeBlocks: 50, // practical value of 5 mins with 6 secs per block, although doesn't matter for test
 	})
 	suite.Require().NoError(err)
-	o := commontypes.DemandOrder{
+	o := types.DemandOrder{
 		RollappId:      "1",
 		Price:          sdk.NewCoins(sdk.NewCoin("aaa", math.NewInt(7))),
 		Fee:            sdk.NewCoins(sdk.NewCoin("aaa", math.NewInt(7))),

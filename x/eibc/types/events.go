@@ -2,11 +2,9 @@ package types
 
 import (
 	"encoding/base64"
-
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-func GetCreatedEvent(m *commontypes.DemandOrder, proofHeight uint64, amount string) *EventDemandOrderCreated {
+func GetCreatedEvent(m *DemandOrder, proofHeight uint64, amount string) *EventDemandOrderCreated {
 	packetKey := base64.StdEncoding.EncodeToString([]byte(m.TrackingPacketKey))
 	return &EventDemandOrderCreated{
 		OrderId:      m.Id,
@@ -22,7 +20,7 @@ func GetCreatedEvent(m *commontypes.DemandOrder, proofHeight uint64, amount stri
 	}
 }
 
-func GetFulfilledEvent(m *commontypes.DemandOrder) *EventDemandOrderFulfilled {
+func GetFulfilledEvent(m *DemandOrder) *EventDemandOrderFulfilled {
 	return &EventDemandOrderFulfilled{
 		OrderId:      m.Id,
 		Price:        m.Price.String(),
@@ -34,7 +32,7 @@ func GetFulfilledEvent(m *commontypes.DemandOrder) *EventDemandOrderFulfilled {
 	}
 }
 
-func GetFulfilledAuthorizedEvent(m *commontypes.DemandOrder,
+func GetFulfilledAuthorizedEvent(m *DemandOrder,
 	creationHeight uint64,
 	lpAddress, operatorAddress, operatorFee string,
 ) *EventDemandOrderFulfilledAuthorized {
@@ -53,7 +51,7 @@ func GetFulfilledAuthorizedEvent(m *commontypes.DemandOrder,
 	}
 }
 
-func GetUpdatedEvent(m *commontypes.DemandOrder, proofHeight uint64, amount string) *EventDemandOrderFeeUpdated {
+func GetUpdatedEvent(m *DemandOrder, proofHeight uint64, amount string) *EventDemandOrderFeeUpdated {
 	return &EventDemandOrderFeeUpdated{
 		OrderId:      m.Id,
 		NewFee:       m.Fee.String(),
@@ -65,7 +63,7 @@ func GetUpdatedEvent(m *commontypes.DemandOrder, proofHeight uint64, amount stri
 	}
 }
 
-func GetPacketStatusUpdatedEvent(m *commontypes.DemandOrder) *EventDemandOrderPacketStatusUpdated {
+func GetPacketStatusUpdatedEvent(m *DemandOrder) *EventDemandOrderPacketStatusUpdated {
 	return &EventDemandOrderPacketStatusUpdated{
 		OrderId:         m.Id,
 		NewPacketStatus: m.TrackingPacketStatus,

@@ -135,7 +135,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 }
 
 // TODO: rename and fix signature (ctx first)
-func (m msgServer) validateOrder(demandOrder *commontypes.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
+func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
 	if demandOrder.RollappId != msg.RollappId {
 		return types.ErrRollappIdMismatch
 	}
@@ -164,7 +164,7 @@ func (m msgServer) validateOrder(demandOrder *commontypes.DemandOrder, msg *type
 	return nil
 }
 
-func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *commontypes.DemandOrder) (bool, error) {
+func (m msgServer) checkIfSettlementValidated(ctx sdk.Context, demandOrder *types.DemandOrder) (bool, error) {
 	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 	if err != nil {
 		return false, fmt.Errorf("get rollapp packet: %w", err)

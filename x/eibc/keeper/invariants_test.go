@@ -8,6 +8,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestInvariants() {
@@ -31,7 +32,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			Packet:      &packet,
 		}
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-		demandOrder := commontypes.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1, nil)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1, nil)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}

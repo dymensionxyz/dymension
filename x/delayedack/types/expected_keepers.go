@@ -6,6 +6,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -28,5 +29,5 @@ type RollappKeeper interface {
 
 type EIBCKeeper interface {
 	EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error
-	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*commontypes.DemandOrder, error)
+	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*eibctypes.DemandOrder, error)
 }

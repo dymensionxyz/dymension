@@ -9,12 +9,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *CompletionHookCall) *DemandOrder {
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *commontypes.CompletionHookCall) *DemandOrder {
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
@@ -22,7 +23,7 @@ func NewDemandOrder(rollappPacket RollappPacket, price, fee math.Int, denom, rec
 		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
 		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
-		TrackingPacketStatus: Status_PENDING,
+		TrackingPacketStatus: commontypes.Status_PENDING,
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
 		CreationHeight:       creationHeight,
@@ -101,7 +102,7 @@ func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 		return ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
-	if m.TrackingPacketStatus != Status_PENDING { // TODO:remove, there is only one callsite and it already knows it's pending
+	if m.TrackingPacketStatus != commontypes.Status_PENDING { // TODO:remove, there is only one callsite and it already knows it's pending
 		return ErrDemandOrderInactive
 	}
 	return nil
