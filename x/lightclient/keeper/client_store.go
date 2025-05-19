@@ -120,3 +120,38 @@ func (k Keeper) GetFirstConsensusStateHeight(ctx sdk.Context, clientID string) u
 	})
 	return height.GetRevisionHeight()
 }
+
+// copied from ibc-go/modules/light-clients/07-tendermint/update.go
+// pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
+// that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
+// becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
+func pruneOldestConsensusState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientState ibctm.ClientState) {
+	// Check the earliest consensus state to see if it is expired, if so then set the prune height
+	// so that we can delete consensus state and all associated metadata.
+	var (
+		pruneHeight exported.Height
+	)
+
+	pruneCb := func(height exported.Height) bool {
+		consState, found := ibctm.GetConsensusState(clientStore, cdc, height)
+		// this error should never occur
+		if !found {
+			ctx.Logger().Error("failed to retrieve consensus state at height: %s", height)
+			return true
+		}
+
+		if clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+			pruneHeight = height
+		}
+
+		return true
+	}
+
+	ibctm.IterateConsensusStateAscending(clientStore, pruneCb)
+
+	// if pruneHeight is set, delete consensus state and metadata
+	if pruneHeight != nil {
+		deleteConsensusState(clientStore, pruneHeight)
+		deleteConsensusMetadata(clientStore, pruneHeight)
+	}
+}
