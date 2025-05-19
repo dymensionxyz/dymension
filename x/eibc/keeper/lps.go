@@ -194,7 +194,7 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 	return compat, nil
 }
 
-func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) error {
+func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {
 	o, err := k.GetOutstandingOrder(ctx, order)
 	if err != nil {
 		return errorsmod.Wrap(err, "get outstanding order")
@@ -203,7 +203,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
 	}
-	r := rand.New(rand.NewSource(rng))
+	r := rand.New(rand.NewPCG(rng,0))
 	r.Shuffle(len(lps), func(i, j int) {
 		lps[i], lps[j] = lps[j], lps[i]
 	})
