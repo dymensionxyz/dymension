@@ -21,7 +21,7 @@ import (
 // If the rollapp packet is of type ON_TIMEOUT/ON_ACK, the function will calculate the fee and create a demand order from the packet data.
 func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	var (
-		eibcDemandOrder *commontypes.DemandOrder
+		eibcDemandOrder *types.DemandOrder
 		err             error
 	)
 	// Validate the fungible token packet data as we're going to use it to create the demand order
@@ -66,7 +66,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 // It returns the created demand order or an error if there is any.
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
-) (*commontypes.DemandOrder, error) {
+) (*types.DemandOrder, error) {
 	memoEIBC, err := GetEIBCMemo(fungibleTokenPacketData.Memo)
 	if err != nil {
 		return nil, fmt.Errorf("unpack fungible packet memo: %w", err)
@@ -94,7 +94,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 		}
 	}
 
-	order := commontypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)
 	return order, nil
 }
 
@@ -116,7 +116,7 @@ func GetEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
 // The fee multiplier is read from params and used to calculate the fee.
 func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
-) (*commontypes.DemandOrder, error) {
+) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
 	amt, _ := math.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 
@@ -140,7 +140,7 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	creationHeight := uint64(ctx.BlockHeight())
 
-	order := commontypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil)
 	return order, nil
 }
 

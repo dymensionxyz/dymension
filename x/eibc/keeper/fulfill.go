@@ -5,14 +5,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 // basic i.e. not authorized
 func (k Keeper) fulfillBasic(ctx sdk.Context,
-	o *commontypes.DemandOrder,
+	o *types.DemandOrder,
 	fulfiller sdk.AccAddress,
 ) error {
 
@@ -38,7 +37,7 @@ type fulfillArgs struct {
 }
 
 func (k Keeper) fulfill(ctx sdk.Context,
-	o *commontypes.DemandOrder,
+	o *types.DemandOrder,
 	args fulfillArgs,
 ) error {
 	if err := k.ensureAccount(ctx, args.FundsSource); err != nil {

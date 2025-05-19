@@ -195,7 +195,7 @@ func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 			feeInt, ok := math.NewIntFromString(tc.fee)
 			s.Require().True(ok)
 			if tc.demandOrdersCreated > 0 {
-				var demandOrder *commontypes.DemandOrder
+				var demandOrder *eibctypes.DemandOrder
 				for _, order := range demandOrders {
 					if order.Recipient == recipient.String() {
 						demandOrder = order
@@ -386,7 +386,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			// Check order fulfilled and packet status
 			finalizedOrders, err := s.eibcK().ListDemandOrdersByStatus(s.hubCtx(), commontypes.Status_FINALIZED, 0)
 			s.Require().NoError(err)
-			var finalizedO *commontypes.DemandOrder
+			var finalizedO *eibctypes.DemandOrder
 			for _, o := range finalizedOrders {
 				if o.Id == lastOrder.Id {
 					finalizedO = o
@@ -590,7 +590,7 @@ func (s *eibcSuite) transferRollappToHub(
 }
 
 // Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence
-func getLastDemandOrderByChannelAndSequence(demandOrders []*commontypes.DemandOrder) *commontypes.DemandOrder {
+func getLastDemandOrderByChannelAndSequence(demandOrders []*eibctypes.DemandOrder) *eibctypes.DemandOrder {
 	sort.Slice(demandOrders, func(i, j int) bool {
 		iKeyParts := strings.Split((demandOrders)[i].TrackingPacketKey, "/")
 		jKeyParts := strings.Split((demandOrders)[j].TrackingPacketKey, "/")

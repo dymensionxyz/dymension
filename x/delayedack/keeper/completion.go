@@ -32,7 +32,7 @@ func (k Keeper) ValidateCompletionHook(info commontypes.CompletionHookCall) erro
 	return f.ValidateArg(info.Data)
 }
 
-func (k Keeper) RunOrderCompletionHook(ctx sdk.Context, o *commontypes.DemandOrder, amt math.Int) error {
+func (k Keeper) RunOrderCompletionHook(ctx sdk.Context, o *eibctypes.DemandOrder, amt math.Int) error {
 	fundsSrc := o.GetRecipientBech32Address()
 	budget := sdk.NewCoin(o.Denom(), amt)
 	return k.RunCompletionHook(ctx, fundsSrc, budget, *o.CompletionHook)

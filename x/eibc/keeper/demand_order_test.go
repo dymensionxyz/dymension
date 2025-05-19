@@ -7,6 +7,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
@@ -22,7 +23,7 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 			ProofHeight: 2,
 			Packet:      &packet,
 		}
-		demandOrder := commontypes.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1, nil)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1, nil)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}
