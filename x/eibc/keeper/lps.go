@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"errors"
-	"math/rand"
+	"math/rand/v2"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
