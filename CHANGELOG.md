@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-18)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-19)
 
 
 ### Bug Fixes
@@ -35,6 +35,7 @@
 * **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
 * **eibc:** add ability to find fulfiller on demand ([#1745](https://github.com/dymensionxyz/dymension/issues/1745)) ([5722855](https://github.com/dymensionxyz/dymension/commit/57228557e9f9a2cb58ac411e48bbe90254e540ab)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
 * **genesis-bridge:** pessimistic validation for rollapp genesis bridge opening ([#1814](https://github.com/dymensionxyz/dymension/issues/1814)) ([3160858](https://github.com/dymensionxyz/dymension/commit/316085868a43d181b82318ffdd28c788baf6551f))
+* **incentives:**  dont distribute endorsement rewards to non active rollapps ([#1845](https://github.com/dymensionxyz/dymension/issues/1845)) ([ea42e47](https://github.com/dymensionxyz/dymension/commit/ea42e477c2d7c1a1d101b75e86ccbcb916fe074d))
 * **iro:**  iro upgrade handler ([#1793](https://github.com/dymensionxyz/dymension/issues/1793)) ([0bd1c9e](https://github.com/dymensionxyz/dymension/commit/0bd1c9eeb6df90b1b1180ad26499e5b111d16034))
 * **IRO:** ability to have iro raise against other tokens and not only dym ([#1792](https://github.com/dymensionxyz/dymension/issues/1792)) ([7d139b1](https://github.com/dymensionxyz/dymension/commit/7d139b1a79b69800f5fb40b275d762d160fd7ed3))
 * **iro:** ability to launch iro on demand ([#1769](https://github.com/dymensionxyz/dymension/issues/1769)) ([66aeb63](https://github.com/dymensionxyz/dymension/commit/66aeb63c556d35026f7e749d6e40a8e7c2582fc9))
