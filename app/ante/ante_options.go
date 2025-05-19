@@ -16,6 +16,9 @@ import (
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
 
+// max depth of nested messages
+const MaxInnerDepth = 6
+
 type HandlerOptions struct {
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	FeegrantKeeper         FeegrantKeeper
