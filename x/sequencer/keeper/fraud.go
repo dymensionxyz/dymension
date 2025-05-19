@@ -69,7 +69,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	if err != nil {
 		return errorsmod.Wrap(err, "slash")
 	}
-	k.livenessDishonor(ctx, &seq)
+	k.increasePenaltyLiveness(ctx, &seq)
 	k.SetSequencer(ctx, seq)
 	return nil
 }
@@ -83,15 +83,15 @@ func (k Keeper) livenessSlash(ctx sdk.Context, seq *types.Sequencer) error {
 	return errorsmod.Wrap(k.slash(ctx, seq, amt, math.LegacyZeroDec(), nil), "slash")
 }
 
-func (k Keeper) livenessHonor(ctx sdk.Context, seq *types.Sequencer) {
-	reward := k.GetParams(ctx).DishonorStateUpdate
-	reward = min(reward, seq.Dishonor)
-	seq.Dishonor -= reward
+func (k Keeper) reducePenaltyLiveness(ctx sdk.Context, seq *types.Sequencer) {
+	diff := k.GetParams(ctx).PenaltyReductionStateUpdate()
+	diff = min(diff, seq.GetPenalty())
+	seq.SetPenalty(seq.GetPenalty() - diff)
 }
 
-func (k Keeper) livenessDishonor(ctx sdk.Context, seq *types.Sequencer) {
-	penalty := k.GetParams(ctx).DishonorLiveness
-	seq.Dishonor += penalty
+func (k Keeper) increasePenaltyLiveness(ctx sdk.Context, seq *types.Sequencer) {
+	penalty := k.GetParams(ctx).PenaltyLiveness()
+	seq.SetPenalty(seq.GetPenalty() + penalty)
 }
 
 // Takes an optional rewardee addr who will receive some bounty
