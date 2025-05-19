@@ -35,7 +35,7 @@ type Keeper struct {
 	rollappKeeper types.RollappKeeper
 	porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	types.IBCKeeper
+	types.EIBCKeeper
 
 	// TODO: refac https://github.com/dymensionxyz/dymension/issues/1849
 	completionHooks map[string]CompletionHookInstance

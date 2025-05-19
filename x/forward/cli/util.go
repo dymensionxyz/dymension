@@ -15,7 +15,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	math "cosmossdk.io/math"
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
-	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -455,7 +454,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 					return fmt.Errorf(" %w", err)
 				}
 				body = m.Body
-				message = &m
+				message = m
 				fmt.Printf("hyperlane message: %+v\n", message)
 			}
 
@@ -543,7 +542,7 @@ func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
 	hook *types.HookForwardToIBC,
-)  util.HyperlaneMessage, error) {
+)  (util.HyperlaneMessage, error) {
 	if err := hook.ValidateBasic(); err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
 	}
