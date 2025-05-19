@@ -73,7 +73,6 @@ func (k Keeper) finalizeOnRecv(ctx sdk.Context, ibc porttypes.IBCModule, p *comm
 	}
 
 	return k.finalizeCompletionHook(ctx, p)
-
 }
 
 // *In general* we want a way to do something whenever an ibc transfer finishes ("Hook"). It can happen

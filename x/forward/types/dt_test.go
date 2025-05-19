@@ -33,5 +33,4 @@ func TestMakeRolForwardToHLMemoString(t *testing.T) {
 
 	_, err := MakeRolForwardToHLMemoString(eibcFee, hook)
 	require.NoError(t, err)
-
 }

@@ -19,7 +19,6 @@ func NewHookForwardToIBC(
 	receiver string,
 	timeoutTimestamp uint64,
 ) *HookForwardToIBC {
-
 	// sender will be ignored anyway, and replaced by the funds src (eibc fulfiller or HL recipient)
 	arbSender, _ := sample.AccFromSecret("foo")
 
@@ -89,7 +88,6 @@ func MakeRolForwardToIBCMemoString(
 	eibcFee string,
 	data *HookForwardToIBC,
 ) (string, error) {
-
 	bz, err := NewHookForwardToIBCCallBz(data)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "new forward to ibc hook")
@@ -103,7 +101,6 @@ func MakeRolForwardToIBCMemoString(
 func MakeIBCForwardToIBCMemoString(
 	data *HookForwardToIBC,
 ) (string, error) {
-
 	bz, err := NewHookForwardToIBCCallBz(data)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "new forward to ibc hook")

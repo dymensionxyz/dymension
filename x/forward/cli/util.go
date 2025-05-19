@@ -62,7 +62,6 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			eibcFee := args[0]
 			_, err := strconv.Atoi(eibcFee)
 			if err != nil {
@@ -100,7 +99,6 @@ func CmdMemoIBCtoHL() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			hook, err := hookForwardToHL(args)
 			if err != nil {
 				return fmt.Errorf("hook forward to hl: %w", err)
@@ -121,7 +119,6 @@ func CmdMemoIBCtoHL() *cobra.Command {
 }
 
 func hookForwardToHL(args []string) (*types.HookForwardToHL, error) {
-
 	tokenId, err := hyperutil.DecodeHexAddress(args[0])
 	if err != nil {
 		return nil, fmt.Errorf("token id: %w", err)
@@ -170,7 +167,6 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			hook, err := hookForwardToIBC(args[1:])
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
@@ -202,7 +198,6 @@ func CmdMemoIBCtoIBC() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			hook, err := hookForwardToIBC(args[1:])
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
@@ -233,7 +228,6 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			hook, err := hookForwardToIBC(args)
 			if err != nil {
 				return fmt.Errorf("memo hl to ibc: %w", err)
@@ -265,7 +259,6 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 }
 
 func hookForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
-
 	ibcSourceChan := args[0]
 
 	ibcRecipient := args[1]
@@ -304,7 +297,6 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			hlNonce, err := strconv.ParseUint(args[0], 10, 32)
 			if err != nil {
 				return fmt.Errorf("nonce: %w", err)
@@ -390,7 +382,6 @@ func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			addr, err := EthRecipient(args[0])
 			if err != nil {
 				return fmt.Errorf("hl eth addr: %w", err)
@@ -438,7 +429,6 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			kind := args[0]
 			if kind != "body" && kind != "message" {
 				return fmt.Errorf("unsupported message type: %s", kind)
@@ -508,7 +498,6 @@ func EstimateEIBCtoHLTransferAmt() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			hlReceiveAmt, ok := math.NewIntFromString(args[0])
 			if !ok {
 				return fmt.Errorf("hl receive amt")
@@ -555,7 +544,6 @@ func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
 	hook *types.HookForwardToIBC,
 ) (hyperutil.HyperlaneMessage, error) {
-
 	if err := hook.ValidateBasic(); err != nil {
 		return hyperutil.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
 	}

@@ -107,6 +107,7 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolOK() {
 	tc := FinalizeFwdTCOK
 	s.runFinalizeFwdTC(tc)
 }
+
 func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 	tc := FinalizeFwdTCOK
 	tc.forwardChannel = "channel-999"
@@ -167,7 +168,6 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 		extraCoin := sdk.NewCoin(ibcDenom, extra)
 		s.Require().Equal(ibcRecipientBalBefore.Add(extraCoin), ibcRecipientBalAfter)
 	}
-
 }
 
 const (
@@ -265,5 +265,4 @@ func (s *osmosisForwardSuite) SetupTest() {
 
 	s.path = s.newTransferPath(s.hubChain(), s.cosmosChain())
 	s.coordinator.Setup(s.path)
-
 }

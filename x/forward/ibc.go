@@ -90,7 +90,6 @@ func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget s
 }
 
 func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
-
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
 		transfer.SourceChannel,

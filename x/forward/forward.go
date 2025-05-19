@@ -17,7 +17,6 @@ func New(
 	warpQueryServer types.WarpQuery,
 	warpMsgServer types.WarpMsgServer,
 ) *Forward {
-
 	return &Forward{
 		transferK: transferKeeper,
 		warpQ:     warpQueryServer,

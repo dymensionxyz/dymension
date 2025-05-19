@@ -37,7 +37,6 @@ func (p Memo) ValidateBasic() error {
 
 // Returns a memo that can be passed to the rollapp for an ibc transfer to the hub
 func CreateMemo(eibcFee string, onComplete []byte) string {
-
 	eibcM := MakeEIBCMemo(eibcFee, onComplete)
 	m := Memo{
 		EIBC: &eibcM,

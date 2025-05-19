@@ -14,12 +14,10 @@ func (k Keeper) fulfillBasic(ctx sdk.Context,
 	o *types.DemandOrder,
 	fulfiller sdk.AccAddress,
 ) error {
-
 	err := k.fulfill(ctx, o, fulfillArgs{
 		FundsSource: fulfiller,
 		Fulfiller:   fulfiller,
 	})
-
 	if err != nil {
 		return err
 	}

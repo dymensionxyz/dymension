@@ -76,7 +76,6 @@ func MakeRolForwardToHLMemoString(
 	eibcFee string,
 	payload *HookForwardToHL,
 ) (string, error) {
-
 	bz, err := NewHookForwardToHLCallBz(payload)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "make hook forward to hl call bytes")
@@ -87,8 +86,8 @@ func MakeRolForwardToHLMemoString(
 
 // returns memo as string to be directly included in outbound eibc transfer from rollapp
 func MakeIBCForwardToHLMemoString(
-	payload *HookForwardToHL) (string, error) {
-
+	payload *HookForwardToHL,
+) (string, error) {
 	bz, err := NewHookForwardToHLCallBz(payload)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "make hook forward to hl call bytes")

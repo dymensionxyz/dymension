@@ -15,7 +15,6 @@ import (
 // this is called by hyperlane on an inbound transfer
 // at time of calling, funds have already been credited to the original hyperlane transfer recipient
 func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	memo := args.Metadata
@@ -40,7 +39,6 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 }
 
 func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, d types.HookForwardToHL) error {
-
 	token, err := k.getHypToken(ctx, hyperutil.HexAddress(d.HyperlaneTransfer.TokenId))
 	if err != nil {
 		return errorsmod.Wrap(err, "get hyp token")
@@ -58,7 +56,6 @@ func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, bu
 	}
 
 	m := &warptypes.MsgRemoteTransfer{
-
 		Sender:            fundsSrc.String(),
 		TokenId:           d.HyperlaneTransfer.TokenId,
 		DestinationDomain: d.HyperlaneTransfer.DestinationDomain,

@@ -293,7 +293,6 @@ func (s *fulfillmentHelper) fundFulfiller(fulfiller sdk.AccAddress, bal string, 
 // includes a memo in the rollapp transfer to the hub
 // tries to fulfill with the fulfiller
 func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
-
 	h := &fulfillmentHelper{
 		eibcSuite: s,
 	}

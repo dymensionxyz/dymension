@@ -9,12 +9,12 @@ import (
 
 // x/eibc module sentinel errors
 var (
-	ErrInvalidRecipientAddress = gerrc.ErrInvalidArgument.Wrap("recipient address")
-	ErrInvalidCreationHeight   = gerrc.ErrInvalidArgument.Wrap("creation height")
-	ErrMultipleDenoms          = gerrc.ErrInvalidArgument.Wrap("multiple denoms not allowed")
-	ErrEmptyPrice              = gerrc.ErrInvalidArgument.Wrap("price must be greater than 0")
-	ErrDemandAlreadyFulfilled  = gerrc.ErrFailedPrecondition.Wrap("demand order already fulfilled")
-	ErrDemandOrderInactive     = gerrc.ErrInvalidArgument.Wrap("demand order inactive")
+	ErrInvalidRecipientAddress     = gerrc.ErrInvalidArgument.Wrap("recipient address")
+	ErrInvalidCreationHeight       = gerrc.ErrInvalidArgument.Wrap("creation height")
+	ErrMultipleDenoms              = gerrc.ErrInvalidArgument.Wrap("multiple denoms not allowed")
+	ErrEmptyPrice                  = gerrc.ErrInvalidArgument.Wrap("price must be greater than 0")
+	ErrDemandAlreadyFulfilled      = gerrc.ErrFailedPrecondition.Wrap("demand order already fulfilled")
+	ErrDemandOrderInactive         = gerrc.ErrInvalidArgument.Wrap("demand order inactive")
 	ErrInvalidOrderID              = errorsmod.Register(ModuleName, 3, "invalid order ID")
 	ErrDemandOrderAlreadyExist     = errorsmod.Register(ModuleName, 4, "demand order already exists")
 	ErrDemandOrderDoesNotExist     = errorsmod.Register(ModuleName, 5, "demand order does not exist")
@@ -26,5 +26,5 @@ var (
 	ErrRollappStateInfoNotFound    = errorsmod.Register(ModuleName, 19, "rollapp state info not found")
 	ErrOrderNotSettlementValidated = errorsmod.Register(ModuleName, 20, "demand order not settlement validated")
 	ErrRollappIdMismatch           = errorsmod.Register(ModuleName, 21, "rollapp ID mismatch")
-	ErrPriceMismatch               = errorsmod.Register(ModuleName, 22, "price mismatch")	
+	ErrPriceMismatch               = errorsmod.Register(ModuleName, 22, "price mismatch")
 )
