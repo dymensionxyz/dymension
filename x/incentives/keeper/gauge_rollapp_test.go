@@ -166,7 +166,8 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGaugesWithRollappGaugesMode
 		owner3 := apptesting.CreateRandomAccounts(1)[0]
 		rollapp3_id := suite.CreateDefaultRollappFrom(owner3)
 		seq := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollapp3_id)
-		seq.Dishonor = 1000000000000000000
+		seq.SetPenalty(1000000000000000000)
+
 		suite.App.SequencerKeeper.SetSequencer(suite.Ctx, seq)
 
 		res, err := suite.querier.RollappGauges(suite.Ctx, new(types.GaugesRequest))
