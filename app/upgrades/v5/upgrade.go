@@ -26,6 +26,7 @@ import (
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -73,6 +74,8 @@ func CreateUpgradeHandler(
 
 		// fix V50 x/gov params
 		updateGovParams(ctx, keepers.GovKeeper)
+
+		updateRollappParams(ctx, keepers.RollappKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -252,4 +255,24 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	keepers.StreamerKeeper.SetParams(ctx, streamermoduletypes.NewParams(
 		streamerParams.MaxIterationsPerBlock,
 	))
+}
+
+const (
+	slowBlockDuration = 6
+	fastBlockDuration = 1
+	blockSpeedup = slowBlockDuration / fastBlockDuration
+	slowBlocksParamDisputePeriod = 120960 
+	fastBlocksParamDisputePeriod = slowBlocksParamDisputePeriod * blockSpeedup
+	slowBlocksParamLivenessSlashBlocks = 7200
+	fastBlocksParamLivenessSlashBlocks = slowBlocksParamLivenessSlashBlocks * blockSpeedup
+	slowBlocksParamLivenessSlashInterval = 600
+	fastBlocksParamLivenessSlashInterval =  slowBlocksParamLivenessSlashInterval * blockSpeedup
+)
+
+func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
+	params := k.GetParams(ctx)
+	params.DisputePeriodInBlocks = fastBlocksParamDisputePeriod
+	params.LivenessSlashBlocks = fastBlocksParamLivenessSlashBlocks
+	params.LivenessSlashInterval = fastBlocksParamLivenessSlashInterval
+	k.SetParams(ctx, params)
 }
