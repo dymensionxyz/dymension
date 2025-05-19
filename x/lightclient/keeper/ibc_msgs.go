@@ -34,19 +34,24 @@ func NewIBCMessagesDecorator(
 func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	msgs := tx.GetMsgs()
 	for _, m := range msgs {
-		// TODO: need to handle authz etc
-		switch msg := m.(type) {
-		case *ibcclienttypes.MsgUpdateClient:
-			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
-			}
-		case *ibcchanneltypes.MsgChannelOpenAck:
-			if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "handle MsgChannelOpenAck")
-			}
-		default:
-			continue
+		ctx, err = i.InnerCallback(ctx, m, simulate, 0)
+		if err != nil {
+			return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
 		}
 	}
 	return next(ctx, tx, simulate)
+}
+
+func (i IBCMessagesDecorator) InnerCallback(ctx sdk.Context, m sdk.Msg, simulate bool, depth int) (sdk.Context, error) {
+	switch msg := m.(type) {
+	case *ibcclienttypes.MsgUpdateClient:
+		if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
+			return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
+		}
+	case *ibcchanneltypes.MsgChannelOpenAck:
+		if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
+			return ctx, errorsmod.Wrap(err, "handle MsgChannelOpenAck")
+		}
+	}
+	return ctx, nil
 }
