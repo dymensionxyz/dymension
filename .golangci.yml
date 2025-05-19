@@ -1,5 +1,3 @@
-version: "2"
-
 run:
   concurrency: 4
   timeout: 5m
@@ -24,9 +22,7 @@ output:
   # - `sarif`
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
   formats:
-    text: 
-    # - format: colored-line-number
-      colors: true 
+    - format: colored-line-number
       path: stdout  # Print lines of code with issue.
   # Default: true
   print-issued-lines: true
@@ -48,21 +44,20 @@ linters:
   enable:
     - errcheck
     - gocyclo
+    - gofmt
+    - gofumpt
+    - goimports
     - gosec
+    - gosimple
     - govet
     - ineffassign
     - misspell
     - revive
     - staticcheck
+    - typecheck
     - unconvert
     - unused
     - errorlint
- 
-formatters:
-  enable:
-    - gofmt
-    - goimports
-    - gofumpt
 
 issues:
   exclude-use-default: false
