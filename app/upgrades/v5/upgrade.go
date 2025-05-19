@@ -260,19 +260,38 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 const (
 	slowBlockDuration = 6
 	fastBlockDuration = 1
-	blockSpeedup = slowBlockDuration / fastBlockDuration
+	BlockSpeedup = slowBlockDuration / fastBlockDuration
 	slowBlocksParamDisputePeriod = 120960 
-	fastBlocksParamDisputePeriod = slowBlocksParamDisputePeriod * blockSpeedup
+	fastBlocksParamDisputePeriod = slowBlocksParamDisputePeriod * BlockSpeedup
 	slowBlocksParamLivenessSlashBlocks = 7200
-	fastBlocksParamLivenessSlashBlocks = slowBlocksParamLivenessSlashBlocks * blockSpeedup
+	fastBlocksParamLivenessSlashBlocks = slowBlocksParamLivenessSlashBlocks * BlockSpeedup
 	slowBlocksParamLivenessSlashInterval = 600
-	fastBlocksParamLivenessSlashInterval =  slowBlocksParamLivenessSlashInterval * blockSpeedup
+	fastBlocksParamLivenessSlashInterval =  slowBlocksParamLivenessSlashInterval * BlockSpeedup
 )
 
 func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
+
+	// 1. params
 	params := k.GetParams(ctx)
 	params.DisputePeriodInBlocks = fastBlocksParamDisputePeriod
 	params.LivenessSlashBlocks = fastBlocksParamLivenessSlashBlocks
 	params.LivenessSlashInterval = fastBlocksParamLivenessSlashInterval
 	k.SetParams(ctx, params)
+	
+	// 2. other state	
+	// (other migration for dispute not needed because finalization is computed based on stored creation height)
+	migrateLivenessEvents(ctx, k)
 }
+
+func migrateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
+	events := k.GetLivenessEvents(ctx, nil)
+	for _, e := range events {
+		diff := e.HubHeight - ctx.BlockHeight()
+		if diff < 0 {
+			panic("assumed no liveness events in the past") // (zero is fine)
+		}
+		k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId) // we can delete 'both' since there is only one kind currently
+		e.HubHeight = ctx.BlockHeight() + diff * BlockSpeedup
+		k.PutLivenessEvent(ctx, e)
+	}
+}	

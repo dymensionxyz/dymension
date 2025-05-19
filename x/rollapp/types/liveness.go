@@ -10,11 +10,11 @@ var (
 )
 
 func LivenessEventQueueKey(e LivenessEvent) []byte {
-	v := LivenessEventQueueSlash
+	kind := LivenessEventQueueSlash // there is only one kind now https://github.com/dymensionxyz/dymension/issues/1857
 
 	ret := LivenessEventQueueIterHeightKey(e.HubHeight)
 	ret = append(ret, []byte("/")...)
-	ret = append(ret, v...)
+	ret = append(ret, kind...)
 	ret = append(ret, []byte("/")...)
 	ret = append(ret, e.RollappId...)
 	return ret

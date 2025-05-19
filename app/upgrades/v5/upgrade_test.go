@@ -3,6 +3,7 @@ package v5_test
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -20,8 +21,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -69,6 +72,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			preUpgrade: func() error {
 				s.setLockupParams()
 				s.setIROParams()
+				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				return nil
 			},
 			upgrade: func() {
@@ -104,6 +108,10 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// validate IRO params
 				if err = s.validateIROParamsMigration(); err != nil {
+					return
+				}
+			
+				if err = s.validateLivenessEventsMigration(s.Ctx, s.App.RollappKeeper); err != nil {
 					return
 				}
 
@@ -170,6 +178,30 @@ func (s *UpgradeTestSuite) validateIROParamsMigration() error {
 
 	if params.MinVestingDuration != expected.MinVestingDuration || params.MinVestingStartTimeAfterSettlement != expected.MinVestingStartTimeAfterSettlement {
 		return fmt.Errorf("min vesting duration or start time after settlement not set correctly")
+	}
+
+	return nil
+}
+
+var (
+	livenessEventsBlocks = []int64{0, 100, 200, 300}
+)
+
+func (s *UpgradeTestSuite) populateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
+	for i, h := range livenessEventsBlocks {
+		k.PutLivenessEvent(ctx, rollapptypes.LivenessEvent{
+			RollappId: strconv.Itoa(i),
+			HubHeight: dummyUpgradeHeight + h,
+		})
+	}
+
+}
+
+func (s *UpgradeTestSuite) validateLivenessEventsMigration(ctx sdk.Context, k *rollappkeeper.Keeper) error {
+	evts := k.GetLivenessEvents(ctx, nil)
+	s.Require().Equal(len(evts), len(livenessEventsBlocks))
+	for i, e := range evts {
+		s.Require().Equal( ctx.BlockHeight()+livenessEventsBlocks[i] * v5.BlockSpeedup, e.HubHeight)
 	}
 
 	return nil
