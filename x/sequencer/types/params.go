@@ -71,13 +71,13 @@ func (p Params) ValidateBasic() error {
 		return err
 	}
 
-	if err := uparam.ValidateUint64(p.DishonorKickThreshold); err != nil {
+	if err := uparam.ValidateUint64(p.PenaltyLiveness()); err != nil {
 		return err
 	}
-	if err := uparam.ValidateUint64(p.DishonorLiveness); err != nil {
+	if err := uparam.ValidateUint64(p.PenaltyReductionStateUpdate()); err != nil {
 		return err
 	}
-	if err := uparam.ValidateUint64(p.DishonorKickThreshold); err != nil {
+	if err := uparam.ValidateUint64(p.PenaltyKickThreshold()); err != nil {
 		return err
 	}
 
@@ -88,4 +88,28 @@ func (p Params) ValidateBasic() error {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+func (p Params) PenaltyLiveness() uint64 {
+	return p.DishonorLiveness
+}
+
+func (p Params) PenaltyReductionStateUpdate() uint64 {
+	return p.DishonorStateUpdate
+}
+
+func (p Params) PenaltyKickThreshold() uint64 {
+	return p.DishonorKickThreshold
+}
+
+func (p Params) SetPenaltyLiveness(x uint64) {
+	p.DishonorLiveness = x
+}
+
+func (p Params) SetPenaltyReductionStateUpdate(x uint64) {
+	p.DishonorStateUpdate = x
+}
+
+func (p Params) SetPenaltyKickThreshold(x uint64) {
+	p.DishonorKickThreshold = x
 }
