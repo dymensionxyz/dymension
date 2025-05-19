@@ -69,7 +69,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	if err != nil {
 		return errorsmod.Wrap(err, "slash")
 	}
-	k.increasePenaltyLiveness(ctx, &seq)
+	k.increasePenaltyDowntime(ctx, &seq)
 	k.SetSequencer(ctx, seq)
 	return nil
 }
@@ -83,13 +83,13 @@ func (k Keeper) livenessSlash(ctx sdk.Context, seq *types.Sequencer) error {
 	return errorsmod.Wrap(k.slash(ctx, seq, amt, math.LegacyZeroDec(), nil), "slash")
 }
 
-func (k Keeper) reducePenaltyLiveness(ctx sdk.Context, seq *types.Sequencer) {
+func (k Keeper) reducePenaltyUptime(ctx sdk.Context, seq *types.Sequencer) {
 	diff := k.GetParams(ctx).PenaltyReductionStateUpdate()
 	diff = min(diff, seq.GetPenalty())
 	seq.SetPenalty(seq.GetPenalty() - diff)
 }
 
-func (k Keeper) increasePenaltyLiveness(ctx sdk.Context, seq *types.Sequencer) {
+func (k Keeper) increasePenaltyDowntime(ctx sdk.Context, seq *types.Sequencer) {
 	penalty := k.GetParams(ctx).PenaltyLiveness()
 	seq.SetPenalty(seq.GetPenalty() + penalty)
 }
