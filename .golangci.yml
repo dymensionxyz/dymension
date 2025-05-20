@@ -39,7 +39,7 @@ linters:
     rules:
     - linters:
       - staticcheck
-      text: "SA1019:"
+      text: "^.*SA1019.*$"
   settings:
     revive:
       rules:
