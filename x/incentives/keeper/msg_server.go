@@ -61,7 +61,7 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 	// Fee = CreateGaugeBaseFee + AddDenomFee * NumDenoms
 	params := server.keeper.GetParams(ctx)
 	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Coins))))
-	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Coins); err != nil {
+	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
@@ -107,7 +107,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	// Fee = AddToGaugeBaseFee + AddDenomFee * (NumAddedDenoms + NumGaugeDenoms)
 	params := server.keeper.GetParams(ctx)
 	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Rewards) + len(gauge.Coins))))
-	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Rewards); err != nil {
+	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
@@ -128,7 +128,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 
 // chargeGaugesFee deducts a fee in the base denom from the specified address.
 // The fee is charged from the payer and sent to x/txfees to be burned.
-func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int, gaugeCoins sdk.Coins) (err error) {
+func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int) (err error) {
 	feeDenom, err := k.tk.GetBaseDenom(ctx)
 	if err != nil {
 		return err

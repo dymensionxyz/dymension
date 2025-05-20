@@ -297,7 +297,7 @@ func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	// get this from memory instead of hitting iterators / underlying stores.
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
 	if _, ok := cache[distributeBaseDenom]; !ok {
-		duration := k.GetLockableDurations(ctx)[0] // the duration all gauges been created with
+		duration := k.GetLockableDurations(ctx)[0] // the duration all gauges been created with, which is the minimal duration
 		cache[distributeBaseDenom] = k.lk.GetLocksLongerThanDurationDenom(ctx, asset.Denom, duration)
 	}
 

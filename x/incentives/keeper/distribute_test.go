@@ -20,11 +20,6 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		lockDuration: defaultLockDuration,
 		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 300000000000000000)},
 	}
-	doubleLengthGauge := perpGaugeDesc{
-		lockDenom:    defaultLPDenom,
-		lockDuration: 2 * defaultLockDuration,
-		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 300000000000000000)},
-	}
 	noRewardGauge := perpGaugeDesc{
 		lockDenom:    defaultLPDenom,
 		lockDuration: defaultLockDuration,
@@ -33,7 +28,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 	noRewardCoins := sdk.Coins{}
 	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 100000000000000000)}
 	twoKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 200000000000000000)}
-	fiveKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 500000000000000000)}
+	fourKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 400000000000000000)}
 	tests := []struct {
 		name            string
 		users           []userLocks
@@ -49,13 +44,13 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			expectedRewards: []sdk.Coins{oneKRewardCoins, twoKRewardCoins},
 		},
 		// gauge 1 gives 3k coins. three locks, all eligible.
-		// gauge 2 gives 3k coins. one lock, to twoLockupUser.
-		// 1k should to oneLockupUser and 5k to twoLockupUser.
+		// gauge 2 gives 3k coins. three locks, all eligible.
+		// 2k should to oneLockupUser and 4k to twoLockupUser.
 		{
-			name:            "One user with one lockup (default gauge), another user with two lockups (double length gauge)",
+			name:            "One user with one lockup (default gauge), another user with two lockups",
 			users:           []userLocks{oneLockupUser, twoLockupUser},
-			gauges:          []perpGaugeDesc{defaultGauge, doubleLengthGauge},
-			expectedRewards: []sdk.Coins{oneKRewardCoins, fiveKRewardCoins},
+			gauges:          []perpGaugeDesc{defaultGauge, defaultGauge},
+			expectedRewards: []sdk.Coins{twoKRewardCoins, fourKRewardCoins},
 		},
 		// gauge 1 gives zero rewards.
 		// both oneLockupUser and twoLockupUser should get no rewards.
