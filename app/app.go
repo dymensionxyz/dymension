@@ -459,6 +459,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				EIBCKeeper:        &app.AppKeepers.EIBCKeeper,
 				DymNSKeeper:       &app.AppKeepers.DymNSKeeper,
 				StreamerKeeper:    &app.AppKeepers.StreamerKeeper,
+				SequencerKeeper:   app.AppKeepers.SequencerKeeper,
 			},
 		),
 	)

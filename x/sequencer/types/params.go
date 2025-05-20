@@ -102,14 +102,14 @@ func (p Params) PenaltyKickThreshold() uint64 {
 	return p.DishonorKickThreshold
 }
 
-func (p Params) SetPenaltyLiveness(x uint64) {
+func (p *Params) SetPenaltyLiveness(x uint64) {
 	p.DishonorLiveness = x
 }
 
-func (p Params) SetPenaltyReductionStateUpdate(x uint64) {
+func (p *Params) SetPenaltyReductionStateUpdate(x uint64) {
 	p.DishonorStateUpdate = x
 }
 
-func (p Params) SetPenaltyKickThreshold(x uint64) {
+func (p *Params) SetPenaltyKickThreshold(x uint64) {
 	p.DishonorKickThreshold = x
 }

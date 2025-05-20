@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	math "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -28,6 +29,7 @@ import (
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -76,6 +78,10 @@ func CreateUpgradeHandler(
 		updateGovParams(ctx, keepers.GovKeeper)
 
 		updateRollappParams(ctx, keepers.RollappKeeper)
+
+		updateSequencerParams(ctx, keepers.SequencerKeeper)
+
+		migrateSequencers(ctx, keepers.SequencerKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -258,15 +264,16 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 }
 
 const (
-	slowBlockDuration = 6
-	fastBlockDuration = 1
-	BlockSpeedup = slowBlockDuration / fastBlockDuration
-	slowBlocksParamDisputePeriod = 120960 
-	fastBlocksParamDisputePeriod = slowBlocksParamDisputePeriod * BlockSpeedup
-	slowBlocksParamLivenessSlashBlocks = 7200
-	fastBlocksParamLivenessSlashBlocks = slowBlocksParamLivenessSlashBlocks * BlockSpeedup
-	slowBlocksParamLivenessSlashInterval = 600
-	fastBlocksParamLivenessSlashInterval =  slowBlocksParamLivenessSlashInterval * BlockSpeedup
+	slowBlockDuration                    = 6
+	fastBlockDuration                    = 1
+	BlockSpeedup                         = slowBlockDuration / fastBlockDuration
+	slowBlocksParamDisputePeriod         = 120960
+	fastBlocksParamDisputePeriod         = slowBlocksParamDisputePeriod * BlockSpeedup
+	slowBlocksParamLivenessSlashBlocks   = 7200 // 12 hrs
+	fastBlocksParamLivenessSlashBlocks   = slowBlocksParamLivenessSlashBlocks * BlockSpeedup
+	slowBlocksParamLivenessSlashInterval = 600 // 1hr
+	slashIntervalMul                     = 6   // 1 -> 6 hrs
+	fastBlocksParamLivenessSlashInterval = slowBlocksParamLivenessSlashInterval * BlockSpeedup * slashIntervalMul
 )
 
 func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
@@ -277,8 +284,8 @@ func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
 	params.LivenessSlashBlocks = fastBlocksParamLivenessSlashBlocks
 	params.LivenessSlashInterval = fastBlocksParamLivenessSlashInterval
 	k.SetParams(ctx, params)
-	
-	// 2. other state	
+
+	// 2. other state
 	// (other migration for dispute not needed because finalization is computed based on stored creation height)
 	migrateLivenessEvents(ctx, k)
 }
@@ -291,7 +298,36 @@ func migrateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
 			panic("assumed no liveness events in the past") // (zero is fine)
 		}
 		k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId) // we can delete 'both' since there is only one kind currently
-		e.HubHeight = ctx.BlockHeight() + diff * BlockSpeedup
+		e.HubHeight = ctx.BlockHeight() + diff*BlockSpeedup
 		k.PutLivenessEvent(ctx, e)
 	}
-}	
+}
+
+var (
+	newLivenessSlashMinMultiplier = math.LegacyMustNewDecFromStr("0.02")
+)
+
+const (
+	newPenaltyLiveness             = uint64(300)
+	NewPenaltyKickThreshold        = uint64(600)
+	newPenaltyReductionStateUpdate = uint64(150)
+)
+
+func updateSequencerParams(ctx sdk.Context, k *sequencerkeeper.Keeper) {
+	params := k.GetParams(ctx)
+	params.LivenessSlashMinMultiplier = newLivenessSlashMinMultiplier
+	params.SetPenaltyLiveness(newPenaltyLiveness)
+	params.SetPenaltyKickThreshold(NewPenaltyKickThreshold)
+	params.SetPenaltyReductionStateUpdate(newPenaltyReductionStateUpdate)
+	k.SetParams(ctx, params)
+}
+
+func migrateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
+	sequencers := k.AllSequencers(ctx)
+	for _, s := range sequencers {
+		if NewPenaltyKickThreshold < s.GetPenalty() {
+			s.SetPenalty(NewPenaltyKickThreshold)
+			k.SetSequencer(ctx, s)
+		}
+	}
+}
