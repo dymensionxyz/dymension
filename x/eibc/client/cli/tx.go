@@ -290,6 +290,7 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 					SpendLimit:        spendLimit,
 					OrderMinAgeBlocks: orderMinAgeBlocks,
 				},
+				Signer: clientCtx.GetFromAddress().String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
