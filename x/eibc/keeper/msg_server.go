@@ -261,7 +261,7 @@ func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFu
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
+	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, uint64(msg.Rng))
 }
 
 func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {
