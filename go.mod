@@ -247,7 +247,7 @@ require (
 )
 
 replace (
-	github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250514093813-bed4e0313aed
+	github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250520112012-e15f3cfebc7b
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515141645-7f16f1928018
 	// use dymension forks
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
