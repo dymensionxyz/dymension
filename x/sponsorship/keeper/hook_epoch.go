@@ -17,7 +17,16 @@ func (k Keeper) EpochHooks() EpochHooks {
 	return EpochHooks{k}
 }
 
-func (h EpochHooks) AfterEpochEnd(ctx sdk.Context, _ string, _ int64) error {
+func (h EpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
+	params, err := h.k.GetParams(ctx)
+	if err != nil {
+		return fmt.Errorf("get sponsorship params: %w", err)
+	}
+
+	if epochIdentifier != params.EpochIdentifier {
+		return nil
+	}
+
 	es, err := h.k.GetAllEndorsements(ctx)
 	if err != nil {
 		return fmt.Errorf("get all endorsements: %w", err)

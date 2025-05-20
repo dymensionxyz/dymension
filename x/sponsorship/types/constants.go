@@ -21,4 +21,5 @@ var (
 
 	DefaultMinAllocationWeight = DYM // 1%
 	DefaultMinVotingPower      = DYM // 1 DYM
+	DefaultEpochIdentifier     = "day"
 )
