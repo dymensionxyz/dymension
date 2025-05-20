@@ -195,11 +195,11 @@ func (m Gauges) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-func NewEndorsement(rollappId string, rollappGaugeId uint64) Endorsement {
+func NewEndorsement(rollappId string, rollappGaugeId uint64, totalShares math.Int) Endorsement {
 	return Endorsement{
 		RollappId:      rollappId,
 		RollappGaugeId: rollappGaugeId,
-		TotalShares:    math.ZeroInt(),
+		TotalShares:    totalShares,
 		EpochShares:    math.ZeroInt(),
 	}
 }
