@@ -27,6 +27,28 @@ func NewMsgLockTokens(owner sdk.AccAddress, duration time.Duration, coins sdk.Co
 	}
 }
 
+func (m MsgLockTokens) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid owner address (%s)", err)
+	}
+
+	if m.Duration <= 0 {
+		return fmt.Errorf("duration should be positive: %d < 0", m.Duration)
+	}
+
+	// we only allow locks with one denom for now
+	if m.Coins.Len() != 1 {
+		return fmt.Errorf("lockups can only have one denom per lock ID, got %v", m.Coins)
+	}
+
+	if !m.Coins.IsAllPositive() {
+		return fmt.Errorf("cannot lock up a zero or negative amount")
+	}
+
+	return nil
+}
+
 // NewMsgBeginUnlocking creates a message to begin unlocking the tokens of a specific lock.
 func NewMsgBeginUnlocking(owner sdk.AccAddress, id uint64, coins sdk.Coins) *MsgBeginUnlocking {
 	return &MsgBeginUnlocking{
@@ -34,6 +56,28 @@ func NewMsgBeginUnlocking(owner sdk.AccAddress, id uint64, coins sdk.Coins) *Msg
 		ID:    id,
 		Coins: coins,
 	}
+}
+
+func (m MsgBeginUnlocking) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid owner address (%s)", err)
+	}
+
+	if m.ID == 0 {
+		return fmt.Errorf("invalid lockup ID, got %v", m.ID)
+	}
+
+	// only allow unlocks with a single denom or empty
+	if m.Coins.Len() > 1 {
+		return fmt.Errorf("can only unlock one denom per lock ID, got %v", m.Coins)
+	}
+
+	if !m.Coins.Empty() && !m.Coins.IsAllPositive() {
+		return fmt.Errorf("cannot unlock a zero or negative amount")
+	}
+
+	return nil
 }
 
 // NewMsgExtendLockup creates a message to edit the properties of existing locks

@@ -13,6 +13,142 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
+func TestMsgLockTokens(t *testing.T) {
+	addr1 := apptesting.CreateRandomAccounts(1)[0].String()
+	invalidAddr := sdk.AccAddress("invalid").String()
+
+	tests := []struct {
+		name       string
+		msg        types.MsgLockTokens
+		expectPass bool
+	}{
+		{
+			name: "proper msg",
+			msg: types.MsgLockTokens{
+				Owner:    addr1,
+				Duration: time.Hour,
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
+			},
+			expectPass: true,
+		},
+		{
+			name: "invalid owner",
+			msg: types.MsgLockTokens{
+				Owner:    invalidAddr,
+				Duration: time.Hour,
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
+			},
+		},
+		{
+			name: "invalid duration",
+			msg: types.MsgLockTokens{
+				Owner:    addr1,
+				Duration: -1,
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
+			},
+		},
+		{
+			name: "invalid coin length",
+			msg: types.MsgLockTokens{
+				Owner:    addr1,
+				Duration: time.Hour,
+				Coins:    sdk.NewCoins(sdk.NewCoin("test1", math.NewInt(100000)), sdk.NewCoin("test2", math.NewInt(100000))),
+			},
+		},
+		{
+			name: "zero token amount",
+			msg: types.MsgLockTokens{
+				Owner:    addr1,
+				Duration: time.Hour,
+				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(0))),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.expectPass {
+				require.NoError(t, test.msg.ValidateBasic(), "test: %v", test.name)
+			} else {
+				require.Error(t, test.msg.ValidateBasic(), "test: %v", test.name)
+			}
+		})
+	}
+}
+
+func TestMsgBeginUnlocking(t *testing.T) {
+	addr1 := apptesting.CreateRandomAccounts(1)[0].String()
+	invalidAddr := sdk.AccAddress("invalid").String()
+
+	tests := []struct {
+		name       string
+		msg        types.MsgBeginUnlocking
+		expectPass bool
+	}{
+		{
+			name: "proper msg",
+			msg: types.MsgBeginUnlocking{
+				Owner: addr1,
+				ID:    1,
+				Coins: sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
+			},
+			expectPass: true,
+		},
+		{
+			name: "invalid owner",
+			msg: types.MsgBeginUnlocking{
+				Owner: invalidAddr,
+				ID:    1,
+				Coins: sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
+			},
+		},
+		{
+			name: "invalid lockup ID",
+			msg: types.MsgBeginUnlocking{
+				Owner: addr1,
+				ID:    0,
+				Coins: sdk.NewCoins(sdk.NewCoin("test", math.NewInt(100))),
+			},
+		},
+		{
+			name: "invalid coins length",
+			msg: types.MsgBeginUnlocking{
+				Owner: addr1,
+				ID:    1,
+				Coins: sdk.NewCoins(sdk.NewCoin("test1", math.NewInt(100000)), sdk.NewCoin("test2", math.NewInt(100000))),
+			},
+		},
+		{
+			name: "zero coins (same as nil)",
+			msg: types.MsgBeginUnlocking{
+				Owner: addr1,
+				ID:    1,
+				Coins: sdk.NewCoins(sdk.NewCoin("test1", math.NewInt(0))),
+			},
+			expectPass: true,
+		},
+		{
+			name: "nil coins (unlock by ID)",
+			msg: types.MsgBeginUnlocking{
+				Owner: addr1,
+				ID:    1,
+				Coins: sdk.NewCoins(),
+			},
+			expectPass: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.expectPass {
+				require.NoError(t, test.msg.ValidateBasic(), "test: %v", test.name)
+			} else {
+				require.Error(t, test.msg.ValidateBasic(), "test: %v", test.name)
+			}
+		})
+	}
+}
+
 func TestMsgExtendLockup(t *testing.T) {
 	addr1 := apptesting.CreateRandomAccounts(1)[0].String()
 	invalidAddr := sdk.AccAddress("invalid").String()
