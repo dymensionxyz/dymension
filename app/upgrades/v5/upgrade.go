@@ -65,8 +65,8 @@ func CreateUpgradeHandler(
 		// lockup module params migrations
 		migrateAndUpdateLockupParams(ctx, keepers)
 
-		// IRO module params migration
 		updateIROParams(ctx, keepers.IROKeeper)
+		checkIROAssumptions(ctx, keepers.IROKeeper)
 
 		// GAMM module params migration
 		updateGAMMParams(ctx, keepers.GAMMKeeper)
@@ -138,6 +138,16 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement // default: no enforced minimum by default
 
 	k.SetParams(ctx, params)
+}
+
+func checkIROAssumptions(ctx sdk.Context, k *irokeeper.Keeper) {
+	p := k.GetAllPlans(ctx, false)
+	for _, plan := range p {
+		// double check all plans valid with new validations
+		if plan.ValidateBasic() != nil {
+			panic(fmt.Errorf("invalid plan: %v", plan))
+		}
+	}
 }
 
 func updateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
