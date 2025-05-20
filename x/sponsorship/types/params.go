@@ -1,7 +1,5 @@
 package types
 
-import "fmt"
-
 func DefaultParams() Params {
 	return Params{
 		MinAllocationWeight: DefaultMinAllocationWeight,
@@ -21,7 +19,7 @@ func (p Params) ValidateBasic() error {
 		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %s", p.MinVotingPower)
 	}
 	if p.EpochIdentifier == "" {
-		return fmt.Errorf("epoch identifier cannot be empty")
+		return ErrInvalidParams.Wrap("EpochIdentifier cannot be empty")
 	}
 	return nil
 }

@@ -25,6 +25,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 				NewParams: types.Params{
 					MinAllocationWeight: types.DefaultMinAllocationWeight,
 					MinVotingPower:      types.DefaultMinVotingPower,
+					EpochIdentifier:     "day",
 				},
 			},
 			error: nil,
@@ -36,6 +37,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 				NewParams: types.Params{
 					MinAllocationWeight: types.DefaultMinAllocationWeight,
 					MinVotingPower:      types.DefaultMinVotingPower,
+					EpochIdentifier:     "day",
 				},
 			},
 			error: sdkerrors.ErrorInvalidSigner,
@@ -47,6 +49,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 				NewParams: types.Params{
 					MinAllocationWeight: types.DYM.MulRaw(101), // > 100%
 					MinVotingPower:      types.DefaultMinVotingPower,
+					EpochIdentifier:     "day",
 				},
 			},
 			error: types.ErrInvalidParams,
