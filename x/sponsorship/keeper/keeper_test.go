@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) CreateAssetGauge() uint64 {
 		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
 		sdk.Coins{},
 		lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByTime,
+			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "stake",
 			Duration:      time.Hour,
 			Timestamp:     time.Time{},
