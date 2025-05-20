@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -28,6 +30,10 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	for ; iterator.Valid(); iterator.Next() {
 		var plan types.Plan
 		m.k.cdc.MustUnmarshal(iterator.Value(), &plan)
+
+		if err := plan.ValidateBasic(); err != nil {
+			panic(fmt.Errorf("invalid plan: %v", err))
+		}
 
 		// migrate bonding curve
 		plan.BondingCurve.LiquidityDenomDecimals = 18
