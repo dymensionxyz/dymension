@@ -1,3 +1,5 @@
+# https://golangci-lint.run/usage/configuration
+
 version: "2"
 
 run:
@@ -7,73 +9,50 @@ run:
   modules-download-mode: readonly
 
 output:
-  # The formats used to render issues.
-  # Formats:
-  # - `colored-line-number`
-  # - `line-number`
-  # - `json`
-  # - `colored-tab`
-  # - `tab`
-  # - `html`
-  # - `checkstyle`
-  # - `code-climate`
-  # - `junit-xml`
-  # - `junit-xml-extended`
-  # - `github-actions`
-  # - `teamcity`
-  # - `sarif`
-  # Output path can be either `stdout`, `stderr` or path to the file to write to.
   formats:
-    text: 
-    # - format: colored-line-number
-      colors: true 
-      path: stdout  # Print lines of code with issue.
-  # Default: true
-  print-issued-lines: true
-  # Print linter name in the end of issue text.
-  # Default: true
-  print-linter-name: true
-  # Make issues output unique by line.
-  # Default: true
-  uniq-by-line: true
-  # Add a prefix to the output file references.
-  # Default: ""
+    text:
+      colors: true
+      path: stdout
+      print-issued-lines: true
+      print-linter-name: true
   path-prefix: ""
-  # Sort results by: filepath, line and column.
-  # Default: false
-  sort-results: true
+  sort-order:
+  - file
+  - severity
+  - linter
 
 linters:
-  disable-all: true
+  default: none
   enable:
-    - errcheck
-    - gocyclo
-    - gosec
-    - govet
-    - ineffassign
-    - misspell
-    - revive
-    - staticcheck
-    - unconvert
-    - unused
-    - errorlint
- 
-formatters:
-  enable:
-    - gofmt
-    - goimports
-    - gofumpt
-
-issues:
-  exclude-use-default: false
-  exclude:
-    - "^.*SA1019.*$" # Excluding SA1019 errors
-
-linters-settings:
-  revive:
+  - errcheck
+  - gocyclo
+  - gosec
+  - govet
+  - ineffassign
+  - misspell
+  - revive
+  - staticcheck
+  - unconvert
+  - unused
+  - errorlint
+  exclusions:
     rules:
+    - linters:
+      - staticcheck
+      text: "SA1019:"
+  settings:
+    revive:
+      rules:
       - name: exported
         severity: warning
         disabled: true
-  errcheck:
-    check-type-assertions: true
+    errcheck:
+      check-type-assertions: true
+
+issues:
+  uniq-by-line: true
+
+formatters:
+  enable:
+  - goimports
+  - gofumpt
