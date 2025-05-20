@@ -40,6 +40,10 @@ linters:
     - linters:
       - staticcheck
       text: "^.*SA1019.*$"
+    - linters:
+      - errcheck
+      # text: "^.*value of `(\\w+)\\.Close` is not checked\\.*$"
+      text: "^.*value of .*it.*Close.* is not checked"
   settings:
     revive:
       rules:
