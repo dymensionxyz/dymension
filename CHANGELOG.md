@@ -10,6 +10,7 @@
 * correct two usages of indefinite articles in cli ([#1698](https://github.com/dymensionxyz/dymension/issues/1698)) ([1750571](https://github.com/dymensionxyz/dymension/commit/1750571db86c1ff77538e01d01de240a1ededa42))
 * **denommetadata:** wrong key in paginated guery for registered denoms ([#1798](https://github.com/dymensionxyz/dymension/issues/1798)) ([c5d94ab](https://github.com/dymensionxyz/dymension/commit/c5d94ab99849a0a48e855e011ef980b78ed359b6))
 * **eibc:** authorization min fee truncating ([#1756](https://github.com/dymensionxyz/dymension/issues/1756)) ([e4fc14b](https://github.com/dymensionxyz/dymension/commit/e4fc14bb315a083737f81ce8eb3662053a15bc16))
+* **eibc:** use v2 math rand in on demand ([#1855](https://github.com/dymensionxyz/dymension/issues/1855)) ([66cf8f3](https://github.com/dymensionxyz/dymension/commit/66cf8f3cc0be57b8e789a265b2907c356c8b9dbb))
 * **evm:** fix eth custom get signers registry ([#1850](https://github.com/dymensionxyz/dymension/issues/1850)) ([9b7422f](https://github.com/dymensionxyz/dymension/commit/9b7422f605fab58247f3e48fbbc7b95709121e81))
 * **incentives, lockup, gamm:** added missing signer annotation ([#1843](https://github.com/dymensionxyz/dymension/issues/1843)) ([908edb8](https://github.com/dymensionxyz/dymension/commit/908edb84ff15a552ef82e6c987b041ce6af486d4))
 * **incentives:** param switch for endorsement mode ([#1803](https://github.com/dymensionxyz/dymension/issues/1803)) ([548f80c](https://github.com/dymensionxyz/dymension/commit/548f80ceabe86b8adf0220c55714b496c8b88237))
