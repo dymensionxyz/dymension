@@ -3,11 +3,11 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/pkg/errors"
 
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -53,7 +53,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, eibcDemandOrder.GetCreatedEvent(rollappPacket.ProofHeight, data.Amount)); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, types.GetCreatedEvent(eibcDemandOrder, rollappPacket.ProofHeight, data.Amount)); err != nil {
 		return fmt.Errorf("emit event: %w", err)
 	}
 
@@ -67,24 +67,14 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
-	// zero fee demand order by default
-	eibcMetaData := dacktypes.EIBCMetadata{Fee: "0"}
-
-	if fungibleTokenPacketData.Memo != "" {
-		packetMetaData, err := dacktypes.ParsePacketMetadata(fungibleTokenPacketData.Memo)
-		if err == nil {
-			eibcMetaData = *packetMetaData.EIBC
-		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
-			return nil, fmt.Errorf("parse packet metadata: %w", err)
-		}
-	}
-	if err := eibcMetaData.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate eibc metadata: %w", err)
+	memoEIBC, err := GetEIBCMemo(fungibleTokenPacketData.Memo)
+	if err != nil {
+		return nil, fmt.Errorf("unpack fungible packet memo: %w", err)
 	}
 
 	// Calculate the demand order price and validate it,
 	amt, _ := math.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
-	fee, _ := eibcMetaData.FeeInt()                                 // guaranteed ok by above validation
+	fee, _ := memoEIBC.FeeInt()                                     // guaranteed ok by above validation
 	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
 	if err != nil {
 		return nil, err
@@ -94,8 +84,32 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 	creationHeight := uint64(ctx.BlockHeight())
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
+	onComplete, err := memoEIBC.GetCompletionHook()
+	if err != nil {
+		return nil, fmt.Errorf("get on complete hook: %w", err)
+	}
+	if onComplete != nil {
+		if err := k.dack.ValidateCompletionHook(*onComplete); err != nil {
+			return nil, fmt.Errorf("validate on complete hook: %w", err)
+		}
+	}
+
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)
 	return order, nil
+}
+
+func GetEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
+	if memoS == "" {
+		return dacktypes.DefaultEIBCMemo(), nil
+	}
+	m, err := dacktypes.ParseMemo(memoS)
+	if err != nil {
+		if errorsmod.IsOf(err, dacktypes.ErrEIBCMemoEmpty) {
+			return dacktypes.DefaultEIBCMemo(), nil
+		}
+		return dacktypes.EIBCMemo{}, fmt.Errorf("parse packet metadata: %w", err)
+	}
+	return *m.EIBC, m.EIBC.ValidateBasic()
 }
 
 // CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.
@@ -126,7 +140,7 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	creationHeight := uint64(ctx.BlockHeight())
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil)
 	return order, nil
 }
 

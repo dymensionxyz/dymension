@@ -4,6 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -61,7 +62,7 @@ func (r OnDemandLPRecord) MaxSpend() math.Int {
 	return math.MinInt(r.Lp.MaxPrice, r.Lp.SpendLimit.Sub(r.Spent))
 }
 
-func (r OnDemandLPRecord) Accepts(nowHeight uint64, o DemandOrder) bool {
+func (r OnDemandLPRecord) Accepts(nowHeight uint64, o *DemandOrder) bool {
 	priceOK := o.PriceAmount().LTE(r.MaxSpend())
 	feeOK := r.Lp.MinFee.LTE(o.GetFeeAmount())
 	ageOK := r.Lp.OrderMinAgeBlocks <= nowHeight-o.CreationHeight
