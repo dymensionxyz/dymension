@@ -265,9 +265,9 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 				return fmt.Errorf("invalid max price")
 			}
 
-			minFee, ok := math.NewIntFromString(args[3])
-			if !ok {
-				return fmt.Errorf("invalid min fee")
+			minFee, err := math.LegacyNewDecFromStr(args[3])
+			if err != nil {
+				return fmt.Errorf("invalid min fee: %w", err)
 			}
 
 			spendLimit, ok := math.NewIntFromString(args[4])
