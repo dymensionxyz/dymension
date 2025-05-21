@@ -199,6 +199,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 	if err != nil {
 		return errorsmod.Wrap(err, "get outstanding order")
 	}
+
 	lps, err := k.LPs.GetOrderCompatibleLPs(ctx, *o)
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
@@ -208,6 +209,8 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 		lps[i], lps[j] = lps[j], lps[i]
 	})
 	for _, lp := range lps {
+		// FIXME: no need to check for expected fee?
+
 		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
 			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
@@ -215,6 +218,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 					return errorsmod.Wrapf(err, "delete lp: %d", lp.Id)
 				}
 				ctx.Logger().Error("Fulfill via on demand dlp - insufficient funds.", "lp", lp.Id)
+				// note: in case fulfill will get more complicated, we'll need to wrap this with cache ctx
 				continue
 			}
 			return errorsmod.Wrap(err, "fulfill lp")

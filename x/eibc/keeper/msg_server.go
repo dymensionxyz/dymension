@@ -90,7 +90,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	}
 
 	// check compat between the fulfillment and current order and packet status
-	if err := m.validateOrder(demandOrder, msg, ctx); err != nil {
+	if err := m.validateOrder(ctx, demandOrder, msg); err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
 
@@ -140,7 +140,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 }
 
 // TODO: rename and fix signature (ctx first)
-func (m msgServer) validateOrder(demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized, ctx sdk.Context) error {
+func (m msgServer) validateOrder(ctx sdk.Context, demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized) error {
 	if demandOrder.RollappId != msg.RollappId {
 		return types.ErrRollappIdMismatch
 	}
@@ -253,6 +253,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
+/* ------------------------- ---------------------- ------------------------- */
 func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFulfillOnDemand) (*types.MsgTryFulfillOnDemandResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -261,7 +262,12 @@ func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFu
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
+	err = m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgTryFulfillOnDemandResponse{}, nil
 }
 
 func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {
