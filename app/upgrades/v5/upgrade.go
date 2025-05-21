@@ -59,12 +59,6 @@ func CreateUpgradeHandler(
 		migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
 
 		/* ----------------------------- params updates ----------------------------- */
-		// Sponsorship module params migration
-		err = updateSponsorshipParams(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
-		if err != nil {
-			return nil, fmt.Errorf("update sponsorship params: %w", err)
-		}
-
 		// Incentives module params migration
 		migrateAndUpdateIncentivesParams(ctx, keepers)
 
@@ -133,22 +127,6 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 		params.AllowedPoolCreationDenoms = append(params.AllowedPoolCreationDenoms, coin.Denom)
 	}
 	k.SetParams(ctx, params)
-}
-
-func updateSponsorshipParams(ctx sdk.Context, ik *incentiveskeeper.Keeper, sk *sponsorshipkeeper.Keeper) error {
-	params, err := sk.GetParams(ctx)
-	if err != nil {
-		return fmt.Errorf("get sponsorship params: %w", err)
-	}
-
-	// x/sponsorship epoch identifier should be the same as x/incentives epoch identifier
-	params.EpochIdentifier = ik.GetParams(ctx).DistrEpochIdentifier
-
-	err = sk.SetParams(ctx, params)
-	if err != nil {
-		return fmt.Errorf("set sponsorship params: %w", err)
-	}
-	return nil
 }
 
 func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {

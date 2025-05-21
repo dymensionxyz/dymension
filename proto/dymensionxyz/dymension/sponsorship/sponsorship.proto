@@ -31,10 +31,6 @@ message Params {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
-  // EpochIdentifier shows how frequently the sponsorship blacklist is reset.
-  // Should be the same as x/incentives epoch identifier as new rewards
-  // become claimable after x/incentives distribution is complete.
-  string epoch_identifier = 3;
 }
 
 // Distribution holds the distribution plan among gauges. Distribution with the

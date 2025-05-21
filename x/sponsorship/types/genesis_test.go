@@ -26,7 +26,6 @@ func TestValidateGenesis(t *testing.T) {
 				Params: types.Params{
 					MinAllocationWeight: math.NewInt(20),
 					MinVotingPower:      math.NewInt(20),
-					EpochIdentifier:     "day",
 				},
 				VoterInfos: []types.VoterInfo{
 					{
@@ -104,7 +103,6 @@ func TestValidateGenesis(t *testing.T) {
 				Params: types.Params{
 					MinAllocationWeight: math.NewInt(-20),
 					MinVotingPower:      math.NewInt(20),
-					EpochIdentifier:     "day",
 				},
 				VoterInfos: []types.VoterInfo{
 					{
@@ -142,7 +140,6 @@ func TestValidateGenesis(t *testing.T) {
 				Params: types.Params{
 					MinAllocationWeight: math.NewInt(20),
 					MinVotingPower:      math.NewInt(20),
-					EpochIdentifier:     "day",
 				},
 				VoterInfos: []types.VoterInfo{
 					{

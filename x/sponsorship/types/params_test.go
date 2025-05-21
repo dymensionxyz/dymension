@@ -21,7 +21,6 @@ func TestParams(t *testing.T) {
 			input: types.Params{
 				MinAllocationWeight: math.NewInt(20),
 				MinVotingPower:      math.NewInt(20),
-				EpochIdentifier:     "day",
 			},
 			errorIs:       nil,
 			errorContains: "",
@@ -46,7 +45,6 @@ func TestParams(t *testing.T) {
 			input: types.Params{
 				MinAllocationWeight: types.DYM.MulRaw(110),
 				MinVotingPower:      math.NewInt(20),
-				EpochIdentifier:     "day",
 			},
 			errorIs:       types.ErrInvalidParams,
 			errorContains: "MinAllocationWeight must be <= 100 * 10^18, got 110000000000000000000",
@@ -56,20 +54,9 @@ func TestParams(t *testing.T) {
 			input: types.Params{
 				MinAllocationWeight: math.NewInt(20),
 				MinVotingPower:      math.NewInt(-20),
-				EpochIdentifier:     "day",
 			},
 			errorIs:       types.ErrInvalidParams,
 			errorContains: "MinVotingPower must be >= 0",
-		},
-		{
-			name: "Empty EpochIdentifier",
-			input: types.Params{
-				MinAllocationWeight: math.NewInt(20),
-				MinVotingPower:      math.NewInt(20),
-				EpochIdentifier:     "",
-			},
-			errorIs:       types.ErrInvalidParams,
-			errorContains: "EpochIdentifier cannot be empty",
 		},
 	}
 

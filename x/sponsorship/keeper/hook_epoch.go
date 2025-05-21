@@ -18,12 +18,7 @@ func (k Keeper) EpochHooks() EpochHooks {
 }
 
 func (h EpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
-	params, err := h.k.GetParams(ctx)
-	if err != nil {
-		return fmt.Errorf("get sponsorship params: %w", err)
-	}
-
-	if epochIdentifier != params.EpochIdentifier {
+	if epochIdentifier != h.k.incentivesKeeper.DistrEpochIdentifier(ctx) {
 		return nil
 	}
 
