@@ -187,7 +187,7 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 		if err != nil {
 			return nil, err
 		}
-		if lpr.Accepts(uint64(ctx.BlockHeight()), o) {
+		if lpr.Accepts(uint64(ctx.BlockHeight()), &o) {
 			compat = append(compat, lpr)
 		}
 	}
@@ -208,7 +208,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) e
 		lps[i], lps[j] = lps[j], lps[i]
 	})
 	for _, lp := range lps {
-		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
+		err := k.fulfillBasic(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
 			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
 				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {

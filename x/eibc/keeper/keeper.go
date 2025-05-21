@@ -107,37 +107,17 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetPacketStatusUpdatedEvent()); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, types.GetPacketStatusUpdatedEvent(demandOrder)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return demandOrder, nil
 }
 
-// SetOrderFulfilled should be called only at most once per order.
-func (k Keeper) SetOrderFulfilled(
-	ctx sdk.Context,
-	order *types.DemandOrder,
-	fulfillerAddress sdk.AccAddress,
-	collectorAddress sdk.AccAddress,
-) error {
-	order.FulfillerAddress = fulfillerAddress.String()
-	err := k.SetDemandOrder(ctx, order)
-	if err != nil {
-		return err
-	}
-	receiverAddress := fulfillerAddress
-	if collectorAddress != nil {
-		// optional override
-		receiverAddress = collectorAddress
-	}
-	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
-	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, receiverAddress.String())
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (k Keeper) PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*types.DemandOrder, error) {
+	key := p.RollappPacketKey()
+	id := types.BuildDemandIDFromPacketKey(string(key))
+	return k.GetDemandOrder(ctx, commontypes.Status_PENDING, id)
 }
 
 // GetDemandOrder returns the demand order with the given id and status.
@@ -165,6 +145,9 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.Dem
 	if err != nil {
 		return nil, err
 	}
+	if err := demandOrder.ValidateOrderIsOutstanding(); err != nil {
+		return nil, err
+	}
 
 	// TODO: would be nice if the demand order already has the proofHeight, so we don't have to fetch the packet
 	packet, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
@@ -178,7 +161,7 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.Dem
 		return nil, types.ErrDemandOrderInactive
 	}
 
-	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
+	return demandOrder, nil
 }
 
 // ListAllDemandOrders returns all demand orders.
@@ -274,28 +257,11 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 	return
 }
 
-func (k Keeper) Fulfill(ctx sdk.Context,
-	o *types.DemandOrder,
-	fulfiller sdk.AccAddress,
-) error {
-	fulfillerAccount := k.ak.GetAccount(ctx, fulfiller) // TODO: can omit?
-	if fulfillerAccount == nil {
-		return types.ErrFulfillerAddressDoesNotExist
+func (k Keeper) ensureAccount(ctx sdk.Context, address sdk.AccAddress) error {
+	account := k.ak.GetAccount(ctx, address)
+	if account == nil {
+		return errorsmod.Wrapf(types.ErrAccountDoesNotExist, "address: %s", address)
 	}
-
-	err := k.bk.SendCoins(ctx, fulfiller, o.GetRecipientBech32Address(), o.Price)
-	if err != nil {
-		return errorsmod.Wrap(err, "send coins")
-	}
-
-	if err = k.SetOrderFulfilled(ctx, o, fulfiller, nil); err != nil {
-		return errorsmod.Wrap(err, "set fulfilled")
-	}
-
-	if err = uevent.EmitTypedEvent(ctx, o.GetFulfilledEvent()); err != nil {
-		return fmt.Errorf("emit event: %w", err)
-	}
-
 	return nil
 }
 

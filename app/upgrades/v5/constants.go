@@ -4,6 +4,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
 
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 )
 
@@ -16,6 +18,8 @@ var Upgrade = upgrades.Upgrade{
 	CreateHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
 		Added: []string{
+			hypercoretypes.ModuleName,
+			hyperwarptypes.ModuleName,
 			circuittypes.ModuleName,
 		},
 	},
