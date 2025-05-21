@@ -11,8 +11,8 @@ import (
 
 var _ sdk.AnteDecorator = &InnerDecorator{}
 
-// InnerCallback is a function that applies a decorator to a message
-// similar to sdk.AnteDecorator.AnteHandle, but for inner messages
+// InnerCallback is a function that will be called for each leaf message in a transaction
+// The interface is similar to sdk.AnteDecorator.AnteHandle, but for inner messages
 type InnerCallback func(ctx sdk.Context, msg sdk.Msg, simulate bool, depth int) (sdk.Context, error)
 
 // InnerDecorator applies a list of InnerDecoratorFuncs to all leaf messages in a transaction

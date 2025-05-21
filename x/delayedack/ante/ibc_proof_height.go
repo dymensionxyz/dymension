@@ -62,7 +62,6 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	return next(ctx, tx, simulate)
 }
 
-// type InnerCallback func(ctx sdk.Context, msg sdk.Msg, simulate bool, depth int) error
 func (rrd IBCProofHeightDecorator) InnerCallback(ctx sdk.Context, m sdk.Msg, simulate bool, depth int) (sdk.Context, error) {
 	var (
 		height   clienttypes.Height
