@@ -22,11 +22,11 @@ message OnDemandLP {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
 
-  // will not fulfill if fee is below this
+  // will not fulfill if fee is below this (percentage of price expressed in [0,1])
   string minFee = 5 [
     (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+    (cosmos_proto.scalar) = "cosmos.LegacyDec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
   ];
 
   // will not fulfill if brings amt spent above limit
