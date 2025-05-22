@@ -116,9 +116,6 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 }
 
 func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
-	p := s.dackK().GetParams(s.hubCtx())
-	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // x%
-	s.dackK().SetParams(s.hubCtx(), p)
 
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
@@ -131,6 +128,10 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	s.NoError(err)
 	hookBz, err := proto.Marshal(hook)
 	s.NoError(err)
+
+	p := s.dackK().GetParams(s.hubCtx())
+	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // x%
+	s.dackK().SetParams(s.hubCtx(), p)
 
 	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress() // any hub addr
 	ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
@@ -201,7 +202,8 @@ func TestOsmosisForwardSuite(t *testing.T) {
 	suite.Run(t, new(osmosisForwardSuite))
 }
 
-func (s *osmosisForwardSuite) TestForward() {
+// ibc completion hooks need to fire for inbound ibc transfers from NON rollapps
+func (s *osmosisForwardSuite) TestIBCCompletionHook() {
 	cosmosEndpoint := s.path.EndpointB
 
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
@@ -222,7 +224,6 @@ func (s *osmosisForwardSuite) TestForward() {
 			dummy: &h,
 		},
 	)
-	s.T().Log("running test forward!")
 
 	hookData := commontypes.CompletionHookCall{
 		Name: dummy,
