@@ -152,7 +152,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
 	s.NoError(err)
 
-	ok, err := parseFwdErrFromEvents(evts.ToABCIEvents())
+	ok, err := fwdResultFromHubEvts(evts.ToABCIEvents())
 	s.NoError(err)
 
 	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
@@ -178,7 +178,7 @@ const (
 	ForwardEvtAttrOK      = "ok"
 )
 
-func parseFwdErrFromEvents(events []comettypes.Event) (bool, error) {
+func fwdResultFromHubEvts(events []comettypes.Event) (bool, error) {
 	for _, ev := range events {
 		if ev.Type == ForwardEvtTypeForward {
 			for _, attr := range ev.Attributes {
