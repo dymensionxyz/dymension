@@ -187,9 +187,7 @@ func (s *UpgradeTestSuite) validateIROParamsMigration() error {
 	return nil
 }
 
-var (
-	livenessEventsBlocks = []int64{0, 100, 200, 300}
-)
+var livenessEventsBlocks = []int64{0, 100, 200, 300}
 
 func (s *UpgradeTestSuite) populateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
 	for i, h := range livenessEventsBlocks {
@@ -198,7 +196,6 @@ func (s *UpgradeTestSuite) populateLivenessEvents(ctx sdk.Context, k *rollappkee
 			HubHeight: dummyUpgradeHeight + h,
 		})
 	}
-
 }
 
 func (s *UpgradeTestSuite) validateLivenessEventsMigration(ctx sdk.Context, k *rollappkeeper.Keeper) error {
@@ -217,7 +214,6 @@ func (s *UpgradeTestSuite) populateSequencers(ctx sdk.Context, k *sequencerkeepe
 		Status:   sequencertypes.Bonded,
 		Dishonor: v5.NewPenaltyKickThreshold + 1,
 	})
-
 }
 
 func (s *UpgradeTestSuite) validateSequencersMigration(ctx sdk.Context, k *sequencerkeeper.Keeper) {

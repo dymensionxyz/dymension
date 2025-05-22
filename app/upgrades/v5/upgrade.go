@@ -302,9 +302,7 @@ const (
 	fastBlocksParamLivenessSlashInterval = slowBlocksParamLivenessSlashInterval * BlockSpeedup * slashIntervalMul
 )
 
-var (
-	newLivenessSlashMinMultiplier = math.LegacyMustNewDecFromStr("0.02")
-)
+var newLivenessSlashMinMultiplier = math.LegacyMustNewDecFromStr("0.02")
 
 const (
 	newPenaltyLiveness             = uint64(300)
@@ -313,7 +311,6 @@ const (
 )
 
 func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
-
 	// 1. params
 	params := k.GetParams(ctx)
 	params.DisputePeriodInBlocks = fastBlocksParamDisputePeriod
