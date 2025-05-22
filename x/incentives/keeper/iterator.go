@@ -62,11 +62,11 @@ func (k Keeper) FinishedGaugesIterator(ctx sdk.Context) storetypes.Iterator {
 	return k.iterator(ctx, types.KeyPrefixFinishedGauges)
 }
 
-// FilterLocksByMinDuration returns locks whose lock duration is greater than the provided minimum duration.
-func FilterLocksByMinDuration(locks []lockuptypes.PeriodLock, minDuration time.Duration) []lockuptypes.PeriodLock {
-	filteredLocks := make([]lockuptypes.PeriodLock, 0, len(locks)/2)
+// FilterLocksByMinimalAgeAndDuration returns locks whose lock duration is greater than the provided minimum duration.
+func FilterLocksByMinimalAgeAndDuration(locks []lockuptypes.PeriodLock, minDuration time.Duration, minCreationTime time.Time) []lockuptypes.PeriodLock {
+	filteredLocks := make([]lockuptypes.PeriodLock, 0, len(locks))
 	for _, lock := range locks {
-		if lock.Duration >= minDuration {
+		if lock.Duration >= minDuration && lock.CreationTimestamp.Before(minCreationTime) {
 			filteredLocks = append(filteredLocks, lock)
 		}
 	}

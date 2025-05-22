@@ -81,20 +81,10 @@ func NewRewardDistributionTracker() RewardDistributionTracker {
 	}
 }
 
-// getLocksToDistributionWithMaxDuration returns locks that match the provided lockuptypes QueryCondition,
+// getLocksForDenom returns locks that match the provided lockuptypes QueryCondition,
 // are greater than the provided minDuration, AND have yet to be distributed to.
-func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo lockuptypes.QueryCondition, minDuration time.Duration) []lockuptypes.PeriodLock {
-	switch distrTo.LockQueryType {
-	case lockuptypes.ByDuration:
-		// TODO: what the meaning of minDuration here? it's set to time.Millisecond in the caller.
-		duration := min(distrTo.Duration, minDuration)
-		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, duration)
-	case lockuptypes.ByTime:
-		k.Logger(ctx).Error("Gauge by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
-		return []lockuptypes.PeriodLock{}
-	default:
-	}
-	return []lockuptypes.PeriodLock{}
+func (k Keeper) getLocksForDenom(ctx sdk.Context, denom string) []lockuptypes.PeriodLock {
+	return k.lk.GetLocksLongerThanDurationDenom(ctx, denom, 0)
 }
 
 // addLockRewards adds the provided rewards to the lockID mapped to the provided owner address.
@@ -310,10 +300,15 @@ func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	asset := gauge.GetAsset() // this should never be nil
 	distributeBaseDenom := asset.Denom
 	if _, ok := cache[distributeBaseDenom]; !ok {
-		cache[distributeBaseDenom] = k.getLocksToDistributionWithMaxDuration(ctx, *asset, time.Millisecond)
+		// we get ALL the locks for the denom as this cache is used by multiple gauges
+		// which can have different conditions
+		cache[distributeBaseDenom] = k.getLocksForDenom(ctx, asset.Denom)
 	}
 	// get this from memory instead of hitting iterators / underlying stores.
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
-	allLocks := cache[distributeBaseDenom]
-	return FilterLocksByMinDuration(allLocks, asset.Duration)
+	locksForDenom := cache[distributeBaseDenom]
+
+	// filter the locks according to the minimal required age and duration
+	minCreationTime := ctx.BlockTime().Add(-k.GetParams(ctx).MinLockAge)
+	return FilterLocksByMinimalAgeAndDuration(locksForDenom, asset.Duration, minCreationTime)
 }
