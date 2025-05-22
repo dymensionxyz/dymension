@@ -17,7 +17,9 @@ import (
 )
 
 // max depth of nested messages
-const MaxInnerDepth = 6
+// Depth 0 is top level message
+// Depth 1 or more is wrapped in something
+const maxInnerDepth = 6
 
 type HandlerOptions struct {
 	ExtensionOptionChecker ante.ExtensionOptionChecker

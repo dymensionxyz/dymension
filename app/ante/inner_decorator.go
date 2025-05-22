@@ -54,8 +54,8 @@ func (id InnerDecorator) handleMsgs(ctx sdk.Context, msgs []sdk.Msg, simulate bo
 }
 
 func (id InnerDecorator) handleMsg(ctx sdk.Context, msg sdk.Msg, simulate bool, depth int) (sdk.Context, error) {
-	if depth >= MaxInnerDepth {
-		return ctx, fmt.Errorf("found more nested msgs than permitted. Limit is : %d", MaxInnerDepth)
+	if depth >= maxInnerDepth {
+		return ctx, fmt.Errorf("found more nested msgs than permitted. limit is : %d", maxInnerDepth)
 	}
 
 	var (
@@ -79,12 +79,7 @@ func (id InnerDecorator) handleMsg(ctx sdk.Context, msg sdk.Msg, simulate bool, 
 
 	if len(inner) > 0 {
 		// Not a leaf, recurse
-		ctx, err = id.handleMsgs(ctx, inner, simulate, depth+1)
-		if err != nil {
-			return ctx, err
-		}
-
-		return ctx, nil
+		return id.handleMsgs(ctx, inner, simulate, depth+1)
 	}
 
 	// Leaf message: apply all callbacks

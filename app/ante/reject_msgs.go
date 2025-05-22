@@ -77,8 +77,8 @@ func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, de
 
 // depth=0 means top level message
 func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth int) error {
-	if depth >= MaxInnerDepth {
-		return fmt.Errorf("found more nested msgs than permitted. Limit is : %d", MaxInnerDepth)
+	if depth >= maxInnerDepth {
+		return fmt.Errorf("found more nested msgs than permitted. limit is : %d", maxInnerDepth)
 	}
 
 	if _, ok := msg.(*evmtypes.MsgEthereumTx); ok {
