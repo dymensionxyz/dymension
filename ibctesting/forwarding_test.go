@@ -70,7 +70,6 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 			dummy: &h,
 		},
 	)
-	s.T().Log("running test forward!")
 
 	hookData := commontypes.CompletionHookCall{
 		Name: dummy,
