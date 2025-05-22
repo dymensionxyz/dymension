@@ -28,6 +28,7 @@
 * **rollapp:** cli update only metadata ([#1708](https://github.com/dymensionxyz/dymension/issues/1708)) ([942c868](https://github.com/dymensionxyz/dymension/commit/942c8683b6aed177088eac49bb8703d83fadb210))
 * **rollapp:** make MinimumSequencerBond optional ([#1754](https://github.com/dymensionxyz/dymension/issues/1754)) ([5c22952](https://github.com/dymensionxyz/dymension/commit/5c22952b10209e63634a7f7c1d9f510506e0344c))
 * **sponsorship:** added epoch identifier ([#1864](https://github.com/dymensionxyz/dymension/issues/1864)) ([1094223](https://github.com/dymensionxyz/dymension/commit/109422326685781577a3148e5284efdeeb80a2e1))
+* **sponsorship:** missing total power in the endorsement migration ([#1865](https://github.com/dymensionxyz/dymension/issues/1865)) ([3e0e9ef](https://github.com/dymensionxyz/dymension/commit/3e0e9effdd628dfd8c3c21cae98ff3a14162791f))
 * **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([5ce245c](https://github.com/dymensionxyz/dymension/commit/5ce245c1eddcbbe150ce2db97ce6cfcde936a35e))
 
 
@@ -37,6 +38,7 @@
 * **app:** Upgrading to v50 ([#1736](https://github.com/dymensionxyz/dymension/issues/1736)) ([f2359ac](https://github.com/dymensionxyz/dymension/commit/f2359acdb6d8c4d616d879b6411b0b7067c60447)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
 * **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
 * **eibc:** add ability to find fulfiller on demand ([#1745](https://github.com/dymensionxyz/dymension/issues/1745)) ([5722855](https://github.com/dymensionxyz/dymension/commit/57228557e9f9a2cb58ac411e48bbe90254e540ab)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
+* **eibc:** optimistic eibc min fee is now percent ([#1868](https://github.com/dymensionxyz/dymension/issues/1868)) ([cf94c1a](https://github.com/dymensionxyz/dymension/commit/cf94c1a8a9f48131a449b0072509e4ba32cef5d1))
 * **genesis-bridge:** pessimistic validation for rollapp genesis bridge opening ([#1814](https://github.com/dymensionxyz/dymension/issues/1814)) ([3160858](https://github.com/dymensionxyz/dymension/commit/316085868a43d181b82318ffdd28c788baf6551f))
 * Hyperlane integration + eibc transfer completion hooks ([#1797](https://github.com/dymensionxyz/dymension/issues/1797)) ([e90c399](https://github.com/dymensionxyz/dymension/commit/e90c3995e3f8f061ce933b661a22c68e6165dcb9)), closes [#1808](https://github.com/dymensionxyz/dymension/issues/1808) [#1854](https://github.com/dymensionxyz/dymension/issues/1854)
 * **incentives:**  dont distribute endorsement rewards to non active rollapps ([#1845](https://github.com/dymensionxyz/dymension/issues/1845)) ([ea42e47](https://github.com/dymensionxyz/dymension/commit/ea42e477c2d7c1a1d101b75e86ccbcb916fe074d))
