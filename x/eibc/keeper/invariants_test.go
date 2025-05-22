@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			Packet:      &packet,
 		}
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String(), 1, nil)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}

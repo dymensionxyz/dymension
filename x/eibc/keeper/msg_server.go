@@ -66,7 +66,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrExpectedFeeNotMet
 	}
 
-	err = m.Fulfill(ctx, demandOrder, msg.GetFulfillerBech32Address())
+	err = m.fulfillBasic(ctx, demandOrder, msg.GetFulfillerBech32Address())
 	if err != nil {
 		logger.Error("Fulfill order", "error", err)
 		return nil, err
@@ -94,43 +94,38 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
 
-	lpAccount := m.ak.GetAccount(ctx, msg.GetLPBech32Address())
-	if lpAccount == nil {
-		return nil, types.ErrLPAccountDoesNotExist
+	lp := msg.GetLPBech32Address()
+	operator := msg.GetOperatorFeeBech32Address()
+
+	if err := m.ensureAccount(ctx, operator); err != nil {
+		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
-	// Send the funds from the lpAccount to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.Keeper.fulfill(ctx, demandOrder, fulfillArgs{
+		FundsSource: lp,
+		Fulfiller:   operator,
+	})
 	if err != nil {
-		logger.Error("Failed to send price to recipient", "error", err)
 		return nil, err
-	}
-
-	operatorAccount := m.ak.GetAccount(ctx, msg.GetOperatorFeeBech32Address())
-	if operatorAccount == nil {
-		return nil, types.ErrOperatorFeeAccountDoesNotExist
 	}
 
 	fee := math.LegacyNewDecFromInt(demandOrder.GetFeeAmount())
 	operatorFee := fee.MulTruncate(msg.OperatorFeeShare).TruncateInt()
 
 	if operatorFee.IsPositive() {
-		// Send the fee part to the fulfiller/operator
-		err = m.bk.SendCoins(ctx, lpAccount.GetAddress(), operatorAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
+		// LP pays fee to operator
+		err = m.bk.SendCoins(ctx, lp, operator, sdk.NewCoins(sdk.NewCoin(demandOrder.Price[0].Denom, operatorFee)))
 		if err != nil {
 			logger.Error("Failed to send fee part to operator", "error", err)
 			return nil, err
 		}
 	}
 
-	if err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, operatorAccount.GetAddress(), lpAccount.GetAddress()); err != nil {
-		return nil, err
-	}
-
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetFulfilledAuthorizedEvent(
+	if err = uevent.EmitTypedEvent(ctx, types.GetFulfilledAuthorizedEvent(
+		demandOrder,
 		demandOrder.CreationHeight,
 		msg.LpAddress,
-		operatorAccount.GetAddress().String(),
+		operator.String(),
 		operatorFee.String(),
 	)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
@@ -246,7 +241,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	if err = uevent.EmitTypedEvent(ctx, demandOrder.GetUpdatedEvent(raPacket.ProofHeight, data.Amount)); err != nil {
+	if err = uevent.EmitTypedEvent(ctx, types.GetUpdatedEvent(demandOrder, raPacket.ProofHeight, data.Amount)); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
@@ -261,7 +256,7 @@ func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFu
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, msg.Rng)
+	return &types.MsgTryFulfillOnDemandResponse{}, m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, uint64(msg.Rng))
 }
 
 func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateOnDemandLP) (*types.MsgCreateOnDemandLPResponse, error) {

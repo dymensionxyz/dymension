@@ -1,0 +1,17 @@
+syntax = "proto3";
+package dymensionxyz.dymension.forward;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
+
+import "hyperlane/warp/v1/tx.proto";
+import "ibc/applications/transfer/v1/tx.proto";
+
+message HookForwardToHL {
+  hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1; 
+}
+
+message HookForwardToIBC {
+  ibc.applications.transfer.v1.MsgTransfer transfer = 1;
+}
+
+

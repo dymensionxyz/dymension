@@ -18,12 +18,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
+	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-
-	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -74,8 +73,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			preUpgrade: func() error {
 				s.setLockupParams()
 				s.setIROParams()
-				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
+				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				return nil
 			},
 			upgrade: func() {

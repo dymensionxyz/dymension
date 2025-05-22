@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	math "cosmossdk.io/math"
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -59,7 +59,10 @@ func CreateUpgradeHandler(
 		// move params from params keeper to each module's store
 		migrateDeprecatedParamsKeeperSubspaces(ctx, keepers)
 		// Initialize endorsements for existing rollapps
-		migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
+		err = migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
+		if err != nil {
+			return nil, fmt.Errorf("migrate endorsements: %w", err)
+		}
 
 		/* ----------------------------- params updates ----------------------------- */
 		// Incentives module params migration
@@ -166,19 +169,42 @@ func updateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
 
 // Create endorsment objects for existing rollapps
 // we iterate over rollapp gauges as we have one per rollapp
-func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Keeper, sponsorshipKeeper *sponsorshipkeeper.Keeper) {
+func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Keeper, sponsorshipKeeper *sponsorshipkeeper.Keeper) error {
 	gauges := incentivesKeeper.GetGauges(ctx)
+	distr, err := sponsorshipKeeper.GetDistribution(ctx)
+	if err != nil {
+		return fmt.Errorf("get distribution: %w", err)
+	}
+
+	// This is a temporary map for a fast lookup of gauge total voting power
+	powerByGauge := make(map[uint64]math.Int, len(distr.Gauges))
+	for _, gauge := range distr.Gauges {
+		powerByGauge[gauge.GaugeId] = gauge.Power
+	}
+
 	for _, gauge := range gauges {
 		if rollappGauge := gauge.GetRollapp(); rollappGauge != nil {
-			// Create endorsement for this rollapp gauge
-			endorsement := sponsorshiptypes.NewEndorsement(rollappGauge.RollappId, gauge.Id)
+			// Check if the gauge has any voting power. Total voting power is the initial
+			// number of shares in the respective endorsement gauge.
+			power, ok := powerByGauge[gauge.Id]
+			if !ok {
+				// If a RA gauge does not have any power, it's fine; use 0.
+				// It means there is no voting power cast to this rollapp.
+				power = math.ZeroInt()
+			}
+
+			// Create an endorsement for this rollapp gauge
+			endorsement := sponsorshiptypes.NewEndorsement(rollappGauge.RollappId, gauge.Id, power)
+
 			err := sponsorshipKeeper.SaveEndorsement(ctx, endorsement)
 			if err != nil {
-				panic(fmt.Errorf("failed to save endorsement: %w", err))
+				return fmt.Errorf("failed to save endorsement: %w", err)
 			}
+
 			ctx.Logger().Info(fmt.Sprintf("Created endorsement for rollapp %s with gauge %d", rollappGauge.RollappId, gauge.Id))
 		}
 	}
+	return nil
 }
 
 // Get params from subspaces and set them using each keeper's SetParams method
@@ -276,6 +302,16 @@ const (
 	fastBlocksParamLivenessSlashInterval = slowBlocksParamLivenessSlashInterval * BlockSpeedup * slashIntervalMul
 )
 
+var (
+	newLivenessSlashMinMultiplier = math.LegacyMustNewDecFromStr("0.02")
+)
+
+const (
+	newPenaltyLiveness             = uint64(300)
+	NewPenaltyKickThreshold        = uint64(600)
+	newPenaltyReductionStateUpdate = uint64(150)
+)
+
 func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
 
 	// 1. params
@@ -302,16 +338,6 @@ func migrateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
 		k.PutLivenessEvent(ctx, e)
 	}
 }
-
-var (
-	newLivenessSlashMinMultiplier = math.LegacyMustNewDecFromStr("0.02")
-)
-
-const (
-	newPenaltyLiveness             = uint64(300)
-	NewPenaltyKickThreshold        = uint64(600)
-	newPenaltyReductionStateUpdate = uint64(150)
-)
 
 func updateSequencerParams(ctx sdk.Context, k *sequencerkeeper.Keeper) {
 	params := k.GetParams(ctx)

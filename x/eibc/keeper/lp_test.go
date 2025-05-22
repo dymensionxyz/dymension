@@ -15,7 +15,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "1", // wrong rollup
 		Denom:      "aaa",
 		MaxPrice:   math.NewInt(1),
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("0"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "1", // wrong rollup
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(1),
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("0"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "2",
 		Denom:      "aaa", // wrong denom
 		MaxPrice:   math.NewInt(1),
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("0"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(1), // max price too low
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("0"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(5),
-		MinFee:     math.NewInt(8), // min fee too high
+		MinFee:     math.LegacyMustNewDecFromStr("0.8"), // min fee too high
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(5), // valid
-		MinFee:     math.NewInt(7), // valid
+		MinFee:     math.LegacyMustNewDecFromStr("0.2"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "2",
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(6), // also valid, but not first
-		MinFee:     math.NewInt(5), // also valid, but not first
+		MinFee:     math.LegacyMustNewDecFromStr("0.2"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "3", // wrong rollup
 		Denom:      "aaa",
 		MaxPrice:   math.NewInt(1),
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("0.2"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
@@ -80,13 +80,13 @@ func (suite *KeeperTestSuite) TestLPFindCompatible() {
 		Rollapp:    "3", // wrong rollup
 		Denom:      "bbb",
 		MaxPrice:   math.NewInt(1),
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("0.2"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)
 	o := types.DemandOrder{
 		Price:     sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(5))),
-		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(7))),
+		Fee:       sdk.NewCoins(sdk.NewCoin("bbb", math.NewInt(3))),
 		RollappId: "2",
 	}
 	lps, err := k.LPs.GetOrderCompatibleLPs(ctx, o)
@@ -107,7 +107,7 @@ func (suite *KeeperTestSuite) TestDebug() {
 		Rollapp:    rol, // wrong rollup
 		Denom:      denom,
 		MaxPrice:   math.NewInt(1),
-		MinFee:     math.NewInt(1),
+		MinFee:     math.LegacyMustNewDecFromStr("1"),
 		SpendLimit: math.NewInt(100),
 	})
 	suite.Require().NoError(err)

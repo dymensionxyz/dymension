@@ -17,7 +17,11 @@ func (k Keeper) EpochHooks() EpochHooks {
 	return EpochHooks{k}
 }
 
-func (h EpochHooks) AfterEpochEnd(ctx sdk.Context, _ string, _ int64) error {
+func (h EpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
+	if epochIdentifier != h.k.incentivesKeeper.DistrEpochIdentifier(ctx) {
+		return nil
+	}
+
 	es, err := h.k.GetAllEndorsements(ctx)
 	if err != nil {
 		return fmt.Errorf("get all endorsements: %w", err)
