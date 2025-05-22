@@ -1,0 +1,112 @@
+https://www.notion.so/dymension/Hyperlane-Bridges-UX-Operations-1b3a4a51f86a800b9750d45f45f70d15
+https://www.notion.so/dymension/ADR-Hyperlane-Integration-1dfa4a51f86a80e58db9cd966b7f289d
+
+~~~~~~~~~~
+
+transfer paths ('sol' means a chain over Hyperlane e.g. Solana, Ethereum or others in future)
+    sol -> hub
+    sol -> rol (or other ibc)
+    rol -> sol
+    rol -> rol (or other ibc)
+    other ibc -> rol
+
+Refs
+    Docs
+        Hyperlane have a lot of docs here https://docs.hyperlane.xyz/docs/reference/, which has a lot of sections so there is more than you think
+        Live deployments: https://docs.hyperlane.xyz/docs/reference/addresses/mailbox-addresses
+
+    You can see examples of HL frontends here:
+        https://github.com/hyperlane-xyz
+        e.g. 
+            - https://github.com/hyperlane-xyz/hyperlane-deploy-app
+            - https://github.com/hyperlane-xyz/hyperlane-explorer https://explorer.hyperlane.xyz/
+            - https://github.com/hyperlane-xyz/hyperlane-warp-ui-template https://hyperlane-warp-template.vercel.app/
+            - https://github.com/hyperlane-xyz/hyperlane-deploy-app https://hyperlane-deploy-app.vercel.app/
+
+        FYI our deployments and info will eventually get upstreamed here (registry), we can also store them for convenience
+        - https://github.com/hyperlane-xyz/hyperlane-registry/tree/main/deployments
+        - https://github.com/hyperlane-xyz/hyperlane-registry/tree/main/chains
+
+    Here is some code which shows how to do the necessary steps like memo creation
+        - https://github.com/dymensionxyz/dymension/blob/ba9d0d3419d9ae47c6abfd553a3a76a1a8e7d19c/x/forward/cli/util.go#L35-L43
+    
+    Queries
+        Hub (There are equivalent GRPC queries for all of these)
+            curl http://localhost:1318/hyperlane/v1/tokens
+            curl http://localhost:1318/hyperlane/v1/tokens/{id}
+            curl http://localhost:1318/hyperlane/v1/tokens/{id}/bridged_supply
+            curl http://localhost:1318/hyperlane/v1/tokens/{id}/remote_routers
+            curl http://localhost:1318/hyperlane/v1/tokens/{id}/quote_remote_transfer/{destination_domain}
+            curl http://localhost:1318/hyperlane/v1/mailboxes
+            curl http://localhost:1318/hyperlane/v1/mailboxes/{id}
+            curl http://localhost:1318/hyperlane/v1/mailboxes/{id}/delivered/{message_id}
+            curl http://localhost:1318/hyperlane/v1/recipient_ism/{recipient}
+            curl http://localhost:1318/hyperlane/v1/verify_dry_run
+            curl http://localhost:1318/hyperlane/v1/igps
+            curl http://localhost:1318/hyperlane/v1/igps/{id}
+            curl http://localhost:1318/hyperlane/v1/igps/{id}/destination_gas_configs
+            curl http://localhost:1318/hyperlane/v1/igps/{igp_id}/quote_gas_payment
+            curl http://localhost:1318/hyperlane/v1/merkle_tree_hooks
+            curl http://localhost:1318/hyperlane/v1/merkle_tree_hooks/{id}
+            curl http://localhost:1318/hyperlane/v1/noop_hooks
+            curl http://localhost:1318/hyperlane/v1/noop_hooks/{id}
+            curl http://localhost:1318/hyperlane/v1/isms
+            curl http://localhost:1318/hyperlane/v1/isms/{id}
+            curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/{validator_address}
+            curl http://localhost:1318/hyperlane/v1/mailboxes/{mailbox_id}/announced_storage_locations/{validator_address}/latest
+
+
+## sol -> hub
+    same as below except dropping the memo. So for ethereum:
+        cast send $CONTRACT_ADDR "transferRemote(uint32,bytes32,uint256)" $HUB_DOMAIN $HUB_RECEIVER_ADDR $AMT --private-key $HYP_KEY --rpc-url http://localhost:8545
+
+## sol -> rol (or other ibc)
+    requires a token id of a hyperlane token on the hub
+    see http://localhost:1318/hyperlane/v1/tokens
+    you can see how to get the memo here https://github.com/dymensionxyz/dymension/blob/ba9d0d3419d9ae47c6abfd553a3a76a1a8e7d19c/x/forward/cli/util.go#L226-L250
+    that memo goes in the ETHEREUM/soltransaction
+    cast send $ETHEREUM_TOKEN_CONTRACT "transferRemoteMemo(uint32,bytes32,uint256,bytes)" $HUB_DOMAIN $HUB_RECEIVER_ADDR $AMT $DEMO_MEMO --private-key $HYP_KEY --rpc-url http://localhost:8545 
+    where HUB_DOMAIN is a global ID for the HUB chain in Hyperlane world. For example prod has id dymension dymension_100-1 so it will be 1260813472 (there is a derivation, but just hardcode it)
+    Other domains are here https://docs.hyperlane.xyz/docs/reference/domains, 
+    the CONTRACT_ADDR needs to come from some registry. Likewise for the solana program ID
+    ETHEREUM EXAMPLE:
+        https://github.com/dymensionxyz/hyperlane-monorepo/blob/58596c2114a88ed7c6f650e79ed400610d34549f/dymension/foo_test/commands.sh#L65
+        cast send $CONTRACT_ADDR "transferRemoteMemo(uint32,bytes32,uint256,bytes)" $HUB_DOMAIN $HUB_RECEIVER_ADDR $AMT $MEMO --private-key $HYP_KEY --rpc-url http://localhost:8545
+    SOLANA EXAMPLE:
+        https://github.com/dymensionxyz/hyperlane-monorepo/blob/58596c2114a88ed7c6f650e79ed400610d34549f/dymension/solana_test/commands.sh#L117-L120
+        # initate the transfer, it should result in the message being included with a memo in the outbound messages box
+        cargo run -- -k $SOL_KEY_PATH --config $SOL_CFG_PATH \
+            token transfer-remote-memo \
+            --program-id $PROGRAM_ID \
+            $SOL_KEY_PATH 100 $HUB_DOMAIN $HUB_RECIPIENT native $MEMO
+    The Hyerplane HUB_RECEIVER_ADDR is ALWAYS a hub address. In this case the SENDER can PROVIDE an address, if they have one on the Hub, or the recipient on the ROL if their pub key is available (can query)
+    if neither possible (final destination is .e.g osmosis, or rol recipient does not have account yet), need to ASK user for a hub recovery addr or make one for them etc etc. Or just ask the sender straight up.
+
+## rol -> sol
+    see https://github.com/dymensionxyz/dymension/blob/ba9d0d3419d9ae47c6abfd553a3a76a1a8e7d19c/x/forward/cli/util.go#L59-L76
+    see also https://github.com/dymensionxyz/e2e-tests/blob/492309d1848d3ac34a7408bdc58b1e17b2db2e17/hyperlane.txt#L71-L83
+    This is more complex:
+        The memo requires a MAX_HYPERLANE_FEE: in hyperlane the user pays the cost of transfer ON TOP of the amount he wants to transfer, which 
+        guarantees the recipient always gets the amount intended. This is paid in HUB tokens. For example if the token originates from the rollapp, 
+        it will be the ibc denom of that token on the hub, because that is what the hub handles during the forwarding. If the token originates from
+        Hyperlane it will hyperlane/akjdflkajdfi (because that is the hub repr). If it's dym it will be adym. This info can be looked up on the hyperlane token
+        endpoint on the hub.
+        The destination domain is the domain of the chain, .e.g sol or ethereum as discussed above. The token ID is the HYPERLANE token ID on the Hub.
+        For the tx to the rollapp (tx ibc-transfer) the amount needs to be enough to cover the hyperlane amount + hyperlane max fee + after all eibc fee etc.
+        There is a utility to calculate it https://github.com/dymensionxyz/dymension/blob/ba9d0d3419d9ae47c6abfd553a3a76a1a8e7d19c/x/forward/cli/util.go#L496-L518
+        The ibc-transfer tx recipient needs to be the hub recovery address as usual, as described below
+
+## rol -> rol (or other ibc)
+    see https://github.com/dymensionxyz/dymension/blob/ba9d0d3419d9ae47c6abfd553a3a76a1a8e7d19c/x/forward/cli/util.go#L164-L177
+        src channel is the OUTBOUND channel on the hub to the final destination
+        transfer recipient is THE FINAL RECIPIENT ADDR on the final destination 
+    you need to pass this to memo field in ibc transfer
+        the transfer should be addressed to ANY ADDRESS THE SENDER HAS ON THE HUB, e.g. same pub key as the sender on the rol
+        if the transfer fails for some reason, the funds might be arrive on the hub at that address, instead of the final recipient addr on the final destination, so that addr should be accessible!
+
+## other ibc to rol
+    similar to rol -> rol case, but a different encoding:
+    see https://github.com/dymensionxyz/dymension/blob/ba9d0d3419d9ae47c6abfd553a3a76a1a8e7d19c/x/forward/cli/util.go#L195-L205
+    
+
+
