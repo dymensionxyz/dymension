@@ -60,13 +60,23 @@ func (k Keeper) AddToExistingLock(ctx sdk.Context, owner sdk.AccAddress, coin sd
 	if len(locks) < 1 {
 		return 0, errorsmod.Wrapf(types.ErrLockupNotFound, "lock with denom %s before duration %s does not exist", coin.Denom, duration.String())
 	}
-
-	// if existing lock with same duration and denom exists, add to the existing lock
 	// there should only be a single lock with the same duration + token, thus we take the first lock
-	lock := locks[0]
+	lock := &locks[0]
+
 	_, err := k.AddTokensToLockByID(ctx, lock.ID, owner, coin)
 	if err != nil {
 		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+
+	// update the timestamp of the lock
+	lock, err = k.GetLockByID(ctx, lock.ID)
+	if err != nil {
+		return 0, err
+	}
+	lock.CreationTimestamp = ctx.BlockTime()
+	err = k.setLock(ctx, *lock)
+	if err != nil {
+		return 0, err
 	}
 
 	return lock.ID, nil
@@ -114,7 +124,7 @@ func (k Keeper) CreateLock(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coin
 	ID := k.GetLastLockID(ctx) + 1
 	// unlock time is initially set without a value, gets set as unlock start time + duration
 	// when unlocking starts.
-	lock := types.NewPeriodLock(ID, owner, duration, time.Time{}, coins)
+	lock := types.NewPeriodLock(ID, owner, duration, time.Time{}, coins, ctx.BlockTime())
 	err := k.lock(ctx, lock, lock.Coins)
 	if err != nil {
 		return lock, err
@@ -541,7 +551,7 @@ func (k Keeper) splitLock(ctx sdk.Context, lock types.PeriodLock, coins sdk.Coin
 	splitLockID := k.GetLastLockID(ctx) + 1
 	k.SetLastLockID(ctx, splitLockID)
 
-	splitLock := types.NewPeriodLock(splitLockID, lock.OwnerAddress(), lock.Duration, lock.EndTime, coins)
+	splitLock := types.NewPeriodLock(splitLockID, lock.OwnerAddress(), lock.Duration, lock.EndTime, coins, ctx.BlockTime())
 
 	err = k.setLock(ctx, splitLock)
 	return splitLock, err

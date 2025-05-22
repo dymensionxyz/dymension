@@ -42,6 +42,14 @@ message PeriodLock {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+
+  // creation_timestamp is the hub timestamp when the lock was created.
+  // adding coins to existing lock will update the timestamp of the lock
+  google.protobuf.Timestamp creation_timestamp = 6 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"creation_timestamp\""
+  ];
 }
 
 // LockQueryType defines the type of the lock query that can
