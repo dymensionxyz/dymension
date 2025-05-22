@@ -59,7 +59,7 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 	return nil
 }
 
-// Use a dummy completion hook just to check it's called
+// Use a dummy completion hook just to check it's called on eibc -> hub
 func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
 	h := mockTransferCompletionHook{
