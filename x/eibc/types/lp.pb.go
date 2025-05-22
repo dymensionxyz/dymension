@@ -34,7 +34,7 @@ type OnDemandLP struct {
 	Denom     string `protobuf:"bytes,3,opt,name=denom,proto3" json:"denom,omitempty"`
 	// will not fulfill if price is above this
 	MaxPrice cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=maxPrice,proto3,customtype=cosmossdk.io/math.Int" json:"maxPrice"`
-	// will not fulfill if fee is below this
+	// will not fulfill if fee is below this (percentage of price expressed in [0,1])
 	MinFee cosmossdk_io_math.LegacyDec `protobuf:"bytes,5,opt,name=minFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"minFee"`
 	// will not fulfill if brings amt spent above limit
 	SpendLimit cosmossdk_io_math.Int `protobuf:"bytes,6,opt,name=spendLimit,proto3,customtype=cosmossdk.io/math.Int" json:"spendLimit"`
