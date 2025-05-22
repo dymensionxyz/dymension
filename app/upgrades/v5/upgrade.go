@@ -3,7 +3,6 @@ package v5
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -122,7 +121,6 @@ func migrateAndUpdateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeep
 		lockupParams.ForceUnlockAllowedAddresses,
 		/* ------------------------------- new params ------------------------------- */
 		lockuptypes.DefaultLockFee, // Default to 0.05 DYM
-		24*time.Hour,               // Minimum lock duration is 24 hours
 	)
 	keepers.LockupKeeper.SetParams(ctx, newParams)
 }
