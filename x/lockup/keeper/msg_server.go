@@ -63,15 +63,9 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "lock duration (%d) is less than the minimum lock duration (%d)", msg.Duration, minLockDuration)
 	}
 
-	// Charge fess for locking tokens
-	if err = server.keeper.ChargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx), msg.Coins); err != nil {
-		return nil, fmt.Errorf("charge gauge fee: %w", err)
-	}
-
 	// check if there's an existing lock from the same owner with the same duration.
 	// If so, simply add tokens to the existing lock.
-	lockExists := server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration)
-	if lockExists {
+	if server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration) {
 		lockID, err := server.keeper.AddToExistingLock(ctx, owner, msg.Coins[0], msg.Duration)
 		if err != nil {
 			return nil, err
@@ -89,6 +83,10 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 	}
 
 	// if the owner + duration combination is new, create a new lock.
+	if err = server.keeper.ChargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx), msg.Coins); err != nil {
+		return nil, fmt.Errorf("charge gauge fee: %w", err)
+	}
+
 	lock, err := server.keeper.CreateLock(ctx, owner, msg.Coins, msg.Duration)
 	if err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
@@ -101,7 +99,6 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 			sdk.NewAttribute(types.AttributePeriodLockOwner, lock.Owner),
 			sdk.NewAttribute(types.AttributePeriodLockAmount, lock.Coins.String()),
 			sdk.NewAttribute(types.AttributePeriodLockDuration, lock.Duration.String()),
-			sdk.NewAttribute(types.AttributePeriodLockUnlockTime, lock.EndTime.String()),
 		),
 	})
 
