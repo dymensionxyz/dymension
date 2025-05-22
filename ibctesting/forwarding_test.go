@@ -54,8 +54,8 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 		Address: fundsSource.String(),
 		Denom:   budget.Denom,
 	})
-	h.s.Require().NoError(err)
-	h.s.Require().Equal(balances, sdk.NewCoins(budget))
+	h.s.NoError(err)
+	h.s.Equal(balances, sdk.NewCoins(budget))
 	return nil
 }
 
@@ -76,7 +76,7 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 		Data: []byte{},
 	}
 	bz, err := proto.Marshal(&hookData)
-	s.Require().NoError(err)
+	s.NoError(err)
 	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{
 		{
 			name:              "forwarding works",
@@ -86,7 +86,7 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 			completionHook:    bz,
 		},
 	})
-	s.Require().True(h.called)
+	s.True(h.called)
 }
 
 type FinalizeFwdTC struct {
@@ -117,21 +117,22 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 
 func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	p := s.dackK().GetParams(s.hubCtx())
-	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // 1%
+	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // x%
 	s.dackK().SetParams(s.hubCtx(), p)
+
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
-		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
+		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp", // TODO: check rol balance
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
 	err := hookPayload.ValidateBasic()
-	s.Require().NoError(err)
+	s.NoError(err)
 	hook, err := forwardtypes.NewHookForwardToIBCCall(hookPayload)
-	s.Require().NoError(err)
+	s.NoError(err)
 	hookBz, err := proto.Marshal(hook)
-	s.Require().NoError(err)
+	s.NoError(err)
 
-	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress()
+	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress() // any hub addr
 	ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 
 	s.rollappChain().NextBlock()
@@ -141,32 +142,34 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	eibcFee := "100" // arbitrary, shouldn't have an effect because we don't fulfil
 	memo := delayedacktypes.CreateMemo(eibcFee, hookBz)
 	packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), tc.ibcAmt, memo, false)
-	s.Require().True(s.rollappHasPacketCommitment(packet))
+	s.True(s.rollappHasPacketCommitment(packet))
 
 	rolH = uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, rolH)
-	s.Require().NoError(err)
+	s.NoError(err)
 	evts := s.finalizeRollappPacketsByAddress(ibcRecipient.String())
 
 	_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	ok, err := parseFwdErrFromEvents(evts.ToABCIEvents())
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 	if tc.expectOK {
-		s.Require().True(ok)
+		s.True(ok)
 		// no change, all the funds are used for forwarding!
-		s.Require().Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
+		s.Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
+		// TODO: check rol recip addr
 	} else {
-		s.Require().False(ok)
+		s.False(ok)
 		// recipient still has funds
 		extra, _ := math.NewIntFromString(tc.ibcAmt)
 		extra = extra.Sub(s.dackK().BridgingFeeFromAmt(s.hubCtx(), extra))
 		ibcDenom := "ibc/C053D637CCA2A2BA030E2C5EE1B28A16F71CCB0E45E8BE52766DC1B241B77878" // found in debugger :/
 		extraCoin := sdk.NewCoin(ibcDenom, extra)
-		s.Require().Equal(ibcRecipientBalBefore.Add(extraCoin), ibcRecipientBalAfter)
+		s.Equal(ibcRecipientBalBefore.Add(extraCoin), ibcRecipientBalAfter)
+		// TODO: check rol recip addr
 	}
 }
 
@@ -205,7 +208,7 @@ func (s *osmosisForwardSuite) TestForward() {
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
-	s.Require().True(ok)
+	s.True(ok)
 
 	coinToSendToB := sdk.NewCoin("foo", amount)
 	apptesting.FundAccount(s.hubApp(), s.cosmosCtx(), s.cosmosChain().SenderAccount.GetAddress(), sdk.NewCoins(coinToSendToB))
@@ -226,10 +229,10 @@ func (s *osmosisForwardSuite) TestForward() {
 		Data: []byte{},
 	}
 	bz, err := proto.Marshal(&hookData)
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	memo, err := ibccompletiontypes.MakeMemo(bz)
-	s.Require().NoError(err)
+	s.NoError(err)
 	msg := types.NewMsgTransfer(
 		cosmosEndpoint.ChannelConfig.PortID,
 		cosmosEndpoint.ChannelID,
@@ -241,18 +244,18 @@ func (s *osmosisForwardSuite) TestForward() {
 		memo,
 	)
 	res, err := s.cosmosChain().SendMsgs(msg)
-	s.Require().NoError(err) // message committed
+	s.NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-	s.Require().NoError(err)
+	s.NoError(err)
 
 	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err) // relay committed
+	s.NoError(err) // relay committed
 
 	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	s.Require().True(found)
+	s.True(found)
 
-	s.Require().True(h.called)
+	s.True(h.called)
 }
 
 func (s *osmosisForwardSuite) SetupTest() {
