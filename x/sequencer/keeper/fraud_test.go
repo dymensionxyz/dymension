@@ -15,7 +15,7 @@ func (s *SequencerTestSuite) TestLivenessFlow() {
 	s.Require().False(s.k().Kickable(s.Ctx, seq))
 	ok := false
 	lastTokens := seq.TokensCoin()
-	lastDishonor := seq.Dishonor
+	lastPenalty := seq.GetPenalty()
 	for range 100000000 {
 		err := s.k().SlashLiveness(s.Ctx, ra.RollappId)
 		s.Require().NoError(err)
@@ -24,9 +24,9 @@ func (s *SequencerTestSuite) TestLivenessFlow() {
 		mod := s.moduleBalance()
 		s.Require().True(mod.Equal(seq.TokensCoin()))
 		s.Require().True(seq.TokensCoin().IsLT(lastTokens))
-		s.Require().True(seq.Dishonor > lastDishonor)
+		s.Require().True(seq.GetPenalty() > lastPenalty)
 		lastTokens = seq.TokensCoin()
-		lastDishonor = seq.Dishonor
+		lastPenalty = seq.GetPenalty()
 		if s.k().Kickable(s.Ctx, seq) {
 			ok = true
 			break

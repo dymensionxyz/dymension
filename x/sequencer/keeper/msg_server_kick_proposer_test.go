@@ -36,7 +36,7 @@ func (s *SequencerTestSuite) TestKickProposerBasicFlow() {
 	s.Require().False(s.k().IsProposer(s.Ctx, seqBob))
 
 	// alice falls to threshold
-	seqAlice.Dishonor = types.DefaultDishonorKickThreshold
+	seqAlice.SetPenalty(types.DefaultDishonorKickThreshold)
 	s.k().SetSequencer(s.Ctx, seqAlice)
 	_, err = s.msgServer.KickProposer(s.Ctx, m)
 	s.Require().NoError(err)

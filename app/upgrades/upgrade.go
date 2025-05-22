@@ -14,6 +14,7 @@ import (
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
@@ -45,6 +46,7 @@ type UpgradeKeepers struct {
 	GovKeeper         *govkeeper.Keeper
 	IncentivesKeeper  *incentiveskeeper.Keeper
 	RollappKeeper     *rollappkeeper.Keeper
+	SequencerKeeper   *sequencerkeeper.Keeper
 	SponsorshipKeeper *sponsorshipkeeper.Keeper
 	ParamsKeeper      *paramskeeper.Keeper
 	DelayedAckKeeper  *delayedackkeeper.Keeper

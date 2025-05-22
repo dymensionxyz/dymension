@@ -41,11 +41,11 @@ type Params struct {
 	LivenessSlashMinMultiplier cosmossdk_io_math.LegacyDec `protobuf:"bytes,4,opt,name=liveness_slash_min_multiplier,json=livenessSlashMinMultiplier,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"liveness_slash_min_multiplier" yaml:"liveness_slash_multiplier"`
 	// liveness_slash_min_absolute is the absolute minimum to slash for liveness
 	LivenessSlashMinAbsolute types.Coin `protobuf:"bytes,6,opt,name=liveness_slash_min_absolute,json=livenessSlashMinAbsolute,proto3" json:"liveness_slash_min_absolute,omitempty"`
-	// how much dishonor a sequencer gains on liveness events (+dishonor)
+	// how many penalty points a sequencer gains on liveness events (+penalty)
 	DishonorLiveness uint64 `protobuf:"varint,7,opt,name=dishonor_liveness,json=dishonorLiveness,proto3" json:"dishonor_liveness,omitempty"`
-	// how much honor a sequencer gains on state updates (-dishonor)
+	// how many penalty points a sequencer loses on state updates (-penalty)
 	DishonorStateUpdate uint64 `protobuf:"varint,8,opt,name=dishonor_state_update,json=dishonorStateUpdate,proto3" json:"dishonor_state_update,omitempty"`
-	// the minimum dishonor at which a sequencer can be kicked (<=)
+	// the minimum penalty at which a sequencer can be kicked (allowed if x <= penalty)
 	DishonorKickThreshold uint64 `protobuf:"varint,9,opt,name=dishonor_kick_threshold,json=dishonorKickThreshold,proto3" json:"dishonor_kick_threshold,omitempty"`
 }
 

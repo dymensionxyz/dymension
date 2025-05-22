@@ -196,3 +196,11 @@ func ValsetHash(pubKey cryptotypes.PubKey) ([]byte, error) {
 	}
 	return vs.Hash(), nil
 }
+
+func (seq *Sequencer) SetPenalty(x uint64) {
+	seq.Dishonor = x
+}
+
+func (seq *Sequencer) GetPenalty() uint64 {
+	return seq.Dishonor
+}
