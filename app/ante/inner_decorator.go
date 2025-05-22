@@ -83,6 +83,8 @@ func (id InnerDecorator) handleMsg(ctx sdk.Context, msg sdk.Msg, simulate bool, 
 		if err != nil {
 			return ctx, err
 		}
+
+		return ctx, nil
 	}
 
 	// Leaf message: apply all callbacks
