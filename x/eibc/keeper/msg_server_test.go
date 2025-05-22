@@ -734,7 +734,7 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 		orderFee            math.Int
 		orderPrice          math.Int
 		lpMaxPrice          math.Int
-		lpMinFee            math.Int
+		lpMinFee            math.LegacyDec
 		lpSpendLimit        math.Int
 		lpOrderMinAgeBlocks uint64
 		nowHeight           int64
@@ -751,7 +751,7 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 			orderPrice:          math.NewInt(40),
 
 			lpMaxPrice:          math.NewInt(50),
-			lpMinFee:            math.NewInt(10),
+			lpMinFee:            math.LegacyMustNewDecFromStr("0.1"),
 			lpSpendLimit:        math.NewInt(100),
 			lpOrderMinAgeBlocks: 0,
 		},

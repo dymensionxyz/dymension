@@ -96,6 +96,10 @@ func (m *DemandOrder) GetFeeAmount() math.Int {
 	return m.Fee.AmountOf(m.Price[0].Denom)
 }
 
+func (m *DemandOrder) GetFeePercent() math.LegacyDec {
+	return math.LegacyNewDecFromInt(m.GetFeeAmount()).Quo(math.LegacyNewDecFromInt(m.PriceAmount()))
+}
+
 func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 	// Check that the order is not fulfilled yet
 	if m.IsFulfilled() {
