@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-21)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-22)
 
 
 ### Bug Fixes
@@ -19,6 +19,7 @@
 * **iro:** missing `StartTimeAfterSettlement` in IRO default params ([#1704](https://github.com/dymensionxyz/dymension/issues/1704)) ([10edf97](https://github.com/dymensionxyz/dymension/commit/10edf973bf95cd8a28d8af1cd312c3e4e9939f6e))
 * **lightclient:** fixed consensus states iterator ([#1715](https://github.com/dymensionxyz/dymension/issues/1715)) ([6b68cb0](https://github.com/dymensionxyz/dymension/commit/6b68cb0d2c046c9714519b8686141a45447584a6))
 * linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([109d4d3](https://github.com/dymensionxyz/dymension/commit/109d4d310518dfc8132751b2597e622460a02df9))
+* **lockup:** charging LockCreationFee only on new lock creation ([#1866](https://github.com/dymensionxyz/dymension/issues/1866)) ([91f6a88](https://github.com/dymensionxyz/dymension/commit/91f6a886cbf22c38cc79701a3c8892a6283b851e))
 * **lockup:** get lock creation fee from params ([#1762](https://github.com/dymensionxyz/dymension/issues/1762)) ([893282a](https://github.com/dymensionxyz/dymension/commit/893282a5d07ad16d37061c874fbe5829af3c530e))
 * **lockup:** remove logic to unlock all locks at end blocker, or from tx ([#1764](https://github.com/dymensionxyz/dymension/issues/1764)) ([a8d5cbc](https://github.com/dymensionxyz/dymension/commit/a8d5cbc197d77635a2f8ad89f9c0998a7260955f))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
