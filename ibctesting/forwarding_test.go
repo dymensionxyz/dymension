@@ -89,14 +89,14 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	s.True(h.called)
 }
 
-type FinalizeFwdTC struct {
+type inboundFwdTC struct {
 	bridgeFee      int64 // percentage
 	forwardChannel string
 	ibcAmt         string
 	expectOK       bool
 }
 
-var FinalizeFwdTCOK = FinalizeFwdTC{
+var FinalizeFwdTCOK = inboundFwdTC{
 	bridgeFee:      1,
 	forwardChannel: "channel-0",
 	ibcAmt:         "200",
@@ -115,7 +115,7 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 	s.runFinalizeFwdTC(tc)
 }
 
-func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
+func (s *eibcForwardSuite) runFinalizeFwdTC(tc inboundFwdTC) {
 
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
@@ -155,6 +155,63 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 
 	ok, err := fwdResultFromHubEvts(evts.ToABCIEvents())
 	s.NoError(err)
+
+	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
+	if tc.expectOK {
+		s.True(ok)
+		// no change, all the funds are used for forwarding!
+		s.Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
+		// TODO: check rol recip addr
+	} else {
+		s.False(ok)
+		// recipient still has funds
+		extra, _ := math.NewIntFromString(tc.ibcAmt)
+		extra = extra.Sub(s.dackK().BridgingFeeFromAmt(s.hubCtx(), extra))
+		ibcDenom := "ibc/C053D637CCA2A2BA030E2C5EE1B28A16F71CCB0E45E8BE52766DC1B241B77878" // found in debugger :/
+		extraCoin := sdk.NewCoin(ibcDenom, extra)
+		s.Equal(ibcRecipientBalBefore.Add(extraCoin), ibcRecipientBalAfter)
+		// TODO: check rol recip addr
+	}
+}
+
+const optFinalize = "finalize"
+const optFulfill = "fulfill"
+
+func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.CompletionHookCall, eibcFee string, opt string) {
+
+	hookBz, err := proto.Marshal(hook)
+	s.NoError(err)
+
+	p := s.dackK().GetParams(s.hubCtx())
+	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // x%
+	s.dackK().SetParams(s.hubCtx(), p)
+
+	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress() // any hub addr
+	ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
+
+	s.rollappChain().NextBlock()
+	rolH := uint64(s.rollappCtx().BlockHeight())
+	s.updateRollappState(rolH)
+
+	memo := delayedacktypes.CreateMemo(eibcFee, hookBz)
+	packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), tc.ibcAmt, memo, false)
+	s.True(s.rollappHasPacketCommitment(packet))
+
+	var ok bool
+
+	switch opt {
+	case optFinalize:
+		rolH = uint64(s.rollappCtx().BlockHeight())
+		_, err = s.finalizeRollappState(1, rolH)
+		s.NoError(err)
+		evts := s.finalizeRollappPacketsByAddress(ibcRecipient.String())
+		_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
+		s.NoError(err)
+		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
+		s.NoError(err)
+	case optFulfill:
+		// TODO:
+	}
 
 	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 	if tc.expectOK {
