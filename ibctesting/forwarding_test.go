@@ -83,7 +83,7 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 			fulfillerStartBal: "300",
 			eibcFee:           "150",
 			transferAmt:       "200",
-			fulfillHook:       bz,
+			completionHook:    bz,
 		},
 	})
 	s.Require().True(h.called)

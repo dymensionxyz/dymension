@@ -221,7 +221,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			eibcFee:           "150",
 			fulfillerStartBal: "300",
 			expectFulfillFail: false,
-			fulfillHook:       nil,
+			completionHook:    nil,
 		},
 		{
 			name:              "fulfill demand order fail - insufficient balance",
@@ -229,7 +229,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			eibcFee:           "40",
 			fulfillerStartBal: "49",
 			expectFulfillFail: true,
-			fulfillHook:       nil,
+			completionHook:    nil,
 		},
 	})
 }
@@ -245,7 +245,7 @@ type eibcTransferFulfillmentTC struct {
 	// should the fulfill action by the fulfiller fail?
 	expectFulfillFail bool
 	// post fulfillment hook
-	fulfillHook []byte
+	completionHook []byte
 }
 
 type fulfillmentHelper struct {
@@ -322,7 +322,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			h.updateRollappState(rolH)
 
 			// now include the fulfill hook in the memo
-			memo := delayedacktypes.CreateMemo(tc.eibcFee, tc.fulfillHook)
+			memo := delayedacktypes.CreateMemo(tc.eibcFee, tc.completionHook)
 			packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), tc.transferAmt, memo, false)
 			s.Require().True(s.rollappHasPacketCommitment(packet))
 
