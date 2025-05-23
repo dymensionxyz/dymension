@@ -260,7 +260,7 @@ func TestOsmosisForwardSuite(t *testing.T) {
 }
 
 // ibc completion hooks need to fire for inbound ibc transfers from NON rollapps
-func (s *osmosisForwardSuite) TestIBCCompletionHook() {
+func (s *osmosisForwardSuite) TestCompletionHook() {
 	cosmosEndpoint := s.path.EndpointB
 
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
