@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sponsorship;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
@@ -132,25 +133,54 @@ message GaugeWeight {
 }
 
 // Endorsement is an info about the endorsement made by users to the RollApp.
-// It stores information about the gauges associated with the RollApp and
+// It stores information about the gauge associated with the RollApp and
 // the total shares endorsers hold.
 //
 // The number of shares if adjusted when someone endorses the RollApp or
 // when voting power of some endorser changes.
 message Endorsement {
+  // RollappId is a rollapp associated with the given endorsement.
   string rollapp_id = 1;
   // RollappGaugeId is a rollapp gauge associated with the given rollapp.
   uint64 rollapp_gauge_id = 2;
-  // TotalShares defines total shares issued to a validator's delegators.
+  // TotalShares defines total shares issued to the endorsement.
   string total_shares = 3 [
     (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
   ];
-  // EpochShares defines shares issued to this epoch.
-  string epoch_shares = 4 [
+  // Accumulator is a variable representing total reward per share over time.
+  // It is an array of coins since every currency should have its own
+  // accumulator.
+  repeated cosmos.base.v1beta1.DecCoin accumulator = 4 [
     (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
+  ];
+  // TotalCoins is the total amount of coins that have been in the endorsement.
+  repeated cosmos.base.v1beta1.Coin total_coins = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // DistributedCoins are coins that have been distributed already.
+  repeated cosmos.base.v1beta1.Coin distributed_coins = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// EndorserPosition is the position of a single endorser in a given rollapp
+// endorsement.
+message EndorserPosition {
+  // Sharers is the number of shares the endorser holds.
+  string shares = 1 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
+  ];
+  // LastSeenAccumulator marks the accumulator state when the endorser last
+  // claimed or endorsed.
+  repeated cosmos.base.v1beta1.DecCoin last_seen_accumulator = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
   ];
 }

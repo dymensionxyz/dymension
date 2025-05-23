@@ -25,6 +25,7 @@ type Keeper struct {
 	tk        types.TxFeesKeeper
 	rk        types.RollappKeeper
 	sk        types.SequencerKeeper
+	ak        types.AccountKeeper
 	authority string
 }
 
@@ -38,9 +39,9 @@ func NewKeeper(
 	txfk types.TxFeesKeeper,
 	rk types.RollappKeeper,
 	sk types.SequencerKeeper,
+	ak types.AccountKeeper,
 	authority string,
 ) *Keeper {
-
 	return &Keeper{
 		storeKey:  storeKey,
 		cdc:       cdc,
@@ -50,6 +51,7 @@ func NewKeeper(
 		tk:        txfk,
 		rk:        rk,
 		sk:        sk,
+		ak:        ak,
 		authority: authority,
 	}
 }

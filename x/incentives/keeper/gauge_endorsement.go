@@ -49,9 +49,11 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 		epochRewards = gaugeBalance.QuoInt(remainingEpochs)
 	}
 
-	endorsement := gauge.DistributeTo.(*types.Gauge_Endorsement).Endorsement
-	endorsement.EpochRewards = epochRewards // we operate a pointer
 	gauge.FilledEpochs += 1
+	gauge.DistributedCoins = gauge.DistributedCoins.Add(epochRewards...)
+
+	_ = epochRewards
+	// TODO: update Endorsement.TotalCoins field by epochRewards
 
 	if err := k.setGauge(ctx, &gauge); err != nil {
 		return err
