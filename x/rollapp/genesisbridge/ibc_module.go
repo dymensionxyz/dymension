@@ -10,6 +10,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	proofheightante "github.com/dymensionxyz/dymension/v3/x/delayedack/ante"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -128,7 +129,7 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	// validate the proof height is already committed
-	proofHeight, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	proofHeight, err := proofheightante.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "unpack packet proof height"))
 	}
@@ -162,7 +163,7 @@ func (w IBCModule) OnRecvPacket(
 // rollappIBC trace like 'ibc/19208310923..' otherwise
 func (w IBCModule) EnableTransfers(ctx sdk.Context, packet channeltypes.Packet, ra *types.Rollapp, rollappIBCtrace string) error {
 	// set the transfer proof height
-	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	height, err := proofheightante.UnpackPacketProofHeight(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		return errorsmod.Wrap(err, "unpack packet proof height")
 	}

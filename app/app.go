@@ -252,11 +252,9 @@ func New(
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
 		AccountKeeper:          app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
-		ExtensionOptionChecker: nil, // uses default
+		ExtensionOptionChecker: nil, // reject all extension options as default
 		FeegrantKeeper:         app.FeeGrantKeeper,
 		SignModeHandler:        txConfig.SignModeHandler(),
-		SigGasConsumer:         nil,
-		TxFeeChecker:           nil,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		EvmKeeper:              app.EvmKeeper,

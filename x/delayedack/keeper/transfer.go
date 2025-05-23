@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/ante"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -18,7 +19,7 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 ) (data types.TransferDataWithFinalization, err error) {
 	port, channel := commontypes.PacketHubPortChan(packetType, packet)
 
-	height, err := commontypes.UnpackPacketProofHeight(ctx, packet, packetType)
+	height, err := ante.UnpackPacketProofHeight(ctx, packet, packetType)
 	if err != nil {
 		err = errorsmod.Wrap(err, "unpack packet proof height")
 		return
