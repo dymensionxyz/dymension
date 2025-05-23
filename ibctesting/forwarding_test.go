@@ -131,10 +131,6 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc inboundFwdTC) {
 
 func (s *eibcForwardSuite) TestFulfillRolToRolOK() {
 	tc := FinalizeFwdTCOK
-	s.runFulfillFwdTC(tc)
-}
-
-func (s *eibcForwardSuite) runFulfillFwdTC(tc inboundFwdTC) {
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
@@ -145,7 +141,7 @@ func (s *eibcForwardSuite) runFulfillFwdTC(tc inboundFwdTC) {
 	hook, err := forwardtypes.NewHookForwardToIBCCall(hookPayload)
 	s.NoError(err)
 
-	s.inboundTest(tc, hook, "100", optFulfill)
+	s.fulfillTest(s.hubChain().SenderAccounts[1].SenderAccount.GetAddress(), "100000", tc, hook, "1")
 }
 
 const (
@@ -161,9 +157,10 @@ func (s *eibcForwardSuite) fulfillTest(
 ) {
 	h := fulfillmentHelper{
 		eibcSuite:      &s.eibcSuite,
-		numOrdersTotal: 1,
-		rollappStateIx: 1,
+		rollappStateIx: 0,
 	}
+	s.rollappChain().NextBlock()
+	h.incrementRollappState()
 	_ = h.fundFulfiller(fulfiller, bal, "1") // eibc fee for the funding transfer, doesn't matter what it is
 
 	s.inboundTest(tc, hook, eibcFee, optFulfill)
@@ -174,7 +171,7 @@ func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.Comple
 	s.NoError(err)
 
 	p := s.dackK().GetParams(s.hubCtx())
-	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 2) // x%
+	p.BridgingFee = math.LegacyNewDecWithPrec(tc.bridgeFee, 1)
 	s.dackK().SetParams(s.hubCtx(), p)
 
 	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress() // any hub addr
@@ -203,7 +200,7 @@ func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.Comple
 	case optFulfill:
 		demandOrders, err := s.eibcK().ListAllDemandOrders(s.hubCtx())
 		s.NoError(err)
-		s.Require().Equal(1, len(demandOrders))
+		s.Require().Equal(2, len(demandOrders))
 		orderId := demandOrders[0].Id
 		fulfiller := s.hubChain().SenderAccounts[1].SenderAccount.GetAddress()
 
