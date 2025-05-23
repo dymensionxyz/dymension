@@ -94,8 +94,10 @@ type inboundFwdTC struct {
 	forwardChannel string
 	ibcAmt         string // amt only, no denom
 	expectOK       bool
+	finalRecipient string // only relevant for success cases
 }
 
+// TODO: make generic
 var FinalizeFwdTCOK = inboundFwdTC{
 	bridgeFee:      1,
 	forwardChannel: "channel-0",
@@ -105,6 +107,7 @@ var FinalizeFwdTCOK = inboundFwdTC{
 
 func (s *eibcForwardSuite) TestFinalizeRolToRolOK() {
 	tc := FinalizeFwdTCOK
+	tc.finalRecipient = s.rollappAcc2().GetAddress().String()
 	s.runFinalizeFwdTC(tc)
 }
 
@@ -112,13 +115,14 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 	tc := FinalizeFwdTCOK
 	tc.forwardChannel = "channel-999"
 	tc.expectOK = false
+	tc.finalRecipient = s.rollappAcc2().GetAddress().String()
 	s.runFinalizeFwdTC(tc)
 }
 
 func (s *eibcForwardSuite) runFinalizeFwdTC(tc inboundFwdTC) {
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
-		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp", // TODO: use real rol addr and check rol balance
+		tc.finalRecipient,
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
 	err := hookPayload.ValidateBasic()
@@ -131,9 +135,10 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc inboundFwdTC) {
 
 func (s *eibcForwardSuite) TestFulfillRolToRolOK() {
 	tc := FinalizeFwdTCOK
+	tc.finalRecipient = s.rollappAcc2().GetAddress().String()
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
-		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
+		tc.finalRecipient,
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
 	err := hookPayload.ValidateBasic()
@@ -187,6 +192,8 @@ func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.Comple
 
 	var ok bool
 
+	rolReceiverBefore := s.rollappApp().BankKeeper.SpendableCoins(s.rollappCtx(), sdk.AccAddress(tc.finalRecipient))
+
 	switch opt {
 	case optFinalize:
 		rolH = uint64(s.rollappCtx().BlockHeight())
@@ -197,24 +204,35 @@ func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.Comple
 		s.NoError(err)
 		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
 		s.NoError(err)
-	case optFulfill:
-		demandOrders, err := s.eibcK().ListAllDemandOrders(s.hubCtx())
+		packet, err = ibctesting.ParsePacketFromEvents(evts.ToABCIEvents())
 		s.NoError(err)
-		s.Require().Equal(2, len(demandOrders))
+	case optFulfill:
+		demandOrders, err := s.eibcK().ListDemandOrdersByStatus(s.hubCtx(), commontypes.Status_PENDING, 1)
+		s.NoError(err)
+		s.Require().Equal(1, len(demandOrders))
 		orderId := demandOrders[0].Id
 		fulfiller := s.hubChain().SenderAccounts[1].SenderAccount.GetAddress()
 
 		evts := s.fulfillEvents(fulfiller.String(), orderId, eibcFee)
 		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
 		s.NoError(err)
+		packet, err = ibctesting.ParsePacketFromEvents(evts.ToABCIEvents())
+		s.NoError(err)
 	}
+
+	s.hubChain().NextBlock()
+
+	err = s.path.RelayPacket(packet)
+	s.NoError(err)
 
 	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 	if tc.expectOK {
 		s.True(ok)
 		// no change, all the funds are used for forwarding!
 		s.Equal(ibcRecipientBalBefore, ibcRecipientBalAfter)
-		// TODO: check rol recip addr
+		rolReceiverAfter := s.rollappApp().BankKeeper.SpendableCoins(s.rollappCtx(), sdk.AccAddress(tc.finalRecipient))
+		s.NotEmpty(rolReceiverAfter)
+		s.True(rolReceiverBefore.IsAllLTE(rolReceiverAfter))
 	} else {
 		s.False(ok)
 		// recipient still has funds

@@ -84,6 +84,10 @@ func (s *ibcTestingSuite) rollappChain() *ibctesting.TestChain {
 	return s.coordinator.GetChain(rollappChainID())
 }
 
+func (s *ibcTestingSuite) rollappAcc2() sdk.AccountI {
+	return s.rollappChain().SenderAccounts[1].SenderAccount
+}
+
 func (s *ibcTestingSuite) hubApp() *app.App {
 	return convertToApp(s.hubChain())
 }
@@ -299,27 +303,29 @@ func (s *ibcTestingSuite) newTestChainWithSingleValidator(t *testing.T, coord *i
 	valPubKey, err := valPrivKey.GetPubKey()
 	s.Require().NoError(err)
 
-	senderPrivKey := secp256k1.GenPrivKey()
-	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
+	for range 2 { // 1 is validator, 2nd is an additional account if needed (not validator)
 
-	amount, ok := math.NewIntFromString("10000000000000000000")
-	s.Require().True(ok)
+		senderPrivKey := secp256k1.GenPrivKey()
+		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(2), 0)
 
-	// add sender account
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+		amount, ok := math.NewIntFromString("10000000000000000000")
+		s.Require().True(ok)
+
+		// add sender account
+		balance := banktypes.Balance{
+			Address: acc.GetAddress().String(),
+			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+		}
+
+		genAccs = append(genAccs, acc)
+		genBals = append(genBals, balance)
+
+		senderAcc := ibctesting.SenderAccount{
+			SenderAccount: acc,
+			SenderPrivKey: senderPrivKey,
+		}
+		senderAccs = append(senderAccs, senderAcc)
 	}
-
-	genAccs = append(genAccs, acc)
-	genBals = append(genBals, balance)
-
-	senderAcc := ibctesting.SenderAccount{
-		SenderAccount: acc,
-		SenderPrivKey: senderPrivKey,
-	}
-
-	senderAccs = append(senderAccs, senderAcc)
 
 	var validators []*cometbfttypes.Validator
 	signersByAddress := make(map[string]cometbfttypes.PrivValidator, 1)
@@ -353,8 +359,8 @@ func (s *ibcTestingSuite) newTestChainWithSingleValidator(t *testing.T, coord *i
 		Vals:           valSet,
 		NextVals:       valSet,
 		Signers:        signersByAddress,
-		SenderPrivKey:  senderAcc.SenderPrivKey,
-		SenderAccount:  senderAcc.SenderAccount,
+		SenderPrivKey:  senderAccs[0].SenderPrivKey,
+		SenderAccount:  senderAccs[0].SenderAccount,
 		SenderAccounts: senderAccs,
 	}
 
