@@ -32,6 +32,14 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		return errors.New("distribution period should be 1 epoch for perpetual gauge")
 	}
 
+	if err := m.Coins.Validate(); err != nil {
+		return errorsmod.Wrapf(err, "coins should be valid")
+	}
+
+	if m.Coins.Empty() && !m.IsPerpetual {
+		return errors.New("coins should be set for non-perpetual gauge")
+	}
+
 	switch m.GaugeType {
 	case GaugeType_GAUGE_TYPE_ASSET:
 		if m.Asset == nil {
