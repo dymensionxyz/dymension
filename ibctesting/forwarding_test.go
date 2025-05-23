@@ -12,11 +12,14 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	ibccompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -129,6 +132,25 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc inboundFwdTC) {
 	s.inboundTest(tc, hook, "100", optFinalize)
 }
 
+func (s *eibcForwardSuite) TestFulfillRolToRolOK() {
+	tc := FinalizeFwdTCOK
+	s.runFulfillFwdTC(tc)
+}
+
+func (s *eibcForwardSuite) runFulfillFwdTC(tc inboundFwdTC) {
+	hookPayload := forwardtypes.NewHookForwardToIBC(
+		tc.forwardChannel,
+		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
+		uint64(time.Now().Add(time.Minute*5).UnixNano()),
+	)
+	err := hookPayload.ValidateBasic()
+	s.NoError(err)
+	hook, err := forwardtypes.NewHookForwardToIBCCall(hookPayload)
+	s.NoError(err)
+
+	s.inboundTest(tc, hook, "100", optFulfill)
+}
+
 const optFinalize = "finalize"
 const optFulfill = "fulfill"
 
@@ -165,7 +187,22 @@ func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.Comple
 		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
 		s.NoError(err)
 	case optFulfill:
-		// TODO:
+		// Fulfill path: get orderId from packet, fulfill, then finalize
+		packetKey := host.PacketReceiptKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+		orderId := eibctypes.BuildDemandIDFromPacketKey(string(packetKey))
+		fulfiller := s.hubChain().SenderAccounts[1].SenderAccount.GetAddress()
+		msg := eibctypes.NewMsgFulfillOrder(fulfiller.String(), orderId, eibcFee)
+		msgServer := eibckeeper.NewMsgServerImpl(s.hubApp().EIBCKeeper)
+		_, err = msgServer.FulfillOrder(s.hubCtx(), msg)
+		s.NoError(err)
+		rolH = uint64(s.rollappCtx().BlockHeight())
+		_, err = s.finalizeRollappState(1, rolH)
+		s.NoError(err)
+		evts := s.finalizeRollappPacketsByAddress(ibcRecipient.String())
+		_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
+		s.NoError(err)
+		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
+		s.NoError(err)
 	}
 
 	ibcRecipientBalAfter := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
