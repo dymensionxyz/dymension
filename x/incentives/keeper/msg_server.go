@@ -53,6 +53,12 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 // Emits create gauge event and returns the create gauge response.
 func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateGauge) (*types.MsgCreateGaugeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Validate the message
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
@@ -66,17 +72,25 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 	}
 
 	var gaugeID uint64
-	switch distr := msg.DistributeTo.(type) {
-	case *types.MsgCreateGauge_Asset:
-		gaugeID, err = server.keeper.CreateAssetGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *distr.Asset, msg.StartTime, msg.NumEpochsPaidOver)
-		if err != nil {
-			return nil, fmt.Errorf("create gauge: %w", err)
+	switch msg.GaugeType {
+	case types.GaugeType_GAUGE_TYPE_ASSET:
+		if msg.Asset == nil {
+			return nil, fmt.Errorf("asset must be set for asset gauge type")
 		}
-	case *types.MsgCreateGauge_Endorsement:
-		gaugeID, err = server.keeper.CreateEndorsementGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *distr.Endorsement, msg.StartTime, msg.NumEpochsPaidOver)
+		gaugeID, err = server.keeper.CreateAssetGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *msg.Asset, msg.StartTime, msg.NumEpochsPaidOver)
 		if err != nil {
-			return nil, fmt.Errorf("create gauge: %w", err)
+			return nil, fmt.Errorf("create asset gauge: %w", err)
 		}
+	case types.GaugeType_GAUGE_TYPE_ENDORSEMENT:
+		if msg.Endorsement == nil {
+			return nil, fmt.Errorf("endorsement must be set for endorsement gauge type")
+		}
+		gaugeID, err = server.keeper.CreateEndorsementGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *msg.Endorsement, msg.StartTime, msg.NumEpochsPaidOver)
+		if err != nil {
+			return nil, fmt.Errorf("create endorsement gauge: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported gauge type: %v", msg.GaugeType)
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
