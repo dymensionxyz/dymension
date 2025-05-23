@@ -204,9 +204,19 @@ func (s *AnteTestSuite) TestEIP712() {
 		{"MsgCreateGauge", s.getMsgCreateGauge(from), false},
 	}
 
+	// can toggle here between legacy and non-legacy EIP712 typed data struct
+	mode := "legacy"
 	for _, tc := range testCases {
 		s.Run(tc.description, func() {
-			data, err := s.DumpEIP712TypedData(from, []sdk.Msg{tc.msg})
+			var (
+				data apitypes.TypedData
+				err  error
+			)
+			if mode == "legacy" {
+				data, err = s.DumpEIP712LegacyTypedData(from, []sdk.Msg{tc.msg})
+			} else {
+				data, err = s.DumpEIP712TypedData(from, []sdk.Msg{tc.msg})
+			}
 			s.Require().NoError(err)
 
 			// Dump the json string to t.log
