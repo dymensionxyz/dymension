@@ -162,19 +162,20 @@ func (s *AnteTestSuite) getMsgCreateRollapp(from string, tokenless bool, metadat
 }
 
 func (s *AnteTestSuite) getMsgCreateGauge(from sdk.AccAddress) sdk.Msg {
-	msgCreate := incentivestypes.NewMsgCreateAssetGauge(
-		true,
-		from,
-		lockuptypes.QueryCondition{
+	msgCreate := &incentivestypes.MsgCreateGauge{
+		IsPerpetual: true,
+		Owner:       from.String(),
+		GaugeType:   incentivestypes.GaugeType_GAUGE_TYPE_ASSET,
+		Asset: &lockuptypes.QueryCondition{
 			Denom:         params.DisplayDenom,
 			LockQueryType: lockuptypes.ByDuration,
 			Duration:      time.Hour,
 			Timestamp:     time.Now(),
 		},
-		sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
-		time.Now(),
-		1,
-	)
+		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
+		StartTime:         time.Now(),
+		NumEpochsPaidOver: 1,
+	}
 	return msgCreate
 }
 
