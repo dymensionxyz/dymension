@@ -51,3 +51,8 @@ type SequencerKeeper interface {
 	GetProposer(ctx sdk.Context, rollappId string) (sequencer sequencertypes.Sequencer)
 	Kickable(ctx sdk.Context, proposer sequencertypes.Sequencer) bool
 }
+
+type AccountKeeper interface {
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
+	GetModuleAddress(name string) sdk.AccAddress
+}

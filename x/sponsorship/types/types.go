@@ -195,22 +195,11 @@ func (m Gauges) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-func NewEndorsement(rollappId string, rollappGaugeId uint64, totalShares math.Int) Endorsement {
+func NewEndorsement(rollappId string, rollappGaugeId uint64, totalShares math.LegacyDec) Endorsement {
 	return Endorsement{
 		RollappId:      rollappId,
 		RollappGaugeId: rollappGaugeId,
 		TotalShares:    totalShares,
-		EpochShares:    math.ZeroInt(),
-	}
-}
-
-type EndorsementUpdateFn func(Endorsement) Endorsement
-
-// AddTotalShares updates total shares of the endorsement by adding the given update.
-// Update may be either positive or negative.
-func AddTotalShares(update math.Int) EndorsementUpdateFn {
-	return func(e Endorsement) Endorsement {
-		e.TotalShares = e.TotalShares.Add(update)
-		return e
+		// TODO: missing fields
 	}
 }

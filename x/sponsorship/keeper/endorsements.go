@@ -1,19 +1,26 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
-// UpdateTotalSharesWithDistribution updates the endorsement total shares for all the rollapps from `update`.
+// UpdateEndorsementsAndPositions updates the endorsement and endorser positions based
+// on the provided weight update.
 //
 // CONTRACT: All gauges must exist.
-func (k Keeper) UpdateTotalSharesWithDistribution(ctx sdk.Context, update types.Distribution) error {
-	for _, weight := range update.Gauges {
+func (k Keeper) UpdateEndorsementsAndPositions(
+	ctx sdk.Context,
+	voter sdk.AccAddress,
+	weights types.Distribution,
+) error {
+	for _, weight := range weights.Gauges {
 		// The gauge must exist. It must be validated in Keeper.validateWeights beforehand.
 		gauge, _ := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
 
@@ -22,10 +29,49 @@ func (k Keeper) UpdateTotalSharesWithDistribution(ctx sdk.Context, update types.
 			// the gauge is not a RA gauge
 			continue
 		}
+		// If gauge is RA gauge, then we can extract associated rollapp ID
+		var (
+			raID = raGauge.Rollapp.RollappId
+			// endorser's voting power cast to this rollapp
+			shares = math.LegacyNewDecFromInt(weight.Power)
+		)
 
-		err := k.UpdateEndorsement(ctx, raGauge.Rollapp.RollappId, types.AddTotalShares(weight.Power))
+		endorsement, err := k.GetEndorsement(ctx, raID)
 		if err != nil {
-			return fmt.Errorf("update endorsement shares: rollapp %s: %w", raGauge.Rollapp.RollappId, err)
+			return fmt.Errorf("get endorsement: %w", err)
+		}
+
+		// Update total shares for this rollapp
+		endorsement.TotalShares = endorsement.TotalShares.Add(shares)
+
+		endorserPosition, err := k.GetEndorserPosition(ctx, voter, raID)
+		if err != nil && !errors.Is(err, collections.ErrNotFound) {
+			return fmt.Errorf("has endorser position: %w", err)
+		}
+		if errors.Is(err, collections.ErrNotFound) {
+			// Must initialize endorser shares with zero to avoid panic
+			endorserPosition = types.EndorserPosition{Shares: math.LegacyZeroDec()}
+		}
+
+		// Update endorser position
+		endorserPosition.Shares = endorserPosition.Shares.Add(shares)
+		endorserPosition.LastSeenAccumulator = endorsement.Accumulator
+
+		err = k.SaveEndorsement(ctx, endorsement)
+		if err != nil {
+			return fmt.Errorf("save endorsement: %w", err)
+		}
+
+		if endorserPosition.Shares.IsZero() {
+			err = k.DeleteEndorserPosition(ctx, voter, raID)
+			if err != nil {
+				return fmt.Errorf("delete endorser position: %w", err)
+			}
+		} else {
+			err = k.SaveEndorserPosition(ctx, voter, raID, endorserPosition)
+			if err != nil {
+				return fmt.Errorf("save endorser position: %w", err)
+			}
 		}
 	}
 	return nil
@@ -41,36 +87,49 @@ func (k Keeper) UpdateTotalSharesWithDistribution(ctx sdk.Context, update types.
 // 7. Update the endorsement epoch shares
 // 8. Blacklist the user from claiming rewards in this epoch
 func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) error {
-	ok, err := k.CanClaim(ctx, claimer)
-	if err != nil {
-		return fmt.Errorf("can claim: %w", err)
-	}
-	if !ok {
-		return fmt.Errorf("user is not allowed to claim: %s", claimer)
-	}
+	// TODO: restrict claiming if the accumulator is 0
 
 	result, err := k.EstimateClaim(ctx, claimer, gaugeId)
 	if err != nil {
 		return fmt.Errorf("estimate claim: %w", err)
 	}
 
-	err = k.incentivesKeeper.DistributeEndorsementRewards(ctx, claimer, gaugeId, result.Rewards)
+	// Rewards reside in x/incentives module
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, incentivestypes.ModuleName, claimer, result.Rewards)
 	if err != nil {
-		return fmt.Errorf("distribute rewards: %w", err)
+		return fmt.Errorf("send coins from x/incentives to user: %w", err)
 	}
 
-	err = k.BlacklistClaim(ctx, claimer)
+	endorsement, err := k.GetEndorsement(ctx, result.RollappId)
 	if err != nil {
-		return fmt.Errorf("blacklist claim: %w", err)
+		return fmt.Errorf("get endorsement: %w", err)
+	}
+
+	endorsement.DistributedCoins = endorsement.DistributedCoins.Add(result.Rewards...)
+
+	err = k.SaveEndorsement(ctx, endorsement)
+	if err != nil {
+		return fmt.Errorf("save endorsement: %w", err)
+	}
+
+	endorserPosition, err := k.GetEndorserPosition(ctx, claimer, result.RollappId)
+	if err != nil {
+		return fmt.Errorf("get endorser position: %w", err)
+	}
+
+	endorserPosition.LastSeenAccumulator = endorsement.Accumulator
+
+	err = k.SaveEndorserPosition(ctx, claimer, result.RollappId, endorserPosition)
+	if err != nil {
+		return fmt.Errorf("save endorser position: %w", err)
 	}
 
 	return nil
 }
 
 type EstimateClaimResult struct {
-	RollappId      string
-	Rewards        sdk.Coins
-	EndorsedAmount math.Int
+	RollappId string
+	Rewards   sdk.Coins
 }
 
 // EstimateClaim estimates the rewards for the user from the provided endorsement gauge.
@@ -81,37 +140,26 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 		return EstimateClaimResult{}, fmt.Errorf("get gauge: %w", err)
 	}
 
-	eGauge, ok := gauge.DistributeTo.(*incentivestypes.Gauge_Endorsement)
+	raGauge, ok := gauge.DistributeTo.(*incentivestypes.Gauge_Rollapp)
 	if !ok {
-		return EstimateClaimResult{}, fmt.Errorf("gauge is not endorsement: %d", gaugeId)
+		return EstimateClaimResult{}, fmt.Errorf("gauge is not rollapp: %d", gaugeId)
 	}
 
-	endorsement, err := k.GetEndorsement(ctx, eGauge.Endorsement.RollappId)
+	endorsement, err := k.GetEndorsement(ctx, raGauge.Rollapp.RollappId)
 	if err != nil {
 		return EstimateClaimResult{}, fmt.Errorf("get endorsement: %w", err)
 	}
 
-	vote, err := k.GetVote(ctx, claimer)
+	endorserPosition, err := k.GetEndorserPosition(ctx, claimer, raGauge.Rollapp.RollappId)
 	if err != nil {
-		return EstimateClaimResult{}, fmt.Errorf("get vote: %w", err)
+		return EstimateClaimResult{}, fmt.Errorf("get endorser position: %w", err)
 	}
 
-	power := vote.GetGaugePower(endorsement.RollappGaugeId)
-	if power.IsZero() {
-		return EstimateClaimResult{}, fmt.Errorf("user does not endorse respective RA gauge: %d", gaugeId)
-	}
-
-	var userRewards sdk.Coins
-	for _, reward := range eGauge.Endorsement.EpochRewards {
-		userRewards = append(userRewards, sdk.Coin{
-			Denom:  reward.Denom,
-			Amount: power.Mul(reward.Amount).Quo(endorsement.EpochShares),
-		})
-	}
+	userRewards, _ := endorsement.Accumulator.Sub(endorserPosition.LastSeenAccumulator).
+		MulDec(endorserPosition.Shares).TruncateDecimal()
 
 	return EstimateClaimResult{
-		RollappId:      eGauge.Endorsement.RollappId,
-		Rewards:        userRewards,
-		EndorsedAmount: power,
+		RollappId: raGauge.Rollapp.RollappId,
+		Rewards:   userRewards,
 	}, nil
 }
