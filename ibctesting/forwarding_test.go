@@ -151,11 +151,12 @@ func (s *eibcForwardSuite) runFulfillFwdTC(tc inboundFwdTC) {
 	s.inboundTest(tc, hook, "100", optFulfill)
 }
 
-const optFinalize = "finalize"
-const optFulfill = "fulfill"
+const (
+	optFinalize = "finalize"
+	optFulfill  = "fulfill"
+)
 
 func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.CompletionHookCall, eibcFee string, opt string) {
-
 	hookBz, err := proto.Marshal(hook)
 	s.NoError(err)
 
