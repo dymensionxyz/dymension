@@ -272,7 +272,7 @@ func (suite *AnteTestSuite) DumpEIP712LegacyTypedData(from sdk.AccAddress, msgs 
 	}
 
 	data, err := eip712.LegacyWrapTxToTypedData(
-		suite.app.LegacyAmino(),
+		suite.clientCtx.Codec,
 		chainIDNum,
 		msgs[0],
 		txBytes,
