@@ -17,18 +17,6 @@ var (
 	_ sdk.Msg = &MsgAddToGauge{}
 )
 
-// NewMsgCreateAssetGauge creates a message to create a gauge with the provided parameters.
-func NewMsgCreateAssetGauge(isPerpetual bool, owner sdk.AccAddress, distributeTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64) *MsgCreateGauge {
-	return &MsgCreateGauge{
-		IsPerpetual:       isPerpetual,
-		Owner:             owner.String(),
-		DistributeTo:      &MsgCreateGauge_Asset{Asset: &distributeTo},
-		Coins:             coins,
-		StartTime:         startTime,
-		NumEpochsPaidOver: numEpochsPaidOver,
-	}
-}
-
 // ValidateBasic checks that the create gauge message is valid.
 func (m MsgCreateGauge) ValidateBasic() error {
 	if m.Owner == "" {
@@ -44,18 +32,26 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		return errors.New("distribution period should be 1 epoch for perpetual gauge")
 	}
 
-	switch distr := m.DistributeTo.(type) {
-	case *MsgCreateGauge_Asset:
-		if sdk.ValidateDenom(distr.Asset.Denom) != nil {
+	switch m.GaugeType {
+	case GaugeType_GAUGE_TYPE_ASSET:
+		if m.Asset == nil {
+			return errors.New("asset must be set for asset gauge type")
+		}
+		if sdk.ValidateDenom(m.Asset.Denom) != nil {
 			return errors.New("denom should be valid for the condition")
 		}
-		if lockuptypes.LockQueryType_name[int32(distr.Asset.LockQueryType)] != "ByDuration" {
+		if m.Asset.LockQueryType != lockuptypes.ByDuration {
 			return errors.New("only duration query condition is allowed. Start time distr conditions is an obsolete codepath slated for deletion")
 		}
-	case *MsgCreateGauge_Endorsement:
-		if distr.Endorsement.RollappId == "" {
+	case GaugeType_GAUGE_TYPE_ENDORSEMENT:
+		if m.Endorsement == nil {
+			return errors.New("endorsement must be set for endorsement gauge type")
+		}
+		if m.Endorsement.RollappId == "" {
 			return errors.New("rollapp id should be set")
 		}
+	default:
+		return errors.New("unsupported gauge type")
 	}
 
 	return nil
