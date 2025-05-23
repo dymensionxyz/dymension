@@ -12,14 +12,11 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	ibccompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -95,7 +92,7 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 type inboundFwdTC struct {
 	bridgeFee      int64 // percentage
 	forwardChannel string
-	ibcAmt         string
+	ibcAmt         string // amt only, no denom
 	expectOK       bool
 }
 
@@ -121,7 +118,7 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 func (s *eibcForwardSuite) runFinalizeFwdTC(tc inboundFwdTC) {
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
-		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp", // TODO: check rol balance
+		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp", // TODO: use real rol addr and check rol balance
 		uint64(time.Now().Add(time.Minute*5).UnixNano()),
 	)
 	err := hookPayload.ValidateBasic()
@@ -156,6 +153,22 @@ const (
 	optFulfill  = "fulfill"
 )
 
+func (s *eibcForwardSuite) fulfillTest(
+	fulfiller sdk.AccAddress, bal string,
+	tc inboundFwdTC,
+	hook *commontypes.CompletionHookCall,
+	eibcFee string,
+) {
+	h := fulfillmentHelper{
+		eibcSuite:      &s.eibcSuite,
+		numOrdersTotal: 1,
+		rollappStateIx: 1,
+	}
+	_ = h.fundFulfiller(fulfiller, bal, "1") // eibc fee for the funding transfer, doesn't matter what it is
+
+	s.inboundTest(tc, hook, eibcFee, optFulfill)
+}
+
 func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.CompletionHookCall, eibcFee string, opt string) {
 	hookBz, err := proto.Marshal(hook)
 	s.NoError(err)
@@ -188,20 +201,13 @@ func (s *eibcForwardSuite) inboundTest(tc inboundFwdTC, hook *commontypes.Comple
 		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
 		s.NoError(err)
 	case optFulfill:
-		// Fulfill path: get orderId from packet, fulfill, then finalize
-		packetKey := host.PacketReceiptKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-		orderId := eibctypes.BuildDemandIDFromPacketKey(string(packetKey))
+		demandOrders, err := s.eibcK().ListAllDemandOrders(s.hubCtx())
+		s.NoError(err)
+		s.Require().Equal(1, len(demandOrders))
+		orderId := demandOrders[0].Id
 		fulfiller := s.hubChain().SenderAccounts[1].SenderAccount.GetAddress()
-		msg := eibctypes.NewMsgFulfillOrder(fulfiller.String(), orderId, eibcFee)
-		msgServer := eibckeeper.NewMsgServerImpl(s.hubApp().EIBCKeeper)
-		_, err = msgServer.FulfillOrder(s.hubCtx(), msg)
-		s.NoError(err)
-		rolH = uint64(s.rollappCtx().BlockHeight())
-		_, err = s.finalizeRollappState(1, rolH)
-		s.NoError(err)
-		evts := s.finalizeRollappPacketsByAddress(ibcRecipient.String())
-		_, err = ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
-		s.NoError(err)
+
+		evts := s.fulfillEvents(fulfiller.String(), orderId, eibcFee)
 		ok, err = fwdResultFromHubEvts(evts.ToABCIEvents())
 		s.NoError(err)
 	}

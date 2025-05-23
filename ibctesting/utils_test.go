@@ -31,6 +31,7 @@ import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -384,4 +385,16 @@ func (s *ibcTestingSuite) finalizeRollappPacketsByAddress(address string) sdk.Ev
 		events = append(events, resp.GetEvents()...)
 	}
 	return events
+}
+
+func (s *ibcTestingSuite) fulfillEvents(fulfiller, orderId, eibcFee string) sdk.Events {
+	handler := s.hubApp().MsgServiceRouter().Handler(new(eibctypes.MsgFulfillOrder))
+	resp, err := handler(s.hubCtx(), &eibctypes.MsgFulfillOrder{
+		FulfillerAddress: fulfiller,
+		OrderId:          orderId,
+		ExpectedFee:      eibcFee,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	return resp.GetEvents()
 }
