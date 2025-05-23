@@ -21,6 +21,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
@@ -159,6 +161,23 @@ func (s *AnteTestSuite) getMsgCreateRollapp(from string, tokenless bool, metadat
 	}
 }
 
+func (s *AnteTestSuite) getMsgCreateGauge(from sdk.AccAddress) sdk.Msg {
+	msgCreate := incentivestypes.NewMsgCreateAssetGauge(
+		true,
+		from,
+		lockuptypes.QueryCondition{
+			Denom:         params.DisplayDenom,
+			LockQueryType: lockuptypes.ByDuration,
+			Duration:      time.Hour,
+			Timestamp:     time.Now(),
+		},
+		sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
+		time.Now(),
+		1,
+	)
+	return msgCreate
+}
+
 func (s *AnteTestSuite) TestEIP712() {
 	s.SetupTestCheckTx(false)
 	privkey, _ := ethsecp256k1.GenerateKey()
@@ -181,6 +200,7 @@ func (s *AnteTestSuite) TestEIP712() {
 		{"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
 		{"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
 		{"MsgCreateValidator", s.getMsgCreateValidator(from), false},
+		{"MsgCreateGauge", s.getMsgCreateGauge(from), false},
 	}
 
 	for _, tc := range testCases {
@@ -198,23 +218,26 @@ func (s *AnteTestSuite) TestEIP712() {
 	}
 }
 
-func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) (apitypes.TypedData, error) {
+func (suite *AnteTestSuite) DumpEIP712LegacyTypedData(from sdk.AccAddress, msgs []sdk.Msg) (apitypes.TypedData, error) {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.DisplayDenom, math.NewInt(20))
-	fees := sdk.NewCoins(coinAmount)
+	suite.txBuilder = txConfig.NewTxBuilder()
+	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
+	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
 
+	// chainID
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
 	suite.Require().NoError(err)
 	chainIDNum := pc.Uint64()
 
+	// account and nonce
 	acc := suite.app.AccountKeeper.GetAccount(suite.ctx, from)
 	accNumber := acc.GetAccountNumber()
 	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, from)
 	suite.Require().NoError(err)
 
-	suite.txBuilder = txConfig.NewTxBuilder()
-	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
+	// fees
+	coinAmount := sdk.NewCoin(params.DisplayDenom, math.NewInt(20))
+	fees := sdk.NewCoins(coinAmount)
 	builder.SetFeeAmount(fees)
 	builder.SetGasLimit(200000)
 
@@ -238,7 +261,7 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 	}
 
 	data, err := eip712.LegacyWrapTxToTypedData(
-		suite.clientCtx.Codec,
+		suite.app.LegacyAmino(),
 		chainIDNum,
 		msgs[0],
 		txBytes,
@@ -246,7 +269,53 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 	)
 	suite.Require().NoError(err)
 	_, _, err = apitypes.TypedDataAndHash(data)
+	return data, err
+}
+
+func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.Msg) (apitypes.TypedData, error) {
+	txConfig := suite.clientCtx.TxConfig
+	suite.txBuilder = txConfig.NewTxBuilder()
+	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
+	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
+
+	// chainID
+	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
+	suite.Require().NoError(err)
+	chainIDNum := pc.Uint64()
+
+	// account and nonce
+	acc := suite.app.AccountKeeper.GetAccount(suite.ctx, from)
+	accNumber := acc.GetAccountNumber()
+	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, from)
 	suite.Require().NoError(err)
 
-	return data, nil
+	// fees
+	coinAmount := sdk.NewCoin(params.DisplayDenom, math.NewInt(20))
+	fees := sdk.NewCoins(coinAmount)
+	builder.SetFeeAmount(fees)
+	builder.SetGasLimit(200000)
+
+	err = builder.SetMsgs(msgs...)
+	suite.Require().NoError(err)
+
+	// WrapTxToTypedData expects the payload as an Amino Sign Doc
+	signBytes := legacytx.StdSignBytes(
+		suite.ctx.ChainID(),
+		accNumber,
+		nonce,
+		0,
+		legacytx.StdFee{
+			Amount: fees,
+			Gas:    200000,
+		},
+		msgs, "",
+	)
+
+	typedData, err := eip712.WrapTxToTypedData(
+		chainIDNum,
+		signBytes,
+	)
+	suite.Require().NoError(err)
+	_, _, err = apitypes.TypedDataAndHash(typedData)
+	return typedData, err
 }
