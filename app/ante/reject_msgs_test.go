@@ -147,7 +147,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				generateDeeplyNestedMsgExec(suite.T(), 7), // exceeds maxDepth (6)
 			},
 			expectPass:    false,
-			expectedError: "found more nested msgs than permitted. Limit is : 6",
+			expectedError: "found more nested msgs than permitted",
 		},
 		{
 			name: "Transaction with authz.MsgGrant granting disabled message",

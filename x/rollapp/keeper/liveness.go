@@ -87,10 +87,9 @@ func (k Keeper) ResetLivenessClock(ctx sdk.Context, ra *types.Rollapp) {
 // ScheduleLivenessEvent schedules a new liveness event. Assumes an event does not
 // already exist for the rollapp. Modifies the passed-in rollapp object.
 func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
-	params := k.GetParams(ctx)
 	nextH := NextSlashHeight(
-		params.LivenessSlashBlocks,
-		params.LivenessSlashInterval,
+		k.LivenessSlashBlocks(ctx),
+		k.LivenessSlashInterval(ctx),
 		ctx.BlockHeight(),
 		ra.LivenessCountdownStartHeight,
 	)
@@ -139,3 +138,5 @@ func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID strin
 	})
 	store.Delete(key)
 }
+
+

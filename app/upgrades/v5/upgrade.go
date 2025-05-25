@@ -27,6 +27,7 @@ import (
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -77,6 +78,8 @@ func CreateUpgradeHandler(
 
 		// fix V50 x/gov params
 		updateGovParams(ctx, keepers.GovKeeper)
+
+		updateRollappParams(ctx, keepers.RollappKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -280,3 +283,42 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 		streamerParams.MaxIterationsPerBlock,
 	))
 }
+
+const (
+	slowBlockDuration = 6
+	fastBlockDuration = 1
+	BlockSpeedup = slowBlockDuration / fastBlockDuration
+	slowBlocksParamDisputePeriod = 120960 
+	fastBlocksParamDisputePeriod = slowBlocksParamDisputePeriod * BlockSpeedup
+	slowBlocksParamLivenessSlashBlocks = 7200
+	fastBlocksParamLivenessSlashBlocks = slowBlocksParamLivenessSlashBlocks * BlockSpeedup
+	slowBlocksParamLivenessSlashInterval = 600
+	fastBlocksParamLivenessSlashInterval =  slowBlocksParamLivenessSlashInterval * BlockSpeedup
+)
+
+func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
+
+	// 1. params
+	params := k.GetParams(ctx)
+	params.DisputePeriodInBlocks = fastBlocksParamDisputePeriod
+	params.LivenessSlashBlocks = fastBlocksParamLivenessSlashBlocks
+	params.LivenessSlashInterval = fastBlocksParamLivenessSlashInterval
+	k.SetParams(ctx, params)
+	
+	// 2. other state	
+	// (other migration for dispute not needed because finalization is computed based on stored creation height)
+	migrateLivenessEvents(ctx, k)
+}
+
+func migrateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
+	events := k.GetLivenessEvents(ctx, nil)
+	for _, e := range events {
+		diff := e.HubHeight - ctx.BlockHeight()
+		if diff < 0 {
+			panic("assumed no liveness events in the past") // (zero is fine)
+		}
+		k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId) // we can delete 'both' since there is only one kind currently
+		e.HubHeight = ctx.BlockHeight() + diff * BlockSpeedup
+		k.PutLivenessEvent(ctx, e)
+	}
+}	
