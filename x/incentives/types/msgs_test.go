@@ -33,7 +33,7 @@ func TestMsgCreateGauge(t *testing.T) {
 			Owner:             addr1.String(),
 			GaugeType:         incentivestypes.GaugeType_GAUGE_TYPE_ASSET,
 			Asset:             &distributeTo,
-			Coins:             sdk.Coins{},
+			Coins:             sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			StartTime:         time.Now(),
 			NumEpochsPaidOver: 2,
 		}
