@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-22)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-05-25)
 
 
 ### Bug Fixes
@@ -34,6 +34,7 @@
 
 ### Features
 
+* **ante:** implemented "inner decorator" which runs logic on wrapped msgs ([#1867](https://github.com/dymensionxyz/dymension/issues/1867)) ([079879a](https://github.com/dymensionxyz/dymension/commit/079879a9ad3847c9b2b383c42cb7fdff8ca447c1))
 * **app:** add circuit breaker module ([#1828](https://github.com/dymensionxyz/dymension/issues/1828)) ([2c71be2](https://github.com/dymensionxyz/dymension/commit/2c71be2e8f09254e7255057fc74bb5d9f357725f))
 * **app:** Upgrading to v50 ([#1736](https://github.com/dymensionxyz/dymension/issues/1736)) ([f2359ac](https://github.com/dymensionxyz/dymension/commit/f2359acdb6d8c4d616d879b6411b0b7067c60447)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
 * **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
