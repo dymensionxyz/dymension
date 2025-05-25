@@ -14,6 +14,8 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
+var _ sdk.AnteDecorator = RejectMessagesDecorator{}
+
 // RejectMessagesDecorator prevents invalid msg types from being executed
 type RejectMessagesDecorator struct {
 	// message is rejected if any Predicate returns true
@@ -36,8 +38,6 @@ func BlockTypeUrls(depthMax int, typeUrls ...string) Predicate {
 		return ok && depthMax <= depth
 	}
 }
-
-var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 
 func NewRejectMessagesDecorator() *RejectMessagesDecorator {
 	return &RejectMessagesDecorator{
@@ -65,8 +65,6 @@ func (rmd RejectMessagesDecorator) AnteHandle(
 	return next(ctx, tx, simulate)
 }
 
-const maxDepth = 6
-
 // depth=0 means top level message
 func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, depth int) error {
 	for _, msg := range msgs {
@@ -79,8 +77,8 @@ func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, de
 
 // depth=0 means top level message
 func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth int) error {
-	if depth >= maxDepth {
-		return fmt.Errorf("found more nested msgs than permitted. Limit is : %d", maxDepth)
+	if depth >= maxInnerDepth {
+		return fmt.Errorf("found more nested msgs than permitted. limit is : %d", maxInnerDepth)
 	}
 
 	if _, ok := msg.(*evmtypes.MsgEthereumTx); ok {
