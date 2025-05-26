@@ -16,12 +16,12 @@ type LockI interface {
 // NewPeriodLock returns a new instance of period lock.
 func NewPeriodLock(ID uint64, owner sdk.AccAddress, duration time.Duration, endTime time.Time, coins sdk.Coins, creationTimestamp time.Time) PeriodLock {
 	return PeriodLock{
-		ID:                ID,
-		Owner:             owner.String(),
-		Duration:          duration,
-		EndTime:           endTime,
-		Coins:             coins,
-		CreationTimestamp: creationTimestamp,
+		ID:        ID,
+		Owner:     owner.String(),
+		Duration:  duration,
+		EndTime:   endTime,
+		Coins:     coins,
+		UpdatedAt: creationTimestamp,
 	}
 }
 

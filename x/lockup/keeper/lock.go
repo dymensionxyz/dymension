@@ -73,7 +73,7 @@ func (k Keeper) AddToExistingLock(ctx sdk.Context, owner sdk.AccAddress, coin sd
 	if err != nil {
 		return 0, err
 	}
-	lock.CreationTimestamp = ctx.BlockTime()
+	lock.UpdatedAt = ctx.BlockTime()
 	err = k.setLock(ctx, *lock)
 	if err != nil {
 		return 0, err
