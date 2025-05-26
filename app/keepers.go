@@ -391,6 +391,15 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
 		appCodec,
@@ -401,8 +410,12 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 		a.SequencerKeeper,
 		a.AccountKeeper,
+		&a.SponsorshipKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	// Set the incentives keeper in sponsorship keeper
+	a.SponsorshipKeeper.SetIncentivesKeeper(a.IncentivesKeeper)
 
 	a.IROKeeper = irokeeper.NewKeeper(
 		appCodec,
@@ -416,16 +429,6 @@ func (a *AppKeepers) InitKeepers(
 		a.IncentivesKeeper,
 		a.PoolManagerKeeper,
 		a.TxFeesKeeper,
-	)
-
-	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
-		appCodec,
-		a.keys[sponsorshiptypes.StoreKey],
-		a.AccountKeeper,
-		a.StakingKeeper,
-		a.IncentivesKeeper,
-		a.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -570,7 +573,7 @@ func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
-			// insert lockup hooks receivers here
+		// insert lockup hooks receivers here
 		),
 	)
 
@@ -590,7 +593,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
-			// insert incentive hooks receivers here
+		// insert incentive hooks receivers here
 		),
 	)
 

@@ -119,7 +119,7 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 		return types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
 	}
 
-	// Prune the user’s vote and voting power
+	// Prune the user's vote and voting power
 	err = k.DeleteVote(ctx, voter)
 	if err != nil {
 		return types.Distribution{}, fmt.Errorf("failed to delete vote: %w", err)

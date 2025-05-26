@@ -36,7 +36,6 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
-	ik types.IncentivesKeeper,
 	bk types.BankKeeper,
 	authority string,
 ) Keeper {
@@ -90,8 +89,18 @@ func NewKeeper(
 			collections.StringKey,
 			codec.CollValue[types.Endorsement](cdc),
 		),
+		endorserPositions: collections.NewMap(
+			sb,
+			types.EndorserPositionsPrefix(),
+			"endorser_positions",
+			collections.PairKeyCodec(
+				collcompat.AccAddressKey,
+				collections.StringKey,
+			),
+			codec.CollValue[types.EndorserPosition](cdc),
+		),
 		stakingKeeper:    sk,
-		incentivesKeeper: ik,
+		incentivesKeeper: nil, // set later via SetIncentivesKeeper
 		bankKeeper:       bk,
 	}
 
@@ -108,4 +117,9 @@ func NewKeeper(
 
 func (k Keeper) Schema() collections.Schema {
 	return k.schema
+}
+
+// SetIncentivesKeeper sets the incentives keeper after both keepers are initialized.
+func (k *Keeper) SetIncentivesKeeper(ik types.IncentivesKeeper) {
+	k.incentivesKeeper = ik
 }

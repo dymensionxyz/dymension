@@ -87,11 +87,14 @@ func (k Keeper) UpdateEndorsementsAndPositions(
 // 7. Update the endorsement epoch shares
 // 8. Blacklist the user from claiming rewards in this epoch
 func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) error {
-	// TODO: restrict claiming if the accumulator is 0
-
 	result, err := k.EstimateClaim(ctx, claimer, gaugeId)
 	if err != nil {
 		return fmt.Errorf("estimate claim: %w", err)
+	}
+
+	if result.Rewards.IsZero() {
+		// Nothing to claim
+		return nil
 	}
 
 	// Rewards reside in x/incentives module
@@ -155,11 +158,55 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 		return EstimateClaimResult{}, fmt.Errorf("get endorser position: %w", err)
 	}
 
+	// TODO: there is a problem with precision in big decimals. Imagine
+	// Accumulator = 7.(6)
+	// LastSeenAccumulator = 6
+	// Shares = 60
+	// Thus, Rewards = (7.(6) - 6) * 60 = 99,(9) is approx. 100
+	// However, 7.(6) - 6 is calculated not as 1.(6), but 1.666666667, so
+	// 1.66666666667 * 60 > 100, so the user will claim more than available.
+	// This is not probable, but still the case.
+
 	userRewards, _ := endorsement.Accumulator.Sub(endorserPosition.LastSeenAccumulator).
-		MulDec(endorserPosition.Shares).TruncateDecimal()
+		MulDecTruncate(endorserPosition.Shares).TruncateDecimal()
 
 	return EstimateClaimResult{
 		RollappId: raGauge.Rollapp.RollappId,
 		Rewards:   userRewards,
 	}, nil
+}
+
+// UpdateEndorsementTotalCoins updates the total coins for an endorsement by adding the provided coins.
+// This is used when new rewards are added to the endorsement gauge.
+// It also updates the lazy accumulator by calculating the rewards per share.
+func (k Keeper) UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, additionalCoins sdk.Coins) error {
+	endorsement, err := k.GetEndorsement(ctx, rollappID)
+	if err != nil {
+		return fmt.Errorf("get endorsement: %w", err)
+	}
+
+	// Update total coins
+	endorsement.TotalCoins = endorsement.TotalCoins.Add(additionalCoins...)
+
+	// Update the lazy accumulator: add rewards per share to the accumulator
+	// Only update if there are shares to avoid division by zero
+	if !endorsement.TotalShares.IsZero() {
+		// Convert additional coins to DecCoins for accumulator calculation
+		additionalDecCoins := sdk.NewDecCoinsFromCoins(additionalCoins...)
+
+		// Calculate rewards per share: additionalCoins / totalShares
+		rewardsPerShare := additionalDecCoins.QuoDec(endorsement.TotalShares)
+
+		// Add to the accumulator
+		endorsement.Accumulator = endorsement.Accumulator.Add(rewardsPerShare...)
+	}
+
+	// TODO: think what to do if total shares is zero
+
+	err = k.SaveEndorsement(ctx, endorsement)
+	if err != nil {
+		return fmt.Errorf("save endorsement: %w", err)
+	}
+
+	return nil
 }

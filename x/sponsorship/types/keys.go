@@ -21,6 +21,7 @@ const (
 	DelegatorValidatorPowerByte        // Delegator voting power by the validator: math.Int
 	VoteByte                           // User's vote: Vote
 	RAEndorsementsByte                 // RA endorsement: Endorsement
+	EndorserPositionsByte              // Endorser positions: EndorserPosition
 	ClaimBlacklistIndexByte            // Claim blacklist: sdk.AccAddress
 )
 
@@ -42,6 +43,10 @@ func VotePrefix() collections.Prefix {
 
 func RAEndorsementsPrefix() collections.Prefix {
 	return collections.NewPrefix(RAEndorsementsByte)
+}
+
+func EndorserPositionsPrefix() collections.Prefix {
+	return collections.NewPrefix(EndorserPositionsByte)
 }
 
 func ClaimBlacklistPrefix() collections.Prefix {

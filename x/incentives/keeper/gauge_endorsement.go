@@ -52,8 +52,13 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 	gauge.FilledEpochs += 1
 	gauge.DistributedCoins = gauge.DistributedCoins.Add(epochRewards...)
 
-	_ = epochRewards
-	// TODO: update Endorsement.TotalCoins field by epochRewards
+	// Update endorsement total coins with the epoch rewards
+	endorsementGauge := gauge.DistributeTo.(*types.Gauge_Endorsement)
+
+	err := k.spk.UpdateEndorsementTotalCoins(ctx, endorsementGauge.Endorsement.RollappId, epochRewards)
+	if err != nil {
+		return fmt.Errorf("update endorsement total coins: %w", err)
+	}
 
 	if err := k.setGauge(ctx, &gauge); err != nil {
 		return err

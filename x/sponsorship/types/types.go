@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (d Distribution) Validate() error {
@@ -197,9 +198,11 @@ func (m Gauges) Swap(i, j int) {
 
 func NewEndorsement(rollappId string, rollappGaugeId uint64, totalShares math.LegacyDec) Endorsement {
 	return Endorsement{
-		RollappId:      rollappId,
-		RollappGaugeId: rollappGaugeId,
-		TotalShares:    totalShares,
-		// TODO: missing fields
+		RollappId:        rollappId,
+		RollappGaugeId:   rollappGaugeId,
+		TotalShares:      totalShares,
+		Accumulator:      sdk.NewDecCoins(),
+		TotalCoins:       sdk.NewCoins(),
+		DistributedCoins: sdk.NewCoins(),
 	}
 }
