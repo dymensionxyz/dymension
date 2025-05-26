@@ -86,10 +86,8 @@ func NewCreateGaugeCmd() *cobra.Command {
 			}
 
 			distributeTo := lockuptypes.QueryCondition{
-				LockQueryType: lockuptypes.ByDuration,
-				Denom:         denom,
-				Duration:      duration,
-				Timestamp:     time.Unix(0, 0), // XXX check
+				Denom:    denom,
+				Duration: duration,
 			}
 
 			msg := types.NewMsgCreateAssetGauge(
