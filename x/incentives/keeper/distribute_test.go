@@ -183,9 +183,8 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 		Id:          gaugeID,
 		IsPerpetual: true,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 1,
@@ -230,9 +229,8 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,

@@ -303,9 +303,8 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 
 	// check accumulation store
 	accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-		LockQueryType: types.ByDuration,
-		Denom:         "stake",
-		Duration:      time.Second,
+		Denom:    "stake",
+		Duration: time.Second,
 	})
 	suite.Require().Equal(accum.String(), "10")
 
@@ -321,9 +320,8 @@ func (suite *KeeperTestSuite) TestCreateLock() {
 
 	// check accumulation store
 	accum = suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-		LockQueryType: types.ByDuration,
-		Denom:         "stake",
-		Duration:      time.Second,
+		Denom:    "stake",
+		Duration: time.Second,
 	})
 	suite.Require().Equal(accum.String(), "30")
 
@@ -409,9 +407,8 @@ func (suite *KeeperTestSuite) TestAddTokensToLock() {
 
 			// check accumulation store
 			accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-				LockQueryType: types.ByDuration,
-				Denom:         "stake",
-				Duration:      time.Second,
+				Denom:    "stake",
+				Duration: time.Second,
 			})
 			suite.Require().Equal(initialLockCoin.Amount.Add(tc.tokenToAdd.Amount), accum)
 		} else {
@@ -426,9 +423,8 @@ func (suite *KeeperTestSuite) TestAddTokensToLock() {
 
 			// check accumulation store didn't change
 			accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-				LockQueryType: types.ByDuration,
-				Denom:         "stake",
-				Duration:      time.Second,
+				Denom:    "stake",
+				Duration: time.Second,
 			})
 			suite.Require().Equal(initialLockCoin.Amount, accum)
 		}
@@ -526,9 +522,8 @@ func (suite *KeeperTestSuite) TestLock() {
 
 	// check accumulation store
 	accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-		LockQueryType: types.ByDuration,
-		Denom:         "stake",
-		Duration:      time.Second,
+		Denom:    "stake",
+		Duration: time.Second,
 	})
 	suite.Require().Equal(accum.String(), "0")
 
@@ -538,9 +533,8 @@ func (suite *KeeperTestSuite) TestLock() {
 
 	// check accumulation store
 	accum = suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-		LockQueryType: types.ByDuration,
-		Denom:         "stake",
-		Duration:      time.Second,
+		Denom:    "stake",
+		Duration: time.Second,
 	})
 	suite.Require().Equal(accum.String(), "10")
 
@@ -774,9 +768,8 @@ func (suite *KeeperTestSuite) TestForceUnlock() {
 
 		// check that accumulation store has decreased
 		accum := suite.App.LockupKeeper.GetPeriodLocksAccumulation(suite.Ctx, types.QueryCondition{
-			LockQueryType: types.ByDuration,
-			Denom:         "foo",
-			Duration:      time.Minute,
+			Denom:    "stake",
+			Duration: time.Minute,
 		})
 		suite.Require().Equal(accum.String(), "0")
 

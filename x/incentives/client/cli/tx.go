@@ -27,6 +27,8 @@ func GetTxCmd() *cobra.Command {
 	return cmd
 }
 
+// TODO: add flag to use lock age instead/with duration
+
 // NewCreateGaugeCmd broadcasts a CreateGauge message.
 func NewCreateGaugeCmd() *cobra.Command {
 	cmd := &cobra.Command{

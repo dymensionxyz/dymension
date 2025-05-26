@@ -126,9 +126,8 @@ func (suite *KeeperTestSuite) setupNewGaugeWithDuration(isPerpetual bool, coins 
 	addr := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
 	startTime2 := time.Now()
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         denom,
-		Duration:      duration,
+		Denom:    denom,
+		Duration: duration,
 	}
 
 	// mints coins so supply exists on chain
@@ -155,9 +154,8 @@ func (suite *KeeperTestSuite) setupNewGaugeWithDenom(isPerpetual bool, coins sdk
 	addr := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
 	startTime2 := time.Now()
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         denom,
-		Duration:      duration,
+		Denom:    denom,
+		Duration: duration,
 	}
 
 	// mints coins so supply exists on chain

@@ -62,6 +62,9 @@ func CreateUpgradeHandler(
 			return nil, fmt.Errorf("migrate endorsements: %w", err)
 		}
 
+		// FIXME: need to migrate locks! add creation_timestamp
+		// FIXME: need to migrate gauges, as the queryCondition changed
+
 		/* ----------------------------- params updates ----------------------------- */
 		// Incentives module params migration
 		migrateAndUpdateIncentivesParams(ctx, keepers)
@@ -283,15 +286,15 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 }
 
 const (
-	slowBlockDuration = 6
-	fastBlockDuration = 1
-	BlockSpeedup = slowBlockDuration / fastBlockDuration
-	slowBlocksParamDisputePeriod = 120960 
-	fastBlocksParamDisputePeriod = slowBlocksParamDisputePeriod * BlockSpeedup
-	slowBlocksParamLivenessSlashBlocks = 7200
-	fastBlocksParamLivenessSlashBlocks = slowBlocksParamLivenessSlashBlocks * BlockSpeedup
+	slowBlockDuration                    = 6
+	fastBlockDuration                    = 1
+	BlockSpeedup                         = slowBlockDuration / fastBlockDuration
+	slowBlocksParamDisputePeriod         = 120960
+	fastBlocksParamDisputePeriod         = slowBlocksParamDisputePeriod * BlockSpeedup
+	slowBlocksParamLivenessSlashBlocks   = 7200
+	fastBlocksParamLivenessSlashBlocks   = slowBlocksParamLivenessSlashBlocks * BlockSpeedup
 	slowBlocksParamLivenessSlashInterval = 600
-	fastBlocksParamLivenessSlashInterval =  slowBlocksParamLivenessSlashInterval * BlockSpeedup
+	fastBlocksParamLivenessSlashInterval = slowBlocksParamLivenessSlashInterval * BlockSpeedup
 )
 
 func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
@@ -302,8 +305,8 @@ func updateRollappParams(ctx sdk.Context, k *rollappkeeper.Keeper) {
 	params.LivenessSlashBlocks = fastBlocksParamLivenessSlashBlocks
 	params.LivenessSlashInterval = fastBlocksParamLivenessSlashInterval
 	k.SetParams(ctx, params)
-	
-	// 2. other state	
+
+	// 2. other state
 	// (other migration for dispute not needed because finalization is computed based on stored creation height)
 	migrateLivenessEvents(ctx, k)
 }
@@ -316,7 +319,7 @@ func migrateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
 			panic("assumed no liveness events in the past") // (zero is fine)
 		}
 		k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId) // we can delete 'both' since there is only one kind currently
-		e.HubHeight = ctx.BlockHeight() + diff * BlockSpeedup
+		e.HubHeight = ctx.BlockHeight() + diff*BlockSpeedup
 		k.PutLivenessEvent(ctx, e)
 	}
-}	
+}

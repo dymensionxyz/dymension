@@ -23,9 +23,8 @@ func TestMsgCreateGauge(t *testing.T) {
 	// make a proper createPool message
 	createMsg := func(after func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
 		distributeTo := lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}
 
 		properMsg := *incentivestypes.NewMsgCreateAssetGauge(
@@ -72,22 +71,6 @@ func TestMsgCreateGauge(t *testing.T) {
 			name: "invalid distribution denom",
 			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
 				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.Denom = "111"
-				return msg
-			}),
-			expectPass: false,
-		},
-		{
-			name: "invalid lock query type",
-			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.LockQueryType = -1
-				return msg
-			}),
-			expectPass: false,
-		},
-		{
-			name: "invalid lock query type",
-			msg: createMsg(func(msg incentivestypes.MsgCreateGauge) incentivestypes.MsgCreateGauge {
-				msg.DistributeTo.(*incentivestypes.MsgCreateGauge_Asset).Asset.LockQueryType = -1
 				return msg
 			}),
 			expectPass: false,
@@ -220,9 +203,8 @@ func TestAuthzMsg(t *testing.T) {
 				Owner:       addr1,
 				DistributeTo: &incentivestypes.MsgCreateGauge_Asset{
 					Asset: &lockuptypes.QueryCondition{
-						LockQueryType: lockuptypes.ByDuration,
-						Denom:         "lptoken",
-						Duration:      time.Second,
+						Denom:    "lptoken",
+						Duration: time.Second,
 					},
 				},
 				Coins:             sdk.NewCoins(coin),

@@ -93,18 +93,13 @@ func genRewardCoins(r *rand.Rand, coins sdk.Coins, fee math.Int) (res sdk.Coins)
 
 // genQueryCondition returns a single lockup QueryCondition, which is generated from a single coin randomly selected from the provided coin array
 func genQueryCondition(r *rand.Rand, blocktime time.Time, coins sdk.Coins, durations []time.Duration) lockuptypes.QueryCondition {
-	lockQueryType := 0
 	denom := coins[r.Intn(len(coins))].Denom
 	durationIndex := r.Intn(len(durations))
 	duration := durations[durationIndex]
-	timestampSecs := r.Intn(1 * 60 * 60 * 24 * 7) // range of 1 week
-	timestamp := blocktime.Add(time.Duration(timestampSecs) * time.Second)
-
+	// lock_age is not used in simulation, set to 0
 	return lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.LockQueryType(lockQueryType),
-		Denom:         denom,
-		Duration:      duration,
-		Timestamp:     timestamp,
+		Denom:    denom,
+		Duration: duration,
 	}
 }
 

@@ -53,7 +53,7 @@ message PeriodLock {
 }
 
 // QueryCondition is a struct used for querying locks upon different conditions.
-// Duration field and timestamp fields could be optional, depending on the
+// Duration field and lock_age field could be empty, depending on the
 // LockQueryType.
 message QueryCondition {
   reserved 1,4; 
