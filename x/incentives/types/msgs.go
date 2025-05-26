@@ -58,6 +58,9 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		if m.Endorsement.RollappId == "" {
 			return errors.New("rollapp id should be set")
 		}
+		if !m.Endorsement.EpochRewards.Empty() {
+			return errors.New("epoch rewards should be empty on creation")
+		}
 	default:
 		return errors.New("unsupported gauge type")
 	}
@@ -78,6 +81,10 @@ func NewMsgAddToGauge(owner sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) *
 func (m MsgAddToGauge) ValidateBasic() error {
 	if m.Owner == "" {
 		return errors.New("owner should be set")
+	}
+
+	if err := m.Rewards.Validate(); err != nil {
+		return errorsmod.Wrapf(err, "coins should be valid")
 	}
 	if m.Rewards.Empty() {
 		return errors.New("additional rewards should not be empty")
