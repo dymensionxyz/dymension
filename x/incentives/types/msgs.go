@@ -46,11 +46,12 @@ func (m MsgCreateGauge) ValidateBasic() error {
 
 	switch distr := m.DistributeTo.(type) {
 	case *MsgCreateGauge_Asset:
-		if sdk.ValidateDenom(distr.Asset.Denom) != nil {
+		condition := distr.Asset
+		if sdk.ValidateDenom(condition.Denom) != nil {
 			return errors.New("denom should be valid for the condition")
 		}
-		if lockuptypes.LockQueryType_name[int32(distr.Asset.LockQueryType)] != "ByDuration" {
-			return errors.New("only duration query condition is allowed. Start time distr conditions is an obsolete codepath slated for deletion")
+		if condition.Duration < 0 || condition.LockAge < 0 {
+			return errors.New("duration and lock age should be positive")
 		}
 	case *MsgCreateGauge_Endorsement:
 		if distr.Endorsement.RollappId == "" {
