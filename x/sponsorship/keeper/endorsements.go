@@ -163,6 +163,7 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 	// 1.66666666667 * 60 > 100, so the user will claim more than available.
 	// This is not probable, but still the case.
 
+	// TODO: account for AccumulatedRewards
 	userRewards, _ := endorsement.Accumulator.Sub(endorserPosition.LastSeenAccumulator).
 		MulDecTruncate(endorserPosition.Shares).TruncateDecimal()
 
