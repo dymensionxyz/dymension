@@ -26,6 +26,7 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -64,6 +65,21 @@ func CreateUpgradeHandler(
 			return nil, fmt.Errorf("migrate endorsements: %w", err)
 		}
 
+		// Migrate locks: set creation_timestamp (UpdatedAt) if not set
+		if err := migrateLockTimestamps(ctx, keepers.LockupKeeper, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
+
+		// Migrate locks: set creation_timestamp (UpdatedAt) if not set
+		if err := migrateLockTimestamps(ctx, keepers.LockupKeeper, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
+
+		// Migrate gauges: set min lock age for perpetual asset gauges
+		if err := migrateGaugeLockAges(ctx, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
+
 		/* ----------------------------- params updates ----------------------------- */
 		// Incentives module params migration
 		migrateAndUpdateIncentivesParams(ctx, keepers)
@@ -71,10 +87,10 @@ func CreateUpgradeHandler(
 		// lockup module params migrations
 		migrateAndUpdateLockupParams(ctx, keepers)
 
-		// IRO module params migration
+		// IRO module params update
 		updateIROParams(ctx, keepers.IROKeeper)
 
-		// GAMM module params migration
+		// GAMM module params update
 		updateGAMMParams(ctx, keepers.GAMMKeeper)
 
 		// fix V50 x/gov params
@@ -109,6 +125,9 @@ func migrateAndUpdateIncentivesParams(ctx sdk.Context, keepers *upgrades.Upgrade
 		/* ------------------------------- new params ------------------------------- */
 		incentivestypes.DefaultMinValueForDistr,  // Default to 0.01 DYM
 		incentivestypes.DefaultRollappGaugesMode, // Default to active rollapps only
+
+		// FIXME: add min_lock_duration
+		// FIXME: add min_lock_age
 	)
 
 	keepers.IncentivesKeeper.SetParams(ctx, newParams)
@@ -127,7 +146,7 @@ func migrateAndUpdateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeep
 		lockupParams.ForceUnlockAllowedAddresses,
 		/* ------------------------------- new params ------------------------------- */
 		lockuptypes.DefaultLockFee, // Default to 0.05 DYM
-		24*time.Hour,               // Minimum lock duration is 24 hours
+		time.Minute,                // same as incentives.LockableDurations
 	)
 	keepers.LockupKeeper.SetParams(ctx, newParams)
 }
@@ -353,4 +372,39 @@ func migrateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
 			k.SetSequencer(ctx, s)
 		}
 	}
+}
+
+// migrateLockTimestamps sets UpdatedAt on all locks if not set
+func migrateLockTimestamps(ctx sdk.Context, lockupKeeper *lockupkeeper.Keeper, incentivesKeeper *incentiveskeeper.Keeper) error {
+	locks, err := lockupKeeper.GetPeriodLocks(ctx)
+	if err != nil {
+		return fmt.Errorf("get period locks: %w", err)
+	}
+
+	// for each lock, set the updated_at to the min lock age eligible for distribution
+	for _, lock := range locks {
+		lock.UpdatedAt = ctx.BlockTime().Add(incentivesKeeper.GetParams(ctx).MinLockAge)
+		err := lockupKeeper.SetLock(ctx, lock)
+		if err != nil {
+			return fmt.Errorf("set lock %d: %w", lock.ID, err)
+		}
+	}
+	return nil
+}
+
+// migrateGaugeLockAges sets the min lock age for all perpetual asset gauges
+func migrateGaugeLockAges(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Keeper) error {
+	params := incentivesKeeper.GetParams(ctx)
+	minLockAge := params.MinLockAge
+	gauges := incentivesKeeper.GetGauges(ctx)
+	for _, gauge := range gauges {
+		if gauge.IsPerpetual && gauge.GetAsset() != nil {
+			asset := gauge.GetAsset()
+			asset.LockAge = minLockAge
+			if err := incentivesKeeper.SetGauge(ctx, &gauge); err != nil {
+				return fmt.Errorf("set gauge %d: %w", gauge.Id, err)
+			}
+		}
+	}
+	return nil
 }

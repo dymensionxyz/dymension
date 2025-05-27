@@ -22,25 +22,28 @@ var (
 		LastLockId: 10,
 		Locks: []types.PeriodLock{
 			{
-				ID:       1,
-				Owner:    acc1.String(),
-				Duration: time.Second,
-				EndTime:  time.Time{},
-				Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 10000000)},
+				ID:        1,
+				Owner:     acc1.String(),
+				Duration:  time.Second,
+				EndTime:   time.Time{},
+				Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 10000000)},
+				UpdatedAt: now,
 			},
 			{
-				ID:       2,
-				Owner:    acc1.String(),
-				Duration: time.Hour,
-				EndTime:  time.Time{},
-				Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 15000000)},
+				ID:        2,
+				Owner:     acc1.String(),
+				Duration:  time.Hour,
+				EndTime:   time.Time{},
+				Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 15000000)},
+				UpdatedAt: now,
 			},
 			{
-				ID:       3,
-				Owner:    acc2.String(),
-				Duration: time.Minute,
-				EndTime:  time.Time{},
-				Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+				ID:        3,
+				Owner:     acc2.String(),
+				Duration:  time.Minute,
+				EndTime:   time.Time{},
+				Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+				UpdatedAt: now,
 			},
 		},
 	}
@@ -78,6 +81,7 @@ func TestExportGenesis(t *testing.T) {
 
 	err := bankutil.FundAccount(ctx, app.BankKeeper, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)})
 	require.NoError(t, err)
+
 	_, err = app.LockupKeeper.CreateLock(ctx, acc2, sdk.Coins{sdk.NewInt64Coin("foo", 5000000)}, time.Second*5)
 	require.NoError(t, err)
 
@@ -86,36 +90,55 @@ func TestExportGenesis(t *testing.T) {
 
 	genesisExported := app.LockupKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesisExported.LastLockId, uint64(11))
-	require.Equal(t, genesisExported.Locks, []types.PeriodLock{
+
+	expectedLocks := []types.PeriodLock{
 		{
-			ID:       1,
-			Owner:    acc1.String(),
-			Duration: time.Second,
-			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 10000000)},
+			ID:        1,
+			Owner:     acc1.String(),
+			Duration:  time.Second,
+			EndTime:   time.Time{},
+			Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 10000000)},
+			UpdatedAt: now,
 		},
 		{
-			ID:       11,
-			Owner:    acc2.String(),
-			Duration: time.Second * 5,
-			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+			ID:        11,
+			Owner:     acc2.String(),
+			Duration:  time.Second * 5,
+			EndTime:   time.Time{},
+			Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+			UpdatedAt: ctx.BlockTime(),
 		},
 		{
-			ID:       3,
-			Owner:    acc2.String(),
-			Duration: time.Minute,
-			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+			ID:        3,
+			Owner:     acc2.String(),
+			Duration:  time.Minute,
+			EndTime:   time.Time{},
+			Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 5000000)},
+			UpdatedAt: now,
 		},
 		{
-			ID:       2,
-			Owner:    acc1.String(),
-			Duration: time.Hour,
-			EndTime:  time.Time{},
-			Coins:    sdk.Coins{sdk.NewInt64Coin("foo", 15000000)},
+			ID:        2,
+			Owner:     acc1.String(),
+			Duration:  time.Hour,
+			EndTime:   time.Time{},
+			Coins:     sdk.Coins{sdk.NewInt64Coin("foo", 15000000)},
+			UpdatedAt: now,
 		},
-	})
+	}
+
+	actualLocks := genesisExported.Locks
+	require.Equal(t, len(expectedLocks), len(actualLocks), "number of locks should match")
+
+	timeTolerance := 2 * time.Second // allow 2s tolerance due to block time changes
+	for i, exp := range expectedLocks {
+		act := actualLocks[i]
+		assert.Equal(t, exp.ID, act.ID, "ID mismatch at index %d", i)
+		assert.Equal(t, exp.Owner, act.Owner, "Owner mismatch at index %d", i)
+		assert.Equal(t, exp.Duration, act.Duration, "Duration mismatch at index %d", i)
+		assert.Equal(t, exp.EndTime, act.EndTime, "EndTime mismatch at index %d", i)
+		assert.True(t, exp.Coins.Equal(act.Coins), "Coins mismatch at index %d: expected %s, got %s", i, exp.Coins, act.Coins)
+		assert.WithinDuration(t, exp.UpdatedAt, act.UpdatedAt, timeTolerance, "UpdatedAt mismatch at index %d: expected %v, got %v", i, exp.UpdatedAt, act.UpdatedAt)
+	}
 }
 
 func TestMarshalUnmarshalGenesis(t *testing.T) {

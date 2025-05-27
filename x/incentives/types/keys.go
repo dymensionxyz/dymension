@@ -46,6 +46,7 @@ var (
 	// KeyIndexSeparator defines key for merging bytes.
 	KeyIndexSeparator = []byte{0x07}
 
+	// TODO: move lockable durations to incentives params
 	// LockableDurationsKey defines key for storing valid durations for giving incentives.
 	LockableDurationsKey = []byte("lockable_durations")
 )

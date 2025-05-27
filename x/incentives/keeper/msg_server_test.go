@@ -138,9 +138,8 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 
 			suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
 			distrTo := lockuptypes.QueryCondition{
-				LockQueryType: lockuptypes.ByDuration,
-				Denom:         defaultLPDenom,
-				Duration:      defaultLockDuration,
+				Denom:    defaultLPDenom,
+				Duration: defaultLockDuration,
 			}
 
 			msg := &types.MsgCreateGauge{

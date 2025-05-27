@@ -18,9 +18,8 @@ func (suite *KeeperTestSuite) TestInvalidDurationGaugeCreationValidation() {
 
 	addrs := suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         defaultLPDenom,
-		Duration:      defaultLockDuration / 2, // 0.5 second, invalid duration
+		Denom:    defaultLPDenom,
+		Duration: defaultLockDuration / 2, // 0.5 second, invalid duration
 	}
 	_, err := suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
@@ -37,9 +36,8 @@ func (suite *KeeperTestSuite) TestNonExistentDenomGaugeCreation() {
 	addrNoSupply := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
 	addrs := suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         defaultLPDenom,
-		Duration:      defaultLockDuration,
+		Denom:    defaultLPDenom,
+		Duration: defaultLockDuration,
 	}
 	_, err := suite.App.IncentivesKeeper.CreateAssetGauge(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
@@ -99,9 +97,8 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			Id:          gaugeID,
 			IsPerpetual: tc.isPerpetual,
 			DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-				LockQueryType: lockuptypes.ByDuration,
-				Denom:         "lptoken",
-				Duration:      time.Second,
+				Denom:    "lptoken",
+				Duration: time.Second,
 			}},
 			Coins:             coins,
 			NumEpochsPaidOver: uint64(expectedNumEpochsPaidOver),

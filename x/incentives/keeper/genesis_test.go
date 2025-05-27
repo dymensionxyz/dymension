@@ -33,9 +33,8 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	// mints LP tokens and send to address created earlier
 	// this ensures the supply exists on chain
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         "lptoken",
-		Duration:      time.Second,
+		Denom:    "lptoken",
+		Duration: time.Second,
 	}
 	mintLPtokens := sdk.Coins{sdk.NewInt64Coin(distrTo.Denom, 200)}
 	err = bankutil.FundAccount(ctx, app.BankKeeper, addr, mintLPtokens)
@@ -78,9 +77,8 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
 	startTime := time.Now()
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         "lptoken",
-		Duration:      time.Second,
+		Denom:    "lptoken",
+		Duration: time.Second,
 	}
 	gauge := types.Gauge{
 		Id:                1,

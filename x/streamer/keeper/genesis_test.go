@@ -35,10 +35,8 @@ func TestStreamerExportGenesis(t *testing.T) {
 		app.AccountKeeper.GetModuleAddress(types.ModuleName),
 		sdk.Coins{},
 		lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByTime,
-			Denom:         "stake",
-			Duration:      time.Hour,
-			Timestamp:     time.Time{},
+			Denom:    "stake",
+			Duration: time.Hour,
 		}, time.Now(), 1)
 	require.NoError(t, err)
 

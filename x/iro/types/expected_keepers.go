@@ -9,6 +9,7 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -39,7 +40,7 @@ type BankKeeper interface {
 
 // IncentivesKeeper defines the expected interface needed to retrieve account balances.
 type IncentivesKeeper interface {
-	GetLockableDurations(ctx sdk.Context) []time.Duration
+	GetParams(ctx sdk.Context) incentivestypes.Params
 	CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
 }
 

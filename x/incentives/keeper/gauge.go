@@ -206,3 +206,8 @@ func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gaug
 	k.hooks.GaugeFinished(ctx, gauge.Id)
 	return nil
 }
+
+// SetGauge updates a gauge in the store (public for migrations).
+func (k Keeper) SetGauge(ctx sdk.Context, gauge *types.Gauge) error {
+	return k.setGauge(ctx, gauge)
+}

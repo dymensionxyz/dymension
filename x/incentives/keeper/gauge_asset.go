@@ -16,7 +16,7 @@ import (
 func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error) {
 	// Ensure that this gauge's duration is one of the allowed durations on chain
 	durations := k.GetLockableDurations(ctx)
-	if distrTo.LockQueryType == lockuptypes.ByDuration {
+	if distrTo.Duration > 0 {
 		durationOk := false
 		for _, duration := range durations {
 			if duration == distrTo.Duration {
@@ -81,20 +81,9 @@ func NewRewardDistributionTracker() RewardDistributionTracker {
 	}
 }
 
-// getLocksToDistributionWithMaxDuration returns locks that match the provided lockuptypes QueryCondition,
-// are greater than the provided minDuration, AND have yet to be distributed to.
-func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo lockuptypes.QueryCondition, minDuration time.Duration) []lockuptypes.PeriodLock {
-	switch distrTo.LockQueryType {
-	case lockuptypes.ByDuration:
-		// TODO: what the meaning of minDuration here? it's set to time.Millisecond in the caller.
-		duration := min(distrTo.Duration, minDuration)
-		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, duration)
-	case lockuptypes.ByTime:
-		k.Logger(ctx).Error("Gauge by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
-		return []lockuptypes.PeriodLock{}
-	default:
-	}
-	return []lockuptypes.PeriodLock{}
+// getLocksForDenom returns all locks for a given denom
+func (k Keeper) getLocksForDenom(ctx sdk.Context, denom string) []lockuptypes.PeriodLock {
+	return k.lk.GetLocksLongerThanDurationDenom(ctx, denom, 0)
 }
 
 // addLockRewards adds the provided rewards to the lockID mapped to the provided owner address.
@@ -307,13 +296,16 @@ func (k Keeper) GetDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	}
 
 	// All gauges have a precondition of being ByDuration.
-	asset := gauge.GetAsset() // this should never be nil
+	asset := *gauge.GetAsset() // this should never be nil
 	distributeBaseDenom := asset.Denom
 	if _, ok := cache[distributeBaseDenom]; !ok {
-		cache[distributeBaseDenom] = k.getLocksToDistributionWithMaxDuration(ctx, *asset, time.Millisecond)
+		// we get ALL the locks for the denom as this cache is used by multiple gauges
+		// which can have different conditions
+		cache[distributeBaseDenom] = k.getLocksForDenom(ctx, asset.Denom)
 	}
 	// get this from memory instead of hitting iterators / underlying stores.
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
-	allLocks := cache[distributeBaseDenom]
-	return FilterLocksByMinDuration(allLocks, asset.Duration)
+	locksForDenom := cache[distributeBaseDenom]
+
+	return FilterLocksByCondition(ctx, locksForDenom, asset)
 }

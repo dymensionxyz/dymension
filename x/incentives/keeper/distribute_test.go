@@ -80,6 +80,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		// setup gauges and the locks defined in the above tests, then distribute to them
 		gauges := suite.SetupGauges(tc.gauges, defaultLPDenom)
 		addrs := suite.SetupUserLocks(tc.users)
+		suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 		_, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, gauges)
 		suite.Require().NoError(err)
 		// check expected rewards against actual rewards received
@@ -183,9 +184,8 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 		Id:          gaugeID,
 		IsPerpetual: true,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 1,
@@ -230,9 +230,8 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
