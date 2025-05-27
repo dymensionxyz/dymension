@@ -132,7 +132,8 @@ func SimulateMsgCreateGauge(
 		msg := &types.MsgCreateGauge{
 			Owner:             simAccount.Address.String(),
 			IsPerpetual:       true, // all gauges are perpetual
-			DistributeTo:      &types.MsgCreateGauge_Asset{Asset: &distributeTo},
+			GaugeType:         types.GaugeType_GAUGE_TYPE_ASSET,
+			Asset:             &distributeTo,
 			Coins:             rewards,
 			StartTime:         startTime,
 			NumEpochsPaidOver: numEpochsPaidOver,

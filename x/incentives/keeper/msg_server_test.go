@@ -143,11 +143,10 @@ func (suite *KeeperTestSuite) TestCreateGauge() {
 			}
 
 			msg := &types.MsgCreateGauge{
-				IsPerpetual: tc.isPerpetual,
-				Owner:       testAccountAddress.String(),
-				DistributeTo: &types.MsgCreateGauge_Asset{
-					Asset: &distrTo,
-				},
+				IsPerpetual:       tc.isPerpetual,
+				Owner:             testAccountAddress.String(),
+				GaugeType:         types.GaugeType_GAUGE_TYPE_ASSET,
+				Asset:             &distrTo,
 				Coins:             tc.gaugeAddition,
 				StartTime:         time.Now(),
 				NumEpochsPaidOver: 1,

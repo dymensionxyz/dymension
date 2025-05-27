@@ -33,6 +33,13 @@ message MsgUpdateParams {
 
 message MsgUpdateParamsResponse {}
 
+// Enum to specify the type of distribution
+enum GaugeType {
+  GAUGE_TYPE_UNSPECIFIED = 0;
+  GAUGE_TYPE_ASSET = 1;
+  GAUGE_TYPE_ENDORSEMENT = 2;
+}
+
 // MsgCreateGauge creates a gague to distribute rewards to users
 message MsgCreateGauge {
   option (cosmos.msg.v1.signer) = "owner";
@@ -45,25 +52,26 @@ message MsgCreateGauge {
   bool is_perpetual = 1;
   // owner is the address of gauge creator
   string owner = 2 [ (gogoproto.moretags) = "yaml:\"owner\"" ];
-  // distribute_to is where the gauge rewards are distributed to
-  oneof distribute_to {
-    dymensionxyz.dymension.lockup.QueryCondition asset = 3;
-    EndorsementGauge endorsement = 7;
-  }
+  // distribute_to_type specifies which field is used for distribution
+  GaugeType gauge_type = 3;
+  // asset is used if gauge_type is GAUGE_TYPE_ASSET
+  dymensionxyz.dymension.lockup.QueryCondition asset = 4;
+  // endorsement is used if gauge_type is GAUGE_TYPE_ENDORSEMENT
+  dymensionxyz.dymension.incentives.EndorsementGauge endorsement = 5;
   // coins are coin(s) to be distributed by the gauge
-  repeated cosmos.base.v1beta1.Coin coins = 4 [
+  repeated cosmos.base.v1beta1.Coin coins = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
   // start_time is the distribution start time
-  google.protobuf.Timestamp start_time = 5 [
+  google.protobuf.Timestamp start_time = 7 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"timestamp\""
   ];
   // num_epochs_paid_over is the number of epochs distribution will be completed
   // over
-  uint64 num_epochs_paid_over = 6;
+  uint64 num_epochs_paid_over = 8;
 }
 message MsgCreateGaugeResponse {}
 
