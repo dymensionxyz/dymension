@@ -259,6 +259,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	// The actual claimable balance is
 	adjustedRes := dym100.Add(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(20)))
 	s.Require().True(result.Rewards.Equal(adjustedRes), "user2 should have 100 DYM claimable after final distribution")
+
+	// TODO: Test staking updates
+	// TODO: Test updating the existing vote
 }
 
 // TestEndorsementsMultiCurrency tests the lazy accumulator with multiple currencies

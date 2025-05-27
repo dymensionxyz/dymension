@@ -227,10 +227,7 @@ func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Kee
 
 			// Create endorser position with the voting power as shares
 			shares := math.LegacyNewDecFromInt(gauge.Power)
-			endorserPosition := sponsorshiptypes.EndorserPosition{
-				Shares:              shares,
-				LastSeenAccumulator: endorsement.Accumulator, // Start with current accumulator (zero for new endorsements)
-			}
+			endorserPosition := sponsorshiptypes.NewEndorserPosition(shares, endorsement.Accumulator, sdk.NewCoins())
 
 			// Save the endorser position
 			err = sponsorshipKeeper.SaveEndorserPosition(ctx, voter, endorsement.RollappId, endorserPosition)

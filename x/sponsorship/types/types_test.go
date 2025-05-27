@@ -766,3 +766,8 @@ func accAddrsToString(a []sdk.AccAddress) []string {
 	}
 	return res
 }
+
+func TestRewardsToBank(t *testing.T) {
+	// TODO
+	t.Fail()
+}

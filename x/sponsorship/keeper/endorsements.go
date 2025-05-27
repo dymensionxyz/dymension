@@ -50,28 +50,24 @@ func (k Keeper) UpdateEndorsementsAndPositions(
 		}
 		if errors.Is(err, collections.ErrNotFound) {
 			// Must initialize endorser shares with zero to avoid panic
-			endorserPosition = types.EndorserPosition{Shares: math.LegacyZeroDec()}
+			endorserPosition = types.NewDefaultEndorserPosition()
 		}
+
+		rewardsToBank := endorserPosition.RewardsToBank(endorsement.Accumulator)
 
 		// Update endorser position
 		endorserPosition.Shares = endorserPosition.Shares.Add(shares)
 		endorserPosition.LastSeenAccumulator = endorsement.Accumulator
+		endorserPosition.AccumulatedRewards = endorserPosition.AccumulatedRewards.Add(rewardsToBank...)
 
 		err = k.SaveEndorsement(ctx, endorsement)
 		if err != nil {
 			return fmt.Errorf("save endorsement: %w", err)
 		}
 
-		if endorserPosition.Shares.IsZero() {
-			err = k.DeleteEndorserPosition(ctx, voter, raID)
-			if err != nil {
-				return fmt.Errorf("delete endorser position: %w", err)
-			}
-		} else {
-			err = k.SaveEndorserPosition(ctx, voter, raID, endorserPosition)
-			if err != nil {
-				return fmt.Errorf("save endorser position: %w", err)
-			}
+		err = k.SaveEndorserPosition(ctx, voter, raID, endorserPosition)
+		if err != nil {
+			return fmt.Errorf("save endorser position: %w", err)
 		}
 	}
 	return nil

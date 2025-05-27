@@ -183,4 +183,9 @@ message EndorserPosition {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
   ];
+  // AccumulatedRewards rewards accrued but not claimed yet.
+  repeated cosmos.base.v1beta1.Coin accumulated_rewards = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

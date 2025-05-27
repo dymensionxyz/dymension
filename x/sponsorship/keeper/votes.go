@@ -24,18 +24,6 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("error validating weights: %w", err)
 	}
 
-	// Check if the user's voted. If they have, revoke the previous vote to place a new one.
-	voted, err := k.Voted(ctx, voter)
-	if err != nil {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
-	}
-	if voted {
-		_, err := k.RevokeVote(ctx, voter)
-		if err != nil {
-			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to revoke previous vote: %w", err)
-		}
-	}
-
 	// Get the user’s total voting power from the x/staking
 	vpBreakdown, err := k.GetValidatorBreakdown(ctx, voter)
 	if err != nil {
@@ -49,6 +37,16 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 
 	// Apply the vote weights to the power -> get a distribution update in absolute values
 	update := types.ApplyWeights(vpBreakdown.TotalPower, weights)
+
+	// Check if the user's voted. If they have, update the current vote with the existing one.
+	voted, err := k.Voted(ctx, voter)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
+	}
+	if voted {
+		vote, _ := k.GetVote(ctx, voter)
+		update = update.Merge(vote.ToDistribution().Negate())
+	}
 
 	// Update the current distribution
 	distr, err := k.UpdateDistribution(ctx, update.Merge)

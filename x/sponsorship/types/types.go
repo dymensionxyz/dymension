@@ -206,3 +206,25 @@ func NewEndorsement(rollappId string, rollappGaugeId uint64, totalShares math.Le
 		DistributedCoins: sdk.NewCoins(),
 	}
 }
+
+func NewDefaultEndorserPosition() EndorserPosition {
+	return EndorserPosition{
+		Shares:              math.LegacyZeroDec(),
+		LastSeenAccumulator: sdk.NewDecCoins(),
+		AccumulatedRewards:  sdk.NewCoins(),
+	}
+}
+
+func NewEndorserPosition(shares math.LegacyDec, lastSeenAccumulator sdk.DecCoins, accumulatedRewards sdk.Coins) EndorserPosition {
+	return EndorserPosition{
+		Shares:              shares,
+		LastSeenAccumulator: lastSeenAccumulator,
+		AccumulatedRewards:  accumulatedRewards,
+	}
+}
+
+func (e EndorserPosition) RewardsToBank(globalAcc sdk.DecCoins) sdk.Coins {
+	rewardsToBank, _ := globalAcc.Sub(e.LastSeenAccumulator).
+		MulDec(e.Shares).TruncateDecimal()
+	return rewardsToBank
+}
