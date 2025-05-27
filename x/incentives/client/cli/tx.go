@@ -28,9 +28,6 @@ func GetTxCmd() *cobra.Command {
 	return cmd
 }
 
-// TODO: add flag to use lock age instead/with duration
-// FIXME: change to create-asset-gauge
-
 // NewCreateAssetGaugeCmd broadcasts a CreateGauge message.
 func NewCreateAssetGaugeCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -89,9 +86,15 @@ func NewCreateAssetGaugeCmd() *cobra.Command {
 				return err
 			}
 
+			lockAge, err := cmd.Flags().GetDuration(FlagLockAge)
+			if err != nil {
+				return err
+			}
+
 			distributeTo := lockuptypes.QueryCondition{
 				Denom:    denom,
 				Duration: duration,
+				LockAge:  lockAge,
 			}
 
 			msg := types.MsgCreateGauge{
