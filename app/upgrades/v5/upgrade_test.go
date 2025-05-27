@@ -18,13 +18,14 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
+	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-
-	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -72,6 +73,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			preUpgrade: func() error {
 				s.setLockupParams()
 				s.setIROParams()
+				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
 				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				return nil
 			},
@@ -110,10 +112,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				if err = s.validateIROParamsMigration(); err != nil {
 					return
 				}
-			
+
 				if err = s.validateLivenessEventsMigration(s.Ctx, s.App.RollappKeeper); err != nil {
 					return
 				}
+
+				s.validateSequencersMigration(s.Ctx, s.App.SequencerKeeper)
 
 				return
 			},
@@ -183,9 +187,7 @@ func (s *UpgradeTestSuite) validateIROParamsMigration() error {
 	return nil
 }
 
-var (
-	livenessEventsBlocks = []int64{0, 100, 200, 300}
-)
+var livenessEventsBlocks = []int64{0, 100, 200, 300}
 
 func (s *UpgradeTestSuite) populateLivenessEvents(ctx sdk.Context, k *rollappkeeper.Keeper) {
 	for i, h := range livenessEventsBlocks {
@@ -194,15 +196,28 @@ func (s *UpgradeTestSuite) populateLivenessEvents(ctx sdk.Context, k *rollappkee
 			HubHeight: dummyUpgradeHeight + h,
 		})
 	}
-
 }
 
 func (s *UpgradeTestSuite) validateLivenessEventsMigration(ctx sdk.Context, k *rollappkeeper.Keeper) error {
 	evts := k.GetLivenessEvents(ctx, nil)
 	s.Require().Equal(len(evts), len(livenessEventsBlocks))
 	for i, e := range evts {
-		s.Require().Equal( ctx.BlockHeight()+livenessEventsBlocks[i] * v5.BlockSpeedup, e.HubHeight)
+		s.Require().Equal(ctx.BlockHeight()+livenessEventsBlocks[i]*v5.BlockSpeedup, e.HubHeight)
 	}
 
 	return nil
+}
+
+func (s *UpgradeTestSuite) populateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
+	k.SetSequencer(ctx, sequencertypes.Sequencer{
+		Address:  "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
+		Status:   sequencertypes.Bonded,
+		Dishonor: v5.NewPenaltyKickThreshold + 1,
+	})
+}
+
+func (s *UpgradeTestSuite) validateSequencersMigration(ctx sdk.Context, k *sequencerkeeper.Keeper) {
+	sequencers := k.AllSequencers(ctx)
+	s.Require().Equal(len(sequencers), 1)
+	s.Require().Equal(v5.NewPenaltyKickThreshold, sequencers[0].GetPenalty())
 }

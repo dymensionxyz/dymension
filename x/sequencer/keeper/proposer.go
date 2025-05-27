@@ -12,7 +12,7 @@ import (
 
 // when the proposer did a state update
 func (k Keeper) afterStateUpdate(ctx sdk.Context, prop types.Sequencer, last bool) error {
-	k.livenessHonor(ctx, &prop)
+	k.reducePenaltyUptime(ctx, &prop)
 	k.SetSequencer(ctx, prop)
 	if last {
 		return k.OnProposerLastBlock(ctx, prop)
