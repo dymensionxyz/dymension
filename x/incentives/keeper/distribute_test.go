@@ -213,6 +213,86 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
 }
 
+// TestDistribute_EndorsementGaugeSkipped tests that EndorsementGauges are skipped during
+// epoch-end distribution by the DistributeOnEpochEnd function.
+func (suite *KeeperTestSuite) TestDistribute_EndorsementGaugeSkipped() {
+	suite.SetupTest()
+	keeper := suite.App.IncentivesKeeper
+	ctx := suite.Ctx
+
+	// 1. Create an Endorsement Gauge
+	rollappID := "testrollapp_distribute"
+	endorsementGaugeCoins := sdk.NewCoins(sdk.NewCoin(defaultRewardDenom, sdk.NewInt(1000)))
+	endorsementGaugeID, err := keeper.CreateEndorsementGauge(
+		ctx,
+		false, // Not perpetual
+		suite.TestAccs[0],
+		endorsementGaugeCoins,
+		types.EndorsementGauge{RollappId: rollappID, EpochRewards: nil /* Field is stale, not used for this test's core logic */},
+		ctx.BlockTime().Add(-time.Hour), // Start time in the past
+		10,                              // NumEpochsPaidOver
+	)
+	suite.Require().NoError(err)
+
+	// 2. Create a standard Asset Gauge (for control)
+	assetGaugeCoins := sdk.NewCoins(sdk.NewCoin(defaultRewardDenom, sdk.NewInt(500)))
+	// Setup a lock for the asset gauge to receive rewards
+	addr := suite.TestAccs[1]
+	suite.FundAcc(addr, assetGaugeCoins) // Fund to create lock
+	lock := suite.LockTokens(addr, sdk.NewCoins(sdk.NewCoin(defaultLPDenom, sdk.NewInt(100))), time.Second)
+
+	assetGauge := types.NewAssetGauge(
+		endorsementGaugeID+1, // Ensure different ID
+		false,                // Not perpetual
+		lockuptypes.QueryCondition{
+			LockQueryType: lockuptypes.ByDuration,
+			Denom:         defaultLPDenom,
+			Duration:      time.Second,
+		},
+		assetGaugeCoins,
+		ctx.BlockTime().Add(-time.Hour), // Start time in the past
+		5,                               // NumEpochsPaidOver
+	)
+	err = keeper.SetGauge(ctx, &assetGauge)
+	suite.Require().NoError(err)
+	
+	// Make gauges active (move from upcoming to active)
+	// Endorsement Gauge
+	eg, err := keeper.GetGaugeByID(ctx, endorsementGaugeID)
+	suite.Require().NoError(err)
+	err = keeper.MoveUpcomingGaugeToActiveGauge(ctx, *eg)
+	suite.Require().NoError(err)
+	// Asset Gauge
+	ag, err := keeper.GetGaugeByID(ctx, assetGauge.Id)
+	suite.Require().NoError(err)
+	err = keeper.MoveUpcomingGaugeToActiveGauge(ctx, *ag)
+	suite.Require().NoError(err)
+
+
+	// 3. Call DistributeOnEpochEnd
+	gaugesToDistribute := []types.Gauge{*eg, *ag}
+	_, err = keeper.DistributeOnEpochEnd(ctx, gaugesToDistribute)
+	suite.Require().NoError(err)
+
+	// 4. Verify EndorsementGauge
+	finalEndorsementGauge, err := keeper.GetGaugeByID(ctx, endorsementGaugeID)
+	suite.Require().NoError(err)
+	suite.Require().True(finalEndorsementGauge.DistributedCoins.IsZero(), "EndorsementGauge DistributedCoins should be zero after DistributeOnEpochEnd")
+	suite.Require().Equal(uint64(0), finalEndorsementGauge.FilledEpochs, "EndorsementGauge FilledEpochs should be 0 after DistributeOnEpochEnd as it's skipped")
+
+	// 5. Verify AssetGauge (control)
+	finalAssetGauge, err := keeper.GetGaugeByID(ctx, assetGauge.Id)
+	suite.Require().NoError(err)
+	// Asset gauge should have distributed something if locks were matched.
+	// For this test, the important part is that FilledEpochs is incremented.
+	// The actual distributed amount depends on matching locks and their weights.
+	// If there's at least one lock, it should distribute something.
+	if len(lock) > 0 {
+		suite.Require().False(finalAssetGauge.DistributedCoins.IsZero(), "AssetGauge DistributedCoins should not be zero if locks were present")
+	}
+	suite.Require().Equal(uint64(1), finalAssetGauge.FilledEpochs, "AssetGauge FilledEpochs should be incremented")
+}
+
 // TestNoLockNonPerpetualGaugeDistribution tests that the creation of a non perp gauge that has no locks associated does not distribute any tokens.
 func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 	suite.SetupTest()

@@ -57,11 +57,11 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.calculateRollappGaugeRewards(ctx, gauge, &lockHolders)
 		case *types.Gauge_Endorsement:
-			// endorsement gauges are distributed on epoch end
-			// in that case, gaugeDistributedCoins == 0 as the rewards are distributed lazily during the epoch
-			if epochEnd {
-				err = k.updateEndorsementGaugeOnEpochEnd(ctx, gauge)
-			}
+			// Endorsement gauges are not distributed at epoch end in the lazy accumulator model.
+			// Rewards are accumulated in gauge.Coins and distributed upon user claim via sponsorship module.
+			// No operation is needed here for epochEnd distribution.
+			// gaugeDistributedCoins remains nil/empty.
+			break
 		default:
 			return nil, errorsmod.WithType(sdkerrors.ErrInvalidType, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id))
 		}
@@ -69,6 +69,8 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge, cache types.De
 			return nil, err
 		}
 
+		// If gaugeDistributedCoins is empty (which it will be for endorsement gauges),
+		// updateGaugePostDistribute will not be called, and FilledEpochs will not be incremented for them here.
 		if !gaugeDistributedCoins.Empty() {
 			err = k.updateGaugePostDistribute(ctx, gauge, gaugeDistributedCoins, epochEnd)
 			if err != nil {

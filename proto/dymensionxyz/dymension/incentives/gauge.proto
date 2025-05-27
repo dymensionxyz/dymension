@@ -64,9 +64,11 @@ message RollappGauge { string rollapp_id = 1; }
 
 message EndorsementGauge {
   string rollapp_id = 1;
-  // epoch_rewards are coins that have been unlocked and can be claimed during
-  // this epoch
-  repeated cosmos.base.v1beta1.Coin epoch_rewards = 2 [
+  // accumulated_rewards historically stored rewards for an epoch.
+  // In the lazy accumulator model, Gauge.Coins represents the total available rewards.
+  // This field might be used for tracking total intended rewards or for other specific accounting,
+  // but is not the primary source for claim calculations in the lazy model.
+  repeated cosmos.base.v1beta1.Coin accumulated_rewards = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];

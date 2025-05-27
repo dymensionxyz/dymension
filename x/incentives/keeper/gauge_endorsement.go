@@ -38,28 +38,6 @@ func (k Keeper) CreateEndorsementGauge(ctx sdk.Context, isPerpetual bool, owner 
 	return gauge.Id, nil
 }
 
-// CONTRACT: the gauge must be an endorsement gauge
-// CONTRACT: the gauge must exist
-// CONTRACT: this must be called on epoch end
-func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Gauge) error {
-	gaugeBalance := gauge.Coins.Sub(gauge.DistributedCoins...)
-	epochRewards := gaugeBalance
-	if !gauge.IsPerpetual {
-		remainingEpochs := math.NewIntFromUint64(gauge.NumEpochsPaidOver - gauge.FilledEpochs)
-		epochRewards = gaugeBalance.QuoInt(remainingEpochs)
-	}
-
-	endorsement := gauge.DistributeTo.(*types.Gauge_Endorsement).Endorsement
-	endorsement.EpochRewards = epochRewards // we operate a pointer
-	gauge.FilledEpochs += 1
-
-	if err := k.setGauge(ctx, &gauge); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (k Keeper) DistributeEndorsementRewards(ctx sdk.Context, user sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) error {
 	gauge, err := k.GetGaugeByID(ctx, gaugeId)
 	if err != nil {
