@@ -133,7 +133,7 @@ func (m *PeriodLock) GetUpdatedAt() time.Time {
 }
 
 // QueryCondition is a struct used for querying locks upon different conditions.
-// Duration field and timestamp fields could be optional, depending on the
+// Duration field and lock_age field could be empty, depending on the
 // LockQueryType.
 type QueryCondition struct {
 	// Denom represents the token denomination we are looking to lock up

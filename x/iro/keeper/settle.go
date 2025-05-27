@@ -141,8 +141,9 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 		sdk.NewCoin(rollappLiquidityCoin.Denom, unallocatedTokens.Sub(rollappLiquidityCoin.Amount)),
 	)
 	distrTo := lockuptypes.QueryCondition{
-		Denom:   poolDenom,
-		LockAge: k.ik.GetParams(ctx).MinLockAge,
+		Denom:    poolDenom,
+		LockAge:  k.ik.GetParams(ctx).MinLockAge,
+		Duration: k.ik.GetParams(ctx).MinLockDuration,
 	}
 	gaugeID, err = k.ik.CreateAssetGauge(ctx, false, k.AK.GetModuleAddress(types.ModuleName), incentives, distrTo, ctx.BlockTime().Add(plan.IncentivePlanParams.StartTimeAfterSettlement), plan.IncentivePlanParams.NumEpochsPaidOver)
 	if err != nil {

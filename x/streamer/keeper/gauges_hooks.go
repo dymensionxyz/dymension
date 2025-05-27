@@ -17,8 +17,9 @@ func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 		k.ak.GetModuleAddress(types.ModuleName),
 		sdk.Coins{},
 		lockuptypes.QueryCondition{
-			Denom:   gammtypes.GetPoolShareDenom(poolId),
-			LockAge: k.ik.GetParams(ctx).MinLockAge,
+			Denom:    gammtypes.GetPoolShareDenom(poolId),
+			LockAge:  k.ik.GetParams(ctx).MinLockAge,
+			Duration: k.ik.GetParams(ctx).MinLockDuration,
 		},
 		ctx.BlockTime(),
 		1,

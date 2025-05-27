@@ -111,6 +111,9 @@ func migrateAndUpdateIncentivesParams(ctx sdk.Context, keepers *upgrades.Upgrade
 		/* ------------------------------- new params ------------------------------- */
 		incentivestypes.DefaultMinValueForDistr,  // Default to 0.01 DYM
 		incentivestypes.DefaultRollappGaugesMode, // Default to active rollapps only
+
+		// FIXME: add min_lock_duration
+		// FIXME: add min_lock_age
 	)
 
 	keepers.IncentivesKeeper.SetParams(ctx, newParams)
