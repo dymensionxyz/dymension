@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
-	"github.com/dymensionxyz/dymension/v3/x/common/types"
+	proofheightante "github.com/dymensionxyz/dymension/v3/x/delayedack/ante"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
@@ -22,24 +22,24 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
+
+		// reject tx with extension options
+		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+
 		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
-		NewRejectMessagesDecorator().WithPredicate(
-			BlockTypeUrls(
-				1,
-				// Only blanket rejects depth greater than zero because we have our own custom logic for depth 0
-				// Note that there is never a genuine reason to pass both ibc update client and misbehaviour submission through gov or auth,
-				// it's always done by relayers directly.
-				sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}))).
+		NewRejectMessagesDecorator().
 			WithPredicate(BlockTypeUrls(
 				0,
 				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}), // deprecated. not suppose to be used
 				sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 				sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
 				sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),
-		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		mempoolFeeDecorator,
 		deductFeeDecorator,
+
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
@@ -49,9 +49,15 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		types.NewIBCProofHeightDecorator(),
-		lightclientkeeper.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper),
+
+		// decorator that runs our custom logic for all IBC messages, even wrapped msgs
+		NewInnerDecorator(
+			proofheightante.NewIBCProofHeightDecorator().InnerCallback,
+			lightclientkeeper.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper).InnerCallback,
+		),
+		// TODO: make this supported as inner msg
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	}
 
