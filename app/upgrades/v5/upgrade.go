@@ -26,6 +26,7 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -64,9 +65,12 @@ func CreateUpgradeHandler(
 			return nil, fmt.Errorf("migrate endorsements: %w", err)
 		}
 
-		// FIXME: need to migrate locks! add creation_timestamp
-		// FIXME: need to migrate gauges, as the queryCondition changed
+		// Migrate locks: set creation_timestamp (UpdatedAt) if not set
+		if err := migrateLockTimestamps(ctx, keepers.LockupKeeper, keepers.IncentivesKeeper); err != nil {
+			return nil, err
+		}
 
+		// FIXME: need to migrate gauges, as the queryCondition changed
 		/* ----------------------------- params updates ----------------------------- */
 		// Incentives module params migration
 		migrateAndUpdateIncentivesParams(ctx, keepers)
@@ -359,4 +363,22 @@ func migrateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
 			k.SetSequencer(ctx, s)
 		}
 	}
+}
+
+// migrateLockTimestamps sets UpdatedAt on all locks if not set
+func migrateLockTimestamps(ctx sdk.Context, lockupKeeper *lockupkeeper.Keeper, incentivesKeeper *incentiveskeeper.Keeper) error {
+	locks, err := lockupKeeper.GetPeriodLocks(ctx)
+	if err != nil {
+		return fmt.Errorf("get period locks: %w", err)
+	}
+
+	// for each lock, set the updated_at to the min lock age eligible for distribution
+	for _, lock := range locks {
+		lock.UpdatedAt = ctx.BlockTime().Add(incentivesKeeper.GetParams(ctx).MinLockAge)
+		err := lockupKeeper.SetLock(ctx, lock)
+		if err != nil {
+			return fmt.Errorf("set lock %d: %w", lock.ID, err)
+		}
+	}
+	return nil
 }

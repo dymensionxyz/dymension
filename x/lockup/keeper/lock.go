@@ -564,3 +564,8 @@ func (k Keeper) getCoinsFromLocks(locks []types.PeriodLock) sdk.Coins {
 	}
 	return coins
 }
+
+// SetLock sets a lock in the store (public for migrations).
+func (k Keeper) SetLock(ctx sdk.Context, lock types.PeriodLock) error {
+	return k.setLock(ctx, lock)
+}
