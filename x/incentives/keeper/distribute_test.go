@@ -80,6 +80,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		// setup gauges and the locks defined in the above tests, then distribute to them
 		gauges := suite.SetupGauges(tc.gauges, defaultLPDenom)
 		addrs := suite.SetupUserLocks(tc.users)
+		suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 		_, err := suite.App.IncentivesKeeper.DistributeOnEpochEnd(suite.Ctx, gauges)
 		suite.Require().NoError(err)
 		// check expected rewards against actual rewards received
