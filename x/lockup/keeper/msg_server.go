@@ -58,6 +58,11 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return nil, err
 	}
 
+	minLockDuration := server.keeper.GetParams(ctx).MinLockDuration
+	if msg.Duration < minLockDuration {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "lock duration (%d) is less than the minimum lock duration (%d)", msg.Duration, minLockDuration)
+	}
+
 	// check if there's an existing lock from the same owner with the same duration.
 	// If so, simply add tokens to the existing lock.
 	if server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration) {

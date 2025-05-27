@@ -17,4 +17,14 @@ message Params {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
+
+  // MinLockDuration is the min time needed for a lock to mature after unlocking
+  // has started. The user can't create a lock with a duration less than this
+  // value.
+  google.protobuf.Duration min_lock_duration = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag) = "duration,omitempty",
+    (gogoproto.moretags) = "yaml:\"duration\""
+  ];
 }

@@ -21,9 +21,10 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 	}
 
 	tests := []struct {
-		name       string
-		param      param
-		expectPass bool
+		name            string
+		minLockDuration time.Duration
+		param           param
+		expectPass      bool
 	}{
 		{
 			name: "creation of lock via lockTokens",
@@ -45,11 +46,28 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 			},
 			expectPass: false,
 		},
+		{
+			name:            "lock duration less than min lock duration",
+			minLockDuration: time.Hour,
+			param: param{
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 20)},       // setup wallet
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
+				duration:            time.Second,
+				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
+			},
+			expectPass: false,
+		},
 	}
 
 	for _, test := range tests {
 		suite.Run(test.name, func() {
 			suite.SetupTest()
+
+			if test.minLockDuration != 0 {
+				params := suite.App.LockupKeeper.GetParams(suite.Ctx)
+				params.MinLockDuration = test.minLockDuration
+				suite.App.LockupKeeper.SetParams(suite.Ctx, params)
+			}
 
 			suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
 			// fund address with lock fee
