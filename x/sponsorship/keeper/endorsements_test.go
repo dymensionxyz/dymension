@@ -353,3 +353,373 @@ func (s *KeeperTestSuite) BeginEpoch(epochID string) {
 	s.Ctx = s.Ctx.WithBlockTime(info.CurrentEpochStartTime.Add(info.Duration).Add(time.Minute))
 	s.App.EpochsKeeper.BeginBlocker(s.Ctx)
 }
+
+// createEndorsementGauge is a helper function to create an endorsement gauge.
+func (s *KeeperTestSuite) createEndorsementGauge(rollappID string, creator sdk.AccAddress, rewards sdk.Coins, numEpochsPaidOver uint64) (incentivestypes.Gauge, uint64) {
+	gauge, err := s.App.IncentivesKeeper.CreateEndorsementGauge(
+		s.Ctx,
+		false, // perpetual = false
+		creator,
+		rewards,
+		incentivestypes.EndorsementGauge{
+			RollappId: rollappID,
+		},
+		s.Ctx.BlockTime(),
+		numEpochsPaidOver,
+	)
+	s.Require().NoError(err)
+	return gauge, gauge.Id
+}
+
+// setupEndorsementScenario directly sets up the initial state for an endorsement and an endorser's position.
+func (s *KeeperTestSuite) setupEndorsementScenario(
+	rollappID string,
+	userAddr sdk.AccAddress,
+	userShares math.LegacyDec,
+	userLSA sdk.DecCoins,
+	userAUR sdk.Coins,
+	endorsementAccumulator sdk.DecCoins,
+	endorsementTotalShares math.LegacyDec,
+	endorsementGaugeID uint64,
+) {
+	k := s.App.SponsorshipKeeper
+	ctx := s.Ctx
+
+	// Save Endorsement
+	endorsement := types.Endorsement{
+		RollappId:        rollappID,
+		RollappGaugeId:   endorsementGaugeID,
+		Accumulator:      endorsementAccumulator,
+		TotalShares:      endorsementTotalShares,
+		TotalCoins:       sdk.NewCoins(), // Not critical for LSA/AUR logic testing here
+		DistributedCoins: sdk.NewCoins(), // Not critical for LSA/AUR logic testing here
+	}
+	err := k.SaveEndorsement(ctx, endorsement)
+	s.Require().NoError(err)
+
+	// Save EndorserPosition
+	// If userShares is zero, it implies the user might not have a position yet, or has zero shares.
+	// If a position is to be created, it starts with these explicit values.
+	endorserPosition := types.EndorserPosition{
+		Shares:              userShares,
+		LastSeenAccumulator: userLSA,
+		AccumulatedRewards:  userAUR,
+	}
+	err = k.SaveEndorserPosition(ctx, userAddr, rollappID, endorserPosition)
+	s.Require().NoError(err)
+}
+
+// updateEndorserShares simulates a user updating their shares for an endorsement.
+// It correctly updates AUR, LSA, and total endorsement shares.
+// This function assumes the user might be new or existing.
+func (s *KeeperTestSuite) updateEndorserShares(
+	rollappID string,
+	userAddr sdk.AccAddress,
+	newTotalUserShares math.LegacyDec,
+	_ uint64, // endorsementGaugeID, kept for signature consistency if needed later
+) {
+	k := s.App.SponsorshipKeeper
+	ctx := s.Ctx
+
+	endorsement, err := k.GetEndorsement(ctx, rollappID)
+	s.Require().NoError(err)
+
+	endorserPosition, err := k.GetEndorserPosition(ctx, userAddr, rollappID)
+	if err != nil {
+		if errors.Is(err, collections.ErrNotFound) {
+			// This is a new endorser for this rollapp
+			endorserPosition = types.NewDefaultEndorserPosition()
+		} else {
+			s.Require().NoError(err, "Failed to get endorser position")
+			return // Should not happen due to Require.NoError
+		}
+	}
+
+	// Calculate rewards to bank with old shares before updating them
+	// For a brand new position, Shares and LSA are zero, so rewardsToBank will be zero.
+	rewardsToBank := endorserPosition.RewardsToBank(endorsement.Accumulator)
+	endorserPosition.AccumulatedRewards = endorserPosition.AccumulatedRewards.Add(rewardsToBank...)
+
+	// Update LSA to current global accumulator
+	endorserPosition.LastSeenAccumulator = endorsement.Accumulator
+
+	// Update total shares in endorsement: subtract old shares, add new shares
+	endorsement.TotalShares = endorsement.TotalShares.Sub(endorserPosition.Shares).Add(newTotalUserShares)
+	if endorsement.TotalShares.IsNegative() {
+		s.T().Fatalf("Endorsement total shares became negative: %s", endorsement.TotalShares)
+	}
+
+	// Update user's shares to the new total
+	endorserPosition.Shares = newTotalUserShares
+
+	err = k.SaveEndorserPosition(ctx, userAddr, rollappID, endorserPosition)
+	s.Require().NoError(err)
+	err = k.SaveEndorsement(ctx, endorsement)
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) TestScenario_StakeUnstakeAndClaim() {
+	// Initial Setup
+	rollappID := s.CreateDefaultRollapp()
+	gaugeCreator := apptesting.CreateRandomAccounts(1)[0]
+	s.FundAcc(gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(10000))))
+	_, endorsementGaugeID := s.createEndorsementGauge(rollappID, gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(1000))), 10)
+
+	userAddr := apptesting.CreateRandomAccounts(1)[0]
+
+	// Initial state from plan: User has 100 shares, LSA = 6.0, AUR = 0. GA = 7.0. TotalShares = 100.
+	initialUserShares := math.LegacyNewDec(100)
+	initialLSA := sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(6)))
+	initialAUR := sdk.NewCoins()
+	initialGA := sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(7)))
+	initialTotalEndorsementShares := math.LegacyNewDec(100)
+
+	s.setupEndorsementScenario(rollappID, userAddr, initialUserShares, initialLSA, initialAUR, initialGA, initialTotalEndorsementShares, endorsementGaugeID)
+
+	// --- Action 1: User stakes 100 more (total shares become 200) ---
+	s.updateEndorserShares(rollappID, userAddr, math.LegacyNewDec(200), endorsementGaugeID)
+
+	// Verify AUR becomes 100 DYM, LSA becomes 7.0
+	pos, err := s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	expectedAUR := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100)))
+	s.Require().True(expectedAUR.Equal(pos.AccumulatedRewards), "AUR mismatch. Expected %s, got %s", expectedAUR, pos.AccumulatedRewards)
+	s.Require().True(initialGA.Equal(pos.LastSeenAccumulator), "LSA mismatch. Expected %s, got %s", initialGA, pos.LastSeenAccumulator)
+
+	// Verify claimable (EstimateClaim = (GA-LSA)*Shares + AUR)
+	// (7.0 - 7.0) * 200 + 100 = 100
+	claimable, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(expectedAUR.Equal(claimable.Rewards), "Claimable mismatch. Expected %s, got %s", expectedAUR, claimable.Rewards)
+
+	// --- Action 2: User unstakes 50 (total shares become 150) ---
+	s.updateEndorserShares(rollappID, userAddr, math.LegacyNewDec(150), endorsementGaugeID)
+
+	// Verify AUR remains 100 DYM, LSA remains 7.0
+	pos, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(expectedAUR.Equal(pos.AccumulatedRewards), "AUR mismatch after unstake. Expected %s, got %s", expectedAUR, pos.AccumulatedRewards)
+	s.Require().True(initialGA.Equal(pos.LastSeenAccumulator), "LSA mismatch after unstake. Expected %s, got %s", initialGA, pos.LastSeenAccumulator)
+
+	// Verify claimable remains 100
+	// (7.0 - 7.0) * 150 + 100 = 100
+	claimable, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(expectedAUR.Equal(claimable.Rewards), "Claimable mismatch after unstake. Expected %s, got %s", expectedAUR, claimable.Rewards)
+
+	// --- Action 3: New epoch: +100 DYM ---
+	err = s.App.SponsorshipKeeper.UpdateEndorsementTotalCoins(s.Ctx, rollappID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100))))
+	s.Require().NoError(err)
+
+	// Verify new GA: 7.0 + (100 / 150) = 7.666...
+	endorsement, err := s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
+	s.Require().NoError(err)
+	expectedNewGAVal := math.LegacyNewDec(7).Add(math.LegacyNewDec(100).Quo(math.LegacyNewDec(150)))
+	expectedNewGA := sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, expectedNewGAVal))
+	s.Require().True(expectedNewGA.Equal(endorsement.Accumulator), "New GA mismatch. Expected %s, got %s", expectedNewGA, endorsement.Accumulator)
+
+	// Verify claimable becomes 200 DYM: ((7.666... - 7.0) * 150) + 100 (AUR) = 100 + 100 = 200
+	// AUR should still be 100
+	pos, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(expectedAUR.Equal(pos.AccumulatedRewards), "AUR should remain 100 before claim. Got %s", pos.AccumulatedRewards)
+
+	expectedClaimableAfterEpoch := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(200)))
+	claimable, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(expectedClaimableAfterEpoch.Equal(claimable.Rewards), "Claimable after epoch mismatch. Expected %s, got %s", expectedClaimableAfterEpoch, claimable.Rewards)
+
+	// --- Action 4: User claims ---
+	balanceBeforeClaim := s.App.BankKeeper.GetBalance(s.Ctx, userAddr, sdk.DefaultBondDenom)
+	err = s.App.SponsorshipKeeper.Claim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	balanceAfterClaim := s.App.BankKeeper.GetBalance(s.Ctx, userAddr, sdk.DefaultBondDenom)
+	s.Require().True(balanceAfterClaim.Sub(balanceBeforeClaim).Amount.Equal(commontypes.DYM.MulRaw(200)), "Claimed amount mismatch")
+
+	// Verify AUR becomes 0, LSA updates to current GA
+	pos, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(pos.AccumulatedRewards.IsZero(), "AUR should be zero after claim. Got %s", pos.AccumulatedRewards)
+	s.Require().True(expectedNewGA.Equal(pos.LastSeenAccumulator), "LSA should update to new GA. Expected %s, got %s", expectedNewGA, pos.LastSeenAccumulator)
+
+	// Verify claimable becomes 0
+	claimable, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(claimable.Rewards.IsZero(), "Claimable should be zero after claim. Got %s", claimable.Rewards)
+}
+
+func (s *KeeperTestSuite) TestScenario_UnstakeAll() {
+	rollappID := s.CreateDefaultRollapp()
+	gaugeCreator := apptesting.CreateRandomAccounts(1)[0]
+	s.FundAcc(gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(10000))))
+	_, endorsementGaugeID := s.createEndorsementGauge(rollappID, gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(1000))), 10)
+	userAddr := apptesting.CreateRandomAccounts(1)[0]
+
+	// Initial state: User has 100 shares, LSA = 6.0, AUR = 0. GA = 7.0. TotalShares = 100.
+	s.setupEndorsementScenario(
+		rollappID, userAddr,
+		math.LegacyNewDec(100), // userShares
+		sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(6))), // userLSA
+		sdk.NewCoins(), // userAUR
+		sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(7))), // endorsementAccumulator (GA)
+		math.LegacyNewDec(100), // endorsementTotalShares
+		endorsementGaugeID,
+	)
+
+	currentGA := sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(7)))
+
+	// --- Action 1: User unstakes all 100 shares ---
+	s.updateEndorserShares(rollappID, userAddr, math.LegacyZeroDec(), endorsementGaugeID) // New shares = 0
+
+	// Verify AUR becomes 100 DYM ((7-6)*100)
+	pos, err := s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	expectedAUR := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100)))
+	s.Require().True(expectedAUR.Equal(pos.AccumulatedRewards), "AUR mismatch. Expected %s, got %s", expectedAUR, pos.AccumulatedRewards)
+
+	// Verify user shares become 0
+	s.Require().True(pos.Shares.IsZero(), "User shares should be zero. Got %s", pos.Shares)
+
+	// Verify LSA becomes 7.0
+	s.Require().True(currentGA.Equal(pos.LastSeenAccumulator), "LSA mismatch. Expected %s, got %s", currentGA, pos.LastSeenAccumulator)
+
+	// Verify claimable (EstimateClaim = (GA-LSA)*Shares + AUR)
+	// (7.0 - 7.0) * 0 + 100 = 100
+	claimable, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(expectedAUR.Equal(claimable.Rewards), "Claimable mismatch. Expected %s, got %s", expectedAUR, claimable.Rewards)
+
+	// --- Action 2: User claims ---
+	balanceBeforeClaim := s.App.BankKeeper.GetBalance(s.Ctx, userAddr, sdk.DefaultBondDenom)
+	err = s.App.SponsorshipKeeper.Claim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	balanceAfterClaim := s.App.BankKeeper.GetBalance(s.Ctx, userAddr, sdk.DefaultBondDenom)
+	s.Require().True(balanceAfterClaim.Sub(balanceBeforeClaim).Amount.Equal(commontypes.DYM.MulRaw(100)), "Claimed amount mismatch")
+
+	// Verify AUR becomes 0
+	pos, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(pos.AccumulatedRewards.IsZero(), "AUR should be zero after claim. Got %s", pos.AccumulatedRewards)
+}
+
+func (s *KeeperTestSuite) TestScenario_EndorseWithNoPriorVote() {
+	rollappID := s.CreateDefaultRollapp()
+	gaugeCreator := apptesting.CreateRandomAccounts(1)[0]
+	s.FundAcc(gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(10000))))
+	_, endorsementGaugeID := s.createEndorsementGauge(rollappID, gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(1000))), 10)
+	userAddr := apptesting.CreateRandomAccounts(1)[0]
+
+	// Initial state: GA = 7.0. Endorsement has 100 total shares (from other users, not this one).
+	// User has no prior vote/shares, so no EndorserPosition object exists for them yet.
+	initialGA := sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(7)))
+	initialTotalEndorsementShares := math.LegacyNewDec(100) // Shares from other users
+
+	// Setup only the endorsement state, user has no position yet.
+	endorsement := types.Endorsement{
+		RollappId:        rollappID,
+		RollappGaugeId:   endorsementGaugeID,
+		Accumulator:      initialGA,
+		TotalShares:      initialTotalEndorsementShares,
+	}
+	err := s.App.SponsorshipKeeper.SaveEndorsement(s.Ctx, endorsement)
+	s.Require().NoError(err)
+
+	// --- Action 1: User endorses with 100 shares ---
+	// This user is new, so their old shares for this endorsement were 0.
+	s.updateEndorserShares(rollappID, userAddr, math.LegacyNewDec(100), endorsementGaugeID)
+
+	// Verify user shares become 100
+	pos, err := s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(math.LegacyNewDec(100).Equal(pos.Shares), "User shares mismatch. Expected 100, got %s", pos.Shares)
+
+	// Verify LSA becomes 7.0 (current GA)
+	s.Require().True(initialGA.Equal(pos.LastSeenAccumulator), "LSA mismatch. Expected %s, got %s", initialGA, pos.LastSeenAccumulator)
+
+	// Verify AUR is 0
+	s.Require().True(pos.AccumulatedRewards.IsZero(), "AUR should be zero for new endorser. Got %s", pos.AccumulatedRewards)
+
+	// Verify claimable is 0 ( (7.0-7.0)*100 + 0 = 0 )
+	claimable, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(claimable.Rewards.IsZero(), "Claimable should be zero. Got %s", claimable.Rewards)
+
+	// Verify total endorsement shares increased by 100
+	updatedEndorsement, err := s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
+	s.Require().NoError(err)
+	expectedTotalShares := initialTotalEndorsementShares.Add(math.LegacyNewDec(100))
+	s.Require().True(expectedTotalShares.Equal(updatedEndorsement.TotalShares), "Total endorsement shares mismatch. Expected %s, got %s", expectedTotalShares, updatedEndorsement.TotalShares)
+}
+
+func (s *KeeperTestSuite) TestScenario_EndorseEmptyEndorsement() {
+	rollappID := s.CreateDefaultRollapp()
+	gaugeCreator := apptesting.CreateRandomAccounts(1)[0]
+	s.FundAcc(gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(10000))))
+	_, endorsementGaugeID := s.createEndorsementGauge(rollappID, gaugeCreator, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(1000))), 10)
+	userAddr := apptesting.CreateRandomAccounts(1)[0]
+
+	// Initial state: First epoch. GA = 0. Total shares for the endorsement = 0.
+	initialGA := sdk.NewDecCoins() // Empty or zero
+	initialTotalEndorsementShares := math.LegacyZeroDec()
+
+	// Setup only the endorsement state, user has no position yet.
+	// Ensure GA is explicitly zero for the bond denom if DecCoins() is not specific enough
+	initialGA = sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyZeroDec()))
+
+	endorsementToSave := types.Endorsement{
+		RollappId:        rollappID,
+		RollappGaugeId:   endorsementGaugeID,
+		Accumulator:      initialGA,
+		TotalShares:      initialTotalEndorsementShares,
+	}
+	err := s.App.SponsorshipKeeper.SaveEndorsement(s.Ctx, endorsementToSave)
+	s.Require().NoError(err)
+
+	// --- Action 1: User endorses with 100 shares ---
+	s.updateEndorserShares(rollappID, userAddr, math.LegacyNewDec(100), endorsementGaugeID)
+
+	// Verify user shares become 100
+	pos, err := s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(math.LegacyNewDec(100).Equal(pos.Shares), "User shares mismatch. Expected 100, got %s", pos.Shares)
+
+	// Verify LSA becomes 0 (current GA)
+	s.Require().True(initialGA.Equal(pos.LastSeenAccumulator), "LSA mismatch. Expected %s, got %s", initialGA, pos.LastSeenAccumulator)
+
+	// Verify AUR is 0
+	s.Require().True(pos.AccumulatedRewards.IsZero(), "AUR should be zero. Got %s", pos.AccumulatedRewards)
+
+	// Verify claimable is 0
+	claimable, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(claimable.Rewards.IsZero(), "Claimable should be zero. Got %s", claimable.Rewards)
+
+	// Verify total shares for the endorsement become 100
+	currentEndorsement, err := s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(math.LegacyNewDec(100).Equal(currentEndorsement.TotalShares), "Total endorsement shares mismatch. Expected 100, got %s", currentEndorsement.TotalShares)
+
+	// Verify GA remains 0
+	s.Require().True(initialGA.Equal(currentEndorsement.Accumulator), "GA should remain zero. Expected %s, got %s", initialGA, currentEndorsement.Accumulator)
+
+	// --- Action 2: New epoch: +100 DYM ---
+	err = s.App.SponsorshipKeeper.UpdateEndorsementTotalCoins(s.Ctx, rollappID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100))))
+	s.Require().NoError(err)
+
+	// Verify new GA: 0 + (100 / 100) = 1.0
+	currentEndorsement, err = s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
+	s.Require().NoError(err)
+	expectedNewGA := sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, math.LegacyNewDec(1)))
+	s.Require().True(expectedNewGA.Equal(currentEndorsement.Accumulator), "New GA mismatch. Expected %s, got %s", expectedNewGA, currentEndorsement.Accumulator)
+
+	// Verify claimable becomes 100 DYM ((1.0 - 0) * 100) + 0 (AUR) = 100
+	expectedClaimable := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100)))
+	claimable, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, userAddr, endorsementGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(expectedClaimable.Equal(claimable.Rewards), "Claimable after epoch mismatch. Expected %s, got %s", expectedClaimable, claimable.Rewards)
+
+	// Verify AUR remains 0 (as it wasn't touched by UpdateEndorsementTotalCoins, and claim hasn't happened)
+	pos, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, userAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(pos.AccumulatedRewards.IsZero(), "AUR should still be zero. Got %s", pos.AccumulatedRewards)
+}
