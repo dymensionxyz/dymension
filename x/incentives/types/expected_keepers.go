@@ -52,11 +52,6 @@ type SequencerKeeper interface {
 	Kickable(ctx sdk.Context, proposer sequencertypes.Sequencer) bool
 }
 
-type AccountKeeper interface {
-	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
-	GetModuleAddress(name string) sdk.AccAddress
-}
-
 type SponsorshipKeeper interface {
 	UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, additionalCoins sdk.Coins) error
 }

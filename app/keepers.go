@@ -408,7 +408,6 @@ func (a *AppKeepers) InitKeepers(
 		a.TxFeesKeeper,
 		a.RollappKeeper,
 		a.SequencerKeeper,
-		a.AccountKeeper,
 		&a.SponsorshipKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)

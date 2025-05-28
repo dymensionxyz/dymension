@@ -185,27 +185,16 @@ func (k Keeper) UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, a
 		return fmt.Errorf("get endorsement: %w", err)
 	}
 
+	// Update the lazy accumulator: add rewards per share to the accumulator
+	// Only update if there are shares to avoid division by zero
 	if endorsement.TotalShares.IsZero() {
 		return types.ErrNoEndorsers
 	}
 
-	// Update the lazy accumulator: add rewards per share to the accumulator
-	// Only update if there are shares to avoid division by zero
-	if !endorsement.TotalShares.IsZero() {
-		// Convert additional coins to DecCoins for accumulator calculation
-		additionalDecCoins := sdk.NewDecCoinsFromCoins(additionalCoins...)
-
-		// Calculate rewards per share: additionalCoins / totalShares
-		rewardsPerShare := additionalDecCoins.QuoDec(endorsement.TotalShares)
-
-		// Add to the accumulator
-		endorsement.Accumulator = endorsement.Accumulator.Add(rewardsPerShare...)
-	}
-
-	// Update total coins
+	additionalDecCoins := sdk.NewDecCoinsFromCoins(additionalCoins...)
+	rewardsPerShare := additionalDecCoins.QuoDec(endorsement.TotalShares)
+	endorsement.Accumulator = endorsement.Accumulator.Add(rewardsPerShare...)
 	endorsement.TotalCoins = endorsement.TotalCoins.Add(additionalCoins...)
-
-	// TODO: think what to do if total shares is zero
 
 	err = k.SaveEndorsement(ctx, endorsement)
 	if err != nil {
