@@ -58,9 +58,6 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		if m.Endorsement.RollappId == "" {
 			return errors.New("rollapp id should be set")
 		}
-		if !m.Endorsement.EpochRewards.Empty() {
-			return errors.New("epoch rewards should be empty on creation")
-		}
 	default:
 		return errors.New("unsupported gauge type")
 	}

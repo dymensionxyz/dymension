@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 // CreateEndorsementGauge creates a gauge and sends coins to the gauge.
@@ -49,12 +51,22 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 		epochRewards = gaugeBalance.QuoInt(remainingEpochs)
 	}
 
-	endorsement := gauge.DistributeTo.(*types.Gauge_Endorsement).Endorsement
-	endorsement.EpochRewards = epochRewards // we operate a pointer
-	gauge.FilledEpochs += 1
+	// Update endorsement total coins with the epoch rewards
+	endorsementGauge := gauge.DistributeTo.(*types.Gauge_Endorsement)
 
-	if err := k.setGauge(ctx, &gauge); err != nil {
-		return err
+	err := k.spk.UpdateEndorsementTotalCoins(ctx, endorsementGauge.Endorsement.RollappId, epochRewards)
+	switch {
+	case err == nil:
+		gauge.FilledEpochs += 1
+		gauge.DistributedCoins = gauge.DistributedCoins.Add(epochRewards...)
+
+		if err := k.setGauge(ctx, &gauge); err != nil {
+			return err
+		}
+	case errors.Is(err, sponsorshiptypes.ErrNoEndorsers):
+		// Don't fill this epoch, save rewards for the future
+	default:
+		return fmt.Errorf("update endorsement total coins: %w", err)
 	}
 
 	return nil

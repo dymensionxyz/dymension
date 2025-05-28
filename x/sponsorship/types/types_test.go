@@ -718,6 +718,7 @@ func TestDistribution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := tt.initial.Merge(tt.update)
+			actual = actual.FilterNonPositive()
 
 			require.Truef(t, tt.expected.Equal(actual), "exp: %s\ngot: %s", tt.expected.String(), actual.String())
 
@@ -765,4 +766,82 @@ func accAddrsToString(a []sdk.AccAddress) []string {
 		res = append(res, addr.String())
 	}
 	return res
+}
+
+func TestRewardsToBank(t *testing.T) {
+	tests := []struct {
+		name           string
+		position       types.EndorserPosition
+		globalAcc      sdk.DecCoins
+		expectedOutput sdk.Coins
+	}{
+		{
+			name: "Positive rewards - single denom",
+			position: types.EndorserPosition{
+				Shares:              math.LegacyNewDec(100),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+			},
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10))),
+			expectedOutput: sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(500))), // (10-5)*100 = 500
+		},
+		{
+			name: "Zero rewards - GA equals LSA",
+			position: types.EndorserPosition{
+				Shares:              math.LegacyNewDec(100),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+			},
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+			expectedOutput: sdk.NewCoins(), // (5-5)*100 = 0
+		},
+		{
+			name: "Zero rewards - zero shares",
+			position: types.EndorserPosition{
+				Shares:              math.LegacyZeroDec(),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+			},
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10))),
+			expectedOutput: sdk.NewCoins(), // (10-5)*0 = 0
+		},
+		{
+			name: "Positive rewards - multiple denoms",
+			position: types.EndorserPosition{
+				Shares: math.LegacyNewDec(100),
+				LastSeenAccumulator: sdk.NewDecCoins(
+					sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5)),
+					sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(2)),
+				),
+			},
+			globalAcc: sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10)),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)),
+			),
+			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (3-2)*100=100uatom
+				sdk.NewCoin("udym", math.NewInt(500)),
+				sdk.NewCoin("uatom", math.NewInt(100)),
+			),
+		},
+		{
+			name: "Multiple denoms - denom in GA not in LSA",
+			position: types.EndorserPosition{
+				Shares:              math.LegacyNewDec(100),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+			},
+			globalAcc: sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10)),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)), // uatom not in LSA
+			),
+			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (3-0)*100=300uatom
+				sdk.NewCoin("udym", math.NewInt(500)),
+				sdk.NewCoin("uatom", math.NewInt(300)),
+			),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualOutput := tt.position.RewardsToBank(tt.globalAcc)
+			// Sort coins for consistent comparison, as Equal does not rely on order but String() does.
+			require.True(t, tt.expectedOutput.Sort().Equal(actualOutput.Sort()), "expected %s, got %s", tt.expectedOutput, actualOutput)
+		})
+	}
 }
