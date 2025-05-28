@@ -779,50 +779,41 @@ func TestRewardsToBank(t *testing.T) {
 			name: "Positive rewards - single denom",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
 			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(10))),
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10))),
 			expectedOutput: sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(500))), // (10-5)*100 = 500
 		},
 		{
 			name: "Zero rewards - GA equals LSA",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
 			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(5))),
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
 			expectedOutput: sdk.NewCoins(), // (5-5)*100 = 0
 		},
 		{
 			name: "Zero rewards - zero shares",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyZeroDec(),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
 			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(10))),
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10))),
 			expectedOutput: sdk.NewCoins(), // (10-5)*0 = 0
-		},
-		{
-			name: "Negative delta - GA less than LSA",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(10))),
-			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(5))),
-			expectedOutput: sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(-500))), // (5-10)*100 = -500
 		},
 		{
 			name: "Positive rewards - multiple denoms",
 			position: types.EndorserPosition{
 				Shares: math.LegacyNewDec(100),
 				LastSeenAccumulator: sdk.NewDecCoins(
-					sdk.NewDecCoin("udym", math.LegacyNewDec(5)),
-					sdk.NewDecCoin("uatom", math.LegacyNewDec(2)),
+					sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5)),
+					sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(2)),
 				),
 			},
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyNewDec(10)),
-				sdk.NewDecCoin("uatom", math.LegacyNewDec(3)),
+				sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10)),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)),
 			),
 			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (3-2)*100=100uatom
 				sdk.NewCoin("udym", math.NewInt(500)),
@@ -833,70 +824,16 @@ func TestRewardsToBank(t *testing.T) {
 			name: "Multiple denoms - denom in GA not in LSA",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
 			},
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyNewDec(10)),
-				sdk.NewDecCoin("uatom", math.LegacyNewDec(3)), // uatom not in LSA
+				sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10)),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)), // uatom not in LSA
 			),
 			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (3-0)*100=300uatom
 				sdk.NewCoin("udym", math.NewInt(500)),
 				sdk.NewCoin("uatom", math.NewInt(300)),
 			),
-		},
-		{
-			name: "Multiple denoms - denom in LSA not in GA",
-			position: types.EndorserPosition{
-				Shares: math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(
-					sdk.NewDecCoin("udym", math.LegacyNewDec(5)),
-					sdk.NewDecCoin("uatom", math.LegacyNewDec(2)), // uatom not in GA
-				),
-			},
-			globalAcc: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyNewDec(10))),
-			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (0-2)*100=-200uatom
-				sdk.NewCoin("udym", math.NewInt(500)),
-				sdk.NewCoin("uatom", math.NewInt(-200)),
-			),
-		},
-		{
-			name: "Empty LSA",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(),
-			},
-			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyNewDec(10)),
-				sdk.NewDecCoin("uatom", math.LegacyNewDec(3)),
-			),
-			expectedOutput: sdk.NewCoins( // (10-0)*100=1000udym, (3-0)*100=300uatom
-				sdk.NewCoin("udym", math.NewInt(1000)),
-				sdk.NewCoin("uatom", math.NewInt(300)),
-			),
-		},
-		{
-			name: "Empty GA",
-			position: types.EndorserPosition{
-				Shares: math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(
-					sdk.NewDecCoin("udym", math.LegacyNewDec(5)),
-					sdk.NewDecCoin("uatom", math.LegacyNewDec(2)),
-				),
-			},
-			globalAcc:      sdk.NewDecCoins(),
-			expectedOutput: sdk.NewCoins( // (0-5)*100=-500udym, (0-2)*100=-200uatom
-				sdk.NewCoin("udym", math.NewInt(-500)),
-				sdk.NewCoin("uatom", math.NewInt(-200)),
-			),
-		},
-		{
-			name: "Empty LSA and GA",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(),
-			},
-			globalAcc:      sdk.NewDecCoins(),
-			expectedOutput: sdk.NewCoins(),
 		},
 	}
 

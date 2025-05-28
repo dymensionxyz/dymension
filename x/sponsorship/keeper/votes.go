@@ -45,6 +45,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	}
 	if voted {
 		vote, _ := k.GetVote(ctx, voter)
+		// update = newVote - prevVote
 		update = update.Merge(vote.ToDistribution().Negate())
 	}
 

@@ -129,6 +129,14 @@ func (s *KeeperTestSuite) Vote(vote types.MsgVote) {
 	s.Require().NotNil(voteResp)
 }
 
+func (s *KeeperTestSuite) RevokeVote(vote types.MsgRevokeVote) {
+	s.T().Helper()
+
+	resp, err := s.msgServer.RevokeVote(s.Ctx, &vote)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+}
+
 func (s *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	s.T().Helper()
 

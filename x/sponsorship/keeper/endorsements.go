@@ -117,6 +117,7 @@ func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) e
 	}
 
 	endorserPosition.LastSeenAccumulator = endorsement.Accumulator
+	endorserPosition.AccumulatedRewards = sdk.NewCoins()
 
 	err = k.SaveEndorserPosition(ctx, claimer, result.RollappId, endorserPosition)
 	if err != nil {
@@ -164,12 +165,10 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 	// This is not probable, but still the case.
 
 	// Calculate newly accrued rewards
-	newlyAccruedRewardsDec, _ := endorsement.Accumulator.Sub(endorserPosition.LastSeenAccumulator).
-		MulDecTruncate(endorserPosition.Shares)
-	newlyAccruedRewards, _ := newlyAccruedRewardsDec.TruncateDecimal()
+	newlyAccruedRewardsDec := endorserPosition.RewardsToBank(endorsement.Accumulator)
 
 	// Total rewards to claim are newly accrued rewards plus any previously accumulated rewards
-	totalRewardsToClaim := newlyAccruedRewards.Add(endorserPosition.AccumulatedRewards...)
+	totalRewardsToClaim := newlyAccruedRewardsDec.Add(endorserPosition.AccumulatedRewards...)
 
 	return EstimateClaimResult{
 		RollappId: raGauge.Rollapp.RollappId,
@@ -186,8 +185,9 @@ func (k Keeper) UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, a
 		return fmt.Errorf("get endorsement: %w", err)
 	}
 
-	// Update total coins
-	endorsement.TotalCoins = endorsement.TotalCoins.Add(additionalCoins...)
+	if endorsement.TotalShares.IsZero() {
+		return types.ErrNoEndorsers
+	}
 
 	// Update the lazy accumulator: add rewards per share to the accumulator
 	// Only update if there are shares to avoid division by zero
@@ -201,6 +201,9 @@ func (k Keeper) UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, a
 		// Add to the accumulator
 		endorsement.Accumulator = endorsement.Accumulator.Add(rewardsPerShare...)
 	}
+
+	// Update total coins
+	endorsement.TotalCoins = endorsement.TotalCoins.Add(additionalCoins...)
 
 	// TODO: think what to do if total shares is zero
 

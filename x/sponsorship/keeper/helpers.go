@@ -42,6 +42,9 @@ func (k Keeper) UpdateDistribution(ctx sdk.Context, fn func(types.Distribution) 
 	// Apply the update
 	result := fn(current)
 
+	// Don't store gauges with <= 0 power
+	result = result.FilterNonPositive()
+
 	// Save the updated distribution
 	err = k.SaveDistribution(ctx, result)
 	if err != nil {

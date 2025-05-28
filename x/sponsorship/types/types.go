@@ -141,8 +141,8 @@ func (d Distribution) Merge(d1 Distribution) Distribution {
 			gauge = rhs[j]
 			j++
 		}
-		// Don't store gauges with <= 0 power
-		if gauge.Power.IsPositive() {
+		// Don't store gauges with 0 power
+		if !gauge.Power.IsZero() {
 			gauges = append(gauges, gauge)
 		}
 	}
@@ -157,6 +157,20 @@ func (d Distribution) Merge(d1 Distribution) Distribution {
 	return Distribution{
 		VotingPower: d.VotingPower.Add(d1.VotingPower),
 		Gauges:      slices.Clip(gauges),
+	}
+}
+
+func (d Distribution) FilterNonPositive() Distribution {
+	gauges := make([]Gauge, 0, len(d.Gauges))
+	for _, g := range d.Gauges {
+		if g.Power.IsPositive() {
+			gauges = append(gauges, g)
+		}
+	}
+	gauges = slices.Clip(gauges)
+	return Distribution{
+		VotingPower: d.VotingPower,
+		Gauges:      gauges,
 	}
 }
 
