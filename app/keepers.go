@@ -17,6 +17,8 @@ import (
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	ratelimitkeeper "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/keeper"
+	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -134,6 +136,7 @@ type AppKeepers struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitBreakerKeeper  circuitkeeper.Keeper
+	RateLimitingKeeper    ratelimitkeeper.Keeper
 
 	// IBC keepers
 	IBCKeeper                     *ibckeeper.Keeper
@@ -488,6 +491,16 @@ func (a *AppKeepers) InitKeepers(
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 
+	// Initialize rate limiting keeper
+	a.RateLimitingKeeper = ratelimitkeeper.NewKeeper(
+		appCodec,
+		a.keys[ratelimittypes.StoreKey],
+		a.GetSubspace(ratelimittypes.ModuleName),
+		a.BankKeeper,
+		a.IBCKeeper.ChannelKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -658,6 +671,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// osmosis subspaces
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
+
+	// rate limiting subspace
+	paramsKeeper.Subspace(ratelimittypes.ModuleName)
 
 	return paramsKeeper
 }

@@ -9,6 +9,8 @@ import (
 	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	ratelimit "github.com/Stride-Labs/ibc-rate-limiting/ratelimit"
+	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -154,6 +156,9 @@ func (app *App) SetupModules(
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
+
+		// Rate limiting module
+		ratelimit.NewAppModule(appCodec, app.RateLimitingKeeper),
 	}
 }
 
@@ -213,6 +218,7 @@ var BeginBlockers = []string{
 	evidencetypes.ModuleName,
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
+	ratelimittypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	ibcexported.ModuleName,
@@ -255,6 +261,7 @@ var EndBlockers = []string{
 	authz.ModuleName,
 	banktypes.ModuleName,
 	distrtypes.ModuleName,
+	ratelimittypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	slashingtypes.ModuleName,
@@ -300,6 +307,7 @@ var InitGenesis = []string{
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
 	slashingtypes.ModuleName,
+	ratelimittypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	govtypes.ModuleName,

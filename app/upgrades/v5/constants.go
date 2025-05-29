@@ -4,6 +4,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
 
+	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
@@ -21,6 +22,7 @@ var Upgrade = upgrades.Upgrade{
 			hypercoretypes.ModuleName,
 			hyperwarptypes.ModuleName,
 			circuittypes.ModuleName,
+			ratelimittypes.ModuleName,
 		},
 	},
 }

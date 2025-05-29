@@ -6,6 +6,7 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -120,6 +121,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	circuittypes.StoreKey,
 	crisistypes.StoreKey,
 	consensusparamtypes.StoreKey,
+	ratelimittypes.StoreKey,
 	irotypes.StoreKey,
 	rollappmoduletypes.StoreKey,
 	sequencermoduletypes.StoreKey,

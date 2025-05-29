@@ -7,6 +7,8 @@ import (
 
 	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	ratelimitkeeper "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/keeper"
+	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -85,6 +87,12 @@ func CreateUpgradeHandler(
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
+
+		// Setup rate limiting parameters
+		if keepers.RateLimitingKeeper != nil {
+			setupRateLimitingParams(ctx, keepers.RateLimitingKeeper)
+			logger.Info("Rate limiting parameters set up successfully")
+		}
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -353,4 +361,79 @@ func migrateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
 			k.SetSequencer(ctx, s)
 		}
 	}
+}
+
+// setupRateLimitingParams sets up the rate limiting parameters for Noble USDC and Kava USDT
+func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) {
+	// Target denominations
+	nobleUSDC := "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4"
+	kavaUSDT := "ibc/B72B5B3F7AD44783584921DC33354BCE07C8EB0A7F0349247C3DAD38C3B6E6A5"
+
+	// 1-Day Limit (15% send, no receive limit, 24h)
+	k.SetRateLimit(ctx, nobleUSDC, ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          nobleUSDC,
+		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  24,
+	})
+
+	k.SetRateLimit(ctx, kavaUSDT, ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          kavaUSDT,
+		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  24,
+	})
+
+	// 2-Day Limit (15% send, no receive limit, 48h)
+	k.SetRateLimit(ctx, nobleUSDC+"_2day", ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          nobleUSDC,
+		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  48,
+	})
+
+	k.SetRateLimit(ctx, kavaUSDT+"_2day", ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          kavaUSDT,
+		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  48,
+	})
+
+	// 1-Week Limit (35% send, no receive limit, 1 week)
+	k.SetRateLimit(ctx, nobleUSDC+"_1week", ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          nobleUSDC,
+		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  168,                       // 1 week
+	})
+
+	k.SetRateLimit(ctx, kavaUSDT+"_1week", ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          kavaUSDT,
+		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  168,                       // 1 week
+	})
+
+	// 2-Week Limit (35% send, no receive limit, 2 weeks)
+	k.SetRateLimit(ctx, nobleUSDC+"_2week", ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          nobleUSDC,
+		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  336,                       // 2 weeks
+	})
+
+	k.SetRateLimit(ctx, kavaUSDT+"_2week", ratelimittypes.RateLimit{
+		Path:           "", // Will be set by the keeper
+		Denom:          kavaUSDT,
+		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
+		MaxPercentRecv: sdk.NewDec(0),             // No limit
+		DurationHours:  336,                       // 2 weeks
+	})
 }
