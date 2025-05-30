@@ -136,9 +136,9 @@ type AppKeepers struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitBreakerKeeper  circuitkeeper.Keeper
-	RateLimitingKeeper    ratelimitkeeper.Keeper
 
 	// IBC keepers
+	RateLimitingKeeper            ratelimitkeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	TransferStack                 ibcporttypes.IBCModule
@@ -459,16 +459,26 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.RateLimitingKeeper = *ratelimitkeeper.NewKeeper(
+		appCodec,
+		a.keys[ratelimittypes.StoreKey],
+		a.GetSubspace(ratelimittypes.ModuleName),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		a.BankKeeper,
+		a.IBCKeeper.ChannelKeeper,
+		genesisbridge.NewICS4Wrapper(
+			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+			a.RollappKeeper,
+			a.IBCKeeper.ChannelKeeper,
+		), // ICS4Wrapper
+	)
+
 	// Create Transfer Keepers
 	a.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		a.keys[ibctransfertypes.StoreKey],
 		a.GetSubspace(ibctransfertypes.ModuleName),
-		genesisbridge.NewICS4Wrapper(
-			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
-			a.RollappKeeper,
-			a.IBCKeeper.ChannelKeeper,
-		),
+		a.RateLimitingKeeper, // ICS4Wrapper
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
@@ -490,16 +500,6 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
-
-	// Initialize rate limiting keeper
-	a.RateLimitingKeeper = ratelimitkeeper.NewKeeper(
-		appCodec,
-		a.keys[ratelimittypes.StoreKey],
-		a.GetSubspace(ratelimittypes.ModuleName),
-		a.BankKeeper,
-		a.IBCKeeper.ChannelKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
@@ -581,7 +581,7 @@ func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
-		// insert lockup hooks receivers here
+			// insert lockup hooks receivers here
 		),
 	)
 
@@ -601,7 +601,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
-		// insert incentive hooks receivers here
+			// insert incentive hooks receivers here
 		),
 	)
 

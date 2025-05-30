@@ -17,10 +17,9 @@ import (
 func (a *AppKeepers) InitTransferStack() {
 	a.TransferStack = ibctransfer.NewIBCModule(a.TransferKeeper)
 
-	// Add rate limiting middleware (add this early in the stack)
 	a.TransferStack = ratelimit.NewIBCMiddleware(
-		a.TransferStack,
 		a.RateLimitingKeeper,
+		a.TransferStack,
 	)
 	a.TransferStack = bridgingfee.NewIBCModule(
 		a.TransferStack.(ibctransfer.IBCModule),

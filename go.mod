@@ -19,7 +19,7 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/tx v0.13.8
 	cosmossdk.io/x/upgrade v0.1.4
-	github.com/Stride-Labs/ibc-rate-limiting v1.0.1
+	github.com/Stride-Labs/ibc-rate-limiting v1.0.2-0.20240426200051-b3513ab696e2
 	github.com/bcp-innovations/hyperlane-cosmos v1.0.0
 	github.com/cockroachdb/errors v1.11.3
 	github.com/cometbft/cometbft v0.38.15

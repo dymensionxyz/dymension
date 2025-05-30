@@ -370,70 +370,142 @@ func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) {
 	kavaUSDT := "ibc/B72B5B3F7AD44783584921DC33354BCE07C8EB0A7F0349247C3DAD38C3B6E6A5"
 
 	// 1-Day Limit (15% send, no receive limit, 24h)
-	k.SetRateLimit(ctx, nobleUSDC, ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          nobleUSDC,
-		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  24,
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     nobleUSDC,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(15), // 15%
+			MaxPercentRecv: math.ZeroInt(),  // No limit TODO: double-check
+			DurationHours:  24,
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
-	k.SetRateLimit(ctx, kavaUSDT, ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          kavaUSDT,
-		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  24,
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     kavaUSDT,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(15), // 15%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  24,
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
 	// 2-Day Limit (15% send, no receive limit, 48h)
-	k.SetRateLimit(ctx, nobleUSDC+"_2day", ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          nobleUSDC,
-		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  48,
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     nobleUSDC,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(15), // 15%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  48,
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
-	k.SetRateLimit(ctx, kavaUSDT+"_2day", ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          kavaUSDT,
-		MaxPercentSend: sdk.NewDecWithPrec(15, 2), // 15%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  48,
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     kavaUSDT,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(15), // 15%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  48,
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
 	// 1-Week Limit (35% send, no receive limit, 1 week)
-	k.SetRateLimit(ctx, nobleUSDC+"_1week", ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          nobleUSDC,
-		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  168,                       // 1 week
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     nobleUSDC,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(35), // 35%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  168,             // 1 week
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
-	k.SetRateLimit(ctx, kavaUSDT+"_1week", ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          kavaUSDT,
-		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  168,                       // 1 week
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     kavaUSDT,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(35), // 35%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  168,             // 1 week
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
 	// 2-Week Limit (35% send, no receive limit, 2 weeks)
-	k.SetRateLimit(ctx, nobleUSDC+"_2week", ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          nobleUSDC,
-		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  336,                       // 2 weeks
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     nobleUSDC,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(35), // 35%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  336,             // 2 weeks
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 
-	k.SetRateLimit(ctx, kavaUSDT+"_2week", ratelimittypes.RateLimit{
-		Path:           "", // Will be set by the keeper
-		Denom:          kavaUSDT,
-		MaxPercentSend: sdk.NewDecWithPrec(35, 2), // 35%
-		MaxPercentRecv: sdk.NewDec(0),             // No limit
-		DurationHours:  336,                       // 2 weeks
+	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{
+			Denom:     kavaUSDT,
+			ChannelId: "", // ?
+		},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: math.NewInt(35), // 35%
+			MaxPercentRecv: math.ZeroInt(),  // No limit
+			DurationHours:  336,             // 2 weeks
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       math.Int{},
+			Outflow:      math.Int{},
+			ChannelValue: math.Int{},
+		},
 	})
 }
