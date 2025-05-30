@@ -7,11 +7,11 @@ import (
 
 	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	ratelimitkeeper "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/keeper"
-	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/delayedack"
@@ -88,10 +88,10 @@ func CreateUpgradeHandler(
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
-		// Setup rate limiting parameters
-		if keepers.RateLimitingKeeper != nil {
-			setupRateLimitingParams(ctx, keepers.RateLimitingKeeper)
-			logger.Info("Rate limiting parameters set up successfully")
+		// Set up rate limiting parameters for existing channels
+		err = setupRateLimitingParams(ctx, keepers.RateLimitingKeeper)
+		if err != nil {
+			return nil, fmt.Errorf("setup rate limiting params: %w", err)
 		}
 
 		// Start running the module migrations
@@ -364,148 +364,20 @@ func migrateSequencers(ctx sdk.Context, k *sequencerkeeper.Keeper) {
 }
 
 // setupRateLimitingParams sets up the rate limiting parameters for Noble USDC and Kava USDT
-func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) {
-	// Target denominations
-	nobleUSDC := "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4"
-	kavaUSDT := "ibc/B72B5B3F7AD44783584921DC33354BCE07C8EB0A7F0349247C3DAD38C3B6E6A5"
-
-	// 1-Day Limit (15% send, no receive limit, 24h)
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     nobleUSDC,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(15), // 15%
-			MaxPercentRecv: math.ZeroInt(),  // No limit TODO: double-check
+func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) error {
+	for _, path := range IBCChannels {
+		// 1-Day Limit (15% send, no receive limit, 24h)
+		err := k.AddRateLimit(ctx, &ratelimittypes.MsgAddRateLimit{
+			Authority:      "", // is not necessary here
+			Denom:          path.Denom,
+			ChannelId:      path.ChannelId,
+			MaxPercentSend: math.NewInt(15),  // 15%
+			MaxPercentRecv: math.NewInt(100), // 100% is effectively no limit
 			DurationHours:  24,
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     kavaUSDT,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(15), // 15%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  24,
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	// 2-Day Limit (15% send, no receive limit, 48h)
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     nobleUSDC,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(15), // 15%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  48,
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     kavaUSDT,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(15), // 15%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  48,
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	// 1-Week Limit (35% send, no receive limit, 1 week)
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     nobleUSDC,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(35), // 35%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  168,             // 1 week
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     kavaUSDT,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(35), // 35%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  168,             // 1 week
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	// 2-Week Limit (35% send, no receive limit, 2 weeks)
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     nobleUSDC,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(35), // 35%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  336,             // 2 weeks
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
-
-	k.SetRateLimit(ctx, ratelimittypes.RateLimit{
-		Path: &ratelimittypes.Path{
-			Denom:     kavaUSDT,
-			ChannelId: "", // ?
-		},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: math.NewInt(35), // 35%
-			MaxPercentRecv: math.ZeroInt(),  // No limit
-			DurationHours:  336,             // 2 weeks
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       math.Int{},
-			Outflow:      math.Int{},
-			ChannelValue: math.Int{},
-		},
-	})
+		})
+		if err != nil {
+			return fmt.Errorf("add rate limit: denom: %s, channelID: %s, error: %w", path.Denom, path.ChannelId, err)
+		}
+	}
+	return nil
 }

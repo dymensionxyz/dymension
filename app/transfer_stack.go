@@ -1,9 +1,9 @@
 package app
 
 import (
-	ratelimit "github.com/Stride-Labs/ibc-rate-limiting/ratelimit"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
+	ratelimit "github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -22,7 +22,7 @@ func (a *AppKeepers) InitTransferStack() {
 		a.TransferStack,
 	)
 	a.TransferStack = bridgingfee.NewIBCModule(
-		a.TransferStack.(ibctransfer.IBCModule),
+		a.TransferStack,
 		*a.RollappKeeper,
 		a.DelayedAckKeeper,
 		a.TransferKeeper,

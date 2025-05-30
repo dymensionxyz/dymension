@@ -9,8 +9,6 @@ import (
 	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	ratelimit "github.com/Stride-Labs/ibc-rate-limiting/ratelimit"
-	ratelimittypes "github.com/Stride-Labs/ibc-rate-limiting/ratelimit/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -44,6 +42,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	"github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
@@ -125,6 +125,8 @@ func (app *App) SetupModules(
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		circuit.NewAppModule(appCodec, app.CircuitBreakerKeeper),
 
+		// IBC modules
+		ratelimit.NewAppModule(appCodec, app.RateLimitingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
@@ -156,9 +158,6 @@ func (app *App) SetupModules(
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
-
-		// Rate limiting module
-		ratelimit.NewAppModule(appCodec, app.RateLimitingKeeper),
 	}
 }
 
@@ -202,6 +201,7 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
+	ratelimittypes.ModuleName:                          nil,
 }
 
 var PreBlockers = []string{
@@ -218,7 +218,6 @@ var BeginBlockers = []string{
 	evidencetypes.ModuleName,
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
-	ratelimittypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	ibcexported.ModuleName,
@@ -251,6 +250,7 @@ var BeginBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -261,7 +261,6 @@ var EndBlockers = []string{
 	authz.ModuleName,
 	banktypes.ModuleName,
 	distrtypes.ModuleName,
-	ratelimittypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	slashingtypes.ModuleName,
@@ -296,6 +295,7 @@ var EndBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -307,7 +307,6 @@ var InitGenesis = []string{
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
 	slashingtypes.ModuleName,
-	ratelimittypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	govtypes.ModuleName,
@@ -342,4 +341,5 @@ var InitGenesis = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
