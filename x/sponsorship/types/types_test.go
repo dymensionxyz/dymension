@@ -845,17 +845,6 @@ func TestRewardsToBank(t *testing.T) {
 		})
 	}
 }
-package types_test
-
-import (
-	"testing"
-
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-
-	sponsorshipstypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
-)
 
 func TestEndorserPosition_RewardsToBank(t *testing.T) {
 	testCases := []struct {
@@ -871,8 +860,8 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// LastSeenAccumulator: 6
 			// Shares: 60
 			// Rewards = (7.666... - 6) * 60 = 1.666... * 60 = 99.999... -> 99 (truncated)
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3")))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("6"))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3")))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("6"))),
 			shares:              math.LegacyMustNewDecFromStr("60"),
 			expectedRewards:     sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(99))),
 		},
@@ -882,7 +871,7 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// LastSeenAccumulator: 0
 			// Shares: 10
 			// Rewards = (0.333...) * 10 = 3.333... -> 3 (truncated)
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("1").Quo(math.LegacyMustNewDecFromStr("3")))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("1").Quo(math.LegacyMustNewDecFromStr("3")))),
 			lastSeenAccumulator: sdk.NewDecCoins(),
 			shares:              math.LegacyMustNewDecFromStr("10"),
 			expectedRewards:     sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(3))),
@@ -893,8 +882,8 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// LastSeenAccumulator: 5
 			// Shares: 10
 			// Rewards = (10 - 5) * 10 = 5 * 10 = 50
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("10"))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("5"))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10"))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
 			shares:              math.LegacyMustNewDecFromStr("10"),
 			expectedRewards:     sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(50))),
 		},
@@ -904,8 +893,8 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// LastSeenAccumulator: 5
 			// Shares: 0
 			// Rewards = (10 - 5) * 0 = 0
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("10"))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("5"))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10"))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
 			shares:              math.LegacyZeroDec(),
 			expectedRewards:     sdk.NewCoins(),
 		},
@@ -915,8 +904,8 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// LastSeenAccumulator: 5
 			// Shares: 10
 			// Rewards = (5 - 5) * 10 = 0
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("5"))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("5"))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
 			shares:              math.LegacyMustNewDecFromStr("10"),
 			expectedRewards:     sdk.NewCoins(),
 		},
@@ -925,12 +914,12 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// udym: GlobalAcc=7.666... (23/3), LastSeen=6, Shares=10 -> (1.666...) * 10 = 16.666... -> 16
 			// uatom: GlobalAcc=2.5 (10/4), LastSeen=1, Shares=10 -> (1.5) * 10 = 15 -> 15
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3"))),
-				sdk.NewDecCoin("uatom", math.LegacyMustNewDecFromStr("10").Quo(math.LegacyMustNewDecFromStr("4"))),
+				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3"))),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("10").Quo(math.LegacyMustNewDecFromStr("4"))),
 			),
 			lastSeenAccumulator: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("6")),
-				sdk.NewDecCoin("uatom", math.LegacyMustNewDecFromStr("1")),
+				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("6")),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("1")),
 			),
 			shares: math.LegacyMustNewDecFromStr("10"),
 			expectedRewards: sdk.NewCoins(
@@ -943,11 +932,11 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// udym: GlobalAcc=10, LastSeen=5, Shares=10 -> (5) * 10 = 50 -> 50
 			// uatom: GlobalAcc=2.5 (5/2), LastSeen=0, Shares=10 -> (2.5) * 10 = 25 -> 25
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("10")),
-				sdk.NewDecCoin("uatom", math.LegacyMustNewDecFromStr("5").Quo(math.LegacyMustNewDecFromStr("2"))),
+				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10")),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("5").Quo(math.LegacyMustNewDecFromStr("2"))),
 			),
 			lastSeenAccumulator: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("5")),
+				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5")),
 			),
 			shares: math.LegacyMustNewDecFromStr("10"),
 			expectedRewards: sdk.NewCoins(
@@ -977,11 +966,11 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// This test will fail if not for a panic, or if the expectation is non-negative coins.
 			// Let's test the scenario where only udym rewards are expected.
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("10")),
+				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10")),
 			),
 			lastSeenAccumulator: sdk.NewDecCoins(
-				sdk.NewDecCoin("udym", math.LegacyMustNewDecFromStr("5")),
-				sdk.NewDecCoin("uatom", math.LegacyMustNewDecFromStr("1")),
+				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5")),
+				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("1")),
 			),
 			shares: math.LegacyMustNewDecFromStr("10"),
 			// Expected: udym: (10-5)*10 = 50. uatom: (0-1)*10 = -10.
@@ -1015,7 +1004,7 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			position := sponsorshipstypes.EndorserPosition{
+			position := types.EndorserPosition{
 				Shares:              tc.shares,
 				LastSeenAccumulator: tc.lastSeenAccumulator,
 				AccumulatedRewards:  sdk.NewCoins(), // Not used by RewardsToBank directly
