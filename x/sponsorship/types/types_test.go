@@ -984,3 +984,36 @@ func requireLegacyDecInEpsilon(t *testing.T, actual, expected, epsilon math.Lega
 	require.True(t, actual.GTE(lowerBound), "actual %s is less than lower bound %s (expected %s, epsilon %s)", actual, lowerBound, expected, epsilon, msgAndArgs)
 	require.True(t, actual.LTE(upperBound), "actual %s is greater than upper bound %s (expected %s, epsilon %s)", actual, upperBound, expected, epsilon, msgAndArgs)
 }
+
+// requireDecCoinInEpsilon asserts that the actual sdk.DecCoin's amount is within the
+// epsilon range of the expected sdk.DecCoin's amount.
+// It also asserts that the denominations are the same.
+// It checks if expected.Amount-epsilon <= actual.Amount <= expected.Amount+epsilon.
+func requireDecCoinInEpsilon(t *testing.T, actual sdk.DecCoin, expected sdk.DecCoin, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
+	t.Helper()
+	require.Equal(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom, msgAndArgs)
+
+	lowerBound := expected.Amount.Sub(epsilon)
+	upperBound := expected.Amount.Add(epsilon)
+
+	require.True(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon, msgAndArgs)
+	require.True(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon, msgAndArgs)
+}
+
+// requireDecCoinsInEpsilon asserts that each sdk.DecCoin in the actual sdk.DecCoins slice
+// is within the epsilon range of the corresponding sdk.DecCoin in the expected sdk.DecCoins slice.
+// It asserts that the slices have the same length and that corresponding coins have matching denominations.
+// The slices are sorted by denom before comparison.
+func requireDecCoinsInEpsilon(t *testing.T, actual sdk.DecCoins, expected sdk.DecCoins, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
+	t.Helper()
+
+	// Sort by denom for consistent comparison
+	sortedActual := actual.Sort()
+	sortedExpected := expected.Sort()
+
+	require.Equal(t, len(sortedExpected), len(sortedActual), "number of dec coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual), msgAndArgs)
+
+	for i := 0; i < len(sortedExpected); i++ {
+		requireDecCoinInEpsilon(t, sortedActual[i], sortedExpected[i], epsilon, msgAndArgs)
+	}
+}
