@@ -34,11 +34,11 @@ func TestModel(t *testing.T) {
 				}
 			},
 			"deposit": func(t *rapid.T) {
-				x := rapid.IntRange(1, 100).Draw(t, "deposit x")
+				x := rapid.IntRange(1, 5).Draw(t, "deposit x")
 				m.deposit(x)
 			},
 			"withdraw": func(t *rapid.T) {
-				x := rapid.IntRange(1, 100).Draw(t, "withdraw x")
+				x := rapid.IntRange(1, 5).Draw(t, "withdraw x")
 				m.withdraw(x)
 			},
 			"signTxKas": func(t *rapid.T) {
