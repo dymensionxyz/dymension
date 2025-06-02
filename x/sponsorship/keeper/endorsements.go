@@ -82,7 +82,6 @@ func (k Keeper) UpdateEndorsementsAndPositions(
 // 5. Get the user's power cast for the rollapp gauge
 // 6. Calculate the user's portion of the rewards
 // 7. Update the endorsement epoch shares
-// 8. Blacklist the user from claiming rewards in this epoch
 func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) error {
 	result, err := k.EstimateClaim(ctx, claimer, gaugeId)
 	if err != nil {
