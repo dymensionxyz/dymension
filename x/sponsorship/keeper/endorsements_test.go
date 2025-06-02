@@ -523,6 +523,77 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().NoError(err)
 	unlockedCoins = endorsement.TotalCoins.Sub(endorsement.DistributedCoins...)
 	s.Require().True(unlockedCoins.Equal(dym0), "unlocked coins mismatch: expected %s, got %s after final claim", dym0, unlockedCoins)
+
+	/***************************************************************/
+	/*     Scenario: user has share with repeating decimal       */
+	/***************************************************************/
+	s.T().Log("Scenario: user has share with repeating decimal")
+
+	// User1 (del1Addr) currently has 100 DYM staked.
+	// To make User1 contribute exactly 60 shares (60M units) with a 100% vote,
+	// their stake needs to be 60 DYM. Undelegate 40 DYM.
+	s.Undelegate(user1Addr, valAddr, sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(40)))
+	s.Require().True(s.App.StakingKeeper.Validator(s.Ctx, valAddr).GetDelegatorShares().Equal(math.LegacyNewDecFromInt(commontypes.DYM.MulRaw(60))), "Validator shares should be 60M after User1 partial undelegation")
+
+	// User1 endorses with 60 shares (by voting 100% of their 60 DYM stake)
+	s.Vote(types.MsgVote{
+		Voter: user1Addr.String(),
+		Weights: []types.GaugeWeight{
+			// Weight of 1 (or any positive number) means 100% to this gauge if it's the only one
+			{GaugeId: rollappGaugeID, Weight: math.NewInt(1)},
+		},
+	})
+
+	// Verify Endorsement: GA=8.5 (from previous scenario), TotalShares=60M
+	endorsement, err = s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
+	s.Require().NoError(err)
+	// expectedAccumulatorEpoch7 was 8.5
+	s.Require().True(endorsement.Accumulator.Equal(expectedAccumulatorEpoch7), "GA should be 8.5 before new epoch. Expected %s, got %s", expectedAccumulatorEpoch7, endorsement.Accumulator)
+	expectedUser1SharesDec := math.LegacyNewDecFromInt(commontypes.DYM.MulRaw(60))
+	s.Require().True(endorsement.TotalShares.Equal(expectedUser1SharesDec), "TotalShares should be 60M. Expected %s, got %s", expectedUser1SharesDec, endorsement.TotalShares)
+	unlockedCoins = endorsement.TotalCoins.Sub(endorsement.DistributedCoins...) // Should still be 0 from previous claims
+	s.Require().True(unlockedCoins.IsZero(), "Unlocked coins should be 0 before new epoch. Got %s", unlockedCoins)
+
+	// Verify User1 Position: Shares=60M, LSA=8.5, AUR=0
+	posUser1, err := s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, user1Addr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(posUser1.Shares.Equal(expectedUser1SharesDec), "User1 shares should be 60M. Expected %s, got %s", expectedUser1SharesDec, posUser1.Shares)
+	s.Require().True(posUser1.LastSeenAccumulator.Equal(expectedAccumulatorEpoch7), "User1 LSA should be 8.5. Expected %s, got %s", expectedAccumulatorEpoch7, posUser1.LastSeenAccumulator)
+	s.Require().True(posUser1.AccumulatedRewards.IsZero(), "User1 AUR should be 0. Got %s", posUser1.AccumulatedRewards)
+
+	// User1 Claimable: (8.5 - 8.5) * 60M = 0
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(result.Rewards.IsZero(), "User1 claimable should be 0. Got %s", result.Rewards)
+
+	// New epoch: +100 DYM (This is Epoch 8 for distributions)
+	s.BeginEpoch(incentivestypes.DefaultDistrEpochIdentifier)
+
+	// Verify Endorsement:
+	// Prev GA = 8.5. RewardsPerShare = 100M / 60M = 1.666...
+	// New GA = 8.5 + 1.666... = 10.1666...
+	endorsement, err = s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
+	s.Require().NoError(err)
+
+	rewardsPerShareVal := math.LegacyNewDecFromInt(commontypes.DYM.MulRaw(100)).QuoTruncate(expectedUser1SharesDec)
+	expectedAccumulatorRepeating := expectedAccumulatorEpoch7.Add(sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, rewardsPerShareVal))
+	s.Require().True(endorsement.Accumulator.Equal(expectedAccumulatorRepeating), "GA should be ~10.166. Expected %s, got %s", expectedAccumulatorRepeating, endorsement.Accumulator)
+	s.Require().True(endorsement.TotalShares.Equal(expectedUser1SharesDec), "TotalShares should still be 60M. Expected %s, got %s", expectedUser1SharesDec, endorsement.TotalShares)
+	unlockedCoins = endorsement.TotalCoins.Sub(endorsement.DistributedCoins...) // Now 0 + 100 DYM
+	s.Require().True(unlockedCoins.Equal(dym100), "Unlocked coins should be 100 DYM. Expected %s, got %s", dym100, unlockedCoins)
+
+	// Verify User1 Position (LSA and AUR are not changed by epoch start itself)
+	posUser1, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, user1Addr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(posUser1.Shares.Equal(expectedUser1SharesDec), "User1 shares should remain 60M.")
+	s.Require().True(posUser1.LastSeenAccumulator.Equal(expectedAccumulatorEpoch7), "User1 LSA should remain 8.5 (updates on action).")
+	s.Require().True(posUser1.AccumulatedRewards.IsZero(), "User1 AUR should remain 0.")
+
+	// User1 Claimable: (NewGA - LSA) * Shares = (10.166... - 8.5) * 60M = 1.666... * 60M = 99M (due to truncation)
+	expectedClaimableUser1Repeating := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(99)))
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	s.Require().NoError(err)
+	s.Require().True(result.Rewards.Equal(expectedClaimableUser1Repeating), "User1 claimable should be 99 DYM. Expected %s, got %s", expectedClaimableUser1Repeating, result.Rewards)
 }
 
 func (s *KeeperTestSuite) BeginEpoch(epochID string) {
