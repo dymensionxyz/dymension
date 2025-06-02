@@ -44,7 +44,7 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().NoError(err)
 
 	// User1 delegates 40 DYM (total voting power)
-	initial1 := sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(40))
+	initial1 := sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100))
 	del1 := s.CreateDelegator(valAddr, initial1)
 
 	// User2 delegates 100 DYM (but only endorses with 60 shares in step 3)
@@ -87,11 +87,11 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	/***************************************************************/
 
 	// User1 endorses with 40 shares
-	// User1 votes 100% on the rollapp gauge
+	// User1 votes 40% (of 100-DYM delegation) on the rollapp gauge
 	s.Vote(types.MsgVote{
 		Voter: del1.GetDelegatorAddr(),
 		Weights: []types.GaugeWeight{
-			{GaugeId: 1, Weight: commontypes.DYM.MulRaw(100)}, // 100% to rollapp gauge
+			{GaugeId: 1, Weight: commontypes.DYM.MulRaw(40)}, // 40% to rollapp gauge
 		},
 	})
 
