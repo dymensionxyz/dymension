@@ -994,6 +994,39 @@ func requireCoinsInEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, e
 	}
 }
 
+// requireCoinInLowerEpsilon asserts that the actual sdk.Coin's amount is within the
+// lower epsilon range of the expected sdk.Coin's amount.
+// It also asserts that the denominations are the same.
+// It checks if expected.Amount-epsilon <= actual.Amount <= expected.Amount.
+func requireCoinInLowerEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int, msgAndArgs ...interface{}) {
+	t.Helper()
+	require.Equal(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom, msgAndArgs)
+
+	lowerBound := expected.Amount.Sub(epsilon)
+	upperBound := expected.Amount // Actual amount must be less than or equal to expected
+
+	require.True(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon, msgAndArgs)
+	require.True(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon, msgAndArgs)
+}
+
+// requireCoinsInLowerEpsilon asserts that each sdk.Coin in the actual sdk.Coins slice
+// is within the lower epsilon range of the corresponding sdk.Coin in the expected sdk.Coins slice.
+// It asserts that the slices have the same length and that corresponding coins have matching denominations.
+// The slices are sorted by denom before comparison.
+func requireCoinsInLowerEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int, msgAndArgs ...interface{}) {
+	t.Helper()
+
+	// Sort by denom for consistent comparison
+	sortedActual := actual.Sort()
+	sortedExpected := expected.Sort()
+
+	require.Equal(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual), msgAndArgs)
+
+	for i := 0; i < len(sortedExpected); i++ {
+		requireCoinInLowerEpsilon(t, sortedActual[i], sortedExpected[i], epsilon, msgAndArgs)
+	}
+}
+
 // decFromFrac returns a legacy Dec from the given numerator p and denominator q.
 func decFromFrac(p, q int64) math.LegacyDec {
 	return math.LegacyNewDecFromInt(math.NewInt(p)).QuoTruncate(math.LegacyNewDecFromInt(math.NewInt(q)))
