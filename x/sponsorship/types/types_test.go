@@ -779,27 +779,27 @@ func TestRewardsToBank(t *testing.T) {
 			name: "Positive rewards - single denom",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
 			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10))),
-			expectedOutput: sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(500))), // (10-5)*100 = 500
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10))),
+			expectedOutput: sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(500))), // (10-5)*100 = 500
 		},
 		{
 			name: "Zero rewards - GA equals LSA",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
 			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
 			expectedOutput: sdk.NewCoins(), // (5-5)*100 = 0
 		},
 		{
 			name: "Zero rewards - zero shares",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyZeroDec(),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
 			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10))),
+			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10))),
 			expectedOutput: sdk.NewCoins(), // (10-5)*0 = 0
 		},
 		{
@@ -807,16 +807,16 @@ func TestRewardsToBank(t *testing.T) {
 			position: types.EndorserPosition{
 				Shares: math.LegacyNewDec(100),
 				LastSeenAccumulator: sdk.NewDecCoins(
-					sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5)),
+					sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5)),
 					sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(2)),
 				),
 			},
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10)),
+				sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10)),
 				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)),
 			),
-			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (3-2)*100=100uatom
-				sdk.NewCoin("udym", math.NewInt(500)),
+			expectedOutput: sdk.NewCoins( // (10-5)*100=500adym, (3-2)*100=100uatom
+				sdk.NewCoin("adym", math.NewInt(500)),
 				sdk.NewCoin("uatom", math.NewInt(100)),
 			),
 		},
@@ -824,14 +824,14 @@ func TestRewardsToBank(t *testing.T) {
 			name: "Multiple denoms - denom in GA not in LSA",
 			position: types.EndorserPosition{
 				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(5))),
+				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
 			},
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("udym", math.LegacyNewDec(10)),
+				sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10)),
 				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)), // uatom not in LSA
 			),
-			expectedOutput: sdk.NewCoins( // (10-5)*100=500udym, (3-0)*100=300uatom
-				sdk.NewCoin("udym", math.NewInt(500)),
+			expectedOutput: sdk.NewCoins( // (10-5)*100=500adym, (3-0)*100=300uatom
+				sdk.NewCoin("adym", math.NewInt(500)),
 				sdk.NewCoin("uatom", math.NewInt(300)),
 			),
 		},
@@ -855,46 +855,46 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 		expectedRewards     sdk.Coins
 	}{
 		{
-			name: "TODO scenario - truncation prevents overpayment",
+			name: "truncation prevents overpayment",
 			// Global Accumulator: 7.666... (23/3)
 			// LastSeenAccumulator: 6
-			// Shares: 60
+			// Shares: 60 DYM
 			// Rewards = (7.666... - 6) * 60 = 1.666... * 60 = 99.999... -> 99 (truncated)
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3")))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("6"))),
-			shares:              math.LegacyMustNewDecFromStr("60"),
-			expectedRewards:     sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(100))), // Updated to reflect actual observed behavior
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("23").QuoTruncate(math.LegacyMustNewDecFromStr("3")))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("6"))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(60)),
+			expectedRewards:     sdk.NewCoins(sdk.NewCoin("adym", types.DYM.MulRaw(100))), // Updated to reflect actual observed behavior
 		},
 		{
 			name: "general truncation",
 			// Global Accumulator: 0.333... (1/3)
 			// LastSeenAccumulator: 0
-			// Shares: 10
+			// Shares: 10 DYM
 			// Rewards = (0.333...) * 10 = 3.333... -> 3 (truncated)
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("1").Quo(math.LegacyMustNewDecFromStr("3")))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("1").QuoTruncate(math.LegacyMustNewDecFromStr("3")))),
 			lastSeenAccumulator: sdk.NewDecCoins(),
-			shares:              math.LegacyMustNewDecFromStr("10"),
-			expectedRewards:     sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(3))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards:     sdk.NewCoins(sdk.NewCoin("adym", types.DYM.MulRaw(3))),
 		},
 		{
 			name: "integer result",
 			// Global Accumulator: 10
 			// LastSeenAccumulator: 5
-			// Shares: 10
+			// Shares: 10 DYM
 			// Rewards = (10 - 5) * 10 = 5 * 10 = 50
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10"))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
-			shares:              math.LegacyMustNewDecFromStr("10"),
-			expectedRewards:     sdk.NewCoins(sdk.NewCoin("udym", math.NewInt(50))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("10"))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("5"))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards:     sdk.NewCoins(sdk.NewCoin("adym", types.DYM.MulRaw(50))),
 		},
 		{
 			name: "zero shares",
 			// Global Accumulator: 10
 			// LastSeenAccumulator: 5
-			// Shares: 0
+			// Shares: 0 DYM
 			// Rewards = (10 - 5) * 0 = 0
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10"))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("10"))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("5"))),
 			shares:              math.LegacyZeroDec(),
 			expectedRewards:     sdk.NewCoins(),
 		},
@@ -902,53 +902,53 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			name: "no change in accumulator",
 			// Global Accumulator: 5
 			// LastSeenAccumulator: 5
-			// Shares: 10
+			// Shares: 10 DYM
 			// Rewards = (5 - 5) * 10 = 0
-			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
-			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5"))),
-			shares:              math.LegacyMustNewDecFromStr("10"),
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("5"))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("5"))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
 			expectedRewards:     sdk.NewCoins(),
 		},
 		{
 			name: "multiple denoms in accumulator",
-			// udym: GlobalAcc=7.666... (23/3), LastSeen=6, Shares=10 -> (1.666...) * 10 = 16.666... -> 16
+			// adym: GlobalAcc=7.666... (23/3), LastSeen=6, Shares=10^18 -> (1.666...) * 10^18 = 16.666... -> 16666666...
 			// uatom: GlobalAcc=2.5 (10/4), LastSeen=1, Shares=10 -> (1.5) * 10 = 15 -> 15
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3"))),
+				sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("23").Quo(math.LegacyMustNewDecFromStr("3"))),
 				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("10").Quo(math.LegacyMustNewDecFromStr("4"))),
 			),
 			lastSeenAccumulator: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("6")),
+				sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("6")),
 				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("1")),
 			),
-			shares: math.LegacyMustNewDecFromStr("10"),
+			shares: math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
 			expectedRewards: sdk.NewCoins(
-				sdk.NewCoin("udym", math.NewInt(16)),
-				sdk.NewCoin("uatom", math.NewInt(15)),
+				sdk.NewCoin("adym", types.DYM.MulRaw(16)),
+				sdk.NewCoin("uatom", types.DYM.MulRaw(15)),
 			),
 		},
 		{
 			name: "globalAcc has extra denom not in lastSeenAccumulator",
-			// udym: GlobalAcc=10, LastSeen=5, Shares=10 -> (5) * 10 = 50 -> 50
+			// adym: GlobalAcc=10, LastSeen=5, Shares=10 -> (5) * 10 = 50 -> 50
 			// uatom: GlobalAcc=2.5 (5/2), LastSeen=0, Shares=10 -> (2.5) * 10 = 25 -> 25
 			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("10")),
+				sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("10")),
 				sdk.NewDecCoinFromDec("uatom", math.LegacyMustNewDecFromStr("5").Quo(math.LegacyMustNewDecFromStr("2"))),
 			),
 			lastSeenAccumulator: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("udym", math.LegacyMustNewDecFromStr("5")),
+				sdk.NewDecCoinFromDec("adym", math.LegacyMustNewDecFromStr("5")),
 			),
-			shares: math.LegacyMustNewDecFromStr("10"),
+			shares: math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
 			expectedRewards: sdk.NewCoins(
-				sdk.NewCoin("udym", math.NewInt(50)),
+				sdk.NewCoin("adym", math.NewInt(50)),
 				sdk.NewCoin("uatom", math.NewInt(25)),
 			).Sort(),
 		},
-		// Removed problematic test case: "lastSeenAccumulator has denom not in globalAcc"
-		// This case caused a panic because RewardsToBank can produce negative coin amounts
+		// The case "lastSeenAccumulator has denom not in globalAcc" is not possible.
+		// In theory, this case causes a panic because RewardsToBank can produce negative coin amounts
 		// when a denom in lastSeenAccumulator is not in globalAcc (or is smaller).
-		// sdk.NewCoins (called by TruncateDecimal) panics on negative amounts.
-		// This specific scenario is not directly related to the TODO about overpayment via rounding up.
+		// However, this case is not possible, bc the only way to add a new denom to lastSeenAccumulator
+		// is to add shares to it through update of globalAcc.
 	}
 
 	for _, tc := range testCases {
