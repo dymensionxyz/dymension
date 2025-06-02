@@ -977,11 +977,10 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 // requireLegacyDecInEpsilon asserts that the actual sdk.LegacyDec value is within the
 // epsilon range of the expected value.
 // It checks if expected-epsilon <= actual <= expected+epsilon.
-func requireLegacyDecInEpsilon(t *testing.T, actual sdk.LegacyDec, expected sdk.LegacyDec, epsilon sdk.LegacyDec, msgAndArgs ...interface{}) {
+func requireLegacyDecInEpsilon(t *testing.T, actual, expected, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
 	t.Helper()
 	lowerBound := expected.Sub(epsilon)
 	upperBound := expected.Add(epsilon)
-
 	require.True(t, actual.GTE(lowerBound), "actual %s is less than lower bound %s (expected %s, epsilon %s)", actual, lowerBound, expected, epsilon, msgAndArgs)
 	require.True(t, actual.LTE(upperBound), "actual %s is greater than upper bound %s (expected %s, epsilon %s)", actual, upperBound, expected, epsilon, msgAndArgs)
 }
