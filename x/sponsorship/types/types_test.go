@@ -1018,3 +1018,36 @@ func requireDecCoinsInEpsilon(t *testing.T, actual, expected sdk.DecCoins, epsil
 		requireDecCoinInEpsilon(t, sortedActual[i], sortedExpected[i], epsilon, msgAndArgs)
 	}
 }
+
+// requireCoinInEpsilon asserts that the actual sdk.Coin's amount is within the
+// epsilon range of the expected sdk.Coin's amount.
+// It also asserts that the denominations are the same.
+// It checks if expected.Amount-epsilon <= actual.Amount <= expected.Amount+epsilon.
+func requireCoinInEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int, msgAndArgs ...interface{}) {
+	t.Helper()
+	require.Equal(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom, msgAndArgs)
+
+	lowerBound := expected.Amount.Sub(epsilon)
+	upperBound := expected.Amount.Add(epsilon)
+
+	require.True(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon, msgAndArgs)
+	require.True(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon, msgAndArgs)
+}
+
+// requireCoinsInEpsilon asserts that each sdk.Coin in the actual sdk.Coins slice
+// is within the epsilon range of the corresponding sdk.Coin in the expected sdk.Coins slice.
+// It asserts that the slices have the same length and that corresponding coins have matching denominations.
+// The slices are sorted by denom before comparison.
+func requireCoinsInEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int, msgAndArgs ...interface{}) {
+	t.Helper()
+
+	// Sort by denom for consistent comparison
+	sortedActual := actual.Sort()
+	sortedExpected := expected.Sort()
+
+	require.Equal(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual), msgAndArgs)
+
+	for i := 0; i < len(sortedExpected); i++ {
+		requireCoinInEpsilon(t, sortedActual[i], sortedExpected[i], epsilon, msgAndArgs)
+	}
+}
