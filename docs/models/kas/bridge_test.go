@@ -224,18 +224,28 @@ func (m *Model) signTxKas(newL int) {
 	// relayer section (modeled here for convenience)
 
 	txKas := TxKas{
-		utxos:  m.qRandomUnspentUTXOs(),
-		amount: m.hubWithdrawals[newL],
-		newL:   newL,
+		utxos: m.qRandomUnspentUTXOs(),
+
 		// TODO: model limitation: we currently model outpoint as being defined on the TX acceptance, however in Kaspa
 		// 	they are defined on the TX creation to enable client TX linking. To model that we would need to change the repr here.
+		amount: m.hubWithdrawals[newL],
+		newL:   newL,
 	}
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// validator section. Verify!
 
 	if !slices.Contains(txKas.utxos, m.O) {
-		m.t.Logf("proposed TX does not spend O: %d", m.O)
+		m.t.Logf("Reject sign Kas: proposed TX does not spend O: %d", m.O)
+		return
+	}
+
+	if txKas.newL <= m.L {
+		m.t.Logf("Reject sign Kas: proposed TX does not process new withdrawals")
+		return
+	}
+	if len(m.hubWithdrawals) <= txKas.newL {
+		m.t.Logf("Reject sign Kas: proposed TX has out of bounds newL: %d <= %d", len(m.hubWithdrawals), txKas.newL)
 		return
 	}
 
@@ -244,7 +254,7 @@ func (m *Model) signTxKas(newL int) {
 		expectedValue += w
 	}
 	if expectedValue != txKas.amount {
-		m.t.Logf("proposed TX does not credit the right amount to the user(s): expect %d != tx credit %d", expectedValue, txKas.amount)
+		m.t.Logf("Reject sign Kas: proposed TX does not credit the right amount to the user(s): expect %d != tx credit %d", expectedValue, txKas.amount)
 		return
 	}
 
@@ -253,7 +263,7 @@ func (m *Model) signTxKas(newL int) {
 		proposedSpend += m.kasUTXO[utxo]
 	}
 	if proposedSpend < txKas.amount+seededKas {
-		m.t.Logf("proposed TX does not spend the right amount needed to send change back to escrow (which is needed to have a new anchor): proposed %d < required %d", proposedSpend, txKas.amount+seededKas)
+		m.t.Logf("Reject sign Kas: proposed TX does not spend the right amount needed to send change back to escrow (which is needed to have a new anchor): proposed %d < required %d", proposedSpend, txKas.amount+seededKas)
 		return
 	}
 
@@ -269,9 +279,9 @@ func (m *Model) deliverTxKas(i int) {
 	}
 	tx := m.txsKas[i]
 	m.txsKasDelivered[i] = true
-	for i := range tx.utxos {
+	for _, i := range tx.utxos {
 		if m.kasUTXOSpent[i] {
-			m.t.Logf("Rejected TX, UTXO already spent: utxo: %d", i)
+			m.t.Logf("Reject deliver TX, UTXO already spent: utxo: %d", i)
 			return
 		}
 	}
@@ -312,23 +322,23 @@ func (m *Model) signTxHub(txKasIx int, oldO int) {
 
 	txKas = m.txsKas[txHub.confirmedTxKas]
 	if !m.txsKasAccepted[txHub.confirmedTxKas] {
-		m.t.Logf("Reject signing: Kasp TX not confirmed: kas tx: %d", txHub.confirmedTxKas)
+		m.t.Logf("Reject sign update: Kasp TX not confirmed: kas tx: %d", txHub.confirmedTxKas)
 		return
 	}
 	if txHub.oldO != m.O {
-		m.t.Logf("Reject signing: given O not the current anchor: given %d != hub %d", txHub.oldO, m.O)
+		m.t.Logf("Reject sign update: given O not the current anchor: given %d != hub %d", txHub.oldO, m.O)
 		return
 	}
 	if txHub.newO != txKas.outpoint {
-		m.t.Logf("Reject signing: confirmed TX did not have given outpoint: given %d != confirmed tx %d", txHub.newO, txKas.outpoint)
+		m.t.Logf("Reject sign update: confirmed TX did not have given outpoint: given %d != confirmed tx %d", txHub.newO, txKas.outpoint)
 		return
 	}
 	if txHub.newL != txKas.newL {
-		m.t.Logf("Reject signing: confirmed TX did not handle withdrawals up to given newL: given %d != confirmed tx %d", txHub.newL, txKas.newL)
+		m.t.Logf("Reject sign update: confirmed TX did not handle withdrawals up to given newL: given %d != confirmed tx %d", txHub.newL, txKas.newL)
 		return
 	}
 	if !slices.Contains(txKas.utxos, txHub.oldO) {
-		m.t.Logf("Reject signing: confirmed TX did not spend O: hub %d != confirmed tx %d", txHub.oldO, txKas.utxos)
+		m.t.Logf("Reject sign update: confirmed TX did not spend O: hub %d != confirmed tx %d", txHub.oldO, txKas.utxos)
 		return
 	}
 
