@@ -969,6 +969,7 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			// it would panic. We've removed it to focus on the TODO's specific concern.
 
 			rewards := position.RewardsToBank(tc.globalAcc)
+			requireDecCoinsInEpsilon(t, rewards, tc.expectedRewards, math.LegacyNewDecFromInt(types.ADYM.MulRaw(100)), "Calculated rewards do not match expected rewards")
 			require.Equal(t, tc.expectedRewards.String(), rewards.String(), "Calculated rewards do not match expected rewards")
 		})
 	}
@@ -989,7 +990,7 @@ func requireLegacyDecInEpsilon(t *testing.T, actual, expected, epsilon math.Lega
 // epsilon range of the expected sdk.DecCoin's amount.
 // It also asserts that the denominations are the same.
 // It checks if expected.Amount-epsilon <= actual.Amount <= expected.Amount+epsilon.
-func requireDecCoinInEpsilon(t *testing.T, actual sdk.DecCoin, expected sdk.DecCoin, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
+func requireDecCoinInEpsilon(t *testing.T, actual, expected sdk.DecCoin, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
 	t.Helper()
 	require.Equal(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom, msgAndArgs)
 
@@ -1004,7 +1005,7 @@ func requireDecCoinInEpsilon(t *testing.T, actual sdk.DecCoin, expected sdk.DecC
 // is within the epsilon range of the corresponding sdk.DecCoin in the expected sdk.DecCoins slice.
 // It asserts that the slices have the same length and that corresponding coins have matching denominations.
 // The slices are sorted by denom before comparison.
-func requireDecCoinsInEpsilon(t *testing.T, actual sdk.DecCoins, expected sdk.DecCoins, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
+func requireDecCoinsInEpsilon(t *testing.T, actual, expected sdk.DecCoins, epsilon math.LegacyDec, msgAndArgs ...interface{}) {
 	t.Helper()
 
 	// Sort by denom for consistent comparison
