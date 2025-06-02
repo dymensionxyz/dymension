@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	"cosmossdk.io/math"
@@ -9,6 +10,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
+	"github.com/stretchr/testify/require"
 )
 
 func (s *KeeperTestSuite) TestEndorsements() {
@@ -527,20 +529,13 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	/***************************************************************/
 	/*     Scenario: user has share with repeating decimal       */
 	/***************************************************************/
-	s.T().Log("Scenario: user has share with repeating decimal")
 
 	// User1 (del1Addr) currently has 100 DYM staked.
-	// To make User1 contribute exactly 60 shares (60M units) with a 100% vote,
-	// their stake needs to be 60 DYM. Undelegate 40 DYM.
-	s.Undelegate(user1Addr, valAddr, sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(40)))
-	s.Require().True(s.App.StakingKeeper.Validator(s.Ctx, valAddr).GetDelegatorShares().Equal(math.LegacyNewDecFromInt(commontypes.DYM.MulRaw(60))), "Validator shares should be 60M after User1 partial undelegation")
-
-	// User1 endorses with 60 shares (by voting 100% of their 60 DYM stake)
+	// User1 endorses with 60 shares (by voting 60% of their 100 DYM stake)
 	s.Vote(types.MsgVote{
 		Voter: user1Addr.String(),
 		Weights: []types.GaugeWeight{
-			// Weight of 1 (or any positive number) means 100% to this gauge if it's the only one
-			{GaugeId: rollappGaugeID, Weight: math.NewInt(1)},
+			{GaugeId: rollappGaugeID, Weight: types.DYM.MulRaw(60)},
 		},
 	})
 
@@ -590,14 +585,43 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(posUser1.AccumulatedRewards.IsZero(), "User1 AUR should remain 0.")
 
 	// User1 Claimable: (NewGA - LSA) * Shares = (10.166... - 8.5) * 60M = 1.666... * 60M = 99M (due to truncation)
-	expectedClaimableUser1Repeating := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(99)))
+	expectedClaimableUser1Repeating := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100)))
 	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedClaimableUser1Repeating), "User1 claimable should be 99 DYM. Expected %s, got %s", expectedClaimableUser1Repeating, result.Rewards)
+	// Claimed rewards should fall in [expected - E; expected]. In this case, [100M - 50; 100M].
+	// This ensures that the number of rewards does not exceed the balance of x/incentives.
+	requireCoinsInLowerEpsilon(s.T(), result.Rewards, expectedClaimableUser1Repeating, types.ADYM.MulRaw(50))
 }
 
 func (s *KeeperTestSuite) BeginEpoch(epochID string) {
 	info := s.App.EpochsKeeper.GetEpochInfo(s.Ctx, epochID)
 	s.Ctx = s.Ctx.WithBlockTime(info.CurrentEpochStartTime.Add(info.Duration).Add(time.Minute))
 	s.App.EpochsKeeper.BeginBlocker(s.Ctx)
+}
+
+// requireCoinInLowerEpsilon asserts that the coin's amount falls in [exp - E; exp]
+func requireCoinInLowerEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int) {
+	t.Helper()
+	require.Equalf(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom)
+
+	lowerBound := expected.Amount.Sub(epsilon)
+	upperBound := expected.Amount
+
+	require.Truef(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon)
+	require.Truef(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon)
+}
+
+// requireCoinsInLowerEpsilon asserts that the coins' amount falls in [exp - E; exp]
+func requireCoinsInLowerEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int) {
+	t.Helper()
+
+	// Sort by denom for consistent comparison
+	sortedActual := actual.Sort()
+	sortedExpected := expected.Sort()
+
+	require.Equalf(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual))
+
+	for i := 0; i < len(sortedExpected); i++ {
+		requireCoinInLowerEpsilon(t, sortedActual[i], sortedExpected[i], epsilon)
+	}
 }

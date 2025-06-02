@@ -328,4 +328,35 @@ in case of voting power change, un-endorsement, and update of the existing vote.
     <td>0 DYM</td>
     <td>✅ Claimed: 360 DYM</td>
   </tr>
+  <tr>
+    <td colspan="12" style="background-color: #fffae6;">Scenario: user has share with repeating decimal</td>
+  </tr>
+  <tr>
+    <td>User1 endorses with 60 shares</td>
+    <td>8.5</td>
+    <td>60</td>
+    <td>0</td>
+    <td>60</td>
+    <td>8.5</td>
+    <td>(8.5 - 8.5) * 60 = 0 DYM</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td><b>New epoch</b>: +100 DYM</td>
+    <td>8.5 + (100 / 60) = 10,1(6)</td>
+    <td>30</td>
+    <td>100</td>
+    <td>30</td>
+    <td>8.5</td>
+    <td>(10,1(6) - 8.5) * 30 = 100 DYM</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+  </tr>
 </table>

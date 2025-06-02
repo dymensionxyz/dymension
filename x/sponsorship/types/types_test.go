@@ -768,84 +768,6 @@ func accAddrsToString(a []sdk.AccAddress) []string {
 	return res
 }
 
-func TestRewardsToBank(t *testing.T) {
-	tests := []struct {
-		name           string
-		position       types.EndorserPosition
-		globalAcc      sdk.DecCoins
-		expectedOutput sdk.Coins
-	}{
-		{
-			name: "Positive rewards - single denom",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
-			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10))),
-			expectedOutput: sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(500))), // (10-5)*100 = 500
-		},
-		{
-			name: "Zero rewards - GA equals LSA",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
-			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
-			expectedOutput: sdk.NewCoins(), // (5-5)*100 = 0
-		},
-		{
-			name: "Zero rewards - zero shares",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyZeroDec(),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
-			},
-			globalAcc:      sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10))),
-			expectedOutput: sdk.NewCoins(), // (10-5)*0 = 0
-		},
-		{
-			name: "Positive rewards - multiple denoms",
-			position: types.EndorserPosition{
-				Shares: math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(
-					sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5)),
-					sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(2)),
-				),
-			},
-			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10)),
-				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)),
-			),
-			expectedOutput: sdk.NewCoins( // (10-5)*100=500adym, (3-2)*100=100uatom
-				sdk.NewCoin("adym", math.NewInt(500)),
-				sdk.NewCoin("uatom", math.NewInt(100)),
-			),
-		},
-		{
-			name: "Multiple denoms - denom in GA not in LSA",
-			position: types.EndorserPosition{
-				Shares:              math.LegacyNewDec(100),
-				LastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(5))),
-			},
-			globalAcc: sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("adym", math.LegacyNewDec(10)),
-				sdk.NewDecCoinFromDec("uatom", math.LegacyNewDec(3)), // uatom not in LSA
-			),
-			expectedOutput: sdk.NewCoins( // (10-5)*100=500adym, (3-0)*100=300uatom
-				sdk.NewCoin("adym", math.NewInt(500)),
-				sdk.NewCoin("uatom", math.NewInt(300)),
-			),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actualOutput := tt.position.RewardsToBank(tt.globalAcc)
-			// Sort coins for consistent comparison, as Equal does not rely on order but String() does.
-			require.True(t, tt.expectedOutput.Sort().Equal(actualOutput.Sort()), "expected %s, got %s", tt.expectedOutput, actualOutput)
-		})
-	}
-}
-
 func TestEndorserPosition_RewardsToBank(t *testing.T) {
 	testCases := []struct {
 		name                string
@@ -923,7 +845,7 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			),
 			shares: math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
 			expectedRewards: sdk.NewCoins(
-				sdk.NewCoin("adym", types.DYM.MulRaw(16)),
+				sdk.NewCoin("adym", types.DYM.MulRaw(50).QuoRaw(3)),
 				sdk.NewCoin("uatom", types.DYM.MulRaw(15)),
 			),
 		},
@@ -940,8 +862,8 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			),
 			shares: math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
 			expectedRewards: sdk.NewCoins(
-				sdk.NewCoin("adym", math.NewInt(50)),
-				sdk.NewCoin("uatom", math.NewInt(25)),
+				sdk.NewCoin("adym", types.DYM.MulRaw(50)),
+				sdk.NewCoin("uatom", types.DYM.MulRaw(25)),
 			),
 		},
 		// The case "lastSeenAccumulator has denom not in globalAcc" is not possible.
@@ -960,70 +882,35 @@ func TestEndorserPosition_RewardsToBank(t *testing.T) {
 			}
 
 			rewards := position.RewardsToBank(tc.globalAcc)
-			requireCoinsInEpsilon(t, rewards, tc.expectedRewards, types.ADYM.MulRaw(100), "Calculated rewards do not match expected rewards")
+			requireCoinsInLowerEpsilon(t, rewards, tc.expectedRewards, types.ADYM.MulRaw(100))
 		})
 	}
 }
 
-// requireCoinInEpsilon asserts that the actual sdk.Coin's amount is within the
-// epsilon range of the expected sdk.Coin's amount.
-func requireCoinInEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int, msgAndArgs ...interface{}) {
+// requireCoinInLowerEpsilon asserts that the coin's amount falls in [exp - E; exp]
+func requireCoinInLowerEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int) {
 	t.Helper()
-	require.Equal(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom, msgAndArgs)
+	require.Equalf(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom)
 
 	lowerBound := expected.Amount.Sub(epsilon)
-	upperBound := expected.Amount.Add(epsilon)
+	upperBound := expected.Amount
 
-	require.True(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon, msgAndArgs)
-	require.True(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon, msgAndArgs)
+	require.Truef(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon)
+	require.Truef(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon)
 }
 
-// requireCoinsInEpsilon asserts that each sdk.Coin in the actual sdk.Coins slice
-// is within the epsilon range of the corresponding sdk.Coin in the expected sdk.Coins slice.
-func requireCoinsInEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int, msgAndArgs ...interface{}) {
+// requireCoinsInLowerEpsilon asserts that the coins' amount falls in [exp - E; exp]
+func requireCoinsInLowerEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int) {
 	t.Helper()
 
 	// Sort by denom for consistent comparison
 	sortedActual := actual.Sort()
 	sortedExpected := expected.Sort()
 
-	require.Equal(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual), msgAndArgs)
+	require.Equalf(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual))
 
 	for i := 0; i < len(sortedExpected); i++ {
-		requireCoinInEpsilon(t, sortedActual[i], sortedExpected[i], epsilon, msgAndArgs)
-	}
-}
-
-// requireCoinInLowerEpsilon asserts that the actual sdk.Coin's amount is within the
-// lower epsilon range of the expected sdk.Coin's amount.
-// It also asserts that the denominations are the same.
-// It checks if expected.Amount-epsilon <= actual.Amount <= expected.Amount.
-func requireCoinInLowerEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int, msgAndArgs ...interface{}) {
-	t.Helper()
-	require.Equal(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom, msgAndArgs)
-
-	lowerBound := expected.Amount.Sub(epsilon)
-	upperBound := expected.Amount // Actual amount must be less than or equal to expected
-
-	require.True(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon, msgAndArgs)
-	require.True(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon, msgAndArgs)
-}
-
-// requireCoinsInLowerEpsilon asserts that each sdk.Coin in the actual sdk.Coins slice
-// is within the lower epsilon range of the corresponding sdk.Coin in the expected sdk.Coins slice.
-// It asserts that the slices have the same length and that corresponding coins have matching denominations.
-// The slices are sorted by denom before comparison.
-func requireCoinsInLowerEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int, msgAndArgs ...interface{}) {
-	t.Helper()
-
-	// Sort by denom for consistent comparison
-	sortedActual := actual.Sort()
-	sortedExpected := expected.Sort()
-
-	require.Equal(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual), msgAndArgs)
-
-	for i := 0; i < len(sortedExpected); i++ {
-		requireCoinInLowerEpsilon(t, sortedActual[i], sortedExpected[i], epsilon, msgAndArgs)
+		requireCoinInLowerEpsilon(t, sortedActual[i], sortedExpected[i], epsilon)
 	}
 }
 

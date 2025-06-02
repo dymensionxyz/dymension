@@ -237,8 +237,9 @@ func NewEndorserPosition(shares math.LegacyDec, lastSeenAccumulator sdk.DecCoins
 	}
 }
 
+// RewardsToBank returns the rewards that the endorser has accumulated since the last time they
+// interacted with the RA. The operation uses MulDecTruncate, so the result is not rounded up.
 func (e EndorserPosition) RewardsToBank(globalAcc sdk.DecCoins) sdk.Coins {
-	rewardsToBank, _ := globalAcc.Sub(e.LastSeenAccumulator).
-		MulDec(e.Shares).TruncateDecimal()
+	rewardsToBank, _ := globalAcc.Sub(e.LastSeenAccumulator).MulDecTruncate(e.Shares).TruncateDecimal()
 	return rewardsToBank
 }

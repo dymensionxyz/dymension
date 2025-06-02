@@ -53,6 +53,7 @@ func (k Keeper) UpdateEndorsementsAndPositions(
 			endorserPosition = types.NewDefaultEndorserPosition()
 		}
 
+		// RewardsToBank truncates the decimal part of the rewards. They will accumulate as dust in x/incentives.
 		rewardsToBank := endorserPosition.RewardsToBank(endorsement.Accumulator)
 
 		// Update endorser position
@@ -155,16 +156,8 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 		return EstimateClaimResult{}, fmt.Errorf("get endorser position: %w", err)
 	}
 
-	// TODO: there is a problem with precision in big decimals. Imagine
-	// Accumulator = 7.(6)
-	// LastSeenAccumulator = 6
-	// Shares = 60
-	// Thus, Rewards = (7.(6) - 6) * 60 = 99,(9) is approx. 100
-	// However, 7.(6) - 6 is calculated not as 1.(6), but 1.666666667, so
-	// 1.66666666667 * 60 > 100, so the user will claim more than available.
-	// This is not probable, but still the case.
-
 	// Calculate newly accrued rewards
+	// RewardsToBank truncates the decimal part of the rewards. They will accumulate as dust in x/incentives.
 	newlyAccruedRewardsDec := endorserPosition.RewardsToBank(endorsement.Accumulator)
 
 	// Total rewards to claim are newly accrued rewards plus any previously accumulated rewards
@@ -192,7 +185,9 @@ func (k Keeper) UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, a
 	}
 
 	additionalDecCoins := sdk.NewDecCoinsFromCoins(additionalCoins...)
-	rewardsPerShare := additionalDecCoins.QuoDec(endorsement.TotalShares)
+	// It is important to use QuoDecTruncate instead of Quo to avoid rounding errors
+	// This ensures that claimable rewards are always less than or equal to rewards added to the gauge
+	rewardsPerShare := additionalDecCoins.QuoDecTruncate(endorsement.TotalShares)
 	endorsement.Accumulator = endorsement.Accumulator.Add(rewardsPerShare...)
 	endorsement.TotalCoins = endorsement.TotalCoins.Add(additionalCoins...)
 
