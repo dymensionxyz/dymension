@@ -10,9 +10,23 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 // Kaspa transaction outpoint https://github.com/kaspanet/rusty-kaspa/blob/1adeae8e5e2bdf7b65265420d294a356edc6d9e6/consensus/client/src/outpoint.rs#L91
 message TransactionOutpoint {
-    // 32 byte hash
-    bytes transaction_id = 1;
-    // pointer to the output in the transaction
-    uint32 index = 2;
+  // 32 byte hash
+  bytes transaction_id = 1;
+  // pointer to the output in the transaction
+  uint32 index = 2;
+}
+
+// an index into a set of a dispatched Hyperlane withdrawal messages
+// see https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
+// and https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
+message WithdrawalID {
+  string mailbox_id = 1;
+  string message_id = 2;
+}
+
+enum WithdrawalStatus {
+  WITHDRAWAL_STATUS_UNSPECIFIED = 0;
+  WITHDRAWAL_STATUS_UNPROCESSED = 1;
+  WITHDRAWAL_STATUS_PROCESSED = 2;
 }
 

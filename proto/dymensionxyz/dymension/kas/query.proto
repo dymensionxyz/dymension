@@ -4,6 +4,7 @@ package dymensionxyz.dymension.kas;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymensionxyz/dymension/kas/d.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
@@ -12,9 +13,21 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/kas/foo";
   }
 
+  rpc WithdrawalStatus(QueryWithdrawalStatusRequest) returns (QueryWithdrawalStatusResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/kas/withdrawal_status";
+  }
+
 }
 
 message QueryFooRequest {}
 
 message QueryFooResponse {
+}
+
+message QueryWithdrawalStatusRequest {
+  repeated WithdrawalID withdrawal_id = 1;
+}
+
+message QueryWithdrawalStatusResponse {
+  repeated WithdrawalStatus status = 1;
 }

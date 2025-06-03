@@ -102,9 +102,99 @@ func (m *QueryFooResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryFooResponse proto.InternalMessageInfo
 
+type QueryWithdrawalStatusRequest struct {
+	WithdrawalId []*WithdrawalID `protobuf:"bytes,1,rep,name=withdrawal_id,json=withdrawalId,proto3" json:"withdrawal_id,omitempty"`
+}
+
+func (m *QueryWithdrawalStatusRequest) Reset()         { *m = QueryWithdrawalStatusRequest{} }
+func (m *QueryWithdrawalStatusRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryWithdrawalStatusRequest) ProtoMessage()    {}
+func (*QueryWithdrawalStatusRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef2f956c4bfabfd6, []int{2}
+}
+func (m *QueryWithdrawalStatusRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryWithdrawalStatusRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryWithdrawalStatusRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryWithdrawalStatusRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryWithdrawalStatusRequest.Merge(m, src)
+}
+func (m *QueryWithdrawalStatusRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryWithdrawalStatusRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryWithdrawalStatusRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryWithdrawalStatusRequest proto.InternalMessageInfo
+
+func (m *QueryWithdrawalStatusRequest) GetWithdrawalId() []*WithdrawalID {
+	if m != nil {
+		return m.WithdrawalId
+	}
+	return nil
+}
+
+type QueryWithdrawalStatusResponse struct {
+	Status []WithdrawalStatus `protobuf:"varint,1,rep,packed,name=status,proto3,enum=dymensionxyz.dymension.kas.WithdrawalStatus" json:"status,omitempty"`
+}
+
+func (m *QueryWithdrawalStatusResponse) Reset()         { *m = QueryWithdrawalStatusResponse{} }
+func (m *QueryWithdrawalStatusResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryWithdrawalStatusResponse) ProtoMessage()    {}
+func (*QueryWithdrawalStatusResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef2f956c4bfabfd6, []int{3}
+}
+func (m *QueryWithdrawalStatusResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryWithdrawalStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryWithdrawalStatusResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryWithdrawalStatusResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryWithdrawalStatusResponse.Merge(m, src)
+}
+func (m *QueryWithdrawalStatusResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryWithdrawalStatusResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryWithdrawalStatusResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryWithdrawalStatusResponse proto.InternalMessageInfo
+
+func (m *QueryWithdrawalStatusResponse) GetStatus() []WithdrawalStatus {
+	if m != nil {
+		return m.Status
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryFooRequest)(nil), "dymensionxyz.dymension.kas.QueryFooRequest")
 	proto.RegisterType((*QueryFooResponse)(nil), "dymensionxyz.dymension.kas.QueryFooResponse")
+	proto.RegisterType((*QueryWithdrawalStatusRequest)(nil), "dymensionxyz.dymension.kas.QueryWithdrawalStatusRequest")
+	proto.RegisterType((*QueryWithdrawalStatusResponse)(nil), "dymensionxyz.dymension.kas.QueryWithdrawalStatusResponse")
 }
 
 func init() {
@@ -112,24 +202,32 @@ func init() {
 }
 
 var fileDescriptor_ef2f956c4bfabfd6 = []byte{
-	// 272 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xb1, 0x4e, 0xc3, 0x30,
-	0x18, 0x84, 0x13, 0x10, 0x0c, 0x59, 0x00, 0x8b, 0x29, 0x42, 0x46, 0x64, 0x00, 0x09, 0x90, 0x7f,
-	0x4a, 0xdf, 0x80, 0xa1, 0x03, 0x1b, 0x8c, 0x6c, 0x4e, 0x31, 0xc6, 0x2a, 0xf1, 0xef, 0xf6, 0x77,
-	0xaa, 0x86, 0x91, 0x8d, 0x0d, 0xa9, 0x2f, 0xc5, 0x58, 0x89, 0x85, 0x11, 0x25, 0x3c, 0x08, 0xaa,
-	0x83, 0x0a, 0x42, 0x2a, 0xea, 0xe6, 0x3b, 0x7f, 0xbe, 0xb3, 0x2e, 0x39, 0xbc, 0xad, 0x0a, 0x65,
-	0xc9, 0xa0, 0x9d, 0x54, 0x8f, 0xb0, 0x10, 0x30, 0x90, 0x04, 0xc3, 0x52, 0x8d, 0x2a, 0xe1, 0x46,
-	0xe8, 0x91, 0xa5, 0xbf, 0x39, 0xb1, 0x10, 0x62, 0x20, 0x29, 0xdd, 0xd5, 0xa8, 0x31, 0x60, 0x30,
-	0x3f, 0xb5, 0x2f, 0xd2, 0x3d, 0x8d, 0xa8, 0x1f, 0x14, 0x48, 0x67, 0x40, 0x5a, 0x8b, 0x5e, 0x7a,
-	0x83, 0x96, 0xbe, 0x6f, 0x8f, 0xfb, 0x48, 0x05, 0x12, 0xe4, 0x92, 0x54, 0x5b, 0x04, 0xe3, 0x4e,
-	0xae, 0xbc, 0xec, 0x80, 0x93, 0xda, 0xd8, 0x00, 0xb7, 0x6c, 0xb6, 0x93, 0x6c, 0x5d, 0xcd, 0x89,
-	0x1e, 0xe2, 0xb5, 0x1a, 0x96, 0x8a, 0x7c, 0xc6, 0x92, 0xed, 0x1f, 0x8b, 0x1c, 0x5a, 0x52, 0xe7,
-	0xd3, 0x38, 0xd9, 0x08, 0x26, 0x7b, 0x8e, 0x93, 0xf5, 0x1e, 0x22, 0x3b, 0x11, 0xcb, 0x7f, 0x2d,
-	0xfe, 0x44, 0xa6, 0xa7, 0xab, 0xc1, 0x6d, 0x59, 0x76, 0xf4, 0xf4, 0xf6, 0x39, 0x5d, 0x3b, 0x60,
-	0xfb, 0xf0, 0xcf, 0x80, 0x77, 0x88, 0x17, 0x97, 0xaf, 0x35, 0x8f, 0x67, 0x35, 0x8f, 0x3f, 0x6a,
-	0x1e, 0xbf, 0x34, 0x3c, 0x9a, 0x35, 0x3c, 0x7a, 0x6f, 0x78, 0x74, 0x73, 0xa6, 0x8d, 0xbf, 0x2f,
-	0x73, 0xd1, 0xc7, 0x62, 0x59, 0xc8, 0xb8, 0x0b, 0x93, 0x90, 0xe4, 0x2b, 0xa7, 0x28, 0xdf, 0x0c,
-	0x7b, 0x74, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0xed, 0x18, 0x0e, 0x7e, 0xb5, 0x01, 0x00, 0x00,
+	// 394 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x52, 0x4f, 0x4f, 0xe2, 0x40,
+	0x14, 0xa7, 0x90, 0xe5, 0x30, 0xfb, 0x8f, 0x9d, 0xec, 0x61, 0xd3, 0xb0, 0xdd, 0xdd, 0x1e, 0x76,
+	0xc9, 0x8a, 0x1d, 0x81, 0x98, 0xe8, 0xd5, 0x10, 0x12, 0x4c, 0x3c, 0x88, 0x07, 0x13, 0x2f, 0x66,
+	0x4a, 0xc7, 0xd2, 0x40, 0xfb, 0x0a, 0x33, 0x05, 0xea, 0xd1, 0x9b, 0x37, 0x13, 0xbf, 0x8f, 0x67,
+	0x8f, 0x24, 0x7a, 0xf0, 0x68, 0xc0, 0x0f, 0x62, 0x98, 0x36, 0x40, 0x48, 0x5a, 0x89, 0xb7, 0xbe,
+	0xf7, 0x7e, 0xff, 0xfa, 0xde, 0xa0, 0xbf, 0x56, 0xe8, 0x32, 0x8f, 0x3b, 0xe0, 0x8d, 0xc3, 0x4b,
+	0xb2, 0x28, 0x48, 0x97, 0x72, 0xd2, 0x0f, 0xd8, 0x20, 0x34, 0xfc, 0x01, 0x08, 0xc0, 0xea, 0x2a,
+	0xce, 0x58, 0x14, 0x46, 0x97, 0x72, 0xf5, 0xbb, 0x0d, 0x36, 0x48, 0x18, 0x99, 0x7f, 0x45, 0x0c,
+	0xb5, 0x68, 0x03, 0xd8, 0x3d, 0x46, 0xa8, 0xef, 0x10, 0xea, 0x79, 0x20, 0xa8, 0x70, 0xc0, 0xe3,
+	0xf1, 0xf4, 0x7f, 0x1b, 0xb8, 0x0b, 0x9c, 0x98, 0x94, 0xb3, 0xc8, 0x88, 0x0c, 0x2b, 0x26, 0x13,
+	0xb4, 0x42, 0x7c, 0x6a, 0x3b, 0x9e, 0x04, 0xc7, 0x58, 0x3d, 0x25, 0xa3, 0x15, 0x61, 0xf4, 0x6f,
+	0xe8, 0xeb, 0xf1, 0x5c, 0xa5, 0x01, 0xd0, 0x62, 0xfd, 0x80, 0x71, 0xa1, 0x63, 0x54, 0x58, 0xb6,
+	0xb8, 0x0f, 0x1e, 0x67, 0xba, 0x8b, 0x8a, 0xb2, 0x77, 0xea, 0x88, 0x8e, 0x35, 0xa0, 0x23, 0xda,
+	0x3b, 0x11, 0x54, 0x04, 0x3c, 0xe6, 0xe0, 0x23, 0xf4, 0x79, 0xb4, 0x18, 0x9d, 0x3b, 0xd6, 0x0f,
+	0xe5, 0x77, 0xae, 0xf4, 0xb1, 0x5a, 0x32, 0x92, 0x7f, 0xdf, 0x58, 0x6a, 0x35, 0xeb, 0xad, 0x4f,
+	0x4b, 0x7a, 0xd3, 0xd2, 0x19, 0xfa, 0x99, 0x60, 0x17, 0xe5, 0xc1, 0x75, 0x94, 0xe7, 0xb2, 0x23,
+	0x8d, 0xbe, 0x54, 0xcb, 0x9b, 0x19, 0xc5, 0x2a, 0x31, 0xb7, 0xfa, 0x98, 0x45, 0x1f, 0xa4, 0x0f,
+	0xbe, 0x56, 0x50, 0xae, 0x01, 0x80, 0xb7, 0xd2, 0x74, 0xd6, 0x16, 0xa5, 0x96, 0x37, 0x03, 0xc7,
+	0x2b, 0xfc, 0x77, 0xf5, 0xf0, 0x72, 0x9b, 0xfd, 0x83, 0x7f, 0x91, 0x94, 0xb3, 0x5c, 0x00, 0xe0,
+	0x3b, 0x05, 0x15, 0xd6, 0x23, 0xe3, 0xbd, 0x37, 0xbd, 0x12, 0x4e, 0xa3, 0xee, 0xbf, 0x83, 0x19,
+	0x47, 0xde, 0x95, 0x91, 0x09, 0xde, 0x4e, 0x8b, 0xbc, 0x72, 0xf7, 0x68, 0xad, 0x07, 0x87, 0xf7,
+	0x53, 0x4d, 0x99, 0x4c, 0x35, 0xe5, 0x79, 0xaa, 0x29, 0x37, 0x33, 0x2d, 0x33, 0x99, 0x69, 0x99,
+	0xa7, 0x99, 0x96, 0x39, 0xdb, 0xb1, 0x1d, 0xd1, 0x09, 0x4c, 0xa3, 0x0d, 0x6e, 0x92, 0xe4, 0xb0,
+	0x46, 0xc6, 0x52, 0x57, 0x84, 0x3e, 0xe3, 0x66, 0x5e, 0x3e, 0xd3, 0xda, 0x6b, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0xb8, 0x2b, 0xde, 0x55, 0x70, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -145,6 +243,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
 	Foo(ctx context.Context, in *QueryFooRequest, opts ...grpc.CallOption) (*QueryFooResponse, error)
+	WithdrawalStatus(ctx context.Context, in *QueryWithdrawalStatusRequest, opts ...grpc.CallOption) (*QueryWithdrawalStatusResponse, error)
 }
 
 type queryClient struct {
@@ -164,9 +263,19 @@ func (c *queryClient) Foo(ctx context.Context, in *QueryFooRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *queryClient) WithdrawalStatus(ctx context.Context, in *QueryWithdrawalStatusRequest, opts ...grpc.CallOption) (*QueryWithdrawalStatusResponse, error) {
+	out := new(QueryWithdrawalStatusResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.kas.Query/WithdrawalStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	Foo(context.Context, *QueryFooRequest) (*QueryFooResponse, error)
+	WithdrawalStatus(context.Context, *QueryWithdrawalStatusRequest) (*QueryWithdrawalStatusResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -175,6 +284,9 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Foo(ctx context.Context, req *QueryFooRequest) (*QueryFooResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Foo not implemented")
+}
+func (*UnimplementedQueryServer) WithdrawalStatus(ctx context.Context, req *QueryWithdrawalStatusRequest) (*QueryWithdrawalStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawalStatus not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -199,6 +311,24 @@ func _Query_Foo_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_WithdrawalStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryWithdrawalStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).WithdrawalStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.kas.Query/WithdrawalStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).WithdrawalStatus(ctx, req.(*QueryWithdrawalStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.kas.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -206,6 +336,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Foo",
 			Handler:    _Query_Foo_Handler,
+		},
+		{
+			MethodName: "WithdrawalStatus",
+			Handler:    _Query_WithdrawalStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -258,6 +392,84 @@ func (m *QueryFooResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryWithdrawalStatusRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryWithdrawalStatusRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryWithdrawalStatusRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.WithdrawalId) > 0 {
+		for iNdEx := len(m.WithdrawalId) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.WithdrawalId[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryWithdrawalStatusResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryWithdrawalStatusResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryWithdrawalStatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Status) > 0 {
+		dAtA2 := make([]byte, len(m.Status)*10)
+		var j1 int
+		for _, num := range m.Status {
+			for num >= 1<<7 {
+				dAtA2[j1] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j1++
+			}
+			dAtA2[j1] = uint8(num)
+			j1++
+		}
+		i -= j1
+		copy(dAtA[i:], dAtA2[:j1])
+		i = encodeVarintQuery(dAtA, i, uint64(j1))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -284,6 +496,37 @@ func (m *QueryFooResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	return n
+}
+
+func (m *QueryWithdrawalStatusRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.WithdrawalId) > 0 {
+		for _, e := range m.WithdrawalId {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryWithdrawalStatusResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Status) > 0 {
+		l = 0
+		for _, e := range m.Status {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
 	return n
 }
 
@@ -372,6 +615,209 @@ func (m *QueryFooResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryFooResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryWithdrawalStatusRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryWithdrawalStatusRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryWithdrawalStatusRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WithdrawalId", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WithdrawalId = append(m.WithdrawalId, &WithdrawalID{})
+			if err := m.WithdrawalId[len(m.WithdrawalId)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryWithdrawalStatusResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryWithdrawalStatusResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryWithdrawalStatusResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v WithdrawalStatus
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= WithdrawalStatus(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.Status = append(m.Status, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				if elementCount != 0 && len(m.Status) == 0 {
+					m.Status = make([]WithdrawalStatus, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v WithdrawalStatus
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= WithdrawalStatus(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.Status = append(m.Status, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
