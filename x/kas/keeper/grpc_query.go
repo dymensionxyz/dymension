@@ -18,28 +18,16 @@ func (k Keeper) WithdrawalStatus(ctx context.Context, req *types.QueryWithdrawal
 	ret := make([]types.WithdrawalStatus, len(req.WithdrawalId))
 
 	for i, id := range req.WithdrawalId {
-		mailboxId, err := id.DecodeMailboxId()
+		if err := id.ValidateBasic(); err != nil {
+			return nil, err
+		}
+
+		err  k.ValidateWithdrawal(ctx, *id)
 		if err != nil {
 			return nil, err
 		}
 
-		messageId, err := id.DecodeMessageId()
-		if err != nil {
-			return nil, err
-		}
-
-		// Note: this will also find received messages
-		// It's up to the client to make sure the mailbox is the right one for the Kas bridge
-		dispatched, err := k.hypercoreK.Messages.Has(ctx, collections.Join(mailboxId.GetInternalId(), messageId.Bytes()))
-		if err != nil {
-			return nil, err
-		}
-
-		if !dispatched {
-			return nil, gerrc.ErrNotFound.Wrapf("message not dispatched: %s", messageId)
-		}
-
-		processed, err := k.processedWithdrawals.Has(ctx, collections.Join(mailboxId.GetInternalId(), messageId.Bytes()))
+		processed, err := k.processedWithdrawals.Has(ctx, collections.Join(id.MustMailboxId().GetInternalId(), id.MustMessageId().Bytes()))
 		if err != nil {
 			return nil, err
 		}
@@ -51,4 +39,16 @@ func (k Keeper) WithdrawalStatus(ctx context.Context, req *types.QueryWithdrawal
 	}
 
 	return &types.QueryWithdrawalStatusResponse{Status: ret}, nil
+}
+
+func (k Keeper) ValidateWithdrawal(ctx context.Context, id types.WithdrawalID) error {
+	dispatched, err := k.hypercoreK.Messages.Has(ctx, collections.Join(id.MustMailboxId().GetInternalId(), id.MustMessageId().Bytes()))
+	if err != nil {
+		return err
+	}
+	if !dispatched {
+		return gerrc.ErrNotFound.Wrapf("message not dispatched")
+	}
+
+	return nil
 }
