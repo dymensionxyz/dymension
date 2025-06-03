@@ -90,6 +90,7 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return &types.MsgLockTokensResponse{ID: lockID}, nil
 	}
 
+	// if the owner + duration combination is new, create a new lock.
 	if err = server.keeper.chargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx)); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}

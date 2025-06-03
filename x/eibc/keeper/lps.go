@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"errors"
-	"math/rand"
+	"math/rand/v2"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -187,14 +187,14 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 		if err != nil {
 			return nil, err
 		}
-		if lpr.Accepts(uint64(ctx.BlockHeight()), o) {
+		if lpr.Accepts(uint64(ctx.BlockHeight()), &o) {
 			compat = append(compat, lpr)
 		}
 	}
 	return compat, nil
 }
 
-func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) error {
+func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {
 	o, err := k.GetOutstandingOrder(ctx, order)
 	if err != nil {
 		return errorsmod.Wrap(err, "get outstanding order")
@@ -204,14 +204,12 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
 	}
-	r := rand.New(rand.NewSource(rng))
+	r := rand.New(rand.NewPCG(rng, 0))
 	r.Shuffle(len(lps), func(i, j int) {
 		lps[i], lps[j] = lps[j], lps[i]
 	})
 	for _, lp := range lps {
-		// FIXME: no need to check for expected fee?
-
-		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
+		err := k.fulfillBasic(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
 			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
 				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {

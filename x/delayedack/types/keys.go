@@ -14,5 +14,7 @@ const (
 	MemStoreKey = "mem_delayedack"
 )
 
-var ParamsKey = []byte{0x02}
-var PendingPacketsByAddressKeyPrefix = []byte{0x01}
+var (
+	ParamsKey                        = []byte{0x02}
+	PendingPacketsByAddressKeyPrefix = []byte{0x01}
+)

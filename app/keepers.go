@@ -38,7 +38,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -107,6 +106,14 @@ import (
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
+
+	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+
+	forward "github.com/dymensionxyz/dymension/v3/x/forward"
+	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
 type AppKeepers struct {
@@ -164,6 +171,11 @@ type AppKeepers struct {
 
 	DymNSKeeper dymnskeeper.Keeper
 
+	HyperCoreKeeper hypercorekeeper.Keeper
+	HyperWarpKeeper hyperwarpkeeper.Keeper
+
+	Forward *forward.Forward
+
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
 	tkeys   map[string]*storetypes.TransientStoreKey
@@ -179,6 +191,7 @@ func (a *AppKeepers) InitKeepers(
 	moduleAccountAddrs map[string]bool,
 	appOpts servertypes.AppOptions,
 ) {
+
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// get skipUpgradeHeights from the app options
@@ -237,7 +250,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewKVStoreService(a.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), a.AccountKeeper)
 
-	groupConfig := grouptypes.DefaultConfig()
+	groupConfig := group.DefaultConfig()
 	groupConfig.MaxMetadataLen = 5500
 	a.GroupKeeper = groupkeeper.NewKeeper(a.keys[group.StoreKey], appCodec, bApp.MsgServiceRouter(), a.AccountKeeper, groupConfig)
 
@@ -359,7 +372,6 @@ func (a *AppKeepers) InitKeepers(
 	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[lightclientmoduletypes.StoreKey],
-		a.IBCKeeper,
 		a.IBCKeeper.ClientKeeper,
 		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ChannelKeeper,
@@ -502,6 +514,37 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		govModuleAddress,
 	)
+
+	a.HyperCoreKeeper = hypercorekeeper.NewKeeper(
+		appCodec,
+		a.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(a.keys[hypercoretypes.ModuleName]),
+		govModuleAddress,
+		a.BankKeeper,
+	)
+
+	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
+		appCodec,
+		a.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(a.keys[hyperwarptypes.ModuleName]),
+		govModuleAddress,
+		a.BankKeeper,
+		&a.HyperCoreKeeper,
+		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
+	)
+	a.Forward = forward.New(
+		a.TransferKeeper,
+
+		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
+		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
+	)
+
+	a.HyperWarpKeeper.SetHook(a.Forward)
+
+	a.DelayedAckKeeper.SetCompletionHooks(map[string]delayedackkeeper.CompletionHookInstance{
+		forwardtypes.HookNameRollToHL:  a.Forward.RollToHLHook(),
+		forwardtypes.HookNameRollToIBC: a.Forward.RollToIBCHook(),
+	})
 
 	// Initialize circuit breaker keeper
 	a.CircuitBreakerKeeper = circuitkeeper.NewKeeper(
