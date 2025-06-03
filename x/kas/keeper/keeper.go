@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -11,34 +10,40 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
 
 type Keeper struct {
 	authority string // authority is the x/gov module account
+	cdc       codec.BinaryCodec
 
-	cdc codec.BinaryCodec
-}
+	hypercoreK *hypercorekeeper.Keeper
 
-func (k Keeper) Foo(context.Context, *types.QueryFooRequest) (*types.QueryFooResponse, error) {
-	panic("unimplemented")
+	//
+	processedWithdrawals collections.KeySet[collections.Pair[uint64, []byte]]
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	service store.KVStoreService,
 	authority string,
+	hypercoreK *hypercorekeeper.Keeper,
 ) *Keeper {
 	_, err := sdk.AccAddressFromBech32(authority)
 	if err != nil {
 		panic(fmt.Errorf("invalid x/sequencer authority address: %w", err))
 	}
 	sb := collections.NewSchemaBuilder(service)
-	_ = sb
+	processedWithdrawals := collections.NewKeySet(sb, collections.NewPrefix(types.KeyProcessedWithdrawals),
+		types.KeyProcessedWithdrawals,
+		collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey))
 
 	return &Keeper{
-		cdc:       cdc,
-		authority: authority,
+		cdc:                  cdc,
+		authority:            authority,
+		hypercoreK:           hypercoreK,
+		processedWithdrawals: processedWithdrawals,
 	}
 }
 

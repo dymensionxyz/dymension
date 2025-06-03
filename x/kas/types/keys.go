@@ -16,4 +16,4 @@ const (
 	QuerierRoute = ModuleName
 )
 
-var KeySeparator = "/"
+const KeyProcessedWithdrawals = "pws"

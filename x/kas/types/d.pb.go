@@ -111,7 +111,9 @@ func (m *TransactionOutpoint) GetIndex() uint32 {
 // see https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
 // and https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
 type WithdrawalID struct {
+	// in stringified hex address format
 	MailboxId string `protobuf:"bytes,1,opt,name=mailbox_id,json=mailboxId,proto3" json:"mailbox_id,omitempty"`
+	// in stringified hex address format
 	MessageId string `protobuf:"bytes,2,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
 }
 

@@ -20,7 +20,9 @@ message TransactionOutpoint {
 // see https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
 // and https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
 message WithdrawalID {
+  // in stringified hex address format
   string mailbox_id = 1;
+  // in stringified hex address format
   string message_id = 2;
 }
 
