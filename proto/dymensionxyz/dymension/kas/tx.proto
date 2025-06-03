@@ -8,13 +8,16 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/kas/d.proto";
 
 
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
   rpc Foo(MsgFoo) returns (MsgFooResponse);
- 
+
+  rpc IndicateProgress(MsgIndicateProgress) returns (MsgIndicateProgressResponse);
+
 }
 
 message MsgFoo {
@@ -23,3 +26,16 @@ message MsgFoo {
 }
 
 message MsgFooResponse {}
+
+message MsgIndicateProgress {
+  option (cosmos.msg.v1.signer) = "signer";
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // sig verification info https://github.com/dymensionxyz/hyperlane-cosmos/blob/89bed40d16e362c92c12166aa0f86f3db42b3db7/x/core/01_interchain_security/types/message_id_multisig_raw.go#L48
+  bytes metadata = 2;
+
+  // what is signed by validators
+  ProgressIndication payload = 3;
+}
+
+message MsgIndicateProgressResponse {}

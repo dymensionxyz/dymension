@@ -32,3 +32,12 @@ enum WithdrawalStatus {
   WITHDRAWAL_STATUS_PROCESSED = 2;
 }
 
+// signed by validators to attest to successfully relayed withdrawals
+message ProgressIndication {
+  // current/'old' outpoint the validator sees on the hub
+  TransactionOutpoint old_outpoint = 1;
+  // new outpoint after processing withdrawals
+  TransactionOutpoint new_outpoint = 2;
+  // the processed withdrawals
+  repeated WithdrawalID processed_withdrawals = 3;
+}
