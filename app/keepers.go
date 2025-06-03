@@ -111,6 +111,8 @@ import (
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
@@ -173,6 +175,7 @@ type AppKeepers struct {
 
 	HyperCoreKeeper hypercorekeeper.Keeper
 	HyperWarpKeeper hyperwarpkeeper.Keeper
+	KasKeeper       *kaskeeper.Keeper
 
 	Forward *forward.Forward
 
@@ -191,7 +194,6 @@ func (a *AppKeepers) InitKeepers(
 	moduleAccountAddrs map[string]bool,
 	appOpts servertypes.AppOptions,
 ) {
-
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// get skipUpgradeHeights from the app options
@@ -537,6 +539,12 @@ func (a *AppKeepers) InitKeepers(
 
 		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
+	)
+
+	a.KasKeeper = kaskeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
+		govModuleAddress,
 	)
 
 	a.HyperWarpKeeper.SetHook(a.Forward)

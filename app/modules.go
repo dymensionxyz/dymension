@@ -64,6 +64,8 @@ import (
 
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/dymensionxyz/dymension/v3/x/kas"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -154,6 +156,7 @@ func (app *App) SetupModules(
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
+		kas.NewAppModule(appCodec, app.KasKeeper),
 	}
 }
 
@@ -197,6 +200,7 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
+	kastypes.ModuleName:                                nil,
 }
 
 var PreBlockers = []string{
@@ -245,6 +249,7 @@ var BeginBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -289,6 +294,7 @@ var EndBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -334,4 +340,5 @@ var InitGenesis = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
+	kastypes.ModuleName,
 }
