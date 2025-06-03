@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package dymensionxyz.dymension.kas;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
+
+
+// Kaspa transaction outpoint https://github.com/kaspanet/rusty-kaspa/blob/1adeae8e5e2bdf7b65265420d294a356edc6d9e6/consensus/client/src/outpoint.rs#L91
+message TransactionOutpoint {
+    // 32 byte hash
+    bytes transaction_id = 1;
+    // pointer to the output in the transaction
+    uint32 index = 2;
+}
+
