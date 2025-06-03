@@ -1,0 +1,28 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/sequencer/params.proto";
+import "dymensionxyz/dymension/sequencer/sequencer.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+
+// GenesisState defines the sequencer module's genesis state.
+message GenesisState {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // sequencerList is a list of all defined sequencers
+  repeated Sequencer sequencerList = 2 [ (gogoproto.nullable) = false ];
+  // genesisProposers is a list of the defined genesis proposers
+  repeated GenesisProposer genesisProposers = 3
+      [ (gogoproto.nullable) = false ];
+  // genesisSuccessor is a list of the defined genesis proposers
+  repeated GenesisProposer genesisSuccessors = 5
+      [ (gogoproto.nullable) = false ];
+  // list of sequencers in the notice queue
+  repeated string noticeQueue = 4;
+}
+
+message GenesisProposer {
+  string address = 1;
+  string rollappId = 2;
+}
