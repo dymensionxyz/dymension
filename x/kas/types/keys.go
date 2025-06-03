@@ -16,4 +16,7 @@ const (
 	QuerierRoute = ModuleName
 )
 
-const KeyProcessedWithdrawals = "pws"
+const (
+	KeyProcessedWithdrawals = "pws"
+	KeyOutpoint             = "o"
+)

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -10,6 +11,9 @@ import (
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	errorsmod "cosmossdk.io/errors"
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 )
 
 type msgServer struct {
@@ -25,17 +29,49 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 
 	metadata, err := hypercoretypes.NewMessageIdMultisigRawMetadata(req.Metadata)
 	if err != nil {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("metadata: %w", err)
+		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata")
 	}
 
-	if req.GetPayload() == nil {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("payload is nil")
+	payload := req.GetPayload()
+
+	if payload == nil {
+		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "payload")
 	}
 
 	digest, err := req.GetPayload().SignBytes()
 	if err != nil {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("payload: %w", err)
+		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "payload digest")
 	}
+
+	threshold, vals := k.MustValidators(ctx)
+
+	ok, err := hypercoretypes.VerifyMultisig(vals, threshold, metadata.Signatures, digest)
+	if err != nil {
+		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "verify multisig")
+	}
+	if !ok {
+		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrUnauthenticated, err), "verify multisig")
+	}
+
+	return &types.MsgIndicateProgressResponse{}, nil
+}
+
+/* TODO: we will need a way to seed the hub state with the appropriate stuff
+- the ISM and mailbox for the kaspa warp route
+*/
+
+// returns threshold and validator set
+func (k *Keeper) MustValidators(ctx sdk.Context) (uint32, []string) {
+	var ismID hyperutil.HexAddress
+	ism, err := k.hypercoreK.IsmKeeper.Get(ctx, ismID)
+	if err != nil {
+		panic(err)
+	}
+	conc, ok := ism.(*hypercoretypes.MessageIdMultisigISMRaw)
+	if !ok {
+		panic("ism is not a MessageIdMultisigISMRaw")
+	}
+	return conc.GetThreshold(), conc.GetValidators()
 }
 
 func NewMsgServerImpl(keeper *Keeper) types.MsgServer {

@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
 
@@ -20,7 +21,7 @@ type Keeper struct {
 
 	hypercoreK *hypercorekeeper.Keeper
 
-	//
+	outpoint             collections.Item[types.TransactionOutpoint]
 	processedWithdrawals collections.KeySet[collections.Pair[uint64, []byte]]
 }
 
@@ -35,6 +36,11 @@ func NewKeeper(
 		panic(fmt.Errorf("invalid x/sequencer authority address: %w", err))
 	}
 	sb := collections.NewSchemaBuilder(service)
+
+	outpoint := collections.NewItem(sb, collections.NewPrefix(types.KeyOutpoint),
+		types.KeyOutpoint,
+		collcompat.ProtoValue[types.TransactionOutpoint](cdc))
+
 	processedWithdrawals := collections.NewKeySet(sb, collections.NewPrefix(types.KeyProcessedWithdrawals),
 		types.KeyProcessedWithdrawals,
 		collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey))
@@ -43,6 +49,7 @@ func NewKeeper(
 		cdc:                  cdc,
 		authority:            authority,
 		hypercoreK:           hypercoreK,
+		outpoint:             outpoint,
 		processedWithdrawals: processedWithdrawals,
 	}
 }
