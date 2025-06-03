@@ -1,4 +1,4 @@
-package sequencer
+package kas
 
 import (
 	"context"
@@ -15,9 +15,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/kas/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/kas/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
 
 var (
@@ -76,22 +76,18 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	return genState.Validate()
 }
 
-// RegisterRESTRoutes registers the capability module's REST service handlers.
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	// nolint: errcheck, gosec
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
-// GetTxCmd returns the capability module's root tx command.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
 }
 
-// GetQueryCmd returns the capability module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
@@ -117,55 +113,39 @@ func NewAppModule(
 	}
 }
 
-// IsAppModule implements module.AppModule.
 func (am AppModule) IsAppModule() {}
 
-// IsOnePerModuleType implements module.AppModule.
 func (am AppModule) IsOnePerModuleType() {}
 
-// Name returns the capability module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-// RegisterServices registers a GRPC query service to respond to the
-// module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-// RegisterInvariants registers the module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	keeper.RegisterInvariants(ir, *am.keeper)
 }
 
-// InitGenesis performs the capability module's genesis initialization It returns
-// no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(gs, &genState)
 	InitGenesis(ctx, am.keeper, genState)
 }
 
-// ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	genState := ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(genState)
 }
 
-// ConsensusVersion implements ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
 
-// BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
 func (am AppModule) BeginBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	// Must be in begin block to make sure successor is set before allowing last block from proposer
-	err := am.keeper.ChooseSuccessorForFinishedNotices(ctx, ctx.BlockTime())
-	if err != nil {
-		ctx.Logger().Error("ChooseNewProposerForFinishedNoticePeriods", "err", err)
-		return err
-	}
+	_ = ctx
 
 	return nil
 }

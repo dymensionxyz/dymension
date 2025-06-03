@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -11,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
 
 type Keeper struct {
@@ -19,6 +20,10 @@ type Keeper struct {
 
 	cdc      codec.BinaryCodec
 	storeKey storetypes.Key
+}
+
+func (k Keeper) Foo(context.Context, *types.QueryFooRequest) (*types.QueryFooResponse, error) {
+	panic("unimplemented")
 }
 
 func NewKeeper(
@@ -32,6 +37,7 @@ func NewKeeper(
 	}
 	service := collcompat.NewKVStoreService(storeKey)
 	sb := collections.NewSchemaBuilder(service)
+	_ = sb
 
 	return &Keeper{
 		cdc:       cdc,

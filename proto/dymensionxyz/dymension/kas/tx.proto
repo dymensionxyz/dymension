@@ -13,7 +13,7 @@ import "cosmos/msg/v1/msg.proto";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
-  rpc CreateSequencer(MsgFoo) returns (MsgFooResponse);
+  rpc Foo(MsgFoo) returns (MsgFooResponse);
  
 }
 
