@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package dymensionxyz.dymension.sequencer;
+package dymensionxyz.dymension.kas;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 // EventIncreasedBond is an event emitted when a sequencer's bond is increased.
 message EventIncreasedBond {

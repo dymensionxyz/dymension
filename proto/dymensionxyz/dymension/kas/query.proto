@@ -1,5 +1,5 @@
 syntax = "proto3";
-package dymensionxyz.dymension.sequencer;
+package dymensionxyz.dymension.kas;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -8,7 +8,7 @@ import "dymensionxyz/dymension/sequencer/params.proto";
 import "dymensionxyz/dymension/sequencer/sequencer.proto";
 import "dymensionxyz/dymension/sequencer/operating_status.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 // Query defines the gRPC querier service.
 service Query {
