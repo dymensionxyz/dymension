@@ -10,7 +10,7 @@ type msgServer struct {
 	*Keeper
 }
 
-func (m msgServer) CreateSequencer(context.Context, *types.MsgFoo) (*types.MsgFooResponse, error) {
+func (m msgServer) Foo(context.Context, *types.MsgFoo) (*types.MsgFooResponse, error) {
 	panic("unimplemented")
 }
 
