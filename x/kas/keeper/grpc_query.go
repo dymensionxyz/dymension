@@ -22,7 +22,7 @@ func (k Keeper) WithdrawalStatus(ctx context.Context, req *types.QueryWithdrawal
 			return nil, err
 		}
 
-		err  k.ValidateWithdrawal(ctx, *id)
+		err := k.ValidateWithdrawal(ctx, *id)
 		if err != nil {
 			return nil, err
 		}
