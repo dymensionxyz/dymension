@@ -34,20 +34,20 @@ type LPs struct {
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	return LPs{
-		byRollAppDenom: collections.NewKeySet[collections.Triple[string, string, uint64]](
+		byRollAppDenom: collections.NewKeySet(
 			sb, LPsByRollAppDenomPrefix, "byRollAppDenom",
-			collections.TripleKeyCodec[string, string, uint64](
+			collections.TripleKeyCodec(
 				collections.StringKey,
 				collections.StringKey,
 				collections.Uint64Key,
 			)),
-		byID: collections.NewMap[uint64, types.OnDemandLPRecord](
+		byID: collections.NewMap(
 			sb, LPsByIDPrefix, "byID",
 			collections.Uint64Key, codec.CollValue[types.OnDemandLPRecord](cdc),
 		),
-		byAddr: collections.NewKeySet[collections.Pair[string, uint64]](
+		byAddr: collections.NewKeySet(
 			sb, LPsByAddrPrefix, "byAddr",
-			collections.PairKeyCodec[string, uint64](
+			collections.PairKeyCodec(
 				collections.StringKey,
 				collections.Uint64Key,
 			),
@@ -199,7 +199,6 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) e
 	if err != nil {
 		return errorsmod.Wrap(err, "get outstanding order")
 	}
-
 	lps, err := k.LPs.GetOrderCompatibleLPs(ctx, *o)
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
