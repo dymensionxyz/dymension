@@ -70,11 +70,6 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
-		// Migrate locks: set creation_timestamp (UpdatedAt) if not set
-		if err := migrateLockTimestamps(ctx, keepers.LockupKeeper, keepers.IncentivesKeeper); err != nil {
-			return nil, err
-		}
-
 		// Migrate gauges: set min lock age for perpetual asset gauges
 		if err := migrateGaugeLockAges(ctx, keepers.IncentivesKeeper); err != nil {
 			return nil, err
@@ -382,7 +377,7 @@ func migrateLockTimestamps(ctx sdk.Context, lockupKeeper *lockupkeeper.Keeper, i
 
 	// for each lock, set the updated_at to the min lock age eligible for distribution
 	for _, lock := range locks {
-		lock.UpdatedAt = ctx.BlockTime().Add(incentivesKeeper.GetParams(ctx).MinLockAge)
+		lock.UpdatedAt = ctx.BlockTime().Add(-incentivestypes.DefaultMinLockAge)
 		err := lockupKeeper.SetLock(ctx, lock)
 		if err != nil {
 			return fmt.Errorf("set lock %d: %w", lock.ID, err)
@@ -393,8 +388,7 @@ func migrateLockTimestamps(ctx sdk.Context, lockupKeeper *lockupkeeper.Keeper, i
 
 // migrateGaugeLockAges sets the min lock age for all perpetual asset gauges
 func migrateGaugeLockAges(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Keeper) error {
-	params := incentivesKeeper.GetParams(ctx)
-	minLockAge := params.MinLockAge
+	minLockAge := incentivestypes.DefaultMinLockAge
 	gauges := incentivesKeeper.GetGauges(ctx)
 	for _, gauge := range gauges {
 		if gauge.IsPerpetual && gauge.GetAsset() != nil {
