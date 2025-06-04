@@ -33,7 +33,8 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgBootstrap struct {
-	// Authority is the address that controls the module (defaults to x/gov unless overwritten).
+	// Authority is the address that controls the module (defaults to x/gov unless
+	// overwritten).
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// the kaspa escrow mailbox
 	Mailbox string `protobuf:"bytes,2,opt,name=mailbox,proto3" json:"mailbox,omitempty"`
@@ -142,7 +143,8 @@ var xxx_messageInfo_MsgBootstrapResponse proto.InternalMessageInfo
 
 type MsgIndicateProgress struct {
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	// sig verification info https://github.com/dymensionxyz/hyperlane-cosmos/blob/89bed40d16e362c92c12166aa0f86f3db42b3db7/x/core/01_interchain_security/types/message_id_multisig_raw.go#L48
+	// sig verification info
+	// https://github.com/dymensionxyz/hyperlane-cosmos/blob/89bed40d16e362c92c12166aa0f86f3db42b3db7/x/core/01_interchain_security/types/message_id_multisig_raw.go#L48
 	Metadata []byte `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// what is signed by validators
 	Payload *ProgressIndication `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`

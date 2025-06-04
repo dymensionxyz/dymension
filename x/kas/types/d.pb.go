@@ -52,7 +52,8 @@ func (WithdrawalStatus) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_23b35f6594a47d15, []int{0}
 }
 
-// Kaspa transaction outpoint https://github.com/kaspanet/rusty-kaspa/blob/1adeae8e5e2bdf7b65265420d294a356edc6d9e6/consensus/client/src/outpoint.rs#L91
+// Kaspa transaction outpoint
+// https://github.com/kaspanet/rusty-kaspa/blob/1adeae8e5e2bdf7b65265420d294a356edc6d9e6/consensus/client/src/outpoint.rs#L91
 type TransactionOutpoint struct {
 	// 32 byte hash
 	TransactionId []byte `protobuf:"bytes,1,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
@@ -108,8 +109,10 @@ func (m *TransactionOutpoint) GetIndex() uint32 {
 }
 
 // an index into a set of a dispatched Hyperlane withdrawal messages
-// see https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
-// and https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
+// see
+// https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
+// and
+// https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
 type WithdrawalID struct {
 	// in stringified hex address format
 	MessageId string `protobuf:"bytes,2,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
