@@ -8,11 +8,6 @@ import "dymensionxyz/dymension/kas/d.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
-
 message EventBootstrap {}
 
-message EventUpdate {
-  ProgressIndication update = 1;
-}
-
-
+message EventUpdate { ProgressIndication update = 1; }

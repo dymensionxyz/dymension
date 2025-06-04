@@ -7,8 +7,8 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
-
-// Kaspa transaction outpoint https://github.com/kaspanet/rusty-kaspa/blob/1adeae8e5e2bdf7b65265420d294a356edc6d9e6/consensus/client/src/outpoint.rs#L91
+// Kaspa transaction outpoint
+// https://github.com/kaspanet/rusty-kaspa/blob/1adeae8e5e2bdf7b65265420d294a356edc6d9e6/consensus/client/src/outpoint.rs#L91
 message TransactionOutpoint {
   // 32 byte hash
   bytes transaction_id = 1;
@@ -17,8 +17,10 @@ message TransactionOutpoint {
 }
 
 // an index into a set of a dispatched Hyperlane withdrawal messages
-// see https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
-// and https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
+// see
+// https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/x/core/keeper/query_server.go#L39
+// and
+// https://github.com/dymensionxyz/hyperlane-cosmos/blob/5b73e596185ce009f7d9d412e26294c52e3108a8/proto/hyperlane/core/v1/query.proto#L88-L92
 message WithdrawalID {
   // in stringified hex address format
   string message_id = 2;

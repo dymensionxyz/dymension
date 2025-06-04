@@ -6,9 +6,9 @@ import "dymensionxyz/dymension/kas/d.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 message GenesisState {
-    bool bootstrapped = 1;
-    string mailbox = 2;
-    string ism = 3;
-    TransactionOutpoint outpoint = 4;
-    repeated WithdrawalID processed_withdrawals = 5;
+  bool bootstrapped = 1;
+  string mailbox = 2;
+  string ism = 3;
+  TransactionOutpoint outpoint = 4;
+  repeated WithdrawalID processed_withdrawals = 5;
 }

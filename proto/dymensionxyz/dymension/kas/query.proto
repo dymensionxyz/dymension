@@ -10,17 +10,16 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 service Query {
 
-  rpc WithdrawalStatus(QueryWithdrawalStatusRequest) returns (QueryWithdrawalStatusResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/kas/withdrawal_status";
+  rpc WithdrawalStatus(QueryWithdrawalStatusRequest)
+      returns (QueryWithdrawalStatusResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/kas/withdrawal_status";
   }
 
   rpc Outpoint(QueryOutpointRequest) returns (QueryOutpointResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/kas/outpoint";
   }
-
 }
-
-
 
 message QueryWithdrawalStatusRequest {
   repeated WithdrawalID withdrawal_id = 1;
@@ -33,6 +32,4 @@ message QueryWithdrawalStatusResponse {
 
 message QueryOutpointRequest {}
 
-message QueryOutpointResponse {
-  TransactionOutpoint outpoint = 1;
-}
+message QueryOutpointResponse { TransactionOutpoint outpoint = 1; }
