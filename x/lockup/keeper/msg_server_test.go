@@ -207,6 +207,50 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 	}
 }
 
+// TestSingleUnbondingLock tests that only **single** in progress unbonding lock is allowed.
+func (suite *KeeperTestSuite) TestSingleUnbondingLock() {
+	// Setup test params
+	lockOwner := sdk.AccAddress([]byte("addr1---------------"))
+	coinsToLock := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
+	partialUnlock := sdk.Coins{sdk.NewInt64Coin("stake", 5)}
+	lockDuration := time.Second
+
+	suite.SetupTest()
+	suite.FundAcc(lockOwner, coinsToLock)
+	// fund address with lock fee
+	baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+	suite.FundAcc(lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
+
+	msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
+
+	// 1. Create lock
+	resp, err := msgServer.LockTokens(suite.Ctx, types.NewMsgLockTokens(lockOwner, lockDuration, coinsToLock))
+	suite.Require().NoError(err)
+	lockID := resp.ID
+
+	// 2. Begin partial unlock
+	unlockResp, err := msgServer.BeginUnlocking(suite.Ctx, types.NewMsgBeginUnlocking(lockOwner, lockID, partialUnlock))
+	suite.Require().NoError(err)
+	suite.Require().True(unlockResp.Success)
+
+	// 3. Attempt to unlock again (should be blocked)
+	_, err = msgServer.BeginUnlocking(suite.Ctx, types.NewMsgBeginUnlocking(lockOwner, lockID, partialUnlock))
+	suite.Require().ErrorContains(err, "cannot begin unlock for a lock that is already unlocking")
+
+	// 4. Advance time to mature the unlock, then unlock matured lock
+	lock := suite.App.LockupKeeper.GetAccountPeriodLocks(suite.Ctx, lockOwner)[1] // partial unlock creates a new lock
+	unlockTime := suite.Ctx.BlockTime().Add(lock.Duration)
+	suite.Ctx = suite.Ctx.WithBlockTime(unlockTime)
+	err = suite.App.LockupKeeper.UnlockMaturedLock(suite.Ctx, lock.ID)
+	suite.Require().NoError(err)
+
+	// 5. Now, try to unlock the original lock again (should succeed)
+	remainingLock := suite.App.LockupKeeper.GetAccountPeriodLocks(suite.Ctx, lockOwner)[0]
+	unlockResp2, err := msgServer.BeginUnlocking(suite.Ctx, types.NewMsgBeginUnlocking(lockOwner, remainingLock.ID, partialUnlock))
+	suite.Require().NoError(err)
+	suite.Require().True(unlockResp2.Success)
+}
+
 func (suite *KeeperTestSuite) TestMsgEditLockup() {
 	type param struct {
 		coinsToLock       sdk.Coins

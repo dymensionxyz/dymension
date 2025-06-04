@@ -78,6 +78,12 @@ func (k Keeper) HasLock(ctx sdk.Context, owner sdk.AccAddress, denom string, dur
 	return len(locks) > 0
 }
 
+// HasUnlockingLock returns true if unlocking lock with the given condition exists
+func (k Keeper) HasUnlockingLock(ctx sdk.Context, owner sdk.AccAddress, denom string, duration time.Duration) bool {
+	locks := k.GetAccountLockedDurationUnlockingOnly(ctx, owner, denom, duration)
+	return len(locks) > 0
+}
+
 // AddTokensToLockByID locks additional tokens into an existing lock with the given ID.
 // Tokens locked are sent and kept in the module account.
 // This method alters the lock state in store, thus we do a sanity check to ensure
@@ -371,7 +377,7 @@ func (k Keeper) unlockMaturedLockInternalLogic(ctx sdk.Context, lock types.Perio
 // ExtendLockup changes the existing lock duration to the given lock duration.
 // Updating lock duration would fail on either of the following conditions.
 // 1. Only lock owner is able to change the duration of the lock.
-// 2. Locks that are unlokcing are not allowed to change duration.
+// 2. Locks that are unlocking are not allowed to change duration.
 // 3. Locks that have synthetic lockup are not allowed to change.
 // 4. Provided duration should be greater than the original duration.
 func (k Keeper) ExtendLockup(ctx sdk.Context, lockID uint64, owner sdk.AccAddress, newDuration time.Duration) error {
