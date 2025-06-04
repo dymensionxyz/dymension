@@ -19,9 +19,10 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 
 	hlMetadata, err := types.UnpackHLMetadata(args.Metadata)
 	if err != nil {
-		return errorsmod.Wrap(err, "unpack hl metadata")
+		// Rejecting the message will just cause the user funds to be stuck on the counterparty chain.
+		k.Logger(ctx).Error("unpack hl metadata", "error", err)
+		return nil
 	}
-
 	if hlMetadata == nil || len(hlMetadata.HookForwardToIbc) == 0 {
 		// Equivalent to the vanilla token standard.
 		return nil
