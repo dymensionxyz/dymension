@@ -33,6 +33,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 				Denom:  "stake",
 				Amount: getFee(simState.Rand),
 			},
+			types.DefaultMinLockAge,
+			types.DefaultMinLockDuration,
 			types.DefaultRollappGaugesMode,
 		),
 		LockableDurations: []time.Duration{
