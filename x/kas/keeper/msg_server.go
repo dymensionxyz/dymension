@@ -12,7 +12,6 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 )
 
@@ -67,7 +66,7 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 			// should never happen, it means validators are buggy or protocol is broken
 			return nil, errorsmod.Wrap(gerrc.ErrFault, "withdrawal not dispatched")
 		}
-		err = k.processedWithdrawals.Set(ctx, collections.Join(k.MustMailbox(ctx), withdrawal.MustMessageId().Bytes()))
+		err = k.SetProcessedWithdrawal(ctx, *withdrawal)
 		if err != nil {
 			return nil, err
 		}

@@ -140,3 +140,8 @@ func (k *Keeper) MustOutpoint(ctx sdk.Context) types.TransactionOutpoint {
 	}
 	return outpoint
 }
+
+func (k *Keeper) SetProcessedWithdrawal(ctx sdk.Context, withdrawal types.WithdrawalID) error {
+	// see https://github.com/dymensionxyz/hyperlane-cosmos/blob/fb914a5ba702f70a428a475968b886891cb1ad77/x/core/keeper/logic_message.go#L50
+	return k.processedWithdrawals.Set(ctx, collections.Join(k.MustMailbox(ctx), withdrawal.MustMessageId().Bytes()))
+}
