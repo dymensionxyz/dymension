@@ -9,20 +9,20 @@ import (
 	gethcrypto "github.com/ethereum/go-ethereum/crypto"
 )
 
-func (msg *ProgressIndication) ValidateBasic() error {
-	if msg == nil {
+func (u *ProgressIndication) ValidateBasic() error {
+	if u == nil {
 		return gerrc.ErrInvalidArgument.Wrapf("progress indication is nil")
 	}
 
-	if err := msg.OldOutpoint.ValidateBasic(); err != nil {
+	if err := u.OldOutpoint.ValidateBasic(); err != nil {
 		return err
 	}
 
-	if err := msg.NewOutpoint.ValidateBasic(); err != nil {
+	if err := u.NewOutpoint.ValidateBasic(); err != nil {
 		return err
 	}
 
-	for _, sig := range msg.ProcessedWithdrawals {
+	for _, sig := range u.ProcessedWithdrawals {
 		if err := sig.ValidateBasic(); err != nil {
 			return err
 		}
@@ -31,12 +31,12 @@ func (msg *ProgressIndication) ValidateBasic() error {
 	return nil
 }
 
-func (msg *TransactionOutpoint) ValidateBasic() error {
-	if msg == nil {
+func (o *TransactionOutpoint) ValidateBasic() error {
+	if o == nil {
 		return gerrc.ErrInvalidArgument.Wrapf("transaction outpoint is nil")
 	}
 
-	if len(msg.TransactionId) != 32 {
+	if len(o.TransactionId) != 32 {
 		return gerrc.ErrInvalidArgument.Wrapf("transaction id")
 	}
 
@@ -47,36 +47,23 @@ func (o *TransactionOutpoint) Equal(other *TransactionOutpoint) bool {
 	return bytes.Equal(o.TransactionId, other.TransactionId) && o.Index == other.Index
 }
 
-func (id *WithdrawalID) ValidateBasic() error {
-	if id == nil {
+func (i *WithdrawalID) ValidateBasic() error {
+	if i == nil {
 		return gerrc.ErrInvalidArgument.Wrapf("withdrawal id is nil")
 	}
 
-	if _, err := id.DecodeMailboxId(); err != nil {
-		return err
-	}
-
-	if _, err := id.DecodeMessageId(); err != nil {
+	if _, err := i.DecodeMessageId(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (id *WithdrawalID) DecodeMailboxId() (util.HexAddress, error) {
-	return util.DecodeHexAddress(id.MailboxId)
+func (i *WithdrawalID) DecodeMessageId() (util.HexAddress, error) {
+	return util.DecodeHexAddress(i.MessageId)
 }
 
-func (id *WithdrawalID) DecodeMessageId() (util.HexAddress, error) {
-	return util.DecodeHexAddress(id.MessageId)
-}
-
-func (id *WithdrawalID) MustMailboxId() util.HexAddress {
-	ret, _ := util.DecodeHexAddress(id.MailboxId)
-	return ret
-}
-
-func (id *WithdrawalID) MustMessageId() util.HexAddress {
-	ret, _ := util.DecodeHexAddress(id.MessageId)
+func (i *WithdrawalID) MustMessageId() util.HexAddress {
+	ret, _ := util.DecodeHexAddress(i.MessageId)
 	return ret
 }
 

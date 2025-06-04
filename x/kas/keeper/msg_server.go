@@ -21,10 +21,6 @@ type msgServer struct {
 	*Keeper
 }
 
-func (m msgServer) Foo(context.Context, *types.MsgFoo) (*types.MsgFooResponse, error) {
-	panic("unimplemented")
-}
-
 func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateProgress) (*types.MsgIndicateProgressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
