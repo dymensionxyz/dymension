@@ -17,15 +17,19 @@ import (
 func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	memo := args.Metadata
-	if len(memo) == 0 {
+	hlMetadata, err := types.UnpackHLMetadata(args.Metadata)
+	if err != nil {
+		return errorsmod.Wrap(err, "unpack hl metadata")
+	}
+
+	if hlMetadata == nil || len(hlMetadata.HookForwardToIbc) == 0 {
 		// Equivalent to the vanilla token standard.
 		return nil
 	}
 
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
 	k.executeWithErrEvent(ctx, func() error {
-		d, err := types.UnpackForwardToIBC(memo)
+		d, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
 		if err != nil {
 			return errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
