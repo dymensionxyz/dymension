@@ -6,10 +6,12 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-func (k Forward) executeWithErrEvent(ctx sdk.Context, f func() error) {
-	err := f()
+// f returns <is a forward operation, error>. Thus enabling wrapping non-forward operations (parsing and so on).
+func (k Forward) executeWithErrEvent(ctx sdk.Context, f func() (bool, error)) {
+	isForward, err := f()
 	evt := &types.EventForward{
-		Ok: err == nil,
+		Ok:           err == nil,
+		WasForwarded: isForward,
 	}
 	if err != nil {
 		evt.Err = err.Error()

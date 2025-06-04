@@ -17,22 +17,25 @@ import (
 func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyperlaneMessageArgs) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	memo := args.Metadata
-	if len(memo) == 0 {
-		// Equivalent to the vanilla token standard.
-		return nil
-	}
-
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
-	k.executeWithErrEvent(ctx, func() error {
-		d, err := types.UnpackForwardToIBC(memo)
+	k.executeWithErrEvent(ctx, func() (bool, error) {
+		hlMetadata, err := types.UnpackHLMetadata(args.Metadata)
 		if err != nil {
-			return errorsmod.Wrap(err, "unpack memo from hyperlane")
+			return false, errorsmod.Wrap(err, "unpack hl metadata")
+		}
+		if hlMetadata == nil || len(hlMetadata.HookForwardToIbc) == 0 {
+			// Equivalent to the vanilla token standard.
+			return false, nil
+		}
+
+		d, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
+		if err != nil {
+			return true, errorsmod.Wrap(err, "unpack memo from hyperlane")
 		}
 
 		// funds src is the hyperlane transfer recipient, which should have same priv key as rollapp recipient
 		// so in case of async failure, the funds will get refunded back there.
-		return k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin())
+		return true, k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin())
 	})
 
 	return nil
