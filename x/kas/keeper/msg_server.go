@@ -14,7 +14,6 @@ import (
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
-	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 )
 
 type msgServer struct {
@@ -24,8 +23,8 @@ type msgServer struct {
 func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateProgress) (*types.MsgIndicateProgressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.TransactionsEnabled(ctx) {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transactions not enabled")
+	if !k.Ready(ctx) {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transactions disabled")
 	}
 
 	////////////
@@ -77,27 +76,13 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 			// should never happen, it means validators are buggy or protocol is broken
 			return nil, errorsmod.Wrap(gerrc.ErrFault, "withdrawal not dispatched")
 		}
-		err = k.processedWithdrawals.Set(ctx, collections.Join(withdrawal.MustMailboxId().GetInternalId(), withdrawal.MustMessageId().Bytes()))
+		err = k.processedWithdrawals.Set(ctx, collections.Join(k.MustMailbox(ctx), withdrawal.MustMessageId().Bytes()))
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return &types.MsgIndicateProgressResponse{}, nil
-}
-
-// returns threshold and validator set
-func (k *Keeper) MustValidators(ctx sdk.Context) (uint32, []string) {
-	var ismID hyperutil.HexAddress
-	ism, err := k.hypercoreK.IsmKeeper.Get(ctx, ismID)
-	if err != nil {
-		panic(err)
-	}
-	conc, ok := ism.(*hypercoretypes.MessageIdMultisigISMRaw)
-	if !ok {
-		panic("ism is not a MessageIdMultisigISMRaw")
-	}
-	return conc.GetThreshold(), conc.GetValidators()
 }
 
 func NewMsgServerImpl(keeper *Keeper) types.MsgServer {

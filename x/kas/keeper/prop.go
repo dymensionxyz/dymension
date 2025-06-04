@@ -10,10 +10,12 @@ import (
 )
 
 func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*types.MsgBootstrapResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req.Authority != k.authority {
 		return nil, gerrc.ErrPermissionDenied
 	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Checks
 
 	mailbox, err := hyputil.DecodeHexAddress(req.Mailbox)
 	if err != nil {
@@ -29,6 +31,26 @@ func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*typ
 		return nil, err
 	}
 
+	found, err := k.hypercoreK.MailboxIdExists(ctx, mailbox)
+	if err != nil || !found {
+		return nil, gerrc.ErrNotFound.Wrap("mailbox")
+	}
+
+	if k.hypercoreK.AssertIsmExists(ctx, ism) != nil {
+		return nil, gerrc.ErrNotFound.Wrap("ism")
+	}
+
+	empty, err := k.WithdrawalsEmpty(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !empty {
+		err := gerrc.ErrDataLoss.Wrap("withdrawals not empty: module has already been used, rollback is undefined")
+		panic(err)
+	}
+
+	// Sets
+
 	if err := k.mailbox.Set(ctx, req.Mailbox); err != nil {
 		return nil, err
 	}
@@ -38,6 +60,10 @@ func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*typ
 	}
 
 	if err := k.outpoint.Set(ctx, *req.Outpoint); err != nil {
+		return nil, err
+	}
+
+	if err := k.bootstrapped.Set(ctx, true); err != nil {
 		return nil, err
 	}
 

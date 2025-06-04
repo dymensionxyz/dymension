@@ -4,17 +4,20 @@ import (
 	"context"
 
 	"cosmossdk.io/collections"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ types.QueryServer = Keeper{}
 
-func (k Keeper) Foo(context.Context, *types.QueryFooRequest) (*types.QueryFooResponse, error) {
-	panic("unimplemented")
-}
+func (k Keeper) WithdrawalStatus(goCtx context.Context, req *types.QueryWithdrawalStatusRequest) (*types.QueryWithdrawalStatusResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-func (k Keeper) WithdrawalStatus(ctx context.Context, req *types.QueryWithdrawalStatusRequest) (*types.QueryWithdrawalStatusResponse, error) {
+	if !k.Ready(ctx) {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("queries disabled")
+	}
+
 	ret := make([]types.WithdrawalStatus, len(req.WithdrawalId))
 
 	for i, id := range req.WithdrawalId {
@@ -27,7 +30,7 @@ func (k Keeper) WithdrawalStatus(ctx context.Context, req *types.QueryWithdrawal
 			return nil, err
 		}
 
-		processed, err := k.processedWithdrawals.Has(ctx, collections.Join(id.MustMailboxId().GetInternalId(), id.MustMessageId().Bytes()))
+		processed, err := k.processedWithdrawals.Has(ctx, collections.Join(k.MustMailbox(ctx), id.MustMessageId().Bytes()))
 		if err != nil {
 			return nil, err
 		}
@@ -41,8 +44,8 @@ func (k Keeper) WithdrawalStatus(ctx context.Context, req *types.QueryWithdrawal
 	return &types.QueryWithdrawalStatusResponse{Status: ret}, nil
 }
 
-func (k Keeper) ValidateWithdrawal(ctx context.Context, id types.WithdrawalID) error {
-	dispatched, err := k.hypercoreK.Messages.Has(ctx, collections.Join(id.MustMailboxId().GetInternalId(), id.MustMessageId().Bytes()))
+func (k Keeper) ValidateWithdrawal(ctx sdk.Context, id types.WithdrawalID) error {
+	dispatched, err := k.hypercoreK.Messages.Has(ctx, collections.Join(k.MustMailbox(ctx), id.MustMessageId().Bytes()))
 	if err != nil {
 		return err
 	}

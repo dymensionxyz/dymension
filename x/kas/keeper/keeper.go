@@ -10,6 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
 	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
@@ -82,10 +84,51 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) TransactionsEnabled(ctx sdk.Context) bool {
+func (k Keeper) Ready(ctx sdk.Context) bool {
 	ret, err := k.bootstrapped.Get(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return ret
+}
+
+// returns threshold and validator set
+func (k *Keeper) MustValidators(ctx sdk.Context) (uint32, []string) {
+	ismHex, err := k.ism.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+	ismID, err := hyputil.DecodeHexAddress(ismHex)
+	if err != nil {
+		panic(err)
+	}
+	ism, err := k.hypercoreK.IsmKeeper.Get(ctx, ismID)
+	if err != nil {
+		panic(err)
+	}
+	conc, ok := ism.(*hypercoretypes.MessageIdMultisigISMRaw)
+	if !ok {
+		panic("ism is not a MessageIdMultisigISMRaw")
+	}
+	return conc.GetThreshold(), conc.GetValidators()
+}
+
+func (k *Keeper) MustMailbox(ctx sdk.Context) uint64 {
+	mailboxHex, err := k.mailbox.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+	mailbox, err := hyputil.DecodeHexAddress(mailboxHex)
+	if err != nil {
+		panic(err)
+	}
+	return mailbox.GetInternalId()
+}
+
+func (k *Keeper) WithdrawalsEmpty(ctx sdk.Context) (bool, error) {
+	iter, err := k.processedWithdrawals.Iterate(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	return !iter.Valid(), nil
 }
