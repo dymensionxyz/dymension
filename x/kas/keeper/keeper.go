@@ -21,8 +21,7 @@ type Keeper struct {
 	authority string // authority is the x/gov module account
 	cdc       codec.BinaryCodec
 
-	hypercoreK *hypercorekeeper.Keeper // TODO: use interface
-	warpQ      types.WarpQuery
+	hypercoreK *hypercorekeeper.Keeper
 
 	// Is this module fully bootstrapped, i.e. ready to use?
 	bootstrapped collections.Item[bool]
@@ -34,7 +33,6 @@ type Keeper struct {
 	outpoint collections.Item[types.TransactionOutpoint]
 
 	// Tracks the processed withdrawals to avoid double relaying. May only update when updating outpoint too.
-	// mimic repr here https://github.com/dymensionxyz/hyperlane-cosmos/blob/bb7ae11129556ba338140d6115922cd19c1a75fb/x/core/keeper/keeper.go#L30
 	processedWithdrawals collections.KeySet[collections.Pair[uint64, []byte]]
 }
 
@@ -43,7 +41,6 @@ func NewKeeper(
 	service store.KVStoreService,
 	authority string,
 	hypercoreK *hypercorekeeper.Keeper,
-	warpQ types.WarpQuery,
 ) *Keeper {
 	_, err := sdk.AccAddressFromBech32(authority)
 	if err != nil {
@@ -75,7 +72,6 @@ func NewKeeper(
 		cdc:                  cdc,
 		authority:            authority,
 		hypercoreK:           hypercoreK,
-		warpQ:                warpQ,
 		bootstrapped:         bootstrapped,
 		ism:                  ism,
 		mailbox:              mailbox,

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -18,20 +17,6 @@ func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*typ
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Checks
-
-	if k.Ready(ctx) {
-		// we already finished bootstrap in a prior proposal, and someone has already used the bridge
-		// which poses a risk
-		supply, err := k.warpQ.BridgedSupply(ctx, &warptypes.QueryBridgedSupplyRequest{
-			Id: req.TokenId,
-		})
-		if err != nil {
-			return nil, err
-		}
-		if !supply.BridgedSupply.Amount.IsZero() {
-			panic("tokens already bridged")
-		}
-	}
 
 	mailbox, err := hyputil.DecodeHexAddress(req.Mailbox)
 	if err != nil {

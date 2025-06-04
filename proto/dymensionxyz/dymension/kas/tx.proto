@@ -26,17 +26,14 @@ message MsgBootstrap {
   // overwritten).
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
-  // the kaspa escrow mailbox (in hex format)
+  // the kaspa escrow mailbox
   string mailbox = 2;
 
-  // the kaspa escrow ism (in hex format)
+  // the kaspa escrow ism
   string ism = 3;
 
   // the seed kaspa escrow outpoint
   TransactionOutpoint outpoint = 4;
-
-  // hyperlane token id, just used for a safety sanity check
-  string token_id  = 5;
 }
 
 message MsgBootstrapResponse {}
