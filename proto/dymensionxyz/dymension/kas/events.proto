@@ -4,11 +4,15 @@ package dymensionxyz.dymension.kas;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/kas/d.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 
-message EventFoo {
+message EventBootstrap {}
 
+message EventUpdate {
+  ProgressIndication update = 1;
 }
+
 

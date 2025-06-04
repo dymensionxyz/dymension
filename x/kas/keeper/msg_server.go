@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
 
@@ -18,6 +19,12 @@ import (
 type msgServer struct {
 	*Keeper
 }
+
+func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
+	return &msgServer{Keeper: keeper}
+}
+
+var _ types.MsgServer = msgServer{}
 
 func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateProgress) (*types.MsgIndicateProgressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -72,11 +79,11 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 		}
 	}
 
+	if err := uevent.EmitTypedEvent(ctx, &types.EventUpdate{
+		Update: payload,
+	}); err != nil {
+		return nil, err
+	}
+
 	return &types.MsgIndicateProgressResponse{}, nil
 }
-
-func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
-}
-
-var _ types.MsgServer = msgServer{}

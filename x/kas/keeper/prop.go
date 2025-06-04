@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*types.MsgBootstrapResponse, error) {
@@ -64,6 +65,10 @@ func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*typ
 	}
 
 	if err := k.bootstrapped.Set(ctx, true); err != nil {
+		return nil, err
+	}
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventBootstrap{}); err != nil {
 		return nil, err
 	}
 
