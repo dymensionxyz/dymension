@@ -5,17 +5,21 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewParams takes an epoch distribution identifier, then returns an incentives Params struct.
-func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, minValueForDistr sdk.Coin, rollappGaugesMode Params_RollappGaugesModes) Params {
+func NewParams(distrEpochIdentifier string, createGaugeFee, addToGaugeFee, addDenomFee math.Int, minValueForDistr sdk.Coin, minLockAge, minLockDuration time.Duration, rollappGaugesMode Params_RollappGaugesModes) Params {
 	return Params{
 		DistrEpochIdentifier:    distrEpochIdentifier,
 		CreateGaugeBaseFee:      createGaugeFee,
 		AddToGaugeBaseFee:       addToGaugeFee,
 		AddDenomFee:             addDenomFee,
 		MinValueForDistribution: minValueForDistr,
+		MinLockAge:              minLockAge,
+		MinLockDuration:         minLockDuration,
 		RollappGaugesMode:       rollappGaugesMode,
 	}
 }
@@ -28,6 +32,8 @@ func DefaultParams() Params {
 		AddToGaugeBaseFee:       DefaultAddToGaugeFee,
 		AddDenomFee:             DefaultAddDenomFee,
 		MinValueForDistribution: DefaultMinValueForDistr,
+		MinLockAge:              DefaultMinLockAge,
+		MinLockDuration:         DefaultMinLockDuration,
 		RollappGaugesMode:       DefaultRollappGaugesMode,
 	}
 }
@@ -54,6 +60,14 @@ func (p Params) ValidateBasic() error {
 	if err := validateRollappGaugesMode(p.RollappGaugesMode); err != nil {
 		return err
 	}
+
+	if p.MinLockAge < 0 {
+		return gerrc.ErrInvalidArgument.Wrapf("min_lock_age must be >= 0, got %s", p.MinLockAge)
+	}
+	if p.MinLockDuration < 0 {
+		return gerrc.ErrInvalidArgument.Wrapf("min_lock_duration must be >= 0, got %s", p.MinLockDuration)
+	}
+
 	return nil
 }
 

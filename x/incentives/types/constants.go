@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,6 +18,9 @@ var (
 	DefaultAddDenomFee       = DYM                                                          // 1 DYM
 	DefaultMinValueForDistr  = sdk.NewCoin(params.BaseDenom, math.NewIntWithDecimal(1, 16)) // 0.01 DYM
 	DefaultRollappGaugesMode = Params_ActiveOnly
+
+	DefaultMinLockAge      = time.Hour * 24 // 1 day
+	DefaultMinLockDuration = time.Duration(0)
 )
 
 const DefaultDistrEpochIdentifier = "week"
