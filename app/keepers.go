@@ -546,6 +546,7 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
 		govModuleAddress,
 		&a.HyperCoreKeeper,
+		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 	)
 
 	a.HyperWarpKeeper.SetHook(a.Forward)
