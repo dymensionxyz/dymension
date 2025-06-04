@@ -12,6 +12,18 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
+func (k Keeper) Outpoint(goCtx context.Context, req *types.QueryOutpointRequest) (*types.QueryOutpointResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.Ready(ctx) {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("queries disabled")
+	}
+
+	return &types.QueryOutpointResponse{
+		Outpoint: uptr.To(k.MustOutpoint(ctx)),
+	}, nil
+}
+
 func (k Keeper) WithdrawalStatus(goCtx context.Context, req *types.QueryWithdrawalStatusRequest) (*types.QueryWithdrawalStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
