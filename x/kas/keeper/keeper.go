@@ -132,3 +132,11 @@ func (k *Keeper) WithdrawalsEmpty(ctx sdk.Context) (bool, error) {
 	}
 	return !iter.Valid(), nil
 }
+
+func (k *Keeper) MustOutpoint(ctx sdk.Context) types.TransactionOutpoint {
+	outpoint, err := k.outpoint.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return outpoint
+}

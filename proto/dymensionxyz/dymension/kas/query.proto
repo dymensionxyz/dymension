@@ -24,4 +24,5 @@ message QueryWithdrawalStatusRequest {
 
 message QueryWithdrawalStatusResponse {
   repeated WithdrawalStatus status = 1;
+  TransactionOutpoint outpoint = 2;
 }

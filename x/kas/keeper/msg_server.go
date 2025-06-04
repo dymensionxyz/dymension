@@ -51,8 +51,8 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 	//// Update
 
 	// CAS
-	currentOutpoint, err := k.outpoint.Get(ctx)
-	if !payload.OldOutpoint.Equal(&currentOutpoint) {
+	localOutpoint := k.MustOutpoint(ctx)
+	if !payload.OldOutpoint.Equal(&localOutpoint) {
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrFailedPrecondition, err), "old outpoint")
 	}
 
