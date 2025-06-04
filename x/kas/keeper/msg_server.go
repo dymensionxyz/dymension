@@ -28,6 +28,10 @@ func (m msgServer) Foo(context.Context, *types.MsgFoo) (*types.MsgFooResponse, e
 func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateProgress) (*types.MsgIndicateProgressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.TransactionsEnabled(ctx) {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transactions not enabled")
+	}
+
 	////////////
 	//// Verify
 
@@ -85,10 +89,6 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 
 	return &types.MsgIndicateProgressResponse{}, nil
 }
-
-/* TODO: we will need a way to seed the hub state with the appropriate stuff
-- the ISM and mailbox for the kaspa warp route
-*/
 
 // returns threshold and validator set
 func (k *Keeper) MustValidators(ctx sdk.Context) (uint32, []string) {

@@ -17,6 +17,9 @@ const (
 )
 
 const (
-	KeyProcessedWithdrawals = "pws"
-	KeyOutpoint             = "o"
+	KeyBootstrapped         = "bootstrapped"
+	KeyISM                  = "ism"
+	KeyMailbox              = "mailbox"
+	KeyOutpoint             = "outpoint"
+	KeyProcessedWithdrawals = "pw"
 )

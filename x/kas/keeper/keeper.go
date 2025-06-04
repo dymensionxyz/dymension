@@ -21,7 +21,16 @@ type Keeper struct {
 
 	hypercoreK *hypercorekeeper.Keeper
 
-	outpoint             collections.Item[types.TransactionOutpoint]
+	// Is this module fully bootstrapped, i.e. ready to use?
+	bootstrapped collections.Item[bool]
+
+	mailbox collections.Item[string] // HexAddress format
+	ism     collections.Item[string] // HexAddress format
+
+	// The Kaspa escrow outpoint which must be used in all TXs. It's updated only on confirmations.
+	outpoint collections.Item[types.TransactionOutpoint]
+
+	// Tracks the processed withdrawals to avoid double relaying. May only update when updating outpoint too.
 	processedWithdrawals collections.KeySet[collections.Pair[uint64, []byte]]
 }
 
@@ -37,6 +46,18 @@ func NewKeeper(
 	}
 	sb := collections.NewSchemaBuilder(service)
 
+	bootstrapped := collections.NewItem(sb, collections.NewPrefix(types.KeyBootstrapped),
+		types.KeyBootstrapped,
+		collections.BoolValue)
+
+	ism := collections.NewItem(sb, collections.NewPrefix(types.KeyISM),
+		types.KeyISM,
+		collections.StringValue)
+
+	mailbox := collections.NewItem(sb, collections.NewPrefix(types.KeyMailbox),
+		types.KeyMailbox,
+		collections.StringValue)
+
 	outpoint := collections.NewItem(sb, collections.NewPrefix(types.KeyOutpoint),
 		types.KeyOutpoint,
 		collcompat.ProtoValue[types.TransactionOutpoint](cdc))
@@ -49,6 +70,9 @@ func NewKeeper(
 		cdc:                  cdc,
 		authority:            authority,
 		hypercoreK:           hypercoreK,
+		bootstrapped:         bootstrapped,
+		ism:                  ism,
+		mailbox:              mailbox,
 		outpoint:             outpoint,
 		processedWithdrawals: processedWithdrawals,
 	}
@@ -56,4 +80,12 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) TransactionsEnabled(ctx sdk.Context) bool {
+	ret, err := k.bootstrapped.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }

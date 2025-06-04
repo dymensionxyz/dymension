@@ -9,9 +9,6 @@ import "dymensionxyz/dymension/kas/d.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 service Query {
-  rpc Foo(QueryFooRequest) returns (QueryFooResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/kas/foo";
-  }
 
   rpc WithdrawalStatus(QueryWithdrawalStatusRequest) returns (QueryWithdrawalStatusResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/kas/withdrawal_status";
@@ -19,10 +16,7 @@ service Query {
 
 }
 
-message QueryFooRequest {}
 
-message QueryFooResponse {
-}
 
 message QueryWithdrawalStatusRequest {
   repeated WithdrawalID withdrawal_id = 1;
