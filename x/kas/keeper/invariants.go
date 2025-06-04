@@ -20,7 +20,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
 }
 
-func InvariantFoo(k Keeper) uinv.Func {
+func InvariantFoo(k Keeper) uinv.Func { // TODO: impl some
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
 		return nil
 	})

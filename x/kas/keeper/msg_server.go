@@ -34,19 +34,10 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 		return nil, err
 	}
 
-	metadata, err := hypercoretypes.NewMessageIdMultisigRawMetadata(req.Metadata)
-	if err != nil {
-		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata")
-	}
-
-	payload := req.GetPayload()
-
-	digest, err := payload.SignBytes()
-	if err != nil {
-		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "payload digest")
-	}
-
 	threshold, vals := k.MustValidators(ctx)
+	metadata := req.MustGetMetadata()
+	payload := req.Payload
+	digest := payload.MustGetSignBytes()
 
 	ok, err := hypercoretypes.VerifyMultisig(vals, threshold, metadata.Signatures, digest)
 	if err != nil {

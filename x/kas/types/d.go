@@ -28,6 +28,10 @@ func (u *ProgressIndication) ValidateBasic() error {
 		}
 	}
 
+	if _, err := u.SignBytes(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -77,4 +81,12 @@ func (u *ProgressIndication) SignBytes() ([32]byte, error) {
 
 	kec := gethcrypto.Keccak256(bz)
 	return util.GetEthSigningHash(kec), nil
+}
+
+func (u *ProgressIndication) MustGetSignBytes() [32]byte {
+	ret, err := u.SignBytes()
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }

@@ -1,15 +1,34 @@
 package types
 
-import "github.com/dymensionxyz/gerr-cosmos/gerrc"
+import (
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+)
 
-func (msg *MsgIndicateProgress) ValidateBasic() error {
-	if msg.Metadata == nil {
-		return gerrc.ErrInvalidArgument.Wrapf("metadata")
+func (u *MsgIndicateProgress) ValidateBasic() error {
+	if err := u.Payload.ValidateBasic(); err != nil {
+		return err
 	}
 
-	if msg.Payload == nil {
-		return gerrc.ErrInvalidArgument.Wrapf("payload")
+	_, err := u.ParseMetadata()
+	if err != nil {
+		return err
 	}
 
-	return msg.Payload.ValidateBasic()
+	return nil
+}
+
+func (u *MsgIndicateProgress) ParseMetadata() (hypercoretypes.MessageIdMultisigRawMetadata, error) {
+	if u.Metadata == nil {
+		return hypercoretypes.MessageIdMultisigRawMetadata{}, gerrc.ErrInvalidArgument.Wrapf("metadata")
+	}
+	return hypercoretypes.NewMessageIdMultisigRawMetadata(u.Metadata)
+}
+
+func (u *MsgIndicateProgress) MustGetMetadata() hypercoretypes.MessageIdMultisigRawMetadata {
+	metadata, err := u.ParseMetadata()
+	if err != nil {
+		panic(err)
+	}
+	return metadata
 }
