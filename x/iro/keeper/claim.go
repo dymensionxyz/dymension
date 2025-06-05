@@ -53,8 +53,7 @@ func (k Keeper) Claim(ctx sdk.Context, planId string, claimer sdk.AccAddress) er
 		Claimer:   claimer.String(),
 		PlanId:    planId,
 		RollappId: plan.RollappId,
-		Amount:    availableTokens.Amount,
-		Denom:     plan.SettledDenom,
+		Claim:     sdk.NewCoin(plan.SettledDenom, availableTokens.Amount),
 	})
 	if err != nil {
 		return err
@@ -104,12 +103,11 @@ func (k Keeper) ClaimVested(ctx sdk.Context, planId string, claimer sdk.AccAddre
 	k.SetPlan(ctx, plan)
 
 	err = uevent.EmitTypedEvent(ctx, &types.EventClaimVested{
-		Claimer:        claimer.String(),
-		PlanId:         planId,
-		RollappId:      plan.RollappId,
-		ClaimAmount:    amt,
-		VestedAmount:   plan.VestingPlan.Claimed,
-		UnvestedAmount: plan.VestingPlan.Amount.Sub(plan.VestingPlan.Claimed),
+		Claimer:   claimer.String(),
+		PlanId:    planId,
+		RollappId: plan.RollappId,
+		Claim:     sdk.NewCoin(plan.LiquidityDenom, amt),
+		Unvested:  sdk.NewCoin(plan.LiquidityDenom, plan.VestingPlan.Amount.Sub(plan.VestingPlan.Claimed)),
 	})
 	if err != nil {
 		return err
