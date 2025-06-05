@@ -234,14 +234,14 @@ func (s *AnteTestSuite) TestEIP712() {
 		msg         sdk.Msg
 		output      bool
 	}{
-		// {"MsgSend", s.getMsgSend(from), false},
-		// {"MsgCreateRollapp (native denom)", s.getMsgCreateRollapp(from.String(), false, nil), false},
-		// {"MsgCreateRollapp (tokenless)", s.getMsgCreateRollapp(from.String(), true, nil), false},
-		// {"MsgGrant", s.getMsgGrant(from), false},
-		// {"MsgGrantAllowance", s.getMsgGrantAllowance(from), false},
-		// {"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
-		// {"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
-		// {"MsgCreateValidator", s.getMsgCreateValidator(from), false},
+		{"MsgSend", s.getMsgSend(from), false},
+		{"MsgCreateRollapp (native denom)", s.getMsgCreateRollapp(from.String(), false, nil), false},
+		{"MsgCreateRollapp (tokenless)", s.getMsgCreateRollapp(from.String(), true, nil), false},
+		{"MsgGrant", s.getMsgGrant(from), false},
+		{"MsgGrantAllowance", s.getMsgGrantAllowance(from), false},
+		{"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
+		{"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
+		{"MsgCreateValidator", s.getMsgCreateValidator(from), false},
 		{"MsgCreateGauge", s.getMsgCreateGauge(from), true},
 	}
 
