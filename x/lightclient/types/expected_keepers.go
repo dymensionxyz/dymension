@@ -1,6 +1,9 @@
 package types
 
 import (
+	context "context"
+	"time"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -43,4 +46,8 @@ type IBCConnectionKeeperExpected interface {
 type IBCChannelKeeperExpected interface {
 	GetChannel(ctx sdk.Context, portID, channelID string) (types.Channel, bool)
 	GetChannelConnection(ctx sdk.Context, portID, channelID string) (string, exported.ConnectionI, error)
+}
+
+type StakingKeeper interface {
+	UnbondingTime(ctx context.Context) (time.Duration, error)
 }

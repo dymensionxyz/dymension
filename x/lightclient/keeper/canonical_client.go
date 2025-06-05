@@ -90,8 +90,12 @@ func (k Keeper) GetAllCanonicalClients(ctx sdk.Context) (clients []types.Canonic
 	return
 }
 
-func (k Keeper) expectedClient() ibctm.ClientState {
-	return types.DefaultExpectedCanonicalClientParams()
+func (k Keeper) expectedClient(ctx sdk.Context) (ibctm.ClientState, error) {
+	unbondingTime, err := k.stakingKeeper.UnbondingTime(ctx)
+	if err != nil {
+		return ibctm.ClientState{}, errorsmod.Wrap(err, "get unbonding time")
+	}
+	return types.ExpectedCanonicalClientParams(unbondingTime), nil
 }
 
 // The canonical client criteria are:
@@ -100,7 +104,11 @@ func (k Keeper) expectedClient() ibctm.ClientState {
 // 3. ClientID must not have any connections
 // 4. All the existing consensus states much match the corresponding height rollapp block descriptors
 func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientState, rollappId string) error {
-	expClient := k.expectedClient()
+	expClient, err := k.expectedClient(ctx)
+	if err != nil {
+		return errorsmod.Wrap(err, "get expected client")
+	}
+
 	if err := types.IsCanonicalClientParamsValid(cs, &expClient); err != nil {
 		return errors.Join(err, ErrParamsMismatch)
 	}

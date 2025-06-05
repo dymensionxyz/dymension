@@ -14,14 +14,6 @@ import (
 	ics23 "github.com/cosmos/ics23/go"
 )
 
-func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
-	// Note: need to be very sure that this is the same value that the
-	// relayer gets when it queries the rollapp (x/sequencers)
-	unbondingTime := time.Hour * 24 * 7 * 3
-
-	return ExpectedCanonicalClientParams(unbondingTime)
-}
-
 const (
 	trustPeriodMultiplier = 65
 )
@@ -146,4 +138,10 @@ func EqualICS23ProofSpecs(proofSpecs1, proofSpecs2 ics23.ProofSpec) bool {
 	}
 
 	return true
+}
+
+// used for testing purposes
+func DefaultExpectedCanonicalClientParams() ibctm.ClientState {
+	unbondingTime := time.Hour * 24 * 7 * 3
+	return ExpectedCanonicalClientParams(unbondingTime)
 }
