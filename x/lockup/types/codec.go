@@ -12,6 +12,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgBeginUnlocking{}, "dymensionxyz/dymension/lockup/BeginUnlockPeriodLock", nil)
 	cdc.RegisterConcrete(&MsgExtendLockup{}, "dymensionxyz/dymension/lockup/ExtendLockup", nil)
 	cdc.RegisterConcrete(&MsgForceUnlock{}, "dymensionxyz/dymension/lockup/ForceUnlockTokens", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "lockup/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "lockup/Params", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -21,6 +23,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgBeginUnlocking{},
 		&MsgExtendLockup{},
 		&MsgForceUnlock{},
+		&MsgUpdateParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

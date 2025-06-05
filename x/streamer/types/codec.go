@@ -14,6 +14,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgTerminateStream{}, "dymension/TerminateStream", nil)
 	cdc.RegisterConcrete(&MsgReplaceStream{}, "dymension/ReplaceStream", nil)
 	cdc.RegisterConcrete(&MsgUpdateStream{}, "dymension/UpdateStream", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "streamer/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "streamer/Params", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the streamer module.
