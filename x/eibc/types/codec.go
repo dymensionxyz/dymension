@@ -12,6 +12,11 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgFulfillOrder{}, "eibc/MsgFulfillOrder", nil)
 	cdc.RegisterConcrete(&MsgFulfillOrderAuthorized{}, "eibc/MsgFulfillOrderAuthorized", nil)
 	cdc.RegisterConcrete(&MsgUpdateDemandOrder{}, "eibc/MsgUpdateDemandOrder", nil)
+	cdc.RegisterConcrete(&MsgCreateOnDemandLP{}, "eibc/CreateOnDemandLP", nil)
+	cdc.RegisterConcrete(&MsgDeleteOnDemandLP{}, "eibc/DeleteOnDemandLP", nil)
+	cdc.RegisterConcrete(&MsgTryFulfillOnDemand{}, "eibc/TryFulfillOnDemand", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "eibc/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "eibc/Params", nil)
 	cdc.RegisterConcrete(&FulfillOrderAuthorization{}, "eibc/FulfillOrderAuthorization", nil)
 }
 
@@ -22,6 +27,10 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgFulfillOrder{},
 		&MsgFulfillOrderAuthorized{},
 		&MsgUpdateDemandOrder{},
+		&MsgCreateOnDemandLP{},
+		&MsgDeleteOnDemandLP{},
+		&MsgTryFulfillOnDemand{},
+		&MsgUpdateParams{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

@@ -15,7 +15,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSetController{}, "dymns/SetController", nil)
 	cdc.RegisterConcrete(&MsgUpdateResolveAddress{}, "dymns/UpdateResolveAddress", nil)
 	cdc.RegisterConcrete(&MsgUpdateDetails{}, "dymns/UpdateDetails", nil)
-	cdc.RegisterConcrete(&MsgUpdateParams{}, "dymns/UpdateParams", nil)
 	cdc.RegisterConcrete(&MsgPlaceSellOrder{}, "dymns/PlaceSellOrder", nil)
 	cdc.RegisterConcrete(&MsgCompleteSellOrder{}, "dymns/CompleteSellOrder", nil)
 	cdc.RegisterConcrete(&MsgCancelSellOrder{}, "dymns/CancelSellOrder", nil)
@@ -24,6 +23,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgPurchaseOrder{}, "dymns/PurchaseName", nil)
 	cdc.RegisterConcrete(&MsgMigrateChainIds{}, "dymns/MigrateChainIds", nil)
 	cdc.RegisterConcrete(&MsgUpdateAliases{}, "dymns/UpdateAliases", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "dymns/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "dymns/Params", nil)
 }
 
 // RegisterInterfaces registers implementations by its interface, for the module
