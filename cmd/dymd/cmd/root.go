@@ -211,12 +211,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		snapshot.Cmd(newApp),
 	)
 
-	// add genesis commands
-	rootCmd.AddCommand(
-		genesisCommand(encodingConfig.TxConfig, basicManager),
-	)
-
-	// add eth server commands
+	// adds:
+	// - eth server commands
+	// - comet commands
+	// - Start, rollback, etc..
 	ethserver.AddCommands(
 		rootCmd,
 		ethserver.NewDefaultStartOptions(newApp, app.DefaultNodeHome),
@@ -232,6 +230,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
+		genesisCommand(encodingConfig.TxConfig, basicManager), // genesis related commands
 		server.StatusCommand(),
 		queryCommand(),
 		txCommand(),

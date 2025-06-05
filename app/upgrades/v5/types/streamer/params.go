@@ -18,9 +18,7 @@ type Params struct {
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
-var (
-	KeyMaxIterationsPerBlock = []byte("MaxIterationsPerBlock")
-)
+var KeyMaxIterationsPerBlock = []byte("MaxIterationsPerBlock")
 
 const (
 	DefaultMaxIterationsPerBlock uint64 = 100

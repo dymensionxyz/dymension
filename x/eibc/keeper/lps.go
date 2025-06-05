@@ -34,20 +34,20 @@ type LPs struct {
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	return LPs{
-		byRollAppDenom: collections.NewKeySet[collections.Triple[string, string, uint64]](
+		byRollAppDenom: collections.NewKeySet(
 			sb, LPsByRollAppDenomPrefix, "byRollAppDenom",
-			collections.TripleKeyCodec[string, string, uint64](
+			collections.TripleKeyCodec(
 				collections.StringKey,
 				collections.StringKey,
 				collections.Uint64Key,
 			)),
-		byID: collections.NewMap[uint64, types.OnDemandLPRecord](
+		byID: collections.NewMap(
 			sb, LPsByIDPrefix, "byID",
 			collections.Uint64Key, codec.CollValue[types.OnDemandLPRecord](cdc),
 		),
-		byAddr: collections.NewKeySet[collections.Pair[string, uint64]](
+		byAddr: collections.NewKeySet(
 			sb, LPsByAddrPrefix, "byAddr",
-			collections.PairKeyCodec[string, uint64](
+			collections.PairKeyCodec(
 				collections.StringKey,
 				collections.Uint64Key,
 			),
@@ -203,7 +203,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) e
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
 	}
-	r := rand.New(rand.NewPCG(rng,0))
+	r := rand.New(rand.NewPCG(rng, 0))
 	r.Shuffle(len(lps), func(i, j int) {
 		lps[i], lps[j] = lps[j], lps[i]
 	})
@@ -215,6 +215,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) e
 					return errorsmod.Wrapf(err, "delete lp: %d", lp.Id)
 				}
 				ctx.Logger().Error("Fulfill via on demand dlp - insufficient funds.", "lp", lp.Id)
+				// note: in case fulfill will get more complicated, we'll need to wrap this with cache ctx
 				continue
 			}
 			return errorsmod.Wrap(err, "fulfill lp")

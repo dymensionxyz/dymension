@@ -1,11 +1,11 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/math"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

@@ -1,21 +1,23 @@
 package ante_test
 
 import (
+	"fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"fmt"
-
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 )
 
-const dummyKey1 = "test_key_1"
-const dummyValue1 = "test_value_1"
-const dummyKey2 = "test_key_2"
-const dummyValue2 = "test_value_2"
+const (
+	dummyKey1   = "test_key_1"
+	dummyValue1 = "test_value_1"
+	dummyKey2   = "test_key_2"
+	dummyValue2 = "test_value_2"
+)
 
 // Dummy InnerCallback that returns error if depth > 1
 func dummyErrorOnDepthCallback(ctx sdk.Context, msg sdk.Msg, simulate bool, depth int) (sdk.Context, error) {

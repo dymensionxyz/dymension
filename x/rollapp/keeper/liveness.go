@@ -138,5 +138,3 @@ func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID strin
 	})
 	store.Delete(key)
 }
-
-

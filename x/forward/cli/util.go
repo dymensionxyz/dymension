@@ -448,7 +448,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 
 			body := bz
 			if kind == "message" {
-				var message  util.HyperlaneMessage
+				var message util.HyperlaneMessage
 				m, err := util.ParseHyperlaneMessage(bz)
 				if err != nil {
 					return fmt.Errorf(" %w", err)
@@ -542,7 +542,7 @@ func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
 	hyperlaneTokenAmt math.Int, // must be at least hub token amount
 	hook *types.HookForwardToIBC,
-)  (util.HyperlaneMessage, error) {
+) (util.HyperlaneMessage, error) {
 	if err := hook.ValidateBasic(); err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
 	}

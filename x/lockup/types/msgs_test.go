@@ -48,7 +48,7 @@ func TestMsgLockTokens(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid coin length",
+			name: "multiple coins to lock",
 			msg: types.MsgLockTokens{
 				Owner:    addr1,
 				Duration: time.Hour,
@@ -61,6 +61,14 @@ func TestMsgLockTokens(t *testing.T) {
 				Owner:    addr1,
 				Duration: time.Hour,
 				Coins:    sdk.NewCoins(sdk.NewCoin("test", math.NewInt(0))),
+			},
+		},
+		{
+			name: "negative token amount",
+			msg: types.MsgLockTokens{
+				Owner:    addr1,
+				Duration: time.Hour,
+				Coins:    []sdk.Coin{{Denom: "test", Amount: math.NewInt(-100)}},
 			},
 		},
 	}
@@ -111,7 +119,7 @@ func TestMsgBeginUnlocking(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid coins length",
+			name: "multiple coins to unlock",
 			msg: types.MsgBeginUnlocking{
 				Owner: addr1,
 				ID:    1,
@@ -135,6 +143,14 @@ func TestMsgBeginUnlocking(t *testing.T) {
 				Coins: sdk.NewCoins(),
 			},
 			expectPass: true,
+		},
+		{
+			name: "negative token amount",
+			msg: types.MsgBeginUnlocking{
+				Owner: addr1,
+				ID:    1,
+				Coins: []sdk.Coin{{Denom: "test", Amount: math.NewInt(-100)}},
+			},
 		},
 	}
 
