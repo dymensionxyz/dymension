@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 // iteratorAfterTime returns an iterator over all gauges in the {prefix} space of state, that begin distributing rewards after a specific time.
@@ -59,4 +60,19 @@ func (k Keeper) ActiveGaugesIterator(ctx sdk.Context) storetypes.Iterator {
 // FinishedGaugesIterator returns the iterator for all finished gauges.
 func (k Keeper) FinishedGaugesIterator(ctx sdk.Context) storetypes.Iterator {
 	return k.iterator(ctx, types.KeyPrefixFinishedGauges)
+}
+
+// FilterLocksByCondition returns locks whose lock duration is greater than the provided minimum duration.
+func FilterLocksByCondition(ctx sdk.Context, locks []lockuptypes.PeriodLock, condition lockuptypes.QueryCondition) []lockuptypes.PeriodLock {
+	filteredLocks := make([]lockuptypes.PeriodLock, 0, len(locks))
+
+	// the minimal expected updated time for eligible lock, is the current time minus the condition's lock age
+	minCreationTime := ctx.BlockTime().Add(-condition.LockAge)
+
+	for _, lock := range locks {
+		if lock.Duration >= condition.Duration && lock.UpdatedAt.Before(minCreationTime) {
+			filteredLocks = append(filteredLocks, lock)
+		}
+	}
+	return filteredLocks
 }

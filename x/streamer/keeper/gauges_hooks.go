@@ -11,23 +11,18 @@ import (
 // TODO: move to incentives module
 
 func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
-	duration := k.ik.GetLockableDurations(ctx)[0]
 	_, err := k.ik.CreateAssetGauge(
 		ctx,
 		true,
 		k.ak.GetModuleAddress(types.ModuleName),
 		sdk.Coins{},
 		lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         gammtypes.GetPoolShareDenom(poolId),
-			Duration:      duration,
+			Denom:    gammtypes.GetPoolShareDenom(poolId),
+			LockAge:  k.ik.GetParams(ctx).MinLockAge,
+			Duration: k.ik.GetParams(ctx).MinLockDuration,
 		},
 		ctx.BlockTime(),
 		1,
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
