@@ -27,7 +27,6 @@ type Keeper struct {
 
 // NewKeeper returns an instance of Keeper.
 func NewKeeper(storeKey stroretypes.StoreKey, cdc codec.BinaryCodec, ak types.AccountKeeper, bk types.BankKeeper, tk types.TxFeesKeeper, authority string) *Keeper {
-
 	return &Keeper{
 		storeKey:  storeKey,
 		cdc:       cdc,

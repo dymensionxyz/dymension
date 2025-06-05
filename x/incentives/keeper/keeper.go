@@ -40,7 +40,6 @@ func NewKeeper(
 	sk types.SequencerKeeper,
 	authority string,
 ) *Keeper {
-
 	return &Keeper{
 		storeKey:  storeKey,
 		cdc:       cdc,
