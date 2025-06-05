@@ -134,7 +134,6 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	return &types.MsgFulfillOrderAuthorizedResponse{}, nil
 }
 
-// TODO: rename and fix signature (ctx first)
 func (m msgServer) validateOrder(ctx sdk.Context, demandOrder *types.DemandOrder, msg *types.MsgFulfillOrderAuthorized) error {
 	if demandOrder.RollappId != msg.RollappId {
 		return types.ErrRollappIdMismatch
@@ -248,7 +247,6 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-/* ------------------------- ---------------------- ------------------------- */
 func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFulfillOnDemand) (*types.MsgTryFulfillOnDemandResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

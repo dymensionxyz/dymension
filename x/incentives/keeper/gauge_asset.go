@@ -35,6 +35,7 @@ func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.Ac
 	}
 
 	gauge := types.NewAssetGauge(k.GetLastGaugeID(ctx)+1, isPerpetual, distrTo, coins, startTime, numEpochsPaidOver)
+
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, gauge.Coins); err != nil {
 		return 0, err
 	}
