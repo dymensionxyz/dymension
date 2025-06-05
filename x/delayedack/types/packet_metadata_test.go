@@ -49,6 +49,14 @@ func Test_parsePacketMetadata(t *testing.T) {
 			true,
 		},
 		{
+			"invalid - mangled completion hook",
+			args{
+				`{"eibc":{"fee":100, "on_completion": "bad"}}`,
+			},
+			nil,
+			true,
+		},
+		{
 			"invalid - pfm",
 			args{
 				`{"forward":{}}`,

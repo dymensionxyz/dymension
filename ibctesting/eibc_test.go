@@ -221,7 +221,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			eibcFee:           "150",
 			fulfillerStartBal: "300",
 			expectFulfillFail: false,
-			fulfillHook:       nil,
+			completionHook:    nil,
 		},
 		{
 			name:              "fulfill demand order fail - insufficient balance",
@@ -229,7 +229,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			eibcFee:           "40",
 			fulfillerStartBal: "49",
 			expectFulfillFail: true,
-			fulfillHook:       nil,
+			completionHook:    nil,
 		},
 	})
 }
@@ -245,13 +245,18 @@ type eibcTransferFulfillmentTC struct {
 	// should the fulfill action by the fulfiller fail?
 	expectFulfillFail bool
 	// post fulfillment hook
-	fulfillHook []byte
+	completionHook []byte
 }
 
 type fulfillmentHelper struct {
 	*eibcSuite
 	numOrdersTotal int
 	rollappStateIx uint64
+}
+
+func (h *fulfillmentHelper) incrementRollappState() {
+	h.updateRollappState(uint64(h.rollappCtx().BlockHeight()))
+	h.rollappStateIx++
 }
 
 func (s *fulfillmentHelper) fundFulfiller(fulfiller sdk.AccAddress, bal string, eibcFee string) string {
@@ -301,15 +306,13 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 		s.Run(tc.name, func() {
 			ibcRecipientIx := idx
 			fulfillerIx := idx + 1 // offset
-			h.rollappStateIx++
 
 			ibcRecipient := s.hubChain().SenderAccounts[ibcRecipientIx].SenderAccount.GetAddress()
 			ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 			fulfiller := s.hubChain().SenderAccounts[fulfillerIx].SenderAccount.GetAddress()
 
 			s.rollappChain().NextBlock()
-			rolH := uint64(s.rollappCtx().BlockHeight())
-			s.updateRollappState(rolH)
+			h.incrementRollappState()
 
 			// transfer to fulfiller so he has money to spend
 			denom := h.fundFulfiller(fulfiller, tc.fulfillerStartBal, tc.eibcFee)
@@ -317,12 +320,12 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			s.rollappChain().NextBlock()
 			// increase the block height to make sure the next ibc packet won't be considered already finalized when sent
-			rolH = uint64(s.rollappCtx().BlockHeight())
-			h.rollappStateIx++
+			rolH := uint64(s.rollappCtx().BlockHeight())
 			h.updateRollappState(rolH)
+			h.rollappStateIx++
 
 			// now include the fulfill hook in the memo
-			memo := delayedacktypes.CreateMemo(tc.eibcFee, tc.fulfillHook)
+			memo := delayedacktypes.CreateMemo(tc.eibcFee, tc.completionHook)
 			packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), tc.transferAmt, memo, false)
 			s.Require().True(s.rollappHasPacketCommitment(packet))
 
