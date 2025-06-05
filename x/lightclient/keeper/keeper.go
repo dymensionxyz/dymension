@@ -41,6 +41,7 @@ type Keeper struct {
 	ibcChannelK     types.IBCChannelKeeperExpected
 	SeqK            types.SequencerKeeperExpected
 	rollappKeeper   types.RollappKeeperExpected
+	stakingKeeper   types.StakingKeeper
 
 	// <sequencer addr,client ID, height>
 	headerSigners collections.KeySet[collections.Triple[string, string, uint64]]
@@ -64,6 +65,7 @@ func NewKeeper(
 	ibcChannelK types.IBCChannelKeeperExpected,
 	sequencerKeeper types.SequencerKeeperExpected,
 	rollappKeeper types.RollappKeeperExpected,
+	stakingKeeper types.StakingKeeper,
 ) *Keeper {
 	service := collcompat.NewKVStoreService(storeKey)
 	sb := collections.NewSchemaBuilder(service)
@@ -76,6 +78,7 @@ func NewKeeper(
 		ibcChannelK:     ibcChannelK,
 		SeqK:            sequencerKeeper,
 		rollappKeeper:   rollappKeeper,
+		stakingKeeper:   stakingKeeper,
 		headerSigners: collections.NewKeySet(
 			sb,
 			types.HeaderSignersPrefixKey,
@@ -154,8 +157,12 @@ func (k Keeper) LightClient(goCtx context.Context, req *types.QueryGetLightClien
 	return &types.QueryGetLightClientResponse{ClientId: id}, nil
 }
 
-func (k Keeper) ExpectedClientState(context.Context, *types.QueryExpectedClientStateRequest) (*types.QueryExpectedClientStateResponse, error) {
-	c := k.expectedClient()
+func (k Keeper) ExpectedClientState(goCtx context.Context, req *types.QueryExpectedClientStateRequest) (*types.QueryExpectedClientStateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	c, err := k.expectedClient(ctx)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "get expected client")
+	}
 	anyClient, err := ibcclienttypes.PackClientState(&c)
 	if err != nil {
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInternal, err), "pack client state")

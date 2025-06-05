@@ -377,6 +377,7 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.SequencerKeeper,
 		a.RollappKeeper,
+		a.StakingKeeper,
 	)
 
 	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, a.LightClientKeeper)
