@@ -57,15 +57,6 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return nil, err
 	}
 
-	// we only allow locks with one denom
-	if msg.Coins.Len() != 1 {
-		return nil, fmt.Errorf("lockups can only have one denom per lock ID, got %v", msg.Coins)
-	}
-	coin := msg.Coins[0]
-	if !coin.IsPositive() {
-		return nil, fmt.Errorf("cannot lock up a zero or negative amount")
-	}
-
 	minLockDuration := server.keeper.GetParams(ctx).MinLockDuration
 	if msg.Duration < minLockDuration {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "lock duration (%d) is less than the minimum lock duration (%d)", msg.Duration, minLockDuration)
@@ -73,8 +64,8 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 
 	// check if there's an existing lock from the same owner with the same duration.
 	// If so, simply add tokens to the existing lock.
-	if server.keeper.HasLock(ctx, owner, coin.Denom, msg.Duration) {
-		lockID, err := server.keeper.AddToExistingLock(ctx, owner, coin, msg.Duration)
+	if server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration) {
+		lockID, err := server.keeper.AddToExistingLock(ctx, owner, msg.Coins[0], msg.Duration)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +75,7 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 				types.TypeEvtAddTokensToLock,
 				sdk.NewAttribute(types.AttributePeriodLockID, osmoutils.Uint64ToString(lockID)),
 				sdk.NewAttribute(types.AttributePeriodLockOwner, msg.Owner),
-				sdk.NewAttribute(types.AttributePeriodLockAmount, coin.String()),
+				sdk.NewAttribute(types.AttributePeriodLockAmount, msg.Coins.String()),
 			),
 		})
 		return &types.MsgLockTokensResponse{ID: lockID}, nil

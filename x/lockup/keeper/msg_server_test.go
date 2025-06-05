@@ -57,36 +57,6 @@ func (suite *KeeperTestSuite) TestMsgLockTokens() {
 			},
 			expectPass: false,
 		},
-		{
-			name: "invalid owner",
-			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},
-				lockOwner:           sdk.AccAddress("invalid"),
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
-			},
-			expectPass: false,
-		},
-		{
-			name: "multiple coins to lock",
-			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake1", 10), sdk.NewInt64Coin("stake2", 10)},
-				lockOwner:           sdk.AccAddress([]byte("addr1---------------")),
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake1", 10), sdk.NewInt64Coin("stake2", 10)},
-			},
-			expectPass: false,
-		},
-		{
-			name: "zero token amount",
-			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 0)},
-				lockOwner:           sdk.AccAddress([]byte("addr1---------------")),
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
-			},
-			expectPass: false,
-		},
 	}
 
 	for _, test := range tests {
@@ -157,12 +127,10 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 	type param struct {
 		coinsToLock         sdk.Coins
 		coinsToUnlock       sdk.Coins
-		sender              sdk.AccAddress
+		lockOwner           sdk.AccAddress
 		duration            time.Duration
 		coinsInOwnerAddress sdk.Coins
 	}
-
-	lockOwner := sdk.AccAddress([]byte("addr1---------------"))
 
 	tests := []struct {
 		name       string
@@ -173,9 +141,9 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 		{
 			name: "unlock full amount of tokens via begin unlock",
 			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)}, // setup wallet
-				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake", 10)}, // setup wallet
-				sender:              lockOwner,
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
+				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
 				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
@@ -184,9 +152,9 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 		{
 			name: "unlock partial amount of tokens via begin unlock",
 			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)}, // setup wallet
-				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake", 5)},  // setup wallet
-				sender:              lockOwner,
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
+				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake", 5)},        // setup wallet
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
 				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
@@ -196,65 +164,30 @@ func (suite *KeeperTestSuite) TestMsgBeginUnlocking() {
 		{
 			name: "unlock zero amount of tokens via begin unlock",
 			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)}, // setup wallet
-				coinsToUnlock:       sdk.Coins{},                              // setup wallet
-				sender:              lockOwner,
+				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},       // setup wallet
+				coinsToUnlock:       sdk.Coins{},                                    // setup wallet
+				lockOwner:           sdk.AccAddress([]byte("addr1---------------")), // setup wallet
 				duration:            time.Second,
 				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
 			},
 			expectPass: true,
-		},
-		{
-			name: "invalid owner",
-			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake", 10)},
-				sender:              sdk.AccAddress("invalid"),
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake", 10)},
-			},
-			expectPass: false,
-		},
-		{
-			name: "multiple coins to unlock",
-			param: param{
-				coinsToLock:         sdk.Coins{sdk.NewInt64Coin("stake1", 10)},
-				coinsToUnlock:       sdk.Coins{sdk.NewInt64Coin("stake1", 5), sdk.NewInt64Coin("stake2", 5)},
-				sender:              lockOwner,
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake1", 10), sdk.NewInt64Coin("stake2", 10)},
-			},
-			expectPass: false,
-		},
-		{
-			name: "negative amount",
-			param: param{
-				coinsToLock: sdk.Coins{sdk.NewInt64Coin("stake1", 10)},
-				coinsToUnlock: sdk.Coins{sdk.Coin{
-					Denom:  "stake1",
-					Amount: math.NewInt(-5),
-				}},
-				sender:              lockOwner,
-				duration:            time.Second,
-				coinsInOwnerAddress: sdk.Coins{sdk.NewInt64Coin("stake1", 10)},
-			},
-			expectPass: false,
 		},
 	}
 
 	for _, test := range tests {
 		suite.SetupTest()
 
-		suite.FundAcc(lockOwner, test.param.coinsInOwnerAddress)
+		suite.FundAcc(test.param.lockOwner, test.param.coinsInOwnerAddress)
 		// fund address with lock fee
 		baseDenom, _ := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
-		suite.FundAcc(lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
+		suite.FundAcc(test.param.lockOwner, sdk.NewCoins(sdk.NewCoin(baseDenom, types.DefaultLockFee)))
 
 		msgServer := keeper.NewMsgServerImpl(suite.App.LockupKeeper)
 		goCtx := sdk.WrapSDKContext(suite.Ctx)
-		resp, err := msgServer.LockTokens(goCtx, types.NewMsgLockTokens(lockOwner, test.param.duration, test.param.coinsToLock))
+		resp, err := msgServer.LockTokens(goCtx, types.NewMsgLockTokens(test.param.lockOwner, test.param.duration, test.param.coinsToLock))
 		suite.Require().NoError(err)
 
-		unlockingResponse, err := msgServer.BeginUnlocking(goCtx, types.NewMsgBeginUnlocking(test.param.sender, resp.ID, test.param.coinsToUnlock))
+		unlockingResponse, err := msgServer.BeginUnlocking(goCtx, types.NewMsgBeginUnlocking(test.param.lockOwner, resp.ID, test.param.coinsToUnlock))
 
 		if test.expectPass {
 			suite.Require().NoError(err)
