@@ -55,38 +55,19 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 	endorsementGauge := gauge.DistributeTo.(*types.Gauge_Endorsement)
 
 	err := k.spk.UpdateEndorsementTotalCoins(ctx, endorsementGauge.Endorsement.RollappId, epochRewards)
-	switch {
-	case err == nil:
-		gauge.FilledEpochs += 1
-		gauge.DistributedCoins = gauge.DistributedCoins.Add(epochRewards...)
-
-		if err := k.setGauge(ctx, &gauge); err != nil {
-			return err
-		}
-	case errors.Is(err, sponsorshiptypes.ErrNoEndorsers):
+	if errors.Is(err, sponsorshiptypes.ErrNoEndorsers) {
 		// Don't fill this epoch, save rewards for the future
-	default:
+		return nil
+	}
+	if err != nil {
 		return fmt.Errorf("update endorsement total coins: %w", err)
 	}
 
-	return nil
-}
+	gauge.FilledEpochs += 1
+	gauge.DistributedCoins = gauge.DistributedCoins.Add(epochRewards...)
 
-func (k Keeper) DistributeEndorsementRewards(ctx sdk.Context, user sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) error {
-	gauge, err := k.GetGaugeByID(ctx, gaugeId)
-	if err != nil {
-		return fmt.Errorf("get gauge by ID: %w", err)
-	}
-
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, user, rewards)
-	if err != nil {
-		return fmt.Errorf("send coins from x/incentives to user: %w", err)
-	}
-
-	gauge.DistributedCoins = gauge.DistributedCoins.Add(rewards...)
-	err = k.setGauge(ctx, gauge)
-	if err != nil {
-		return fmt.Errorf("set gauge: %w", err)
+	if err := k.setGauge(ctx, &gauge); err != nil {
+		return err
 	}
 
 	return nil

@@ -21,7 +21,7 @@ const (
 	DelegatorValidatorPowerByte        // Delegator voting power by the validator: math.Int
 	VoteByte                           // User's vote: Vote
 	RAEndorsementsByte                 // RA endorsement: Endorsement
-	ClaimBlacklistIndexByte            // Deprecated. Claim blacklist: sdk.AccAddress
+	_                                  // Deprecated. Used to be a claim blacklist.
 	EndorserPositionsByte              // Endorser positions: EndorserPosition
 )
 
