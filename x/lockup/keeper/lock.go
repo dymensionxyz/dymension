@@ -60,13 +60,23 @@ func (k Keeper) AddToExistingLock(ctx sdk.Context, owner sdk.AccAddress, coin sd
 	if len(locks) < 1 {
 		return 0, errorsmod.Wrapf(types.ErrLockupNotFound, "lock with denom %s before duration %s does not exist", coin.Denom, duration.String())
 	}
-
-	// if existing lock with same duration and denom exists, add to the existing lock
 	// there should only be a single lock with the same duration + token, thus we take the first lock
-	lock := locks[0]
+	lock := &locks[0]
+
 	_, err := k.AddTokensToLockByID(ctx, lock.ID, owner, coin)
 	if err != nil {
 		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+
+	// update the timestamp of the lock
+	lock, err = k.GetLockByID(ctx, lock.ID)
+	if err != nil {
+		return 0, err
+	}
+	lock.UpdatedAt = ctx.BlockTime()
+	err = k.setLock(ctx, *lock)
+	if err != nil {
+		return 0, err
 	}
 
 	return lock.ID, nil
@@ -75,6 +85,12 @@ func (k Keeper) AddToExistingLock(ctx sdk.Context, owner sdk.AccAddress, coin sd
 // HasLock returns true if lock with the given condition exists
 func (k Keeper) HasLock(ctx sdk.Context, owner sdk.AccAddress, denom string, duration time.Duration) bool {
 	locks := k.GetAccountLockedDurationNotUnlockingOnly(ctx, owner, denom, duration)
+	return len(locks) > 0
+}
+
+// HasUnlockingLock returns true if unlocking lock with the given condition exists
+func (k Keeper) HasUnlockingLock(ctx sdk.Context, owner sdk.AccAddress, denom string, duration time.Duration) bool {
+	locks := k.GetAccountLockedDurationUnlockingOnly(ctx, owner, denom, duration)
 	return len(locks) > 0
 }
 
@@ -114,7 +130,7 @@ func (k Keeper) CreateLock(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coin
 	ID := k.GetLastLockID(ctx) + 1
 	// unlock time is initially set without a value, gets set as unlock start time + duration
 	// when unlocking starts.
-	lock := types.NewPeriodLock(ID, owner, duration, time.Time{}, coins)
+	lock := types.NewPeriodLock(ID, owner, duration, time.Time{}, coins, ctx.BlockTime())
 	err := k.lock(ctx, lock, lock.Coins)
 	if err != nil {
 		return lock, err
@@ -371,7 +387,7 @@ func (k Keeper) unlockMaturedLockInternalLogic(ctx sdk.Context, lock types.Perio
 // ExtendLockup changes the existing lock duration to the given lock duration.
 // Updating lock duration would fail on either of the following conditions.
 // 1. Only lock owner is able to change the duration of the lock.
-// 2. Locks that are unlokcing are not allowed to change duration.
+// 2. Locks that are unlocking are not allowed to change duration.
 // 3. Locks that have synthetic lockup are not allowed to change.
 // 4. Provided duration should be greater than the original duration.
 func (k Keeper) ExtendLockup(ctx sdk.Context, lockID uint64, owner sdk.AccAddress, newDuration time.Duration) error {
@@ -541,7 +557,7 @@ func (k Keeper) splitLock(ctx sdk.Context, lock types.PeriodLock, coins sdk.Coin
 	splitLockID := k.GetLastLockID(ctx) + 1
 	k.SetLastLockID(ctx, splitLockID)
 
-	splitLock := types.NewPeriodLock(splitLockID, lock.OwnerAddress(), lock.Duration, lock.EndTime, coins)
+	splitLock := types.NewPeriodLock(splitLockID, lock.OwnerAddress(), lock.Duration, lock.EndTime, coins, ctx.BlockTime())
 
 	err = k.setLock(ctx, splitLock)
 	return splitLock, err
@@ -553,4 +569,9 @@ func (k Keeper) getCoinsFromLocks(locks []types.PeriodLock) sdk.Coins {
 		coins = coins.Add(lock.Coins...)
 	}
 	return coins
+}
+
+// SetLock sets a lock in the store (public for migrations).
+func (k Keeper) SetLock(ctx sdk.Context, lock types.PeriodLock) error {
+	return k.setLock(ctx, lock)
 }

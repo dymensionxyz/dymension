@@ -119,6 +119,10 @@ func (server msgServer) BeginUnlocking(goCtx context.Context, msg *types.MsgBegi
 		return nil, errorsmod.Wrap(types.ErrNotLockOwner, fmt.Sprintf("msg sender (%s) and lock owner (%s) does not match", msg.Owner, lock.Owner))
 	}
 
+	if server.keeper.HasUnlockingLock(ctx, lock.OwnerAddress(), lock.Coins[0].Denom, lock.Duration) {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "cannot begin unlock for a lock that is already unlocking")
+	}
+
 	unlockingLock, err := server.keeper.BeginUnlock(ctx, lock.ID, msg.Coins)
 	if err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
