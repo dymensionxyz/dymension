@@ -24,18 +24,6 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("error validating weights: %w", err)
 	}
 
-	// Check if the user's voted. If they have, revoke the previous vote to place a new one.
-	voted, err := k.Voted(ctx, voter)
-	if err != nil {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
-	}
-	if voted {
-		_, err := k.RevokeVote(ctx, voter)
-		if err != nil {
-			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to revoke previous vote: %w", err)
-		}
-	}
-
 	// Get the user’s total voting power from the x/staking
 	vpBreakdown, err := k.GetValidatorBreakdown(ctx, voter)
 	if err != nil {
@@ -50,14 +38,25 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	// Apply the vote weights to the power -> get a distribution update in absolute values
 	update := types.ApplyWeights(vpBreakdown.TotalPower, weights)
 
+	// Check if the user's voted. If they have, update the current vote with the existing one.
+	voted, err := k.Voted(ctx, voter)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
+	}
+	if voted {
+		vote, _ := k.GetVote(ctx, voter)
+		// update = newVote - prevVote
+		update = update.Merge(vote.ToDistribution().Negate())
+	}
+
 	// Update the current distribution
 	distr, err := k.UpdateDistribution(ctx, update.Merge)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to update distribution: %w", err)
 	}
 
-	// Add voter's shares to RA endorsement shares
-	err = k.UpdateTotalSharesWithDistribution(ctx, update)
+	// Add endorser's shares to RA endorsement shares and update endorser's position
+	err = k.UpdateEndorsementsAndPositions(ctx, voter, update)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
 	}
@@ -70,12 +69,6 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	err = k.SaveVote(ctx, voter, vote)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to save vote: %w", err)
-	}
-
-	// The user can't claim rewards in this epoch
-	err = k.BlacklistClaim(ctx, voter)
-	if err != nil {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("blacklist claim: %w", err)
 	}
 
 	// Save the user's voting power breakdown
@@ -119,12 +112,13 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 	}
 
 	// Subtract voter's shares from RA endorsement shares (update is already negated)
-	err = k.UpdateTotalSharesWithDistribution(ctx, update)
+	// and update endorser's position
+	err = k.UpdateEndorsementsAndPositions(ctx, voter, update)
 	if err != nil {
 		return types.Distribution{}, fmt.Errorf("update endorsements: %w", err)
 	}
 
-	// Prune the user’s vote and voting power
+	// Prune the user's vote and voting power
 	err = k.DeleteVote(ctx, voter)
 	if err != nil {
 		return types.Distribution{}, fmt.Errorf("failed to delete vote: %w", err)
@@ -146,12 +140,12 @@ func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vot
 }
 
 // validateWeights validates that
-//   - No gauge get less than MinAllocationWeight
+//   - No gauge gets less than MinAllocationWeight
 //   - All gauges exist
 //   - All gauges are perpetual
 func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, minAllocationWeight math.Int) error {
 	for _, weight := range weights {
-		// No gauge get less than MinAllocationWeight
+		// No gauge gets less than MinAllocationWeight
 		if weight.Weight.LT(minAllocationWeight) {
 			return fmt.Errorf("gauge weight is less than min allocation weight: gauge weight %s, min allocation %s", weight.Weight, minAllocationWeight)
 		}

@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 // CreateEndorsementGauge creates a gauge and sends coins to the gauge.
@@ -49,32 +51,23 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 		epochRewards = gaugeBalance.QuoInt(remainingEpochs)
 	}
 
-	endorsement := gauge.DistributeTo.(*types.Gauge_Endorsement).Endorsement
-	endorsement.EpochRewards = epochRewards // we operate a pointer
+	// Update endorsement total coins with the epoch rewards
+	endorsementGauge := gauge.DistributeTo.(*types.Gauge_Endorsement)
+
+	err := k.spk.UpdateEndorsementTotalCoins(ctx, endorsementGauge.Endorsement.RollappId, epochRewards)
+	if errors.Is(err, sponsorshiptypes.ErrNoEndorsers) {
+		// Don't fill this epoch, save rewards for the future
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("update endorsement total coins: %w", err)
+	}
+
 	gauge.FilledEpochs += 1
+	gauge.DistributedCoins = gauge.DistributedCoins.Add(epochRewards...)
 
 	if err := k.setGauge(ctx, &gauge); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (k Keeper) DistributeEndorsementRewards(ctx sdk.Context, user sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) error {
-	gauge, err := k.GetGaugeByID(ctx, gaugeId)
-	if err != nil {
-		return fmt.Errorf("get gauge by ID: %w", err)
-	}
-
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, user, rewards)
-	if err != nil {
-		return fmt.Errorf("send coins from x/incentives to user: %w", err)
-	}
-
-	gauge.DistributedCoins = gauge.DistributedCoins.Add(rewards...)
-	err = k.setGauge(ctx, gauge)
-	if err != nil {
-		return fmt.Errorf("set gauge: %w", err)
 	}
 
 	return nil

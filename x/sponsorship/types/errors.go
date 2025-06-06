@@ -9,4 +9,5 @@ var (
 	ErrInvalidGenesis      = errorsmod.Register(ModuleName, 4, "invalid genesis")
 	ErrInvalidVote         = errorsmod.Register(ModuleName, 5, "invalid vote")
 	ErrInvalidVoterInfo    = errorsmod.Register(ModuleName, 6, "invalid voter info")
+	ErrNoEndorsers         = errorsmod.Register(ModuleName, 7, "no endorsers")
 )

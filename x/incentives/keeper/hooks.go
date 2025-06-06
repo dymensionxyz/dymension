@@ -1,18 +1,31 @@
 package keeper
 
 import (
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
+/* -------------------------------------------------------------------------- */
+/*                                epoch hooks                                 */
+/* -------------------------------------------------------------------------- */
+
+var _ epochstypes.EpochHooks = EpochHooks{}
+
+type EpochHooks struct {
+	Keeper
+}
+
+func (k Keeper) EpochHooks() EpochHooks {
+	return EpochHooks{k}
+}
+
 // BeforeEpochStart is the epoch start hook.
-func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+func (k EpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return nil
 }
 
 // AfterEpochEnd is the epoch end hook.
-func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+func (k EpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := k.GetParams(ctx)
 	if epochIdentifier == params.DistrEpochIdentifier {
 		// begin distribution if it's start time
@@ -33,28 +46,4 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		}
 	}
 	return nil
-}
-
-// ___________________________________________________________________________________________________
-
-// Hooks is the wrapper struct for the incentives keeper.
-type Hooks struct {
-	k Keeper
-}
-
-var _ epochstypes.EpochHooks = Hooks{}
-
-// Hooks returns the hook wrapper struct.
-func (k Keeper) Hooks() Hooks {
-	return Hooks{k}
-}
-
-// BeforeEpochStart is the epoch start hook.
-func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
-}
-
-// AfterEpochEnd is the epoch end hook.
-func (h Hooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }

@@ -22,9 +22,8 @@ type Keeper struct {
 	votes                   collections.Map[sdk.AccAddress, types.Vote]
 	// rollapp ID -> types.Endorsement mapping
 	raEndorsements collections.Map[string, types.Endorsement]
-	// the list of the users who do not have the right to claim rewards on this epoch
-	// the index is refreshed every epoch
-	claimBlacklist collections.KeySet[sdk.AccAddress]
+	// <user address, rollapp ID> -> types.EndorserPosition
+	endorserPositions collections.Map[collections.Pair[sdk.AccAddress, string], types.EndorserPosition]
 
 	stakingKeeper    types.StakingKeeper
 	incentivesKeeper types.IncentivesKeeper
@@ -37,7 +36,6 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ak types.AccountKeeper,
 	sk types.StakingKeeper,
-	ik types.IncentivesKeeper,
 	bk types.BankKeeper,
 	authority string,
 ) Keeper {
@@ -91,14 +89,18 @@ func NewKeeper(
 			collections.StringKey,
 			codec.CollValue[types.Endorsement](cdc),
 		),
-		claimBlacklist: collections.NewKeySet(
+		endorserPositions: collections.NewMap(
 			sb,
-			types.ClaimBlacklistPrefix(),
-			"claim_blacklist",
-			sdk.AccAddressKey,
+			types.EndorserPositionsPrefix(),
+			"endorser_positions",
+			collections.PairKeyCodec(
+				collcompat.AccAddressKey,
+				collections.StringKey,
+			),
+			codec.CollValue[types.EndorserPosition](cdc),
 		),
 		stakingKeeper:    sk,
-		incentivesKeeper: ik,
+		incentivesKeeper: nil, // set later via SetIncentivesKeeper
 		bankKeeper:       bk,
 	}
 
@@ -115,4 +117,9 @@ func NewKeeper(
 
 func (k Keeper) Schema() collections.Schema {
 	return k.schema
+}
+
+// SetIncentivesKeeper sets the incentives keeper after both keepers are initialized.
+func (k *Keeper) SetIncentivesKeeper(ik types.IncentivesKeeper) {
+	k.incentivesKeeper = ik
 }
