@@ -113,10 +113,11 @@ func (suite *KeeperTestSuite) AddToGauge(coins sdk.Coins, gaugeID uint64) uint64
 }
 
 // LockTokens locks tokens for the specified duration
-func (suite *KeeperTestSuite) LockTokens(addr sdk.AccAddress, coins sdk.Coins, duration time.Duration) {
+func (suite *KeeperTestSuite) LockTokens(addr sdk.AccAddress, coins sdk.Coins, duration time.Duration) lockuptypes.PeriodLock {
 	suite.FundAcc(addr, coins)
-	_, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr, coins, duration)
+	lock, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr, coins, duration)
 	suite.Require().NoError(err)
+	return lock
 }
 
 // setupNewGaugeWithDuration creates a gauge with the specified duration.
@@ -126,9 +127,8 @@ func (suite *KeeperTestSuite) setupNewGaugeWithDuration(isPerpetual bool, coins 
 	addr := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
 	startTime2 := time.Now()
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         denom,
-		Duration:      duration,
+		Denom:    denom,
+		Duration: duration,
 	}
 
 	// mints coins so supply exists on chain
@@ -155,9 +155,8 @@ func (suite *KeeperTestSuite) setupNewGaugeWithDenom(isPerpetual bool, coins sdk
 	addr := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
 	startTime2 := time.Now()
 	distrTo := lockuptypes.QueryCondition{
-		LockQueryType: lockuptypes.ByDuration,
-		Denom:         denom,
-		Duration:      duration,
+		Denom:    denom,
+		Duration: duration,
 	}
 
 	// mints coins so supply exists on chain
