@@ -4,10 +4,10 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -26,7 +26,7 @@ const (
 // The actual charge happens on the packet finalization
 // based on ADR: https://www.notion.so/dymension/ADR-x-Bridging-Fee-Middleware-7ba8c191373f43ce81782fc759913299?pvs=4
 type IBCModule struct {
-	ibctransfer.IBCModule
+	porttypes.IBCModule
 
 	rollappKeeper    rollappkeeper.Keeper
 	delayedAckKeeper delayedackkeeper.Keeper
@@ -35,7 +35,7 @@ type IBCModule struct {
 }
 
 func NewIBCModule(
-	next ibctransfer.IBCModule,
+	next porttypes.IBCModule,
 	rollappKeeper rollappkeeper.Keeper,
 	delayedAckKeeper delayedackkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,

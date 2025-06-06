@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
 
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -40,17 +41,18 @@ type Upgrade struct {
 }
 
 type UpgradeKeepers struct {
-	LockupKeeper      *lockupkeeper.Keeper
-	IROKeeper         *irokeeper.Keeper
-	GAMMKeeper        *gammkeeper.Keeper
-	GovKeeper         *govkeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
-	RollappKeeper     *rollappkeeper.Keeper
-	SequencerKeeper   *sequencerkeeper.Keeper
-	SponsorshipKeeper *sponsorshipkeeper.Keeper
-	ParamsKeeper      *paramskeeper.Keeper
-	DelayedAckKeeper  *delayedackkeeper.Keeper
-	EIBCKeeper        *eibckeeper.Keeper
-	DymNSKeeper       *dymnskeeper.Keeper
-	StreamerKeeper    *streamermodulekeeper.Keeper
+	LockupKeeper       *lockupkeeper.Keeper
+	IROKeeper          *irokeeper.Keeper
+	GAMMKeeper         *gammkeeper.Keeper
+	GovKeeper          *govkeeper.Keeper
+	IncentivesKeeper   *incentiveskeeper.Keeper
+	RollappKeeper      *rollappkeeper.Keeper
+	SequencerKeeper    *sequencerkeeper.Keeper
+	SponsorshipKeeper  *sponsorshipkeeper.Keeper
+	ParamsKeeper       *paramskeeper.Keeper
+	DelayedAckKeeper   *delayedackkeeper.Keeper
+	EIBCKeeper         *eibckeeper.Keeper
+	DymNSKeeper        *dymnskeeper.Keeper
+	StreamerKeeper     *streamermodulekeeper.Keeper
+	RateLimitingKeeper *ratelimitkeeper.Keeper
 }
