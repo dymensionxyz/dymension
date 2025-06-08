@@ -318,12 +318,13 @@ func (s *KeeperTestSuite) ExtractTakerFeeAmtFromEvents(events []sdk.Event, event
 	if !found {
 		return math.Int{}, false
 	}
-	attrs := s.ExtractAttributes(event)
-	for key, value := range attrs {
-		if key == "taker_fee" {
-			fee, ok := math.NewIntFromString(value)
-			s.Require().True(ok)
-			return fee, true
+	// Look for taker_fee attribute (structured coin object)
+	for _, attr := range event.Attributes {
+		if attr.GetKey() == "taker_fee" {
+			var coin sdk.Coin
+			err := s.App.AppCodec().UnmarshalJSON([]byte(attr.GetValue()), &coin)
+			s.Require().NoError(err)
+			return coin.Amount, true
 		}
 	}
 	return math.ZeroInt(), false
