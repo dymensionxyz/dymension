@@ -17,9 +17,10 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRemoveApp{}, "rollapp/RemoveApp", nil)
 	cdc.RegisterConcrete(&MsgRollappFraudProposal{}, "rollapp/RollappFraudProposal", nil)
 	cdc.RegisterConcrete(&MsgMarkObsoleteRollapps{}, "rollapp/MarkObsoleteRollapps", nil)
-	cdc.RegisterConcrete(&MsgForceGenesisInfoChange{}, "rollapp/ForceGenesisInfoChange", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "rollapp/UpdateParams", nil)
 	cdc.RegisterConcrete(Params{}, "rollapp/Params", nil)
+	cdc.RegisterConcrete(&MsgForceGenesisInfoChange{}, "rollapp/ForceGenesisInfoChange", nil)
+	cdc.RegisterConcrete(&GenesisInfo{}, "rollapp/GenesisInfo", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
