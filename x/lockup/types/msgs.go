@@ -39,10 +39,10 @@ func (m MsgLockTokens) ValidateBasic() error {
 
 	// we only allow locks with one denom for now
 	if m.Coins.Len() != 1 {
-		return fmt.Errorf("lockups can only have one denom per lock ID, got %v", m.Coins)
+		return fmt.Errorf("single denom locks are only supported")
 	}
 
-	// validate coins. empty coins are allowed.
+	// validate coins
 	if err := m.Coins.Validate(); err != nil {
 		return errorsmod.Wrapf(err, "coins should be valid")
 	}
