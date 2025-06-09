@@ -11,9 +11,12 @@ import (
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateStream{}, "dymension/CreateStream", nil)
+	cdc.RegisterConcrete(&DistrRecord{}, "streamer/DistrRecord", nil)
 	cdc.RegisterConcrete(&MsgTerminateStream{}, "dymension/TerminateStream", nil)
 	cdc.RegisterConcrete(&MsgReplaceStream{}, "dymension/ReplaceStream", nil)
 	cdc.RegisterConcrete(&MsgUpdateStream{}, "dymension/UpdateStream", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "streamer/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "streamer/Params", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the streamer module.

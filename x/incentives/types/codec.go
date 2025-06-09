@@ -12,6 +12,8 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateGauge{}, "dymensionxyz/dymension/incentives/CreateGauge", nil)
 	cdc.RegisterConcrete(&MsgAddToGauge{}, "dymensionxyz/dymension/incentives/AddToGauge", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "incentives/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "incentives/Params", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the incentives module.
@@ -20,6 +22,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgCreateGauge{},
 		&MsgAddToGauge{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

@@ -232,7 +232,7 @@ func (suite *AnteTestSuite) DumpEIP712LegacyTypedData(from sdk.AccAddress, msgs 
 	txConfig := suite.clientCtx.TxConfig
 	suite.txBuilder = txConfig.NewTxBuilder()
 	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
+	suite.Require().True(ok, "txBuilder could not be cast to authtx.ExtensionOptionsTxBuilder type")
 
 	// chainID
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
@@ -286,7 +286,7 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 	txConfig := suite.clientCtx.TxConfig
 	suite.txBuilder = txConfig.NewTxBuilder()
 	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
+	suite.Require().True(ok, "txBuilder could not be cast to authtx.ExtensionOptionsTxBuilder type")
 
 	// chainID
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
