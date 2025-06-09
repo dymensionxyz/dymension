@@ -42,7 +42,14 @@ func (k Keeper) UpdateDistribution(ctx sdk.Context, fn func(types.Distribution) 
 	// Apply the update
 	result := fn(current)
 
-	// Don't store gauges with <= 0 power
+	// Don't store gauges with <= 0 power.
+	// This is protection against the truncation bug in x/staking. Refer to
+	// https://www.notion.so/dymension/Negative-Sponsorship-Weight-143a4a51f86a80ab8d5feb060ce78122
+	// and `staking_test.go` for more details.
+	//
+	// The gist is that in some specific cases, we might get inconsistent staking power from x/staking
+	// (less than the originally staked value by 1 adym). In that case in x/sponsorship calculations, we might
+	// face -1 gauge power. E.g., if we expect 200...000 adym, but get 199...999 adym.
 	result = result.FilterNonPositive()
 
 	// Save the updated distribution

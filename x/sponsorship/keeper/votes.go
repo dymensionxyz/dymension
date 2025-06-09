@@ -44,6 +44,34 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("cannot verify if the voter has already voted: %w", err)
 	}
 	if voted {
+		// Explanation:
+		//
+		// Let's say we have a global distribution:
+		// [1, 1000] [2, 2000] power 3000
+		//
+		// Imagine a user with 400 DYM staked. He votes 25% on Gauge1 and 75% on Gauge2. When we apply his weights,
+		// we convert his vote to a distribution update, which will look like the following:
+		// [1, 100] [2, 300] power 400
+		//
+		// So the distribution after update looks like:
+		// [1, 1000] [2, 2000] power 3000 +
+		// [1, 100] [2, 300] power 400 =
+		// [1, 1100] [2, 2300] power 3400
+		//
+		//Now imagine this user wants to update his vote (i.e. place a new one while he has the existing).
+		// He votes 25% on Gauge1 and 25% on Gauge2, so the distribution update should look like the following:
+		// [1, 100] [2, 100] power 400
+		//
+		// Since the user has the previous vote, we need to account for it as well. For that, we subtract the previous
+		// vote from the new one before applying the update (using the merge operation):
+		// [1, 100] [2, 100] power 400 -
+		// [1, 100] [2, 300] power 400 =
+		// [2, -200] power 0 <— Negative power
+		//
+		// Then, apply this update to the global distribution:
+		// [1, 1100] [2, 2300] power 3400 +
+		// [2, -200] power 0 =
+		// [1, 1100] [2, 2100] power 3400 <— Final distribution
 		vote, _ := k.GetVote(ctx, voter)
 		// update = newVote - prevVote
 		update = update.Merge(vote.ToDistribution().Negate())
