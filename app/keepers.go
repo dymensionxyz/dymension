@@ -194,7 +194,6 @@ func (a *AppKeepers) InitKeepers(
 	moduleAccountAddrs map[string]bool,
 	appOpts servertypes.AppOptions,
 ) {
-
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// get skipUpgradeHeights from the app options

@@ -111,7 +111,7 @@ func fixFile(filePath string) error {
 	lines = fixRPC(lines, moduleName)
 
 	final := strings.Join(lines, "\n")
-	return ioutil.WriteFile(filePath, []byte(final), 0644)
+	return os.WriteFile(filePath, []byte(final), 0o644)
 }
 
 func findPackageName(lines []string) string {

@@ -6,9 +6,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var (
-	_ sdk.Msg = &MsgSetCanonicalClient{}
-)
+var _ sdk.Msg = &MsgSetCanonicalClient{}
 
 func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)

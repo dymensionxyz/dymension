@@ -12,54 +12,10 @@ import (
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-var _ sdk.AnteDecorator = IBCProofHeightDecorator{}
-
 type IBCProofHeightDecorator struct{}
 
 func NewIBCProofHeightDecorator() IBCProofHeightDecorator {
 	return IBCProofHeightDecorator{}
-}
-
-func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	for _, m := range tx.GetMsgs() {
-		var (
-			height   clienttypes.Height
-			packetId common.PacketUID
-		)
-		switch msg := m.(type) {
-		case *channeltypes.MsgRecvPacket:
-			height = msg.ProofHeight
-			packetId = common.NewPacketUID(
-				common.RollappPacket_ON_RECV,
-				msg.Packet.DestinationPort,
-				msg.Packet.DestinationChannel,
-				msg.Packet.Sequence,
-			)
-
-		case *channeltypes.MsgAcknowledgement:
-			height = msg.ProofHeight
-			packetId = common.NewPacketUID(
-				common.RollappPacket_ON_ACK,
-				msg.Packet.SourcePort,
-				msg.Packet.SourceChannel,
-				msg.Packet.Sequence,
-			)
-
-		case *channeltypes.MsgTimeout:
-			height = msg.ProofHeight
-			packetId = common.NewPacketUID(
-				common.RollappPacket_ON_TIMEOUT,
-				msg.Packet.SourcePort,
-				msg.Packet.SourceChannel,
-				msg.Packet.Sequence,
-			)
-		default:
-			continue
-		}
-
-		ctx = CtxWithPacketProofHeight(ctx, packetId, height)
-	}
-	return next(ctx, tx, simulate)
 }
 
 func (rrd IBCProofHeightDecorator) InnerCallback(ctx sdk.Context, m sdk.Msg, simulate bool, depth int) (sdk.Context, error) {
