@@ -7,6 +7,7 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -55,4 +56,5 @@ type UpgradeKeepers struct {
 	DymNSKeeper       *dymnskeeper.Keeper
 	StreamerKeeper    *streamermodulekeeper.Keeper
 	MintKeeper        *mintkeeper.Keeper
+	SlashingKeeper    *slashingkeeper.Keeper
 }

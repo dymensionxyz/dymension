@@ -10,8 +10,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/delayedack"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/dymns"
@@ -88,7 +89,7 @@ func CreateUpgradeHandler(
 		updateGovParams(ctx, keepers.GovKeeper)
 
 		// update params to fast block speed
-		updateParamsToFastBlockSpeed(ctx, keepers.RollappKeeper, keepers.MintKeeper)
+		updateParamsToFastBlockSpeed(ctx, keepers.RollappKeeper, keepers.MintKeeper, keepers.SlashingKeeper)
 
 		// fix x/sequencer liveness slash params
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
@@ -100,11 +101,29 @@ func CreateUpgradeHandler(
 	}
 }
 
-func updateParamsToFastBlockSpeed(ctx sdk.Context, rk *rollappkeeper.Keeper, mk *mintkeeper.Keeper) {
+func updateParamsToFastBlockSpeed(ctx sdk.Context, rk *rollappkeeper.Keeper, mk *mintkeeper.Keeper, sk *slashingkeeper.Keeper) {
 	// update rollapp params to fast block speed
 	updateRollappParams(ctx, rk)
 	// Update mint module params for 1s block time
 	updateMintParams(ctx, mk)
+	// Update slashing params for 1s block time
+	updateSlashingParams(ctx, sk)
+}
+
+func updateSlashingParams(ctx sdk.Context, k *slashingkeeper.Keeper) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update signed_blocks_window to maintain similar time window
+	// 10000 blocks * 6s = 60000s = 60000 blocks * 1s
+	params.SignedBlocksWindow = params.SignedBlocksWindow * BlockSpeedup
+
+	err = k.SetParams(ctx, params)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func migrateAndUpdateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {

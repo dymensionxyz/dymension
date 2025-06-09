@@ -459,6 +459,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				StreamerKeeper:    &app.AppKeepers.StreamerKeeper,
 				SequencerKeeper:   app.AppKeepers.SequencerKeeper,
 				MintKeeper:        &app.AppKeepers.MintKeeper,
+				SlashingKeeper:    &app.AppKeepers.SlashingKeeper,
 			},
 		),
 	)
