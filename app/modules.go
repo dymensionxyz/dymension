@@ -42,6 +42,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	"github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
@@ -123,6 +125,8 @@ func (app *App) SetupModules(
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		circuit.NewAppModule(appCodec, app.CircuitBreakerKeeper),
 
+		// IBC modules
+		ratelimit.NewAppModule(appCodec, app.RateLimitingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
@@ -197,6 +201,7 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
+	ratelimittypes.ModuleName:                          nil,
 }
 
 var PreBlockers = []string{
@@ -245,6 +250,7 @@ var BeginBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -289,6 +295,7 @@ var EndBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -334,4 +341,5 @@ var InitGenesis = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
+	ratelimittypes.ModuleName,
 }

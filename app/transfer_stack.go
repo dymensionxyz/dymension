@@ -3,6 +3,7 @@ package app
 import (
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
+	ratelimit "github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -15,8 +16,13 @@ import (
 
 func (a *AppKeepers) InitTransferStack() {
 	a.TransferStack = ibctransfer.NewIBCModule(a.TransferKeeper)
+
+	a.TransferStack = ratelimit.NewIBCMiddleware(
+		a.RateLimitingKeeper,
+		a.TransferStack,
+	)
 	a.TransferStack = bridgingfee.NewIBCModule(
-		a.TransferStack.(ibctransfer.IBCModule),
+		a.TransferStack,
 		*a.RollappKeeper,
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
