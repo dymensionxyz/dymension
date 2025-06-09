@@ -58,7 +58,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 		// [1, 100] [2, 300] power 400 =
 		// [1, 1100] [2, 2300] power 3400
 		//
-		//Now imagine this user wants to update his vote (i.e. place a new one while he has the existing).
+		// Now imagine this user wants to update his vote (i.e. place a new one while he has the existing).
 		// He votes 25% on Gauge1 and 25% on Gauge2, so the distribution update should look like the following:
 		// [1, 100] [2, 100] power 400
 		//
