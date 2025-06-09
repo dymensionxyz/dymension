@@ -5,6 +5,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -53,4 +54,5 @@ type UpgradeKeepers struct {
 	EIBCKeeper        *eibckeeper.Keeper
 	DymNSKeeper       *dymnskeeper.Keeper
 	StreamerKeeper    *streamermodulekeeper.Keeper
+	MintKeeper        *mintkeeper.Keeper
 }

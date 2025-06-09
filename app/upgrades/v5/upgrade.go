@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/delayedack"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/dymns"
@@ -59,6 +60,7 @@ func CreateUpgradeHandler(
 		/* ---------------------------- store migrations ---------------------------- */
 		// move params from params keeper to each module's store
 		migrateDeprecatedParamsKeeperSubspaces(ctx, keepers)
+
 		// Initialize endorsements for existing rollapps
 		err = migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
 		if err != nil {
@@ -76,31 +78,33 @@ func CreateUpgradeHandler(
 		}
 
 		/* ----------------------------- params updates ----------------------------- */
-		// Incentives module params migration
-		migrateAndUpdateIncentivesParams(ctx, keepers)
-
-		// lockup module params migrations
-		migrateAndUpdateLockupParams(ctx, keepers)
-
-		// IRO module params update
+		// new IRO params
 		updateIROParams(ctx, keepers.IROKeeper)
 
-		// GAMM module params update
+		// new GAMM params
 		updateGAMMParams(ctx, keepers.GAMMKeeper)
 
-		// fix V50 x/gov params
+		// new x/gov params
 		updateGovParams(ctx, keepers.GovKeeper)
 
-		updateRollappParams(ctx, keepers.RollappKeeper)
+		// update params to fast block speed
+		updateParamsToFastBlockSpeed(ctx, keepers.RollappKeeper, keepers.MintKeeper)
 
+		// fix x/sequencer liveness slash params
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
-
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return migrations, nil
 	}
+}
+
+func updateParamsToFastBlockSpeed(ctx sdk.Context, rk *rollappkeeper.Keeper, mk *mintkeeper.Keeper) {
+	// update rollapp params to fast block speed
+	updateRollappParams(ctx, rk)
+	// Update mint module params for 1s block time
+	updateMintParams(ctx, mk)
 }
 
 func migrateAndUpdateIncentivesParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
@@ -173,6 +177,21 @@ func updateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
 
 	// expedited min deposit is 5 times the min deposit
 	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin(params.MinDeposit[0].Denom, params.MinDeposit[0].Amount.MulRaw(5)))
+
+	err = k.Params.Set(ctx, params)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func updateMintParams(ctx sdk.Context, k *mintkeeper.Keeper) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update blocks_per_year to account for 1s block time (previously 6s)
+	params.BlocksPerYear = params.BlocksPerYear * BlockSpeedup
 
 	err = k.Params.Set(ctx, params)
 	if err != nil {
@@ -300,6 +319,12 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	keepers.StreamerKeeper.SetParams(ctx, streamermoduletypes.NewParams(
 		streamerParams.MaxIterationsPerBlock,
 	))
+
+	// Incentives module params migration
+	migrateAndUpdateIncentivesParams(ctx, keepers)
+
+	// lockup module params migrations
+	migrateAndUpdateLockupParams(ctx, keepers)
 }
 
 const (
