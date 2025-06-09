@@ -10,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/delayedack"
@@ -96,6 +98,12 @@ func CreateUpgradeHandler(
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
 
 		migrateSequencers(ctx, keepers.SequencerKeeper)
+
+		// Set up rate limiting parameters for existing channels
+		err = setupRateLimitingParams(ctx, keepers.RateLimitingKeeper)
+		if err != nil {
+			return nil, fmt.Errorf("setup rate limiting params: %w", err)
+		}
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -397,6 +405,25 @@ func migrateGaugeLockAges(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Ke
 			if err := incentivesKeeper.SetGauge(ctx, &gauge); err != nil {
 				return fmt.Errorf("set gauge %d: %w", gauge.Id, err)
 			}
+		}
+	}
+	return nil
+}
+
+// setupRateLimitingParams sets up the rate limiting parameters for Noble USDC and Kava USDT
+func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) error {
+	for _, path := range IBCChannels {
+		// 1-Day Limit (15% send, no receive limit, 24h)
+		err := k.AddRateLimit(ctx, &ratelimittypes.MsgAddRateLimit{
+			Authority:      "", // is not necessary here
+			Denom:          path.Denom,
+			ChannelId:      path.ChannelId,
+			MaxPercentSend: math.NewInt(15),  // 15%
+			MaxPercentRecv: math.NewInt(100), // 100% is effectively no limit
+			DurationHours:  24,
+		})
+		if err != nil {
+			return fmt.Errorf("add rate limit: denom: %s, channelID: %s, error: %w", path.Denom, path.ChannelId, err)
 		}
 	}
 	return nil
