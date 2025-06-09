@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-06-08)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-06-09)
 
 
 ### Bug Fixes
@@ -42,6 +42,7 @@
 * **eibc:** optimistic eibc min fee is now percent ([#1868](https://github.com/dymensionxyz/dymension/issues/1868)) ([cf94c1a](https://github.com/dymensionxyz/dymension/commit/cf94c1a8a9f48131a449b0072509e4ba32cef5d1))
 * **genesis-bridge:** pessimistic validation for rollapp genesis bridge opening ([#1814](https://github.com/dymensionxyz/dymension/issues/1814)) ([3160858](https://github.com/dymensionxyz/dymension/commit/316085868a43d181b82318ffdd28c788baf6551f))
 * Hyperlane integration + eibc transfer completion hooks ([#1797](https://github.com/dymensionxyz/dymension/issues/1797)) ([e90c399](https://github.com/dymensionxyz/dymension/commit/e90c3995e3f8f061ce933b661a22c68e6165dcb9)), closes [#1808](https://github.com/dymensionxyz/dymension/issues/1808) [#1854](https://github.com/dymensionxyz/dymension/issues/1854)
+* **ibcratelimit:** wired the module ([#1880](https://github.com/dymensionxyz/dymension/issues/1880)) ([afa20ca](https://github.com/dymensionxyz/dymension/commit/afa20ca461c1840dcc2624513157246d3b1a3c77))
 * **incentives:**  dont distribute endorsement rewards to non active rollapps ([#1845](https://github.com/dymensionxyz/dymension/issues/1845)) ([ea42e47](https://github.com/dymensionxyz/dymension/commit/ea42e477c2d7c1a1d101b75e86ccbcb916fe074d))
 * **incentives:** incentives distribution based on lock age ([#1875](https://github.com/dymensionxyz/dymension/issues/1875)) ([ef1768d](https://github.com/dymensionxyz/dymension/commit/ef1768df51c2c974b7558ef6fbd8382d8f9a3edd))
 * **incentives:** prevent multiple partial unlocks for a single lock ([#1877](https://github.com/dymensionxyz/dymension/issues/1877)) ([95efb2f](https://github.com/dymensionxyz/dymension/commit/95efb2f0a06cd5daacb9f99f6c1a2d25b0d17e30))
