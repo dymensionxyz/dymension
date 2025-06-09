@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -104,7 +105,6 @@ import (
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
-	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
@@ -393,15 +393,6 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
-	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
-		appCodec,
-		a.keys[sponsorshiptypes.StoreKey],
-		a.AccountKeeper,
-		a.StakingKeeper,
-		a.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
 		appCodec,
@@ -415,8 +406,15 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// Set the incentives keeper in sponsorship keeper
-	a.SponsorshipKeeper.SetIncentivesKeeper(a.IncentivesKeeper)
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		a.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	a.IROKeeper = irokeeper.NewKeeper(
 		appCodec,
