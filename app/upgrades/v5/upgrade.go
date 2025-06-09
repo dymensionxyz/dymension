@@ -13,6 +13,8 @@ import (
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/delayedack"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/dymns"
@@ -89,7 +91,7 @@ func CreateUpgradeHandler(
 		updateGovParams(ctx, keepers.GovKeeper)
 
 		// update params to fast block speed
-		updateParamsToFastBlockSpeed(ctx, keepers.RollappKeeper, keepers.MintKeeper, keepers.SlashingKeeper)
+		updateParamsToFastBlockSpeed(ctx, keepers)
 
 		// fix x/sequencer liveness slash params
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
@@ -101,13 +103,12 @@ func CreateUpgradeHandler(
 	}
 }
 
-func updateParamsToFastBlockSpeed(ctx sdk.Context, rk *rollappkeeper.Keeper, mk *mintkeeper.Keeper, sk *slashingkeeper.Keeper) {
-	// update rollapp params to fast block speed
-	updateRollappParams(ctx, rk)
-	// Update mint module params for 1s block time
-	updateMintParams(ctx, mk)
-	// Update slashing params for 1s block time
-	updateSlashingParams(ctx, sk)
+// update params to support fast block speed (1s block time)
+func updateParamsToFastBlockSpeed(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
+	updateRollappParams(ctx, keepers.RollappKeeper)
+	updateMintParams(ctx, keepers.MintKeeper)
+	updateSlashingParams(ctx, keepers.SlashingKeeper)
+	updateConsensusParams(ctx, keepers.ConsensusKeeper)
 }
 
 func updateSlashingParams(ctx sdk.Context, k *slashingkeeper.Keeper) {
@@ -444,4 +445,31 @@ func migrateGaugeLockAges(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Ke
 		}
 	}
 	return nil
+}
+
+func updateConsensusParams(ctx sdk.Context, csk *consensusparamkeeper.Keeper) {
+	// Get current consensus params
+	consensusParamsRes, err := csk.Params(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	consensusParams := consensusParamsRes.Params
+
+	// Update MaxAgeNumBlocks to maintain similar time window
+	// If it was set to 100000 blocks at 6s, it should be 600000 blocks at 1s
+	consensusParams.Evidence.MaxAgeNumBlocks = consensusParams.Evidence.MaxAgeNumBlocks * BlockSpeedup
+
+	// Create a new consensus params update message
+	msg := &consensusparamtypes.MsgUpdateParams{
+		Authority: csk.GetAuthority(),
+		Block:     consensusParams.Block,
+		Evidence:  consensusParams.Evidence,
+		Validator: consensusParams.Validator,
+	}
+
+	// Update the consensus params
+	_, err = csk.UpdateParams(ctx, msg)
+	if err != nil {
+		panic(err)
+	}
 }

@@ -39,6 +39,13 @@ type UpgradeTestSuite struct {
 func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
 	s.App = apptesting.Setup(t)
 	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeader(cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()}).WithChainID("dymension_100-1")
+
+	defParams := *apptesting.DefaultConsensusParams
+
+	params2, _ := s.App.ConsensusParamsKeeper.Params(s.Ctx, nil)
+	_ = params2
+
+	s.Ctx = s.Ctx.WithConsensusParams(defParams)
 }
 
 // TestUpgradeTestSuite runs the suite of tests for the upgrade handler
@@ -57,6 +64,8 @@ var (
 		"dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
 		"dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
 	}
+
+	expectedEvidenceMaxAgeNumBlocks = apptesting.DefaultConsensusParams.Evidence.MaxAgeNumBlocks * v5.BlockSpeedup
 )
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
@@ -118,6 +127,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				}
 
 				s.validateSequencersMigration(s.Ctx, s.App.SequencerKeeper)
+
+				// validate consensus params
+				s.validateConsensusParamsMigration()
 
 				return
 			},
@@ -220,4 +232,10 @@ func (s *UpgradeTestSuite) validateSequencersMigration(ctx sdk.Context, k *seque
 	sequencers := k.AllSequencers(ctx)
 	s.Require().Equal(len(sequencers), 1)
 	s.Require().Equal(v5.NewPenaltyKickThreshold, sequencers[0].GetPenalty())
+}
+
+func (s *UpgradeTestSuite) validateConsensusParamsMigration() {
+	consensusParams, err := s.App.ConsensusParamsKeeper.Params(s.Ctx, nil)
+	s.Require().NoError(err)
+	s.Require().Equal(expectedEvidenceMaxAgeNumBlocks, consensusParams.Params.Evidence.MaxAgeNumBlocks)
 }

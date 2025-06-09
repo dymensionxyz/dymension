@@ -460,6 +460,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				SequencerKeeper:   app.AppKeepers.SequencerKeeper,
 				MintKeeper:        &app.AppKeepers.MintKeeper,
 				SlashingKeeper:    &app.AppKeepers.SlashingKeeper,
+				ConsensusKeeper:   &app.AppKeepers.ConsensusParamsKeeper,
 			},
 		),
 	)

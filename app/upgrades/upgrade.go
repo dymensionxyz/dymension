@@ -9,6 +9,7 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
@@ -57,4 +58,5 @@ type UpgradeKeepers struct {
 	StreamerKeeper    *streamermodulekeeper.Keeper
 	MintKeeper        *mintkeeper.Keeper
 	SlashingKeeper    *slashingkeeper.Keeper
+	ConsensusKeeper   *consensusparamkeeper.Keeper
 }
