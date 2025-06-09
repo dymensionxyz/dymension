@@ -404,26 +404,24 @@ func (k Keeper) ExtendLockup(ctx sdk.Context, lockID uint64, owner sdk.AccAddres
 		return fmt.Errorf("cannot edit unlocking lockup for lock %d", lock.ID)
 	}
 
+	oldDuration := lock.GetDuration()
+	if newDuration <= oldDuration {
+		return fmt.Errorf("new duration should be greater than the original")
+	}
+
 	// completely delete existing lock refs
 	err = k.deleteLockRefs(ctx, unlockingPrefix(lock.IsUnlocking()), *lock)
 	if err != nil {
 		return err
 	}
 
-	oldDuration := lock.GetDuration()
-	if newDuration != 0 {
-		if newDuration <= oldDuration {
-			return fmt.Errorf("new duration should be greater than the original")
-		}
-
-		// update accumulation store
-		for _, coin := range lock.Coins {
-			k.accumulationStore(ctx, coin.Denom).Decrease(accumulationKey(lock.Duration), coin.Amount)
-			k.accumulationStore(ctx, coin.Denom).Increase(accumulationKey(newDuration), coin.Amount)
-		}
-
-		lock.Duration = newDuration
+	// update accumulation store
+	for _, coin := range lock.Coins {
+		k.accumulationStore(ctx, coin.Denom).Decrease(accumulationKey(lock.Duration), coin.Amount)
+		k.accumulationStore(ctx, coin.Denom).Increase(accumulationKey(newDuration), coin.Amount)
 	}
+
+	lock.Duration = newDuration
 
 	// add lock refs with the new duration
 	err = k.addLockRefs(ctx, *lock)

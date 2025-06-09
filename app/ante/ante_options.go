@@ -62,7 +62,6 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.CircuitKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "circuit breaker keeper is required for AnteHandler")
-
 	}
 	return nil
 }

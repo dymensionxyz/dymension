@@ -718,6 +718,7 @@ func TestDistribution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := tt.initial.Merge(tt.update)
+			actual = actual.FilterNonPositive()
 
 			require.Truef(t, tt.expected.Equal(actual), "exp: %s\ngot: %s", tt.expected.String(), actual.String())
 
@@ -765,4 +766,159 @@ func accAddrsToString(a []sdk.AccAddress) []string {
 		res = append(res, addr.String())
 	}
 	return res
+}
+
+func TestEndorserPosition_RewardsToBank(t *testing.T) {
+	testCases := []struct {
+		name                string
+		globalAcc           sdk.DecCoins
+		lastSeenAccumulator sdk.DecCoins
+		shares              math.LegacyDec
+		expectedRewards     sdk.Coins
+	}{
+		{
+			name: "truncation prevents overpayment",
+			// Global Accumulator: 7.666... (23/3)
+			// LastSeenAccumulator: 6
+			// Shares: 60 DYM
+			// Rewards = (7.666... - 6) * 60 * 10^18 = 1.666... * 60 = 99.999... * 10^18 (truncated)
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", decFromFrac(23, 3))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(6))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(60)),
+			expectedRewards:     sdk.NewCoins(sdk.NewCoin("adym", types.DYM.MulRaw(100))),
+		},
+		{
+			name: "general truncation",
+			// Global Accumulator: 0.333... (1/3)
+			// LastSeenAccumulator: 0
+			// Shares: 10 DYM
+			// Rewards = (0.333...) * 10 * 10^18 = 3.333... * 10^18 (truncated)
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", decFromFrac(1, 3))),
+			lastSeenAccumulator: sdk.NewDecCoins(),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards:     sdk.NewCoins(sdk.NewCoin("adym", types.DYM.MulRaw(10).QuoRaw(3))),
+		},
+		{
+			name: "integer result",
+			// Global Accumulator: 10
+			// LastSeenAccumulator: 5
+			// Shares: 10 DYM
+			// Rewards = (10 - 5) * 10 * 10^18 = 50 * 10^18
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(10))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(5))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards:     sdk.NewCoins(sdk.NewCoin("adym", types.DYM.MulRaw(50))),
+		},
+		{
+			name: "zero shares",
+			// Global Accumulator: 10
+			// LastSeenAccumulator: 5
+			// Shares: 0 DYM
+			// Rewards = (10 - 5) * 0 = 0
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(10))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(5))),
+			shares:              math.LegacyZeroDec(),
+			expectedRewards:     sdk.NewCoins(),
+		},
+		{
+			name: "no change in accumulator",
+			// Global Accumulator: 5
+			// LastSeenAccumulator: 5
+			// Shares: 10 DYM
+			// Rewards = (5 - 5) * 10 * 10^18 = 0
+			globalAcc:           sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(5))),
+			lastSeenAccumulator: sdk.NewDecCoins(sdk.NewDecCoinFromDec("adym", dec(5))),
+			shares:              math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards:     sdk.NewCoins(),
+		},
+		{
+			name: "multiple denoms in accumulator",
+			// adym: GlobalAcc=7.666... (23/3), LastSeen=6, Shares=10 DYM -> (1.666...) * 10 * 10^18 = 16.666... * 10^18
+			// uatom: GlobalAcc=2.5 (10/4), LastSeen=1, Shares=10 DYM -> (1.5) * 10 * 10^18 = 15 -> 15 * 10^18
+			globalAcc: sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("adym", decFromFrac(23, 3)),
+				sdk.NewDecCoinFromDec("uatom", decFromFrac(10, 4)),
+			),
+			lastSeenAccumulator: sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("adym", dec(6)),
+				sdk.NewDecCoinFromDec("uatom", dec(1)),
+			),
+			shares: math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards: sdk.NewCoins(
+				sdk.NewCoin("adym", types.DYM.MulRaw(50).QuoRaw(3)),
+				sdk.NewCoin("uatom", types.DYM.MulRaw(15)),
+			),
+		},
+		{
+			name: "globalAcc has extra denom not in lastSeenAccumulator",
+			// adym: GlobalAcc=10, LastSeen=5, Shares=10 DYM -> (5) * 10 * 10^18 = 50 * 10^18
+			// uatom: GlobalAcc=2.5 (5/2), LastSeen=0, Shares=10 DYM -> (2.5) * 10 * 10^18 = 25 * 10^18
+			globalAcc: sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("adym", dec(10)),
+				sdk.NewDecCoinFromDec("uatom", decFromFrac(5, 2)),
+			),
+			lastSeenAccumulator: sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("adym", dec(5)),
+			),
+			shares: math.LegacyNewDecFromInt(types.DYM.MulRaw(10)),
+			expectedRewards: sdk.NewCoins(
+				sdk.NewCoin("adym", types.DYM.MulRaw(50)),
+				sdk.NewCoin("uatom", types.DYM.MulRaw(25)),
+			),
+		},
+		// The case "lastSeenAccumulator has denom not in globalAcc" is not possible.
+		// In theory, this case causes a panic because RewardsToBank can produce negative coin amounts
+		// when a denom in lastSeenAccumulator is not in globalAcc (or is smaller).
+		// However, this case is not possible, bc the only way to add a new denom to lastSeenAccumulator
+		// is to add shares to it through update of globalAcc.
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			position := types.EndorserPosition{
+				Shares:              tc.shares,
+				LastSeenAccumulator: tc.lastSeenAccumulator,
+				AccumulatedRewards:  sdk.NewCoins(), // Not used by RewardsToBank directly
+			}
+
+			rewards := position.RewardsToBank(tc.globalAcc)
+			requireCoinsInLowerEpsilon(t, rewards, tc.expectedRewards, types.ADYM.MulRaw(100))
+		})
+	}
+}
+
+// requireCoinInLowerEpsilon asserts that the coin's amount falls in [exp - E; exp]
+func requireCoinInLowerEpsilon(t *testing.T, actual sdk.Coin, expected sdk.Coin, epsilon math.Int) {
+	t.Helper()
+	require.Equalf(t, expected.Denom, actual.Denom, "denominations do not match: expected %s, actual %s", expected.Denom, actual.Denom)
+
+	lowerBound := expected.Amount.Sub(epsilon)
+	upperBound := expected.Amount
+
+	require.Truef(t, actual.Amount.GTE(lowerBound), "actual amount %s for denom %s is less than lower bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, lowerBound, expected.Amount, epsilon)
+	require.Truef(t, actual.Amount.LTE(upperBound), "actual amount %s for denom %s is greater than upper bound %s (expected %s, epsilon %s)", actual.Amount, actual.Denom, upperBound, expected.Amount, epsilon)
+}
+
+// requireCoinsInLowerEpsilon asserts that the coins' amount falls in [exp - E; exp]
+func requireCoinsInLowerEpsilon(t *testing.T, actual sdk.Coins, expected sdk.Coins, epsilon math.Int) {
+	t.Helper()
+
+	// Sort by denom for consistent comparison
+	sortedActual := actual.Sort()
+	sortedExpected := expected.Sort()
+
+	require.Equalf(t, len(sortedExpected), len(sortedActual), "number of coins do not match: expected %d, actual %d", len(sortedExpected), len(sortedActual))
+
+	for i := 0; i < len(sortedExpected); i++ {
+		requireCoinInLowerEpsilon(t, sortedActual[i], sortedExpected[i], epsilon)
+	}
+}
+
+// decFromFrac returns a legacy Dec from the given numerator p and denominator q.
+func decFromFrac(p, q int64) math.LegacyDec {
+	return math.LegacyNewDecFromInt(math.NewInt(p)).QuoTruncate(math.LegacyNewDecFromInt(math.NewInt(q)))
+}
+
+func dec(n int64) math.LegacyDec {
+	return math.LegacyNewDecFromInt(math.NewInt(n))
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -104,7 +105,6 @@ import (
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
-	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
@@ -194,7 +194,6 @@ func (a *AppKeepers) InitKeepers(
 	moduleAccountAddrs map[string]bool,
 	appOpts servertypes.AppOptions,
 ) {
-
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// get skipUpgradeHeights from the app options
@@ -402,6 +401,17 @@ func (a *AppKeepers) InitKeepers(
 		a.TxFeesKeeper,
 		a.RollappKeeper,
 		a.SequencerKeeper,
+		&a.SponsorshipKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		a.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -417,16 +427,6 @@ func (a *AppKeepers) InitKeepers(
 		a.IncentivesKeeper,
 		a.PoolManagerKeeper,
 		a.TxFeesKeeper,
-	)
-
-	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
-		appCodec,
-		a.keys[sponsorshiptypes.StoreKey],
-		a.AccountKeeper,
-		a.StakingKeeper,
-		a.IncentivesKeeper,
-		a.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -614,10 +614,9 @@ func (a *AppKeepers) SetupHooks() {
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
 			a.StreamerKeeper.Hooks(), // x/streamer must be before x/incentives
-			a.IncentivesKeeper.Hooks(),
+			a.IncentivesKeeper.EpochHooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
-			a.SponsorshipKeeper.EpochHooks(),
 		),
 	)
 
