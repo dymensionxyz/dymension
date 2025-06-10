@@ -10,9 +10,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
 	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/delayedack"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/dymns"
@@ -61,6 +65,7 @@ func CreateUpgradeHandler(
 		/* ---------------------------- store migrations ---------------------------- */
 		// move params from params keeper to each module's store
 		migrateDeprecatedParamsKeeperSubspaces(ctx, keepers)
+
 		// Initialize endorsements for existing rollapps
 		err = migrateEndorsements(ctx, keepers.IncentivesKeeper, keepers.SponsorshipKeeper)
 		if err != nil {
@@ -78,25 +83,20 @@ func CreateUpgradeHandler(
 		}
 
 		/* ----------------------------- params updates ----------------------------- */
-		// Incentives module params migration
-		migrateAndUpdateIncentivesParams(ctx, keepers)
-
-		// lockup module params migrations
-		migrateAndUpdateLockupParams(ctx, keepers)
-
-		// IRO module params update
+		// new IRO params
 		updateIROParams(ctx, keepers.IROKeeper)
 
-		// GAMM module params update
+		// new GAMM params
 		updateGAMMParams(ctx, keepers.GAMMKeeper)
 
-		// fix V50 x/gov params
+		// new x/gov params
 		updateGovParams(ctx, keepers.GovKeeper)
 
-		updateRollappParams(ctx, keepers.RollappKeeper)
+		// update params to fast block speed
+		updateParamsToFastBlockSpeed(ctx, keepers)
 
+		// fix x/sequencer liveness slash params
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
-
 		migrateSequencers(ctx, keepers.SequencerKeeper)
 
 		// Set up rate limiting parameters for existing channels
@@ -108,6 +108,30 @@ func CreateUpgradeHandler(
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return migrations, nil
+	}
+}
+
+// update params to support fast block speed (1s block time)
+func updateParamsToFastBlockSpeed(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
+	updateRollappParams(ctx, keepers.RollappKeeper)
+	updateMintParams(ctx, keepers.MintKeeper)
+	updateSlashingParams(ctx, keepers.SlashingKeeper)
+	updateConsensusParams(ctx, keepers.ConsensusKeeper)
+}
+
+func updateSlashingParams(ctx sdk.Context, k *slashingkeeper.Keeper) {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update signed_blocks_window to maintain similar time window
+	// 10000 blocks * 6s = 60000s = 60000 blocks * 1s
+	params.SignedBlocksWindow = params.SignedBlocksWindow * BlockSpeedup
+
+	err = k.SetParams(ctx, params)
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -181,6 +205,21 @@ func updateGovParams(ctx sdk.Context, k *govkeeper.Keeper) {
 
 	// expedited min deposit is 5 times the min deposit
 	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin(params.MinDeposit[0].Denom, params.MinDeposit[0].Amount.MulRaw(5)))
+
+	err = k.Params.Set(ctx, params)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func updateMintParams(ctx sdk.Context, k *mintkeeper.Keeper) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Update blocks_per_year to account for 1s block time (previously 6s)
+	params.BlocksPerYear = params.BlocksPerYear * BlockSpeedup
 
 	err = k.Params.Set(ctx, params)
 	if err != nil {
@@ -350,6 +389,12 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	keepers.StreamerKeeper.SetParams(ctx, streamermoduletypes.NewParams(
 		streamerParams.MaxIterationsPerBlock,
 	))
+
+	// Incentives module params migration
+	migrateAndUpdateIncentivesParams(ctx, keepers)
+
+	// lockup module params migrations
+	migrateAndUpdateLockupParams(ctx, keepers)
 }
 
 const (
@@ -450,6 +495,33 @@ func migrateGaugeLockAges(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Ke
 		}
 	}
 	return nil
+}
+
+func updateConsensusParams(ctx sdk.Context, csk *consensusparamkeeper.Keeper) {
+	// Get current consensus params
+	consensusParamsRes, err := csk.Params(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	consensusParams := consensusParamsRes.Params
+
+	// Update MaxAgeNumBlocks to maintain similar time window
+	// If it was set to 100000 blocks at 6s, it should be 600000 blocks at 1s
+	consensusParams.Evidence.MaxAgeNumBlocks = consensusParams.Evidence.MaxAgeNumBlocks * BlockSpeedup
+
+	// Create a new consensus params update message
+	msg := &consensusparamtypes.MsgUpdateParams{
+		Authority: csk.GetAuthority(),
+		Block:     consensusParams.Block,
+		Evidence:  consensusParams.Evidence,
+		Validator: consensusParams.Validator,
+	}
+
+	// Update the consensus params
+	_, err = csk.UpdateParams(ctx, msg)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // setupRateLimitingParams sets up the rate limiting parameters for Noble USDC and Kava USDT

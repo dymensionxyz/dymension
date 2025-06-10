@@ -5,9 +5,12 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
 
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
@@ -54,5 +57,8 @@ type UpgradeKeepers struct {
 	EIBCKeeper         *eibckeeper.Keeper
 	DymNSKeeper        *dymnskeeper.Keeper
 	StreamerKeeper     *streamermodulekeeper.Keeper
+	MintKeeper         *mintkeeper.Keeper
+	SlashingKeeper     *slashingkeeper.Keeper
+	ConsensusKeeper    *consensusparamkeeper.Keeper
 	RateLimitingKeeper *ratelimitkeeper.Keeper
 }
