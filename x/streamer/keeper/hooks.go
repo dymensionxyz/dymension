@@ -166,7 +166,7 @@ func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAdd
 		return fmt.Errorf("create rollapp gauge: %w", err)
 	}
 	// Initially, there are no any shares in the endorsement gauge. It will increase with time.
-	err = h.k.sk.SaveEndorsement(ctx, sponsorshiptypes.NewEndorsement(rollappID, rollappGaugeId, math.ZeroInt()))
+	err = h.k.sk.SaveEndorsement(ctx, sponsorshiptypes.NewEndorsement(rollappID, rollappGaugeId, math.LegacyZeroDec()))
 	if err != nil {
 		ctx.Logger().Error("Failed to save endorsement", "error", err)
 		return fmt.Errorf("save endorsement: %w", err)

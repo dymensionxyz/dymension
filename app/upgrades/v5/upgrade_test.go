@@ -13,6 +13,9 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -84,6 +87,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.setIROParams()
 				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
 				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
+				s.populateIBCChannels()
 				return nil
 			},
 			upgrade: func() {
@@ -127,6 +131,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				}
 
 				s.validateSequencersMigration(s.Ctx, s.App.SequencerKeeper)
+
+				s.validateIBCRateLimits()
 
 				// validate consensus params
 				s.validateConsensusParamsMigration()
@@ -207,6 +213,21 @@ func (s *UpgradeTestSuite) populateLivenessEvents(ctx sdk.Context, k *rollappkee
 			RollappId: strconv.Itoa(i),
 			HubHeight: dummyUpgradeHeight + h,
 		})
+	}
+}
+
+func (s *UpgradeTestSuite) populateIBCChannels() {
+	for _, path := range v5.IBCChannels {
+		s.App.IBCKeeper.ChannelKeeper.SetChannel(s.Ctx, transfertypes.PortID, path.ChannelId, channeltypes.Channel{})
+		err := s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(path.Denom, math.NewInt(100))))
+		s.Require().NoError(err)
+	}
+}
+
+func (s *UpgradeTestSuite) validateIBCRateLimits() {
+	for _, path := range v5.IBCChannels {
+		_, found := s.App.RateLimitingKeeper.GetRateLimit(s.Ctx, path.Denom, path.ChannelId)
+		s.Require().True(found)
 	}
 }
 

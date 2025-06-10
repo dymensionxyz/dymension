@@ -88,7 +88,6 @@ func (suite *KeeperTestSuite) TestGetDistributeToBaseLocks() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-
 			gauge := types.NewAssetGauge(1, true, tc.cond, coins, blockTime, 1)
 			cache := make(types.DenomLocksCache)
 			locks := suite.App.IncentivesKeeper.GetDistributeToBaseLocks(suite.Ctx, gauge, cache)

@@ -8,6 +8,7 @@ import (
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
 
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -43,20 +44,21 @@ type Upgrade struct {
 }
 
 type UpgradeKeepers struct {
-	LockupKeeper      *lockupkeeper.Keeper
-	IROKeeper         *irokeeper.Keeper
-	GAMMKeeper        *gammkeeper.Keeper
-	GovKeeper         *govkeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
-	RollappKeeper     *rollappkeeper.Keeper
-	SequencerKeeper   *sequencerkeeper.Keeper
-	SponsorshipKeeper *sponsorshipkeeper.Keeper
-	ParamsKeeper      *paramskeeper.Keeper
-	DelayedAckKeeper  *delayedackkeeper.Keeper
-	EIBCKeeper        *eibckeeper.Keeper
-	DymNSKeeper       *dymnskeeper.Keeper
-	StreamerKeeper    *streamermodulekeeper.Keeper
-	MintKeeper        *mintkeeper.Keeper
-	SlashingKeeper    *slashingkeeper.Keeper
-	ConsensusKeeper   *consensusparamkeeper.Keeper
+	LockupKeeper       *lockupkeeper.Keeper
+	IROKeeper          *irokeeper.Keeper
+	GAMMKeeper         *gammkeeper.Keeper
+	GovKeeper          *govkeeper.Keeper
+	IncentivesKeeper   *incentiveskeeper.Keeper
+	RollappKeeper      *rollappkeeper.Keeper
+	SequencerKeeper    *sequencerkeeper.Keeper
+	SponsorshipKeeper  *sponsorshipkeeper.Keeper
+	ParamsKeeper       *paramskeeper.Keeper
+	DelayedAckKeeper   *delayedackkeeper.Keeper
+	EIBCKeeper         *eibckeeper.Keeper
+	DymNSKeeper        *dymnskeeper.Keeper
+	StreamerKeeper     *streamermodulekeeper.Keeper
+	MintKeeper         *mintkeeper.Keeper
+	SlashingKeeper     *slashingkeeper.Keeper
+	ConsensusKeeper    *consensusparamkeeper.Keeper
+	RateLimitingKeeper *ratelimitkeeper.Keeper
 }

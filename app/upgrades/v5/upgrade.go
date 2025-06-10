@@ -12,6 +12,8 @@ import (
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
@@ -96,6 +98,12 @@ func CreateUpgradeHandler(
 		// fix x/sequencer liveness slash params
 		updateSequencerParams(ctx, keepers.SequencerKeeper)
 		migrateSequencers(ctx, keepers.SequencerKeeper)
+
+		// Set up rate limiting parameters for existing channels
+		err = setupRateLimitingParams(ctx, keepers.RateLimitingKeeper)
+		if err != nil {
+			return nil, fmt.Errorf("setup rate limiting params: %w", err)
+		}
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -219,7 +227,7 @@ func updateMintParams(ctx sdk.Context, k *mintkeeper.Keeper) {
 	}
 }
 
-// Create endorsment objects for existing rollapps
+// Create endorsment objects for existing rollapps and endorser positions for existing votes
 // we iterate over rollapp gauges as we have one per rollapp
 func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Keeper, sponsorshipKeeper *sponsorshipkeeper.Keeper) error {
 	gauges := incentivesKeeper.GetGauges(ctx)
@@ -234,6 +242,10 @@ func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Kee
 		powerByGauge[gauge.GaugeId] = gauge.Power
 	}
 
+	// Map to store endorsement by gauge ID for efficient lookup
+	endorsementsByGaugeId := make(map[uint64]sponsorshiptypes.Endorsement)
+
+	// 1. Create Endorsement objects for existing RollapApps
 	for _, gauge := range gauges {
 		if rollappGauge := gauge.GetRollapp(); rollappGauge != nil {
 			// Check if the gauge has any voting power. Total voting power is the initial
@@ -246,7 +258,11 @@ func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Kee
 			}
 
 			// Create an endorsement for this rollapp gauge
-			endorsement := sponsorshiptypes.NewEndorsement(rollappGauge.RollappId, gauge.Id, power)
+			p := math.LegacyNewDecFromInt(power)
+			endorsement := sponsorshiptypes.NewEndorsement(rollappGauge.RollappId, gauge.Id, p)
+
+			// Store in map for efficient lookup later
+			endorsementsByGaugeId[gauge.Id] = endorsement
 
 			err := sponsorshipKeeper.SaveEndorsement(ctx, endorsement)
 			if err != nil {
@@ -256,6 +272,40 @@ func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Kee
 			ctx.Logger().Info(fmt.Sprintf("Created endorsement for rollapp %s with gauge %d", rollappGauge.RollappId, gauge.Id))
 		}
 	}
+
+	// 2. Create EndorserPosition objects for existing votes
+	err = sponsorshipKeeper.IterateVotes(ctx, func(voter sdk.AccAddress, vote sponsorshiptypes.Vote) (stop bool, err error) {
+		// Convert vote to distribution to get individual gauge power
+		distribution := vote.ToDistribution()
+
+		for _, gauge := range distribution.Gauges {
+			// Check if this gauge is a rollapp gauge by looking up in our endorsements map
+			endorsement, isRollappGauge := endorsementsByGaugeId[gauge.GaugeId]
+			if !isRollappGauge {
+				continue // Skip non-rollapp gauges
+			}
+
+			// Create endorser position with the voting power as shares
+			shares := math.LegacyNewDecFromInt(gauge.Power)
+			endorserPosition := sponsorshiptypes.NewEndorserPosition(shares, endorsement.Accumulator, sdk.NewCoins())
+
+			// Save the endorser position
+			err = sponsorshipKeeper.SaveEndorserPosition(ctx, voter, endorsement.RollappId, endorserPosition)
+			if err != nil {
+				return true, fmt.Errorf("save endorser position for user %s and rollapp %s: %w", voter.String(), endorsement.RollappId, err)
+			}
+
+			ctx.Logger().Info(fmt.Sprintf("Created endorser position for user %s and rollapp %s with %s shares",
+				voter.String(), endorsement.RollappId, shares.String()))
+		}
+
+		return false, nil // Continue iteration
+	})
+
+	if err != nil {
+		return fmt.Errorf("iterate votes: %w", err)
+	}
+
 	return nil
 }
 
@@ -472,4 +522,23 @@ func updateConsensusParams(ctx sdk.Context, csk *consensusparamkeeper.Keeper) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// setupRateLimitingParams sets up the rate limiting parameters for Noble USDC and Kava USDT
+func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) error {
+	for _, path := range IBCChannels {
+		// 1-Day Limit (15% send, no receive limit, 24h)
+		err := k.AddRateLimit(ctx, &ratelimittypes.MsgAddRateLimit{
+			Authority:      "", // is not necessary here
+			Denom:          path.Denom,
+			ChannelId:      path.ChannelId,
+			MaxPercentSend: math.NewInt(15),  // 15%
+			MaxPercentRecv: math.NewInt(100), // 100% is effectively no limit
+			DurationHours:  24,
+		})
+		if err != nil {
+			return fmt.Errorf("add rate limit: denom: %s, channelID: %s, error: %w", path.Denom, path.ChannelId, err)
+		}
+	}
+	return nil
 }
