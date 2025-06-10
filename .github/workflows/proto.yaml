@@ -49,8 +49,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
       - uses: bufbuild/buf-setup-action@v1.50.0
+      - name: Get last tag
+        id: get_last_tag
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
       - uses: bufbuild/buf-breaking-action@v1.1.4
         with:
           input: "proto"
-          against: "https://github.com/${{ github.repository }}.git#branch=${{ github.event.pull_request.base.ref }},ref=HEAD~1,subdir=proto"
+          against: "https://github.com/${{ github.repository }}.git#ref=${{ steps.get_last_tag.outputs.last_tag }},subdir=proto"
