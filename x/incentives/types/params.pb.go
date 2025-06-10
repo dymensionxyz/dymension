@@ -82,7 +82,8 @@ type Params struct {
 	MinLockAge time.Duration `protobuf:"bytes,7,opt,name=min_lock_age,json=minLockAge,proto3,stdduration" json:"min_lock_age" yaml:"min_lock_age"`
 	// min_lock_duration is the minimum duration a lock must be to be eligible for
 	// distribution. If the lock is less than this duration, it will not be
-	// distributed and is forfeited to the remaining distributees that are eligible
+	// distributed and is forfeited to the remaining distributees that are
+	// eligible
 	MinLockDuration time.Duration `protobuf:"bytes,8,opt,name=min_lock_duration,json=minLockDuration,proto3,stdduration" json:"min_lock_duration" yaml:"min_lock_duration"`
 	// RollappGaugesModes switches between wether rollapp gauge can distribute
 	// rewards to only active rollapps or all rollapps can get rewards
