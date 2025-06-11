@@ -186,9 +186,6 @@ func (s *AnteTestSuite) getMsgCreateEndorsementGauge(from sdk.AccAddress) sdk.Ms
 		GaugeType:   incentivestypes.GaugeType_GAUGE_TYPE_ENDORSEMENT,
 		Endorsement: &incentivestypes.EndorsementGauge{
 			RollappId: "test_1000-1",
-			EpochRewards: sdk.Coins{
-				sdk.NewCoin(params.DisplayDenom, math.NewInt(1)),
-			},
 		},
 		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
 		StartTime:         time.Now(),
@@ -209,9 +206,6 @@ func (s *AnteTestSuite) getMsgCreateGauge(from sdk.AccAddress) sdk.Msg {
 		},
 		Endorsement: &incentivestypes.EndorsementGauge{
 			RollappId: "test_1000-1",
-			EpochRewards: sdk.Coins{
-				sdk.NewCoin(params.DisplayDenom, math.NewInt(1)),
-			},
 		},
 		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
 		StartTime:         time.Now(),
