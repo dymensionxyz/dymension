@@ -248,6 +248,7 @@ replace (
 	// these have fake crypto stuff
 	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.38.6-0.20250514160822-ef32bdee75e3
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.50.4-0.20250514145635-a984105bd68a
+	github.com/cosmos/ibc-go/v8 => github.com/dymensionxyz/ibc-go-fork/v8 v8.7.1-0.20250611111041-cbcf63ccacb3
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515142040-6fd85f648706
 
 	// use dymension forks

@@ -395,8 +395,6 @@ github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.1.0 h1:EDU
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.1.0/go.mod h1:8sbOclBgOCgBPesufd3ZlLRHvJ3dOeN9+dXhn3KbKOc=
 github.com/cosmos/ibc-go/modules/capability v1.0.1 h1:ibwhrpJ3SftEEZRxCRkH0fQZ9svjthrX2+oXdZvzgGI=
 github.com/cosmos/ibc-go/modules/capability v1.0.1/go.mod h1:rquyOV262nGJplkumH+/LeYs04P3eV8oB7ZM4Ygqk4E=
-github.com/cosmos/ibc-go/v8 v8.7.0 h1:HqhVOkO8bDpClXE81DFQgFjroQcTvtpm0tCS7SQVKVY=
-github.com/cosmos/ibc-go/v8 v8.7.0/go.mod h1:G2z+Q6ZQSMcyHI2+BVcJdvfOupb09M2h/tgpXOEdY6k=
 github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5RtnU=
 github.com/cosmos/ics23/go v0.11.0/go.mod h1:A8OjxPE67hHST4Icw94hOxxFEJMBG031xIGF/JHNIY0=
 github.com/cosmos/ledger-cosmos-go v0.14.0 h1:WfCHricT3rPbkPSVKRH+L4fQGKYHuGOK9Edpel8TYpE=
@@ -459,6 +457,8 @@ github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515142040
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250515142040-6fd85f648706/go.mod h1:eA60HVW0vtGMLV3Xp3FHLw7/d2w8MTtBv1YyGmlyulg=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
+github.com/dymensionxyz/ibc-go-fork/v8 v8.7.1-0.20250611111041-cbcf63ccacb3 h1:qN+Bs/zXnrYF8XDSCmnttaum0W2Xi1Rs8f06LBgmtNs=
+github.com/dymensionxyz/ibc-go-fork/v8 v8.7.1-0.20250611111041-cbcf63ccacb3/go.mod h1:G2z+Q6ZQSMcyHI2+BVcJdvfOupb09M2h/tgpXOEdY6k=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2 h1:/hXBQnPaH7gNvT37/br73OyaF55iq5TK8fcsvYcGcNg=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2/go.mod h1:uCJk9ysBsOONgfPmQVDCp5altrjTnFtPtPwpRP9AQeI=
 github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20250424091802-4e25bd944ed7 h1:DUVK2xjQ3Igmqo3tRvUEf4Y0sIvtdG5+b+jjGUCR4Yc=
