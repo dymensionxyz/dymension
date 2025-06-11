@@ -462,6 +462,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				SlashingKeeper:     &app.AppKeepers.SlashingKeeper,
 				ConsensusKeeper:    &app.AppKeepers.ConsensusParamsKeeper,
 				RateLimitingKeeper: &app.AppKeepers.RateLimitingKeeper,
+				TxfeesKeeper:       app.AppKeepers.TxFeesKeeper,
 			},
 		),
 	)
