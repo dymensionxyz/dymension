@@ -2,8 +2,10 @@ package upgrades
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -44,6 +46,8 @@ type Upgrade struct {
 }
 
 type UpgradeKeepers struct {
+	AccountKeeper      *authkeeper.AccountKeeper
+	CircuitBreakKeeper *circuitkeeper.Keeper
 	LockupKeeper       *lockupkeeper.Keeper
 	IROKeeper          *irokeeper.Keeper
 	GAMMKeeper         *gammkeeper.Keeper
