@@ -3,11 +3,8 @@ package dymensionxyz.dymension.forward;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
-
-message EventForward{
-    bool ok = 1;
-    // empty if ok is true
-    string err = 2;
+message EventForward {
+  bool ok = 1;
+  // empty if ok is true
+  string err = 2;
 }
-
-    

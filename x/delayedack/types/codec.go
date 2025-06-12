@@ -11,7 +11,9 @@ import (
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgFinalizePacket{}, "delayedack/FinalizePacket", nil)
-	cdc.RegisterConcrete(&MsgFinalizePacketByPacketKey{}, "delayedack/MsgFinalizePacketByPacketKey", nil)
+	cdc.RegisterConcrete(&MsgFinalizePacketByPacketKey{}, "delayedack/FinalizeByPacketKey", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "delayedack/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "delayedack/Params", nil)
 }
 
 // RegisterInterfaces registers interfaces types with the interface registry.
@@ -20,6 +22,7 @@ func RegisterInterfaces(reg types.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgFinalizePacket{},
 		&MsgFinalizePacketByPacketKey{},
+		&MsgUpdateParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(reg, &_Msg_serviceDesc)
 }

@@ -364,18 +364,6 @@ func (m *MiscParams) GetEnableTradingAlias() bool {
 	return false
 }
 
-func init() {
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.dymns.Params")
-	proto.RegisterType((*PriceParams)(nil), "dymensionxyz.dymension.dymns.PriceParams")
-	proto.RegisterType((*ChainsParams)(nil), "dymensionxyz.dymension.dymns.ChainsParams")
-	proto.RegisterType((*AliasesOfChainId)(nil), "dymensionxyz.dymension.dymns.AliasesOfChainId")
-	proto.RegisterType((*MiscParams)(nil), "dymensionxyz.dymension.dymns.MiscParams")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/dymns/params.proto", fileDescriptor_6097ac65688a2490)
-}
-
 var fileDescriptor_6097ac65688a2490 = []byte{
 	// 846 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0x4f, 0x6f, 0x23, 0x35,

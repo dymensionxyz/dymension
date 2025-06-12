@@ -31,7 +31,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 			WithPredicate(BlockTypeUrls(
 				0,
 				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}), // deprecated. not suppose to be used
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}), // deprecated. not supposed to be used
 				sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 				sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
 				sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),

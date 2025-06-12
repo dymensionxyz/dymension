@@ -1,0 +1,56 @@
+name: Protobuf Checks
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "proto/**"
+      - "**/**.proto"
+      - "**/**.pb.go"
+  pull_request:
+    paths:
+      - "proto/**"
+      - "**/**.proto"
+      - "**/**.pb.go"
+
+permissions:
+  contents: read
+
+jobs:
+  protobuf-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: "latest"
+
+      - name: Run proto-format
+        run: make proto-format
+
+      - name: Run proto-gen
+        run: make proto-gen
+
+      - name: Check for uncommitted changes
+        run: |
+          CHANGES=$(git status --porcelain)
+          if [[ -n "$CHANGES" ]]; then
+            echo "Error: Uncommitted changes detected after running protobuf-checks:"
+            echo "$CHANGES"
+            exit 1
+          fi
+
+  buf-break-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1.50.0
+      - uses: bufbuild/buf-breaking-action@v1.1.4
+        with:
+          input: "proto"
+          against: "https://github.com/${{ github.repository }}.git#branch=${{ github.event.pull_request.base.ref }},ref=HEAD~1,subdir=proto"

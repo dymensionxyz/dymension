@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -51,6 +52,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
@@ -102,7 +105,6 @@ import (
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
-	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
@@ -138,6 +140,7 @@ type AppKeepers struct {
 	CircuitBreakerKeeper  circuitkeeper.Keeper
 
 	// IBC keepers
+	RateLimitingKeeper            ratelimitkeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	TransferStack                 ibcporttypes.IBCModule
@@ -401,6 +404,17 @@ func (a *AppKeepers) InitKeepers(
 		a.TxFeesKeeper,
 		a.RollappKeeper,
 		a.SequencerKeeper,
+		&a.SponsorshipKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		a.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -416,16 +430,6 @@ func (a *AppKeepers) InitKeepers(
 		a.IncentivesKeeper,
 		a.PoolManagerKeeper,
 		a.TxFeesKeeper,
-	)
-
-	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
-		appCodec,
-		a.keys[sponsorshiptypes.StoreKey],
-		a.AccountKeeper,
-		a.StakingKeeper,
-		a.IncentivesKeeper,
-		a.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -458,16 +462,26 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.RateLimitingKeeper = *ratelimitkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[ratelimittypes.StoreKey]),
+		a.GetSubspace(ratelimittypes.ModuleName),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		a.BankKeeper,
+		a.IBCKeeper.ChannelKeeper,
+		genesisbridge.NewICS4Wrapper(
+			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+			a.RollappKeeper,
+			a.IBCKeeper.ChannelKeeper,
+		), // ICS4Wrapper
+	)
+
 	// Create Transfer Keepers
 	a.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		a.keys[ibctransfertypes.StoreKey],
 		a.GetSubspace(ibctransfertypes.ModuleName),
-		genesisbridge.NewICS4Wrapper(
-			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
-			a.RollappKeeper,
-			a.IBCKeeper.ChannelKeeper,
-		),
+		a.RateLimitingKeeper, // ICS4Wrapper
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
@@ -577,7 +591,7 @@ func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
-		// insert lockup hooks receivers here
+			// insert lockup hooks receivers here
 		),
 	)
 
@@ -597,7 +611,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
-		// insert incentive hooks receivers here
+			// insert incentive hooks receivers here
 		),
 	)
 
@@ -610,10 +624,9 @@ func (a *AppKeepers) SetupHooks() {
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
 			a.StreamerKeeper.Hooks(), // x/streamer must be before x/incentives
-			a.IncentivesKeeper.Hooks(),
+			a.IncentivesKeeper.EpochHooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
-			a.SponsorshipKeeper.EpochHooks(),
 		),
 	)
 
@@ -667,6 +680,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// osmosis subspaces
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
+
+	// rate limiting subspace
+	paramsKeeper.Subspace(ratelimittypes.ModuleName)
 
 	return paramsKeeper
 }

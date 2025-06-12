@@ -21,9 +21,7 @@ type StakingKeeper interface {
 }
 
 type IncentivesKeeper interface {
-	DistrEpochIdentifier(ctx sdk.Context) string
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
-	DistributeEndorsementRewards(ctx sdk.Context, user sdk.AccAddress, gaugeId uint64, rewards sdk.Coins) error
 }
 
 type BankKeeper interface {

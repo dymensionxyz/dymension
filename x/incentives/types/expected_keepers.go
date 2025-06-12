@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
@@ -25,9 +24,6 @@ type BankKeeper interface {
 // LockupKeeper defines the expected interface needed to retrieve locks.
 type LockupKeeper interface {
 	GetLocksLongerThanDurationDenom(ctx sdk.Context, denom string, duration time.Duration) []lockuptypes.PeriodLock
-	GetPeriodLocksAccumulation(ctx sdk.Context, query lockuptypes.QueryCondition) math.Int
-	GetAccountPeriodLocks(ctx sdk.Context, addr sdk.AccAddress) []lockuptypes.PeriodLock
-	GetLockByID(ctx sdk.Context, lockID uint64) (*lockuptypes.PeriodLock, error)
 }
 
 // EpochKeeper defines the expected interface needed to retrieve epoch info.
@@ -50,4 +46,8 @@ type RollappKeeper interface {
 type SequencerKeeper interface {
 	GetProposer(ctx sdk.Context, rollappId string) (sequencer sequencertypes.Sequencer)
 	Kickable(ctx sdk.Context, proposer sequencertypes.Sequencer) bool
+}
+
+type SponsorshipKeeper interface {
+	UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, additionalCoins sdk.Coins) error
 }

@@ -31,9 +31,8 @@ func (suite *KeeperTestSuite) TestGRPCGaugeByID() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
@@ -62,9 +61,8 @@ func (suite *KeeperTestSuite) TestGRPCGauges() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
@@ -108,9 +106,8 @@ func (suite *KeeperTestSuite) TestGRPCActiveGauges() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
@@ -164,9 +161,8 @@ func (suite *KeeperTestSuite) TestGRPCActiveGaugesPerDenom() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
@@ -222,9 +218,8 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGauges() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
@@ -277,9 +272,8 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 		Id:          gaugeID,
 		IsPerpetual: false,
 		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         "lptoken",
-			Duration:      time.Second,
+			Denom:    "lptoken",
+			Duration: time.Second,
 		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
@@ -330,7 +324,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 // TestGRPCToDistributeCoins tests querying coins that are going to be distributed via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// ensure initially querying to distribute coins returns no coins
-	res, err := suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err := suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, sdk.Coins{})
 
@@ -349,11 +343,12 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 
 	// check to distribute coins after gauge creation
 	// ensure this equals the coins within the previously created non perpetual gauge
-	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
+	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, coins)
 
 	// distribute coins to stakers
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
 	distrCoins, err := suite.querier.DistributeOnEpochEnd(suite.Ctx, gauges)
 	suite.Require().NoError(err)
 	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("adym", 20000000000000000)}, distrCoins)
