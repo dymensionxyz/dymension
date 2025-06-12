@@ -8,10 +8,10 @@ import (
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgLockTokens{}, "dymensionxyz/dymension/lockup/LockTokens", nil)
-	cdc.RegisterConcrete(&MsgBeginUnlocking{}, "dymensionxyz/dymension/lockup/BeginUnlockPeriodLock", nil)
-	cdc.RegisterConcrete(&MsgExtendLockup{}, "dymensionxyz/dymension/lockup/ExtendLockup", nil)
-	cdc.RegisterConcrete(&MsgForceUnlock{}, "dymensionxyz/dymension/lockup/ForceUnlockTokens", nil)
+	cdc.RegisterConcrete(&MsgLockTokens{}, "lockup/LockTokens", nil)
+	cdc.RegisterConcrete(&MsgBeginUnlocking{}, "lockup/BeginUnlockPeriodLock", nil)
+	cdc.RegisterConcrete(&MsgExtendLockup{}, "lockup/ExtendLockup", nil)
+	cdc.RegisterConcrete(&MsgForceUnlock{}, "lockup/ForceUnlockTokens", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "lockup/UpdateParams", nil)
 	cdc.RegisterConcrete(Params{}, "lockup/Params", nil)
 }
