@@ -64,7 +64,7 @@ func (s *GenesisBridgeSuite) TestHappyPath_NoGenesisAccounts() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -107,7 +107,7 @@ func (s *GenesisBridgeSuite) TestHappyPath_GenesisAccounts() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -160,7 +160,7 @@ func (s *GenesisBridgeSuite) TestIRO() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -197,7 +197,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisInfo() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -216,7 +216,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisInfo() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -242,7 +242,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisInfo() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -273,7 +273,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisDenomMetadata() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -288,7 +288,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisDenomMetadata() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -324,7 +324,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisTransfer() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -339,7 +339,7 @@ func (s *GenesisBridgeSuite) TestInvalidGenesisTransfer() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -380,7 +380,7 @@ func (s *GenesisBridgeSuite) TestBridgeDisabledEnabled() {
 	packet.Sequence = seq
 
 	// submit rollapp's state update
-	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight()))
+	s.updateRollappState(uint64(s.rollappChain().App.LastBlockHeight())) //nolint:gosec
 
 	_, err = s.path.EndpointA.RecvPacketWithResult(packet)
 	s.Require().NoError(err)
@@ -472,7 +472,7 @@ func (s *GenesisBridgeSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Gene
 		s.path.EndpointA.ChannelConfig.PortID,
 		s.path.EndpointA.ChannelID,
 		clienttypes.ZeroHeight(),
-		uint64(s.hubCtx().BlockTime().Add(10*time.Minute).UnixNano()),
+		uint64(s.hubCtx().BlockTime().Add(10*time.Minute).UnixNano()), //nolint:gosec
 	)
 
 	return msg
@@ -486,7 +486,7 @@ func (s *GenesisBridgeSuite) transferMsg(amt math.Int, denom string) *transferty
 		s.rollappChain().SenderAccount.GetAddress().String(),
 		s.hubChain().SenderAccount.GetAddress().String(),
 		clienttypes.ZeroHeight(),
-		uint64(s.hubCtx().BlockTime().Add(10*time.Minute).UnixNano()),
+		uint64(s.hubCtx().BlockTime().Add(10*time.Minute).UnixNano()), //nolint:gosec
 		"",
 	)
 

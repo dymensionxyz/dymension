@@ -122,7 +122,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	hookPayload := forwardtypes.NewHookForwardToIBC(
 		tc.forwardChannel,
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
-		uint64(time.Now().Add(time.Minute*5).UnixNano()),
+		uint64(time.Now().Add(time.Minute*5).UnixNano()), //nolint:gosec
 	)
 	err := hookPayload.ValidateBasic()
 	s.Require().NoError(err)
@@ -135,7 +135,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	ibcRecipientBalBefore := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), ibcRecipient)
 
 	s.rollappChain().NextBlock()
-	rolH := uint64(s.rollappCtx().BlockHeight())
+	rolH := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	s.updateRollappState(rolH)
 
 	eibcFee := "100" // arbitrary, shouldn't have an effect because we don't fulfil
@@ -143,7 +143,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 	packet := s.transferRollappToHub(s.path, s.rollappSender(), ibcRecipient.String(), tc.ibcAmt, memo, false)
 	s.Require().True(s.rollappHasPacketCommitment(packet))
 
-	rolH = uint64(s.rollappCtx().BlockHeight())
+	rolH = uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	_, err = s.finalizeRollappState(1, rolH)
 	s.Require().NoError(err)
 	evts := s.finalizeRollappPacketsByAddress(ibcRecipient.String())
