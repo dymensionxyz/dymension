@@ -58,7 +58,8 @@ func (m *SellOrder) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO is nil")
 	}
 
-	if m.AssetType == TypeName {
+	switch m.AssetType {
+	case TypeName:
 		if m.AssetId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is empty")
 		}
@@ -66,7 +67,7 @@ func (m *SellOrder) Validate() error {
 		if !dymnsutils.IsValidDymName(m.AssetId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
 		}
-	} else if m.AssetType == TypeAlias {
+	case TypeAlias:
 		if m.AssetId == "" {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is empty")
 		}
@@ -74,7 +75,7 @@ func (m *SellOrder) Validate() error {
 		if !dymnsutils.IsValidAlias(m.AssetId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias of SO is not a valid alias")
 		}
-	} else {
+	default:
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid SO type: %s", m.AssetType)
 	}
 

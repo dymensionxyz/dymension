@@ -27,7 +27,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQueryServer(*app.IROKeeper))
 	queryClient := types.NewQueryClient(queryHelper)

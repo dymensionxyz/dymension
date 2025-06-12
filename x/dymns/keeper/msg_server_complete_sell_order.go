@@ -27,11 +27,12 @@ func (k msgServer) CompleteSellOrder(goCtx context.Context, msg *dymnstypes.MsgC
 
 	// process the Sell-Order based on the asset type
 
-	if msg.AssetType == dymnstypes.TypeName {
+	switch msg.AssetType {
+	case dymnstypes.TypeName:
 		resp, err = k.processCompleteSellOrderWithAssetTypeDymName(ctx, msg)
-	} else if msg.AssetType == dymnstypes.TypeAlias {
+	case dymnstypes.TypeAlias:
 		resp, err = k.processCompleteSellOrderWithAssetTypeAlias(ctx, msg)
-	} else {
+	default:
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", msg.AssetType)
 	}
 	if err != nil {

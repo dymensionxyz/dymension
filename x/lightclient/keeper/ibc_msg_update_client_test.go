@@ -106,12 +106,12 @@ func TestHandleMsgUpdateClientGood(t *testing.T) {
 						{
 							Height:    1,
 							StateRoot: []byte("appHash"),
-							Timestamp: header.SignedHeader.Header.Time,
+							Timestamp: header.Header.Time,
 						},
 						{
 							Height:    2,
 							StateRoot: []byte("appHash2"),
-							Timestamp: header.SignedHeader.Header.Time.Add(1),
+							Timestamp: header.Header.Time.Add(1),
 						},
 					},
 				},
