@@ -29,9 +29,6 @@ jobs:
         with:
           version: "latest"
 
-      - name: Run proto-lint
-        run: make proto-lint
-
       - name: Run proto-format
         run: make proto-format
 

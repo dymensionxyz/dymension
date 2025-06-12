@@ -3,9 +3,9 @@ package dymensionxyz.dymension.common;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
 
-// if given in eibc metadata, eibc fulfillment funds will be directed to a module address
-// and a hook will be executed, and finalize will also call the hook
-// note: only for onRecvPacket
+// if given in eibc metadata, eibc fulfillment funds will be directed to a
+// module address and a hook will be executed, and finalize will also call the
+// hook note: only for onRecvPacket
 message CompletionHookCall {
   // name of hook
   string name = 1;

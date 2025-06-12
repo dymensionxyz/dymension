@@ -445,6 +445,8 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.mm,
 			app.configurator,
 			&upgrades.UpgradeKeepers{
+				AccountKeeper:      &app.AppKeepers.AccountKeeper,
+				CircuitBreakKeeper: &app.AppKeepers.CircuitBreakerKeeper,
 				LockupKeeper:       app.AppKeepers.LockupKeeper,
 				IROKeeper:          app.AppKeepers.IROKeeper,
 				GAMMKeeper:         app.AppKeepers.GAMMKeeper,
