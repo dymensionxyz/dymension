@@ -1,8 +1,6 @@
 syntax = "proto3";
 package dymensionxyz.dymension.common;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "dymensionxyz/dymension/common/status.proto";
 
