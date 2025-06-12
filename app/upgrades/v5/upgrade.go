@@ -44,6 +44,8 @@ import (
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v5
@@ -97,6 +99,9 @@ func CreateUpgradeHandler(
 
 		// new x/gov params
 		updateGovParams(ctx, keepers.GovKeeper)
+
+		// update txfees params
+		updateTxfeesParams(ctx, keepers.TxfeesKeeper)
 
 		// update params to fast block speed
 		updateParamsToFastBlockSpeed(ctx, keepers)
@@ -186,8 +191,28 @@ func migrateAndUpdateLockupParams(ctx sdk.Context, keepers *upgrades.UpgradeKeep
 func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 	params := k.GetParams(ctx)
 
+	// add all existing denoms to the allowed pool creation denoms
 	for _, coin := range params.PoolCreationFee {
 		params.AllowedPoolCreationDenoms = append(params.AllowedPoolCreationDenoms, coin.Denom)
+	}
+
+	// leave only "adym" in the pool creation fee
+	if params.PoolCreationFee[0].Denom != "adym" {
+		panic("first pool creation fee denom expected to be adym")
+	}
+	params.PoolCreationFee = sdk.NewCoins(params.PoolCreationFee[0])
+
+	// set min swap amount to 0.1 DYM
+	params.MinSwapAmount = math.NewIntWithDecimal(1, 17) // 0.1 DYM
+	k.SetParams(ctx, params)
+}
+
+func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
+	params := k.GetParams(ctx)
+
+	params.FeeExemptMsgs = []string{
+		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountIn{}),
+		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountOut{}),
 	}
 	k.SetParams(ctx, params)
 }
