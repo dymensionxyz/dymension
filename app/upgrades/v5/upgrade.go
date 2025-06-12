@@ -193,8 +193,8 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 	// leave only "adym" in the pool creation fee
 	params.PoolCreationFee = sdk.NewCoins(params.PoolCreationFee[0])
 
-	// set min swap amount to 1 DYM
-	params.MinSwapAmount = math.NewIntWithDecimal(1, 18) // 1 DYM
+	// set min swap amount to 0.1 DYM
+	params.MinSwapAmount = math.NewIntWithDecimal(1, 19) // 0.1 DYM
 	k.SetParams(ctx, params)
 }
 
