@@ -29,6 +29,7 @@ var Upgrade = upgrades.Upgrade{
 
 var CircuitBreakPermissioned = []string{
 	"dym1fljlkdrsp5qpthxcltahjagzkzw6vgqgpzunv8",
+	"dym1k5rmr6j8fce7el3hr0t3ujya7nqttzh8kyqp56",
 }
 
 const (

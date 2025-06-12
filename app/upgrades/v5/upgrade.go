@@ -195,7 +195,7 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 // addAuthorizedCircuitBreaker
 func addAuthorizedCircuitBreaker(ctx sdk.Context, k *circuitkeeper.Keeper, ak *authkeeper.AccountKeeper) {
 	permissions := circuittypes.Permissions{
-		Level: circuittypes.Permissions_LEVEL_ALL_MSGS,
+		Level: circuittypes.Permissions_LEVEL_SUPER_ADMIN,
 	}
 
 	for _, grantee := range CircuitBreakPermissioned {
