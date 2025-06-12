@@ -27,7 +27,8 @@ type EventForward struct {
 	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
 	// empty if ok is true
 	Err string `protobuf:"bytes,2,opt,name=err,proto3" json:"err,omitempty"`
-	// was it actually a forward operation? (maybe not if they dont include forward memo)
+	// was it actually a forward operation? (maybe not if they dont include
+	// forward memo)
 	WasForwarded bool `protobuf:"varint,3,opt,name=was_forwarded,json=wasForwarded,proto3" json:"was_forwarded,omitempty"`
 }
 

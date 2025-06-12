@@ -113,12 +113,14 @@ func (m *HookForwardToIBC) GetTransfer() *types1.MsgTransfer {
 }
 
 // Expected format of metadata received in HL warp route messages
-// There is only one metadata, so we need to share it amongst our applications, so that they can compose and not conflict
+// There is only one metadata, so we need to share it amongst our applications,
+// so that they can compose and not conflict
 type HLMetadata struct {
 	// optional, can be empty
 	HookForwardToIbc []byte `protobuf:"bytes,1,opt,name=hook_forward_to_ibc,json=hookForwardToIbc,proto3" json:"hook_forward_to_ibc,omitempty"`
 	// optional, can be empty
-	// see https://www.notion.so/dymension/ADR-Kaspa-Bridge-Implementation-206a4a51f86a803980aec7099c826fb4?source=copy_link#208a4a51f86a8093a843cf4b5e903588
+	// see
+	// https://www.notion.so/dymension/ADR-Kaspa-Bridge-Implementation-206a4a51f86a803980aec7099c826fb4?source=copy_link#208a4a51f86a8093a843cf4b5e903588
 	Kaspa []byte `protobuf:"bytes,2,opt,name=kaspa,proto3" json:"kaspa,omitempty"`
 }
 
