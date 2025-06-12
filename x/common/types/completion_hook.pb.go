@@ -22,9 +22,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// if given in eibc metadata, eibc fullfillment funds will be directed to a module address
-// and a hook will be executed, and finalize will also call the hook
-// note: only for onRecvPacket
+// if given in eibc metadata, eibc fulfillment funds will be directed to a
+// module address and a hook will be executed, and finalize will also call the
+// hook note: only for onRecvPacket
 type CompletionHookCall struct {
 	// name of hook
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`

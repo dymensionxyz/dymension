@@ -7,8 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 )
 
 var (
@@ -48,18 +46,16 @@ func (m MsgCreateGauge) ValidateBasic() error {
 		if sdk.ValidateDenom(m.Asset.Denom) != nil {
 			return errors.New("denom should be valid for the condition")
 		}
-		if m.Asset.LockQueryType != lockuptypes.ByDuration {
-			return errors.New("only duration query condition is allowed. Start time distr conditions is an obsolete codepath slated for deletion")
+		if m.Asset.Duration < 0 || m.Asset.LockAge < 0 {
+			return errors.New("duration and lock age should be positive")
 		}
+		// we explicitly allow empty duration and lock age, as it will distribute to all locks
 	case GaugeType_GAUGE_TYPE_ENDORSEMENT:
 		if m.Endorsement == nil {
 			return errors.New("endorsement must be set for endorsement gauge type")
 		}
 		if m.Endorsement.RollappId == "" {
 			return errors.New("rollapp id should be set")
-		}
-		if !m.Endorsement.EpochRewards.Empty() {
-			return errors.New("epoch rewards should be empty on creation")
 		}
 	default:
 		return errors.New("unsupported gauge type")

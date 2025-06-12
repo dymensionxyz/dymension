@@ -161,16 +161,30 @@ func (s *AnteTestSuite) getMsgCreateRollapp(from string, tokenless bool, metadat
 	}
 }
 
-func (s *AnteTestSuite) getMsgCreateGauge(from sdk.AccAddress) sdk.Msg {
+func (s *AnteTestSuite) getMsgCreateAssetGauge(from sdk.AccAddress) sdk.Msg {
 	msgCreate := &incentivestypes.MsgCreateGauge{
 		IsPerpetual: true,
 		Owner:       from.String(),
 		GaugeType:   incentivestypes.GaugeType_GAUGE_TYPE_ASSET,
 		Asset: &lockuptypes.QueryCondition{
-			Denom:         params.DisplayDenom,
-			LockQueryType: lockuptypes.ByDuration,
-			Duration:      time.Hour,
-			Timestamp:     time.Now(),
+			Denom:    params.DisplayDenom,
+			Duration: time.Hour,
+			LockAge:  time.Hour,
+		},
+		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
+		StartTime:         time.Now(),
+		NumEpochsPaidOver: 1,
+	}
+	return msgCreate
+}
+
+func (s *AnteTestSuite) getMsgCreateEndorsementGauge(from sdk.AccAddress) sdk.Msg {
+	msgCreate := &incentivestypes.MsgCreateGauge{
+		IsPerpetual: true,
+		Owner:       from.String(),
+		GaugeType:   incentivestypes.GaugeType_GAUGE_TYPE_ENDORSEMENT,
+		Endorsement: &incentivestypes.EndorsementGauge{
+			RollappId: "test_1000-1",
 		},
 		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
 		StartTime:         time.Now(),
@@ -201,7 +215,8 @@ func (s *AnteTestSuite) TestEIP712() {
 		{"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
 		{"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
 		{"MsgCreateValidator", s.getMsgCreateValidator(from), false},
-		{"MsgCreateGauge", s.getMsgCreateGauge(from), false},
+		{"MsgCreateAssetGauge", s.getMsgCreateAssetGauge(from), true},
+		{"MsgCreateEndorsementGauge", s.getMsgCreateEndorsementGauge(from), true},
 	}
 
 	// can toggle here between legacy and non-legacy EIP712 typed data struct
@@ -233,7 +248,7 @@ func (suite *AnteTestSuite) DumpEIP712LegacyTypedData(from sdk.AccAddress, msgs 
 	txConfig := suite.clientCtx.TxConfig
 	suite.txBuilder = txConfig.NewTxBuilder()
 	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
+	suite.Require().True(ok, "txBuilder could not be cast to authtx.ExtensionOptionsTxBuilder type")
 
 	// chainID
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
@@ -287,7 +302,7 @@ func (suite *AnteTestSuite) DumpEIP712TypedData(from sdk.AccAddress, msgs []sdk.
 	txConfig := suite.clientCtx.TxConfig
 	suite.txBuilder = txConfig.NewTxBuilder()
 	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
+	suite.Require().True(ok, "txBuilder could not be cast to authtx.ExtensionOptionsTxBuilder type")
 
 	// chainID
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())

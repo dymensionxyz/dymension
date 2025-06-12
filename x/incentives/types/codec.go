@@ -10,8 +10,10 @@ import (
 // RegisterCodec registers the necessary x/incentives interfaces and concrete types on the provided
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateGauge{}, "dymensionxyz/dymension/incentives/CreateGauge", nil)
-	cdc.RegisterConcrete(&MsgAddToGauge{}, "dymensionxyz/dymension/incentives/AddToGauge", nil)
+	cdc.RegisterConcrete(&MsgCreateGauge{}, "incentives/CreateGauge", nil)
+	cdc.RegisterConcrete(&MsgAddToGauge{}, "incentives/AddToGauge", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "incentives/UpdateParams", nil)
+	cdc.RegisterConcrete(Params{}, "incentives/Params", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the incentives module.
@@ -20,6 +22,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgCreateGauge{},
 		&MsgAddToGauge{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

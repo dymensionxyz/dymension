@@ -4,6 +4,7 @@ package dymensionxyz.dymension.incentives;
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 // Params holds parameters for the incentives module
@@ -42,6 +43,25 @@ message Params {
   // distributees that are eligible.
   cosmos.base.v1beta1.Coin min_value_for_distribution = 5
       [ (gogoproto.nullable) = false ];
+
+  // min_lock_age is the minimum age a lock must be to be eligible for
+  // distribution. If the lock is less than this age, it will not be distributed
+  // and is forfeited to the remaining distributees that are eligible
+  google.protobuf.Duration min_lock_age = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"min_lock_age\""
+  ];
+
+  // min_lock_duration is the minimum duration a lock must be to be eligible for
+  // distribution. If the lock is less than this duration, it will not be
+  // distributed and is forfeited to the remaining distributees that are
+  // eligible
+  google.protobuf.Duration min_lock_duration = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"min_lock_duration\""
+  ];
 
   enum RollappGaugesModes {
     ActiveOnly = 0;
