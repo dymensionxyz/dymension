@@ -149,16 +149,16 @@ func New(
 		AppKeepers:        AppKeepers{},
 	}
 
-	app.AppKeepers.GenerateKeys()
+	app.GenerateKeys()
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
 		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
-	app.AppKeepers.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
-	app.AppKeepers.SetupHooks()
-	app.AppKeepers.InitTransferStack()
+	app.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
+	app.SetupHooks()
+	app.InitTransferStack()
 
 	/****  Module Options ****/
 
@@ -414,7 +414,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *App) RegisterTxService(clientCtx client.Context) {
-	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+	authtx.RegisterTxService(app.GRPCQueryRouter(), clientCtx, app.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
@@ -422,7 +422,7 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	cmtApp := server.NewCometABCIWrapper(app)
 	cmtservice.RegisterTendermintService(
 		clientCtx,
-		app.BaseApp.GRPCQueryRouter(),
+		app.GRPCQueryRouter(),
 		app.interfaceRegistry,
 		cmtApp.Query,
 	)
@@ -445,25 +445,25 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.mm,
 			app.configurator,
 			&upgrades.UpgradeKeepers{
-				AccountKeeper:      &app.AppKeepers.AccountKeeper,
-				CircuitBreakKeeper: &app.AppKeepers.CircuitBreakerKeeper,
-				LockupKeeper:       app.AppKeepers.LockupKeeper,
-				IROKeeper:          app.AppKeepers.IROKeeper,
-				GAMMKeeper:         app.AppKeepers.GAMMKeeper,
-				GovKeeper:          app.AppKeepers.GovKeeper,
-				IncentivesKeeper:   app.AppKeepers.IncentivesKeeper,
-				RollappKeeper:      app.AppKeepers.RollappKeeper,
-				SponsorshipKeeper:  &app.AppKeepers.SponsorshipKeeper,
-				ParamsKeeper:       &app.AppKeepers.ParamsKeeper,
-				DelayedAckKeeper:   &app.AppKeepers.DelayedAckKeeper,
-				EIBCKeeper:         &app.AppKeepers.EIBCKeeper,
-				DymNSKeeper:        &app.AppKeepers.DymNSKeeper,
-				StreamerKeeper:     &app.AppKeepers.StreamerKeeper,
-				SequencerKeeper:    app.AppKeepers.SequencerKeeper,
-				MintKeeper:         &app.AppKeepers.MintKeeper,
-				SlashingKeeper:     &app.AppKeepers.SlashingKeeper,
-				ConsensusKeeper:    &app.AppKeepers.ConsensusParamsKeeper,
-				RateLimitingKeeper: &app.AppKeepers.RateLimitingKeeper,
+				AccountKeeper:      &app.AccountKeeper,
+				CircuitBreakKeeper: &app.CircuitBreakerKeeper,
+				LockupKeeper:       app.LockupKeeper,
+				IROKeeper:          app.IROKeeper,
+				GAMMKeeper:         app.GAMMKeeper,
+				GovKeeper:          app.GovKeeper,
+				IncentivesKeeper:   app.IncentivesKeeper,
+				RollappKeeper:      app.RollappKeeper,
+				SponsorshipKeeper:  &app.SponsorshipKeeper,
+				ParamsKeeper:       &app.ParamsKeeper,
+				DelayedAckKeeper:   &app.DelayedAckKeeper,
+				EIBCKeeper:         &app.EIBCKeeper,
+				DymNSKeeper:        &app.DymNSKeeper,
+				StreamerKeeper:     &app.StreamerKeeper,
+				SequencerKeeper:    app.SequencerKeeper,
+				MintKeeper:         &app.MintKeeper,
+				SlashingKeeper:     &app.SlashingKeeper,
+				ConsensusKeeper:    &app.ConsensusParamsKeeper,
+				RateLimitingKeeper: &app.RateLimitingKeeper,
 			},
 		),
 	)

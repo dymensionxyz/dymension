@@ -16,9 +16,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"cosmossdk.io/x/tx/signing"
-	amino "github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
-	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
@@ -30,7 +28,7 @@ import (
 // EncodingConfig specifies the concrete encoding types to use for a given app.
 // This is provided for compatibility between protobuf and amino implementations.
 type EncodingConfig struct {
-	InterfaceRegistry types.InterfaceRegistry
+	InterfaceRegistry codectypes.InterfaceRegistry
 	Codec             codec.Codec
 	TxConfig          client.TxConfig
 	Amino             *codec.LegacyAmino
@@ -38,7 +36,7 @@ type EncodingConfig struct {
 
 // MakeEncodingConfig creates a new EncodingConfig and returns it
 func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
-	cdc := amino.NewLegacyAmino()
+	cdc := codec.NewLegacyAmino()
 
 	signingOptions := signing.Options{
 		AddressCodec: address.Bech32Codec{
@@ -52,11 +50,11 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 		},
 	}
 
-	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
+	interfaceRegistry, _ := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
 		ProtoFiles:     proto.HybridResolver,
 		SigningOptions: signingOptions,
 	})
-	codec := amino.NewProtoCodec(interfaceRegistry)
+	codec := codec.NewProtoCodec(interfaceRegistry)
 	RegisterLegacyAminoCodec(cdc)
 	RegisterInterfaces(interfaceRegistry)
 
