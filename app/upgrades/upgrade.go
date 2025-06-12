@@ -11,6 +11,7 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -65,4 +66,5 @@ type UpgradeKeepers struct {
 	SlashingKeeper     *slashingkeeper.Keeper
 	ConsensusKeeper    *consensusparamkeeper.Keeper
 	RateLimitingKeeper *ratelimitkeeper.Keeper
+	TxfeesKeeper       *txfeeskeeper.Keeper
 }
