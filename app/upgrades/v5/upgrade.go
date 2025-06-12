@@ -191,6 +191,9 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 	}
 
 	// leave only "adym" in the pool creation fee
+	if params.PoolCreationFee[0].Denom != "adym" {
+		panic("first pool creation fee denom expected to be adym")
+	}
 	params.PoolCreationFee = sdk.NewCoins(params.PoolCreationFee[0])
 
 	// set min swap amount to 0.1 DYM
