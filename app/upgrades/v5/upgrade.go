@@ -194,7 +194,7 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 	params.PoolCreationFee = sdk.NewCoins(params.PoolCreationFee[0])
 
 	// set min swap amount to 0.1 DYM
-	params.MinSwapAmount = math.NewIntWithDecimal(1, 19) // 0.1 DYM
+	params.MinSwapAmount = math.NewIntWithDecimal(1, 17) // 0.1 DYM
 	k.SetParams(ctx, params)
 }
 
