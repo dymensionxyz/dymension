@@ -10,7 +10,6 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -80,7 +79,7 @@ func (s *GenesisBridgeSuite) TestHappyPath_NoGenesisAccounts() {
 	s.Require().True(rollapp.GenesisState.IsTransferEnabled())
 
 	// assert denom registered
-	expectedIBCdenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
+	expectedIBCdenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
 	metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), expectedIBCdenom)
 	s.Require().True(found)
 	s.Require().Equal(rollapp.GenesisInfo.NativeDenom.Display, metadata.Display)
@@ -119,7 +118,7 @@ func (s *GenesisBridgeSuite) TestHappyPath_GenesisAccounts() {
 	s.Require().Equal(successAck, ack)
 
 	// assert the genesis accounts were funded
-	ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
+	ibcDenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
 	balance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), gAddr, ibcDenom)
 	s.Require().Equal(gAccounts[0].Amount, balance.Amount)
 }
@@ -178,7 +177,7 @@ func (s *GenesisBridgeSuite) TestIRO() {
 	// the iro plan should be settled
 	plan, found := s.hubApp().IROKeeper.GetPlanByRollapp(s.hubCtx(), rollappChainID())
 	s.Require().True(found)
-	expectedIBCdenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
+	expectedIBCdenom := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, rollapp.GenesisInfo.NativeDenom.Base)).IBCDenom()
 	s.Require().Equal(plan.SettledDenom, expectedIBCdenom)
 }
 
@@ -479,8 +478,8 @@ func (s *GenesisBridgeSuite) genesisBridgePacket(raGenesisInfo rollapptypes.Gene
 	return msg
 }
 
-func (s *GenesisBridgeSuite) transferMsg(amt math.Int, denom string) *types.MsgTransfer {
-	msg := types.NewMsgTransfer(
+func (s *GenesisBridgeSuite) transferMsg(amt math.Int, denom string) *transfertypes.MsgTransfer {
+	msg := transfertypes.NewMsgTransfer(
 		s.path.EndpointB.ChannelConfig.PortID,
 		s.path.EndpointB.ChannelID,
 		sdk.NewCoin(denom, amt),

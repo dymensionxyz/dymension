@@ -46,7 +46,6 @@ import (
 	// this line is used by starport scaffolding # root/moduleImport
 
 	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	v047 "github.com/cosmos/cosmos-sdk/x/genutil/migrations/v047"
@@ -78,7 +77,7 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 func NewRootCmd() *cobra.Command {
 	initSDKConfig()
 	tempApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, EmptyAppOptions{})
-	encodingConfig := params.EncodingConfig{
+	encodingConfig := appparams.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
 		Codec:             tempApp.AppCodec(),
 		TxConfig:          tempApp.TxConfig(),
