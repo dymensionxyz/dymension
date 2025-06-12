@@ -383,9 +383,12 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	))
 
 	// DymNS module
-	dymnsSubspace := keepers.ParamsKeeper.Subspace(dymns.ModuleName)
-	dymnsSubspace = dymnsSubspace.WithKeyTable(dymns.ParamKeyTable())
 	var dymnsParams dymns.Params
+	dymnsSubspace, ok := keepers.ParamsKeeper.GetSubspace(dymnstypes.ModuleName)
+	if !ok {
+		dymnsSubspace = keepers.ParamsKeeper.Subspace(dymns.ModuleName)
+		dymnsSubspace = dymnsSubspace.WithKeyTable(dymns.ParamKeyTable())
+	}
 	dymnsSubspace.GetParamSetIfExists(ctx, &dymnsParams)
 	err := keepers.DymNSKeeper.SetParams(ctx, dymnstypes.NewParams(
 		dymnstypes.PriceParams{
