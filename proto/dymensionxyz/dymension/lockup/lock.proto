@@ -56,8 +56,8 @@ message PeriodLock {
 // Duration field and lock_age field could be empty, depending on the
 // LockQueryType.
 message QueryCondition {
-  reserved 1,4; 
-  
+  reserved 1, 4;
+
   // Denom represents the token denomination we are looking to lock up
   string denom = 2;
   // Duration is used to query locks with longer duration than the specified
