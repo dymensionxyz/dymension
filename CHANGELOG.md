@@ -25,6 +25,7 @@
 * **lockup:** get lock creation fee from params ([#1762](https://github.com/dymensionxyz/dymension/issues/1762)) ([893282a](https://github.com/dymensionxyz/dymension/commit/893282a5d07ad16d37061c874fbe5829af3c530e))
 * **lockup:** remove logic to unlock all locks at end blocker, or from tx ([#1764](https://github.com/dymensionxyz/dymension/issues/1764)) ([a8d5cbc](https://github.com/dymensionxyz/dymension/commit/a8d5cbc197d77635a2f8ad89f9c0998a7260955f))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
+* **proto:** formatting proto files ([#1904](https://github.com/dymensionxyz/dymension/issues/1904)) ([9956d00](https://github.com/dymensionxyz/dymension/commit/9956d0060cfa268541c85229893c8f85bfa33d36))
 * rename x/sequencer after sentinel func ([#1817](https://github.com/dymensionxyz/dymension/issues/1817)) ([3c568c0](https://github.com/dymensionxyz/dymension/commit/3c568c0895de6af95262becb6d690820e0815134))
 * **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
 * **rollapp:** cli update only metadata ([#1708](https://github.com/dymensionxyz/dymension/issues/1708)) ([942c868](https://github.com/dymensionxyz/dymension/commit/942c8683b6aed177088eac49bb8703d83fadb210))
