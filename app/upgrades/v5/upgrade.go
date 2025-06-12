@@ -201,7 +201,7 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 	params := k.GetParams(ctx)
 
-	params.FeeExcludeList = []string{
+	params.FeeExemptMsgs = []string{
 		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountIn{}),
 		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountOut{}),
 	}
