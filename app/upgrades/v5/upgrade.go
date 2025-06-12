@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	circuitkeeper "cosmossdk.io/x/circuit/keeper"
+	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
@@ -81,6 +84,9 @@ func CreateUpgradeHandler(
 		if err := migrateGaugeLockAges(ctx, keepers.IncentivesKeeper); err != nil {
 			return nil, err
 		}
+
+		// add authorized circuit breaker
+		addAuthorizedCircuitBreaker(ctx, keepers.CircuitBreakKeeper, keepers.AccountKeeper)
 
 		/* ----------------------------- params updates ----------------------------- */
 		// new IRO params
@@ -184,6 +190,25 @@ func updateGAMMParams(ctx sdk.Context, k *gammkeeper.Keeper) {
 		params.AllowedPoolCreationDenoms = append(params.AllowedPoolCreationDenoms, coin.Denom)
 	}
 	k.SetParams(ctx, params)
+}
+
+// addAuthorizedCircuitBreaker
+func addAuthorizedCircuitBreaker(ctx sdk.Context, k *circuitkeeper.Keeper, ak *authkeeper.AccountKeeper) {
+	permissions := circuittypes.Permissions{
+		Level: circuittypes.Permissions_LEVEL_SUPER_ADMIN,
+	}
+
+	for _, grantee := range CircuitBreakPermissioned {
+		grantee, err := ak.AddressCodec().StringToBytes(grantee)
+		if err != nil {
+			panic(err)
+		}
+
+		// Append the account in the msg to the store's set of authorized super admins
+		if err = k.Permissions.Set(ctx, grantee, permissions); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
