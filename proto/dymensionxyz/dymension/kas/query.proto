@@ -10,14 +10,15 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 service Query {
 
-  // check if a withdrawal was processed yet or not 
+  // check if a withdrawal was processed yet or not
   rpc WithdrawalStatus(QueryWithdrawalStatusRequest)
       returns (QueryWithdrawalStatusResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/kas/withdrawal_status";
   }
 
-  // get the current outpoint which must be spent in all newly signed transactions
+  // get the current outpoint which must be spent in all newly signed
+  // transactions
   rpc Outpoint(QueryOutpointRequest) returns (QueryOutpointResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/kas/outpoint";
   }
@@ -34,4 +35,6 @@ message QueryWithdrawalStatusResponse {
 
 message QueryOutpointRequest {}
 
-message QueryOutpointResponse { TransactionOutpoint outpoint = 1 [ (gogoproto.nullable) = false ]; }
+message QueryOutpointResponse {
+  TransactionOutpoint outpoint = 1 [ (gogoproto.nullable) = false ];
+}

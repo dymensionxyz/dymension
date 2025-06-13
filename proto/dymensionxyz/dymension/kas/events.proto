@@ -10,4 +10,6 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/kas/types";
 
 message EventBootstrap {}
 
-message EventUpdate { ProgressIndication update = 1 [ (gogoproto.nullable) = false ]; }
+message EventUpdate {
+  ProgressIndication update = 1 [ (gogoproto.nullable) = false ];
+}
