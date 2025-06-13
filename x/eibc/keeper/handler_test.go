@@ -22,6 +22,13 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
 			expectedPrice: "890",
 		},
 		{
+			name:          "fee by memo - create demand order, inc other value",
+			memo:          `{"eibc":{"fee":"100", "other":"value"}}`,
+			expectedErr:   false,
+			expectedFee:   "100",
+			expectedPrice: "890",
+		},
+		{
 			name:          "empty memo - create demand order",
 			memo:          "",
 			expectedErr:   false,
