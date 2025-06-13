@@ -5,4 +5,5 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
+	// TODO:
 }
