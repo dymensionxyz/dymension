@@ -113,6 +113,8 @@ import (
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
@@ -176,6 +178,7 @@ type AppKeepers struct {
 
 	HyperCoreKeeper hypercorekeeper.Keeper
 	HyperWarpKeeper hyperwarpkeeper.Keeper
+	KasKeeper       *kaskeeper.Keeper
 
 	Forward *forward.Forward
 
@@ -552,6 +555,13 @@ func (a *AppKeepers) InitKeepers(
 		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
 	)
 
+	a.KasKeeper = kaskeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
+		govModuleAddress,
+		&a.HyperCoreKeeper,
+	)
+
 	a.HyperWarpKeeper.SetHook(a.Forward)
 
 	a.DelayedAckKeeper.SetCompletionHooks(map[string]delayedackkeeper.CompletionHookInstance{
@@ -581,7 +591,7 @@ func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
-			// insert lockup hooks receivers here
+		// insert lockup hooks receivers here
 		),
 	)
 
@@ -601,7 +611,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
-			// insert incentive hooks receivers here
+		// insert incentive hooks receivers here
 		),
 	)
 

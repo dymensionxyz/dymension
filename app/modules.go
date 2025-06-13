@@ -42,7 +42,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
-	"github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
+	ratelimit "github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
 	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
@@ -66,6 +66,8 @@ import (
 
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/dymensionxyz/dymension/v3/x/kas"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -158,6 +160,7 @@ func (app *App) SetupModules(
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
+		kas.NewAppModule(appCodec, app.KasKeeper),
 	}
 }
 
@@ -201,6 +204,7 @@ var maccPerms = map[string][]string{
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
+	kastypes.ModuleName:                                nil,
 	ratelimittypes.ModuleName:                          nil,
 }
 
@@ -250,6 +254,7 @@ var BeginBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 
@@ -295,6 +300,7 @@ var EndBlockers = []string{
 	grouptypes.ModuleName,
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 
@@ -341,5 +347,6 @@ var InitGenesis = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
+	kastypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
