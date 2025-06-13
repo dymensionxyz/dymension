@@ -161,7 +161,7 @@ func (s *AnteTestSuite) getMsgCreateRollapp(from string, tokenless bool, metadat
 	}
 }
 
-func (s *AnteTestSuite) getMsgCreateGauge(from sdk.AccAddress) sdk.Msg {
+func (s *AnteTestSuite) getMsgCreateAssetGauge(from sdk.AccAddress) sdk.Msg {
 	msgCreate := &incentivestypes.MsgCreateGauge{
 		IsPerpetual: true,
 		Owner:       from.String(),
@@ -170,6 +170,21 @@ func (s *AnteTestSuite) getMsgCreateGauge(from sdk.AccAddress) sdk.Msg {
 			Denom:    params.DisplayDenom,
 			Duration: time.Hour,
 			LockAge:  time.Hour,
+		},
+		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
+		StartTime:         time.Now(),
+		NumEpochsPaidOver: 1,
+	}
+	return msgCreate
+}
+
+func (s *AnteTestSuite) getMsgCreateEndorsementGauge(from sdk.AccAddress) sdk.Msg {
+	msgCreate := &incentivestypes.MsgCreateGauge{
+		IsPerpetual: true,
+		Owner:       from.String(),
+		GaugeType:   incentivestypes.GaugeType_GAUGE_TYPE_ENDORSEMENT,
+		Endorsement: &incentivestypes.EndorsementGauge{
+			RollappId: "test_1000-1",
 		},
 		Coins:             sdk.Coins{sdk.NewCoin(params.DisplayDenom, math.NewInt(1))},
 		StartTime:         time.Now(),
@@ -200,7 +215,8 @@ func (s *AnteTestSuite) TestEIP712() {
 		{"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
 		{"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
 		{"MsgCreateValidator", s.getMsgCreateValidator(from), false},
-		{"MsgCreateGauge", s.getMsgCreateGauge(from), false},
+		{"MsgCreateAssetGauge", s.getMsgCreateAssetGauge(from), true},
+		{"MsgCreateEndorsementGauge", s.getMsgCreateEndorsementGauge(from), true},
 	}
 
 	// can toggle here between legacy and non-legacy EIP712 typed data struct

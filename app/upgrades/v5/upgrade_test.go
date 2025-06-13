@@ -44,10 +44,6 @@ func (s *UpgradeTestSuite) SetupTestCustom(t *testing.T) {
 	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeader(cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()}).WithChainID("dymension_100-1")
 
 	defParams := *apptesting.DefaultConsensusParams
-
-	params2, _ := s.App.ConsensusParamsKeeper.Params(s.Ctx, nil)
-	_ = params2
-
 	s.Ctx = s.Ctx.WithConsensusParams(defParams)
 }
 
@@ -85,6 +81,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			preUpgrade: func() error {
 				s.setLockupParams()
 				s.setIROParams()
+				s.setGAMMParams()
 				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
 				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				s.populateIBCChannels()
@@ -123,6 +120,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// validate IRO params
 				if err = s.validateIROParamsMigration(); err != nil {
+					return
+				}
+
+				// validate gamm params
+				if err = s.validateGammParamsMigration(); err != nil {
 					return
 				}
 
@@ -200,6 +202,32 @@ func (s *UpgradeTestSuite) validateIROParamsMigration() error {
 
 	if params.MinVestingDuration != expected.MinVestingDuration || params.MinVestingStartTimeAfterSettlement != expected.MinVestingStartTimeAfterSettlement {
 		return fmt.Errorf("min vesting duration or start time after settlement not set correctly")
+	}
+
+	return nil
+}
+
+func (s *UpgradeTestSuite) setGAMMParams() {
+	params := s.App.GAMMKeeper.GetParams(s.Ctx)
+	params.PoolCreationFee = sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100000000000000000)),
+		sdk.NewCoin("ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4", math.NewInt(1)))
+	s.App.GAMMKeeper.SetParams(s.Ctx, params)
+}
+
+// validate gamm params
+func (s *UpgradeTestSuite) validateGammParamsMigration() error {
+	params := s.App.GAMMKeeper.GetParams(s.Ctx)
+
+	if len(params.PoolCreationFee) != 1 {
+		return fmt.Errorf("pool creation fee not set correctly")
+	}
+
+	if params.PoolCreationFee[0].Denom != "adym" {
+		return fmt.Errorf("pool creation fee not set correctly")
+	}
+
+	if !params.MinSwapAmount.Equal(math.NewInt(100000000000000000)) {
+		return fmt.Errorf("min swap amount not set correctly")
 	}
 
 	return nil
