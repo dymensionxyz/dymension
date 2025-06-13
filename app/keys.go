@@ -6,6 +6,8 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -19,6 +21,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -30,6 +33,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
@@ -127,9 +131,16 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
 	dymnstypes.StoreKey,
+	lightcliendmoduletypes.StoreKey,
+	grouptypes.StoreKey,
+	hypercoretypes.ModuleName,
+	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
+
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,
+
 	// osmosis keys
 	lockuptypes.StoreKey,
 	epochstypes.StoreKey,
@@ -137,6 +148,5 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	poolmanagertypes.StoreKey,
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
-	lightcliendmoduletypes.StoreKey,
-	grouptypes.StoreKey,
+	ratelimittypes.StoreKey,
 )

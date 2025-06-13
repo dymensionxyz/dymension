@@ -32,6 +32,7 @@ func CmdFinalizePacket() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "finalize-packet [rollapp-id] [proof-height] [packet-type] [packet-src-channel] [packet-sequence] --from <sender>",
 		Short: "Finalize a specified packet",
+		Long:  "Finalize a specified packet. Type is ON_RECV, ON_ACK, or ON_TIMEOUT",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

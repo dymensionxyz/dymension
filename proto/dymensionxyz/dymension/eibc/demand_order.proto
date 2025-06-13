@@ -1,10 +1,11 @@
 syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
-import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/common/status.proto";
-import "dymensionxyz/dymension/common/rollapp_packet.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/common/completion_hook.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
+import "dymensionxyz/dymension/common/status.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
@@ -44,4 +45,6 @@ message DemandOrder {
   // creation_height is the height of the block on the hub when order was
   // created.
   uint64 creation_height = 12;
+  // an optional hook which uses the funds when the order is fulfilled
+  dymensionxyz.dymension.common.CompletionHookCall completion_hook = 13;
 }

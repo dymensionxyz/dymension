@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"errors"
-	"math/rand"
+	"math/rand/v2"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -34,20 +34,20 @@ type LPs struct {
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
 	return LPs{
-		byRollAppDenom: collections.NewKeySet[collections.Triple[string, string, uint64]](
+		byRollAppDenom: collections.NewKeySet(
 			sb, LPsByRollAppDenomPrefix, "byRollAppDenom",
-			collections.TripleKeyCodec[string, string, uint64](
+			collections.TripleKeyCodec(
 				collections.StringKey,
 				collections.StringKey,
 				collections.Uint64Key,
 			)),
-		byID: collections.NewMap[uint64, types.OnDemandLPRecord](
+		byID: collections.NewMap(
 			sb, LPsByIDPrefix, "byID",
 			collections.Uint64Key, codec.CollValue[types.OnDemandLPRecord](cdc),
 		),
-		byAddr: collections.NewKeySet[collections.Pair[string, uint64]](
+		byAddr: collections.NewKeySet(
 			sb, LPsByAddrPrefix, "byAddr",
-			collections.PairKeyCodec[string, uint64](
+			collections.PairKeyCodec(
 				collections.StringKey,
 				collections.Uint64Key,
 			),
@@ -187,14 +187,14 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 		if err != nil {
 			return nil, err
 		}
-		if lpr.Accepts(uint64(ctx.BlockHeight()), o) {
+		if lpr.Accepts(uint64(ctx.BlockHeight()), &o) {
 			compat = append(compat, lpr)
 		}
 	}
 	return compat, nil
 }
 
-func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) error {
+func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {
 	o, err := k.GetOutstandingOrder(ctx, order)
 	if err != nil {
 		return errorsmod.Wrap(err, "get outstanding order")
@@ -203,18 +203,19 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng int64) er
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
 	}
-	r := rand.New(rand.NewSource(rng))
+	r := rand.New(rand.NewPCG(rng, 0))
 	r.Shuffle(len(lps), func(i, j int) {
 		lps[i], lps[j] = lps[j], lps[i]
 	})
 	for _, lp := range lps {
-		err := k.Fulfill(ctx, o, lp.Lp.MustAddr())
+		err := k.fulfillBasic(ctx, o, lp.Lp.MustAddr())
 		if err != nil {
 			if errorsmod.IsOf(err, sdkerrors.ErrInsufficientFunds) {
 				if err := k.LPs.Del(ctx, lp.Id, "out of funds"); err != nil {
 					return errorsmod.Wrapf(err, "delete lp: %d", lp.Id)
 				}
 				ctx.Logger().Error("Fulfill via on demand dlp - insufficient funds.", "lp", lp.Id)
+				// note: in case fulfill will get more complicated, we'll need to wrap this with cache ctx
 				continue
 			}
 			return errorsmod.Wrap(err, "fulfill lp")

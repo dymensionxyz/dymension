@@ -8,8 +8,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 )
 
-var _ sdk.AnteDecorator = IBCMessagesDecorator{}
-
 type IBCMessagesDecorator struct {
 	ibcClientKeeper  types.IBCClientKeeperExpected
 	ibcChannelKeeper types.IBCChannelKeeperExpected
@@ -31,26 +29,16 @@ func NewIBCMessagesDecorator(
 	}
 }
 
-func (i IBCMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	msgs := tx.GetMsgs()
-	for _, m := range msgs {
-		// TODO: need to handle authz etc
-		switch msg := m.(type) {
-		case *ibcclienttypes.MsgSubmitMisbehaviour:
-			if err := i.HandleMsgSubmitMisbehaviour(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "handle MsgSubmitMisbehaviour")
-			}
-		case *ibcclienttypes.MsgUpdateClient:
-			if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
-			}
-		case *ibcchanneltypes.MsgChannelOpenAck:
-			if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
-				return ctx, errorsmod.Wrap(err, "handle MsgChannelOpenAck")
-			}
-		default:
-			continue
+func (i IBCMessagesDecorator) InnerCallback(ctx sdk.Context, m sdk.Msg, simulate bool, depth int) (sdk.Context, error) {
+	switch msg := m.(type) {
+	case *ibcclienttypes.MsgUpdateClient:
+		if err := i.HandleMsgUpdateClient(ctx, msg); err != nil {
+			return ctx, errorsmod.Wrap(err, "handle MsgUpdateClient")
+		}
+	case *ibcchanneltypes.MsgChannelOpenAck:
+		if err := i.HandleMsgChannelOpenAck(ctx, msg); err != nil {
+			return ctx, errorsmod.Wrap(err, "handle MsgChannelOpenAck")
 		}
 	}
-	return next(ctx, tx, simulate)
+	return ctx, nil
 }

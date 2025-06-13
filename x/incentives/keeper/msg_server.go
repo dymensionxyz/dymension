@@ -53,6 +53,12 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 // Emits create gauge event and returns the create gauge response.
 func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateGauge) (*types.MsgCreateGaugeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Validate the message
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
@@ -61,22 +67,30 @@ func (server msgServer) CreateGauge(goCtx context.Context, msg *types.MsgCreateG
 	// Fee = CreateGaugeBaseFee + AddDenomFee * NumDenoms
 	params := server.keeper.GetParams(ctx)
 	fee := params.CreateGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Coins))))
-	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Coins); err != nil {
+	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
 	var gaugeID uint64
-	switch distr := msg.DistributeTo.(type) {
-	case *types.MsgCreateGauge_Asset:
-		gaugeID, err = server.keeper.CreateAssetGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *distr.Asset, msg.StartTime, msg.NumEpochsPaidOver)
-		if err != nil {
-			return nil, fmt.Errorf("create gauge: %w", err)
+	switch msg.GaugeType {
+	case types.GaugeType_GAUGE_TYPE_ASSET:
+		if msg.Asset == nil {
+			return nil, fmt.Errorf("asset must be set for asset gauge type")
 		}
-	case *types.MsgCreateGauge_Endorsement:
-		gaugeID, err = server.keeper.CreateEndorsementGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *distr.Endorsement, msg.StartTime, msg.NumEpochsPaidOver)
+		gaugeID, err = server.keeper.CreateAssetGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *msg.Asset, msg.StartTime, msg.NumEpochsPaidOver)
 		if err != nil {
-			return nil, fmt.Errorf("create gauge: %w", err)
+			return nil, fmt.Errorf("create asset gauge: %w", err)
 		}
+	case types.GaugeType_GAUGE_TYPE_ENDORSEMENT:
+		if msg.Endorsement == nil {
+			return nil, fmt.Errorf("endorsement must be set for endorsement gauge type")
+		}
+		gaugeID, err = server.keeper.CreateEndorsementGauge(ctx, msg.IsPerpetual, owner, msg.Coins, *msg.Endorsement, msg.StartTime, msg.NumEpochsPaidOver)
+		if err != nil {
+			return nil, fmt.Errorf("create endorsement gauge: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported gauge type: %v", msg.GaugeType)
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -107,7 +121,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	// Fee = AddToGaugeBaseFee + AddDenomFee * (NumAddedDenoms + NumGaugeDenoms)
 	params := server.keeper.GetParams(ctx)
 	fee := params.AddToGaugeBaseFee.Add(params.AddDenomFee.MulRaw(int64(len(msg.Rewards) + len(gauge.Coins))))
-	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee, msg.Rewards); err != nil {
+	if err = server.keeper.ChargeGaugesFee(ctx, owner, fee); err != nil {
 		return nil, fmt.Errorf("charge gauge fee: %w", err)
 	}
 
@@ -126,26 +140,12 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	return &types.MsgAddToGaugeResponse{}, nil
 }
 
-// ChargeGaugesFee charges fee in the base denom on the address if the address has
-// balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
-// gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
-// The fee is sent to the txfees module, to be burned.
-func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int, gaugeCoins sdk.Coins) (err error) {
-	var feeDenom string
-	if k.tk == nil {
-		feeDenom, err = sdk.GetBaseDenom()
-	} else {
-		feeDenom, err = k.tk.GetBaseDenom(ctx)
-	}
+// chargeGaugesFee deducts a fee in the base denom from the specified address.
+// The fee is charged from the payer and sent to x/txfees to be burned.
+func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int) (err error) {
+	feeDenom, err := k.tk.GetBaseDenom(ctx)
 	if err != nil {
 		return err
-	}
-
-	totalCost := gaugeCoins.AmountOf(feeDenom).Add(fee)
-	accountBalance := k.bk.GetBalance(ctx, payer, feeDenom).Amount
-
-	if accountBalance.LT(totalCost) {
-		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance is less than the total cost of the message. Balance: %s %s, Total Cost: %s", feeDenom, accountBalance, totalCost)
 	}
 
 	return k.tk.ChargeFeesFromPayer(ctx, payer, sdk.NewCoin(feeDenom, fee), nil)

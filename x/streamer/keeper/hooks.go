@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -164,7 +165,8 @@ func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAdd
 		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)
 		return fmt.Errorf("create rollapp gauge: %w", err)
 	}
-	err = h.k.sk.SaveEndorsement(ctx, sponsorshiptypes.NewEndorsement(rollappID, rollappGaugeId))
+	// Initially, there are no any shares in the endorsement gauge. It will increase with time.
+	err = h.k.sk.SaveEndorsement(ctx, sponsorshiptypes.NewEndorsement(rollappID, rollappGaugeId, math.LegacyZeroDec()))
 	if err != nil {
 		ctx.Logger().Error("Failed to save endorsement", "error", err)
 		return fmt.Errorf("save endorsement: %w", err)

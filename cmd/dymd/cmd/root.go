@@ -50,6 +50,7 @@ import (
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	v047 "github.com/cosmos/cosmos-sdk/x/genutil/migrations/v047"
+	forwardcli "github.com/dymensionxyz/dymension/v3/x/forward/cli"
 	ethclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
 	ethservercfg "github.com/evmos/ethermint/server/config"
@@ -210,12 +211,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		snapshot.Cmd(newApp),
 	)
 
-	// add genesis commands
-	rootCmd.AddCommand(
-		genesisCommand(encodingConfig.TxConfig, basicManager),
-	)
-
-	// add eth server commands
+	// adds:
+	// - eth server commands
+	// - comet commands
+	// - Start, rollback, etc..
 	ethserver.AddCommands(
 		rootCmd,
 		ethserver.NewDefaultStartOptions(newApp, app.DefaultNodeHome),
@@ -231,6 +230,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
+		genesisCommand(encodingConfig.TxConfig, basicManager), // genesis related commands
 		server.StatusCommand(),
 		queryCommand(),
 		txCommand(),
@@ -281,6 +281,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 		server.QueryBlockResultsCmd(),
 		rpc.ValidatorCommand(),
+		forwardcli.GetQueryCmd(),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")

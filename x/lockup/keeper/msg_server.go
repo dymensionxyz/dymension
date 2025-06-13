@@ -48,8 +48,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 // LockTokens locks tokens in either two ways.
 // 1. Add to an existing lock if a lock with the same owner and same duration exists.
 // 2. Create a new lock if not.
-// A sanity check to ensure given tokens is a single token is done in ValidateBaic.
-// That is, a lock with multiple tokens cannot be created.
+// One coin per lock.
 func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockTokens) (*types.MsgLockTokensResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -63,15 +62,9 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "lock duration (%d) is less than the minimum lock duration (%d)", msg.Duration, minLockDuration)
 	}
 
-	// Charge fess for locking tokens
-	if err = server.keeper.ChargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx), msg.Coins); err != nil {
-		return nil, fmt.Errorf("charge gauge fee: %w", err)
-	}
-
 	// check if there's an existing lock from the same owner with the same duration.
 	// If so, simply add tokens to the existing lock.
-	lockExists := server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration)
-	if lockExists {
+	if server.keeper.HasLock(ctx, owner, msg.Coins[0].Denom, msg.Duration) {
 		lockID, err := server.keeper.AddToExistingLock(ctx, owner, msg.Coins[0], msg.Duration)
 		if err != nil {
 			return nil, err
@@ -89,6 +82,10 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 	}
 
 	// if the owner + duration combination is new, create a new lock.
+	if err = server.keeper.chargeLockFee(ctx, owner, server.keeper.GetLockCreationFee(ctx)); err != nil {
+		return nil, fmt.Errorf("charge gauge fee: %w", err)
+	}
+
 	lock, err := server.keeper.CreateLock(ctx, owner, msg.Coins, msg.Duration)
 	if err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
@@ -101,7 +98,6 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 			sdk.NewAttribute(types.AttributePeriodLockOwner, lock.Owner),
 			sdk.NewAttribute(types.AttributePeriodLockAmount, lock.Coins.String()),
 			sdk.NewAttribute(types.AttributePeriodLockDuration, lock.Duration.String()),
-			sdk.NewAttribute(types.AttributePeriodLockUnlockTime, lock.EndTime.String()),
 		),
 	})
 
@@ -120,6 +116,10 @@ func (server msgServer) BeginUnlocking(goCtx context.Context, msg *types.MsgBegi
 
 	if msg.Owner != lock.Owner {
 		return nil, errorsmod.Wrap(types.ErrNotLockOwner, fmt.Sprintf("msg sender (%s) and lock owner (%s) does not match", msg.Owner, lock.Owner))
+	}
+
+	if server.keeper.HasUnlockingLock(ctx, lock.OwnerAddress(), lock.Coins[0].Denom, lock.Duration) {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "cannot begin unlock for a lock that is already unlocking")
 	}
 
 	unlockingLock, err := server.keeper.BeginUnlock(ctx, lock.ID, msg.Coins)
@@ -216,25 +216,12 @@ func (server msgServer) ForceUnlock(goCtx context.Context, msg *types.MsgForceUn
 	return &types.MsgForceUnlockResponse{Success: true}, nil
 }
 
-// ChargeLockFee deducts a fee in the base denom from the specified address. The total cost is calculated as the sum
-// of the fee and the amount of the base denom coin from lockCoins. If the account's balance is less than the total
-// cost, the error is returned. Otherwise, the fee is charged from the payer and sent to x/txfees to be burned.
-func (k Keeper) ChargeLockFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int, lockCoins sdk.Coins) (err error) {
-	var feeDenom string
-	if k.tk == nil {
-		feeDenom, err = sdk.GetBaseDenom()
-	} else {
-		feeDenom, err = k.tk.GetBaseDenom(ctx)
-	}
+// chargeLockFee deducts a fee in the base denom from the specified address.
+// The fee is charged from the payer and sent to x/txfees to be burned.
+func (k Keeper) chargeLockFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int) (err error) {
+	feeDenom, err := k.tk.GetBaseDenom(ctx)
 	if err != nil {
 		return err
-	}
-
-	totalCost := lockCoins.AmountOf(feeDenom).Add(fee)
-	accountBalance := k.bk.GetBalance(ctx, payer, feeDenom).Amount
-
-	if accountBalance.LT(totalCost) {
-		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance is less than the total cost of the message: balance: %s%s, total cost: %s%s", accountBalance, feeDenom, totalCost, feeDenom)
 	}
 
 	return k.tk.ChargeFeesFromPayer(ctx, payer, sdk.NewCoin(feeDenom, fee), nil)

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package dymensionxyz.dymension.forward;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
+
+import "hyperlane/warp/v1/tx.proto";
+import "ibc/applications/transfer/v1/tx.proto";
+
+message HookForwardToHL {
+  hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1;
+}
+
+message HookForwardToIBC {
+  ibc.applications.transfer.v1.MsgTransfer transfer = 1;
+}
+
+// Expected format of metadata received in HL warp route messages
+// There is only one metadata, so we need to share it amongst our applications,
+// so that they can compose and not conflict
+message HLMetadata {
+  // optional, can be empty
+  bytes hook_forward_to_ibc = 1;
+
+  // optional, can be empty
+  // see
+  // https://www.notion.so/dymension/ADR-Kaspa-Bridge-Implementation-206a4a51f86a803980aec7099c826fb4?source=copy_link#208a4a51f86a8093a843cf4b5e903588
+  bytes kaspa = 2;
+}

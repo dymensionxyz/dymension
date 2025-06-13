@@ -42,6 +42,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	ratelimit "github.com/cosmos/ibc-apps/modules/rate-limiting/v8"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
@@ -64,6 +66,8 @@ import (
 
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/dymensionxyz/dymension/v3/x/kas"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -88,6 +92,11 @@ import (
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+
+	hypercore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
+	hypertypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
 func (app *App) SetupModules(
@@ -118,6 +127,8 @@ func (app *App) SetupModules(
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		circuit.NewAppModule(appCodec, app.CircuitBreakerKeeper),
 
+		// IBC modules
+		ratelimit.NewAppModule(appCodec, app.RateLimitingKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
@@ -145,6 +156,11 @@ func (app *App) SetupModules(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		txfees.NewAppModule(*app.TxFeesKeeper),
+
+		// Hyperlane modules
+		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
+		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
+		kas.NewAppModule(appCodec, app.KasKeeper),
 	}
 }
 
@@ -155,10 +171,12 @@ func ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	// set false not-blocked addresses
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(irotypes.ModuleName).String()] = false
+
 	return modAccAddrs
 }
 
@@ -184,6 +202,10 @@ var maccPerms = map[string][]string{
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
+	hypertypes.ModuleName:                              nil,
+	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
+	kastypes.ModuleName:                                nil,
+	ratelimittypes.ModuleName:                          nil,
 }
 
 var PreBlockers = []string{
@@ -230,6 +252,10 @@ var BeginBlockers = []string{
 	irotypes.ModuleName,
 	lightclientmoduletypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -272,6 +298,10 @@ var EndBlockers = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
+	ratelimittypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -314,5 +344,9 @@ var InitGenesis = []string{
 	lightclientmoduletypes.ModuleName,
 	crisistypes.ModuleName,
 	grouptypes.ModuleName,
+	hypertypes.ModuleName,
+	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
+	kastypes.ModuleName,
+	ratelimittypes.ModuleName,
 }

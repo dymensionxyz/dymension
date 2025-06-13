@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/log"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -38,7 +39,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -52,6 +52,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/keeper"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
@@ -103,10 +105,19 @@ import (
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
-	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
+
+	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
+
+	forward "github.com/dymensionxyz/dymension/v3/x/forward"
+	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
 type AppKeepers struct {
@@ -129,6 +140,7 @@ type AppKeepers struct {
 	CircuitBreakerKeeper  circuitkeeper.Keeper
 
 	// IBC keepers
+	RateLimitingKeeper            ratelimitkeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	TransferStack                 ibcporttypes.IBCModule
@@ -163,6 +175,12 @@ type AppKeepers struct {
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 
 	DymNSKeeper dymnskeeper.Keeper
+
+	HyperCoreKeeper hypercorekeeper.Keeper
+	HyperWarpKeeper hyperwarpkeeper.Keeper
+	KasKeeper       *kaskeeper.Keeper
+
+	Forward *forward.Forward
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -237,7 +255,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewKVStoreService(a.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), a.AccountKeeper)
 
-	groupConfig := grouptypes.DefaultConfig()
+	groupConfig := group.DefaultConfig()
 	groupConfig.MaxMetadataLen = 5500
 	a.GroupKeeper = groupkeeper.NewKeeper(a.keys[group.StoreKey], appCodec, bApp.MsgServiceRouter(), a.AccountKeeper, groupConfig)
 
@@ -359,7 +377,6 @@ func (a *AppKeepers) InitKeepers(
 	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[lightclientmoduletypes.StoreKey],
-		a.IBCKeeper,
 		a.IBCKeeper.ClientKeeper,
 		a.IBCKeeper.ConnectionKeeper,
 		a.IBCKeeper.ChannelKeeper,
@@ -386,6 +403,18 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.TxFeesKeeper,
 		a.RollappKeeper,
+		a.SequencerKeeper,
+		&a.SponsorshipKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
+		appCodec,
+		a.keys[sponsorshiptypes.StoreKey],
+		a.AccountKeeper,
+		a.StakingKeeper,
+		a.IncentivesKeeper,
+		a.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -401,16 +430,6 @@ func (a *AppKeepers) InitKeepers(
 		a.IncentivesKeeper,
 		a.PoolManagerKeeper,
 		a.TxFeesKeeper,
-	)
-
-	a.SponsorshipKeeper = sponsorshipkeeper.NewKeeper(
-		appCodec,
-		a.keys[sponsorshiptypes.StoreKey],
-		a.AccountKeeper,
-		a.StakingKeeper,
-		a.IncentivesKeeper,
-		a.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -443,16 +462,26 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.RateLimitingKeeper = *ratelimitkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[ratelimittypes.StoreKey]),
+		a.GetSubspace(ratelimittypes.ModuleName),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		a.BankKeeper,
+		a.IBCKeeper.ChannelKeeper,
+		genesisbridge.NewICS4Wrapper(
+			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+			a.RollappKeeper,
+			a.IBCKeeper.ChannelKeeper,
+		), // ICS4Wrapper
+	)
+
 	// Create Transfer Keepers
 	a.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		a.keys[ibctransfertypes.StoreKey],
 		a.GetSubspace(ibctransfertypes.ModuleName),
-		genesisbridge.NewICS4Wrapper(
-			denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
-			a.RollappKeeper,
-			a.IBCKeeper.ChannelKeeper,
-		),
+		a.RateLimitingKeeper, // ICS4Wrapper
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
@@ -501,6 +530,44 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		govModuleAddress,
 	)
+
+	a.HyperCoreKeeper = hypercorekeeper.NewKeeper(
+		appCodec,
+		a.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(a.keys[hypercoretypes.ModuleName]),
+		govModuleAddress,
+		a.BankKeeper,
+	)
+
+	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
+		appCodec,
+		a.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(a.keys[hyperwarptypes.ModuleName]),
+		govModuleAddress,
+		a.BankKeeper,
+		&a.HyperCoreKeeper,
+		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
+	)
+	a.Forward = forward.New(
+		a.TransferKeeper,
+
+		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
+		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
+	)
+
+	a.KasKeeper = kaskeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
+		govModuleAddress,
+		&a.HyperCoreKeeper,
+	)
+
+	a.HyperWarpKeeper.SetHook(a.Forward)
+
+	a.DelayedAckKeeper.SetCompletionHooks(map[string]delayedackkeeper.CompletionHookInstance{
+		forwardtypes.HookNameRollToHL:  a.Forward.RollToHLHook(),
+		forwardtypes.HookNameRollToIBC: a.Forward.RollToIBCHook(),
+	})
 
 	// Initialize circuit breaker keeper
 	a.CircuitBreakerKeeper = circuitkeeper.NewKeeper(
@@ -557,10 +624,9 @@ func (a *AppKeepers) SetupHooks() {
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
 			a.StreamerKeeper.Hooks(), // x/streamer must be before x/incentives
-			a.IncentivesKeeper.Hooks(),
+			a.IncentivesKeeper.EpochHooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
-			a.SponsorshipKeeper.EpochHooks(),
 		),
 	)
 
@@ -614,6 +680,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// osmosis subspaces
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
+
+	// rate limiting subspace
+	paramsKeeper.Subspace(ratelimittypes.ModuleName)
 
 	return paramsKeeper
 }

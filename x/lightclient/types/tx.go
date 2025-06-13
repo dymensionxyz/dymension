@@ -6,10 +6,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var (
-	_ sdk.Msg = &MsgSetCanonicalClient{}
-	_ sdk.Msg = &MsgUpdateClient{}
-)
+var _ sdk.Msg = &MsgSetCanonicalClient{}
 
 func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -20,11 +17,4 @@ func (msg *MsgSetCanonicalClient) ValidateBasic() error {
 		return gerrc.ErrInvalidArgument.Wrap("empty client id")
 	}
 	return nil
-}
-
-func (msg *MsgUpdateClient) ValidateBasic() error {
-	if msg.Inner == nil {
-		return gerrc.ErrInvalidArgument.Wrap("inner is nil")
-	}
-	return msg.Inner.ValidateBasic()
 }

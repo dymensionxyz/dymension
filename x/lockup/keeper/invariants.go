@@ -54,9 +54,8 @@ func AccumulationStoreInvariant(keeper Keeper) sdk.Invariant {
 			denom := coin.Denom
 			for _, duration := range durations {
 				accumulation := keeper.GetPeriodLocksAccumulation(ctx, types.QueryCondition{
-					LockQueryType: types.ByDuration,
-					Denom:         denom,
-					Duration:      duration,
+					Denom:    denom,
+					Duration: duration,
 				})
 
 				locks := keeper.GetLocksLongerThanDurationDenom(ctx, denom, duration)

@@ -20,15 +20,16 @@ import (
 func GetTxCmd() *cobra.Command {
 	cmd := osmocli.TxIndexCmd(types.ModuleName)
 	cmd.AddCommand(
-		NewCreateGaugeCmd(),
+		NewCreateAssetGaugeCmd(),
+		NewCreateEndorsementGaugeCmd(),
 		NewAddToGaugeCmd(),
 	)
 
 	return cmd
 }
 
-// NewCreateGaugeCmd broadcasts a CreateGauge message.
-func NewCreateGaugeCmd() *cobra.Command {
+// NewCreateAssetGaugeCmd broadcasts a CreateGauge message.
+func NewCreateAssetGaugeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-gauge [lockup_denom] [reward] [flags]",
 		Short: "create a gauge to distribute rewards to users",
@@ -85,23 +86,98 @@ func NewCreateGaugeCmd() *cobra.Command {
 				return err
 			}
 
-			distributeTo := lockuptypes.QueryCondition{
-				LockQueryType: lockuptypes.ByDuration,
-				Denom:         denom,
-				Duration:      duration,
-				Timestamp:     time.Unix(0, 0), // XXX check
+			lockAge, err := cmd.Flags().GetDuration(FlagLockAge)
+			if err != nil {
+				return err
 			}
 
-			msg := types.NewMsgCreateAssetGauge(
-				epochs == 1,
-				clientCtx.GetFromAddress(),
-				distributeTo,
-				coins,
-				startTime,
-				epochs,
-			)
+			distributeTo := lockuptypes.QueryCondition{
+				Denom:    denom,
+				Duration: duration,
+				LockAge:  lockAge,
+			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			msg := types.MsgCreateGauge{
+				IsPerpetual:       epochs == 1,
+				GaugeType:         types.GaugeType_GAUGE_TYPE_ASSET,
+				Asset:             &distributeTo,
+				Coins:             coins,
+				StartTime:         startTime,
+				NumEpochsPaidOver: epochs,
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, &msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FlagSetCreateGauge())
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// NewCreateEndorsementGaugeCmd broadcasts a CreateGauge message for endorsement gauges.
+func NewCreateEndorsementGaugeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-endorsement-gauge [rollapp_id] [reward] [flags]",
+		Short: "create an endorsement gauge to distribute rewards to rollapp endorsers",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			rollappID := args[0]
+
+			txfCli, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := txfCli.WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			coins, err := sdk.ParseCoinsNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			var startTime time.Time
+			timeStr, err := cmd.Flags().GetString(FlagStartTime)
+			if err != nil {
+				return err
+			}
+			if timeStr == "" { // empty start time
+				startTime = time.Unix(0, 0)
+			} else if timeUnix, err := strconv.ParseInt(timeStr, 10, 64); err == nil { // unix time
+				startTime = time.Unix(timeUnix, 0)
+			} else if timeRFC, err := time.Parse(time.RFC3339, timeStr); err == nil { // RFC time
+				startTime = timeRFC
+			} else { // invalid input
+				return errors.New("invalid start time format")
+			}
+
+			epochs, err := cmd.Flags().GetUint64(FlagEpochs)
+			if err != nil {
+				return err
+			}
+
+			perpetual, err := cmd.Flags().GetBool(FlagPerpetual)
+			if err != nil {
+				return err
+			}
+
+			if perpetual {
+				epochs = 1
+			}
+
+			msg := types.MsgCreateGauge{
+				IsPerpetual:       epochs == 1,
+				GaugeType:         types.GaugeType_GAUGE_TYPE_ENDORSEMENT,
+				Endorsement:       &types.EndorsementGauge{RollappId: rollappID},
+				Coins:             coins,
+				StartTime:         startTime,
+				NumEpochsPaidOver: epochs,
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, &msg)
 		},
 	}
 

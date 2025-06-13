@@ -4,6 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -32,7 +33,7 @@ func (d OnDemandLP) Validate() error {
 	if d.MaxPrice.IsNil() || !d.MaxPrice.IsPositive() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "max price")
 	}
-	if d.MinFee.IsNil() || d.MinFee.IsNegative() {
+	if d.MinFee.IsNil() || d.MinFee.IsNegative() || d.MinFee.GT(math.LegacyNewDec(1)) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min fee")
 	}
 	if d.SpendLimit.IsNil() || !d.SpendLimit.IsPositive() {
@@ -61,9 +62,9 @@ func (r OnDemandLPRecord) MaxSpend() math.Int {
 	return math.MinInt(r.Lp.MaxPrice, r.Lp.SpendLimit.Sub(r.Spent))
 }
 
-func (r OnDemandLPRecord) Accepts(nowHeight uint64, o DemandOrder) bool {
+func (r OnDemandLPRecord) Accepts(nowHeight uint64, o *DemandOrder) bool {
 	priceOK := o.PriceAmount().LTE(r.MaxSpend())
-	feeOK := r.Lp.MinFee.LTE(o.GetFeeAmount())
+	feeOK := r.Lp.MinFee.LTE(o.GetFeePercent())
 	ageOK := r.Lp.OrderMinAgeBlocks <= nowHeight-o.CreationHeight
 	return priceOK && feeOK && ageOK
 }

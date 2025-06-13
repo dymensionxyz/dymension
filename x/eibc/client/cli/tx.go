@@ -243,12 +243,12 @@ func NewCmdTryFulfillOnDemand() *cobra.Command {
 
 func NewCmdCreateOnDemandLP() *cobra.Command {
 	short := "Create on demand lp - FUNDS AT RISK - use with caution"
-	long := short + "Create on demand lp - anyone can fill and order through your lp with your funds"
+	long := short + "Create on demand lp - anyone can fill an order through your lp with your funds"
 	cmd := &cobra.Command{
 		Use:     "create-demand-lp [rollapp] [denom] [max-price] [min-fee] [spend-limit] [order-min-age-blocks]",
 		Short:   short,
 		Long:    long,
-		Example: "dymd tx eibc create-on-demand-lp rollapp1 token 1000 10 500 100",
+		Example: "dymd tx eibc create-demand-lp rollapp1 foo 1000 0.005 500 100",
 
 		Args: cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -265,9 +265,9 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 				return fmt.Errorf("invalid max price")
 			}
 
-			minFee, ok := math.NewIntFromString(args[3])
-			if !ok {
-				return fmt.Errorf("invalid min fee")
+			minFee, err := math.LegacyNewDecFromStr(args[3])
+			if err != nil {
+				return fmt.Errorf("invalid min fee: %w", err)
 			}
 
 			spendLimit, ok := math.NewIntFromString(args[4])
@@ -290,6 +290,7 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 					SpendLimit:        spendLimit,
 					OrderMinAgeBlocks: orderMinAgeBlocks,
 				},
+				Signer: clientCtx.GetFromAddress().String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

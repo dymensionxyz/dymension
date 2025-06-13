@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (d Distribution) Validate() error {
@@ -140,8 +141,8 @@ func (d Distribution) Merge(d1 Distribution) Distribution {
 			gauge = rhs[j]
 			j++
 		}
-		// Don't store gauges with <= 0 power
-		if gauge.Power.IsPositive() {
+		// Don't store gauges with 0 power
+		if !gauge.Power.IsZero() {
 			gauges = append(gauges, gauge)
 		}
 	}
@@ -156,6 +157,20 @@ func (d Distribution) Merge(d1 Distribution) Distribution {
 	return Distribution{
 		VotingPower: d.VotingPower.Add(d1.VotingPower),
 		Gauges:      slices.Clip(gauges),
+	}
+}
+
+func (d Distribution) FilterNonPositive() Distribution {
+	gauges := make([]Gauge, 0, len(d.Gauges))
+	for _, g := range d.Gauges {
+		if g.Power.IsPositive() {
+			gauges = append(gauges, g)
+		}
+	}
+	gauges = slices.Clip(gauges)
+	return Distribution{
+		VotingPower: d.VotingPower,
+		Gauges:      gauges,
 	}
 }
 
@@ -195,22 +210,36 @@ func (m Gauges) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-func NewEndorsement(rollappId string, rollappGaugeId uint64) Endorsement {
+func NewEndorsement(rollappId string, rollappGaugeId uint64, totalShares math.LegacyDec) Endorsement {
 	return Endorsement{
-		RollappId:      rollappId,
-		RollappGaugeId: rollappGaugeId,
-		TotalShares:    math.ZeroInt(),
-		EpochShares:    math.ZeroInt(),
+		RollappId:        rollappId,
+		RollappGaugeId:   rollappGaugeId,
+		TotalShares:      totalShares,
+		Accumulator:      sdk.NewDecCoins(),
+		TotalCoins:       sdk.NewCoins(),
+		DistributedCoins: sdk.NewCoins(),
 	}
 }
 
-type EndorsementUpdateFn func(Endorsement) Endorsement
-
-// AddTotalShares updates total shares of the endorsement by adding the given update.
-// Update may be either positive or negative.
-func AddTotalShares(update math.Int) EndorsementUpdateFn {
-	return func(e Endorsement) Endorsement {
-		e.TotalShares = e.TotalShares.Add(update)
-		return e
+func NewDefaultEndorserPosition() EndorserPosition {
+	return EndorserPosition{
+		Shares:              math.LegacyZeroDec(),
+		LastSeenAccumulator: sdk.NewDecCoins(),
+		AccumulatedRewards:  sdk.NewCoins(),
 	}
+}
+
+func NewEndorserPosition(shares math.LegacyDec, lastSeenAccumulator sdk.DecCoins, accumulatedRewards sdk.Coins) EndorserPosition {
+	return EndorserPosition{
+		Shares:              shares,
+		LastSeenAccumulator: lastSeenAccumulator,
+		AccumulatedRewards:  accumulatedRewards,
+	}
+}
+
+// RewardsToBank returns the rewards that the endorser has accumulated since the last time they
+// interacted with the RA. The operation uses MulDecTruncate, so the result is not rounded up.
+func (e EndorserPosition) RewardsToBank(globalAcc sdk.DecCoins) sdk.Coins {
+	rewardsToBank, _ := globalAcc.Sub(e.LastSeenAccumulator).MulDecTruncate(e.Shares).TruncateDecimal()
+	return rewardsToBank
 }

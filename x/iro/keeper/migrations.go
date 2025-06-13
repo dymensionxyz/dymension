@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -33,13 +35,6 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		plan.BondingCurve.LiquidityDenomDecimals = 18
 		plan.BondingCurve.RollappDenomDecimals = 18
 
-		// liquidity part is 1.0 for old plans
-		plan.LiquidityPart = math.LegacyOneDec()
-
-		// max amount to sell is calculated from bonding curve
-		eq := types.FindEquilibrium(plan.BondingCurve, plan.TotalAllocation.Amount, plan.LiquidityPart)
-		plan.MaxAmountToSell = math.MaxInt(plan.SoldAmt, eq)
-
 		// nothing to set here
 		plan.VestingPlan = types.IROVestingPlan{
 			Amount:                   math.ZeroInt(),
@@ -48,11 +43,22 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 			StartTimeAfterSettlement: 0,
 		}
 
+		plan.LiquidityDenom = "adym"
+
+		// liquidity part is 1.0 for old plans
+		plan.LiquidityPart = math.LegacyOneDec()
+
+		// max amount to sell is calculated from bonding curve
+		eq := types.FindEquilibrium(plan.BondingCurve, plan.TotalAllocation.Amount, plan.LiquidityPart)
+		plan.MaxAmountToSell = math.MaxInt(plan.SoldAmt, eq)
+
 		plan.TradingEnabled = true
 
 		plan.IroPlanDuration = plan.PreLaunchTime.Sub(plan.StartTime)
-		plan.LiquidityDenom = "adym"
 
+		if err := plan.ValidateBasic(); err != nil {
+			panic(fmt.Errorf("invalid plan: %v", err))
+		}
 		m.k.SetPlan(ctx, plan)
 	}
 
