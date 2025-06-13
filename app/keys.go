@@ -33,6 +33,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
@@ -130,9 +131,16 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
 	dymnstypes.StoreKey,
+	lightcliendmoduletypes.StoreKey,
+	grouptypes.StoreKey,
+	hypercoretypes.ModuleName,
+	hyperwarptypes.ModuleName,
+	kastypes.ModuleName,
+
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,
+
 	// osmosis keys
 	lockuptypes.StoreKey,
 	epochstypes.StoreKey,
@@ -140,9 +148,5 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	poolmanagertypes.StoreKey,
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
-	lightcliendmoduletypes.StoreKey,
-	grouptypes.StoreKey,
-	hypercoretypes.ModuleName,
-	hyperwarptypes.ModuleName,
 	ratelimittypes.StoreKey,
 )

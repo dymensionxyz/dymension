@@ -8,6 +8,7 @@ import (
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
 
 const (
@@ -21,6 +22,7 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			hypercoretypes.ModuleName,
 			hyperwarptypes.ModuleName,
+			kastypes.ModuleName,
 			circuittypes.ModuleName,
 			ratelimittypes.ModuleName,
 		},

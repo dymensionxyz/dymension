@@ -244,6 +244,13 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("marshal: %w", err)
 				}
+				hlMetadata := &types.HLMetadata{
+					HookForwardToIbc: bz,
+				}
+				bz, err = proto.Marshal(hlMetadata)
+				if err != nil {
+					return fmt.Errorf("marshal: %w", err)
+				}
 				fmt.Printf("%s\n", util.EncodeEthHex(bz))
 			}
 
@@ -468,7 +475,13 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				return fmt.Errorf("parse warp payload: %w", err)
 			}
 			if memo {
-				m, err := types.UnpackForwardToIBC(warpPL.Metadata())
+				hlMetadata, err := types.UnpackHLMetadata(warpPL.Metadata())
+				if err != nil {
+					return fmt.Errorf("unpack hl metadata: %w", err)
+				}
+				fmt.Printf("hl metadata: %+v\n", hlMetadata)
+
+				m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
 				if err != nil {
 					return fmt.Errorf("unpack memo from warp message: %w", err)
 				}
@@ -544,12 +557,20 @@ func MakeForwardToIBCHyperlaneMessage(
 	hook *types.HookForwardToIBC,
 ) (util.HyperlaneMessage, error) {
 	if err := hook.ValidateBasic(); err != nil {
-		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "validate basic")
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "hook validate basic")
 	}
 
 	memoBz, err := proto.Marshal(hook)
 	if err != nil {
-		return util.HyperlaneMessage{}, err
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal memo")
+	}
+
+	hlMetadata := &types.HLMetadata{
+		HookForwardToIbc: memoBz,
+	}
+	memoBz, err = proto.Marshal(hlMetadata)
+	if err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal hl metadata")
 	}
 
 	hlM, err := createTestHyperlaneMessage(
@@ -594,16 +615,16 @@ func createTestHyperlaneMessage(
 	p := sdk.GetConfig().GetBech32AccountAddrPrefix()
 	bech32, err := sdk.Bech32ifyAddressBytes(p, recipient) // TODO: fix
 	if err != nil {
-		return util.HyperlaneMessage{}, err
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "bech32ify address bytes")
 	}
 	recip, err := sdk.GetFromBech32(bech32, p) // TODO: fix
 	if err != nil {
-		return util.HyperlaneMessage{}, err
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "get from bech32")
 	}
 
 	wmpl, err := warptypes.NewWarpPayload(recip, *big.NewInt(amt.Int64()), memo)
 	if err != nil {
-		return util.HyperlaneMessage{}, err
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "new warp payload")
 	}
 
 	body := wmpl.Bytes()
@@ -632,7 +653,13 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookFor
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse warp memo")
 	}
-	d, err := types.UnpackForwardToIBC(pl.Metadata())
+
+	hlMetadata, err := types.UnpackHLMetadata(pl.Metadata())
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unpack hl metadata")
+	}
+
+	d, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
