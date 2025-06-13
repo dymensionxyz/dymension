@@ -141,11 +141,4 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(genState)
 }
 
-func (AppModule) ConsensusVersion() uint64 { return 2 }
-
-func (am AppModule) BeginBlock(goCtx context.Context) error {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	_ = ctx
-
-	return nil
-}
+func (AppModule) ConsensusVersion() uint64 { return 1 }
