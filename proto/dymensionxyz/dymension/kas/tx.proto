@@ -13,8 +13,11 @@ import "dymensionxyz/dymension/kas/d.proto";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
+  // populate the module to make it ready to use
   rpc Bootstrap(MsgBootstrap) returns (MsgBootstrapResponse);
 
+  // update the outpoint and the processed withdrawals simultaneously
+  // requires HL validation attestation
   rpc IndicateProgress(MsgIndicateProgress)
       returns (MsgIndicateProgressResponse);
 }
@@ -33,7 +36,7 @@ message MsgBootstrap {
   string ism = 3;
 
   // the seed kaspa escrow outpoint
-  TransactionOutpoint outpoint = 4;
+  TransactionOutpoint outpoint = 4 [ (gogoproto.nullable) = false ];
 }
 
 message MsgBootstrapResponse {}
@@ -47,7 +50,7 @@ message MsgIndicateProgress {
   bytes metadata = 2;
 
   // what is signed by validators
-  ProgressIndication payload = 3;
+  ProgressIndication payload = 3 [ (gogoproto.nullable) = false ];
 }
 
 message MsgIndicateProgressResponse {}

@@ -35,9 +35,9 @@ enum WithdrawalStatus {
 // signed by validators to attest to successfully relayed withdrawals
 message ProgressIndication {
   // current/'old' outpoint the validator sees on the hub
-  TransactionOutpoint old_outpoint = 1;
+  TransactionOutpoint old_outpoint = 1 [ (gogoproto.nullable) = false ];
   // new outpoint after processing withdrawals
-  TransactionOutpoint new_outpoint = 2;
+  TransactionOutpoint new_outpoint = 2 [ (gogoproto.nullable) = false ];
   // the processed withdrawals
-  repeated WithdrawalID processed_withdrawals = 3;
+  repeated WithdrawalID processed_withdrawals = 3 [ (gogoproto.nullable) = false ];
 }

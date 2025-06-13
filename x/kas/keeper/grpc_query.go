@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -20,7 +19,7 @@ func (k Keeper) Outpoint(goCtx context.Context, req *types.QueryOutpointRequest)
 	}
 
 	return &types.QueryOutpointResponse{
-		Outpoint: uptr.To(k.MustOutpoint(ctx)),
+		Outpoint: k.MustOutpoint(ctx),
 	}, nil
 }
 
@@ -56,7 +55,7 @@ func (k Keeper) WithdrawalStatus(goCtx context.Context, req *types.QueryWithdraw
 
 	return &types.QueryWithdrawalStatusResponse{
 		Status:   ret,
-		Outpoint: uptr.To(k.MustOutpoint(ctx)),
+		Outpoint: k.MustOutpoint(ctx),
 	}, nil
 }
 

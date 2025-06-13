@@ -62,18 +62,18 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrFailedPrecondition, err), "old outpoint")
 	}
 
-	err = k.outpoint.Set(ctx, *payload.NewOutpoint)
+	err = k.outpoint.Set(ctx, payload.NewOutpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, withdrawal := range payload.ProcessedWithdrawals {
-		err = k.ValidateWithdrawal(ctx, *withdrawal)
+		err = k.ValidateWithdrawal(ctx, withdrawal)
 		if err != nil {
 			// should never happen, it means validators are buggy or protocol is broken
 			return nil, errorsmod.Wrap(gerrc.ErrFault, "withdrawal not dispatched")
 		}
-		err = k.SetProcessedWithdrawal(ctx, *withdrawal)
+		err = k.SetProcessedWithdrawal(ctx, withdrawal)
 		if err != nil {
 			return nil, err
 		}

@@ -60,7 +60,7 @@ func (k *Keeper) Bootstrap(goCtx context.Context, req *types.MsgBootstrap) (*typ
 		return nil, err
 	}
 
-	if err := k.outpoint.Set(ctx, *req.Outpoint); err != nil {
+	if err := k.outpoint.Set(ctx, req.Outpoint); err != nil {
 		return nil, err
 	}
 

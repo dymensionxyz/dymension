@@ -19,7 +19,6 @@ import (
 
 type Keeper struct {
 	authority string // authority is the x/gov module account
-	cdc       codec.BinaryCodec
 
 	hypercoreK *hypercorekeeper.Keeper
 
@@ -32,7 +31,8 @@ type Keeper struct {
 	// The Kaspa escrow outpoint which must be used in all TXs. It's updated only on confirmations.
 	outpoint collections.Item[types.TransactionOutpoint]
 
-	// Tracks the processed withdrawals to avoid double relaying. May only update when updating outpoint too.
+	// Tracks the processed withdrawals to avoid double relaying. May only update when updating outpoint too. <mailbox, message id>
+	// same format as https://github.com/dymensionxyz/hyperlane-cosmos/blob/7e116f7ab4f43865d01423d7474988d23e69e380/x/core/keeper/keeper.go#L30
 	processedWithdrawals collections.KeySet[collections.Pair[uint64, []byte]]
 }
 
@@ -69,7 +69,6 @@ func NewKeeper(
 		collections.PairKeyCodec(collections.Uint64Key, collections.BytesKey))
 
 	return &Keeper{
-		cdc:                  cdc,
 		authority:            authority,
 		hypercoreK:           hypercoreK,
 		bootstrapped:         bootstrapped,
