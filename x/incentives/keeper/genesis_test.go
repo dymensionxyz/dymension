@@ -19,7 +19,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 	genesis := app.IncentivesKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params.DistrEpochIdentifier, "week")
 	require.Len(t, genesis.Gauges, 0)
@@ -67,7 +67,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 // TestIncentivesInitGenesis takes a genesis state and tests initializing that genesis for the incentives module.
 func TestIncentivesInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.ValidateBasic()

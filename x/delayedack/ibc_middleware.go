@@ -214,13 +214,13 @@ func (w IBCMiddleware) savePacket(ctx sdk.Context, packet channeltypes.Packet, t
 	// Add the packet to the pending packet index
 	switch packetType {
 	case commontypes.RollappPacket_ON_RECV:
-		w.MustSetPendingPacketByAddress(ctx, transfer.FungibleTokenPacketData.Receiver, p.RollappPacketKey())
+		w.MustSetPendingPacketByAddress(ctx, transfer.Receiver, p.RollappPacketKey())
 	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
-		w.MustSetPendingPacketByAddress(ctx, transfer.FungibleTokenPacketData.Sender, p.RollappPacketKey())
+		w.MustSetPendingPacketByAddress(ctx, transfer.Sender, p.RollappPacketKey())
 	}
 
 	// Save the rollapp packet
-	w.Keeper.SetRollappPacket(ctx, p)
+	w.SetRollappPacket(ctx, p)
 
 	return p
 }

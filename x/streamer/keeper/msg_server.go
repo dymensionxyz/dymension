@@ -72,7 +72,7 @@ func (s msgServer) ReplaceStream(goCtx context.Context, msg *types.MsgReplaceStr
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	err := s.Keeper.ReplaceDistrRecords(ctx, msg.StreamId, msg.Records)
+	err := s.ReplaceDistrRecords(ctx, msg.StreamId, msg.Records)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (s msgServer) UpdateStream(goCtx context.Context, msg *types.MsgUpdateStrea
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	err := s.Keeper.UpdateDistrRecords(ctx, msg.StreamId, msg.Records)
+	err := s.UpdateDistrRecords(ctx, msg.StreamId, msg.Records)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +110,6 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, err
 	}
 
-	m.Keeper.SetParams(ctx, req.Params)
+	m.SetParams(ctx, req.Params)
 	return &types.MsgUpdateParamsResponse{}, nil
 }

@@ -62,9 +62,9 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	dummy := "dummy"
 	h := mockTransferCompletionHook{
-		s: &s.eibcSuite.ibcTestingSuite,
+		s: &s.ibcTestingSuite,
 	}
-	s.ibcTestingSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
+	s.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
 		},
@@ -214,7 +214,7 @@ func (s *osmosisForwardSuite) TestForward() {
 	h := mockTransferCompletionHook{
 		s: &s.ibcTestingSuite,
 	}
-	s.ibcTestingSuite.hubApp().DelayedAckKeeper.SetCompletionHooks(
+	s.hubApp().DelayedAckKeeper.SetCompletionHooks(
 		map[string]delayedackkeeper.CompletionHookInstance{
 			dummy: &h,
 		},

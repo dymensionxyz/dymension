@@ -37,7 +37,7 @@ type KeeperTestSuite struct {
 // SetupTest sets streamer parameters from the suite's context.
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQueryServer(app.SponsorshipKeeper))

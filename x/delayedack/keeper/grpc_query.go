@@ -62,7 +62,7 @@ func (q Querier) GetPendingPacketsByAddress(goCtx context.Context, req *types.Qu
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get all pending rollapp packets until the latest finalized height
-	p, pageResp, err := q.Keeper.GetPendingPacketsByAddressPaginated(ctx, req.Address, req.Pagination)
+	p, pageResp, err := q.GetPendingPacketsByAddressPaginated(ctx, req.Address, req.Pagination)
 	if err != nil {
 		return nil, fmt.Errorf("get pending packets by receiver %s: %w", req.Address, err)
 	}

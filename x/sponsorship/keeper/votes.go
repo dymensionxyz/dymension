@@ -204,14 +204,14 @@ type ValidatorBreakdown struct {
 
 // GetValidatorBreakdown returns the user's voting power calculated based on the x/staking module.
 func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (ValidatorBreakdown, error) {
-	var err error
+	var err, err2 error
 	totalPower := math.ZeroInt()
 	breakdown := make([]ValidatorPower, 0)
 
 	const Break = true
 	const Continue = false
 
-	k.stakingKeeper.IterateDelegatorDelegations(ctx, voter, func(d stakingtypes.Delegation) (stop bool) {
+	err2 = k.stakingKeeper.IterateDelegatorDelegations(ctx, voter, func(d stakingtypes.Delegation) (stop bool) {
 		var valAddr sdk.ValAddress
 		valAddr, err = sdk.ValAddressFromBech32(d.GetValidatorAddr())
 		if err != nil {
@@ -236,8 +236,11 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 
 		return Continue
 	})
+	if err2 != nil {
+		return ValidatorBreakdown{}, fmt.Errorf("failed to iterate delegator delegations: %w", err2)
+	}
 	if err != nil {
-		return ValidatorBreakdown{}, fmt.Errorf("failed to iterate delegator delegations: %w", err)
+		return ValidatorBreakdown{}, fmt.Errorf("failed to get validator breakdown: %w", err)
 	}
 
 	return ValidatorBreakdown{

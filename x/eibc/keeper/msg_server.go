@@ -41,7 +41,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, err
 	}
 
-	m.Keeper.SetParams(ctx, req.NewParams)
+	m.SetParams(ctx, req.NewParams)
 	return &types.MsgUpdateParamsResponse{}, nil
 }
 
@@ -101,7 +101,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 		return nil, errorsmod.Wrap(err, "ensure operator fee account")
 	}
 
-	err = m.Keeper.fulfill(ctx, demandOrder, fulfillArgs{
+	err = m.fulfill(ctx, demandOrder, fulfillArgs{
 		FundsSource: lp,
 		Fulfiller:   operator,
 	})
@@ -255,7 +255,7 @@ func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFu
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	err = m.Keeper.FulfillByOnDemandLP(ctx, msg.OrderId, uint64(msg.Rng))
+	err = m.FulfillByOnDemandLP(ctx, msg.OrderId, uint64(msg.Rng))
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateO
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	id, err := m.Keeper.CreateLP(ctx, msg.Lp)
+	id, err := m.CreateLP(ctx, msg.Lp)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "create lp")
 	}
@@ -288,7 +288,7 @@ func (m msgServer) DeleteOnDemandLP(goCtx context.Context, msg *types.MsgDeleteO
 	}
 
 	for _, id := range msg.Ids {
-		err := m.Keeper.DeleteLP(ctx, msg.MustAcc(), id, "user request")
+		err := m.DeleteLP(ctx, msg.MustAcc(), id, "user request")
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "delete id: %d", id)
 		}

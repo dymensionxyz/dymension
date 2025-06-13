@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 
-	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -16,12 +15,12 @@ import (
 // ValidateBasic performs basic validation checks on the GenesisBridgeData.
 func (d GenesisBridgeData) ValidateBasic() error {
 	if err := d.GenesisInfo.ValidateBasic(); err != nil {
-		return errors.Wrap(err, "invalid genesis info")
+		return errorsmod.Wrap(err, "invalid genesis info")
 	}
 
 	if d.GenesisInfo.NativeDenom.IsSet() {
 		if err := d.NativeDenom.Validate(); err != nil {
-			return errors.Wrap(err, "invalid metadata")
+			return errorsmod.Wrap(err, "invalid metadata")
 		}
 
 		if d.NativeDenom.Base != d.GenesisInfo.NativeDenom.Base {
@@ -45,7 +44,7 @@ func (d GenesisBridgeData) ValidateBasic() error {
 
 	if d.GenesisTransfer != nil {
 		if err := d.GenesisTransfer.ValidateBasic(); err != nil {
-			return errors.Wrap(err, "invalid genesis transfer")
+			return errorsmod.Wrap(err, "invalid genesis transfer")
 		}
 
 		if d.GenesisInfo.NativeDenom.Base != d.GenesisTransfer.Denom {

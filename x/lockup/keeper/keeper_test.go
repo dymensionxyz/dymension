@@ -19,7 +19,7 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	suite.App = app
 	suite.Ctx = ctx

@@ -17,7 +17,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
@@ -273,8 +272,8 @@ func (s *ibcTestingSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) 
 	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
+	path.EndpointA.ChannelConfig.Version = transfertypes.Version
+	path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
 	return path
 }

@@ -16,6 +16,7 @@ func (s *KeeperTestSuite) TestSponsorshipStakingPower() {
 	// Create a new validator
 	valI := s.CreateValidator()
 	valAddr, err := sdk.ValAddressFromBech32(valI.GetOperator())
+	s.Require().NoError(err)
 
 	// Create a new delegator
 	bondDenom, err := s.App.StakingKeeper.BondDenom(s.Ctx)
@@ -39,8 +40,10 @@ func (s *KeeperTestSuite) TestSponsorshipStakingPower() {
 	del.Shares = math.LegacyMustNewDecFromStr("24600346603811628012.902035514609719356")
 
 	// Save the modified validator and delegator
-	s.App.StakingKeeper.SetValidator(s.Ctx, val)
-	s.App.StakingKeeper.SetDelegation(s.Ctx, del)
+	err = s.App.StakingKeeper.SetValidator(s.Ctx, val)
+	s.Require().NoError(err)
+	err = s.App.StakingKeeper.SetDelegation(s.Ctx, del)
+	s.Require().NoError(err)
 
 	// Query the delegation from x/staking
 	stakingQuerier := stakingkeeper.Querier{Keeper: s.App.StakingKeeper}

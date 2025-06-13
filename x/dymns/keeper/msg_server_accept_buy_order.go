@@ -36,11 +36,12 @@ func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcce
 
 	// process the Buy-Order based on the asset type
 
-	if bo.AssetType == dymnstypes.TypeName {
+	switch bo.AssetType {
+	case dymnstypes.TypeName:
 		resp, err = k.processAcceptBuyOrderWithAssetTypeDymName(ctx, msg, *bo, miscParams)
-	} else if bo.AssetType == dymnstypes.TypeAlias {
+	case dymnstypes.TypeAlias:
 		resp, err = k.processAcceptBuyOrderWithAssetTypeAlias(ctx, msg, *bo, miscParams)
-	} else {
+	default:
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", bo.AssetType)
 	}
 	if err != nil {

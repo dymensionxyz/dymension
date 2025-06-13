@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	math "cosmossdk.io/math"
-	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/cometbft/cometbft/crypto/secp256k1"
@@ -46,7 +45,7 @@ func TestEthRecipient(t *testing.T) {
 	require.NoError(t, err)
 
 	// mimic decodings
-	decoded, err := util.DecodeEthHex(ans)
+	decoded, err := hyperutil.DecodeEthHex(ans)
 	require.NoError(t, err)
 	pl, err := types.NewWarpPayload(decoded, big.Int{}, nil)
 	require.NoError(t, err)

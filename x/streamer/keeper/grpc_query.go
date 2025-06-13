@@ -28,7 +28,7 @@ func NewQuerier(k Keeper) Querier {
 // ModuleToDistributeCoins returns coins that are going to be distributed.
 func (q Querier) ModuleToDistributeCoins(goCtx context.Context, _ *types.ModuleToDistributeCoinsRequest) (*types.ModuleToDistributeCoinsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	return &types.ModuleToDistributeCoinsResponse{Coins: q.Keeper.GetModuleToDistributeCoins(ctx)}, nil
+	return &types.ModuleToDistributeCoinsResponse{Coins: q.GetModuleToDistributeCoins(ctx)}, nil
 }
 
 // StreamByID takes a streamID and returns its respective stream.
@@ -39,7 +39,7 @@ func (q Querier) StreamByID(goCtx context.Context, req *types.StreamByIDRequest)
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	stream, err := q.Keeper.GetStreamByID(ctx, req.Id)
+	stream, err := q.GetStreamByID(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}

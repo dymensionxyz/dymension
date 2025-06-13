@@ -22,7 +22,7 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) SetCanonicalClient(goCtx context.Context, msg *types.MsgSetCanonicalClient) (*types.MsgSetCanonicalClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.TrySetCanonicalClient(ctx, msg.ClientId); err != nil {
+	if err := m.TrySetCanonicalClient(ctx, msg.ClientId); err != nil {
 		return nil, err
 	}
 	return &types.MsgSetCanonicalClientResponse{}, nil

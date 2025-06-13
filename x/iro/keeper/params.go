@@ -24,7 +24,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, err
 	}
 
-	m.Keeper.SetParams(ctx, req.NewParams)
+	m.SetParams(ctx, req.NewParams)
 
 	return &types.MsgUpdateParamsResponse{}, nil
 }

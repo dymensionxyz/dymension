@@ -39,7 +39,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 func (s *RollappTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
 	s.App = app
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	err := app.AccountKeeper.Params.Set(ctx, authtypes.DefaultParams())
 	s.Require().NoError(err)

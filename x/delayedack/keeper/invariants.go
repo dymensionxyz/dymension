@@ -64,7 +64,7 @@ func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
 func (k Keeper) checkPacket(p commontypes.RollappPacket, latestFinalizedHeight uint64) error {
 	finalizedTooEarly := latestFinalizedHeight < p.ProofHeight && p.Status == commontypes.Status_FINALIZED
 	if finalizedTooEarly {
-		return fmt.Errorf("finalized too early height=%d, rollapp=%s, status=%s\n",
+		return fmt.Errorf("finalized too early height=%d, rollapp=%s, status=%s",
 			p.ProofHeight, p.RollappId, p.Status,
 		)
 	}

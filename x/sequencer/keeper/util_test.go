@@ -86,7 +86,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 
 func (s *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)
@@ -148,7 +148,7 @@ func (s *SequencerTestSuite) createRollappWithInitialSeqConstraint(initSeq strin
 func (s *SequencerTestSuite) submitAFewRollappStates(rollapp string) {
 	p := s.k().GetProposer(s.Ctx, rollapp)
 	h, _ := s.App.RollappKeeper.GetLatestHeight(s.Ctx, rollapp)
-	_, err := s.KeeperTestHelper.PostStateUpdate(s.Ctx, rollapp, p.Address, h, 10)
+	_, err := s.PostStateUpdate(s.Ctx, rollapp, p.Address, h, 10)
 	s.Require().NoError(err)
 }
 

@@ -12,6 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
@@ -63,6 +64,131 @@ const (
 
 // MinPriceValue is the minimum value allowed for price configuration.
 var MinPriceValue = math.NewInt(1e18)
+
+const (
+	defaultEndEpochHookIdentifier = "hour"
+)
+
+// DefaultParams returns a default set of parameters
+func DefaultParams() Params {
+	return NewParams(
+		DefaultPriceParams(),
+		DefaultChainsParams(),
+		DefaultMiscParams(),
+	)
+}
+
+// DefaultPriceParams returns a default set of price parameters
+func DefaultPriceParams() PriceParams {
+	return PriceParams{
+		NamePriceSteps: []math.Int{
+			math.NewInt(5000 /* DYM */).MulRaw(1e18), // 1 letter
+			math.NewInt(2500 /* DYM */).MulRaw(1e18), // 2 letters
+			math.NewInt(1000 /* DYM */).MulRaw(1e18), // 3 letters
+			math.NewInt(100 /* DYM */).MulRaw(1e18),  // 4 letters
+			math.NewInt(5 /* DYM */).MulRaw(1e18),    // 5+ letters
+		},
+
+		AliasPriceSteps: []math.Int{
+			math.NewInt(6000 /* DYM */).MulRaw(1e18), // 1 letter
+			math.NewInt(3000 /* DYM */).MulRaw(1e18), // 2 letters
+			math.NewInt(1500 /* DYM */).MulRaw(1e18), // 3 letters
+			math.NewInt(500 /* DYM */).MulRaw(1e18),  // 4 letters
+			math.NewInt(250 /* DYM */).MulRaw(1e18),  // 5 letters
+			math.NewInt(100 /* DYM */).MulRaw(1e18),  // 6 letters
+			math.NewInt(50 /* DYM */).MulRaw(1e18),   // 7 letters
+			math.NewInt(20 /* DYM */).MulRaw(1e18),   // 8 letters
+			math.NewInt(10 /* DYM */).MulRaw(1e18),   // 9 letters
+			math.NewInt(5 /* DYM */).MulRaw(1e18),    // 10+ letters
+		},
+
+		PriceExtends:           math.NewInt(5 /* DYM */).MulRaw(1e18),
+		PriceDenom:             params.BaseDenom,
+		MinOfferPrice:          math.NewInt(10 /* DYM */).MulRaw(1e18),
+		MinBidIncrementPercent: 1,
+	}
+}
+
+// DefaultChainsParams returns a default set of chains configuration
+func DefaultChainsParams() ChainsParams {
+	return ChainsParams{
+		AliasesOfChainIds: []AliasesOfChainId{
+			{
+				ChainId: "dymension_1100-1",
+				Aliases: []string{"dym", "dymension"},
+			},
+			{
+				ChainId: "blumbus_111-1",
+				Aliases: []string{"blumbus"},
+			},
+			{
+				ChainId: "cosmoshub-4",
+				Aliases: []string{"cosmos", "cosmoshub"},
+			},
+			{
+				ChainId: "osmosis-1",
+				Aliases: []string{"osmosis"},
+			},
+			{
+				ChainId: "axelar-dojo-1",
+				Aliases: []string{"axelar"},
+			},
+			{
+				ChainId: "stride-1",
+				Aliases: []string{"stride"},
+			},
+			{
+				ChainId: "kava_2222-10",
+				Aliases: []string{"kava"},
+			},
+			{
+				ChainId: "evmos_9001-2",
+				Aliases: []string{"evmos"},
+			},
+			{
+				ChainId: "dymension_100-1",
+				Aliases: []string{"test"},
+			},
+			// reserves alias for non Cosmos-SDK chains
+			// TODO DymNS: review the list
+			{
+				ChainId: "bitcoin",
+				Aliases: []string{"btc"},
+			},
+			{
+				ChainId: "ethereum",
+				Aliases: []string{"eth", "ether"},
+			},
+			{
+				ChainId: "solana",
+				Aliases: []string{"sol"},
+			},
+			{
+				ChainId: "avalanche",
+				Aliases: []string{"avax"},
+			},
+			{
+				ChainId: "polygon",
+				Aliases: []string{"matic"},
+			},
+			{
+				ChainId: "polkadot",
+				Aliases: []string{"dot"},
+			},
+		},
+	}
+}
+
+// DefaultMiscParams returns a default set of misc parameters
+func DefaultMiscParams() MiscParams {
+	return MiscParams{
+		EndEpochHookIdentifier: defaultEndEpochHookIdentifier,
+		GracePeriodDuration:    30 * 24 * time.Hour,
+		SellOrderDuration:      3 * 24 * time.Hour,
+		EnableTradingName:      true,
+		EnableTradingAlias:     true,
+	}
+}
 
 // NewParams creates a new Params object from given parameters
 func NewParams(

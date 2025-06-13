@@ -7,7 +7,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/x/common/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -21,8 +20,8 @@ func TestEncodeDecodePacketKey(t *testing.T) {
 
 	expectedPK := packet.RollappPacketKey()
 
-	encoded := types.EncodePacketKey(expectedPK)
-	decoded, err := types.DecodePacketKey(encoded)
+	encoded := commontypes.EncodePacketKey(expectedPK)
+	decoded, err := commontypes.DecodePacketKey(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, expectedPK, decoded)

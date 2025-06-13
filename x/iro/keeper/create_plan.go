@@ -31,7 +31,7 @@ import (
 func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (*types.MsgCreatePlanResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	rollapp, found := m.Keeper.rk.GetRollapp(ctx, req.RollappId)
+	rollapp, found := m.rk.GetRollapp(ctx, req.RollappId)
 	if !found {
 		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "rollapp not found")
 	}
@@ -40,7 +40,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, sdkerrors.ErrUnauthorized
 	}
 
-	params := m.Keeper.GetParams(ctx)
+	params := m.GetParams(ctx)
 
 	// check minimal plan duration
 	if req.IroPlanDuration < params.MinPlanDuration {
@@ -70,14 +70,14 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}
 
 	// Check if the plan already exists
-	_, found = m.Keeper.GetPlanByRollapp(ctx, rollapp.RollappId)
+	_, found = m.GetPlanByRollapp(ctx, rollapp.RollappId)
 	if found {
 		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrPlanExists)
 	}
 
 	found = false
 	for _, gAcc := range rollapp.GenesisInfo.Accounts() {
-		if gAcc.Address == m.Keeper.GetModuleAccountAddress() {
+		if gAcc.Address == m.GetModuleAccountAddress() {
 			if !gAcc.Amount.Equal(req.AllocatedAmount) {
 				return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "allocated amount mismatch")
 			}

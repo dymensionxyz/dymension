@@ -23,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	// set txfees basedenom
 	err := app.TxFeesKeeper.SetBaseDenom(ctx, "adym")

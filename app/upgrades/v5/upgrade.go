@@ -351,7 +351,6 @@ func migrateEndorsements(ctx sdk.Context, incentivesKeeper *incentiveskeeper.Kee
 
 		return false, nil // Continue iteration
 	})
-
 	if err != nil {
 		return fmt.Errorf("iterate votes: %w", err)
 	}
@@ -384,11 +383,14 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	))
 
 	// DymNS module
-	dymnsSubspace := keepers.ParamsKeeper.Subspace(dymns.ModuleName)
-	dymnsSubspace = dymnsSubspace.WithKeyTable(dymns.ParamKeyTable())
 	var dymnsParams dymns.Params
+	dymnsSubspace, ok := keepers.ParamsKeeper.GetSubspace(dymnstypes.ModuleName)
+	if !ok {
+		dymnsSubspace = keepers.ParamsKeeper.Subspace(dymns.ModuleName)
+		dymnsSubspace = dymnsSubspace.WithKeyTable(dymns.ParamKeyTable())
+	}
 	dymnsSubspace.GetParamSetIfExists(ctx, &dymnsParams)
-	keepers.DymNSKeeper.SetParams(ctx, dymnstypes.NewParams(
+	err := keepers.DymNSKeeper.SetParams(ctx, dymnstypes.NewParams(
 		dymnstypes.PriceParams{
 			NamePriceSteps:         dymnsParams.Price.NamePriceSteps,
 			AliasPriceSteps:        dymnsParams.Price.AliasPriceSteps,
@@ -417,6 +419,9 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 			EnableTradingAlias:     dymnsParams.Misc.EnableTradingAlias,
 		},
 	))
+	if err != nil {
+		panic(err)
+	}
 
 	// Rollapp module
 	rollappSubspace := keepers.ParamsKeeper.Subspace(rollapp.ModuleName)
