@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -36,6 +38,9 @@ func CmdUpdateApp() *cobra.Command {
 				order, err = strconv.ParseInt(args[6], 10, 32)
 				if err != nil {
 					return err
+				}
+				if order > int64(math.MaxInt32) || order < int64(math.MinInt32) {
+					return fmt.Errorf("order out of int32 range")
 				}
 			}
 

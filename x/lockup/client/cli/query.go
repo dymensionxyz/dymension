@@ -287,7 +287,7 @@ $ %s query lockup output-all-locks <max lock ID>
 
 			results := []LockResult{}
 			for i := uint64(0); i <= maxLockID; i++ {
-				curLockResult := LockResult{Id: int(i)}
+				curLockResult := LockResult{Id: int(i)} //nolint:gosec
 				res, err := queryClient.LockedByID(cmd.Context(), &types.LockedRequest{LockId: i})
 				if err != nil {
 					curLockResult.Status = doesnt_exist_status

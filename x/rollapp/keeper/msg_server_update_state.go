@@ -81,7 +81,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		successor = k.SequencerK.GetSuccessor(ctx, msg.RollappId)
 	}
 
-	creationHeight := uint64(ctx.BlockHeight())
+	creationHeight := uint64(ctx.BlockHeight()) //nolint:gosec
 	blockTime := ctx.BlockTime()
 	stateInfo := types.NewStateInfo(
 		msg.RollappId,

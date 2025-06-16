@@ -187,7 +187,8 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 		if err != nil {
 			return nil, err
 		}
-		if lpr.Accepts(uint64(ctx.BlockHeight()), &o) {
+		h := uint64(ctx.BlockHeight()) //nolint:gosec
+		if lpr.Accepts(h, &o) {
 			compat = append(compat, lpr)
 		}
 	}

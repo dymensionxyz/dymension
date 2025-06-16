@@ -16,10 +16,10 @@ import (
 // RandomizedGenState generates a random GenesisState for iro module
 func RandomizedGenState(simState *module.SimulationState) {
 	// Generate number of plans. each operation will test one plan in random
-	numPlans := 30
+	numPlans := uint64(30)
 	plans := make([]types.Plan, numPlans)
 
-	for i := 0; i < numPlans; i++ {
+	for i := uint64(0); i < numPlans; i++ {
 		plan := generateRandomPlan(simState.Rand, uint64(i+1))
 		plans[i] = plan
 	}

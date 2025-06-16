@@ -37,7 +37,7 @@ func (gs GenesisState) Validate() error {
 
 	// validate the streams are sorted and last stream id is correct
 	for i, stream := range gs.Streams {
-		if stream.Id != uint64(i+1) {
+		if stream.Id != uint64(i+1) { //nolint:gosec
 			return fmt.Errorf("stream in idx %d have wrong streamID (%d)", i, stream.Id)
 		}
 	}

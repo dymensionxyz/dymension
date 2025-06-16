@@ -40,7 +40,7 @@ func getDurationKey(duration time.Duration) []byte {
 	if duration < 0 {
 		duration = 0
 	}
-	key := sdk.Uint64ToBigEndian(uint64(duration))
+	key := sdk.Uint64ToBigEndian(uint64(duration)) //nolint:gosec
 	return combineKeys(types.KeyPrefixDuration, key)
 }
 
