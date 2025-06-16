@@ -368,7 +368,7 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	keepers.DelayedAckKeeper.SetParams(ctx, delayedacktypes.NewParams(
 		delayedackParams.EpochIdentifier,
 		delayedackParams.BridgingFee,
-		int(delayedackParams.DeletePacketsEpochLimit),
+		delayedackParams.DeletePacketsEpochLimit,
 	))
 
 	// EIBC module

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"fmt"
-	"math"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -26,17 +24,15 @@ func CmdAddApp() *cobra.Command {
 				description       = args[2]
 				logo              = args[3]
 				url               = args[4]
-				order       int64 = -1
+				order       int32 = -1
 			)
 
 			if len(args) == 6 {
-				order, err = strconv.ParseInt(args[5], 10, 32)
+				o, err := strconv.ParseInt(args[5], 10, 32)
 				if err != nil {
 					return err
 				}
-				if order > int64(math.MaxInt32) || order < int64(math.MinInt32) {
-					return fmt.Errorf("order out of int32 range")
-				}
+				order = int32(o) //nolint:gosec
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -51,7 +47,7 @@ func CmdAddApp() *cobra.Command {
 				description,
 				logo,
 				url,
-				int32(order),
+				order,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

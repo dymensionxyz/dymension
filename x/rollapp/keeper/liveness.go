@@ -17,6 +17,7 @@ See https://www.notion.so/dymension/sequencer-jailing-slashing-3455fe70923143cbb
 // NextSlashHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
 // Assumes that if current hub height is already a slash height, then to schedule for the next one.
+// CONTRACT: heightHub >= heightLastRollappUpdate
 func NextSlashHeight(
 	blocksSlashNoUpdate uint64, // time until first slash if not updating
 	blocksSlashInterval uint64, // gap between slash if still not updating
@@ -26,14 +27,14 @@ func NextSlashHeight(
 	heightEvent int64, // hub height to schedule event
 ) {
 	// how long has the rollapp been down ?
-	down := uint64(heightHub - heightLastRollappUpdate)
+	down := uint64(heightHub - heightLastRollappUpdate) //nolint:gosec
 	// when should we schedule the next slash, in terms of downtime duration?
 	interval := blocksSlashNoUpdate
 	if blocksSlashNoUpdate <= down {
 		// round up to next slash interval
 		interval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
-	heightEvent = heightLastRollappUpdate + int64(interval)
+	heightEvent = heightLastRollappUpdate + int64(interval) //nolint:gosec
 	return
 }
 
