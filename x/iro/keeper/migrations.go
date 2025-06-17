@@ -57,7 +57,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		plan.IroPlanDuration = plan.PreLaunchTime.Sub(plan.StartTime)
 
 		if err := plan.ValidateBasic(); err != nil {
-			panic(fmt.Errorf("invalid plan: %v", err))
+			panic(fmt.Errorf("invalid plan: %w", err))
 		}
 		m.k.SetPlan(ctx, plan)
 	}

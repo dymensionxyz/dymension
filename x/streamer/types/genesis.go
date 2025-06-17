@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"math"
 )
 
 // this line is used by starport scaffolding # genesis/types/import
@@ -27,13 +28,16 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
+	if gs.LastStreamId > uint64(math.MaxInt) {
+		return fmt.Errorf("LastStreamId exceeds maximum supported value: %d", gs.LastStreamId)
+	}
 	if len(gs.Streams) != int(gs.LastStreamId) {
 		return fmt.Errorf("streams length does not match last stream id")
 	}
 
 	// validate the streams are sorted and last stream id is correct
 	for i, stream := range gs.Streams {
-		if stream.Id != uint64(i+1) {
+		if stream.Id != uint64(i+1) { //nolint:gosec
 			return fmt.Errorf("stream in idx %d have wrong streamID (%d)", i, stream.Id)
 		}
 	}

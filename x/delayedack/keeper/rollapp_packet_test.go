@@ -102,7 +102,7 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 					Sequence:           uint64(i),
 				},
 				Status:      sm[i%2],
-				Type:        commontypes.RollappPacket_Type(i % 3),
+				Type:        commontypes.RollappPacket_Type(i % 3), //nolint:gosec
 				ProofHeight: uint64(6 - i),
 			}
 			packetsToSet = append(packetsToSet, packet)

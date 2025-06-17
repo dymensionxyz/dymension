@@ -59,7 +59,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// skip a dispute period
-	disputePeriod := int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx))
+	disputePeriod := int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) //nolint:gosec
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + disputePeriod)
 
 	// progress finalization queue
@@ -70,13 +70,13 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	// check the total number of packets
 	var total int
 	for rollapp := range seqPerRollapp {
-		total += int(rollappBlocks[rollapp])
+		total += int(rollappBlocks[rollapp]) //nolint:gosec
 	}
 	suite.Require().Equal(total, finalizedNum)
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
-		err := suite.App.DelayedAckKeeper.OnHardFork(suite.Ctx, rollapp, uint64(suite.Ctx.BlockHeight()))
+		err := suite.App.DelayedAckKeeper.OnHardFork(suite.Ctx, rollapp, uint64(suite.Ctx.BlockHeight())) //nolint:gosec
 		suite.Require().NoError(err)
 	}
 

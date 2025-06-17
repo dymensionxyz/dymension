@@ -42,22 +42,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee math.LegacyDec, deletePacketsEpochLimit int) Params {
-	return Params{
-		EpochIdentifier:         epochIdentifier,
-		BridgingFee:             bridgingFee,
-		DeletePacketsEpochLimit: int32(deletePacketsEpochLimit),
-	}
-}
-
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(
+	return Params{
 		defaultEpochIdentifier,
 		math.LegacyNewDecWithPrec(1, 3), // 0.1%
 		defaultDeletePacketsEpochLimit,
-	)
+	}
 }
 
 // ParamSetPairs get the params.ParamSet

@@ -263,7 +263,7 @@ $ %s query lockup output-all-locks <max lock ID>
 				return err
 			}
 
-			maxLockID, err := strconv.ParseInt(args[0], 10, 32)
+			maxLockID, err := strconv.ParseUint(args[0], 10, 32)
 			if err != nil {
 				return err
 			}
@@ -286,9 +286,9 @@ $ %s query lockup output-all-locks <max lock ID>
 			queryClient := types.NewQueryClient(clientCtx)
 
 			results := []LockResult{}
-			for i := 0; i <= int(maxLockID); i++ {
-				curLockResult := LockResult{Id: i}
-				res, err := queryClient.LockedByID(cmd.Context(), &types.LockedRequest{LockId: uint64(i)})
+			for i := uint64(0); i <= maxLockID; i++ {
+				curLockResult := LockResult{Id: int(i)} //nolint:gosec
+				res, err := queryClient.LockedByID(cmd.Context(), &types.LockedRequest{LockId: i})
 				if err != nil {
 					curLockResult.Status = doesnt_exist_status
 					results = append(results, curLockResult)

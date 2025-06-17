@@ -61,7 +61,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
 
 	// Update rollapp state
-	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -97,7 +97,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.Require().Equal(initialBalance.AmountOf(denom), math.ZeroInt())
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 
@@ -128,7 +128,7 @@ func (s *bridgingFeeSuite) TestBridgingFeeReturnTokens() {
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
 
 	// Update rollapp state
-	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -189,7 +189,7 @@ func (s *bridgingFeeSuite) TestBridgingFeeReturnTokens() {
 	initialHubBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 

@@ -4,7 +4,7 @@ version: "2"
 
 run:
   concurrency: 4
-  timeout: 5m
+  timeout: 10m
   tests: true
   modules-download-mode: readonly
 
@@ -44,6 +44,10 @@ linters:
       - errcheck
       # text: "^.*value of `(\\w+)\\.Close` is not checked\\.*$"
       text: "^.*value of .*it.*Close.* is not checked"
+    - linters:
+      - gosec
+      text: "^.*G115.*$"
+      path: ".*_test\\.go$"
   settings:
     revive:
       rules:

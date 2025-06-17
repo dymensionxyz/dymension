@@ -13,11 +13,11 @@ const (
 )
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee math.LegacyDec, deletePacketsEpochLimit int) Params {
+func NewParams(epochIdentifier string, bridgingFee math.LegacyDec, deletePacketsEpochLimit int32) Params {
 	return Params{
 		EpochIdentifier:         epochIdentifier,
 		BridgingFee:             bridgingFee,
-		DeletePacketsEpochLimit: int32(deletePacketsEpochLimit),
+		DeletePacketsEpochLimit: deletePacketsEpochLimit,
 	}
 }
 

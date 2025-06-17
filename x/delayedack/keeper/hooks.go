@@ -93,7 +93,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		}
 
 		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets
-		if int32(count) >= params.DeletePacketsEpochLimit {
+		if count >= int(params.DeletePacketsEpochLimit) {
 			break
 		}
 	}

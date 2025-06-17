@@ -17,7 +17,7 @@ type TestSuite struct {
 
 func (s *TestSuite) SetupTest() {
 	app := apptesting.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	s.App = app
 	s.Ctx = ctx

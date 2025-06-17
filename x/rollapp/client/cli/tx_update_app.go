@@ -24,7 +24,7 @@ func CmdUpdateApp() *cobra.Command {
 				description       = args[3]
 				logo              = args[4]
 				url               = args[5]
-				order       int64 = -1
+				order       int32 = -1
 			)
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
@@ -33,10 +33,11 @@ func CmdUpdateApp() *cobra.Command {
 			}
 
 			if len(args) == 7 {
-				order, err = strconv.ParseInt(args[6], 10, 32)
+				o, err := strconv.ParseInt(args[6], 10, 32)
 				if err != nil {
 					return err
 				}
+				order = int32(o) //nolint:gosec
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -52,7 +53,7 @@ func CmdUpdateApp() *cobra.Command {
 				description,
 				logo,
 				url,
-				int32(order),
+				order,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

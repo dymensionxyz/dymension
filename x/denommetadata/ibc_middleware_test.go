@@ -337,7 +337,9 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			} else {
 				require.ErrorIs(t, err, tt.wantErr)
 			}
-			require.Equal(t, string(tt.wantSentData), string(tt.fields.ICS4Wrapper.(*mockICS4Wrapper).sentData))
+			mockWrapper, ok := tt.fields.ICS4Wrapper.(*mockICS4Wrapper)
+			require.True(t, ok, "ICS4Wrapper is not a mockICS4Wrapper")
+			require.Equal(t, string(tt.wantSentData), string(mockWrapper.sentData))
 		})
 	}
 }

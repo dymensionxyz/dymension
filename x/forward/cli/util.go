@@ -274,7 +274,7 @@ func hookForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 		return nil, fmt.Errorf("ibc timeout duration: %w", err)
 	}
 
-	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano())
+	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano()) //nolint:gosec
 
 	hook := types.NewHookForwardToIBC(
 		ibcSourceChan,

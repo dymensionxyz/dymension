@@ -29,7 +29,7 @@ func NewQuerier(k Keeper) Querier {
 // ModuleToDistributeCoins returns coins that are going to be distributed.
 func (q Querier) ModuleToDistributeCoins(goCtx context.Context, _ *types.ModuleToDistributeCoinsRequest) (*types.ModuleToDistributeCoinsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	return &types.ModuleToDistributeCoinsResponse{Coins: q.Keeper.GetModuleToDistributeCoins(ctx)}, nil
+	return &types.ModuleToDistributeCoinsResponse{Coins: q.GetModuleToDistributeCoins(ctx)}, nil
 }
 
 // GaugeByID takes a gaugeID and returns its respective gauge.
@@ -40,7 +40,7 @@ func (q Querier) GaugeByID(goCtx context.Context, req *types.GaugeByIDRequest) (
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	gauge, err := q.Keeper.GetGaugeByID(ctx, req.Id)
+	gauge, err := q.GetGaugeByID(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (q Querier) Params(goCtx context.Context, req *types.ParamsRequest) (*types
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	params := q.Keeper.GetParams(ctx)
+	params := q.GetParams(ctx)
 
 	return &types.ParamsResponse{Params: &params}, nil
 }
@@ -160,7 +160,7 @@ func (q Querier) Params(goCtx context.Context, req *types.ParamsRequest) (*types
 func (q Querier) LockableDurations(ctx context.Context, _ *types.QueryLockableDurationsRequest) (*types.QueryLockableDurationsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	return &types.QueryLockableDurationsResponse{LockableDurations: q.Keeper.GetLockableDurations(sdkCtx)}, nil
+	return &types.QueryLockableDurationsResponse{LockableDurations: q.GetLockableDurations(sdkCtx)}, nil
 }
 
 // getGaugeFromIDJsonBytes returns gauges from the json bytes of gaugeIDs.
