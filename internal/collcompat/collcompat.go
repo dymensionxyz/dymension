@@ -82,7 +82,11 @@ type protoMessage[T any] interface {
 // TODO: delete, can use codec lib
 // ProtoValue inits a collections.ValueCodec for a generic gogo protobuf message.
 func ProtoValue[T any, PT protoMessage[T]](cdc codec.BinaryCodec) collcodec.ValueCodec[T] {
-	return &collValue[T, PT]{cdc.(codec.Codec), proto.MessageName(PT(new(T)))}
+	codec, ok := cdc.(codec.Codec)
+	if !ok {
+		panic("cdc is not a codec.Codec")
+	}
+	return &collValue[T, PT]{codec, proto.MessageName(PT(new(T)))}
 }
 
 type collValue[T any, PT protoMessage[T]] struct {

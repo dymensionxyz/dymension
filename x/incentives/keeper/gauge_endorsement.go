@@ -52,7 +52,10 @@ func (k Keeper) updateEndorsementGaugeOnEpochEnd(ctx sdk.Context, gauge types.Ga
 	}
 
 	// Update endorsement total coins with the epoch rewards
-	endorsementGauge := gauge.DistributeTo.(*types.Gauge_Endorsement)
+	endorsementGauge, ok := gauge.DistributeTo.(*types.Gauge_Endorsement)
+	if !ok {
+		return fmt.Errorf("gauge DistributeTo is not an endorsement gauge")
+	}
 
 	err := k.spk.UpdateEndorsementTotalCoins(ctx, endorsementGauge.Endorsement.RollappId, epochRewards)
 	if errors.Is(err, sponsorshiptypes.ErrNoEndorsers) {

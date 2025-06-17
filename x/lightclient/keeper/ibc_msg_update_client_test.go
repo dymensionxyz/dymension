@@ -5,7 +5,6 @@ import (
 	"time"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cometprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	comettypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -18,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ConvertValidator(src comettypes.Validator) *cometprototypes.Validator {
+func ConvertValidator(src comettypes.Validator) *cmtproto.Validator {
 	// TODO: surely this must already exist somewhere
 
 	pk, err := cryptocodec.FromTmPubKeyInterface(src.PubKey)
@@ -29,7 +28,7 @@ func ConvertValidator(src comettypes.Validator) *cometprototypes.Validator {
 	if err != nil {
 		panic(err)
 	}
-	dst := &cometprototypes.Validator{
+	dst := &cmtproto.Validator{
 		Address:          src.Address,
 		VotingPower:      src.VotingPower,
 		ProposerPriority: src.ProposerPriority,
@@ -38,15 +37,15 @@ func ConvertValidator(src comettypes.Validator) *cometprototypes.Validator {
 	return dst
 }
 
-func ConvertValidatorSet(src *comettypes.ValidatorSet) *cometprototypes.ValidatorSet {
+func ConvertValidatorSet(src *comettypes.ValidatorSet) *cmtproto.ValidatorSet {
 	// TODO: surely this must already exist somewhere
 
 	if src == nil {
 		return nil
 	}
 
-	dst := &cometprototypes.ValidatorSet{
-		Validators: make([]*cometprototypes.Validator, len(src.Validators)),
+	dst := &cmtproto.ValidatorSet{
+		Validators: make([]*cmtproto.Validator, len(src.Validators)),
 	}
 
 	for i, validator := range src.Validators {
@@ -106,12 +105,12 @@ func TestHandleMsgUpdateClientGood(t *testing.T) {
 						{
 							Height:    1,
 							StateRoot: []byte("appHash"),
-							Timestamp: header.SignedHeader.Header.Time,
+							Timestamp: header.Header.Time,
 						},
 						{
 							Height:    2,
 							StateRoot: []byte("appHash2"),
-							Timestamp: header.SignedHeader.Header.Time.Add(1),
+							Timestamp: header.Header.Time.Add(1),
 						},
 					},
 				},

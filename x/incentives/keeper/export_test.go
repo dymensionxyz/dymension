@@ -23,7 +23,7 @@ func (k Keeper) GetGaugeRefs(ctx sdk.Context, key []byte) []uint64 {
 
 // GetAllGaugeIDsByDenom returns all active gauge-IDs associated with lockups of the provided denom.
 func (k Keeper) GetAllGaugeIDsByDenom(ctx sdk.Context, denom string) []uint64 {
-	return k.getAllGaugeIDsByDenom(ctx, denom)
+	return k.getGaugeRefs(ctx, gaugeDenomStoreKey(denom))
 }
 
 // MoveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.

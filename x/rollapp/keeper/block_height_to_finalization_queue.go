@@ -59,12 +59,13 @@ func (k Keeper) AllSequencerHeightPairs(ctx sdk.Context) ([]types.SequencerHeigh
 
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.
 func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
-	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
+	h := uint64(ctx.BlockHeight()) //nolint:gosec
+	if h < k.DisputePeriodInBlocks(ctx) {
 		// hub just started
 		return
 	}
 	// check to see if there are pending  states to be finalized
-	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
+	finalizationHeight := h - k.DisputePeriodInBlocks(ctx)
 	queue, err := k.GetFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 	if err != nil {
 		// The error is returned only if there is an internal issue with the store iterator or encoding.

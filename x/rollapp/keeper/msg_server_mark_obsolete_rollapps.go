@@ -31,7 +31,7 @@ func (k msgServer) MarkObsoleteRollapps(goCtx context.Context, msg *types.MsgMar
 	}
 
 	err = uevent.EmitTypedEvent(ctx, &types.EventMarkObsoleteRollapps{
-		ObsoleteRollappNum: uint64(obsoleteNum),
+		ObsoleteRollappNum: uint64(obsoleteNum), //nolint:gosec
 		DrsVersions:        msg.DrsVersions,
 	})
 	if err != nil {

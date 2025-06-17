@@ -54,10 +54,10 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 						DestinationPort:    "testDestinationPort",
 						DestinationChannel: "testDestinationChannel",
 						Data:               apptesting.GenerateTestPacketData(suite.T()),
-						Sequence:           uint64(i),
+						Sequence:           uint64(i), //nolint:gosec
 					},
 					Status:      commontypes.Status_PENDING,
-					ProofHeight: uint64(i * 2),
+					ProofHeight: uint64(i * 2), //nolint:gosec
 				}
 				keeper.SetRollappPacket(ctx, *rollappPacket)
 			}

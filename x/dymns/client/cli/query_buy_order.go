@@ -124,9 +124,10 @@ func printBuyOrder(offer dymnstypes.BuyOrder) error {
 	fmt.Printf("ID: %s\n", offer.Id)
 	fmt.Printf(" Buyer: %s\n", offer.Buyer)
 	fmt.Printf(" Type: %s\n", offer.AssetType.PrettyName())
-	if offer.AssetType == dymnstypes.TypeName {
+	switch offer.AssetType {
+	case dymnstypes.TypeName:
 		fmt.Printf(" Dym-Name: %s\n", offer.AssetId)
-	} else if offer.AssetType == dymnstypes.TypeAlias {
+	case dymnstypes.TypeAlias:
 		fmt.Printf(" Alias: %s\n", offer.AssetId)
 		fmt.Printf(" For RollApp: %s\n", offer.Params[0])
 	}

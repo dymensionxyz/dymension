@@ -45,7 +45,8 @@ func (s *lightClientSuite) TestSetCanonicalClient_ParamsMismatch() {
 	s.registerSequencer()
 
 	currentHeader := s.rollappChain().CurrentHeader
-	startHeight := uint64(currentHeader.Height)
+	height := uint64(currentHeader.Height) //nolint:gosec
+	startHeight := height
 	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
 	// create default clients, which should have wrong params and can't be set as canonical client
@@ -53,7 +54,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_ParamsMismatch() {
 	s.NoError(s.path.EndpointA.CreateClient())
 
 	currentHeader = s.rollappChain().CurrentHeader
-	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+	bdNext := rollapptypes.BlockDescriptor{Height: height, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
 	// Update the rollapp state - this will trigger the check for prospective canonical client
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
@@ -83,13 +84,14 @@ func (s *lightClientSuite) TestSetCanonicalClient_ConsStateMismatch() {
 	s.registerSequencer()
 
 	h := s.rollappChain().CurrentHeader
-	startHeight := uint64(h.Height)
-	bd := rollapptypes.BlockDescriptor{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time}
+	height := uint64(h.Height) //nolint:gosec
+	startHeight := height
+	bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: h.AppHash, Timestamp: h.Time}
 
 	s.createCompatibleClient()
 
 	h = s.rollappChain().CurrentHeader
-	bdNext := rollapptypes.BlockDescriptor{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time}
+	bdNext := rollapptypes.BlockDescriptor{Height: height, StateRoot: h.AppHash, Timestamp: h.Time}
 
 	setCanonMsg := &types.MsgSetCanonicalClient{
 		Signer: s.hubChain().SenderAccount.GetAddress().String(), ClientId: s.path.EndpointA.ClientID,
@@ -123,15 +125,16 @@ func (s *lightClientSuite) TestSetCanonicalClient_FailsIncompatibleState() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 
-	startHeight := uint64(s.rollappChain().CurrentHeader.Height)
+	startHeight := uint64(s.rollappChain().CurrentHeader.Height) //nolint:gosec
 
 	s.createCompatibleClient()
 
 	h := s.rollappChain().CurrentHeader
+	height := uint64(h.Height) //nolint:gosec
 	// first bd will have wrong state root in regard to the ibc headers
 	bds := []rollapptypes.BlockDescriptor{
 		{Height: startHeight, StateRoot: h.AppHash, Timestamp: h.Time},
-		{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time},
+		{Height: height, StateRoot: h.AppHash, Timestamp: h.Time},
 	}
 
 	setCanonMsg := &types.MsgSetCanonicalClient{
@@ -161,13 +164,14 @@ func (s *lightClientSuite) TestSetCanonicalClient_Succeeds() {
 	s.registerSequencer()
 
 	currentHeader := s.rollappChain().CurrentHeader
-	startHeight := uint64(currentHeader.Height)
+	height := uint64(currentHeader.Height) //nolint:gosec
+	startHeight := height
 	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
 	s.createCompatibleClient()
 
 	currentHeader = s.rollappChain().CurrentHeader
-	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+	bdNext := rollapptypes.BlockDescriptor{Height: height, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
 	// no state update, it should fail
 	setCanonMsg := &types.MsgSetCanonicalClient{
@@ -217,13 +221,14 @@ func (s *lightClientSuite) TestSetCanonicalClient_MultipleClients_Succeeds() {
 	s.path = &ibctesting.Path{EndpointA: endpointA, EndpointB: endpointB}
 
 	currentHeader := s.rollappChain().CurrentHeader
-	startHeight := uint64(currentHeader.Height)
+	height := uint64(currentHeader.Height) //nolint:gosec
+	startHeight := height
 	bd := rollapptypes.BlockDescriptor{Height: startHeight, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
 	s.NoError(s.path.EndpointA.CreateClient())
 
 	currentHeader = s.rollappChain().CurrentHeader
-	bdNext := rollapptypes.BlockDescriptor{Height: uint64(currentHeader.Height), StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
+	bdNext := rollapptypes.BlockDescriptor{Height: height, StateRoot: currentHeader.AppHash, Timestamp: currentHeader.Time}
 
 	// Update the rollapp state
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
@@ -254,13 +259,14 @@ func (s *lightClientSuite) TestSetCanonicalClient_FailsWithExistingConnections()
 	s.registerSequencer()
 
 	h := s.rollappChain().CurrentHeader
-	startHeight := uint64(h.Height)
-	bd := rollapptypes.BlockDescriptor{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time}
+	height := uint64(h.Height) //nolint:gosec
+	startHeight := height      //nolint:gosec
+	bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: h.AppHash, Timestamp: h.Time}
 
 	s.createCompatibleClient()
 
 	h = s.rollappChain().CurrentHeader
-	bdNext := rollapptypes.BlockDescriptor{Height: uint64(h.Height), StateRoot: h.AppHash, Timestamp: h.Time}
+	bdNext := rollapptypes.BlockDescriptor{Height: height, StateRoot: h.AppHash, Timestamp: h.Time}
 
 	// Update the rollapp state so we could attempt to set the canonical client
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
@@ -289,7 +295,7 @@ func (s *lightClientSuite) TestSetCanonicalClient_FailsWithExistingConnections()
 func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateDoesntExist() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
-	currentRollappBlockHeight := uint64(s.rollappChain().App.LastBlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappChain().App.LastBlockHeight()) //nolint:gosec
 	s.updateRollappState(currentRollappBlockHeight)
 	s.path = s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.SetupClients(s.path)
@@ -318,7 +324,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 
 		s.coordinator.IncrementTime()
@@ -330,7 +337,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 
 		s.coordinator.IncrementTime()
@@ -359,9 +367,10 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_Compatible() {
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
 	s.True(s.hubApp().IBCKeeper.ClientKeeper.GetClientStatus(s.hubCtx(), s.path.EndpointA.GetClientState(), s.path.EndpointA.ClientID) == exported.Active)
-	s.LessOrEqual(uint64(header.Header.Height), s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
+	headerHeight := uint64(header.Header.Height) //nolint:gosec
+	s.LessOrEqual(headerHeight, s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight())
 	// There shouldn't be any optimistic updates as the roots were verified
-	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, headerHeight)
 	s.Error(err)
 }
 
@@ -376,7 +385,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible()
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 		s.hubChain().NextBlock()
 		s.rollappChain().NextBlock()
@@ -386,7 +396,8 @@ func (s *lightClientSuite) TestMsgUpdateClient_StateUpdateExists_NotCompatible()
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bd.Timestamp = bd.Timestamp.AddDate(0, 0, 1) // wrong timestamp to cause state mismatch
 		bds.BD = append(bds.BD, bd)
 		s.hubChain().NextBlock()
@@ -423,7 +434,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 		s.hubChain().NextBlock()
 		s.rollappChain().NextBlock()
@@ -433,7 +445,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 		s.hubChain().NextBlock()
 		s.rollappChain().NextBlock()
@@ -447,7 +460,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
 	// There should be one optimistic update for the header height
-	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	headerHeight := uint64(header.Header.Height) //nolint:gosec
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, headerHeight)
 	s.NoError(err)
 
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
@@ -459,12 +473,12 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_Compatibl
 	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
 	s.NoError(err)
 	// The optimistic update valhash should be removed as the state has been confirmed to be compatible
-	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, headerHeight)
 	s.Error(err)
 	// Ensuring that the stateinfo is now upto date as well
 	state, found := s.hubApp().RollappKeeper.GetLatestStateInfo(s.hubCtx(), s.rollappChain().ChainID)
 	s.True(found)
-	s.True(state.ContainsHeight(uint64(header.Header.Height)))
+	s.True(state.ContainsHeight(uint64(header.Header.Height))) //nolint:gosec
 }
 
 // TestAfterUpdateState_OptimisticUpdateExists_NotCompatible tests that a state info update is rejected in case the state is not compatible
@@ -481,7 +495,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 	bds := rollapptypes.BlockDescriptors{}
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 		s.hubChain().NextBlock()
 		s.rollappChain().NextBlock()
@@ -491,7 +506,8 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 
 	for i := 0; i < 2; i++ {
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bd.Timestamp = bd.Timestamp.AddDate(0, 0, 1) // wrong timestamp to cause state mismatch
 		bds.BD = append(bds.BD, bd)
 		s.hubChain().NextBlock()
@@ -506,7 +522,7 @@ func (s *lightClientSuite) TestAfterUpdateState_OptimisticUpdateExists_NotCompat
 	_, err = s.path.EndpointA.Chain.SendMsgs(msg)
 	s.NoError(err)
 	// There should be one optimistic update for the header height
-	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+	_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height)) //nolint:gosec
 	s.NoError(err)
 
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
@@ -547,7 +563,8 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 		s.coordinator.CommitBlock(s.hubChain(), s.rollappChain())
 
 		lastHeader := s.rollappChain().LastHeader
-		bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+		height := uint64(lastHeader.Header.Height) //nolint:gosec
+		bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 		bds.BD = append(bds.BD, bd)
 
 		if i%4 == 0 {
@@ -562,7 +579,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 			s.NoError(err)
 
 			// save signers
-			_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height))
+			_, err = s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(header.Header.Height)) //nolint:gosec
 			s.NoError(err)
 			signerHeights = append(signerHeights, header.Header.Height)
 		}
@@ -574,7 +591,7 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 
 	// Trigger rollback / simulate fork
 	nRolledBack := uint64(5)
-	lastValidHeight := uint64(s.rollappChain().LastHeader.Header.Height) - nRolledBack
+	lastValidHeight := uint64(s.rollappChain().LastHeader.Header.Height) - nRolledBack //nolint:gosec
 	newRevisionHeight := lastValidHeight + 1
 	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), s.rollappChain().ChainID)
 	newRevision := ra.LatestRevision().Number + 1
@@ -594,7 +611,8 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	// Validate future consensus states are cleared
 	csAfterRollback := s.hubApp().IBCKeeper.ClientKeeper.GetAllConsensusStates(s.hubCtx())[0].ConsensusStates
 	s.Require().Less(len(csAfterRollback), len(csBeforeRollback), "Consensus states should be cleared after rollback")
-	for height := uint64(0); height <= uint64(s.rollappChain().LastHeader.Header.Height); height++ {
+	lastHeaderHeight := uint64(s.rollappChain().LastHeader.Header.Height) //nolint:gosec
+	for height := uint64(0); height <= lastHeaderHeight; height++ {
 		_, found := s.hubApp().IBCKeeper.ClientKeeper.GetClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID, clienttypes.NewHeight(1, height))
 		if height >= newRevisionHeight {
 			s.False(found, "Consensus state should be cleared for height %d", height)
@@ -604,8 +622,8 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	// validate signers are removed
 	cnt := 0
 	for _, height := range signerHeights {
-		_, err := s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(height))
-		if height >= int64(lastValidHeight) {
+		_, err := s.hubApp().LightClientKeeper.GetSigner(s.hubCtx(), s.path.EndpointA.ClientID, uint64(height)) //nolint:gosec
+		if height >= int64(lastValidHeight) {                                                                   //nolint:gosec
 			s.Error(err, "Signer should be removed for height %d", height)
 		} else {
 			s.NoError(err, "Signer should not be removed for height %d", height)
@@ -644,7 +662,9 @@ func (s *lightClientSuite) TestAfterUpdateState_Rollback() {
 	clientState, found = s.hubApp().IBCKeeper.ClientKeeper.GetClientState(s.hubCtx(), s.path.EndpointA.ClientID)
 	s.True(found)
 	// Verify that the client is unfrozen and hard fork is resolved
-	s.True(clientState.(*ibctm.ClientState).FrozenHeight.IsZero(), "Client should be unfrozen after hard fork resolution")
+	cstm, ok := clientState.(*ibctm.ClientState)
+	s.True(ok)
+	s.True(cstm.FrozenHeight.IsZero(), "Client should be unfrozen after hard fork resolution")
 	// Verify that the client is updated with the height of the last block descriptor
 	s.Require().Equal(bds.BD[len(bds.BD)-1].Height, clientState.GetLatestHeight().GetRevisionHeight())
 	_, ok = s.hubApp().IBCKeeper.ClientKeeper.GetLatestClientConsensusState(s.hubCtx(), s.path.EndpointA.ClientID)
@@ -672,7 +692,8 @@ func (s *lightClientSuite) TestAfterUpdateState_AutoUpdateIBCClient() {
 	// send state to validate all pending IBC headers
 	bds := rollapptypes.BlockDescriptors{}
 	lastHeader := s.rollappChain().LastHeader
-	bd := rollapptypes.BlockDescriptor{Height: uint64(lastHeader.Header.Height), StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
+	height := uint64(lastHeader.Header.Height) //nolint:gosec
+	bd := rollapptypes.BlockDescriptor{Height: height, StateRoot: lastHeader.Header.AppHash, Timestamp: lastHeader.Header.Time}
 	bds.BD = append(bds.BD, bd)
 	s.hubChain().NextBlock()
 	s.rollappChain().NextBlock()
@@ -692,7 +713,7 @@ func (s *lightClientSuite) TestAfterUpdateState_AutoUpdateIBCClient() {
 		s.rollappChain().NextBlock()
 	}
 
-	rollappHeight := uint64(s.rollappChain().CurrentHeader.Height)
+	rollappHeight := uint64(s.rollappChain().CurrentHeader.Height) //nolint:gosec
 	clientHeight := s.path.EndpointA.GetClientState().GetLatestHeight().GetRevisionHeight()
 	s.Require().Less(clientHeight, rollappHeight)
 

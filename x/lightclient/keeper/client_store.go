@@ -63,7 +63,8 @@ func setConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, he
 // client state and consensus state will be set by client keeper
 // set iteration key to provide ability for efficient ordered iteration of consensus states.
 func setConsensusMetadata(ctx sdk.Context, clientStore storetypes.KVStore, height exported.Height) {
-	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
+	h := uint64(ctx.BlockTime().UnixNano()) //nolint:gosec
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), h)
 }
 
 // setConsensusMetadataWithValues sets the consensus metadata with the provided values
