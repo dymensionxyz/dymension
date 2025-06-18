@@ -128,4 +128,16 @@ func TestInitGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.GenesisProposers, got.GenesisProposers)
 	require.ElementsMatch(t, genesisState.GenesisSuccessors, got.GenesisSuccessors)
 	require.ElementsMatch(t, genesisState.NoticeQueue, got.NoticeQueue)
+
+	// Re-initialize with the exported state and export again
+	k2, ctx2 := keepertest.SequencerKeeper(t)
+	sequencer.InitGenesis(ctx2, k2, *got)
+	exported2 := sequencer.ExportGenesis(ctx2, k2)
+	require.NotNil(t, exported2)
+
+	require.Equal(t, got.Params, exported2.Params)
+	require.ElementsMatch(t, got.SequencerList, exported2.SequencerList)
+	require.ElementsMatch(t, got.GenesisProposers, exported2.GenesisProposers)
+	require.ElementsMatch(t, got.GenesisSuccessors, exported2.GenesisSuccessors)
+	require.ElementsMatch(t, got.NoticeQueue, exported2.NoticeQueue)
 }
