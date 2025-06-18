@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
@@ -52,6 +53,7 @@ func init() {
 	RegisterCodec(Amino)
 	sdk.RegisterLegacyAminoCodec(Amino)
 	RegisterCodec(authzcodec.Amino)
+	cryptocodec.RegisterInterfaces(InterfaceReg)
 
 	Amino.Seal()
 }

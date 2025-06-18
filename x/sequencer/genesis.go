@@ -1,8 +1,6 @@
 package sequencer
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -10,10 +8,6 @@ import (
 
 func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
-
-	// register interfaces for the dymint pubkey unpacking
-	registry := codectypes.NewInterfaceRegistry()
-	cryptocodec.RegisterInterfaces(registry)
 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
