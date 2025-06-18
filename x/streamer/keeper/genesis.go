@@ -54,7 +54,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	}
 	return &types.GenesisState{
 		Params:        k.GetParams(ctx),
-		Streams:       k.GetNotFinishedStreams(ctx),
+		Streams:       k.GetStreams(ctx),
 		LastStreamId:  k.GetLastStreamID(ctx),
 		EpochPointers: pointers,
 	}
