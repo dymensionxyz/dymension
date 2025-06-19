@@ -12,15 +12,16 @@ var _ sdk.Msg = &MsgCompleteSellOrder{}
 
 // ValidateBasic performs basic validation for the MsgCompleteSellOrder.
 func (m *MsgCompleteSellOrder) ValidateBasic() error {
-	if m.AssetType == TypeName {
+	switch m.AssetType {
+	case TypeName:
 		if !dymnsutils.IsValidDymName(m.AssetId) {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "name is not a valid dym name: %s", m.AssetId)
 		}
-	} else if m.AssetType == TypeAlias {
+	case TypeAlias:
 		if !dymnsutils.IsValidAlias(m.AssetId) {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias is not a valid alias: %s", m.AssetId)
 		}
-	} else {
+	default:
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid asset type: %s", m.AssetType)
 	}
 

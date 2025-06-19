@@ -79,7 +79,7 @@ func (s *eibcSuite) SetupTest() {
 
 func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 	// adding state for the rollapp
-	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight())) //nolint:gosec
 	// Setup globals for the test cases
 	IBCSenderAccount := s.rollappChain().SenderAccount.GetAddress().String()
 	// Create cases
@@ -258,7 +258,7 @@ func (s *fulfillmentHelper) fundFulfiller(fulfiller sdk.AccAddress, bal string, 
 	memo := delayedacktypes.CreateMemo(eibcFee, nil)
 	p := s.transferRollappToHub(s.path, s.rollappSender(), fulfiller.String(), bal, memo, false)
 	// just finalize immediately, no eibc
-	rolH := uint64(s.rollappCtx().BlockHeight())
+	rolH := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	_, err := s.finalizeRollappState(s.rollappStateIx, rolH)
 	s.Require().NoError(err)
 	s.finalizeRollappPacketsByAddress(fulfiller.String())
@@ -308,7 +308,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			fulfiller := s.hubChain().SenderAccounts[fulfillerIx].SenderAccount.GetAddress()
 
 			s.rollappChain().NextBlock()
-			rolH := uint64(s.rollappCtx().BlockHeight())
+			rolH := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 			s.updateRollappState(rolH)
 
 			// transfer to fulfiller so he has money to spend
@@ -317,7 +317,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			s.rollappChain().NextBlock()
 			// increase the block height to make sure the next ibc packet won't be considered already finalized when sent
-			rolH = uint64(s.rollappCtx().BlockHeight())
+			rolH = uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 			h.rollappStateIx++
 			h.updateRollappState(rolH)
 
@@ -371,7 +371,7 @@ func (s *eibcSuite) eibcTransferFulfillment(cases []eibcTransferFulfillmentTC) {
 			s.Require().True(recipientBal.Equal(ibcRecipientBalBefore.Add(priceCoin)))
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
-			rolH = uint64(s.rollappCtx().BlockHeight())
+			rolH = uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 			_, err = s.finalizeRollappState(h.rollappStateIx, rolH)
 			s.Require().NoError(err)
 			evts := s.finalizeRollappPacketsByAddress(fulfiller.String())
@@ -415,7 +415,7 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	rollappEndpoint := s.path.EndpointB
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
 	// Create rollapp and update its initial state
-	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight())) //nolint:gosec
 
 	type TC struct {
 		name     string
@@ -530,7 +530,7 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			s.Require().True(senderAccountBalance.IsEqual(senderInitialBalance.Sub(lastDemandOrder.Fee[0])))
 			s.Require().True(receiverAccountBalance.IsEqual(receiverInitialBalance))
 			// Finalize the rollapp state
-			currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
+			currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 			_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 			s.Require().NoError(err)
 			// manually finalize packets through x/delayedack

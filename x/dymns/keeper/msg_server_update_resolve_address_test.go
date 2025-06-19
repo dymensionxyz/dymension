@@ -2017,7 +2017,9 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 				case tcCfgAddr:
 					list, err := s.dymNsKeeper.GetDymNamesContainsConfiguredAddress(s.ctx, tc.input)
 					s.Require().NoError(err)
-					if tc.want.(bool) {
+					wantBool, ok := tc.want.(bool)
+					s.Require().True(ok, "expected bool type assertion")
+					if wantBool {
 						s.requireDymNameList(list, []string{dymName.Name})
 					} else {
 						s.Require().Empty(list)
@@ -2025,29 +2027,35 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress_ReverseMapping() {
 				case tcFallbackAddr:
 					list, err := s.dymNsKeeper.GetDymNamesContainsFallbackAddress(s.ctx, dymnsutils.GetBytesFromHexAddress(tc.input))
 					s.Require().NoError(err)
-					if tc.want.(bool) {
+					wantBool, ok := tc.want.(bool)
+					s.Require().True(ok, "expected bool type assertion")
+					if wantBool {
 						s.requireDymNameList(list, []string{dymName.Name})
 					} else {
 						s.Require().Empty(list)
 					}
 				case tcResolveAddr:
 					outputAddr, err := s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, tc.input)
-					if tc.want.(string) == "" {
+					wantStr, ok := tc.want.(string)
+					s.Require().True(ok, "expected string type assertion")
+					if wantStr == "" {
 						s.Require().Error(err)
 						s.Require().Empty(outputAddr)
 					} else {
 						s.Require().NoError(err)
-						s.Require().Equal(tc.want.(string), outputAddr)
+						s.Require().Equal(wantStr, outputAddr)
 					}
 				case tcReverseResolveAddr:
 					candidates, err := s.dymNsKeeper.ReverseResolveDymNameAddress(s.ctx, tc.input, useContextChainId)
-					if tc.want.(string) == "" {
+					wantStr, ok := tc.want.(string)
+					s.Require().True(ok, "expected string type assertion")
+					if wantStr == "" {
 						s.Require().NoError(err)
 						s.Require().Empty(candidates)
 					} else {
 						s.Require().NoError(err)
-						s.Require().NotEmptyf(candidates, "want %s", tc.want.(string))
-						s.Require().Equal(tc.want.(string), candidates[0].String())
+						s.Require().NotEmptyf(candidates, "want %s", wantStr)
+						s.Require().Equal(wantStr, candidates[0].String())
 					}
 				default:
 					s.T().Fatalf("unknown test case type: %d", tc._type)

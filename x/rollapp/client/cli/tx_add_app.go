@@ -24,14 +24,15 @@ func CmdAddApp() *cobra.Command {
 				description       = args[2]
 				logo              = args[3]
 				url               = args[4]
-				order       int64 = -1
+				order       int32 = -1
 			)
 
 			if len(args) == 6 {
-				order, err = strconv.ParseInt(args[5], 10, 32)
+				o, err := strconv.ParseInt(args[5], 10, 32)
 				if err != nil {
 					return err
 				}
+				order = int32(o) //nolint:gosec
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -46,7 +47,7 @@ func CmdAddApp() *cobra.Command {
 				description,
 				logo,
 				url,
-				int32(order),
+				order,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

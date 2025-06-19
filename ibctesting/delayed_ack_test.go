@@ -106,7 +106,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
-	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight())) //nolint:gosec
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := math.NewIntFromString("10000000000000000000") // 10DYM
@@ -150,7 +150,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.registerSequencer()
 
 	// Update rollapp state
-	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -176,7 +176,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.Require().False(found)
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 
@@ -200,7 +200,7 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
-	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight())) //nolint:gosec
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(s.rollappCtx())
 	amount, ok := math.NewIntFromString("1000000000000000000") // 1DYM
@@ -233,7 +233,7 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	postTimeoutBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
 	// Finalize the rollapp state
-	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight()) //nolint:gosec
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 	// manually finalize packets through x/delayedack
@@ -265,7 +265,7 @@ func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.setRollappLightClientID(s.rollappCtx().ChainID(), path.EndpointA.ClientID)
 	s.registerSequencer()
-	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight())) //nolint:gosec
 
 	// send from hubChain to rollappChain
 	balanceBefore := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)

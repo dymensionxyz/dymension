@@ -82,7 +82,7 @@ func accumulationStorePrefix(denom string) (res []byte) {
 // accumulationKey should return sort key upon duration.
 func accumulationKey(duration time.Duration) (res []byte) {
 	res = make([]byte, 8)
-	binary.BigEndian.PutUint64(res[:8], uint64(duration))
+	binary.BigEndian.PutUint64(res[:8], uint64(duration)) //nolint:gosec
 	return
 }
 

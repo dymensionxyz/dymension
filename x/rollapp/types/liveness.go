@@ -27,7 +27,7 @@ func LivenessEventQueueIterHeightKey(height int64) []byte {
 	ret := LivenessEventQueueKeyPrefix
 	ret = append(ret, []byte("/")...)
 	hBz := make([]byte, 8)
-	binary.BigEndian.PutUint64(hBz, uint64(height))
+	binary.BigEndian.PutUint64(hBz, uint64(height)) //nolint:gosec
 	ret = append(ret, hBz...)
 	return ret
 }
@@ -39,9 +39,9 @@ func LivenessEventQueueKeyToEvent(k []byte) LivenessEvent {
 	// key is like 'prefix/height/kind/rollapp'
 	//                     i      j    l
 	i := len(LivenessEventQueueKeyPrefix) + 1
-	j := i + 8 + 1 // 8 is from big endian, 1 is from '/'
-	l := j + 1 + 1 // kind is 1 character and the other 1 is from '/'
-	ret.HubHeight = int64(binary.BigEndian.Uint64(k[i : i+8]))
+	j := i + 8 + 1                                             // 8 is from big endian, 1 is from '/'
+	l := j + 1 + 1                                             // kind is 1 character and the other 1 is from '/'
+	ret.HubHeight = int64(binary.BigEndian.Uint64(k[i : i+8])) //nolint:gosec
 	ret.RollappId = string(k[l:])
 	return ret
 }

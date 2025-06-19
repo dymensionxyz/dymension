@@ -19,7 +19,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 	genesis := app.StreamerKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params, types.DefaultGenesis().Params)
 	require.Len(t, genesis.Streams, 0)
@@ -78,7 +78,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 // TestStreamerInitGenesis takes a genesis state and tests initializing that genesis for the streamer module.
 func TestStreamerInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.ValidateBasic()

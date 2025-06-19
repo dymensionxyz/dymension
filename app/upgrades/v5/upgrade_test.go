@@ -21,8 +21,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
+	dymnsmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/dymns"
 	lockupmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 	"github.com/dymensionxyz/dymension/v3/x/common/types"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -82,6 +84,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.setLockupParams()
 				s.setIROParams()
 				s.setGAMMParams()
+				s.setDymNSParams()
 				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
 				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				s.populateIBCChannels()
@@ -205,6 +208,14 @@ func (s *UpgradeTestSuite) validateIROParamsMigration() error {
 	}
 
 	return nil
+}
+
+func (s *UpgradeTestSuite) setDymNSParams() {
+	params := dymnsmigration.DefaultParams()
+
+	dymnsSubspace := s.App.ParamsKeeper.Subspace(dymnstypes.ModuleName)
+	dymnsSubspace = dymnsSubspace.WithKeyTable(dymnsmigration.ParamKeyTable())
+	dymnsSubspace.SetParamSet(s.Ctx, &params)
 }
 
 func (s *UpgradeTestSuite) setGAMMParams() {

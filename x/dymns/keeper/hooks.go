@@ -39,7 +39,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 	}
 
 	// ensure RollApp record is set
-	if !h.Keeper.IsRollAppId(ctx, rollappID) {
+	if !h.IsRollAppId(ctx, rollappID) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)
 	}
 
@@ -47,11 +47,11 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias format: %s", alias)
 	}
 
-	if !h.Keeper.CanUseAliasForNewRegistration(ctx, alias) {
+	if !h.CanUseAliasForNewRegistration(ctx, alias) {
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
 	}
 
-	priceParams := h.Keeper.PriceParams(ctx)
+	priceParams := h.PriceParams(ctx)
 
 	aliasCost := sdk.NewCoins(
 		sdk.NewCoin(
@@ -59,7 +59,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		),
 	)
 
-	err := h.Keeper.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
+	err := h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "register alias for RollApp")
 	}

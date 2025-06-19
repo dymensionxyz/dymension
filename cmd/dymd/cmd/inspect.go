@@ -95,7 +95,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 
 			fmt.Println("Num of rollapps: ", len(rollappState.RollappList))
 			fmt.Println("Num of state info: ", len(rollappState.StateInfoList))
-			fmt.Println("Total size of states: ", humanize.Bytes(uint64(rollappState.Size())))
+			fmt.Println("Total size of states: ", humanize.Bytes(uint64(rollappState.Size()))) //nolint:gosec
 
 			sizes := make([]float64, len(rollappState.StateInfoList))
 			for i, data := range rollappState.StateInfoList {
@@ -126,7 +126,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 						fmt.Printf("Error getting size for directory %s: %v", dir.Name(), err)
 						continue
 					}
-					fmt.Printf("Size of %s: %s\n", dir.Name(), humanize.Bytes(uint64(size)))
+					fmt.Printf("Size of %s: %s\n", dir.Name(), humanize.Bytes(uint64(size))) //nolint:gosec
 				}
 			}
 

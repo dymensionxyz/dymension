@@ -51,7 +51,7 @@ var (
 
 func TestInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 	ctx = ctx.WithBlockTime(now.Add(time.Second))
 	genesis := testGenesis
 	app.LockupKeeper.InitGenesis(ctx, genesis)
@@ -74,7 +74,7 @@ func TestInitGenesis(t *testing.T) {
 
 func TestExportGenesis(t *testing.T) {
 	app := apptesting.Setup(t)
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 	ctx = ctx.WithBlockTime(now.Add(time.Second))
 	genesis := testGenesis
 	app.LockupKeeper.InitGenesis(ctx, genesis)
@@ -154,7 +154,7 @@ func TestMarshalUnmarshalGenesis(t *testing.T) {
 	genesisExported := keeper.ExportGenesis(ctx)
 	assert.NotPanics(t, func() {
 		app = apptesting.Setup(t)
-		ctx = app.BaseApp.NewContext(false)
+		ctx = app.NewContext(false)
 		ctx = ctx.WithBlockTime(now.Add(time.Second))
 		keeper := app.LockupKeeper
 		keeper.InitGenesis(ctx, *genesisExported)

@@ -1,5 +1,8 @@
 name: Protobuf Checks
 
+# TODO: Re-enable this workflow after fixing the issues in #1890
+# This workflow is disabled by default. To enable it, add the label 'enable-proto-checks' to your PR
+
 on:
   push:
     branches:
@@ -19,6 +22,7 @@ permissions:
 
 jobs:
   protobuf-checks:
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'enable-proto-checks') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

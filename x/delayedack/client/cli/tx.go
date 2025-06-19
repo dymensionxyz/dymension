@@ -40,7 +40,7 @@ func CmdFinalizePacket() *cobra.Command {
 				return err
 			}
 
-			proofHeight, err := strconv.Atoi(args[1])
+			proofHeight, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -50,7 +50,7 @@ func CmdFinalizePacket() *cobra.Command {
 				return err
 			}
 
-			packetSequence, err := strconv.Atoi(args[4])
+			packetSequence, err := strconv.ParseUint(args[4], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -58,10 +58,10 @@ func CmdFinalizePacket() *cobra.Command {
 			msg := types.MsgFinalizePacket{
 				Sender:            clientCtx.GetFromAddress().String(),
 				RollappId:         args[0],
-				PacketProofHeight: uint64(proofHeight),
+				PacketProofHeight: proofHeight,
 				PacketType:        packetType,
 				PacketSrcChannel:  args[3],
-				PacketSequence:    uint64(packetSequence),
+				PacketSequence:    packetSequence,
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
