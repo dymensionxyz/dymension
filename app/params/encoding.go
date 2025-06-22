@@ -9,7 +9,9 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	cryptocodec "github.com/evmos/ethermint/crypto/codec"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	ethcryptocodec "github.com/evmos/ethermint/crypto/codec"
+
 	eip712 "github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -75,12 +77,13 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	sdk.RegisterLegacyAminoCodec(cdc)
 	codec.RegisterEvidences(cdc)
-	cryptocodec.RegisterCrypto(cdc)
+	ethcryptocodec.RegisterCrypto(cdc)
 }
 
 // RegisterInterfaces registers Interfaces from types, crypto, and SDK std.
 func RegisterInterfaces(interfaceRegistry codectypes.InterfaceRegistry) {
 	std.RegisterInterfaces(interfaceRegistry)
-	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	ethcryptocodec.RegisterInterfaces(interfaceRegistry)
 	ethermint.RegisterInterfaces(interfaceRegistry)
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
 }
