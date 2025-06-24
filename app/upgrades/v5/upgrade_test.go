@@ -237,7 +237,7 @@ func (s *UpgradeTestSuite) validateGammParamsMigration() error {
 		return fmt.Errorf("pool creation fee not set correctly")
 	}
 
-	if !params.MinSwapAmount.Equal(math.NewInt(100000000000000000)) {
+	if !params.MinSwapAmount.Equal(math.NewInt(10000000000000000)) {
 		return fmt.Errorf("min swap amount not set correctly")
 	}
 
