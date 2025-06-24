@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-06-22)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-06-24)
 
 
 ### Bug Fixes
@@ -26,6 +26,7 @@
 * **lockup:** remove logic to unlock all locks at end blocker, or from tx ([#1764](https://github.com/dymensionxyz/dymension/issues/1764)) ([a8d5cbc](https://github.com/dymensionxyz/dymension/commit/a8d5cbc197d77635a2f8ad89f9c0998a7260955f))
 * **migration:** Added missing keytable initialization of ibc keeper ([#1913](https://github.com/dymensionxyz/dymension/issues/1913)) ([47395ad](https://github.com/dymensionxyz/dymension/commit/47395ad4956cc550ee617fc59965fb41b2f59a0e))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
+* **migration:** update min swap fee ([#1915](https://github.com/dymensionxyz/dymension/issues/1915)) ([6d86081](https://github.com/dymensionxyz/dymension/commit/6d860818fa62a3115908b7700a0a64df7dfce7df))
 * **proto:** formatting proto files ([#1904](https://github.com/dymensionxyz/dymension/issues/1904)) ([9956d00](https://github.com/dymensionxyz/dymension/commit/9956d0060cfa268541c85229893c8f85bfa33d36))
 * rename x/sequencer after sentinel func ([#1817](https://github.com/dymensionxyz/dymension/issues/1817)) ([3c568c0](https://github.com/dymensionxyz/dymension/commit/3c568c0895de6af95262becb6d690820e0815134))
 * **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
