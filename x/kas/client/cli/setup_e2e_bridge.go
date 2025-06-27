@@ -28,6 +28,12 @@ import (
 const (
 	hubDomain          = uint32(1260813472)
 	counterpartyDomain = uint32(80808082)
+
+	flagGasDenom            = "gas-denom"
+	flagRemoteRouterAddress = "remote-router-address"
+	flagRemoteRouterGas     = "remote-router-gas"
+	flagValidators          = "validators"
+	flagThreshold           = "threshold"
 )
 
 func CmdSetupBridge() *cobra.Command {
@@ -50,11 +56,11 @@ func CmdSetupBridge() *cobra.Command {
 				registry:  registry,
 			}
 
-			validatorsStr, _ := cmd.Flags().GetString("validators")
-			threshold, _ := cmd.Flags().GetUint32("threshold")
-			gasDenom, _ := cmd.Flags().GetString("gas-denom")
-			remoteRouterAddr, _ := cmd.Flags().GetString("remote-router-address")
-			remoteRouterGas, _ := cmd.Flags().GetUint64("remote-router-gas")
+			validatorsStr, _ := cmd.Flags().GetString(flagValidators)
+			threshold, _ := cmd.Flags().GetUint32(flagThreshold)
+			gasDenom, _ := cmd.Flags().GetString(flagGasDenom)
+			remoteRouterAddr, _ := cmd.Flags().GetString(flagRemoteRouterAddress)
+			remoteRouterGas, _ := cmd.Flags().GetUint64(flagRemoteRouterGas)
 
 			validators := strings.Split(validatorsStr, ",")
 			if len(validators) == 0 || validators[0] == "" {
@@ -93,15 +99,15 @@ func CmdSetupBridge() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String("validators", "", "Comma-separated list of validator hex addresses")
-	cmd.Flags().Uint32("threshold", 0, "Multisig threshold for the ISM")
-	cmd.Flags().String("gas-denom", "stake", "The denomination to be used for interchain gas payments")
-	cmd.Flags().String("remote-router-address", "", "The hex address of the remote router contract on the counterparty chain")
-	cmd.Flags().Uint64("remote-router-gas", 200000, "The gas limit to use for transfers to the remote router")
+	cmd.Flags().String(flagValidators, "", "Comma-separated list of validator hex addresses")
+	cmd.Flags().Uint32(flagThreshold, 0, "Multisig threshold for the ISM")
+	cmd.Flags().String(flagGasDenom, "stake", "The denomination to be used for interchain gas payments")
+	cmd.Flags().String(flagRemoteRouterAddress, "", "The hex address of the remote router contract on the counterparty chain")
+	cmd.Flags().Uint64(flagRemoteRouterGas, 200000, "The gas limit to use for transfers to the remote router")
 
-	_ = cmd.MarkFlagRequired("validators")
-	_ = cmd.MarkFlagRequired("threshold")
-	_ = cmd.MarkFlagRequired("remote-router-address")
+	_ = cmd.MarkFlagRequired(flagValidators)
+	_ = cmd.MarkFlagRequired(flagThreshold)
+	_ = cmd.MarkFlagRequired(flagRemoteRouterAddress)
 
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
