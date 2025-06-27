@@ -38,7 +38,7 @@ const (
 
 func CmdSetupBridge() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "setup-bridge",
+		Use:   "setup-bridge ",
 		Short: "Sets up the Hyperlane core and warp modules for a bridge test.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -62,6 +62,7 @@ func CmdSetupBridge() *cobra.Command {
 			remoteRouterAddr, _ := cmd.Flags().GetString(flagRemoteRouterAddress)
 			remoteRouterGas, _ := cmd.Flags().GetUint64(flagRemoteRouterGas)
 
+			// these are 20 byte long ethereum style addresses
 			validators := strings.Split(validatorsStr, ",")
 			if len(validators) == 0 || validators[0] == "" {
 				return fmt.Errorf("validators flag cannot be empty")
@@ -99,8 +100,8 @@ func CmdSetupBridge() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(flagValidators, "", "Comma-separated list of validator hex addresses")
-	cmd.Flags().Uint32(flagThreshold, 0, "Multisig threshold for the ISM")
+	cmd.Flags().String(flagValidators, "", "Comma-separated list of validator hex addresses (20 bytes ethereum style)")
+	cmd.Flags().Uint32(flagThreshold, 1, "Multisig threshold for the ISM")
 	cmd.Flags().String(flagGasDenom, "stake", "The denomination to be used for interchain gas payments")
 	cmd.Flags().String(flagRemoteRouterAddress, "", "The hex address of the remote router contract on the counterparty chain")
 	cmd.Flags().Uint64(flagRemoteRouterGas, 200000, "The gas limit to use for transfers to the remote router")
