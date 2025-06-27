@@ -82,6 +82,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	mockIBCKeeper := NewMockIBCClientKeeper(consStates, genesisClients)
 	mockSequencerKeeper := NewMockSequencerKeeper(seqs)
 	mockRollappKeeper := NewMockRollappKeeper()
+	mockStakingKeeper := NewMockStakingKeeper()
 	k := keeper.NewKeeper(
 		params.Codec,
 		keys[types.StoreKey],
@@ -90,6 +91,7 @@ func LightClientKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		nil,
 		mockSequencerKeeper,
 		mockRollappKeeper,
+		mockStakingKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
@@ -230,4 +232,14 @@ func (m *MockRollappKeeper) SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rol
 
 func (m *MockRollappKeeper) HardFork(ctx sdk.Context, rollappID string, fraudHeight uint64) error {
 	return nil
+}
+
+type MockStakingKeeper struct{}
+
+func NewMockStakingKeeper() *MockStakingKeeper {
+	return &MockStakingKeeper{}
+}
+
+func (m *MockStakingKeeper) UnbondingTime(ctx context.Context) (time.Duration, error) {
+	return time.Hour * 24 * 7 * 3, nil
 }
