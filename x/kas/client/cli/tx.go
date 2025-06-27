@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
@@ -36,20 +35,9 @@ func CmdSetupBridge() *cobra.Command {
 				return err
 			}
 
-			msg, err := types.NewMsgCreateSequencer(
-				clientCtx.GetFromAddress().String(),
-				pk,
-				argRollappId,
-				&metadata,
-				bondCoin,
-				rewardAddr,
-				whitelistedRelayers,
-			)
-			if err != nil {
-				return err
-			}
+			// TODO: complete!
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return nil
 		},
 	}
 
