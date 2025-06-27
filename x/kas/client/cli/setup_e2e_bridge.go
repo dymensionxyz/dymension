@@ -25,6 +25,11 @@ import (
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 )
 
+const (
+	hubDomain          = uint32(1260813472)
+	counterpartyDomain = uint32(80808082)
+)
+
 func CmdSetupBridge() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setup-bridge",
@@ -56,35 +61,32 @@ func CmdSetupBridge() *cobra.Command {
 				return fmt.Errorf("validators flag cannot be empty")
 			}
 
-			hubDomain := uint32(1260813472)
-			counterpartyDomain := uint32(80808082)
-
 			ismId, err := createIsm(sCtx, validators, threshold)
 			if err != nil {
-				return err
+				return fmt.Errorf("create ism: %w", err)
 			}
 
 			mailboxId, err := createMailbox(sCtx, ismId, hubDomain)
 			if err != nil {
-				return err
+				return fmt.Errorf("create mailbox: %w", err)
 			}
 
 			_, err = createMerkleHook(sCtx, mailboxId)
 			if err != nil {
-				return err
+				return fmt.Errorf("create merkle hook: %w", err)
 			}
 
 			if err := createIgp(sCtx, gasDenom); err != nil {
-				return err
+				return fmt.Errorf("create igp: %w", err)
 			}
 
 			tokenId, err := createSyntheticToken(sCtx, mailboxId)
 			if err != nil {
-				return err
+				return fmt.Errorf("create synthetic token: %w", err)
 			}
 
 			if err := enrollRemoteRouter(sCtx, tokenId, counterpartyDomain, remoteRouterAddr, remoteRouterGas); err != nil {
-				return err
+				return fmt.Errorf("enroll remote router: %w", err)
 			}
 
 			return nil
