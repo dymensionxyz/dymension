@@ -62,6 +62,12 @@ func CmdSetupBridge() *cobra.Command {
 			remoteRouterAddr, _ := cmd.Flags().GetString(flagRemoteRouterAddress)
 			remoteRouterGas, _ := cmd.Flags().GetUint64(flagRemoteRouterGas)
 
+			fmt.Println("validatorsStr", validatorsStr)
+			fmt.Println("threshold", threshold)
+			fmt.Println("gasDenom", gasDenom)
+			fmt.Println("remoteRouterAddr", remoteRouterAddr)
+			fmt.Println("remoteRouterGas", remoteRouterGas)
+
 			// these are 20 byte long ethereum style addresses
 			validators := strings.Split(validatorsStr, ",")
 			if len(validators) == 0 || validators[0] == "" {
