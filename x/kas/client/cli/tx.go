@@ -6,13 +6,15 @@ import (
 	"strings"
 	"time"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/spf13/cobra"
 
 	ismtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/01_interchain_security/types"
@@ -21,6 +23,229 @@ import (
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
+
+type setupCtx struct {
+	clientCtx client.Context
+	cmd       *cobra.Command
+	registry  codectypes.InterfaceRegistry
+}
+
+func broadcastAndWait(ctx setupCtx, msg sdk.Msg) error {
+	if err := tx.GenerateOrBroadcastTxCLI(ctx.clientCtx, ctx.cmd.Flags(), msg); err != nil {
+		return err
+	}
+	time.Sleep(6 * time.Second)
+	return nil
+}
+
+func createIsm(ctx setupCtx, validators []string, threshold uint32) (util.HexAddress, error) {
+	fmt.Println("1. Creating Message ID Multisig ISM (Raw)...")
+	queryClient := ismtypes.NewQueryClient(ctx.clientCtx)
+
+	respBefore, err := queryClient.Isms(context.Background(), &ismtypes.QueryIsmsRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to query isms before creation: %w", err)
+	}
+
+	existingIds := make(map[string]struct{})
+	for _, anyIsm := range respBefore.Isms {
+		var ism ismtypes.HyperlaneInterchainSecurityModule
+		if err := ctx.registry.UnpackAny(anyIsm, &ism); err != nil {
+			return util.HexAddress{}, fmt.Errorf("failed to unpack ism any: %w", err)
+		}
+		id, _ := ism.GetId()
+		existingIds[id.String()] = struct{}{}
+	}
+
+	msg := &ismtypes.MsgCreateMessageIdMultisigIsmRaw{
+		Creator:    ctx.clientCtx.GetFromAddress().String(),
+		Validators: validators,
+		Threshold:  threshold,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to broadcast create ism tx: %w", err)
+	}
+
+	respAfter, err := queryClient.Isms(context.Background(), &ismtypes.QueryIsmsRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to query isms after creation: %w", err)
+	}
+
+	for _, anyIsm := range respAfter.Isms {
+		var ism ismtypes.HyperlaneInterchainSecurityModule
+		if err := ctx.registry.UnpackAny(anyIsm, &ism); err != nil {
+			return util.HexAddress{}, fmt.Errorf("failed to unpack ism any: %w", err)
+		}
+		id, _ := ism.GetId()
+		if _, found := existingIds[id.String()]; !found {
+			fmt.Printf("ISM created successfully. ID: %s\n", id.String())
+			return id, nil
+		}
+	}
+
+	return util.HexAddress{}, fmt.Errorf("could not find newly created ISM")
+}
+
+func createMailbox(ctx setupCtx, ismId util.HexAddress, hubDomain uint32) (util.HexAddress, error) {
+	fmt.Println("2. Creating Mailbox...")
+	queryClient := coretypes.NewQueryClient(ctx.clientCtx)
+
+	respBefore, err := queryClient.Mailboxes(context.Background(), &coretypes.QueryMailboxesRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to query mailboxes before creation: %w", err)
+	}
+
+	existingIds := make(map[string]struct{})
+	for _, mbox := range respBefore.Mailboxes {
+		existingIds[mbox.Id.String()] = struct{}{}
+	}
+
+	msg := &coretypes.MsgCreateMailbox{
+		Owner:       ctx.clientCtx.GetFromAddress().String(),
+		DefaultIsm:  ismId,
+		LocalDomain: hubDomain,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to broadcast create mailbox tx: %w", err)
+	}
+
+	respAfter, err := queryClient.Mailboxes(context.Background(), &coretypes.QueryMailboxesRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to query mailboxes after creation: %w", err)
+	}
+
+	for _, mbox := range respAfter.Mailboxes {
+		if _, found := existingIds[mbox.Id.String()]; !found {
+			fmt.Printf("Mailbox created successfully. ID: %s\n", mbox.Id.String())
+			return mbox.Id, nil
+		}
+	}
+
+	return util.HexAddress{}, fmt.Errorf("could not find newly created mailbox")
+}
+
+func createMerkleHook(ctx setupCtx, mailboxId util.HexAddress) (string, error) {
+	fmt.Println("3. Creating Merkle Tree Hook...")
+	queryClient := pdtypes.NewQueryClient(ctx.clientCtx)
+
+	hooksBefore, err := queryClient.MerkleTreeHooks(context.Background(), &pdtypes.QueryMerkleTreeHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return "", fmt.Errorf("failed to query hooks before creation: %w", err)
+	}
+
+	existingHookIds := make(map[string]struct{})
+	for _, hook := range hooksBefore.MerkleTreeHooks {
+		existingHookIds[hook.Id] = struct{}{}
+	}
+
+	msg := &pdtypes.MsgCreateMerkleTreeHook{
+		Owner:     ctx.clientCtx.GetFromAddress().String(),
+		MailboxId: mailboxId,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return "", fmt.Errorf("failed to broadcast create hook tx: %w", err)
+	}
+
+	hooksAfter, err := queryClient.MerkleTreeHooks(context.Background(), &pdtypes.QueryMerkleTreeHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return "", fmt.Errorf("failed to query hooks after creation: %w", err)
+	}
+
+	for _, hook := range hooksAfter.MerkleTreeHooks {
+		if _, found := existingHookIds[hook.Id]; !found {
+			fmt.Printf("Merkle Tree Hook created successfully. ID: %s\n", hook.Id)
+			return hook.Id, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not find newly created merkle hook")
+}
+
+func createIgp(ctx setupCtx, gasDenom string) error {
+	fmt.Println("4. Creating Interchain Gas Paymaster (IGP)...")
+	msg := &pdtypes.MsgCreateIgp{
+		Owner: ctx.clientCtx.GetFromAddress().String(),
+		Denom: gasDenom,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return fmt.Errorf("failed to broadcast create igp tx: %w", err)
+	}
+
+	fmt.Println("IGP created successfully.")
+	return nil
+}
+
+func createSyntheticToken(ctx setupCtx, mailboxId util.HexAddress) (util.HexAddress, error) {
+	fmt.Println("5. Creating Synthetic Token...")
+	queryClient := warptypes.NewQueryClient(ctx.clientCtx)
+
+	tokensBefore, err := queryClient.Tokens(context.Background(), &warptypes.QueryTokensRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to query tokens before creation: %w", err)
+	}
+
+	existingTokenIds := make(map[string]struct{})
+	for _, token := range tokensBefore.Tokens {
+		existingTokenIds[token.Id] = struct{}{}
+	}
+
+	msg := &warptypes.MsgCreateSyntheticToken{
+		Owner:         ctx.clientCtx.GetFromAddress().String(),
+		OriginMailbox: mailboxId,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to broadcast create token tx: %w", err)
+	}
+
+	tokensAfter, err := queryClient.Tokens(context.Background(), &warptypes.QueryTokensRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("failed to query tokens after creation: %w", err)
+	}
+
+	for _, token := range tokensAfter.Tokens {
+		if _, found := existingTokenIds[token.Id]; !found {
+			tokenId, err := util.DecodeHexAddress(token.Id)
+			if err != nil {
+				return util.HexAddress{}, fmt.Errorf("failed to decode created Token ID '%s': %w", token.Id, err)
+			}
+			fmt.Printf("Synthetic Token created successfully. ID: %s\n", tokenId.String())
+			return tokenId, nil
+		}
+	}
+
+	return util.HexAddress{}, fmt.Errorf("could not find newly created token")
+}
+
+func enrollRemoteRouter(ctx setupCtx, tokenId util.HexAddress, domain uint32, addr string, gas uint64) error {
+	fmt.Println("6. Enrolling Remote Router...")
+
+	remoteRouterContract, err := util.DecodeHexAddress(addr)
+	if err != nil {
+		return fmt.Errorf("invalid remote router address '%s': %w", addr, err)
+	}
+
+	msg := &warptypes.MsgEnrollRemoteRouter{
+		Owner:   ctx.clientCtx.GetFromAddress().String(),
+		TokenId: tokenId,
+		RemoteRouter: &warptypes.RemoteRouter{
+			ReceiverDomain:   domain,
+			ReceiverContract: remoteRouterContract.String(),
+			Gas:              sdk.NewIntFromUint64(gas),
+		},
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return fmt.Errorf("failed to enroll remote router: %w", err)
+	}
+
+	fmt.Println("Remote Router enrolled successfully.")
+	return nil
+}
 
 func GetTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -32,7 +257,6 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdSetupBridge())
-
 	return cmd
 }
 
@@ -45,6 +269,15 @@ func CmdSetupBridge() *cobra.Command {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
+			}
+
+			registry := codectypes.NewInterfaceRegistry()
+			ismtypes.RegisterInterfaces(registry)
+
+			sCtx := setupCtx{
+				clientCtx: clientCtx,
+				cmd:       cmd,
+				registry:  registry,
 			}
 
 			validatorsStr, _ := cmd.Flags().GetString("validators")
@@ -61,216 +294,35 @@ func CmdSetupBridge() *cobra.Command {
 			hubDomain := uint32(1260813472)
 			counterpartyDomain := uint32(80808082)
 
-			// Step 1: Create MessageIdMultisigISMRaw ISM
-			fmt.Println("1. Creating Message ID Multisig ISM (Raw)...")
-
-			ismQueryClient := ismtypes.NewQueryClient(clientCtx)
-			ismsBefore, err := ismQueryClient.Isms(context.Background(), &ismtypes.QueryIsmsRequest{Pagination: &query.PageRequest{Limit: 1000}})
+			ismId, err := createIsm(sCtx, validators, threshold)
 			if err != nil {
-				return fmt.Errorf("failed to query isms before creation: %w", err)
-			}
-			existingIsmIds := make(map[string]struct{})
-			registry := codectypes.NewInterfaceRegistry()
-			ismtypes.RegisterInterfaces(registry)
-			for _, anyIsm := range ismsBefore.Isms {
-				var ism ismtypes.HyperlaneInterchainSecurityModule
-				if err := registry.UnpackAny(anyIsm, &ism); err != nil {
-					return fmt.Errorf("failed to unpack ism any: %w", err)
-				}
-				id, _ := ism.GetId()
-				existingIsmIds[id.String()] = struct{}{}
+				return err
 			}
 
-			msgCreateIsm := &ismtypes.MsgCreateMessageIdMultisigIsmRaw{
-				Creator:    clientCtx.GetFromAddress().String(),
-				Validators: validators,
-				Threshold:  threshold,
-			}
-			if err := tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateIsm); err != nil {
-				return fmt.Errorf("failed to broadcast create ism tx: %w", err)
-			}
-			time.Sleep(6 * time.Second)
-
-			ismsAfter, err := ismQueryClient.Isms(context.Background(), &ismtypes.QueryIsmsRequest{Pagination: &query.PageRequest{Limit: 1000}})
+			mailboxId, err := createMailbox(sCtx, ismId, hubDomain)
 			if err != nil {
-				return fmt.Errorf("failed to query isms after creation: %w", err)
+				return err
 			}
-			var newIsmIdStr string
-			for _, anyIsm := range ismsAfter.Isms {
-				var ism ismtypes.HyperlaneInterchainSecurityModule
-				if err := registry.UnpackAny(anyIsm, &ism); err != nil {
-					return fmt.Errorf("failed to unpack ism any: %w", err)
-				}
-				id, _ := ism.GetId()
-				if _, found := existingIsmIds[id.String()]; !found {
-					newIsmIdStr = id.String()
-					break
-				}
-			}
-			if newIsmIdStr == "" {
-				return fmt.Errorf("could not find newly created ISM")
-			}
-			ismId, err := util.DecodeHexAddress(newIsmIdStr)
+
+			_, err = createMerkleHook(sCtx, mailboxId)
 			if err != nil {
-				return fmt.Errorf("failed to decode created ISM ID '%s': %w", newIsmIdStr, err)
+				return err
 			}
-			fmt.Printf("ISM created successfully. ID: %s\n", ismId.String())
 
-			// Step 2: Create Mailbox
-			fmt.Println("2. Creating Mailbox...")
-			mailboxQueryClient := coretypes.NewQueryClient(clientCtx)
-			mailboxesBefore, err := mailboxQueryClient.Mailboxes(context.Background(), &coretypes.QueryMailboxesRequest{Pagination: &query.PageRequest{Limit: 1000}})
+			if err := createIgp(sCtx, gasDenom); err != nil {
+				return err
+			}
+
+			tokenId, err := createSyntheticToken(sCtx, mailboxId)
 			if err != nil {
-				return fmt.Errorf("failed to query mailboxes before creation: %w", err)
-			}
-			existingMailboxIds := make(map[string]struct{})
-			for _, mbox := range mailboxesBefore.Mailboxes {
-				existingMailboxIds[mbox.Id.String()] = struct{}{}
+				return err
 			}
 
-			msgCreateMailbox := &coretypes.MsgCreateMailbox{
-				Owner:       clientCtx.GetFromAddress().String(),
-				DefaultIsm:  ismId,
-				LocalDomain: hubDomain,
-			}
-			if err := tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateMailbox); err != nil {
-				return fmt.Errorf("failed to broadcast create mailbox tx: %w", err)
-			}
-			time.Sleep(6 * time.Second)
-
-			mailboxesAfter, err := mailboxQueryClient.Mailboxes(context.Background(), &coretypes.QueryMailboxesRequest{Pagination: &query.PageRequest{Limit: 1000}})
-			if err != nil {
-				return fmt.Errorf("failed to query mailboxes after creation: %w", err)
-			}
-			var newMailboxIdStr string
-			for _, mbox := range mailboxesAfter.Mailboxes {
-				if _, found := existingMailboxIds[mbox.Id.String()]; !found {
-					newMailboxIdStr = mbox.Id.String()
-					break
-				}
-			}
-			if newMailboxIdStr == "" {
-				return fmt.Errorf("could not find newly created mailbox")
-			}
-			mailboxId, err := util.DecodeHexAddress(newMailboxIdStr)
-			if err != nil {
-				return fmt.Errorf("failed to decode created Mailbox ID '%s': %w", newMailboxIdStr, err)
-			}
-			fmt.Printf("Mailbox created successfully. ID: %s\n", mailboxId.String())
-
-			// Step 3: Create Merkle Tree Hook
-			fmt.Println("3. Creating Merkle Tree Hook...")
-			hookQueryClient := pdtypes.NewQueryClient(clientCtx)
-			hooksBefore, err := hookQueryClient.MerkleTreeHooks(context.Background(), &pdtypes.QueryMerkleTreeHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
-			if err != nil {
-				return fmt.Errorf("failed to query hooks before creation: %w", err)
-			}
-			existingHookIds := make(map[string]struct{})
-			for _, hook := range hooksBefore.MerkleTreeHooks {
-				existingHookIds[hook.Id] = struct{}{}
+			if err := enrollRemoteRouter(sCtx, tokenId, counterpartyDomain, remoteRouterAddr, remoteRouterGas); err != nil {
+				return err
 			}
 
-			msgCreateHook := &pdtypes.MsgCreateMerkleTreeHook{
-				Owner:     clientCtx.GetFromAddress().String(),
-				MailboxId: mailboxId,
-			}
-			if err := tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateHook); err != nil {
-				return fmt.Errorf("failed to broadcast create hook tx: %w", err)
-			}
-			time.Sleep(6 * time.Second)
-
-			hooksAfter, err := hookQueryClient.MerkleTreeHooks(context.Background(), &pdtypes.QueryMerkleTreeHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
-			if err != nil {
-				return fmt.Errorf("failed to query hooks after creation: %w", err)
-			}
-			var newMerkleHookIdStr string
-			for _, hook := range hooksAfter.MerkleTreeHooks {
-				if _, found := existingHookIds[hook.Id]; !found {
-					newMerkleHookIdStr = hook.Id
-					break
-				}
-			}
-			if newMerkleHookIdStr == "" {
-				return fmt.Errorf("could not find newly created merkle hook")
-			}
-			fmt.Printf("Merkle Tree Hook created successfully. ID: %s\n", newMerkleHookIdStr)
-
-			// Step 4: Create Interchain Gas Paymaster (IGP)
-			fmt.Println("4. Creating Interchain Gas Paymaster (IGP)...")
-			msgCreateIgp := &pdtypes.MsgCreateIgp{
-				Owner: clientCtx.GetFromAddress().String(),
-				Denom: gasDenom,
-			}
-			if err := tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateIgp); err != nil {
-				return fmt.Errorf("failed to broadcast create igp tx: %w", err)
-			}
-			time.Sleep(6 * time.Second)
-			fmt.Println("IGP created successfully.")
-
-			// Step 5: Create Synthetic Token
-			fmt.Println("5. Creating Synthetic Token...")
-			tokenQueryClient := warptypes.NewQueryClient(clientCtx)
-			tokensBefore, err := tokenQueryClient.Tokens(context.Background(), &warptypes.QueryTokensRequest{Pagination: &query.PageRequest{Limit: 1000}})
-			if err != nil {
-				return fmt.Errorf("failed to query tokens before creation: %w", err)
-			}
-			existingTokenIds := make(map[string]struct{})
-			for _, token := range tokensBefore.Tokens {
-				existingTokenIds[token.Id] = struct{}{}
-			}
-
-			msgCreateToken := &warptypes.MsgCreateSyntheticToken{
-				Owner:         clientCtx.GetFromAddress().String(),
-				OriginMailbox: mailboxId,
-			}
-			if err := tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateToken); err != nil {
-				return fmt.Errorf("failed to broadcast create token tx: %w", err)
-			}
-			time.Sleep(6 * time.Second)
-
-			tokensAfter, err := tokenQueryClient.Tokens(context.Background(), &warptypes.QueryTokensRequest{Pagination: &query.PageRequest{Limit: 1000}})
-			if err != nil {
-				return fmt.Errorf("failed to query tokens after creation: %w", err)
-			}
-			var newTokenIdStr string
-			for _, token := range tokensAfter.Tokens {
-				if _, found := existingTokenIds[token.Id]; !found {
-					newTokenIdStr = token.Id
-					break
-				}
-			}
-			if newTokenIdStr == "" {
-				return fmt.Errorf("could not find newly created token")
-			}
-			tokenId, err := util.DecodeHexAddress(newTokenIdStr)
-			if err != nil {
-				return fmt.Errorf("failed to decode created Token ID '%s': %w", newTokenIdStr, err)
-			}
-			fmt.Printf("Synthetic Token created successfully. ID: %s\n", tokenId.String())
-
-			// Step 6: Enroll Remote Router
-			fmt.Println("6. Enrolling Remote Router...")
-			remoteRouterContract, err := util.DecodeHexAddress(remoteRouterAddr)
-			if err != nil {
-				return fmt.Errorf("invalid remote router address '%s': %w", remoteRouterAddr, err)
-			}
-			msgEnrollRouter := &warptypes.MsgEnrollRemoteRouter{
-				Owner:   clientCtx.GetFromAddress().String(),
-				TokenId: tokenId,
-				RemoteRouter: &warptypes.RemoteRouter{
-					ReceiverDomain:   counterpartyDomain,
-					ReceiverContract: remoteRouterContract.String(),
-					Gas:              sdk.NewIntFromUint64(remoteRouterGas),
-				},
-			}
-
-			if err := tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgEnrollRouter); err != nil {
-				return fmt.Errorf("failed to enroll remote router: %w", err)
-			}
-
-			fmt.Println("Remote Router enrolled successfully.")
 			fmt.Println("Hyperlane bridge setup complete!")
-
 			return nil
 		},
 	}
@@ -286,6 +338,5 @@ func CmdSetupBridge() *cobra.Command {
 	_ = cmd.MarkFlagRequired("remote-router-address")
 
 	flags.AddTxFlagsToCmd(cmd)
-
 	return cmd
 }
