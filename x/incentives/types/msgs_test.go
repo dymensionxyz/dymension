@@ -177,7 +177,7 @@ func TestMsgAddToGauge(t *testing.T) {
 	}
 }
 
-// // Test authz serialize and de-serializes for incentives msg.
+// Test authz serialize and de-serializes for incentives msg.
 func TestAuthzMsg(t *testing.T) {
 	app := apptesting.Setup(t)
 	pk1 := ed25519.GenPrivKey().PubKey()
