@@ -466,3 +466,43 @@ func TestSpotPrice(t *testing.T) {
 		}
 	})
 }
+
+// Test Fee cost
+// test that for various curves, and different liquidity denoms, the fee cost is positive
+func TestFeeCost(t *testing.T) {
+	creationFee := types.DefaultCreationFee
+
+	for _, liquidityDenomDecimals := range []uint64{6, 18} {
+		curves := []struct {
+			name  string
+			curve types.BondingCurve
+		}{
+			{"Linear - Default", types.DefaultBondingCurve()},
+			{"Linear - Tzachi", types.NewBondingCurve(
+				math.LegacyMustNewDecFromStr("0.0000000000000009"),
+				math.LegacyOneDec(),
+				math.LegacyZeroDec(),
+				18, liquidityDenomDecimals,
+			)},
+			{"Square Root", types.NewBondingCurve(
+				math.LegacyMustNewDecFromStr("2.24345436"),
+				math.LegacyMustNewDecFromStr("0.5"),
+				math.LegacyMustNewDecFromStr("0.0"),
+				18, liquidityDenomDecimals,
+			)},
+			{"Quadratic", types.NewBondingCurve(
+				math.LegacyMustNewDecFromStr("2"),
+				math.LegacyMustNewDecFromStr("1.5"),
+				math.LegacyMustNewDecFromStr("0.0"),
+				18, liquidityDenomDecimals,
+			)},
+		}
+
+		for _, curve := range curves {
+			cost, feeAmt, err := types.CalcCreationFee(creationFee, curve.curve)
+			require.NoError(t, err)
+			require.True(t, cost.IsPositive(), "Cost should be positive for %s curve with %d decimals", curve.name, liquidityDenomDecimals)
+			require.True(t, feeAmt.GTE(creationFee), "Fee amount should be greater than or equal to creation fee for %s curve with %d decimals", curve.name, liquidityDenomDecimals)
+		}
+	}
+}

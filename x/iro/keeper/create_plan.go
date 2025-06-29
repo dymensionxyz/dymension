@@ -159,13 +159,12 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 	}
 
 	// charge creation fee
-	feeAmt := k.GetParams(ctx).CreationFee
-	cost := plan.BondingCurve.Cost(math.ZeroInt(), feeAmt)
-	if !cost.IsPositive() {
-		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
+	feeCostAmt, feeAmt, err := types.CalcCreationFee(k.GetParams(ctx).CreationFee, plan.BondingCurve)
+	if err != nil {
+		return "", err
 	}
 
-	feeCostLiquidlyCoin := sdk.NewCoin(plan.LiquidityDenom, cost)
+	feeCostLiquidlyCoin := sdk.NewCoin(plan.LiquidityDenom, feeCostAmt)
 	err = k.BK.SendCoins(ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), plan.GetAddress(), sdk.NewCoins(feeCostLiquidlyCoin))
 	if err != nil {
 		return "", err
