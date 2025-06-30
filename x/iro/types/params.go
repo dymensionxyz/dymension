@@ -116,7 +116,7 @@ func CalcCreationFee(creationFee math.Int, curve BondingCurve) (math.Int, math.I
 		if cost.IsPositive() {
 			break
 		}
-		feeAmt = feeAmt.MulRaw(10)
+		feeAmt = feeAmt.MulRaw(100)
 	}
 
 	if !cost.IsPositive() {
