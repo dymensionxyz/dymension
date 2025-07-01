@@ -4,9 +4,7 @@ import (
 	fmt "fmt"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // Default parameter values
@@ -102,26 +100,4 @@ func validateCreationFee(v math.Int) error {
 	}
 
 	return nil
-}
-
-// CalcCreationFee is utility function that calculates the creation fee for a given curve and creation fee
-// it's created to avoid zero cost for creation fee by increasing the fee amount until the cost is positive
-// returns the cost and the fee amount
-func CalcCreationFee(creationFee math.Int, curve BondingCurve) (math.Int, math.Int, error) {
-	var cost math.Int
-	feeAmt := creationFee
-	maxAttempts := 10
-	for i := 0; i < maxAttempts; i++ {
-		cost = curve.Cost(math.ZeroInt(), feeAmt)
-		if cost.IsPositive() {
-			break
-		}
-		feeAmt = feeAmt.MulRaw(100)
-	}
-
-	if !cost.IsPositive() {
-		return math.Int{}, math.Int{}, errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
-	}
-
-	return cost, feeAmt, nil
 }
