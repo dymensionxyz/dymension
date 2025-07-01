@@ -382,25 +382,25 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 // Get a (test) message to send in Kaspa payload (Testnet10)
 func CmdTestHLMessageKaspa() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "hl-message [token-id] [hyperlane recipient] [amount]",
-		Args:    cobra.ExactArgs(11),
-		Short:   "",
+		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount]",
+		Args:    cobra.ExactArgs(3),
+		Short:   "Get a test message to send in kaspa payload",
 		Example: ``,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			hlTokenID, err := util.DecodeHexAddress(args[4])
+			hlTokenID, err := util.DecodeHexAddress(args[0])
 			if err != nil {
 				return fmt.Errorf("token id: %w", err)
 			}
 
-			hlRecipient, err := sdk.AccAddressFromBech32(args[5])
+			hlRecipient, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return fmt.Errorf("recipient address: %w", err)
 			}
 
-			hlAmt, ok := math.NewIntFromString(args[6])
+			hlAmt, ok := math.NewIntFromString(args[2])
 			if !ok {
 				return fmt.Errorf("amount")
 			}
