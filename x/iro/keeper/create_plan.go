@@ -162,7 +162,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 	feeAmt := k.GetParams(ctx).CreationFee
 	cost := plan.BondingCurve.Cost(math.ZeroInt(), feeAmt)
 	if !cost.IsPositive() {
-		return "", errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid cost for fee charge")
+		cost = math.NewInt(1) // charge minimum creation fee
 	}
 
 	feeCostLiquidlyCoin := sdk.NewCoin(plan.LiquidityDenom, cost)
