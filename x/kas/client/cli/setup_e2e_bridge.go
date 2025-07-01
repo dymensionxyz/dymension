@@ -156,7 +156,7 @@ func broadcastAndWait(ctx setupCtx, msg sdk.Msg) error {
 	if err := tx.GenerateOrBroadcastTxCLI(ctx.clientCtx, ctx.cmd.Flags(), msg); err != nil {
 		return err
 	}
-	time.Sleep(6 * time.Second)
+	time.Sleep(4 * time.Second)
 	return nil
 }
 

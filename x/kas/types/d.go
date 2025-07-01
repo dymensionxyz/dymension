@@ -41,7 +41,7 @@ func (o *TransactionOutpoint) ValidateBasic() error {
 	}
 
 	if len(o.TransactionId) != 32 {
-		return gerrc.ErrInvalidArgument.Wrapf("transaction id")
+		return gerrc.ErrInvalidArgument.Wrapf("transaction id length")
 	}
 
 	return nil
