@@ -45,13 +45,13 @@ func TestFindEquilibrium(t *testing.T) {
 					raiseTarget := testutil.LogarithmicRangeForRapid(t, minRaiseTarget, maxRaiseTarget)
 					raiseTargetDec := sdkmath.LegacyNewDec(raiseTarget)
 
-					calcaulateM := types.CalculateM(raiseTargetDec, sdkmath.LegacyNewDec(allocation), tc.n, r)
-					if !calcaulateM.IsPositive() {
+					calculatedM := types.CalculateM(raiseTargetDec, sdkmath.LegacyNewDec(allocation), tc.n, r)
+					if !calculatedM.IsPositive() {
 						t.Skip("m is not positive", tc.name, "allocation", allocation, "targetRaise", raiseTarget)
 					}
-					t.Log("curve", tc.name, "allocation", allocation, "target", raiseTarget, "m", calcaulateM)
+					t.Log("curve", tc.name, "allocation", allocation, "target", raiseTarget, "m", calculatedM)
 
-					curve := types.NewBondingCurve(calcaulateM, tc.n, sdkmath.LegacyZeroDec(), 18, uint64(liquidityDenomDecimals))
+					curve := types.NewBondingCurve(calculatedM, tc.n, sdkmath.LegacyZeroDec(), 18, uint64(liquidityDenomDecimals))
 					eq := types.FindEquilibrium(curve, allocationScaled, r)
 					require.True(t, eq.IsPositive())
 
