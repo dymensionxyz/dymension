@@ -61,6 +61,8 @@ Create Synthetic Token (MsgCreateSyntheticToken)
 Enroll Remote Router (MsgEnrollRemoteRouter)
 
 	Dependency: This is the final link in the chain. Enrolling a router connects a specific token on your chain to its counterpart on a remote chain. This requires the TokenId of the synthetic token you created in Step 5.
+
+	./hypd tx hyperlane mailbox set [mailbox-id] --default-hook [igp-hook-id] --required-hook [merkle-tree-hook-id] $HYPD_FLAGS
 */
 func CmdSetupBridge() *cobra.Command {
 	cmd := &cobra.Command{
@@ -110,13 +112,22 @@ func CmdSetupBridge() *cobra.Command {
 				return fmt.Errorf("create mailbox: %w", err)
 			}
 
-			_, err = createMerkleHook(sCtx, mailboxId)
+			merkleHookId, err := createMerkleHook(sCtx, mailboxId)
 			if err != nil {
 				return fmt.Errorf("create merkle hook: %w", err)
 			}
 
-			if err := createIgp(sCtx, gasDenom); err != nil {
+			if err := createIgp(sCtx, gasDenom); err != nil { // TODO: use it
 				return fmt.Errorf("create igp: %w", err)
+			}
+
+			noopHookId, err := createNoopHook(sCtx)
+			if err != nil {
+				return fmt.Errorf("create noop hook: %w", err)
+			}
+
+			if err := setMailbox(sCtx, mailboxId, noopHookId, merkleHookId); err != nil {
+				return fmt.Errorf("set mailbox: %w", err)
 			}
 
 			tokenId, err := createSyntheticToken(sCtx, mailboxId)
@@ -215,7 +226,7 @@ func createMailbox(ctx setupCtx, ismId util.HexAddress, hubDomain uint32) (util.
 	return util.HexAddress{}, fmt.Errorf("find newly created mailbox")
 }
 
-func createMerkleHook(ctx setupCtx, mailboxId util.HexAddress) (string, error) {
+func createMerkleHook(ctx setupCtx, mailboxId util.HexAddress) (util.HexAddress, error) {
 	queryClient := pdtypes.NewQueryClient(ctx.clientCtx)
 
 	msg := &pdtypes.MsgCreateMerkleTreeHook{
@@ -224,19 +235,45 @@ func createMerkleHook(ctx setupCtx, mailboxId util.HexAddress) (string, error) {
 	}
 
 	if err := broadcastAndWait(ctx, msg); err != nil {
-		return "", fmt.Errorf("broadcast create hook tx: %w", err)
+		return util.HexAddress{}, fmt.Errorf("broadcast create hook tx: %w", err)
 	}
 
 	hooksAfter, err := queryClient.MerkleTreeHooks(context.Background(), &pdtypes.QueryMerkleTreeHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
 	if err != nil {
-		return "", fmt.Errorf("query hooks after creation: %w", err)
+		return util.HexAddress{}, fmt.Errorf("query hooks after creation: %w", err)
 	}
 
 	for _, hook := range hooksAfter.MerkleTreeHooks {
-		return hook.Id, nil
+		hookId, err := util.DecodeHexAddress(hook.Id)
+		if err != nil {
+			return util.HexAddress{}, fmt.Errorf("decode created hook ID '%s': %w", hook.Id, err)
+		}
+		return hookId, nil
 	}
 
-	return "", fmt.Errorf("find newly created merkle hook")
+	return util.HexAddress{}, fmt.Errorf("find newly created merkle hook")
+}
+
+func createNoopHook(ctx setupCtx) (util.HexAddress, error) {
+	queryClient := pdtypes.NewQueryClient(ctx.clientCtx)
+
+	msg := &pdtypes.MsgCreateNoopHook{
+		Owner: ctx.clientCtx.GetFromAddress().String(),
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return util.HexAddress{}, fmt.Errorf("broadcast create noop hook tx: %w", err)
+	}
+
+	hooksAfter, err := queryClient.NoopHooks(context.Background(), &pdtypes.QueryNoopHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("query noop hooks after creation: %w", err)
+	}
+
+	for _, hook := range hooksAfter.NoopHooks {
+		return hook.Id, nil
+	}
+	return util.HexAddress{}, fmt.Errorf("find newly created noop hook")
 }
 
 // TODO: needed? need to send from relayer?
@@ -248,6 +285,21 @@ func createIgp(ctx setupCtx, gasDenom string) error {
 
 	if err := broadcastAndWait(ctx, msg); err != nil {
 		return fmt.Errorf("broadcast create igp tx: %w", err)
+	}
+
+	return nil
+}
+
+func setMailbox(ctx setupCtx, mailboxId util.HexAddress, defaultHookId util.HexAddress, requiredHookId util.HexAddress) error {
+	msg := &coretypes.MsgSetMailbox{
+		Owner:        ctx.clientCtx.GetFromAddress().String(),
+		MailboxId:    mailboxId,
+		DefaultHook:  &defaultHookId,
+		RequiredHook: &requiredHookId,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return fmt.Errorf("broadcast set mailbox tx: %w", err)
 	}
 
 	return nil
