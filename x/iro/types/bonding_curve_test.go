@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	testutil "github.com/dymensionxyz/dymension/v3/testutil/math"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
@@ -20,13 +21,13 @@ var (
 
 // approxEqualInt checks if two math.Ints are approximately equal
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
-	err := approxEqual(expected, actual, defaultToleranceInt)
+	err := testutil.ApproxEqual(expected, actual, defaultToleranceInt)
 	assert.NoError(t, err)
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
-	err := approxEqual(expected, actual, defaultToleranceDec)
+	err := testutil.ApproxEqual(expected, actual, defaultToleranceDec)
 	assert.NoError(t, err)
 }
 
@@ -376,12 +377,12 @@ func TestUseCaseA(t *testing.T) {
 	unsoldValue := curve.SpotPrice(eq).MulInt(unsoldRATokens).TruncateInt()
 
 	// assert dym value in the pool is equal to unsold value
-	err := approxEqualRatio(bootstrapFunds, unsoldValue, 0.001) // 0.1%
+	err := testutil.ApproxEqualRatio(bootstrapFunds, unsoldValue, 0.001) // 0.1%
 	require.NoError(t, err)
 
 	// assert the TVL in eq point is as expected
 	totalValue := bootstrapFunds.Add(unsoldValue)
-	err = approxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
+	err = testutil.ApproxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
 	require.NoError(t, err)
 }
 
