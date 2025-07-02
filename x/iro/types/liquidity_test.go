@@ -137,7 +137,7 @@ func approxEqual(expected, actual, tolerance interface{}) error {
 	return nil
 }
 
-// approxEqual checks if two values of different types are approximately equal
+// approxEqualRatio checks if two values of different types are approximately equal
 func approxEqualRatio(expected, actual interface{}, tolerance float64) error {
 	switch e := expected.(type) {
 	case sdkmath.LegacyDec:
