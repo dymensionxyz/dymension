@@ -39,6 +39,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdMemoHLtoIBCRaw())
 	cmd.AddCommand(CmdHLEthTransferRecipientHubAccount())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
+	cmd.AddCommand(CmdTestHLMessageKaspa())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
 
@@ -357,6 +358,73 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 				hlRecipient,
 				hlAmt,
 				hook,
+			)
+			if err != nil {
+				return fmt.Errorf("new hl message: %w", err)
+			}
+
+			if readable {
+				fmt.Printf("hyperlane message: %+v\n", m)
+			} else {
+				fmt.Print(m) // encodes with .String()
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a readable format")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// Get a (test) message to send in Kaspa payload (Testnet10)
+func CmdTestHLMessageKaspa() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount]",
+		Args:    cobra.ExactArgs(3),
+		Short:   "Get a test message to send in kaspa payload",
+		Example: ``,
+
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			hlTokenID, err := util.DecodeHexAddress(args[0])
+			if err != nil {
+				return fmt.Errorf("token id: %w", err)
+			}
+
+			hlRecipient, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return fmt.Errorf("recipient address: %w", err)
+			}
+
+			hlAmt, ok := math.NewIntFromString(args[2])
+			if !ok {
+				return fmt.Errorf("amount")
+			}
+
+			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
+			if err != nil {
+				return fmt.Errorf("encode flag: %w", err)
+			}
+
+			hlSrcContract, err := util.DecodeHexAddress("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80") // arbitrary
+			if err != nil {
+				return fmt.Errorf("counterparty contract: %w", err)
+			}
+
+			m, err := createTestHyperlaneMessage(
+				hypercoretypes.MESSAGE_VERSION,
+				0,        // FIXED AT ZERO
+				80808082, // Kaspa test 10
+				hlSrcContract,
+				1260813472, // HUB HARDCODED
+				hlTokenID,
+				hlRecipient,
+				hlAmt,
+				nil,
 			)
 			if err != nil {
 				return fmt.Errorf("new hl message: %w", err)
