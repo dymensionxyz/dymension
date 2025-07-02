@@ -215,9 +215,9 @@ func TestTokensForDYM(t *testing.T) {
 		name string
 		n    math.LegacyDec
 	}{
-		// {"Square Root", math.LegacyMustNewDecFromStr("0.5")},
+		{"Square Root", math.LegacyMustNewDecFromStr("0.5")},
 		{"Linear", math.LegacyOneDec()},
-		// {"Quadratic", math.LegacyMustNewDecFromStr("1.5")},
+		{"Quadratic", math.LegacyMustNewDecFromStr("1.5")},
 	}
 
 	for _, liquidityDenomDecimals := range []int64{6, 18} {
@@ -226,9 +226,9 @@ func TestTokensForDYM(t *testing.T) {
 			t.Run(tcName, func(t *testing.T) {
 				rapid.Check(t, func(t *rapid.T) {
 					minAllocation := int64(1e4) // 10K RA tokens
-					maxAllocation := int64(1e6) // 1M RA tokens
+					maxAllocation := int64(1e8) // 100M RA tokens
 
-					minRaiseTarget := int64(1e5) // 10K DYM
+					minRaiseTarget := int64(1e4) // 10K DYM
 					maxRaiseTarget := int64(1e7) // 10M DYM
 
 					rFloat := rapid.Float64Range(0.1, 1).Draw(t, "bootstrap ratio")
@@ -252,11 +252,14 @@ func TestTokensForDYM(t *testing.T) {
 					for _, start := range startingPoints {
 						startingX := math.LegacyMustNewDecFromStr(start).MulInt64(1e18).TruncateInt()
 
+						check := false
 						for _, xToken := range xTokens {
 							x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
 							cost := curve.Cost(startingX, startingX.Add(x))
-							if cost.IsZero() {
-								continue // Skip if cost is zero
+							// skip if cost is less than 0.00005USDC or 0.000000000005DYM
+							if cost.LT(math.NewInt(50).Mul(math.NewIntWithDecimal(1, int(liquidityDenomDecimals)-6))) {
+								t.Logf("cost is less than 50, skipping startingX=%s, xToken=%s, cost=%s", start, xToken, cost)
+								continue
 							}
 
 							tokens, err := curve.TokensForExactInAmount(startingX, cost)
@@ -268,7 +271,9 @@ func TestTokensForDYM(t *testing.T) {
 								assert.NoError(t, errors.Join(errRatio, errInt),
 									fmt.Sprintf("startingX=%s, xToken=%s, cost=%s, tokens=%s", start, xToken, cost, types.ScaleFromBase(tokens, 18)))
 							}
+							check = true
 						}
+						require.True(t, check, "no check was done for startingX=%s", start)
 					}
 				})
 			})

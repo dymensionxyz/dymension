@@ -43,9 +43,8 @@ func TestFindEquilibrium(t *testing.T) {
 					allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
 
 					raiseTarget := testutil.LogarithmicRangeForRapid(t, minRaiseTarget, maxRaiseTarget)
-					raiseTargetDec := sdkmath.LegacyNewDec(raiseTarget)
 
-					calculatedM := types.CalculateM(raiseTargetDec, sdkmath.LegacyNewDec(allocation), tc.n, r)
+					calculatedM := types.CalculateM(sdkmath.LegacyNewDec(raiseTarget), sdkmath.LegacyNewDec(allocation), tc.n, r)
 					if !calculatedM.IsPositive() {
 						t.Skip("m is not positive", tc.name, "allocation", allocation, "targetRaise", raiseTarget)
 					}
@@ -84,7 +83,7 @@ func TestFindEquilibrium(t *testing.T) {
 					require.NoError(t, err)
 
 					totalValue := bootstrapFunds.Add(unsoldValue)
-					targetRaiseScaled := types.ScaleToBase(raiseTargetDec, int64(liquidityDenomDecimals))
+					targetRaiseScaled := types.ScaleToBase(sdkmath.LegacyNewDec(raiseTarget), int64(liquidityDenomDecimals))
 					t.Log("target raise", targetRaiseScaled, "total value", totalValue)
 					// assert total value is same as expected
 					err = testutil.ApproxEqualRatio(targetRaiseScaled, totalValue, 0.05) // 5% tolerance
