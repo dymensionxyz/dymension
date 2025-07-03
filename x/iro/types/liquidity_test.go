@@ -64,7 +64,7 @@ func TestFindEquilibrium(t *testing.T) {
 					leftoverTokens := allocationScaled.Sub(eq)
 					unsoldValue := types.ScaleToBase(
 						curvePrice.Mul(types.ScaleFromBase(leftoverTokens, 18)),
-						int64(liquidityDenomDecimals),
+						liquidityDenomDecimals,
 					)
 					t.Log("bootstrap funds", bootstrapFunds, "unsold value", unsoldValue, "leftover tokens", leftoverTokens, "curve price", curvePrice)
 					// assert value of leftover tokens is the same as the bootstrap funds
@@ -74,7 +74,7 @@ func TestFindEquilibrium(t *testing.T) {
 					poolPrice := bootstrapFunds.ToLegacyDec().QuoInt(
 						types.ScaleToBase(
 							types.ScaleFromBase(leftoverTokens, 18),
-							int64(liquidityDenomDecimals),
+							liquidityDenomDecimals,
 						),
 					)
 					t.Log("curve price", curvePrice, "pool price", poolPrice)
