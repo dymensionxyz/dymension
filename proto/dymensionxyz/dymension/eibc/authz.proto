@@ -7,6 +7,18 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
+
+// DecProto defines a Protobuf wrapper around a Dec object.
+// Deprecated: Prefer to use math.LegacyDec directly. It supports binary Marshal and Unmarshal.
+message DecProto {
+  string dec = 1 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+
 // FulfillOrderAuthorization allows the grantee to fulfill eIBC demand orders
 // from the granter's account.
 message FulfillOrderAuthorization {
@@ -33,22 +45,14 @@ message RollappCriteria {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // min_fee_percentage is the minimum gross fee earning percentage the LP is
-  // willing to get from a demand order
-  string min_fee_percentage = 4 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.LegacyDec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDec"
-  ];
-
-  // operator_fee_share is the share of the fee earnings willing to give to the
-  // operator
-  string operator_fee_share = 5 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.LegacyDec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDec"
+  // min_fee_percentage is the minimum gross fee earning percentage the LP is willing to get from a demand order
+  DecProto min_fee_percentage = 4 [
+    (gogoproto.nullable) = false
+    ];
+    
+    // operator_fee_share is the share of the fee earnings willing to give to the operator
+    DecProto operator_fee_share = 5 [
+      (gogoproto.nullable) = false
   ];
 
   // settlement_validated is the flag to only fulfill demand orders that have
