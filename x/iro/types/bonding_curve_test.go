@@ -1,11 +1,13 @@
 package types_test
 
 import (
+	"errors"
 	fmt "fmt"
 	"sort"
 	"testing"
 
 	"cosmossdk.io/math"
+	testutil "github.com/dymensionxyz/dymension/v3/testutil/math"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
@@ -20,13 +22,13 @@ var (
 
 // approxEqualInt checks if two math.Ints are approximately equal
 func approxEqualInt(t *testing.T, expected, actual math.Int) {
-	err := approxEqual(expected, actual, defaultToleranceInt)
+	err := testutil.ApproxEqual(expected, actual, defaultToleranceInt)
 	assert.NoError(t, err)
 }
 
 // approxEqualDec checks if two math.Decs are approximately equal
 func approxEqualDec(t *testing.T, expected, actual math.LegacyDec) {
-	err := approxEqual(expected, actual, defaultToleranceDec)
+	err := testutil.ApproxEqual(expected, actual, defaultToleranceDec)
 	assert.NoError(t, err)
 }
 
@@ -209,44 +211,73 @@ func TestTokensForDYM(t *testing.T) {
 	xTokens := []string{"0.01", "0.1", "0.5", "1", "10", "1000", "10000", "100000", "1000000"}
 
 	// Define different curve types
-	curves := []struct {
-		name  string
-		curve types.BondingCurve
+	testcases := []struct {
+		name string
+		n    math.LegacyDec
 	}{
-		{"Linear", types.DefaultBondingCurve()},
-		{"Square Root", types.NewBondingCurve(
-			math.LegacyMustNewDecFromStr("2.24345436"),
-			math.LegacyMustNewDecFromStr("0.5"),
-			math.LegacyMustNewDecFromStr("0.0"),
-			18,
-			18,
-		)},
-		{"Quadratic", types.NewBondingCurve(
-			math.LegacyMustNewDecFromStr("2"),
-			math.LegacyMustNewDecFromStr("1.5"),
-			math.LegacyMustNewDecFromStr("0.0"),
-			18,
-			18,
-		)},
+		{"Square Root", math.LegacyMustNewDecFromStr("0.5")},
+		{"Linear", math.LegacyOneDec()},
+		{"Quadratic", math.LegacyMustNewDecFromStr("1.5")},
 	}
 
-	for _, curve := range curves {
-		t.Run(curve.name, func(t *testing.T) {
-			for _, start := range startingPoints {
-				startingX := math.LegacyMustNewDecFromStr(start).MulInt64(1e18).TruncateInt()
+	for _, liquidityDenomDecimals := range []int64{6, 18} {
+		for _, tc := range testcases {
+			tcName := fmt.Sprintf("%s-decimals=%d", tc.name, liquidityDenomDecimals)
+			t.Run(tcName, func(t *testing.T) {
+				rapid.Check(t, func(t *rapid.T) {
+					minAllocation := int64(1e4) // 10K RA tokens
+					maxAllocation := int64(1e8) // 100M RA tokens
 
-				for _, xToken := range xTokens {
-					x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
-					cost := curve.curve.Cost(startingX, startingX.Add(x))
+					minRaiseTarget := int64(1e4) // 10K DYM
+					maxRaiseTarget := int64(1e7) // 10M DYM
 
-					t.Run(fmt.Sprintf("Start=%s, X=%s", start, xToken), func(t *testing.T) {
-						tokens, err := curve.curve.TokensForExactInAmount(startingX, cost)
-						require.NoError(t, err)
-						approxEqualInt(t, x, tokens)
-					})
-				}
-			}
-		})
+					rFloat := rapid.Float64Range(0.1, 1).Draw(t, "bootstrap ratio")
+					r := math.LegacyMustNewDecFromStr(fmt.Sprintf("%f", rFloat))
+
+					allocation := testutil.LogarithmicRangeForRapid(t, minAllocation, maxAllocation)
+					raiseTarget := testutil.LogarithmicRangeForRapid(t, minRaiseTarget, maxRaiseTarget)
+					raiseTargetDec := math.LegacyNewDec(raiseTarget)
+
+					calculatedM := types.CalculateM(raiseTargetDec, math.LegacyNewDec(allocation), tc.n, r)
+					if !calculatedM.IsPositive() {
+						t.Skip("m is not positive", tc.name, "allocation", allocation, "targetRaise", raiseTarget)
+					}
+
+					t.Logf("curve=%s, allocation=%d, target=%d, m=%s",
+						tc.name, allocation, raiseTarget, calculatedM.String())
+
+					curve := types.NewBondingCurve(calculatedM, tc.n, math.LegacyZeroDec(), 18, uint64(liquidityDenomDecimals))
+
+					// Test with predefined starting points and token amounts
+					for _, start := range startingPoints {
+						startingX := math.LegacyMustNewDecFromStr(start).MulInt64(1e18).TruncateInt()
+
+						check := false
+						for _, xToken := range xTokens {
+							x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
+							cost := curve.Cost(startingX, startingX.Add(x))
+							// skip if cost is less than 0.00005USDC or 0.000000000005DYM
+							if cost.LT(math.NewInt(50).Mul(math.NewIntWithDecimal(1, int(liquidityDenomDecimals)-6))) {
+								t.Logf("cost is less than 50, skipping startingX=%s, xToken=%s, cost=%s", start, xToken, cost)
+								continue
+							}
+
+							tokens, err := curve.TokensForExactInAmount(startingX, cost)
+							require.NoError(t, err)
+
+							errRatio := testutil.ApproxEqualRatio(x, tokens, 0.05)                   // 5% tolerance
+							errInt := testutil.ApproxEqual(x, tokens, math.NewIntWithDecimal(5, 15)) // 0.005 RA token
+							if errRatio != nil && errInt != nil {
+								assert.NoError(t, errors.Join(errRatio, errInt),
+									fmt.Sprintf("startingX=%s, xToken=%s, cost=%s, tokens=%s", start, xToken, cost, types.ScaleFromBase(tokens, 18)))
+							}
+							check = true
+						}
+						require.True(t, check, "no check was done for startingX=%s", start)
+					}
+				})
+			})
+		}
 	}
 }
 
@@ -376,12 +407,12 @@ func TestUseCaseA(t *testing.T) {
 	unsoldValue := curve.SpotPrice(eq).MulInt(unsoldRATokens).TruncateInt()
 
 	// assert dym value in the pool is equal to unsold value
-	err := approxEqualRatio(bootstrapFunds, unsoldValue, 0.001) // 0.1%
+	err := testutil.ApproxEqualRatio(bootstrapFunds, unsoldValue, 0.001) // 0.1%
 	require.NoError(t, err)
 
 	// assert the TVL in eq point is as expected
 	totalValue := bootstrapFunds.Add(unsoldValue)
-	err = approxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
+	err = testutil.ApproxEqualRatio(val.MulRaw(1e18), totalValue, 0.001) // 0.1%
 	require.NoError(t, err)
 }
 
