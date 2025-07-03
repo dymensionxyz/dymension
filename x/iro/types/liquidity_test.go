@@ -93,3 +93,103 @@ func TestFindEquilibrium(t *testing.T) {
 		}
 	}
 }
+
+func TestCalcLiquidityPoolTokens(t *testing.T) {
+	// _ = flag.Set("rapid.checks", "1000") // can be enabled manually for more thorough testing
+
+	// Define different curve types for generating realistic settled prices
+	testcases := []struct {
+		name string
+		n    sdkmath.LegacyDec
+	}{
+		{"Square Root", sdkmath.LegacyMustNewDecFromStr("0.5")},
+		{"Linear", sdkmath.LegacyOneDec()},
+		{"Quadratic", sdkmath.LegacyMustNewDecFromStr("1.5")},
+	}
+
+	for _, liquidityDenomDecimals := range []int64{6, 18} {
+		for _, tc := range testcases {
+			tcName := fmt.Sprintf("%s-decimals=%d", tc.name, liquidityDenomDecimals)
+			t.Run(tcName, func(t *testing.T) {
+				rapid.Check(t, func(t *rapid.T) {
+					// Generate test parameters
+					minAllocation := int64(1e4)  // 10K tokens
+					maxAllocation := int64(1e8)  // 100M tokens
+					minRaiseTarget := int64(1e4) // 10K DYM
+					maxRaiseTarget := int64(1e7) // 10M DYM
+
+					rFloat := rapid.Float64Range(0.1, 1).Draw(t, "bootstrap ratio")
+					r := sdkmath.LegacyMustNewDecFromStr(fmt.Sprintf("%f", rFloat))
+
+					// Generate a realistic settled token price using bonding curve logic
+					allocation := testutil.LogarithmicRangeForRapid(t, minAllocation, maxAllocation)
+					allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
+
+					raiseTarget := testutil.LogarithmicRangeForRapid(t, minRaiseTarget, maxRaiseTarget)
+
+					calculatedM := types.CalculateM(
+						sdkmath.LegacyNewDec(raiseTarget),
+						sdkmath.LegacyNewDec(allocation),
+						tc.n,
+						r,
+					)
+					if !calculatedM.IsPositive() {
+						t.Skip("m is not positive")
+					}
+
+					curve := types.NewBondingCurve(calculatedM, tc.n, sdkmath.LegacyZeroDec(), 18, uint64(liquidityDenomDecimals))
+					t.Logf("curve=%s, allocation=%d, target=%d, m=%s",
+						tc.name, allocation, raiseTarget, calculatedM.String())
+
+					eq := types.FindEquilibrium(curve, allocationScaled, r)
+					require.True(t, eq.IsPositive())
+
+					// test pool at eq point
+					raisedLiquidityEq := curve.Cost(sdkmath.ZeroInt(), eq)
+					poolTokens := raisedLiquidityEq.ToLegacyDec().Mul(r).TruncateInt()
+
+					unsoldRATokensEq := allocationScaled.Sub(eq)
+					spotPriceEq := curve.SpotPrice(eq)
+
+					eqRATokens, eqLiquidity := types.CalcLiquidityPoolTokens(
+						unsoldRATokensEq,
+						poolTokens,
+						spotPriceEq,
+					)
+					require.True(t, eqRATokens.LTE(unsoldRATokensEq), "eqRATokens:%s <= unsoldRATokensEq:%s", eqRATokens.String(), unsoldRATokensEq.String())
+					require.True(t, eqLiquidity.LTE(poolTokens), "eqLiquidity:%s == poolTokens:%s", eqLiquidity.String(), poolTokens.String())
+					err := testutil.ApproxEqualRatio(eqLiquidity, poolTokens, 0.001) // 0.1% tolerance
+					require.NoError(t, err, "eqLiquidity should match poolTokens")
+
+					// Verify the pool price relationship
+					poolPrice := eqLiquidity.ToLegacyDec().Quo(eqRATokens.ToLegacyDec())
+					err = testutil.ApproxEqualRatio(spotPriceEq, poolPrice, 0.001) // 0.1% tolerance
+					require.NoError(t, err, "pool price should match settled token price")
+
+					// Test a random point
+					xRand := testutil.LogarithmicRangeForRapid(t, 1, types.ScaleFromBase(eq, 18).TruncateInt64())
+					randomLiquidity := curve.Cost(sdkmath.ZeroInt(), sdkmath.NewInt(xRand))
+					randomPoolTokens := randomLiquidity.ToLegacyDec().Mul(r).TruncateInt()
+
+					unsoldRATokensRand := allocationScaled.Sub(sdkmath.NewInt(xRand))
+					spotPriceRand := curve.SpotPrice(sdkmath.NewInt(xRand))
+
+					randRATokens, randLiquidity := types.CalcLiquidityPoolTokens(
+						unsoldRATokensRand,
+						randomPoolTokens,
+						spotPriceRand,
+					)
+					require.True(t, randRATokens.LTE(unsoldRATokensRand), "randRATokens:%s <= unsoldRATokensRand:%s", randRATokens.String(), unsoldRATokensRand.String())
+					require.True(t, randLiquidity.LTE(randomPoolTokens), "randLiquidity:%s == randomPoolTokens:%s", randLiquidity.String(), randomPoolTokens.String())
+					err = testutil.ApproxEqualRatio(randLiquidity, randomPoolTokens, 0.001) // 0.1% tolerance
+					require.NoError(t, err, "randLiquidity should match randomPoolTokens")
+
+					// Verify the pool price relationship at random point
+					randomPoolPrice := randLiquidity.ToLegacyDec().Quo(randRATokens.ToLegacyDec())
+					err = testutil.ApproxEqualRatio(spotPriceRand, randomPoolPrice, 0.001) // 0.1% tolerance
+					require.NoError(t, err, "random pool price should match settled token price")
+				})
+			})
+		}
+	}
+}
