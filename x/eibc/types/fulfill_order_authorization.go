@@ -32,10 +32,10 @@ func NewRollappCriteria(
 	return &RollappCriteria{
 		RollappId:           rollappID,
 		Denoms:              denoms,
-		MinFeePercentage:    sdk.DecProto{Dec: minFeePercentage},
+		MinFeePercentage:    DecProto{Dec: minFeePercentage},
 		MaxPrice:            maxPrice,
 		SpendLimit:          spendLimit,
-		OperatorFeeShare:    sdk.DecProto{Dec: fulfillerFeePart},
+		OperatorFeeShare:    DecProto{Dec: fulfillerFeePart},
 		SettlementValidated: settlementValidated,
 	}
 }
