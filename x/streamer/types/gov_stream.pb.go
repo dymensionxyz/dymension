@@ -5,17 +5,65 @@ package types
 
 import (
 	fmt "fmt"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/cosmos/gogoproto/gogoproto"
-	proto "github.com/cosmos/gogoproto/proto"
-	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	"strings"
 	time "time"
+
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
+
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
+
+const (
+	// ProposalTypeCreateStream defines the type for a CreateStreamProposal
+	ProposalTypeCreateStream = "CreateStream"
+)
+
+// Assert CreateStreamProposal implements govtypes.Content at compile-time
+var (
+	_ govtypes.Content = &CreateStreamProposal{}
+)
+
+func init() {
+	govtypes.RegisterProposalType(ProposalTypeCreateStream)
+}
+
+// GetTitle returns the title of a community pool spend proposal.
+func (csp *CreateStreamProposal) GetTitle() string { return csp.Title }
+
+// GetDescription returns the description of a community pool spend proposal.
+func (csp *CreateStreamProposal) GetDescription() string { return csp.Description }
+
+// GetDescription returns the routing key of a community pool spend proposal.
+func (csp *CreateStreamProposal) ProposalRoute() string { return RouterKey }
+
+// ProposalType returns the type of a community pool spend proposal.
+func (csp *CreateStreamProposal) ProposalType() string { return ProposalTypeCreateStream }
+
+// ValidateBasic runs basic stateless validity checks
+func (csp *CreateStreamProposal) ValidateBasic() error {
+	return nil
+}
+
+// String implements the Stringer interface.
+func (csp CreateStreamProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Create stream Proposal:
+	  Title:       %s
+	  Description: %s
+	  DistributeTo: %v
+	  Coins:       %s
+	  StartTime:   %s
+	  EpochIdentifier:   %s
+	  NumEpochsPaidOver:   %d
+`, csp.Title, csp.Description, &csp.DistributeToRecords, csp.Coins, csp.StartTime, csp.DistrEpochIdentifier, csp.NumEpochsPaidOver))
+	return b.String()
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -81,6 +129,15 @@ type TerminateStreamProposal struct {
 	Title       string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	StreamId    uint64 `protobuf:"varint,4,opt,name=stream_id,json=streamId,proto3" json:"stream_id,omitempty"`
+}
+
+// String implements the Stringer interface.
+func (csp TerminateStreamProposal) String() string {
+	return fmt.Sprintf(`Terminate stream Proposal:
+	  Title:       %s
+	  Description: %s
+	  StreamId:    %d
+`, csp.Title, csp.Description, csp.StreamId)
 }
 
 func (m *TerminateStreamProposal) Reset()      { *m = TerminateStreamProposal{} }
@@ -620,7 +677,7 @@ func (m *CreateStreamProposal) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Coins = append(m.Coins, types.Coin{})
+			m.Coins = append(m.Coins, github_com_cosmos_cosmos_sdk_types.Coin{})
 			if err := m.Coins[len(m.Coins)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

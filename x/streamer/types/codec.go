@@ -21,9 +21,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 
 	// Register legacy proposal types for backward compatibility with existing state
 	cdc.RegisterConcrete(&CreateStreamProposal{}, "streamer/CreateStreamProposal", nil)
-	cdc.RegisterConcrete(&TerminateStreamProposal{}, "streamer/TerminateStreamProposal", nil)
-	cdc.RegisterConcrete(&UpdateStreamDistributionProposal{}, "streamer/UpdateStreamDistributionProposal", nil)
-	cdc.RegisterConcrete(&ReplaceStreamDistributionProposal{}, "streamer/ReplaceStreamDistributionProposal", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the streamer module.
@@ -40,9 +37,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
 		&CreateStreamProposal{},
-		&TerminateStreamProposal{},
-		&UpdateStreamDistributionProposal{},
-		&ReplaceStreamDistributionProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
