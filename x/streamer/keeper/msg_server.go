@@ -26,6 +26,10 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStream) (*types.MsgCreateStreamResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	if msg.Authority != s.authority {
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
@@ -52,6 +56,10 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 func (s msgServer) TerminateStream(goCtx context.Context, msg *types.MsgTerminateStream) (*types.MsgTerminateStreamResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	if msg.Authority != s.authority {
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
@@ -67,6 +75,10 @@ func (s msgServer) TerminateStream(goCtx context.Context, msg *types.MsgTerminat
 // ReplaceStream implements the MsgServer interface
 func (s msgServer) ReplaceStream(goCtx context.Context, msg *types.MsgReplaceStream) (*types.MsgReplaceStreamResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
 
 	if msg.Authority != s.authority {
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
@@ -84,6 +96,10 @@ func (s msgServer) ReplaceStream(goCtx context.Context, msg *types.MsgReplaceStr
 func (s msgServer) UpdateStream(goCtx context.Context, msg *types.MsgUpdateStream) (*types.MsgUpdateStreamResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	if msg.Authority != s.authority {
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
@@ -100,14 +116,13 @@ func (s msgServer) UpdateStream(goCtx context.Context, msg *types.MsgUpdateStrea
 func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if err := req.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	// Check if the sender is the authority
 	if req.Authority != m.authority {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
-	}
-
-	err := req.Params.ValidateBasic()
-	if err != nil {
-		return nil, err
 	}
 
 	m.SetParams(ctx, req.Params)
