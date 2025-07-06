@@ -46,8 +46,24 @@ type StreamIterator struct {
 // NewStreamIterator a new StreamIterator starting from the provided stream and gauge IDs. First, it finds a starting
 // position in the stream slice. Then it checks if it is valid and tries to find the next appropriate stream if not.
 func NewStreamIterator(data []types.Stream, startStreamID uint64, startGaugeID uint64, epochIdentifier string) *StreamIterator {
+	// Handle special case: if startStreamID is MinStreamID (0), start from the beginning
+	if startStreamID == types.MinStreamID {
+		iter := &StreamIterator{
+			data:            data,
+			streamIdx:       0,
+			gaugeIdx:        0,
+			epochIdentifier: epochIdentifier,
+		}
+
+		if !iter.validInvariants() {
+			iter.findNextStream()
+		}
+
+		return iter
+	}
+
 	// streamIdx is the position where the stream is found, or the position where it would appear in the sort order
-	streamIdx, _ := slices.BinarySearchFunc(data, startStreamID, func(stream types.Stream, targetID uint64) int {
+	streamIdx, streamFound := slices.BinarySearchFunc(data, startStreamID, func(stream types.Stream, targetID uint64) int {
 		return cmpUint64(stream.Id, targetID)
 	})
 
@@ -61,10 +77,17 @@ func NewStreamIterator(data []types.Stream, startStreamID uint64, startGaugeID u
 		}
 	}
 
-	// gaugeIdx is the position where the gauge is found, or the position where it would appear in the sort order
-	gaugeIdx, _ := slices.BinarySearchFunc(data[streamIdx].DistributeTo.Records, startGaugeID, func(record types.DistrRecord, targetID uint64) int {
-		return cmpUint64(record.GaugeId, targetID)
-	})
+	var gaugeIdx int
+	// If we found the exact stream, search for the gauge within it
+	if streamFound {
+		// gaugeIdx is the position where the gauge is found, or the position where it would appear in the sort order
+		gaugeIdx, _ = slices.BinarySearchFunc(data[streamIdx].DistributeTo.Records, startGaugeID, func(record types.DistrRecord, targetID uint64) int {
+			return cmpUint64(record.GaugeId, targetID)
+		})
+	} else {
+		// If stream not found, start from the beginning of this stream
+		gaugeIdx = 0
+	}
 
 	iter := &StreamIterator{
 		data:            data,

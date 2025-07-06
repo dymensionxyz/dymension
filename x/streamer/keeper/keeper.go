@@ -45,7 +45,7 @@ func NewKeeper(
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
-	return &Keeper{
+	k := &Keeper{
 		cdc:       cdc,
 		storeKey:  storeKey,
 		bk:        bk,
@@ -62,6 +62,13 @@ func NewKeeper(
 			collcompat.ProtoValue[types.EpochPointer](cdc),
 		),
 	}
+
+	_, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	return k
 }
 
 // Logger returns a logger instance for the streamer module.
