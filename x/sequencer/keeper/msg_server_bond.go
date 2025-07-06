@@ -77,7 +77,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	// avoid starting another notice unnecessarily
 	if k.IsProposer(ctx, seq) {
 		if !k.rollappKeeper.ForkLatestAllowed(ctx, seq.RollappId) {
-			return nil, gerrc.ErrFailedPrecondition.Wrap("rotation could cause fork before genesis transfer")
+			return nil, gerrc.ErrFailedPrecondition.Wrap("cannot unbond: sequencer rotation would cause a fork that affects the genesis transfer proof height. The genesis transfer proof must be submitted to the settlement layer before unbonding can proceed")
 		}
 		if seq.NoticeInProgress(ctx.BlockTime()) {
 			return nil, gerrc.ErrFailedPrecondition.Wrap("notice period in progress")
