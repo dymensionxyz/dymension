@@ -83,7 +83,7 @@ func TestFindEquilibrium(t *testing.T) {
 					require.NoError(t, err)
 
 					totalValue := bootstrapFunds.Add(unsoldValue)
-					targetRaiseScaled := types.ScaleToBase(sdkmath.LegacyNewDec(raiseTarget), int64(liquidityDenomDecimals))
+					targetRaiseScaled := types.ScaleToBase(sdkmath.LegacyNewDec(raiseTarget), liquidityDenomDecimals)
 					t.Log("target raise", targetRaiseScaled, "total value", totalValue)
 					// assert total value is same as expected
 					err = testutil.ApproxEqualRatio(targetRaiseScaled, totalValue, 0.05) // 5% tolerance
