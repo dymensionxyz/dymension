@@ -1,0 +1,219 @@
+# Optimized Test Targets for Performance
+
+# Variables for test parallelization
+TEST_PARALLELISM ?= 4
+TEST_PARALLEL_WITHIN_PKG ?= 8
+
+# Default timeout for tests
+TEST_TIMEOUT ?= 10m
+
+###############################################################################
+###                              Fast Tests                                 ###
+###############################################################################
+
+# Unit tests only (no integration, no race detection)
+.PHONY: test-unit
+test-unit:
+	@echo "Running unit tests (fast)..."
+	go test -short -tags=unit -timeout=$(TEST_TIMEOUT) ./...
+
+# Quick smoke tests for core modules
+.PHONY: test-quick
+test-quick:
+	@echo "Running quick tests for core modules..."
+	go test -short -timeout=5m \
+		./x/dymns/types/... \
+		./x/rollapp/types/... \
+		./x/streamer/types/... \
+		./x/eibc/types/... \
+		./app/apptesting/...
+
+# Types-only tests (very fast)
+.PHONY: test-types
+test-types:
+	@echo "Running type validation tests..."
+	go test -short -run="TestValidate|TestMarshal|TestUnmarshal" ./x/*/types/...
+
+###############################################################################
+###                          Optimized Tests                               ###
+###############################################################################
+
+# Parallel test execution without race detection
+.PHONY: test-parallel
+test-parallel:
+	@echo "Running tests in parallel (no race detection)..."
+	go test -p $(TEST_PARALLELISM) -parallel $(TEST_PARALLEL_WITHIN_PKG) -timeout=$(TEST_TIMEOUT) ./...
+
+# Fast test with coverage (for CI)
+.PHONY: test-coverage-fast
+test-coverage-fast:
+	@echo "Running fast tests with coverage..."
+	go test -short -coverprofile=coverage.txt -covermode=atomic ./...
+
+# Module-specific test targets
+.PHONY: test-dymns
+test-dymns:
+	@echo "Testing dymns module..."
+	go test -v -timeout=$(TEST_TIMEOUT) ./x/dymns/...
+
+.PHONY: test-rollapp
+test-rollapp:
+	@echo "Testing rollapp module..."
+	go test -v -timeout=$(TEST_TIMEOUT) ./x/rollapp/...
+
+.PHONY: test-streamer
+test-streamer:
+	@echo "Testing streamer module..."
+	go test -v -timeout=$(TEST_TIMEOUT) ./x/streamer/...
+
+###############################################################################
+###                        Integration Tests                               ###
+###############################################################################
+
+# Integration tests only
+.PHONY: test-integration
+test-integration:
+	@echo "Running integration tests..."
+	go test -tags=integration -timeout=15m ./...
+
+# End-to-end tests
+.PHONY: test-e2e
+test-e2e:
+	@echo "Running end-to-end tests..."
+	go test -tags=e2e -timeout=30m ./tests/e2e/...
+
+###############################################################################
+###                          Full Test Suite                               ###
+###############################################################################
+
+# Full test suite with race detection (for CI/release)
+.PHONY: test-full
+test-full:
+	@echo "Running full test suite with race detection..."
+	go install github.com/ory/go-acc@v0.2.6
+	go-acc -o coverage.txt ./... -- -v --race -timeout=20m
+
+# Full test suite without race detection (faster)
+.PHONY: test-full-fast
+test-full-fast:
+	@echo "Running full test suite (no race detection)..."
+	go test -p $(TEST_PARALLELISM) -parallel $(TEST_PARALLEL_WITHIN_PKG) \
+		-coverprofile=coverage.txt -covermode=atomic -timeout=$(TEST_TIMEOUT) ./...
+
+###############################################################################
+###                         Development Helpers                            ###
+###############################################################################
+
+# Run tests that are likely to fail during development
+.PHONY: test-changed
+test-changed:
+	@echo "Running tests for recently changed files..."
+	@git diff --name-only HEAD~1 | grep "_test\.go$$" | xargs -I {} dirname {} | sort -u | xargs -I {} go test -v {}
+
+# Run failing tests from last run
+.PHONY: test-failing
+test-failing:
+	@echo "Re-running previously failing tests..."
+	go test -json ./... 2>/dev/null | jq -r 'select(.Action=="fail") | .Package' | sort -u | xargs -I {} go test -v {}
+
+# Benchmark tests
+.PHONY: test-bench
+test-bench:
+	@echo "Running benchmark tests..."
+	go test -bench=. -benchmem ./...
+
+###############################################################################
+###                            Test Analysis                               ###
+###############################################################################
+
+# Analyze test performance
+.PHONY: test-profile
+test-profile:
+	@echo "Profiling test performance..."
+	go test -json ./... | jq -r 'select(.Action=="pass" and .Test != null) | "\(.Elapsed // 0) \(.Package) \(.Test)"' | sort -nr | head -20
+
+# Count tests by package
+.PHONY: test-count
+test-count:
+	@echo "Test count by package:"
+	@find . -name "*_test.go" -exec dirname {} \; | sort | uniq -c | sort -nr
+
+###############################################################################
+###                         Continuous Integration                         ###
+###############################################################################
+
+# CI pipeline: fast feedback
+.PHONY: ci-test-fast
+ci-test-fast: test-unit test-quick test-types
+
+# CI pipeline: comprehensive (for main branch)
+.PHONY: ci-test-full
+ci-test-full: test-full-fast test-integration
+
+# Pre-commit testing
+.PHONY: pre-commit
+pre-commit: test-unit test-changed
+
+###############################################################################
+###                           Docker Testing                               ###
+###############################################################################
+
+# Run tests in clean Docker environment
+.PHONY: test-docker
+test-docker:
+	@echo "Running tests in Docker..."
+	docker run --rm -v $(PWD):/workspace -w /workspace golang:1.22 make test-full-fast
+
+###############################################################################
+###                              Cleanup                                   ###
+###############################################################################
+
+.PHONY: test-clean
+test-clean:
+	@echo "Cleaning test artifacts..."
+	go clean -testcache
+	rm -f coverage.txt coverage.html
+	find . -name "*.test" -delete
+
+###############################################################################
+###                               Help                                     ###
+###############################################################################
+
+.PHONY: test-help
+test-help:
+	@echo "Available test targets:"
+	@echo ""
+	@echo "Fast Tests:"
+	@echo "  test-unit      - Unit tests only (no integration, no race detection)"
+	@echo "  test-quick     - Quick smoke tests for core modules"
+	@echo "  test-types     - Type validation tests only"
+	@echo ""
+	@echo "Development:"
+	@echo "  test-changed   - Tests for recently changed files"
+	@echo "  test-failing   - Re-run previously failing tests"
+	@echo "  pre-commit     - Pre-commit test suite"
+	@echo ""
+	@echo "Module-specific:"
+	@echo "  test-dymns     - Test dymns module"
+	@echo "  test-rollapp   - Test rollapp module"
+	@echo "  test-streamer  - Test streamer module"
+	@echo ""
+	@echo "Comprehensive:"
+	@echo "  test-full      - Full test suite with race detection"
+	@echo "  test-full-fast - Full test suite without race detection"
+	@echo "  test-integration - Integration tests only"
+	@echo ""
+	@echo "Analysis:"
+	@echo "  test-profile   - Analyze test performance"
+	@echo "  test-count     - Count tests by package"
+	@echo ""
+	@echo "CI/CD:"
+	@echo "  ci-test-fast   - Fast CI pipeline"
+	@echo "  ci-test-full   - Comprehensive CI pipeline"
+
+# Usage examples:
+# make test-unit              # Fast development testing
+# make test-quick             # Very fast smoke testing  
+# make test-dymns             # Test specific module
+# make test-full-fast         # Full suite without race detection
+# make TEST_PARALLELISM=8 test-parallel  # Custom parallelization
