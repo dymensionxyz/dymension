@@ -140,7 +140,7 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 	return &types.MsgAddToGaugeResponse{}, nil
 }
 
-// chargeGaugesFee deducts a fee in the base denom from the specified address.
+// ChargeGaugesFee deducts a fee in the base denom from the specified address.
 // The fee is charged from the payer and sent to x/txfees to be burned.
 func (k Keeper) ChargeGaugesFee(ctx sdk.Context, payer sdk.AccAddress, fee math.Int) (err error) {
 	feeDenom, err := k.tk.GetBaseDenom(ctx)

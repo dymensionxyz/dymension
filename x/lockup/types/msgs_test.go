@@ -220,7 +220,7 @@ func TestMsgExtendLockup(t *testing.T) {
 	}
 }
 
-// // Test authz serialize and de-serializes for lockup msg.
+// Test authz serialize and de-serializes for lockup msg.
 func TestAuthzMsg(t *testing.T) {
 	app := apptesting.Setup(t)
 

@@ -151,7 +151,7 @@ func (lbc BondingCurve) TokensForExactInAmount(currX, spendAmt math.Int) (math.I
 		return math.ZeroInt(), err
 	}
 
-	return ScaleToBase(tokens, lbc.LiquidityDecimals()), nil
+	return ScaleToBase(tokens, lbc.SupplyDecimals()), nil
 }
 
 /* --------------------------- internal functions --------------------------- */
