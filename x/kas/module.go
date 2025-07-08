@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"cosmossdk.io/core/appmodule"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,7 +14,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/dymension/v3/x/kas/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/kas/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
 )
@@ -131,3 +134,16 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 func (AppModule) ConsensusVersion() uint64 { return 1 }
+
+func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
+	return &autocliv1.ModuleOptions{
+		Tx: &autocliv1.ServiceCommandDescriptor{
+			Service:              "dymensionxyz.dymension.kas.Msg",
+			EnhanceCustomCommand: true,
+		},
+	}
+}
+
+func (am AppModule) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
+}

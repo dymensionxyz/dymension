@@ -50,7 +50,6 @@ import (
 
 	v047 "github.com/cosmos/cosmos-sdk/x/genutil/migrations/v047"
 	forwardcli "github.com/dymensionxyz/dymension/v3/x/forward/cli"
-	kascli "github.com/dymensionxyz/dymension/v3/x/kas/client/cli"
 	ethclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
 	ethservercfg "github.com/evmos/ethermint/server/config"
@@ -282,7 +281,6 @@ func queryCommand() *cobra.Command {
 		server.QueryBlockResultsCmd(),
 		rpc.ValidatorCommand(),
 		forwardcli.GetQueryCmd(),
-		kascli.GetTxCmd(),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
