@@ -248,8 +248,7 @@ require (
 )
 
 replace (
-	// github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250611094246-7e116f7ab4f4
-	github.com/bcp-innovations/hyperlane-cosmos => /Users/danwt/Documents/dym/d-hyperlane-cosmos
+	github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250708152202-1417b7791dbd
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250612084608-07f1611f6247
 	// use dymension forks
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
