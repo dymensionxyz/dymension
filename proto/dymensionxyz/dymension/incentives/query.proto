@@ -156,7 +156,7 @@ message UpcomingGaugesPerDenomResponse {
 
 message QueryLockableDurationsRequest {}
 message QueryLockableDurationsResponse {
-  // Time durations that users can lock coins for in order to recieve rewards
+  // Time durations that users can lock coins for in order to receive rewards
   repeated google.protobuf.Duration lockable_durations = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
