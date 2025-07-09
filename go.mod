@@ -248,7 +248,7 @@ require (
 )
 
 replace (
-	github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250611094246-7e116f7ab4f4
+	github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250708152202-1417b7791dbd
 	// these have fake crypto stuff
 	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.38.6-0.20250514160822-ef32bdee75e3
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.50.14-0.20250625114439-091c4e9aa0e1
