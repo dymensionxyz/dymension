@@ -189,16 +189,17 @@ func createIsm(ctx setupCtx, validators []string, threshold uint32) (util.HexAdd
 		return util.HexAddress{}, fmt.Errorf("query isms after creation: %w", err)
 	}
 
-	for _, anyIsm := range respAfter.Isms {
-		var ism ismtypes.HyperlaneInterchainSecurityModule
-		if err := ctx.registry.UnpackAny(anyIsm, &ism); err != nil {
-			return util.HexAddress{}, fmt.Errorf("unpack ism any: %w", err)
-		}
-		id, _ := ism.GetId()
-		return id, nil
+	if len(respAfter.Isms) == 0 {
+		return util.HexAddress{}, fmt.Errorf("no isms found")
 	}
 
-	return util.HexAddress{}, fmt.Errorf("find newly created ISM")
+	anyIsm := respAfter.Isms[0]
+	var ism ismtypes.HyperlaneInterchainSecurityModule
+	if err := ctx.registry.UnpackAny(anyIsm, &ism); err != nil {
+		return util.HexAddress{}, fmt.Errorf("unpack ism any: %w", err)
+	}
+	id, _ := ism.GetId()
+	return id, nil
 }
 
 func createMailbox(ctx setupCtx, ismId util.HexAddress, hubDomain uint32) (util.HexAddress, error) {
@@ -243,15 +244,16 @@ func createMerkleHook(ctx setupCtx, mailboxId util.HexAddress) (util.HexAddress,
 		return util.HexAddress{}, fmt.Errorf("query hooks after creation: %w", err)
 	}
 
-	for _, hook := range hooksAfter.MerkleTreeHooks {
-		hookId, err := util.DecodeHexAddress(hook.Id)
-		if err != nil {
-			return util.HexAddress{}, fmt.Errorf("decode created hook ID '%s': %w", hook.Id, err)
-		}
-		return hookId, nil
+	if len(hooksAfter.MerkleTreeHooks) == 0 {
+		return util.HexAddress{}, fmt.Errorf("no merkle tree hooks found")
 	}
 
-	return util.HexAddress{}, fmt.Errorf("find newly created merkle hook")
+	hook := hooksAfter.MerkleTreeHooks[0]
+	hookId, err := util.DecodeHexAddress(hook.Id)
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("decode created hook ID '%s': %w", hook.Id, err)
+	}
+	return hookId, nil
 }
 
 func createNoopHook(ctx setupCtx) (util.HexAddress, error) {
@@ -270,10 +272,11 @@ func createNoopHook(ctx setupCtx) (util.HexAddress, error) {
 		return util.HexAddress{}, fmt.Errorf("query noop hooks after creation: %w", err)
 	}
 
-	for _, hook := range hooksAfter.NoopHooks {
-		return hook.Id, nil
+	if len(hooksAfter.NoopHooks) == 0 {
+		return util.HexAddress{}, fmt.Errorf("no noop hooks found")
 	}
-	return util.HexAddress{}, fmt.Errorf("find newly created noop hook")
+
+	return hooksAfter.NoopHooks[0].Id, nil
 }
 
 // TODO: needed? need to send from relayer?
@@ -322,15 +325,16 @@ func createSyntheticToken(ctx setupCtx, mailboxId util.HexAddress) (util.HexAddr
 		return util.HexAddress{}, fmt.Errorf("query tokens after creation: %w", err)
 	}
 
-	for _, token := range tokensAfter.Tokens {
-		tokenId, err := util.DecodeHexAddress(token.Id)
-		if err != nil {
-			return util.HexAddress{}, fmt.Errorf("decode created Token ID '%s': %w", token.Id, err)
-		}
-		return tokenId, nil
+	if len(tokensAfter.Tokens) == 0 {
+		return util.HexAddress{}, fmt.Errorf("no tokens found")
 	}
 
-	return util.HexAddress{}, fmt.Errorf("find newly created token")
+	token := tokensAfter.Tokens[0]
+	tokenId, err := util.DecodeHexAddress(token.Id)
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("decode created Token ID '%s': %w", token.Id, err)
+	}
+	return tokenId, nil
 }
 
 func enrollRemoteRouter(ctx setupCtx, tokenId util.HexAddress, domain uint32, addr string, gas uint64) error {
