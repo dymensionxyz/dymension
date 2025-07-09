@@ -18,5 +18,6 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	cmd.AddCommand(CmdSetupBridge())
 	return cmd
 }
