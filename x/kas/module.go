@@ -141,9 +141,17 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			Service:              "dymensionxyz.dymension.kas.Msg",
 			EnhanceCustomCommand: true,
 		},
+		Query: &autocliv1.ServiceCommandDescriptor{
+			Service:              "dymensionxyz.dymension.kas.Query",
+			EnhanceCustomCommand: true,
+		},
 	}
 }
 
 func (am AppModule) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
+}
+
+func (am AppModule) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
