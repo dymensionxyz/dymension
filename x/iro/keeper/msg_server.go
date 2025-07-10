@@ -19,7 +19,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// TradingEnable implements types.MsgServer.
+// EnableTrading implements types.MsgServer.
 func (m msgServer) EnableTrading(ctx context.Context, req *types.MsgEnableTrading) (*types.MsgEnableTradingResponse, error) {
 	owner, err := sdk.AccAddressFromBech32(req.Owner)
 	if err != nil {
