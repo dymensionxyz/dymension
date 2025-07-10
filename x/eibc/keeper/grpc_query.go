@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"slices"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -102,12 +103,7 @@ func isRollappId(rollappId string) filterOption {
 
 func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 	return func(order types.DemandOrder) bool {
-		for _, ot := range orderType {
-			if order.Type == ot {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(orderType, order.Type)
 	}
 }
 
