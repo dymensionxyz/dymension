@@ -403,7 +403,7 @@ func (s *KeeperTestSuite) TestBuyWithUSDC() {
 	s.Require().NoError(err)
 }
 
-// approxEqual checks if two values of different types are approximately equal
+// approxEqualInt checks if two values of different types are approximately equal
 func approxEqualInt(expected, actual, tolerance math.Int) error {
 	diff := expected.Sub(actual).Abs()
 	if diff.GTE(tolerance) {
