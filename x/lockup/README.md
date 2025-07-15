@@ -16,11 +16,11 @@ This module provides interfaces for other modules to iterate the locks efficient
 2. **[State](#state)**
 3. **[Messages](#messages)**
 4. **[Events](#events)**
-5. **[Keeper](#keeper)**
+5. **[Keepers](#keepers)**
 6. **[Hooks](#hooks)**
 7. **[Queries](#queries)**
 8. **[Transactions](#transactions)**
-9. **[Params](#params)**
+9. **[Parameters](#parameters)**
 10. **[Endblocker](#endblocker)**
 
 ## Concepts
