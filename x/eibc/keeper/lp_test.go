@@ -159,7 +159,7 @@ func (suite *KeeperTestSuite) TestLPQueriesByAddr() {
 		"dym1ra6le06p8lle3q6gnsmwz769t2kqld9pmden5k",
 		"dym10j59k4whfvtu5flc3lypsjmcyx3fn57ygw78du",
 	}
-	for i := range 6 {
+	for i := 0; i < 6; i++ {
 		_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 			Rollapp:   "1",
 			Denom:     "bbb",
