@@ -21,13 +21,15 @@ done
 cd ..
 
 # move proto files to the right places
-#
-# Note: Proto files are suffixed with the current binary version.
-cp -r github.com/dymensionxyz/dymension/v*/* ./
+# Find the first versioned directory and copy its contents
+if [ -d "github.com/dymensionxyz/dymension" ]; then
+    VERSION_DIR=$(ls -d github.com/dymensionxyz/dymension/v* 2>/dev/null | head -n 1)
+    if [ -n "$VERSION_DIR" ] && [ -d "$VERSION_DIR" ]; then
+        cp -r "$VERSION_DIR"/* ./
+    fi
+fi
 
 rm -rf github.com
-
-
 
 # TODO: Uncomment once ORM/Pulsar support is needed.
 #
