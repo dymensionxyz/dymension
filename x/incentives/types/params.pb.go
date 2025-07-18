@@ -85,7 +85,7 @@ type Params struct {
 	// distributed and is forfeited to the remaining distributees that are
 	// eligible
 	MinLockDuration time.Duration `protobuf:"bytes,8,opt,name=min_lock_duration,json=minLockDuration,proto3,stdduration" json:"min_lock_duration" yaml:"min_lock_duration"`
-	// RollappGaugesModes switches between wether rollapp gauge can distribute
+	// RollappGaugesModes switches between whether rollapp gauge can distribute
 	// rewards to only active rollapps or all rollapps can get rewards
 	RollappGaugesMode Params_RollappGaugesModes `protobuf:"varint,6,opt,name=rollapp_gauges_mode,json=rollappGaugesMode,proto3,enum=dymensionxyz.dymension.incentives.Params_RollappGaugesModes" json:"rollapp_gauges_mode,omitempty"`
 }

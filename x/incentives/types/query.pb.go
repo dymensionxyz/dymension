@@ -758,7 +758,7 @@ func (m *QueryLockableDurationsRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_QueryLockableDurationsRequest proto.InternalMessageInfo
 
 type QueryLockableDurationsResponse struct {
-	// Time durations that users can lock coins for in order to recieve rewards
+	// Time durations that users can lock coins for in order to receive rewards
 	LockableDurations []time.Duration `protobuf:"bytes,1,rep,name=lockable_durations,json=lockableDurations,proto3,stdduration" json:"lockable_durations" yaml:"lockable_durations"`
 }
 

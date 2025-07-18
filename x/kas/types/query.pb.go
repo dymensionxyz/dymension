@@ -263,7 +263,8 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// check if a withdrawal was processed yet or not
 	WithdrawalStatus(ctx context.Context, in *QueryWithdrawalStatusRequest, opts ...grpc.CallOption) (*QueryWithdrawalStatusResponse, error)
-	// get the current outpoint which must be spent in all newly signed transactions
+	// get the current outpoint which must be spent in all newly signed
+	// transactions
 	Outpoint(ctx context.Context, in *QueryOutpointRequest, opts ...grpc.CallOption) (*QueryOutpointResponse, error)
 }
 
@@ -297,7 +298,8 @@ func (c *queryClient) Outpoint(ctx context.Context, in *QueryOutpointRequest, op
 type QueryServer interface {
 	// check if a withdrawal was processed yet or not
 	WithdrawalStatus(context.Context, *QueryWithdrawalStatusRequest) (*QueryWithdrawalStatusResponse, error)
-	// get the current outpoint which must be spent in all newly signed transactions
+	// get the current outpoint which must be spent in all newly signed
+	// transactions
 	Outpoint(context.Context, *QueryOutpointRequest) (*QueryOutpointResponse, error)
 }
 
