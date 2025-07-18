@@ -5,21 +5,18 @@ package types
 
 import (
 	fmt "fmt"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	io "io"
+	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var (
-	_ = proto.Marshal
-	_ = fmt.Errorf
-	_ = math.Inf
-)
+var _ = proto.Marshal
+var _ = fmt.Errorf
+var _ = math.Inf
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -70,11 +67,9 @@ func (*TransactionOutpoint) ProtoMessage()    {}
 func (*TransactionOutpoint) Descriptor() ([]byte, []int) {
 	return fileDescriptor_23b35f6594a47d15, []int{0}
 }
-
 func (m *TransactionOutpoint) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *TransactionOutpoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_TransactionOutpoint.Marshal(b, m, deterministic)
@@ -87,15 +82,12 @@ func (m *TransactionOutpoint) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-
 func (m *TransactionOutpoint) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TransactionOutpoint.Merge(m, src)
 }
-
 func (m *TransactionOutpoint) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *TransactionOutpoint) XXX_DiscardUnknown() {
 	xxx_messageInfo_TransactionOutpoint.DiscardUnknown(m)
 }
@@ -132,11 +124,9 @@ func (*WithdrawalID) ProtoMessage()    {}
 func (*WithdrawalID) Descriptor() ([]byte, []int) {
 	return fileDescriptor_23b35f6594a47d15, []int{1}
 }
-
 func (m *WithdrawalID) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *WithdrawalID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_WithdrawalID.Marshal(b, m, deterministic)
@@ -149,15 +139,12 @@ func (m *WithdrawalID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-
 func (m *WithdrawalID) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_WithdrawalID.Merge(m, src)
 }
-
 func (m *WithdrawalID) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *WithdrawalID) XXX_DiscardUnknown() {
 	xxx_messageInfo_WithdrawalID.DiscardUnknown(m)
 }
@@ -187,11 +174,9 @@ func (*ProgressIndication) ProtoMessage()    {}
 func (*ProgressIndication) Descriptor() ([]byte, []int) {
 	return fileDescriptor_23b35f6594a47d15, []int{2}
 }
-
 func (m *ProgressIndication) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *ProgressIndication) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_ProgressIndication.Marshal(b, m, deterministic)
@@ -204,15 +189,12 @@ func (m *ProgressIndication) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-
 func (m *ProgressIndication) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ProgressIndication.Merge(m, src)
 }
-
 func (m *ProgressIndication) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *ProgressIndication) XXX_DiscardUnknown() {
 	xxx_messageInfo_ProgressIndication.DiscardUnknown(m)
 }
@@ -415,7 +397,6 @@ func encodeVarintD(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-
 func (m *TransactionOutpoint) Size() (n int) {
 	if m == nil {
 		return 0
@@ -467,11 +448,9 @@ func (m *ProgressIndication) Size() (n int) {
 func sovD(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
-
 func sozD(x uint64) (n int) {
 	return sovD(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-
 func (m *TransactionOutpoint) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -575,7 +554,6 @@ func (m *TransactionOutpoint) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *WithdrawalID) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -658,7 +636,6 @@ func (m *WithdrawalID) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *ProgressIndication) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -809,7 +786,6 @@ func (m *ProgressIndication) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func skipD(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

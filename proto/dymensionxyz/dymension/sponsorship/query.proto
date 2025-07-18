@@ -31,7 +31,7 @@ service Query {
 
   rpc EstimateClaim(QueryEstimateClaim) returns (QueryEstimateClaimResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/sponsorship/estimate_claim/{rollapp_id}/{address}";
+        "/dymensionxyz/dymension/sponsorship/estimate_claim/{address}/{rollapp_id}";
   }
 
   rpc Endorsement(QueryEndorsement) returns (QueryEndorsementResponse) {
@@ -70,8 +70,8 @@ message QueryDistributionResponse {
 }
 
 message QueryEstimateClaim {
-  string rollapp_id = 1;
-  string address = 2;
+  string address = 1;
+  string rollapp_id = 2;
 }
 
 message QueryEstimateClaimResponse {
