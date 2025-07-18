@@ -67,7 +67,7 @@ func (m MsgServer) ClaimRewards(goCtx context.Context, msg *types.MsgClaimReward
 	// Don't check the error since it's part of validation
 	sender := sdk.MustAccAddressFromBech32(msg.Sender)
 
-	err = m.k.Claim(ctx, sender, msg.GaugeId)
+	err = m.k.Claim(ctx, sender, msg.RollappId)
 	if err != nil {
 		return nil, err
 	}

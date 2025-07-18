@@ -3,6 +3,7 @@ package dymensionxyz.dymension.sponsorship;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "google/api/annotations.proto";
 import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
 
@@ -26,6 +27,16 @@ service Query {
       returns (QueryDistributionResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/distribution";
+  }
+
+  rpc EstimateClaim(QueryEstimateClaim) returns (QueryEstimateClaimResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/sponsorship/estimate_claim/{rollapp_id}/{address}";
+  }
+
+  rpc Endorsement(QueryEndorsement) returns (QueryEndorsementResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/sponsorship/endorsement/{rollapp_id}";
   }
 }
 
@@ -56,4 +67,24 @@ message QueryDistributionRequest {}
 message QueryDistributionResponse {
   // Distribution is the current voting power distribution among gauges.
   Distribution distribution = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryEstimateClaim {
+  string rollapp_id = 1;
+  string address = 2;
+}
+
+message QueryEstimateClaimResponse {
+  repeated cosmos.base.v1beta1.Coin reward = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message QueryEndorsement {
+  string rollapp_id = 1;
+}
+
+message QueryEndorsementResponse {
+  Endorsement endorsement = 1 [(gogoproto.nullable) = false];
 }
