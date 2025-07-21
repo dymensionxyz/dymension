@@ -139,7 +139,7 @@ func CmdQueryEstimateClaim() *cobra.Command {
 func CmdQueryEndorsement() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "endorsement [rollapp-id]",
-		Short: "Get the vote by the voter address",
+		Short: "Get endorsement information for a rollapp",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
