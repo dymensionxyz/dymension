@@ -123,7 +123,7 @@ func (s *GenesisBridgeSuite) TestHappyPath_GenesisAccounts() {
 	s.Require().Equal(gAccounts[0].Amount, balance.Amount)
 }
 
-// TestHappyPath_GenesisAccounts_IRO tests a valid genesis info with genesis accounts, including IRO plan
+// TestIRO tests a valid genesis info with genesis accounts, including IRO plan
 // We expect the IRO plan to be settled once the genesis bridge is completed
 func (s *GenesisBridgeSuite) TestIRO() {
 	// fund the rollapp owner account for iro creation fee
