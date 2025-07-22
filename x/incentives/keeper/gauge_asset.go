@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"cosmossdk.io/math"
@@ -17,13 +18,7 @@ func (k Keeper) CreateAssetGauge(ctx sdk.Context, isPerpetual bool, owner sdk.Ac
 	// Ensure that this gauge's duration is one of the allowed durations on chain
 	durations := k.GetLockableDurations(ctx)
 	if distrTo.Duration > 0 {
-		durationOk := false
-		for _, duration := range durations {
-			if duration == distrTo.Duration {
-				durationOk = true
-				break
-			}
-		}
+		durationOk := slices.Contains(durations, distrTo.Duration)
 		if !durationOk {
 			return 0, fmt.Errorf("invalid duration: %d", distrTo.Duration)
 		}

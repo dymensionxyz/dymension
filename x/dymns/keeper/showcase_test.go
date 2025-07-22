@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -871,11 +872,8 @@ func (m reqDymName) get() *dymnstypes.DymName {
 func (m reqDymName) MustHasConfig(filter func(cfg dymnstypes.DymNameConfig) bool) {
 	dymName := m.get()
 	var anyMatch bool
-	for _, cfg := range dymName.Configs {
-		if filter(cfg) {
-			anyMatch = true
-			break
-		}
+	if slices.ContainsFunc(dymName.Configs, filter) {
+		anyMatch = true
 	}
 	m.scs.s.Require().True(anyMatch)
 }
