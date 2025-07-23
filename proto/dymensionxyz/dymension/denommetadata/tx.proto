@@ -13,10 +13,10 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  rpc RegisterDenomMetadata(MsgRegisterDenomMetadata) returns (MsgRegisterDenomMetadataResponse);
+  rpc RegisterHLTokenDenomMetadata(MsgRegisterHLTokenDenomMetadata) returns (MsgRegisterHLTokenDenomMetadataResponse);
 }
 
-message MsgRegisterDenomMetadata {
+message MsgRegisterHLTokenDenomMetadata {
   option (cosmos.msg.v1.signer) = "hl_token_owner";
 
   string hl_token_owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -28,4 +28,4 @@ message MsgRegisterDenomMetadata {
   cosmos.bank.v1beta1.Metadata token_metadata = 3 [(gogoproto.nullable) = false];
 }
 
-message MsgRegisterDenomMetadataResponse {}
+message MsgRegisterHLTokenDenomMetadataResponse {}

@@ -35,24 +35,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MsgRegisterDenomMetadata struct {
+type MsgRegisterHLTokenDenomMetadata struct {
 	HlTokenOwner  string                                                      `protobuf:"bytes,1,opt,name=hl_token_owner,json=hlTokenOwner,proto3" json:"hl_token_owner,omitempty"`
 	HlTokenId     github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,2,opt,name=hl_token_id,json=hlTokenId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"hl_token_id"`
 	TokenMetadata types.Metadata                                              `protobuf:"bytes,3,opt,name=token_metadata,json=tokenMetadata,proto3" json:"token_metadata"`
 }
 
-func (m *MsgRegisterDenomMetadata) Reset()         { *m = MsgRegisterDenomMetadata{} }
-func (m *MsgRegisterDenomMetadata) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterDenomMetadata) ProtoMessage()    {}
-func (*MsgRegisterDenomMetadata) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterHLTokenDenomMetadata) Reset()         { *m = MsgRegisterHLTokenDenomMetadata{} }
+func (m *MsgRegisterHLTokenDenomMetadata) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterHLTokenDenomMetadata) ProtoMessage()    {}
+func (*MsgRegisterHLTokenDenomMetadata) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cde1dd805aa8cece, []int{0}
 }
-func (m *MsgRegisterDenomMetadata) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterHLTokenDenomMetadata) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterDenomMetadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterHLTokenDenomMetadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterDenomMetadata.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterHLTokenDenomMetadata.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -62,47 +62,49 @@ func (m *MsgRegisterDenomMetadata) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterDenomMetadata) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterDenomMetadata.Merge(m, src)
+func (m *MsgRegisterHLTokenDenomMetadata) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterHLTokenDenomMetadata.Merge(m, src)
 }
-func (m *MsgRegisterDenomMetadata) XXX_Size() int {
+func (m *MsgRegisterHLTokenDenomMetadata) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterDenomMetadata) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterDenomMetadata.DiscardUnknown(m)
+func (m *MsgRegisterHLTokenDenomMetadata) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterHLTokenDenomMetadata.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterDenomMetadata proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterHLTokenDenomMetadata proto.InternalMessageInfo
 
-func (m *MsgRegisterDenomMetadata) GetHlTokenOwner() string {
+func (m *MsgRegisterHLTokenDenomMetadata) GetHlTokenOwner() string {
 	if m != nil {
 		return m.HlTokenOwner
 	}
 	return ""
 }
 
-func (m *MsgRegisterDenomMetadata) GetTokenMetadata() types.Metadata {
+func (m *MsgRegisterHLTokenDenomMetadata) GetTokenMetadata() types.Metadata {
 	if m != nil {
 		return m.TokenMetadata
 	}
 	return types.Metadata{}
 }
 
-type MsgRegisterDenomMetadataResponse struct {
+type MsgRegisterHLTokenDenomMetadataResponse struct {
 }
 
-func (m *MsgRegisterDenomMetadataResponse) Reset()         { *m = MsgRegisterDenomMetadataResponse{} }
-func (m *MsgRegisterDenomMetadataResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRegisterDenomMetadataResponse) ProtoMessage()    {}
-func (*MsgRegisterDenomMetadataResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) Reset() {
+	*m = MsgRegisterHLTokenDenomMetadataResponse{}
+}
+func (m *MsgRegisterHLTokenDenomMetadataResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterHLTokenDenomMetadataResponse) ProtoMessage()    {}
+func (*MsgRegisterHLTokenDenomMetadataResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cde1dd805aa8cece, []int{1}
 }
-func (m *MsgRegisterDenomMetadataResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRegisterDenomMetadataResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRegisterDenomMetadataResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRegisterHLTokenDenomMetadataResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -112,21 +114,21 @@ func (m *MsgRegisterDenomMetadataResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *MsgRegisterDenomMetadataResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRegisterDenomMetadataResponse.Merge(m, src)
+func (m *MsgRegisterHLTokenDenomMetadataResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterHLTokenDenomMetadataResponse.Merge(m, src)
 }
-func (m *MsgRegisterDenomMetadataResponse) XXX_Size() int {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRegisterDenomMetadataResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRegisterDenomMetadataResponse.DiscardUnknown(m)
+func (m *MsgRegisterHLTokenDenomMetadataResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterHLTokenDenomMetadataResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRegisterDenomMetadataResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRegisterHLTokenDenomMetadataResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgRegisterDenomMetadata)(nil), "dymensionxyz.dymension.denommetadata.MsgRegisterDenomMetadata")
-	proto.RegisterType((*MsgRegisterDenomMetadataResponse)(nil), "dymensionxyz.dymension.denommetadata.MsgRegisterDenomMetadataResponse")
+	proto.RegisterType((*MsgRegisterHLTokenDenomMetadata)(nil), "dymensionxyz.dymension.denommetadata.MsgRegisterHLTokenDenomMetadata")
+	proto.RegisterType((*MsgRegisterHLTokenDenomMetadataResponse)(nil), "dymensionxyz.dymension.denommetadata.MsgRegisterHLTokenDenomMetadataResponse")
 }
 
 func init() {
@@ -134,37 +136,37 @@ func init() {
 }
 
 var fileDescriptor_cde1dd805aa8cece = []byte{
-	// 471 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0xc1, 0x8a, 0xd3, 0x40,
-	0x18, 0xee, 0xec, 0xaa, 0xb0, 0x59, 0xdd, 0x43, 0x5c, 0x31, 0x16, 0x4c, 0x4b, 0xf1, 0xb0, 0x2c,
-	0x74, 0x86, 0xee, 0xde, 0x56, 0x10, 0xac, 0x22, 0x2a, 0x14, 0x21, 0xee, 0xc9, 0x4b, 0x99, 0x34,
-	0xbf, 0xd3, 0xa1, 0x99, 0x99, 0x90, 0x99, 0xd6, 0xc6, 0x93, 0xf8, 0x04, 0xbe, 0x81, 0x3e, 0x81,
-	0xec, 0xc1, 0x87, 0xd8, 0xe3, 0xe2, 0x49, 0x3c, 0x2c, 0xd2, 0x1e, 0xf6, 0x35, 0x24, 0xc9, 0xa4,
-	0xd4, 0x42, 0x40, 0xd8, 0x53, 0xf2, 0xe5, 0xfb, 0xbe, 0xf9, 0xbf, 0x7f, 0xfe, 0x3f, 0x4e, 0x37,
-	0xca, 0x04, 0x48, 0xcd, 0x95, 0x9c, 0x67, 0x1f, 0xc9, 0x0a, 0x90, 0x08, 0xa4, 0x12, 0x02, 0x0c,
-	0x8d, 0xa8, 0xa1, 0xc4, 0xcc, 0x71, 0x92, 0x2a, 0xa3, 0xdc, 0x47, 0xeb, 0x72, 0xbc, 0x02, 0xf8,
-	0x1f, 0x79, 0xd3, 0x1f, 0x29, 0x2d, 0x94, 0x26, 0x21, 0x95, 0x13, 0x32, 0xeb, 0x85, 0x60, 0x68,
-	0xaf, 0x00, 0xe5, 0x29, 0xcd, 0xfb, 0x96, 0x17, 0x9a, 0x91, 0x59, 0x2f, 0x7f, 0x58, 0xe2, 0x41,
-	0x49, 0x0c, 0x0b, 0x44, 0x4a, 0x60, 0xa9, 0x4e, 0x4d, 0xd0, 0x09, 0xd5, 0x24, 0xb2, 0x9a, 0x7d,
-	0xa6, 0x98, 0x2a, 0xbd, 0xf9, 0x5b, 0x75, 0x28, 0x53, 0x8a, 0xc5, 0x40, 0x0a, 0x14, 0x4e, 0xdf,
-	0x13, 0x2a, 0x33, 0x4b, 0xb5, 0x36, 0x29, 0xc3, 0x05, 0x68, 0x43, 0x45, 0x52, 0x0a, 0x3a, 0xdf,
-	0xb6, 0x1c, 0x6f, 0xa0, 0x59, 0x00, 0x8c, 0x6b, 0x03, 0xe9, 0xf3, 0xbc, 0xcd, 0x81, 0x6d, 0xd3,
-	0x7d, 0xe2, 0xec, 0x8d, 0xe3, 0xa1, 0x51, 0x13, 0x90, 0x43, 0xf5, 0x41, 0x42, 0xea, 0xa1, 0x36,
-	0x3a, 0xd8, 0xe9, 0x7b, 0x3f, 0x7f, 0x74, 0xf7, 0x6d, 0xf8, 0xa7, 0x51, 0x94, 0x82, 0xd6, 0x6f,
-	0x4d, 0xca, 0x25, 0x0b, 0x6e, 0x8f, 0xe3, 0xd3, 0x5c, 0xfe, 0x26, 0x57, 0xbb, 0x23, 0x67, 0x77,
-	0xe5, 0xe7, 0x91, 0xb7, 0x55, 0x98, 0x9f, 0x9d, 0x5f, 0xb6, 0x1a, 0xbf, 0x2f, 0x5b, 0x8f, 0x19,
-	0x37, 0xe3, 0x69, 0x88, 0x47, 0x4a, 0x90, 0x70, 0x94, 0x74, 0xb9, 0x94, 0x6a, 0x46, 0x0d, 0x57,
-	0x52, 0x93, 0x71, 0x96, 0x40, 0x1a, 0x53, 0x09, 0x5d, 0x7b, 0x91, 0x53, 0xc3, 0x63, 0xfc, 0x12,
-	0xe6, 0xb6, 0x5a, 0xb0, 0x63, 0xeb, 0xbc, 0x8a, 0xdc, 0xd7, 0xce, 0x5e, 0x59, 0xa1, 0x9a, 0x8e,
-	0xb7, 0xdd, 0x46, 0x07, 0xbb, 0x47, 0x0f, 0xb1, 0x4d, 0x58, 0xcc, 0xc5, 0x0e, 0x09, 0x57, 0xbd,
-	0xf5, 0x6f, 0xe4, 0x31, 0x82, 0x3b, 0x85, 0xb5, 0xfa, 0x78, 0x72, 0xf7, 0xf3, 0xd5, 0xd9, 0xe1,
-	0x46, 0xcf, 0x9d, 0x8e, 0xd3, 0xae, 0xbb, 0xa1, 0x00, 0x74, 0xa2, 0xa4, 0x86, 0xa3, 0xef, 0xc8,
-	0xd9, 0x1e, 0x68, 0xe6, 0x7e, 0x45, 0xce, 0xbd, 0x9a, 0xbb, 0xc4, 0xff, 0xb3, 0x59, 0xb8, 0xae,
-	0x52, 0xf3, 0xc5, 0xf5, 0xfc, 0x55, 0xd2, 0xe6, 0xcd, 0x4f, 0x57, 0x67, 0x87, 0xa8, 0x7f, 0x7a,
-	0xbe, 0xf0, 0xd1, 0xc5, 0xc2, 0x47, 0x7f, 0x16, 0x3e, 0xfa, 0xb2, 0xf4, 0x1b, 0x17, 0x4b, 0xbf,
-	0xf1, 0x6b, 0xe9, 0x37, 0xde, 0x9d, 0xac, 0xcd, 0xa5, 0x66, 0x25, 0x67, 0xc7, 0x64, 0xbe, 0xf9,
-	0x03, 0x65, 0x09, 0xe8, 0xf0, 0x56, 0xb1, 0x54, 0xc7, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xf9,
-	0x21, 0x88, 0xae, 0x75, 0x03, 0x00, 0x00,
+	// 478 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0x4f, 0x6b, 0x13, 0x41,
+	0x14, 0xcf, 0xb4, 0x2a, 0x74, 0xab, 0x3d, 0xac, 0x05, 0x63, 0xd0, 0x4d, 0x09, 0x82, 0xb5, 0x90,
+	0x19, 0xd2, 0xde, 0x2a, 0x08, 0x46, 0x85, 0x2a, 0x06, 0x61, 0xed, 0xc9, 0x4b, 0x98, 0xcd, 0x3e,
+	0x27, 0x43, 0x76, 0xe7, 0x2d, 0x3b, 0x93, 0x98, 0xf5, 0x24, 0x7e, 0x02, 0xbf, 0x85, 0xd7, 0x1e,
+	0xfa, 0x0d, 0xbc, 0xf4, 0x58, 0x3c, 0x89, 0x87, 0x22, 0xc9, 0xa1, 0x5f, 0x43, 0x76, 0x77, 0x36,
+	0xd4, 0x40, 0xad, 0x07, 0x4f, 0xbb, 0xbf, 0xfd, 0xfd, 0xde, 0x9f, 0xdf, 0x7b, 0x6f, 0x9d, 0x76,
+	0x98, 0xc5, 0xa0, 0xb4, 0x44, 0x35, 0xcd, 0x3e, 0xb2, 0x05, 0x60, 0x21, 0x28, 0x8c, 0x63, 0x30,
+	0x3c, 0xe4, 0x86, 0x33, 0x33, 0xa5, 0x49, 0x8a, 0x06, 0xdd, 0x07, 0x17, 0xe5, 0x74, 0x01, 0xe8,
+	0x1f, 0xf2, 0x86, 0x37, 0x40, 0x1d, 0xa3, 0x66, 0x01, 0x57, 0x23, 0x36, 0xe9, 0x04, 0x60, 0x78,
+	0xa7, 0x00, 0x65, 0x96, 0xc6, 0x1d, 0xcb, 0xc7, 0x5a, 0xb0, 0x49, 0x27, 0x7f, 0x58, 0xe2, 0x6e,
+	0x49, 0xf4, 0x0b, 0xc4, 0x4a, 0x60, 0xa9, 0xd6, 0x25, 0x8d, 0x8e, 0xb8, 0x66, 0xa1, 0xd5, 0x6c,
+	0x0a, 0x14, 0x58, 0xc6, 0xe6, 0x6f, 0x55, 0x52, 0x81, 0x28, 0x22, 0x60, 0x05, 0x0a, 0xc6, 0xef,
+	0x19, 0x57, 0x99, 0xa5, 0x9a, 0xcb, 0x94, 0x91, 0x31, 0x68, 0xc3, 0xe3, 0xa4, 0x14, 0xb4, 0xbe,
+	0xae, 0x38, 0xcd, 0x9e, 0x16, 0x3e, 0x08, 0xa9, 0x0d, 0xa4, 0x07, 0xaf, 0x0f, 0x71, 0x04, 0xea,
+	0x79, 0xee, 0xb6, 0x67, 0xdd, 0xba, 0x4f, 0x9c, 0x8d, 0x61, 0xd4, 0x37, 0x39, 0xd1, 0xc7, 0x0f,
+	0x0a, 0xd2, 0x3a, 0xd9, 0x22, 0xdb, 0x6b, 0xdd, 0xfa, 0xf7, 0xe3, 0xf6, 0xa6, 0xf5, 0xf0, 0x34,
+	0x0c, 0x53, 0xd0, 0xfa, 0xad, 0x49, 0xa5, 0x12, 0xfe, 0xcd, 0x61, 0x54, 0xe4, 0x79, 0x93, 0xab,
+	0xdd, 0x81, 0xb3, 0xbe, 0x88, 0x97, 0x61, 0x7d, 0xa5, 0x08, 0x7e, 0x76, 0x72, 0xd6, 0xac, 0xfd,
+	0x3c, 0x6b, 0x3e, 0x16, 0xd2, 0x0c, 0xc7, 0x01, 0x1d, 0x60, 0xcc, 0x82, 0x41, 0xd2, 0x96, 0x4a,
+	0xe1, 0x84, 0x1b, 0x89, 0x4a, 0xb3, 0x61, 0x96, 0x40, 0x1a, 0x71, 0x05, 0x6d, 0x3b, 0xcf, 0xb1,
+	0x91, 0x11, 0x3d, 0x80, 0xa9, 0xad, 0xe6, 0xaf, 0xd9, 0x3a, 0x2f, 0x43, 0xf7, 0x95, 0xb3, 0x51,
+	0x56, 0xa8, 0x96, 0x54, 0x5f, 0xdd, 0x22, 0xdb, 0xeb, 0xbb, 0xf7, 0xa9, 0xed, 0xb0, 0x58, 0x8f,
+	0xdd, 0x15, 0xad, 0xbc, 0x75, 0xaf, 0xe5, 0x6d, 0xf8, 0xb7, 0x8a, 0xd0, 0xea, 0xe3, 0xfe, 0xed,
+	0xcf, 0xe7, 0x47, 0x3b, 0x4b, 0x9e, 0x5b, 0x8f, 0x9c, 0x87, 0x57, 0x0c, 0xca, 0x07, 0x9d, 0xa0,
+	0xd2, 0xb0, 0xfb, 0x8d, 0x38, 0xab, 0x3d, 0x2d, 0xdc, 0x63, 0xe2, 0xdc, 0xfb, 0xeb, 0x64, 0x5f,
+	0xd0, 0x7f, 0x39, 0x37, 0x7a, 0x45, 0xdd, 0x46, 0xef, 0xbf, 0xa4, 0xa9, 0xda, 0x6f, 0x5c, 0xff,
+	0x74, 0x7e, 0xb4, 0x43, 0xba, 0x87, 0x27, 0x33, 0x8f, 0x9c, 0xce, 0x3c, 0xf2, 0x6b, 0xe6, 0x91,
+	0x2f, 0x73, 0xaf, 0x76, 0x3a, 0xf7, 0x6a, 0x3f, 0xe6, 0x5e, 0xed, 0xdd, 0xfe, 0x85, 0x9d, 0x5d,
+	0x72, 0xb5, 0x93, 0x3d, 0x36, 0x5d, 0xfe, 0xc7, 0xb2, 0x04, 0x74, 0x70, 0xa3, 0xb8, 0xbb, 0xbd,
+	0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x0d, 0xbf, 0x17, 0x8e, 0x98, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -179,7 +181,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	RegisterDenomMetadata(ctx context.Context, in *MsgRegisterDenomMetadata, opts ...grpc.CallOption) (*MsgRegisterDenomMetadataResponse, error)
+	RegisterHLTokenDenomMetadata(ctx context.Context, in *MsgRegisterHLTokenDenomMetadata, opts ...grpc.CallOption) (*MsgRegisterHLTokenDenomMetadataResponse, error)
 }
 
 type msgClient struct {
@@ -190,9 +192,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) RegisterDenomMetadata(ctx context.Context, in *MsgRegisterDenomMetadata, opts ...grpc.CallOption) (*MsgRegisterDenomMetadataResponse, error) {
-	out := new(MsgRegisterDenomMetadataResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.denommetadata.Msg/RegisterDenomMetadata", in, out, opts...)
+func (c *msgClient) RegisterHLTokenDenomMetadata(ctx context.Context, in *MsgRegisterHLTokenDenomMetadata, opts ...grpc.CallOption) (*MsgRegisterHLTokenDenomMetadataResponse, error) {
+	out := new(MsgRegisterHLTokenDenomMetadataResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.denommetadata.Msg/RegisterHLTokenDenomMetadata", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -201,35 +203,35 @@ func (c *msgClient) RegisterDenomMetadata(ctx context.Context, in *MsgRegisterDe
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	RegisterDenomMetadata(context.Context, *MsgRegisterDenomMetadata) (*MsgRegisterDenomMetadataResponse, error)
+	RegisterHLTokenDenomMetadata(context.Context, *MsgRegisterHLTokenDenomMetadata) (*MsgRegisterHLTokenDenomMetadataResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) RegisterDenomMetadata(ctx context.Context, req *MsgRegisterDenomMetadata) (*MsgRegisterDenomMetadataResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterDenomMetadata not implemented")
+func (*UnimplementedMsgServer) RegisterHLTokenDenomMetadata(ctx context.Context, req *MsgRegisterHLTokenDenomMetadata) (*MsgRegisterHLTokenDenomMetadataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterHLTokenDenomMetadata not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_RegisterDenomMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRegisterDenomMetadata)
+func _Msg_RegisterHLTokenDenomMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterHLTokenDenomMetadata)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RegisterDenomMetadata(ctx, in)
+		return srv.(MsgServer).RegisterHLTokenDenomMetadata(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.denommetadata.Msg/RegisterDenomMetadata",
+		FullMethod: "/dymensionxyz.dymension.denommetadata.Msg/RegisterHLTokenDenomMetadata",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RegisterDenomMetadata(ctx, req.(*MsgRegisterDenomMetadata))
+		return srv.(MsgServer).RegisterHLTokenDenomMetadata(ctx, req.(*MsgRegisterHLTokenDenomMetadata))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -239,15 +241,15 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RegisterDenomMetadata",
-			Handler:    _Msg_RegisterDenomMetadata_Handler,
+			MethodName: "RegisterHLTokenDenomMetadata",
+			Handler:    _Msg_RegisterHLTokenDenomMetadata_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "dymensionxyz/dymension/denommetadata/tx.proto",
 }
 
-func (m *MsgRegisterDenomMetadata) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterHLTokenDenomMetadata) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -257,12 +259,12 @@ func (m *MsgRegisterDenomMetadata) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterDenomMetadata) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterHLTokenDenomMetadata) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterDenomMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterHLTokenDenomMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -297,7 +299,7 @@ func (m *MsgRegisterDenomMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRegisterDenomMetadataResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -307,12 +309,12 @@ func (m *MsgRegisterDenomMetadataResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRegisterDenomMetadataResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRegisterDenomMetadataResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -331,7 +333,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgRegisterDenomMetadata) Size() (n int) {
+func (m *MsgRegisterHLTokenDenomMetadata) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -348,7 +350,7 @@ func (m *MsgRegisterDenomMetadata) Size() (n int) {
 	return n
 }
 
-func (m *MsgRegisterDenomMetadataResponse) Size() (n int) {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -363,7 +365,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgRegisterDenomMetadata) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterHLTokenDenomMetadata) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -386,10 +388,10 @@ func (m *MsgRegisterDenomMetadata) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterDenomMetadata: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterHLTokenDenomMetadata: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterDenomMetadata: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterHLTokenDenomMetadata: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -512,7 +514,7 @@ func (m *MsgRegisterDenomMetadata) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRegisterDenomMetadataResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRegisterHLTokenDenomMetadataResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -535,10 +537,10 @@ func (m *MsgRegisterDenomMetadataResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRegisterDenomMetadataResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRegisterHLTokenDenomMetadataResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRegisterDenomMetadataResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRegisterHLTokenDenomMetadataResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

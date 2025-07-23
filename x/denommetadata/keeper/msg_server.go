@@ -14,14 +14,17 @@ type msgServer struct {
 }
 
 // RegisterDenomMetadata implements types.MsgServer.
-func (m msgServer) RegisterDenomMetadata(goCtx context.Context, msg *types.MsgRegisterDenomMetadata) (*types.MsgRegisterDenomMetadataResponse, error) {
+func (m msgServer) RegisterHLTokenDenomMetadata(goCtx context.Context, msg *types.MsgRegisterHLTokenDenomMetadata) (*types.MsgRegisterHLTokenDenomMetadataResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	t, err := m.warpK.HypTokens.Get(ctx, msg.HlTokenId.GetInternalId())
 	if err != nil {
-		return nil, gerrc.ErrNotFound
+		return nil, gerrc.ErrNotFound.Wrap("token not found")
 	}
 	if t.Owner != msg.HlTokenOwner {
-		return nil, gerrc.ErrPermissionDenied
+		return nil, gerrc.ErrPermissionDenied.Wrap("token owner does not match")
+	}
+	if t.OriginDenom != msg.TokenMetadata.Base {
+		return nil, gerrc.ErrInvalidArgument.Wrap("token origin denom does not match base")
 	}
 
 	err = m.CreateDenomMetadata(sdk.UnwrapSDKContext(ctx), msg.TokenMetadata)
@@ -29,7 +32,7 @@ func (m msgServer) RegisterDenomMetadata(goCtx context.Context, msg *types.MsgRe
 		return nil, err
 	}
 
-	return &types.MsgRegisterDenomMetadataResponse{}, nil
+	return &types.MsgRegisterHLTokenDenomMetadataResponse{}, nil
 }
 
 func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
