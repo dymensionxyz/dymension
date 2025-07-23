@@ -8,7 +8,11 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
 
+	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 type KeeperTestSuite struct {
@@ -31,6 +35,30 @@ func (suite *KeeperTestSuite) TestCreateDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 	bankKeeper := suite.App.BankKeeper
 	err := keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
+	suite.Require().NoError(err)
+
+	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, suite.getDymMetadata().Base)
+	suite.Require().EqualValues(found, true)
+	suite.Require().EqualValues(denom.Symbol, suite.getDymMetadata().Symbol)
+}
+
+func (suite *KeeperTestSuite) TestCreateDenomHLToken() {
+	k := suite.App.DenomMetadataKeeper
+	bankKeeper := suite.App.BankKeeper
+
+	warpS := warpkeeper.NewMsgServerImpl(suite.App.HyperWarpKeeper)
+	msg0 := warptypes.MsgCreateSyntheticToken{}
+	res0, err := warpS.CreateSyntheticToken(suite.Ctx, &msg0)
+	suite.Require().NoError(err)
+
+	msg1 := types.MsgRegisterHLTokenDenomMetadata{
+		HlTokenId:     res0.Id,
+		HlTokenOwner:  suite.Ctx.GetSender().String(),
+		TokenMetadata: suite.getDymMetadata(),
+	}
+
+	s := keeper.NewMsgServerImpl(k)
+	res1, err := s.RegisterHLTokenDenomMetadata(suite.Ctx, &msg1)
 	suite.Require().NoError(err)
 
 	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, suite.getDymMetadata().Base)
