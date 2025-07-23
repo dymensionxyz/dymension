@@ -1,0 +1,31 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+import "cosmos/bank/v1beta1/bank.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "dymensionxyz/dymension/kas/d.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+  rpc RegisterDenomMetadata(MsgRegisterDenomMetadata) returns (MsgRegisterDenomMetadataResponse);
+}
+
+message MsgRegisterDenomMetadata {
+  option (cosmos.msg.v1.signer) = "hl_token_owner";
+
+  string hl_token_owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  string hl_token_id = 2 [
+    (gogoproto.customtype) = "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+  cosmos.bank.v1beta1.Metadata token_metadata = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgRegisterDenomMetadataResponse {}
