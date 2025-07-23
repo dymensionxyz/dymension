@@ -51,9 +51,11 @@ func (suite *KeeperTestSuite) TestCreateDenomHLToken() {
 	res0, err := warpS.CreateSyntheticToken(suite.Ctx, &msg0)
 	suite.Require().NoError(err)
 
+	signer := suite.Ctx.GetSender()
+
 	msg1 := types.MsgRegisterHLTokenDenomMetadata{
 		HlTokenId:     res0.Id,
-		HlTokenOwner:  suite.Ctx.GetSender().String(),
+		HlTokenOwner:  signer,
 		TokenMetadata: suite.getDymMetadata(),
 	}
 
