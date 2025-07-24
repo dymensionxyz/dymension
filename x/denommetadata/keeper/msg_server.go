@@ -26,6 +26,9 @@ func (m msgServer) RegisterHLTokenDenomMetadata(goCtx context.Context, msg *type
 	if t.OriginDenom != msg.TokenMetadata.Base {
 		return nil, gerrc.ErrInvalidArgument.Wrap("token origin denom does not match base")
 	}
+	if err := msg.TokenMetadata.Validate(); err != nil {
+		return nil, err
+	}
 
 	err = m.CreateDenomMetadata(sdk.UnwrapSDKContext(ctx), msg.TokenMetadata)
 	if err != nil {
