@@ -243,7 +243,7 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	s.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
 }
 
-// TestHardFork tests the hard fork handling for outgoing packets from the hub to the rollapp.
+// TestHardFork_HubToRollapp tests the hard fork handling for outgoing packets from the hub to the rollapp.
 // we assert the packets commitments are restored and the pending packets are ackable after the hard fork.
 func (s *delayedAckSuite) TestHardFork_HubToRollapp() {
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
