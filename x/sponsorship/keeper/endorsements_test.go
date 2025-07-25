@@ -107,9 +107,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 
 	// User1 should have 0 claimable rewards (nothing distributed yet)
 	user1Addr := sdk.MustAccAddressFromBech32(del1.GetDelegatorAddr())
-	result, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.IsZero(), "user1 should have 0 claimable rewards initially")
+	s.Require().True(result.IsZero(), "user1 should have 0 claimable rewards initially")
 
 	/***************************************************************/
 	/*                           Epoch 2                           */
@@ -127,9 +127,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(unlockedCoins.Equal(dym100), "unlocked coins mismatch: expected %s, got %s", dym100, unlockedCoins)
 
 	// User1 should have 100 DYM claimable: (2.5 - 0) * 40 = 100
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym100), "user1 should have 100 DYM claimable")
+	s.Require().True(result.Equal(dym100), "user1 should have 100 DYM claimable")
 
 	// User2 endorses with 60 shares
 	// User2 votes 60% on the rollapp gauge
@@ -149,14 +149,14 @@ func (s *KeeperTestSuite) TestEndorsements() {
 
 	// User2 should have 0 claimable (LSA = 2.5, so (2.5 - 2.5) * 60 = 0)
 	user2Addr := sdk.MustAccAddressFromBech32(del2.GetDelegatorAddr())
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.IsZero(), "user2 should have 0 claimable rewards initially")
+	s.Require().True(result.IsZero(), "user2 should have 0 claimable rewards initially")
 
 	// User1 should still have 100 DYM claimable
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym100), "user1 should still have 100 DYM claimable")
+	s.Require().True(result.Equal(dym100), "user1 should still have 100 DYM claimable")
 
 	/***************************************************************/
 	/*                           Epoch 3                           */
@@ -175,14 +175,14 @@ func (s *KeeperTestSuite) TestEndorsements() {
 
 	// User1 should have 140 DYM claimable: (3.5 - 0) * 40 = 140
 	dym140 := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(140)))
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym140), "user1 should have 140 DYM claimable")
+	s.Require().True(result.Equal(dym140), "user1 should have 140 DYM claimable")
 
 	// User2 should have 60 DYM claimable: (3.5 - 2.5) * 60 = 60
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym60), "user2 should have 60 DYM claimable")
+	s.Require().True(result.Equal(dym60), "user2 should have 60 DYM claimable")
 
 	// Claim User1 and verify their balance
 	{
@@ -190,7 +190,7 @@ func (s *KeeperTestSuite) TestEndorsements() {
 		beforeBalance := s.App.BankKeeper.GetBalance(s.Ctx, user1Addr, sdk.DefaultBondDenom)
 
 		// User1 claims
-		err = s.App.SponsorshipKeeper.Claim(s.Ctx, user1Addr, rollappGaugeID)
+		err = s.App.SponsorshipKeeper.Claim(s.Ctx, user1Addr, rollappID)
 		s.Require().NoError(err)
 
 		// Snapshot User1 balance after claiming
@@ -201,14 +201,14 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	}
 
 	// User1 should now have 0 claimable (LSA updated to 3.5)
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.IsZero(), "user1 should have 0 claimable after claiming")
+	s.Require().True(result.IsZero(), "user1 should have 0 claimable after claiming")
 
 	// User2 should still have 60 DYM claimable
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym60), "user2 should still have 60 DYM claimable")
+	s.Require().True(result.Equal(dym60), "user2 should still have 60 DYM claimable")
 
 	// User2 un-endorses
 	s.RevokeVote(types.MsgRevokeVote{
@@ -216,9 +216,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	})
 
 	// User2 should still have 60 DYM claimable
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym60), "user2 should still have 60 DYM claimable")
+	s.Require().True(result.Equal(dym60), "user2 should still have 60 DYM claimable")
 
 	// Verify total shares = 40 (only user1 left)
 	// After User1 claimed 140 DYM, and User2 un-endorsed. Unlocked coins should be 60.
@@ -244,9 +244,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(unlockedCoins.Equal(dym160), "unlocked coins mismatch: expected %s, got %s", dym160, unlockedCoins)
 
 	// User1 should have 100 DYM claimable: (6 - 3.5) * 40 = 100
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym100), "user1 should have 100 DYM claimable")
+	s.Require().True(result.Equal(dym100), "user1 should have 100 DYM claimable")
 
 	// User1 un-endorses
 	s.RevokeVote(types.MsgRevokeVote{
@@ -259,7 +259,7 @@ func (s *KeeperTestSuite) TestEndorsements() {
 		beforeBalance := s.App.BankKeeper.GetBalance(s.Ctx, user1Addr, sdk.DefaultBondDenom)
 
 		// User1 claims
-		err = s.App.SponsorshipKeeper.Claim(s.Ctx, user1Addr, rollappGaugeID)
+		err = s.App.SponsorshipKeeper.Claim(s.Ctx, user1Addr, rollappID)
 		s.Require().NoError(err)
 
 		// Snapshot User1 balance after claiming
@@ -287,9 +287,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	})
 
 	// User2 should have 60 DYM claimable bc of accumulated rewards
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym60), "user2 should have 60 DYM claimable")
+	s.Require().True(result.Equal(dym60), "user2 should have 60 DYM claimable")
 
 	/***************************************************************/
 	/*                           Epoch 5                           */
@@ -313,9 +313,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(unlockedCoins.Equal(dym160), "unlocked coins mismatch: expected %s, got %s", dym160, unlockedCoins)
 
 	// User2 should have 160 DYM claimable: (new_accumulator - 6.0) * shares + accumulated = 160
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(dym100.Add(dym60...)), "user2 should have 160 DYM claimable after final distribution")
+	s.Require().True(result.Equal(dym100.Add(dym60...)), "user2 should have 160 DYM claimable after final distribution")
 
 	/***************************************************************/
 	/*                       Staking Events                        */
@@ -342,9 +342,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().Truef(pos.Shares.Equal(math.LegacyNewDecFromInt(types.DYM.MulRaw(300))), "Shares mismatch. Expected %s, got %s", math.LegacyNewDecFromInt(types.DYM.MulRaw(300)), pos.Shares)
 
 	// User2 should have 160 DYM claimable
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedAUR), "user2 should have 160 DYM claimable after staking events")
+	s.Require().True(result.Equal(expectedAUR), "user2 should have 160 DYM claimable after staking events")
 
 	/***************************************************************/
 	/*                  User2 unstakes 100 DYM                     */
@@ -369,9 +369,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().Truef(pos.Shares.Equal(dym200SharesDec), "Shares mismatch. Expected %s, got %s", dym200SharesDec, pos.Shares)
 
 	// User2 should still have 160 DYM claimable
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedAUR), "User2 claimable should be 160 DYM")
+	s.Require().True(result.Equal(expectedAUR), "User2 claimable should be 160 DYM")
 
 	/***************************************************************/
 	/*                           Epoch 6                           */
@@ -397,9 +397,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 
 	// User2 Claimable: (7.5 - 7.0) * 200 + 160 = 100 + 160 = 260 DYM
 	expectedClaimableEpoch6 := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(260)))
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedClaimableEpoch6), "User2 claimable should be 260 DYM in Epoch 6")
+	s.Require().True(result.Equal(expectedClaimableEpoch6), "User2 claimable should be 260 DYM in Epoch 6")
 
 	/***************************************************************/
 	/*               User2 removes 100 shares (updates vote)       */
@@ -430,9 +430,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().Truef(pos.Shares.Equal(dym100SharesDec), "Shares mismatch. Expected %s, got %s", dym100SharesDec, pos.Shares)
 
 	// User2 Claimable: (7.5 - 7.5) * 100 + 260 = 260 DYM
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedClaimableEpoch6), "User2 claimable should be 260 DYM after vote update")
+	s.Require().True(result.Equal(expectedClaimableEpoch6), "User2 claimable should be 260 DYM after vote update")
 
 	/***************************************************************/
 	/*                           Epoch 7                           */
@@ -458,9 +458,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 
 	// User2 Claimable: (8.5 - 7.5) * 100 + 260 = 100 + 260 = 360 DYM
 	expectedClaimableEpoch7 := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(360)))
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedClaimableEpoch7), "User2 claimable should be 360 DYM in Epoch 7")
+	s.Require().True(result.Equal(expectedClaimableEpoch7), "User2 claimable should be 360 DYM in Epoch 7")
 
 	/***************************************************************/
 	/*            User2 unstakes all (vote is removed)             */
@@ -485,9 +485,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(pos.Shares.IsZero(), "Shares mismatch. Expected 0, got %s", pos.Shares)
 
 	// User2 Claimable: (8.5 - 8.5) * 0 + 360 = 360 DYM
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.Equal(expectedClaimableEpoch7), "User2 claimable should be 360 DYM after unstake all")
+	s.Require().True(result.Equal(expectedClaimableEpoch7), "User2 claimable should be 360 DYM after unstake all")
 
 	user2Voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, user2Addr)
 	s.Require().NoError(err)
@@ -500,7 +500,7 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	{
 		balanceBeforeClaim := s.App.BankKeeper.GetBalance(s.Ctx, user2Addr, sdk.DefaultBondDenom)
 
-		err = s.App.SponsorshipKeeper.Claim(s.Ctx, user2Addr, rollappGaugeID)
+		err = s.App.SponsorshipKeeper.Claim(s.Ctx, user2Addr, rollappID)
 		s.Require().NoError(err)
 
 		balanceAfterClaim := s.App.BankKeeper.GetBalance(s.Ctx, user2Addr, sdk.DefaultBondDenom)
@@ -516,9 +516,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(pos.Shares.IsZero(), "Shares should be zero after claim. Got %s", pos.Shares)
 
 	// User2 Claimable should be 0
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.IsZero(), "User2 claimable should be zero after claim")
+	s.Require().True(result.IsZero(), "User2 claimable should be zero after claim")
 
 	// Verify Unlocked Coins after User2's final claim
 	endorsement, err = s.App.SponsorshipKeeper.GetEndorsement(s.Ctx, rollappID)
@@ -557,9 +557,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(posUser1.AccumulatedRewards.IsZero(), "User1 AUR should be 0. Got %s", posUser1.AccumulatedRewards)
 
 	// User1 Claimable: (8.5 - 8.5) * 60M = 0
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
-	s.Require().True(result.Rewards.IsZero(), "User1 claimable should be 0. Got %s", result.Rewards)
+	s.Require().True(result.IsZero(), "User1 claimable should be 0. Got %s", result)
 
 	// New epoch: +100 DYM (This is Epoch 8 for distributions)
 	s.BeginEpoch(incentivestypes.DefaultDistrEpochIdentifier)
@@ -586,11 +586,11 @@ func (s *KeeperTestSuite) TestEndorsements() {
 
 	// User1 Claimable: (NewGA - LSA) * Shares = (10.166... - 8.5) * 60M = 1.666... * 60M = 99M (due to truncation)
 	expectedClaimableUser1Repeating := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100)))
-	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappGaugeID)
+	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
 	// Claimed rewards should fall in [expected - E; expected]. In this case, [100M - 50; 100M].
 	// This ensures that the number of rewards does not exceed the balance of x/incentives.
-	requireCoinsInLowerEpsilon(s.T(), result.Rewards, expectedClaimableUser1Repeating, types.ADYM.MulRaw(50))
+	requireCoinsInLowerEpsilon(s.T(), result, expectedClaimableUser1Repeating, types.ADYM.MulRaw(50))
 }
 
 func (s *KeeperTestSuite) BeginEpoch(epochID string) {

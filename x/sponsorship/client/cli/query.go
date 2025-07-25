@@ -24,6 +24,8 @@ func GetQueryCmd() *cobra.Command {
 		CmdQueryParams(),
 		CmdQueryDistribution(),
 		CmdQueryVote(),
+		CmdQueryEstimateClaim(),
+		CmdQueryEndorsement(),
 	)
 
 	return cmd
@@ -92,6 +94,61 @@ func CmdQueryVote() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Vote(cmd.Context(), &types.QueryVoteRequest{Voter: args[0]})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryEstimateClaim() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "estimate-claim [address] [rollapp-id]",
+		Short: "Estimate claimable rewards for a user on a rollapp",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.EstimateClaim(cmd.Context(), &types.QueryEstimateClaim{
+				Address:   args[0],
+				RollappId: args[1],
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryEndorsement() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "endorsement [rollapp-id]",
+		Short: "Get endorsement information for a rollapp",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Endorsement(cmd.Context(), &types.QueryEndorsement{RollappId: args[0]})
 			if err != nil {
 				return err
 			}
