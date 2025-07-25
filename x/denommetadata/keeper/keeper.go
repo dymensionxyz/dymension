@@ -9,6 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
+	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
@@ -17,15 +18,21 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	rk         types.RollappKeeper
 	hooks      types.MultiDenomMetadataHooks
+	warpK      *warpkeeper.Keeper
 }
 
 // NewKeeper returns a new instance of the denommetadata keeper
-func NewKeeper(bankKeeper types.BankKeeper, rk types.RollappKeeper) *Keeper {
+func NewKeeper(bankKeeper types.BankKeeper, rk types.RollappKeeper, warpK *warpkeeper.Keeper) *Keeper {
 	return &Keeper{
 		bankKeeper: bankKeeper,
 		rk:         rk,
 		hooks:      nil,
+		warpK:      warpK,
 	}
+}
+
+func (k *Keeper) SetWarpKeeper(warpK *warpkeeper.Keeper) {
+	k.warpK = warpK
 }
 
 func (k *Keeper) HasDenomMetadata(ctx sdk.Context, base string) bool {

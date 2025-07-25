@@ -395,6 +395,7 @@ func (a *AppKeepers) InitKeepers(
 	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
 		a.BankKeeper,
 		a.RollappKeeper,
+		nil,
 	)
 
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
@@ -550,6 +551,7 @@ func (a *AppKeepers) InitKeepers(
 		&a.HyperCoreKeeper,
 		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
 	)
+	a.DenomMetadataKeeper.SetWarpKeeper(&a.HyperWarpKeeper)
 	a.Forward = forward.New(
 		a.TransferKeeper,
 
