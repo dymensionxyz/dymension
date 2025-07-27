@@ -77,7 +77,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	// avoid starting another notice unnecessarily
 	if k.IsProposer(ctx, seq) {
 		if !k.rollappKeeper.ForkLatestAllowed(ctx, seq.RollappId) {
-			return nil, gerrc.ErrFailedPrecondition.Wrap("rotation could cause fork before genesis transfer")
+			return nil, gerrc.ErrFailedPrecondition.Wrap("fork not allowed")
 		}
 		if seq.NoticeInProgress(ctx.BlockTime()) {
 			return nil, gerrc.ErrFailedPrecondition.Wrap("notice period in progress")
