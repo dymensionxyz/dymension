@@ -5,7 +5,7 @@
 ![license](https://img.shields.io/github/license/dymensionxyz/dymension)
 ![Go](https://img.shields.io/badge/go-1.18-blue.svg)
 ![issues](https://img.shields.io/github/issues/dymensionxyz/dymension)
-![tests](https://github.com/dymensionxyz/dymint/actions/workflows/test.yml/badge.svg?branch=main)
+![tests](https://github.com/dymensionxyz/dymension/actions/workflows/test.yml/badge.svg?branch=main)
 ![lint](https://github.com/dymensionxyz/dymension/actions/workflows/golangci_lint.yml/badge.svg?branch=main)
 
 ## Overview
