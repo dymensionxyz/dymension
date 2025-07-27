@@ -13,6 +13,7 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 )
 
@@ -30,7 +31,7 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.Ready(ctx) {
-		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transactions disabled")
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "kas bridge not ready")
 	}
 
 	////////////
@@ -50,7 +51,7 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "verify multisig")
 	}
 	if !ok {
-		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrUnauthenticated, err), "verify multisig")
+		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "verify multisig")
 	}
 
 	////////////
@@ -59,7 +60,12 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 	// CAS
 	localOutpoint := k.MustOutpoint(ctx)
 	if !payload.OldOutpoint.Equal(&localOutpoint) {
-		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrFailedPrecondition, err), "old outpoint")
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "old outpoint")
+	}
+
+	// validate new outpoint different from local outpoint
+	if payload.NewOutpoint.Equal(&localOutpoint) {
+		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "new outpoint same as local outpoint")
 	}
 
 	err = k.outpoint.Set(ctx, payload.NewOutpoint)
@@ -71,8 +77,18 @@ func (k *Keeper) IndicateProgress(goCtx context.Context, req *types.MsgIndicateP
 		err = k.ValidateWithdrawal(ctx, withdrawal)
 		if err != nil {
 			// should never happen, it means validators are buggy or protocol is broken
-			return nil, errorsmod.Wrap(gerrc.ErrFault, "withdrawal not dispatched")
+			return nil, errorsmod.Wrap(errors.Join(gerrc.ErrFault, err), "withdrawal not dispatched")
 		}
+
+		// Check if withdrawal is already processed
+		processed, err := k.processedWithdrawals.Has(ctx, collections.Join(k.MustMailbox(ctx), withdrawal.MustMessageId().Bytes()))
+		if err != nil {
+			return nil, err
+		}
+		if processed {
+			return nil, errors.New("withdrawal already processed")
+		}
+
 		err = k.SetProcessedWithdrawal(ctx, withdrawal)
 		if err != nil {
 			return nil, err

@@ -15,7 +15,7 @@ func (k Keeper) Outpoint(goCtx context.Context, req *types.QueryOutpointRequest)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.Ready(ctx) {
-		return nil, gerrc.ErrFailedPrecondition.Wrap("queries disabled")
+		return nil, gerrc.ErrFailedPrecondition.Wrap("kas bridge not ready")
 	}
 
 	return &types.QueryOutpointResponse{
@@ -27,7 +27,7 @@ func (k Keeper) WithdrawalStatus(goCtx context.Context, req *types.QueryWithdraw
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.Ready(ctx) {
-		return nil, gerrc.ErrFailedPrecondition.Wrap("queries disabled")
+		return nil, gerrc.ErrFailedPrecondition.Wrap("kas bridge not ready")
 	}
 
 	ret := make([]types.WithdrawalStatus, len(req.WithdrawalId))
@@ -57,16 +57,4 @@ func (k Keeper) WithdrawalStatus(goCtx context.Context, req *types.QueryWithdraw
 		Status:   ret,
 		Outpoint: k.MustOutpoint(ctx),
 	}, nil
-}
-
-func (k Keeper) ValidateWithdrawal(ctx sdk.Context, id types.WithdrawalID) error {
-	dispatched, err := k.hypercoreK.Messages.Has(ctx, collections.Join(k.MustMailbox(ctx), id.MustMessageId().Bytes()))
-	if err != nil {
-		return err
-	}
-	if !dispatched {
-		return gerrc.ErrNotFound.Wrapf("message not dispatched")
-	}
-
-	return nil
 }
