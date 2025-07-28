@@ -25,6 +25,7 @@ import (
 const (
 	FlagHeight     = "height"
 	FlagTraceStore = "trace-store"
+	FlagCometBFT   = "cometbft"
 )
 
 // InspectCmd dumps app state to JSON.
@@ -48,8 +49,9 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 				return err
 			}
 
-			// TODO: fix to flag
-			if len(args) > 0 && args[0] == "tendermint" {
+			// Check if CometBFT state inspection is requested
+			cometbftFlag, _ := cmd.Flags().GetBool(FlagCometBFT)
+			if cometbftFlag {
 				return getCometbftState(serverCtx.Config)
 			}
 
@@ -137,6 +139,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().Int64(FlagHeight, -1, "Export state from a particular height (-1 means latest height)")
 	cmd.Flags().String(FlagTraceStore, "", "Enable KVStore tracing to an output file")
+	cmd.Flags().Bool(FlagCometBFT, false, "Export CometBFT state")
 
 	return cmd
 }
