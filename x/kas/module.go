@@ -140,18 +140,19 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 		Tx: &autocliv1.ServiceCommandDescriptor{
 			Service:              "dymensionxyz.dymension.kas.Msg",
 			EnhanceCustomCommand: true,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "Bootstrap",
+					Skip:      true, // This will hide the bootstrap command
+				},
+			},
 		},
 		Query: &autocliv1.ServiceCommandDescriptor{
-			Service:              "dymensionxyz.dymension.kas.Query",
-			EnhanceCustomCommand: true,
+			Service: "dymensionxyz.dymension.kas.Query",
 		},
 	}
 }
 
 func (am AppModule) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
-}
-
-func (am AppModule) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
 }
