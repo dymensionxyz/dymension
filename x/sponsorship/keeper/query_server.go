@@ -52,3 +52,25 @@ func (q QueryServer) Distribution(goCtx context.Context, _ *types.QueryDistribut
 	}
 	return &types.QueryDistributionResponse{Distribution: distribution}, nil
 }
+
+func (q QueryServer) EstimateClaim(goCtx context.Context, query *types.QueryEstimateClaim) (*types.QueryEstimateClaimResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	addr, err := sdk.AccAddressFromBech32(query.Address)
+	if err != nil {
+		return nil, err
+	}
+	reward, err := q.k.EstimateClaim(ctx, addr, query.RollappId)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryEstimateClaimResponse{Reward: reward}, nil
+}
+
+func (q QueryServer) Endorsement(goCtx context.Context, query *types.QueryEndorsement) (*types.QueryEndorsementResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	endorsement, err := q.k.GetEndorsement(ctx, query.RollappId)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryEndorsementResponse{Endorsement: endorsement}, nil
+}
