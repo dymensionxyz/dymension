@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-07-27)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-07-28)
 
 
 ### Bug Fixes
@@ -76,6 +76,7 @@
 * **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
 * **sponsorship:** added endorsement yielding ([#1748](https://github.com/dymensionxyz/dymension/issues/1748)) ([2dc6b08](https://github.com/dymensionxyz/dymension/commit/2dc6b08cca590d5978202ac49d16271746b93b90))
 * **sponsorship:** lazy accumulator for endorsement yielding ([#1872](https://github.com/dymensionxyz/dymension/issues/1872)) ([8db3019](https://github.com/dymensionxyz/dymension/commit/8db3019c64ec81e49f363a528d52cf7b0505ce47))
+* **sponsorship:** queries to get endorsement and estimate rewards ([#1932](https://github.com/dymensionxyz/dymension/issues/1932)) ([5da9107](https://github.com/dymensionxyz/dymension/commit/5da9107ccb907e2c44b32ac1991b3ea0fcde219d))
 * **upgrade:** added authorized circuit breaker accounts ([#1907](https://github.com/dymensionxyz/dymension/issues/1907)) ([8a7b6f7](https://github.com/dymensionxyz/dymension/commit/8a7b6f74817d0c9dda88143385f9c9dd156fa4c2))
 * **upgrade:** upgrade handler to initialize endorsements for existing rollapps ([#1821](https://github.com/dymensionxyz/dymension/issues/1821)) ([43d5686](https://github.com/dymensionxyz/dymension/commit/43d5686ca949dd282fb2e5910f050e49b3243f41))
 * **upgrade:** wired gas free whitelisted txs ([#1906](https://github.com/dymensionxyz/dymension/issues/1906)) ([191680b](https://github.com/dymensionxyz/dymension/commit/191680b799b525602d464cdd09158e1eddb1281b))
