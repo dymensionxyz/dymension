@@ -379,13 +379,18 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
+const (
+	HLDomainKasTest10 = 80808082   // TODO: should not hardcode
+	HLDomainDym       = 1260813472 // TODO: should be different for testnet and mainnet
+)
+
 // Get a (test) message to send in Kaspa payload (Testnet10)
 func CmdTestHLMessageKaspa() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount]",
-		Args:    cobra.ExactArgs(3),
+		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder]",
+		Args:    cobra.ExactArgs(4),
 		Short:   "Get a test message to send in kaspa payload",
-		Example: ``,
+		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -405,22 +410,21 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 				return fmt.Errorf("amount")
 			}
 
+			kasTokenPlaceholder, err := util.DecodeHexAddress(args[3])
+			if err != nil {
+				return fmt.Errorf("kas token placeholder: %w", err)
+			}
+
 			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
 			if err != nil {
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			hlSrcContract, err := util.DecodeHexAddress("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80") // arbitrary
-			if err != nil {
-				return fmt.Errorf("counterparty contract: %w", err)
-			}
-
 			m, err := createTestHyperlaneMessage(
-				hypercoretypes.MESSAGE_VERSION,
-				0,        // FIXED AT ZERO
-				80808082, // Kaspa test 10
-				hlSrcContract,
-				1260813472, // HUB HARDCODED
+				0, // FIXED AT ZERO
+				HLDomainKasTest10,
+				kasTokenPlaceholder,
+				HLDomainDym,
 				hlTokenID,
 				hlRecipient,
 				hlAmt,
@@ -642,7 +646,6 @@ func MakeForwardToIBCHyperlaneMessage(
 	}
 
 	hlM, err := createTestHyperlaneMessage(
-		hypercoretypes.MESSAGE_VERSION,
 		hyperlaneNonce,
 		hyperlaneSrcDomain,
 		hyperlaneSrcContract,
@@ -670,7 +673,6 @@ func MakeForwardToIBCHyperlaneMessage(
 
 // A message which can be sent to the mailbox in TX to trigger a transfer
 func createTestHyperlaneMessage(
-	version uint8, // e.g. 1
 	nonce uint32, // e.g. 1
 	srcDomain uint32, // e.g. 1 (Ethereum)
 	srcContract util.HexAddress, // e.g Ethereum token contract
@@ -697,7 +699,7 @@ func createTestHyperlaneMessage(
 
 	body := wmpl.Bytes()
 	return util.HyperlaneMessage{
-		Version:     version,
+		Version:     hypercoretypes.MESSAGE_VERSION,
 		Nonce:       nonce,
 		Origin:      srcDomain,
 		Sender:      srcContract,

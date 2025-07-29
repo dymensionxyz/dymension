@@ -75,43 +75,40 @@ func (k Keeper) UpdateEndorsementsAndPositions(
 }
 
 // Claim claims the rewards for the user from the provided endorsement gauge.
-// 1. Get the endorsement gauge by gaugeId
-// 2. Get associated rollappId from the endorsement gauge
-// 3. Get endorsement by rollappId
-// 4. Get rollapp gauge associated with the endorsement
-// 5. Get the user's power cast for the rollapp gauge
-// 6. Calculate the user's portion of the rewards
-// 7. Update the endorsement epoch shares
-func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) error {
-	result, err := k.EstimateClaim(ctx, claimer, gaugeId)
+// 1. Get endorsement by rollappId
+// 2. Get user endorsement position
+// 3. Estimate user rewards based on accumulators
+// 4. Update endorsement and user position
+func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, rollappId string) error {
+	rewards, err := k.EstimateClaim(ctx, claimer, rollappId)
 	if err != nil {
 		return fmt.Errorf("estimate claim: %w", err)
 	}
 
-	if result.Rewards.IsZero() {
+	if rewards.IsZero() {
 		// Nothing to claim
 		return nil
 	}
 
 	// Rewards reside in x/incentives module
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, incentivestypes.ModuleName, claimer, result.Rewards)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, incentivestypes.ModuleName, claimer, rewards)
 	if err != nil {
 		return fmt.Errorf("send coins from x/incentives to user: %w", err)
 	}
 
-	endorsement, err := k.GetEndorsement(ctx, result.RollappId)
+	endorsement, err := k.GetEndorsement(ctx, rollappId)
 	if err != nil {
 		return fmt.Errorf("get endorsement: %w", err)
 	}
 
-	endorsement.DistributedCoins = endorsement.DistributedCoins.Add(result.Rewards...)
+	endorsement.DistributedCoins = endorsement.DistributedCoins.Add(rewards...)
 
 	err = k.SaveEndorsement(ctx, endorsement)
 	if err != nil {
 		return fmt.Errorf("save endorsement: %w", err)
 	}
 
-	endorserPosition, err := k.GetEndorserPosition(ctx, claimer, result.RollappId)
+	endorserPosition, err := k.GetEndorserPosition(ctx, claimer, rollappId)
 	if err != nil {
 		return fmt.Errorf("get endorser position: %w", err)
 	}
@@ -119,7 +116,7 @@ func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) e
 	endorserPosition.LastSeenAccumulator = endorsement.Accumulator
 	endorserPosition.AccumulatedRewards = sdk.NewCoins()
 
-	err = k.SaveEndorserPosition(ctx, claimer, result.RollappId, endorserPosition)
+	err = k.SaveEndorserPosition(ctx, claimer, rollappId, endorserPosition)
 	if err != nil {
 		return fmt.Errorf("save endorser position: %w", err)
 	}
@@ -127,32 +124,17 @@ func (k Keeper) Claim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) e
 	return nil
 }
 
-type EstimateClaimResult struct {
-	RollappId string
-	Rewards   sdk.Coins
-}
-
-// EstimateClaim estimates the rewards for the user from the provided endorsement gauge.
+// EstimateClaim estimates user rewards for the given rollapp.
 // Does not change the state.
-func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId uint64) (EstimateClaimResult, error) {
-	gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, gaugeId)
+func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, rollappId string) (sdk.Coins, error) {
+	endorsement, err := k.GetEndorsement(ctx, rollappId)
 	if err != nil {
-		return EstimateClaimResult{}, fmt.Errorf("get gauge: %w", err)
+		return nil, fmt.Errorf("get endorsement: %w", err)
 	}
 
-	raGauge, ok := gauge.DistributeTo.(*incentivestypes.Gauge_Rollapp)
-	if !ok {
-		return EstimateClaimResult{}, fmt.Errorf("gauge is not rollapp: %d", gaugeId)
-	}
-
-	endorsement, err := k.GetEndorsement(ctx, raGauge.Rollapp.RollappId)
+	endorserPosition, err := k.GetEndorserPosition(ctx, claimer, rollappId)
 	if err != nil {
-		return EstimateClaimResult{}, fmt.Errorf("get endorsement: %w", err)
-	}
-
-	endorserPosition, err := k.GetEndorserPosition(ctx, claimer, raGauge.Rollapp.RollappId)
-	if err != nil {
-		return EstimateClaimResult{}, fmt.Errorf("get endorser position: %w", err)
+		return nil, fmt.Errorf("get endorser position: %w", err)
 	}
 
 	// Calculate newly accrued rewards
@@ -162,14 +144,11 @@ func (k Keeper) EstimateClaim(ctx sdk.Context, claimer sdk.AccAddress, gaugeId u
 	// Total rewards to claim are newly accrued rewards plus any previously accumulated rewards
 	totalRewardsToClaim := newlyAccruedRewardsDec.Add(endorserPosition.AccumulatedRewards...)
 
-	return EstimateClaimResult{
-		RollappId: raGauge.Rollapp.RollappId,
-		Rewards:   totalRewardsToClaim,
-	}, nil
+	return totalRewardsToClaim, nil
 }
 
 // UpdateEndorsementTotalCoins updates the total coins for an endorsement by adding the provided coins.
-// This is used when new rewards are added to the endorsement gauge.
+// This is used when new rewards are allocated by the endorsement gauge.
 // It also updates the lazy accumulator by calculating the rewards per share.
 func (k Keeper) UpdateEndorsementTotalCoins(ctx sdk.Context, rollappID string, additionalCoins sdk.Coins) error {
 	endorsement, err := k.GetEndorsement(ctx, rollappID)

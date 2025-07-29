@@ -5,8 +5,8 @@
 ![license](https://img.shields.io/github/license/dymensionxyz/dymension)
 ![Go](https://img.shields.io/badge/go-1.18-blue.svg)
 ![issues](https://img.shields.io/github/issues/dymensionxyz/dymension)
-![tests](https://github.com/dymensionxyz/dymint/actions/workflows/test.yml/badge.svg?branch=main)
-![lint](https://github.com/dymensionxyz/dymint/actions/workflows/lint.yml/badge.svg?branch=main)
+![tests](https://github.com/dymensionxyz/dymension/actions/workflows/test.yml/badge.svg?branch=main)
+![lint](https://github.com/dymensionxyz/dymension/actions/workflows/golangci_lint.yml/badge.svg?branch=main)
 
 ## Overview
 
@@ -27,7 +27,8 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Adding incentives](#adding-incentives)
     - [Creating incentives streams](#creating-incentives-streams)
     - [Locking tokens](#locking-tokens)
-    - [check rewards](#check-rewards)
+    - [Checking rewards](#checking-rewards)
+    - [Updating a community-driven distribution](#updating-a-community-driven-distribution)
   - [Debugging Container](#debugging-container)
   - [Developer](#developer)
     - [Setup push hooks](#setup-push-hooks)

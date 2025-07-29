@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -482,11 +483,9 @@ func (k Keeper) tryResolveChainIdOrAliasToChainId(ctx sdk.Context, chainIdOrAlia
 				return record.ChainId, true
 			}
 
-			for _, alias := range record.Aliases {
-				if alias == chainIdOrAlias {
-					// it is alias, then returns the chain-id it mapped to
-					return record.ChainId, true
-				}
+			if slices.Contains(record.Aliases, chainIdOrAlias) {
+				// it is alias, then returns the chain-id it mapped to
+				return record.ChainId, true
 			}
 		}
 	}

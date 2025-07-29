@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"sort"
 	"strconv"
 	"strings"
@@ -170,9 +171,7 @@ func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 				},
 			}
 			if tc.extraMemoData != nil {
-				for key, value := range tc.extraMemoData {
-					memoObj[key] = value
-				}
+				maps.Copy(memoObj, tc.extraMemoData)
 			}
 			eibcJson, _ := json.Marshal(memoObj)
 			memo := string(eibcJson)

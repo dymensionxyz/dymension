@@ -1,6 +1,8 @@
 package keeper // have to call it keeper
 
 import (
+	"maps"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,9 +20,7 @@ type CompletionHookInstance interface {
 
 // map name -> instance
 func (k Keeper) SetCompletionHooks(hooks map[string]CompletionHookInstance) {
-	for name, hook := range hooks {
-		k.completionHooks[name] = hook
-	}
+	maps.Copy(k.completionHooks, hooks)
 }
 
 // assumes already passed validate basic
