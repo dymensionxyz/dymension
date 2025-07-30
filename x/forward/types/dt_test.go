@@ -38,7 +38,7 @@ func TestMakeRolForwardToHLMemoString(t *testing.T) {
 func TestHLMetadataWithMultipleForwards(t *testing.T) {
 	// Test that HLMetadata can contain multiple forward types without conflict
 	tokenId, _ := hyperutil.DecodeHexAddress("0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0")
-	
+
 	// Create HL-to-HL forward data
 	hlForward := NewHookForwardToHL(
 		tokenId,
@@ -53,7 +53,7 @@ func TestHLMetadataWithMultipleForwards(t *testing.T) {
 	hlForwardBz, err := hlForward.Marshal()
 	require.NoError(t, err)
 
-	// Create HL-to-IBC forward data  
+	// Create HL-to-IBC forward data
 	ibcForward := NewHookForwardToIBC(
 		"channel-0",
 		"cosmos1...",
