@@ -16,7 +16,7 @@ func NewCmdRegisterHLTokenDenomMetadata() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "register-hl-token-denom-metadata-alt [hl_token_id] [denom_metadata.json] [flags]",
 		Short:   "Register denom metadata as owner of a HL token",
-		Example: ``,
+		Example: `dymd tx denommetadata register-hl-token-denom-metadata-alt <TOKEN> <PATH>"`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
