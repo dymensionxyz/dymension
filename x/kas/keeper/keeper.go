@@ -15,6 +15,7 @@ import (
 	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/kas/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type Keeper struct {
@@ -84,10 +85,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) Ready(ctx sdk.Context) bool {
-	ret, err := k.bootstrapped.Get(ctx)
-	if err != nil {
-		panic(err)
-	}
+	ret, _ := k.bootstrapped.Get(ctx)
 	return ret
 }
 
@@ -143,4 +141,17 @@ func (k *Keeper) MustOutpoint(ctx sdk.Context) types.TransactionOutpoint {
 func (k *Keeper) SetProcessedWithdrawal(ctx sdk.Context, withdrawal types.WithdrawalID) error {
 	// we do it the same way as https://github.com/dymensionxyz/hyperlane-cosmos/blob/fb914a5ba702f70a428a475968b886891cb1ad77/x/core/keeper/logic_message.go#L50
 	return k.processedWithdrawals.Set(ctx, collections.Join(k.MustMailbox(ctx), withdrawal.MustMessageId().Bytes()))
+}
+
+func (k Keeper) ValidateWithdrawal(ctx sdk.Context, id types.WithdrawalID) error {
+	dispatched, err := k.hypercoreK.Messages.Has(ctx, collections.Join(k.MustMailbox(ctx), id.MustMessageId().Bytes()))
+	if err != nil {
+		return err
+	}
+
+	if !dispatched {
+		return gerrc.ErrNotFound.Wrapf("message not dispatched")
+	}
+
+	return nil
 }

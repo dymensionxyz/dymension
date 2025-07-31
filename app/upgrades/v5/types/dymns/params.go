@@ -231,7 +231,7 @@ func (m PriceParams) GetAliasPrice(alias string) math.Int {
 }
 
 // getElementAtIndexOrLast returns the element at the given index or the last element if the index is out of bounds.
-// TODO: negative index check https://github.com/dymensionxyz/dymension/issues/1738
+// CONTRACT: index is always positive. elements is not empty.
 func getElementAtIndexOrLast(elements []math.Int, index int) math.Int {
 	if index >= len(elements) {
 		return elements[len(elements)-1]
