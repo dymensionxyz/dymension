@@ -25,4 +25,7 @@ message HLMetadata {
   // see
   // https://www.notion.so/dymension/ADR-Kaspa-Bridge-Implementation-206a4a51f86a803980aec7099c826fb4?source=copy_link#208a4a51f86a8093a843cf4b5e903588
   bytes kaspa = 2;
+
+  // optional, can be empty
+  bytes hook_forward_to_hl = 3;
 }

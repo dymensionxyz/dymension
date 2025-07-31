@@ -46,6 +46,18 @@ func (h *HookForwardToHL) ValidateBasic() error {
 	return nil
 }
 
+func UnpackForwardToHL(bz []byte) (*HookForwardToHL, error) {
+	var d HookForwardToHL
+	err := proto.Unmarshal(bz, &d)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unmarshal forward hook")
+	}
+	if err := d.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+	return &d, nil
+}
+
 func NewHookForwardToHLCall(payload *HookForwardToHL) (*commontypes.CompletionHookCall, error) {
 	bz, err := proto.Marshal(payload)
 	if err != nil {
@@ -94,4 +106,23 @@ func MakeIBCForwardToHLMemoString(
 	}
 
 	return ibcompletiontypes.MakeMemo(bz)
+}
+
+// returns HLMetadata bytes to be included in hyperlane transfer metadata for HL-to-HL forwarding
+func MakeHLForwardToHLMetadata(payload *HookForwardToHL) ([]byte, error) {
+	bz, err := proto.Marshal(payload)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "marshal forward to hl hook")
+	}
+
+	metadata := &HLMetadata{
+		HookForwardToHl: bz,
+	}
+
+	metadataBz, err := proto.Marshal(metadata)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "marshal hl metadata")
+	}
+
+	return metadataBz, nil
 }
