@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-07-28)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-07-31)
 
 
 ### Bug Fixes
@@ -14,6 +14,7 @@
 * **eibc:** authorization min fee truncating ([#1756](https://github.com/dymensionxyz/dymension/issues/1756)) ([e4fc14b](https://github.com/dymensionxyz/dymension/commit/e4fc14bb315a083737f81ce8eb3662053a15bc16))
 * **eibc:** use v2 math rand in on demand ([#1855](https://github.com/dymensionxyz/dymension/issues/1855)) ([66cf8f3](https://github.com/dymensionxyz/dymension/commit/66cf8f3cc0be57b8e789a265b2907c356c8b9dbb))
 * **evm:** fix eth custom get signers registry ([#1850](https://github.com/dymensionxyz/dymension/issues/1850)) ([9b7422f](https://github.com/dymensionxyz/dymension/commit/9b7422f605fab58247f3e48fbbc7b95709121e81))
+* **hyperlane:** properly allows hook setting ([#1945](https://github.com/dymensionxyz/dymension/issues/1945)) ([5d0fbd2](https://github.com/dymensionxyz/dymension/commit/5d0fbd2444cc00b1e572af4d1a6b0f268da2f7c1))
 * **incentives, lockup, gamm:** added missing signer annotation ([#1843](https://github.com/dymensionxyz/dymension/issues/1843)) ([908edb8](https://github.com/dymensionxyz/dymension/commit/908edb84ff15a552ef82e6c987b041ce6af486d4))
 * **incentives:** param switch for endorsement mode ([#1803](https://github.com/dymensionxyz/dymension/issues/1803)) ([548f80c](https://github.com/dymensionxyz/dymension/commit/548f80ceabe86b8adf0220c55714b496c8b88237))
 * **incentives:** set min threshold for gauge incentives distribution ([#1800](https://github.com/dymensionxyz/dymension/issues/1800)) ([b757e1f](https://github.com/dymensionxyz/dymension/commit/b757e1f63334ad2ee765f363697de8ebe1af9a2f))
