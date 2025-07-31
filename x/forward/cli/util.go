@@ -379,18 +379,13 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-const (
-	HLDomainKasTest10 = 80808082   // TODO: should not hardcode
-	HLDomainDym       = 1260813472 // TODO: should be different for testnet and mainnet
-)
-
 // Get a (test) message to send in Kaspa payload (Testnet10)
 func CmdTestHLMessageKaspa() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder]",
-		Args:    cobra.ExactArgs(4),
+		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder] [kas-domain] [hub-domain]",
+		Args:    cobra.ExactArgs(6),
 		Short:   "Get a test message to send in kaspa payload",
-		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000`,
+		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000 80808082 1260813472`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -415,6 +410,16 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 				return fmt.Errorf("kas token placeholder: %w", err)
 			}
 
+			kasDomain, err := strconv.ParseUint(args[4], 10, 32)
+			if err != nil {
+				return fmt.Errorf("kas domain: %w", err)
+			}
+
+			hubDomain, err := strconv.ParseUint(args[5], 10, 32)
+			if err != nil {
+				return fmt.Errorf("hub domain: %w", err)
+			}
+
 			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
 			if err != nil {
 				return fmt.Errorf("encode flag: %w", err)
@@ -422,9 +427,9 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 
 			m, err := createTestHyperlaneMessage(
 				0, // FIXED AT ZERO
-				HLDomainKasTest10,
+				uint32(kasDomain),
 				kasTokenPlaceholder,
-				HLDomainDym,
+				uint32(hubDomain),
 				hlTokenID,
 				hlRecipient,
 				hlAmt,
