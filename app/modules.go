@@ -159,7 +159,7 @@ func (app *App) SetupModules(
 
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
-		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
+		hyperwarp.NewAppModule(appCodec, *app.HyperWarpKeeper),
 		kas.NewAppModule(appCodec, app.KasKeeper),
 	}
 }

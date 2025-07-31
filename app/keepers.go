@@ -179,7 +179,7 @@ type AppKeepers struct {
 	DymNSKeeper dymnskeeper.Keeper
 
 	HyperCoreKeeper hypercorekeeper.Keeper
-	HyperWarpKeeper hyperwarpkeeper.Keeper
+	HyperWarpKeeper *hyperwarpkeeper.Keeper
 	KasKeeper       *kaskeeper.Keeper
 
 	Forward *forward.Forward
@@ -551,12 +551,13 @@ func (a *AppKeepers) InitKeepers(
 		&a.HyperCoreKeeper,
 		[]int32{int32(hyperwarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperwarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
 	)
-	a.DenomMetadataKeeper.SetWarpKeeper(&a.HyperWarpKeeper)
+
+	a.DenomMetadataKeeper.SetWarpKeeper(a.HyperWarpKeeper)
+
 	a.Forward = forward.New(
 		a.TransferKeeper,
-
-		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
-		hyperwarpkeeper.NewMsgServerImpl(a.HyperWarpKeeper),
+		hyperwarpkeeper.NewQueryServerImpl(*a.HyperWarpKeeper),
+		hyperwarpkeeper.NewMsgServerImpl(*a.HyperWarpKeeper),
 	)
 
 	a.KasKeeper = kaskeeper.NewKeeper(
