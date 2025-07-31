@@ -379,7 +379,6 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-
 // Get a (test) message to send in Kaspa payload (Testnet10)
 func CmdTestHLMessageKaspa() *cobra.Command {
 	cmd := &cobra.Command{
