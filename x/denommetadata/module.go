@@ -84,6 +84,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 		Tx: &autocliv1.ServiceCommandDescriptor{
 			Service:              "dymensionxyz.dymension.denommetadata.Msg",
 			EnhanceCustomCommand: true,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "RegisterHLTokenDenomMetadata",
+					Skip:      true,
+				},
+			},
 		},
 	}
 }

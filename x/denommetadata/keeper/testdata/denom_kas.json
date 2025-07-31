@@ -1,0 +1,16 @@
+{
+    "description": "Native token of Kaspa: KAS (1 KAS = 10^10 sompi)",
+    "denom_units": [
+        {
+            "denom": "hyperlane/0x726f757465725f61707000000000000000000000000000020000000000000000"
+        },
+        {
+            "denom": "KAS",
+            "exponent": 10
+        }
+    ],
+    "base": "hyperlane/0x726f757465725f61707000000000000000000000000000020000000000000000",
+    "display": "KAS",
+    "name": "KAS",
+    "symbol": "KAS"
+}
