@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -8,6 +9,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
+
+	_ "embed"
 
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	hlcoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
@@ -17,6 +20,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
+
+//go:embed testdata/denom_kas.json
+var denomKasJson string
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
@@ -43,6 +49,13 @@ func (suite *KeeperTestSuite) TestCreateDenom() {
 	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, suite.getDymMetadata().Base)
 	suite.Require().EqualValues(found, true)
 	suite.Require().EqualValues(denom.Symbol, suite.getDymMetadata().Symbol)
+}
+
+func (suite *KeeperTestSuite) TestParseJson() {
+	metadata := banktypes.Metadata{}
+	err := json.Unmarshal([]byte(denomKasJson), &metadata)
+	suite.Require().NoError(err)
+	suite.Require().EqualValues(metadata.Symbol, "KAS")
 }
 
 func (suite *KeeperTestSuite) TestCreateDenomHLToken() {
