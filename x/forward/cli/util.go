@@ -37,6 +37,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdMemoEIBCtoHL())
 	cmd.AddCommand(CmdMemoEIBCtoIBC())
 	cmd.AddCommand(CmdMemoHLtoIBCRaw())
+	cmd.AddCommand(CmdMemoHLtoHLRaw())
 	cmd.AddCommand(CmdHLEthTransferRecipientHubAccount())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdTestHLMessageKaspa())
@@ -265,6 +266,53 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 	return cmd
 }
 
+// Get a memo for the direction HL -> HL
+func CmdMemoHLtoHLRaw() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:                        "memo-hl-to-hl [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
+		Args:                       cobra.ExactArgs(5),
+		Short:                      "Get the memo for the direction HL -> HL",
+		Example:                    `dymd q forward memo-hl-to-hl 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			hook, err := hookForwardToHL(args)
+			if err != nil {
+				return fmt.Errorf("hook forward to hl: %w", err)
+			}
+
+			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
+			if err != nil {
+				return fmt.Errorf("readable flag: %w", err)
+			}
+
+			if readable {
+				fmt.Printf("hyperlane message: %+v\n", hook)
+			} else {
+				bz, err := proto.Marshal(hook)
+				if err != nil {
+					return fmt.Errorf("marshal: %w", err)
+				}
+				hlMetadata := &types.HLMetadata{
+					HookForwardToHl: bz,
+				}
+				bz, err = proto.Marshal(hlMetadata)
+				if err != nil {
+					return fmt.Errorf("marshal: %w", err)
+				}
+				fmt.Printf("%s\n", util.EncodeEthHex(bz))
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a human readable format (for debug)")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func hookForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
 	ibcSourceChan := args[0]
 
@@ -379,18 +427,13 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-const (
-	HLDomainKasTest10 = 80808082   // TODO: should not hardcode
-	HLDomainDym       = 1260813472 // TODO: should be different for testnet and mainnet
-)
-
 // Get a (test) message to send in Kaspa payload (Testnet10)
 func CmdTestHLMessageKaspa() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder]",
-		Args:    cobra.ExactArgs(4),
+		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder] [kas-domain] [hub-domain]",
+		Args:    cobra.ExactArgs(6),
 		Short:   "Get a test message to send in kaspa payload",
-		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000`,
+		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000 80808082 1260813472`,
 
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -415,6 +458,16 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 				return fmt.Errorf("kas token placeholder: %w", err)
 			}
 
+			kasDomain, err := strconv.ParseUint(args[4], 10, 32)
+			if err != nil {
+				return fmt.Errorf("kas domain: %w", err)
+			}
+
+			hubDomain, err := strconv.ParseUint(args[5], 10, 32)
+			if err != nil {
+				return fmt.Errorf("hub domain: %w", err)
+			}
+
 			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
 			if err != nil {
 				return fmt.Errorf("encode flag: %w", err)
@@ -422,9 +475,9 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 
 			m, err := createTestHyperlaneMessage(
 				0, // FIXED AT ZERO
-				HLDomainKasTest10,
+				uint32(kasDomain),
 				kasTokenPlaceholder,
-				HLDomainDym,
+				uint32(hubDomain),
 				hlTokenID,
 				hlRecipient,
 				hlAmt,
@@ -553,11 +606,23 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				}
 				fmt.Printf("hl metadata: %+v\n", hlMetadata)
 
-				m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
-				if err != nil {
-					return fmt.Errorf("unpack memo from warp message: %w", err)
+				// Check for IBC forward
+				if len(hlMetadata.HookForwardToIbc) > 0 {
+					m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
+					if err != nil {
+						return fmt.Errorf("unpack ibc forward from warp message: %w", err)
+					}
+					fmt.Printf("ibc forward: %+v\n", m)
 				}
-				fmt.Printf("ibc memo: %+v\n", m)
+
+				// Check for HL forward
+				if len(hlMetadata.HookForwardToHl) > 0 {
+					m, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
+					if err != nil {
+						return fmt.Errorf("unpack hl forward from warp message: %w", err)
+					}
+					fmt.Printf("hl forward: %+v\n", m)
+				}
 			}
 			fmt.Printf("warp payload message: %+v\n", warpPL)
 			fmt.Printf("cosmos account: %s\n", warpPL.GetCosmosAccount().String())

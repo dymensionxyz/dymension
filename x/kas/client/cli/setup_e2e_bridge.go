@@ -26,14 +26,13 @@ import (
 )
 
 const (
-	hubDomain          = uint32(1260813472)
-	counterpartyDomain = uint32(80808082)
-
 	flagGasDenom            = "gas-denom"
 	flagRemoteRouterAddress = "remote-router-address"
 	flagRemoteRouterGas     = "remote-router-gas"
 	flagValidators          = "validators"
 	flagThreshold           = "threshold"
+	flagHubDomain           = "hub-domain"
+	flagCounterpartyDomain  = "counterparty-domain"
 )
 
 /*
@@ -89,12 +88,16 @@ func CmdSetupBridge() *cobra.Command {
 			gasDenom, _ := cmd.Flags().GetString(flagGasDenom)
 			remoteRouterAddr, _ := cmd.Flags().GetString(flagRemoteRouterAddress)
 			remoteRouterGas, _ := cmd.Flags().GetUint64(flagRemoteRouterGas)
+			hubDomain, _ := cmd.Flags().GetUint32(flagHubDomain)
+			counterpartyDomain, _ := cmd.Flags().GetUint32(flagCounterpartyDomain)
 
 			fmt.Println("validatorsStr", validatorsStr)
 			fmt.Println("threshold", threshold)
 			fmt.Println("gasDenom", gasDenom)
 			fmt.Println("remoteRouterAddr", remoteRouterAddr)
 			fmt.Println("remoteRouterGas", remoteRouterGas)
+			fmt.Println("hubDomain", hubDomain)
+			fmt.Println("counterpartyDomain", counterpartyDomain)
 
 			// these are 20 byte long ethereum style addresses
 			validators := strings.Split(validatorsStr, ",")
@@ -148,10 +151,14 @@ func CmdSetupBridge() *cobra.Command {
 	cmd.Flags().String(flagGasDenom, "stake", "The denomination to be used for interchain gas payments")
 	cmd.Flags().String(flagRemoteRouterAddress, "", "The hex address of the remote router contract on the counterparty chain")
 	cmd.Flags().Uint64(flagRemoteRouterGas, 200000, "The gas limit to use for transfers to the remote router")
+	cmd.Flags().Uint32(flagHubDomain, 0, "The Hyperlane domain ID for the hub")
+	cmd.Flags().Uint32(flagCounterpartyDomain, 0, "The Hyperlane domain ID for the counterparty chain")
 
 	_ = cmd.MarkFlagRequired(flagValidators)
 	_ = cmd.MarkFlagRequired(flagThreshold)
 	_ = cmd.MarkFlagRequired(flagRemoteRouterAddress)
+	_ = cmd.MarkFlagRequired(flagHubDomain)
+	_ = cmd.MarkFlagRequired(flagCounterpartyDomain)
 
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
