@@ -208,14 +208,14 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 	// Check plan balance first to handle potential precision discrepancies
 	planBalance := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom)
 	actualCostAmt := costAmt
-	
+
 	// If plan balance is slightly less than needed due to precision loss, use what's available
 	// This handles the case where precision loss causes a tiny shortfall (like 619590 units)
 	if planBalance.Amount.LT(costAmt) && costAmt.Sub(planBalance.Amount).LT(math.NewInt(1000000)) {
 		// Shortfall is less than 1M units (0.000001 tokens) - likely precision loss
 		actualCostAmt = planBalance.Amount
 	}
-	
+
 	cost := sdk.NewCoin(plan.LiquidityDenom, actualCostAmt)
 	err = k.BK.SendCoins(ctx, plan.GetAddress(), seller, sdk.NewCoins(cost))
 	if err != nil {
