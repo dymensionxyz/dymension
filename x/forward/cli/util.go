@@ -40,7 +40,7 @@ const (
 	// FlagRecipientDst is the final recipient address on the destination chain (IBC or Hyperlane)
 	// This is where the funds will ultimately be delivered
 	FlagRecipientDst = "funds-recipient-dst"
-	
+
 	// FlagRecipientHub is the recipient address on the Dymension Hub
 	// This serves dual purposes:
 	// 1. For Kaspa->Hub transfers: this is the final recipient of funds
@@ -57,10 +57,10 @@ const (
 	FlagHLGas        = "hl-gas"
 	FlagBridgeFeeMul = "bridge-fee-mul"
 
-	FlagNonce        = "nonce"
-	FlagSrcContract  = "src-contract"
-	FlagDstTokenID   = "dst-token-id" // #nosec G101 - This is a CLI flag name, not a credential
-	FlagDstAmount    = "dst-amount"
+	FlagNonce       = "nonce"
+	FlagSrcContract = "src-contract"
+	FlagDstTokenID  = "dst-token-id" // #nosec G101 - This is a CLI flag name, not a credential
+	FlagDstAmount   = "dst-amount"
 
 	FlagKasToken = "kas-token"
 
@@ -977,7 +977,7 @@ func createHyperlaneMessage(
 	// Important: In Hyperlane's design, there are two different recipient concepts:
 	// 1. HyperlaneMessage.Recipient = the warp router contract address (tokenID parameter)
 	// 2. WarpPayload.recipient = the actual end user who receives funds (fundsRecipient parameter)
-	
+
 	p := sdk.GetConfig().GetBech32AccountAddrPrefix()
 	bech32, err := sdk.Bech32ifyAddressBytes(p, fundsRecipient)
 	if err != nil {
@@ -1001,7 +1001,7 @@ func createHyperlaneMessage(
 		Origin:      srcDomain,
 		Sender:      srcContract,
 		Destination: dstDomain,
-		Recipient:   tokenID,     // This is the warp router contract address
+		Recipient:   tokenID, // This is the warp router contract address
 		Body:        body,
 	}, nil
 }

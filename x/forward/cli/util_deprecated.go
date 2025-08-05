@@ -154,8 +154,8 @@ func CmdMemoHLtoHLRaw() *cobra.Command {
 
 func CmdTestHLtoIBCMessage() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:        "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [ibc timeout duration] [recovery-address]",
-		Args:       cobra.ExactArgs(11),
+		Use:        "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
+		Args:       cobra.ExactArgs(10),
 		Short:      "DEPRECATED: Use 'create-hl-message --source=hl --dest=ibc' instead",
 		Deprecated: "use 'create-hl-message --source=hl --dest=ibc' instead",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -173,7 +173,6 @@ func CmdTestHLtoIBCMessage() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagChannel, args[7])
 			_ = newCmd.Flags().Set(FlagRecipientDst, args[8])
 			_ = newCmd.Flags().Set(FlagTimeout, args[9])
-			_ = newCmd.Flags().Set(FlagRecoveryAddr, args[10])
 			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateHLMessage(newCmd, []string{})
