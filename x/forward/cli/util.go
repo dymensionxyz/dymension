@@ -125,8 +125,8 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdCreateMemo())
 	cmd.AddCommand(CmdCreateHLMessage())
 	cmd.AddCommand(CmdDecodeHL())
-	cmd.AddCommand(CmdEthRecipient())
-	cmd.AddCommand(CmdstimateFees())
+	cmd.AddCommand(CmdCosmosAddrToHLAddr())
+	cmd.AddCommand(CmdEstimateFees())
 
 	// Backward compatibility
 	cmd.AddCommand(CmdMemoIBCtoHL())
@@ -178,7 +178,7 @@ dymd q forward create-memo --src=eibc --dst=ibc \
 func CmdCreateHLMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-hl-message",
-		Short: "Create a Hyperlane message for testing",
+		Short: "Create a Hyperlane message for testing or for including in Kaspa payloads",
 		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various dstinations (Hub, IBC, HL).
 The src and dstination determine the message format and required parameters.`,
 		Example: `# Kaspa to Hub (no forwarding - hub recipient is final recipient)
@@ -217,7 +217,7 @@ func CmdDecodeHL() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "decode-hl [body|message] [hexsing]",
 		Args:    cobra.ExactArgs(2),
-		Short:   "Decode a Hyperlane message or body from hex  string",
+		Short:   "Decode a Hyperlane message or body from hex string",
 		Example: `dymd q forward decode-hl message 0x00000000... --decode-memo`,
 		RunE:    runDecodeHL,
 	}
@@ -228,12 +228,12 @@ func CmdDecodeHL() *cobra.Command {
 	return cmd
 }
 
-func CmdEthRecipient() *cobra.Command {
+func CmdCosmosAddrToHLAddr() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "eth-recipient [address]",
+		Use:     "cosmos-addr-to-hl-addr [address]",
 		Args:    cobra.ExactArgs(1),
-		Short:   "Convert a Cosmos address to Ethereum recipient format",
-		Example: `dymd q forward eth-recipient dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9`,
+		Short:   "Convert a Cosmos address to Hyperlane recipient format",
+		Example: `dymd q forward cosmos-addr-to-hl-addr dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			addr, err := EthRecipient(args[0])
 			if err != nil {
@@ -248,7 +248,7 @@ func CmdEthRecipient() *cobra.Command {
 	return cmd
 }
 
-func CmdstimateFees() *cobra.Command {
+func CmdEstimateFees() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "estimate-fees",
 		Short:   "Estimate fees for EIBC to HL transfers",
