@@ -81,94 +81,52 @@ make proto-format
 
 ### Core Modules (`x/`)
 
-#### Settlement Layer Modules
-- **rollapp**: Manages RollApp registration, state updates, and lifecycle
+#### Core Modules
+- **rollapp**: RollApp registration, state updates, finalization queue, fraud proofs
   - Handles state info submissions from sequencers
-  - Manages finalization queue and fraud proofs
   - Supports genesis bridges for RollApp initialization
   
-- **sequencer**: Manages sequencer registration, bonding, and rotation
-  - Handles sequencer lifecycle (bonding, unbonding)
-  - Manages proposer selection and rotation
-  - Tracks sequencer rewards and slashing
-
-- **lightclient**: Manages canonical IBC light clients for RollApps
-  - Ensures safe IBC client creation and operation
+- **sequencer**: Sequencer lifecycle (bonding/unbonding), rotation, rewards
+  - Manages proposer selection and slashing
+  
+- **lightclient**: Canonical IBC light clients for RollApps (critical for EIBC)
   - Validates light client parameters against expected values
-  - Critical for EIBC functionality
-
-#### IBC and Bridging Modules
-- **delayedack**: Handles delayed acknowledgments for RollApp packets
-  - Implements custom IBC middleware for RollApp-specific packet handling
+  
+- **delayedack**: Custom IBC middleware for delayed packet acknowledgments
   - Manages packet finalization based on RollApp state updates
   - Handles fraud detection and rollback
-
-- **eibc**: Event-driven IBC for fast finality
-  - Allows market makers to fulfill orders before finalization
+  
+- **eibc**: Fast finality via market makers fulfilling orders before finalization
   - Manages demand orders and liquidity providers
-  - Implements custom authorization for order fulfillment
-
-- **bridgingfee**: Manages fees for bridging between Hub and RollApps
-
-- **forward**: Handles token forwarding between Hyperlane and IBC/EIBC
-  - Supports cross-protocol token transfers
-  - Manages routing between different bridge types
-
-- **kas**: Bookkeeping for Kaspa<->Dymension Hyperlane bridge
+  
+- **bridgingfee**: Fee management for Hub<->RollApp bridging
+- **forward**: Token routing between Hyperlane and IBC/EIBC
+- **kas**: Kaspa<->Dymension Hyperlane bridge bookkeeping
 
 #### Economic Modules
-- **iro**: Initial RollApp Offering
-  - Manages token launches for new RollApps
-  - Implements bonding curve mechanics
+- **iro**: Initial RollApp Offering with bonding curves
   - Handles vesting and liquidity provisioning
-
-- **incentives**: Liquidity and staking incentives
-  - Manages gauge-based reward distribution
+  
+- **incentives**: Gauge-based liquidity rewards
   - Supports asset-specific and RollApp-specific gauges
-  - Integrates with sponsorship for community-driven distribution
-
-- **sponsorship**: Community-driven incentive distribution
-  - Allows validators to vote on reward distribution
-  - Updates streamer distributions based on community votes
-
-- **streamer**: Time-based token distribution
-  - Manages scheduled token releases
-  - Supports multiple distribution records per stream
-
-- **lockup**: Token locking mechanism
-  - Required for earning incentive rewards
-  - Manages lock periods and unlocking
+  
+- **sponsorship**: Validator-voted reward distribution
+- **streamer**: Scheduled token releases
+- **lockup**: Token locking for incentive rewards
 
 #### Utility Modules
-- **denommetadata**: Token denomination metadata management
-  - Handles IBC denom metadata registration
-  - Supports Hyperlane token metadata
-
-- **dymns**: Dymension Name Service
-  - Manages .dym domain registration and trading
+- **denommetadata**: IBC and Hyperlane token metadata
+- **dymns**: .dym domain name service and marketplace
   - Supports aliases and reverse resolution
-  - Implements marketplace for name trading
-
-- **gamm**: Generalized Automated Market Maker (from Osmosis)
-  - Provides liquidity pool functionality
-  - Required for incentives distribution
+  
+- **gamm**: AMM pools (from Osmosis)
 
 ### Key Architectural Patterns
 
-1. **Module Structure**: Each module follows standard Cosmos SDK patterns:
-   - `keeper/`: Core business logic and state management
-   - `types/`: Protobuf types, messages, and interfaces
-   - `client/cli/`: CLI commands for the module
-   - Tests alongside implementation files
-
-2. **IBC Integration**: Heavy use of IBC middleware pattern for custom packet handling
-
-3. **Hook System**: Extensive use of hooks for cross-module communication
-
-4. **Testing Patterns**:
-   - Unit tests: Standard Go testing with table-driven tests
-   - Keeper tests: Often use test suites with setup/teardown
-   - Integration tests: Located in `ibctesting/` using IBC testing framework
+- **Module Structure**: Standard Cosmos SDK with `keeper/`, `types/`, `client/cli/`
+- **IBC Integration**: Custom middleware for RollApp packet handling
+- **Hook System**: Cross-module communication via hooks
+- **Testing**: Unit tests, keeper test suites, integration tests in `ibctesting/`
 
 ## Module Dependencies
 
@@ -204,32 +162,22 @@ The repository uses GitHub Actions for continuous integration. Key workflows inc
 
 ### Verifying CI Checks Locally
 
-Before pushing changes, verify CI checks locally:
-
 ```bash
-# 1. Run tests with race detection and coverage (mimics CI)
+# Tests with coverage (mimics CI)
 go install github.com/ory/go-acc@v0.2.6
 go-acc -o coverage.txt ./... -- -v --race
 
-# 2. Run golangci-lint (ensure version matches CI)
-golangci-lint run
+# Linting and formatting
+golangci-lint run      # v2.1 - install: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.1
+gofumpt -w .          # install: go install mvdan.cc/gofumpt@latest
 
-# 3. Format Go code with gofumpt
-gofumpt -w .
-
-# 4. For proto changes, run format and generation
+# Proto changes only
 make proto-format
 make proto-gen
 
-# 5. Check for any uncommitted changes
+# Check uncommitted changes
 git status --porcelain
 ```
-
-### Required Tools
-- `golangci-lint` v2.1 (install: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.1`)
-- `gofumpt` (install: `go install mvdan.cc/gofumpt@latest`)
-- `go-acc` for coverage (install: `go install github.com/ory/go-acc@v0.2.6`)
-- Docker (for proto generation)
 
 ## Environment Configuration
 
