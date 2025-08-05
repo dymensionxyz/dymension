@@ -200,7 +200,19 @@ dymd q forward create-hl-message --src=kaspa --dst=ibc \
   --hub-domain=1260813472 \
   --channel=channel-0 \
   --funds-recipient-dst=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
-  --timeout=5m`,
+  --timeout=5m
+
+# HL to HL forwarding
+dymd q forward create-hl-message --src=hl --dst=hl \
+  --nonce=123 \
+  --src-domain=1 \
+  --src-contract=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --dst-domain=2 \
+  --token-id=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --funds-recipient-dst=0x1234567890123456789012345678901234567890 \
+  --amount=1000000000000000000 \
+  --dst-amount=900000000000000000 \
+  --max-fee=20foo`,
 		RunE: runCreateHLMessage,
 	}
 
@@ -759,33 +771,73 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 		return err
 	}
 
-	if common.Dst != DstIBC {
-		return fmt.Errorf("only IBC destination is supported for HL src")
-	}
+	var m util.HyperlaneMessage
 
-	ibcParams, err := parseIBCFlags(cmd)
-	if err != nil {
-		return err
-	}
+	switch common.Dst {
+	case DstIBC:
+		ibcParams, err := parseIBCFlags(cmd)
+		if err != nil {
+			return err
+		}
 
-	hook := types.NewHookForwardToIBC(
-		ibcParams.Channel,
-		ibcParams.Recipient,
-		uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
-	)
+		hook := types.NewHookForwardToIBC(
+			ibcParams.Channel,
+			ibcParams.Recipient,
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+		)
 
-	m, err := MakeForwardToIBCHyperlaneMessage(
-		hlParams.Nonce,
-		hlParams.SrcDomain,
-		hlParams.SrcContract,
-		hlParams.DstDomain,
-		hlParams.TokenID,
-		tokenParams.Recipient,
-		tokenParams.Amount,
-		hook,
-	)
-	if err != nil {
-		return fmt.Errorf("create hl message: %w", err)
+		m, err = MakeForwardToIBCHyperlaneMessage(
+			hlParams.Nonce,
+			hlParams.SrcDomain,
+			hlParams.SrcContract,
+			hlParams.DstDomain,
+			hlParams.TokenID,
+			tokenParams.Recipient,
+			tokenParams.Amount,
+			hook,
+		)
+		if err != nil {
+			return fmt.Errorf("create hl message: %w", err)
+		}
+
+	case DstHL:
+		// For HL->HL transfers:
+		// - tokenParams.Recipient is the hub address that receives funds
+		// - hlParams.RecipientFunds is the final recipient on the destination Hyperlane chain
+		// Need to get destination amount (what the final recipient will receive)
+		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
+		dstAmount, ok := math.NewIntFromString(dstAmountS)
+		if !ok {
+			return fmt.Errorf("invalid destination amount")
+		}
+
+		hook := types.NewHookForwardToHL(
+			hlParams.TokenID,
+			hlParams.DstDomain,
+			hlParams.RecipientFunds,
+			dstAmount,
+			hlParams.MaxFee,
+			math.ZeroInt(),
+			nil,
+			"",
+		)
+
+		m, err = MakeForwardToHLHyperlaneMessage(
+			hlParams.Nonce,
+			hlParams.SrcDomain,
+			hlParams.SrcContract,
+			hlParams.DstDomain,
+			hlParams.TokenID,
+			tokenParams.Recipient,
+			tokenParams.Amount,
+			hook,
+		)
+		if err != nil {
+			return fmt.Errorf("create hl message: %w", err)
+		}
+
+	default:
+		return fmt.Errorf("unsupported destination for HL src: %s", common.Dst)
 	}
 
 	if common.Readable {
@@ -943,6 +995,50 @@ func MakeForwardToIBCHyperlaneMessage(
 		if err != nil {
 			return util.HyperlaneMessage{}, errorsmod.Wrap(err, "decode eth hex")
 		}
+	}
+
+	return hlM, nil
+}
+
+func MakeForwardToHLHyperlaneMessage(
+	hyperlaneNonce uint32,
+	hyperlaneSrcDomain uint32,
+	hyperlaneSrcContract util.HexAddress,
+	hyperlaneDstDomain uint32,
+	hyperlaneTokenID util.HexAddress,
+	fundsRecipient sdk.AccAddress,
+	hyperlaneTokenAmt math.Int,
+	hook *types.HookForwardToHL,
+) (util.HyperlaneMessage, error) {
+	if err := hook.ValidateBasic(); err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "hook validate basic")
+	}
+
+	memoBz, err := proto.Marshal(hook)
+	if err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal memo")
+	}
+
+	hlMetadata := &types.HLMetadata{
+		HookForwardToHl: memoBz,
+	}
+	memoBz, err = proto.Marshal(hlMetadata)
+	if err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal hl metadata")
+	}
+
+	hlM, err := createHyperlaneMessage(
+		hyperlaneNonce,
+		hyperlaneSrcDomain,
+		hyperlaneSrcContract,
+		hyperlaneDstDomain,
+		hyperlaneTokenID,
+		fundsRecipient,
+		hyperlaneTokenAmt,
+		memoBz,
+	)
+	if err != nil {
+		return util.HyperlaneMessage{}, err
 	}
 
 	return hlM, nil
