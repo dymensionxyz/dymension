@@ -249,3 +249,29 @@ Default ports (can be configured via environment variables):
 - Proto generation requires Docker with specific proto-builder images
 - Default chain ID for local development: `dymension_100-1`
 - Default denom: `udym` (1 dym = 1,000,000 udym)
+
+## Code Style Guidelines
+
+### Comments
+- **NEVER** comment the WHAT of code (the code itself shows what it does)
+- **ONLY** add comments to explain WHY for unusual, unclear, or non-obvious implementations
+- Examples:
+  ```go
+  // BAD: Increment counter by 1
+  counter++
+  
+  // GOOD: We need to retry 3 times due to intermittent network issues with the external API
+  for i := 0; i < 3; i++ {
+      // ...
+  }
+  ```
+
+### CI Tool Usage
+When verifying code locally, run tools **only as needed** to avoid unnecessary work:
+- `golangci-lint run` - Only if you modified Go code
+- `gofumpt -w .` - Only if you modified Go code  
+- `make proto-format` and `make proto-gen` - Only if you modified .proto files
+- `go test` - Only for packages you modified
+- Full test suite with `go-acc` - Only before final push or if requested
+
+Remember: These tools can take significant time to run, especially proto generation and full test suites.
