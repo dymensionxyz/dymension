@@ -62,12 +62,19 @@ go test ./x/rollapp/...
 go test ./ibctesting/...
 ```
 
-### Linting
+### Linting and Code Formatting
 ```bash
 # Run golangci-lint (configured in .golangci.yml)
 golangci-lint run
 
-# Linters enabled: errcheck, gocyclo, gosec, govet, ineffassign, unconvert, unparam, dogsled, nakedret, staticcheck, typecheck, unused
+# Linters enabled: errcheck, gocyclo, gosec, govet, ineffassign, misspell, revive, staticcheck, unconvert, unused, errorlint
+# Uses golangci-lint v2.1 (as per CI)
+
+# Format Go code with gofumpt
+gofumpt -w .
+
+# Format proto files
+make proto-format
 ```
 
 ## Architecture Overview
@@ -171,6 +178,58 @@ Key inter-module dependencies:
 - `eibc` → `delayedack`: For packet fulfillment
 - `incentives` → `lockup`, `sponsorship`: For reward distribution
 - `lightclient` → `rollapp`, `sequencer`: For canonical client validation
+
+## GitHub Actions and CI/CD
+
+### Workflows
+The repository uses GitHub Actions for continuous integration. Key workflows include:
+
+1. **Build and Test** (`test.yml`): Runs on all pushes and PRs
+   - Builds the project
+   - Runs tests with race detection and coverage
+   - Uploads coverage to Codecov
+
+2. **Linting** (`golangci_lint.yml`): Runs golangci-lint on all code
+   - Uses golangci-lint v2.1
+   - Configuration in `.golangci.yml`
+
+3. **Protocol Buffers** (`proto.yaml`): Validates protobuf files
+   - Runs proto-format and proto-gen
+   - Checks for uncommitted changes
+   - Breaking change detection with buf
+
+4. **E2E Tests** (`e2e_test.yml`, `e2e_test_upgrade.yml`): Integration tests
+   - Tests various scenarios including upgrades
+   - Nightly runs for comprehensive testing
+
+### Verifying CI Checks Locally
+
+Before pushing changes, verify CI checks locally:
+
+```bash
+# 1. Run tests with race detection and coverage (mimics CI)
+go install github.com/ory/go-acc@v0.2.6
+go-acc -o coverage.txt ./... -- -v --race
+
+# 2. Run golangci-lint (ensure version matches CI)
+golangci-lint run
+
+# 3. Format Go code with gofumpt
+gofumpt -w .
+
+# 4. For proto changes, run format and generation
+make proto-format
+make proto-gen
+
+# 5. Check for any uncommitted changes
+git status --porcelain
+```
+
+### Required Tools
+- `golangci-lint` v2.1 (install: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.1`)
+- `gofumpt` (install: `go install mvdan.cc/gofumpt@latest`)
+- `go-acc` for coverage (install: `go install github.com/ory/go-acc@v0.2.6`)
+- Docker (for proto generation)
 
 ## Environment Configuration
 
