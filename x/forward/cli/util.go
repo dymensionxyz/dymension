@@ -47,6 +47,10 @@ const (
 
 	FlagEIBCFee = "eibc-fee"
 
+	FlagHLAmount     = "hl-amount"
+	FlagHLGas        = "hl-gas"
+	FlagBridgeFeeMul = "bridge-fee-mul"
+
 	FlagNonce        = "nonce"
 	FlagSrcContract  = "src-contract"
 	FlagDestTokenID  = "dest-token-id"
@@ -240,14 +244,14 @@ func CmdEstimateFees() *cobra.Command {
 		RunE:    runEstimateFees,
 	}
 
-	cmd.Flags().String("hl-amount", "", "Amount to receive on Hyperlane")
-	cmd.Flags().String("hl-gas", "", "Max gas for Hyperlane")
-	cmd.Flags().String("eibc-fee", "", "EIBC fee")
-	cmd.Flags().String("bridge-fee-mul", "", "Bridge fee multiplier")
-	cmd.MarkFlagRequired("hl-amount")
-	cmd.MarkFlagRequired("hl-gas")
-	cmd.MarkFlagRequired("eibc-fee")
-	cmd.MarkFlagRequired("bridge-fee-mul")
+	cmd.Flags().String(FlagHLAmount, "", "Amount to receive on Hyperlane")
+	cmd.Flags().String(FlagHLGas, "", "Max gas for Hyperlane")
+	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee")
+	cmd.Flags().String(FlagBridgeFeeMul, "", "Bridge fee multiplier")
+	cmd.MarkFlagRequired(FlagHLAmount)
+	cmd.MarkFlagRequired(FlagHLGas)
+	cmd.MarkFlagRequired(FlagEIBCFee)
+	cmd.MarkFlagRequired(FlagBridgeFeeMul)
 
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
@@ -836,10 +840,10 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 }
 
 func runEstimateFees(cmd *cobra.Command, args []string) error {
-	hlAmountStr, _ := cmd.Flags().GetString("hl-amount")
-	hlGasStr, _ := cmd.Flags().GetString("hl-gas")
-	eibcFeeStr, _ := cmd.Flags().GetString("eibc-fee")
-	bridgeFeeMulStr, _ := cmd.Flags().GetString("bridge-fee-mul")
+	hlAmountStr, _ := cmd.Flags().GetString(FlagHLAmount)
+	hlGasStr, _ := cmd.Flags().GetString(FlagHLGas)
+	eibcFeeStr, _ := cmd.Flags().GetString(FlagEIBCFee)
+	bridgeFeeMulStr, _ := cmd.Flags().GetString(FlagBridgeFeeMul)
 
 	hlReceiveAmt, ok := math.NewIntFromString(hlAmountStr)
 	if !ok {
