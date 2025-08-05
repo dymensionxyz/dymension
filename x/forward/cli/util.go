@@ -24,22 +24,21 @@ import (
 
 const (
 	FlagReadable = "readable"
-	FlagSource   = "source"
-	FlagDest     = "dest"
+	FlagSrc      = "src"
+	FlagDst      = "dst"
 
 	FlagTokenID = "token-id"
 	FlagAmount  = "amount"
 	FlagMaxFee  = "max-fee"
 
-	FlagDomain     = "domain"
-	FlagSrcDomain  = "src-domain"
-	FlagDestDomain = "dest-domain"
-	FlagHubDomain  = "hub-domain"
-	FlagKasDomain  = "kas-domain"
+	FlagDomain    = "domain"
+	FlagSrcDomain = "src-domain"
+	FlagDstDomain = "dst-domain"
+	FlagHubDomain = "hub-domain"
+	FlagKasDomain = "kas-domain"
 
-	FlagRecipient     = "recipient"
-	FlagDestRecipient = "dest-recipient"
-	FlagHubRecipient  = "hub-recipient"
+	FlagRecipientDst = "funds-recipient-dst"
+	FlagRecipientHub = "funds-recipient-hub"
 
 	FlagChannel = "channel"
 	FlagTimeout = "timeout"
@@ -52,30 +51,28 @@ const (
 
 	FlagNonce        = "nonce"
 	FlagSrcContract  = "src-contract"
-	FlagDestTokenID  = "dest-token-id" // #nosec G101 - This is a CLI flag name, not a credential
-	FlagDestAmount   = "dest-amount"
+	FlagDstTokenID   = "dst-token-id" // #nosec G101 - This is a CLI flag name, not a credential
+	FlagDstAmount    = "dst-amount"
 	FlagRecoveryAddr = "recovery-address"
 
 	FlagKasToken = "kas-token"
 
 	FlagDecodeMemo = "decode-memo"
-)
 
-const (
-	SourceIBC   = "ibc"
-	SourceEIBC  = "eibc"
-	SourceHL    = "hl"
-	SourceKaspa = "kaspa"
+	SrcIBC   = "ibc"
+	SrcEIBC  = "eibc"
+	SrcHL    = "hl"
+	SrcKaspa = "kaspa"
 
-	DestIBC = "ibc"
-	DestHL  = "hl"
-	DestHub = "hub"
+	DstIBC = "ibc"
+	DstHL  = "hl"
+	DstHub = "hub"
 )
 
 type CommonParams struct {
 	Readable bool
-	Source   string
-	Dest     string
+	Src      string
+	Dst      string
 }
 
 type TokenParams struct {
@@ -85,15 +82,15 @@ type TokenParams struct {
 }
 
 type HyperlaneParams struct {
-	TokenID     util.HexAddress
-	Amount      math.Int
-	Recipient   util.HexAddress
-	Domain      uint32
-	MaxFee      sdk.Coin
-	Nonce       uint32
-	SrcDomain   uint32
-	SrcContract util.HexAddress
-	DstDomain   uint32
+	TokenID        util.HexAddress
+	Amount         math.Int
+	RecipientFunds util.HexAddress
+	Domain         uint32
+	MaxFee         sdk.Coin
+	Nonce          uint32
+	SrcDomain      uint32
+	SrcContract    util.HexAddress
+	DstDomain      uint32
 }
 
 type IBCParams struct {
@@ -106,7 +103,7 @@ type KaspaParams struct {
 	TokenPlaceholder util.HexAddress
 	KasDomain        uint32
 	HubDomain        uint32
-	HubRecipient     sdk.AccAddress
+	FundsRecipient   sdk.AccAddress
 }
 
 func GetQueryCmd() *cobra.Command {
@@ -122,7 +119,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdCreateHLMessage())
 	cmd.AddCommand(CmdDecodeHL())
 	cmd.AddCommand(CmdEthRecipient())
-	cmd.AddCommand(CmdEstimateFees())
+	cmd.AddCommand(CmdstimateFees())
 
 	// Backward compatibility
 	cmd.AddCommand(CmdMemoIBCtoHL())
@@ -144,17 +141,17 @@ func CmdCreateMemo() *cobra.Command {
 		Use:   "create-memo",
 		Short: "Create a memo for forwarding between different protocols",
 		Long: `Create a memo for forwarding tokens between IBC, EIBC, and Hyperlane.
-The source and destination determine which type of memo is created.`,
+The src and dstination determine which type of memo is created.`,
 		Example: `# IBC to Hyperlane
-dymd q forward create-memo --source=ibc --dest=hl \
+dymd q forward create-memo --src=ibc --dst=hl \
   --token-id=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
-  --dest-domain=1 \
-  --dest-recipient=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --dst-domain=1 \
+  --dst-recipient=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
   --amount=10000 \
   --max-fee=20foo
 
 # EIBC to IBC
-dymd q forward create-memo --source=eibc --dest=ibc \
+dymd q forward create-memo --src=eibc --dst=ibc \
   --eibc-fee=100 \
   --channel=channel-0 \
   --recipient=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
@@ -166,7 +163,7 @@ dymd q forward create-memo --source=eibc --dest=ibc \
 	addTokenFlags(cmd)
 	addHyperlaneFlags(cmd)
 	addIBCFlags(cmd)
-	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee (required for EIBC source)")
+	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee (required for EIBC src)")
 
 	return cmd
 }
@@ -175,10 +172,10 @@ func CmdCreateHLMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-hl-message",
 		Short: "Create a Hyperlane message for testing",
-		Long: `Create a Hyperlane message from various sources (HL, Kaspa) to various destinations (Hub, IBC, HL).
-The source and destination determine the message format and required parameters.`,
+		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various dstinations (Hub, IBC, HL).
+The src and dstination determine the message format and required parameters.`,
 		Example: `# Kaspa to IBC
-dymd q forward create-hl-message --source=kaspa --dest=ibc \
+dymd q forward create-hl-message --src=kaspa --dst=ibc \
   --token-id=0x0000000000000000000000000000000000000000000000000000000000000000 \
   --hub-recipient=dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 \
   --amount=1000000000000000000 \
@@ -186,7 +183,7 @@ dymd q forward create-hl-message --source=kaspa --dest=ibc \
   --kas-domain=80808082 \
   --hub-domain=1260813472 \
   --channel=channel-0 \
-  --dest-recipient=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
+  --dst-recipient=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
   --timeout=5m`,
 		RunE: runCreateHLMessage,
 	}
@@ -202,9 +199,9 @@ dymd q forward create-hl-message --source=kaspa --dest=ibc \
 
 func CmdDecodeHL() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "decode-hl [body|message] [hexstring]",
+		Use:     "decode-hl [body|message] [hexsing]",
 		Args:    cobra.ExactArgs(2),
-		Short:   "Decode a Hyperlane message or body from hex string",
+		Short:   "Decode a Hyperlane message or body from hex  string",
 		Example: `dymd q forward decode-hl message 0x00000000... --decode-memo`,
 		RunE:    runDecodeHL,
 	}
@@ -235,7 +232,7 @@ func CmdEthRecipient() *cobra.Command {
 	return cmd
 }
 
-func CmdEstimateFees() *cobra.Command {
+func CmdstimateFees() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "estimate-fees",
 		Short:   "Estimate fees for EIBC to HL transfers",
@@ -258,28 +255,27 @@ func CmdEstimateFees() *cobra.Command {
 
 func addCommonFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(FlagReadable, false, "Show output in human-readable format")
-	cmd.Flags().String(FlagSource, "", "Source protocol (ibc, eibc, hl, kaspa)")
-	cmd.Flags().String(FlagDest, "", "Destination protocol (ibc, hl, hub)")
-	_ = cmd.MarkFlagRequired(FlagSource)
-	_ = cmd.MarkFlagRequired(FlagDest)
+	cmd.Flags().String(FlagSrc, "", "Src protocol (ibc, eibc, hl, kaspa)")
+	cmd.Flags().String(FlagDst, "", "Dstination protocol (ibc, hl, hub)")
+	_ = cmd.MarkFlagRequired(FlagSrc)
+	_ = cmd.MarkFlagRequired(FlagDst)
 }
 
 func addTokenFlags(cmd *cobra.Command) {
 	cmd.Flags().String(FlagTokenID, "", "Token ID (hex)")
 	cmd.Flags().String(FlagAmount, "", "Token amount")
-	cmd.Flags().String(FlagRecipient, "", "Recipient address")
 	cmd.Flags().String(FlagMaxFee, "", "Maximum fee (e.g., 20foo)")
 }
 
 func addHyperlaneFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce")
 	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID")
-	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source domain ID")
-	cmd.Flags().Uint32(FlagDestDomain, 0, "Destination domain ID")
-	cmd.Flags().String(FlagSrcContract, "", "Source contract (hex)")
-	cmd.Flags().String(FlagDestTokenID, "", "Destination token ID (hex)")
-	cmd.Flags().String(FlagDestRecipient, "", "Destination recipient")
-	cmd.Flags().String(FlagDestAmount, "", "Destination amount")
+	cmd.Flags().Uint32(FlagSrcDomain, 0, "Src domain ID")
+	cmd.Flags().Uint32(FlagDstDomain, 0, "Dstination domain ID")
+	cmd.Flags().String(FlagSrcContract, "", "Src contract (hex)")
+	cmd.Flags().String(FlagDstTokenID, "", "Dstination token ID (hex)")
+	cmd.Flags().String(FlagRecipientDst, "", "Dstination recipient of actual funds")
+	cmd.Flags().String(FlagDstAmount, "", "Dstination amount")
 	cmd.Flags().String(FlagRecoveryAddr, "", "Recovery address")
 }
 
@@ -292,46 +288,46 @@ func addKaspaFlags(cmd *cobra.Command) {
 	cmd.Flags().String(FlagKasToken, "", "Kaspa token placeholder (hex)")
 	cmd.Flags().Uint32(FlagKasDomain, 0, "Kaspa domain ID")
 	cmd.Flags().Uint32(FlagHubDomain, 0, "Hub domain ID")
-	cmd.Flags().String(FlagHubRecipient, "", "Hub recipient address")
+	cmd.Flags().String(FlagRecipientHub, "", "Hub recipient address")
 }
 
 func parseCommonFlags(cmd *cobra.Command) (*CommonParams, error) {
 	readable, _ := cmd.Flags().GetBool(FlagReadable)
-	source, _ := cmd.Flags().GetString(FlagSource)
-	dest, _ := cmd.Flags().GetString(FlagDest)
+	src, _ := cmd.Flags().GetString(FlagSrc)
+	dst, _ := cmd.Flags().GetString(FlagDst)
 
 	return &CommonParams{
 		Readable: readable,
-		Source:   source,
-		Dest:     dest,
+		Src:      src,
+		Dst:      dst,
 	}, nil
 }
 
 func parseTokenFlags(cmd *cobra.Command) (*TokenParams, error) {
-	tokenIDStr, _ := cmd.Flags().GetString(FlagTokenID)
-	amountStr, _ := cmd.Flags().GetString(FlagAmount)
-	recipientStr, _ := cmd.Flags().GetString(FlagRecipient)
+	tokenIDS, _ := cmd.Flags().GetString(FlagTokenID)
+	amountS, _ := cmd.Flags().GetString(FlagAmount)
+	recipientS, _ := cmd.Flags().GetString(FlagRecipientDst)
 
 	var params TokenParams
 	var err error
 
-	if tokenIDStr != "" {
-		params.TokenID, err = util.DecodeHexAddress(tokenIDStr)
+	if tokenIDS != "" {
+		params.TokenID, err = util.DecodeHexAddress(tokenIDS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid token ID: %w", err)
 		}
 	}
 
-	if amountStr != "" {
+	if amountS != "" {
 		var ok bool
-		params.Amount, ok = math.NewIntFromString(amountStr)
+		params.Amount, ok = math.NewIntFromString(amountS)
 		if !ok {
-			return nil, fmt.Errorf("invalid amount: %s", amountStr)
+			return nil, fmt.Errorf("invalid amount: %s", amountS)
 		}
 	}
 
-	if recipientStr != "" {
-		params.Recipient, err = sdk.AccAddressFromBech32(recipientStr)
+	if recipientS != "" {
+		params.Recipient, err = sdk.AccAddressFromBech32(recipientS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient: %w", err)
 		}
@@ -347,44 +343,44 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 	params.Nonce, _ = cmd.Flags().GetUint32(FlagNonce)
 	params.Domain, _ = cmd.Flags().GetUint32(FlagDomain)
 	params.SrcDomain, _ = cmd.Flags().GetUint32(FlagSrcDomain)
-	params.DstDomain, _ = cmd.Flags().GetUint32(FlagDestDomain)
+	params.DstDomain, _ = cmd.Flags().GetUint32(FlagDstDomain)
 
-	tokenIDStr, _ := cmd.Flags().GetString(FlagTokenID)
-	if tokenIDStr != "" {
-		params.TokenID, err = util.DecodeHexAddress(tokenIDStr)
+	tokenIDS, _ := cmd.Flags().GetString(FlagTokenID)
+	if tokenIDS != "" {
+		params.TokenID, err = util.DecodeHexAddress(tokenIDS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid token ID: %w", err)
 		}
 	}
 
-	srcContractStr, _ := cmd.Flags().GetString(FlagSrcContract)
-	if srcContractStr != "" {
-		params.SrcContract, err = util.DecodeHexAddress(srcContractStr)
+	srcContractS, _ := cmd.Flags().GetString(FlagSrcContract)
+	if srcContractS != "" {
+		params.SrcContract, err = util.DecodeHexAddress(srcContractS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid src contract: %w", err)
 		}
 	}
 
-	recipientStr, _ := cmd.Flags().GetString(FlagDestRecipient)
-	if recipientStr != "" {
-		params.Recipient, err = util.DecodeHexAddress(recipientStr)
+	recipientFundsS, _ := cmd.Flags().GetString(FlagRecipientDst)
+	if recipientFundsS != "" {
+		params.RecipientFunds, err = util.DecodeHexAddress(recipientFundsS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient: %w", err)
 		}
 	}
 
-	amountStr, _ := cmd.Flags().GetString(FlagAmount)
-	if amountStr != "" {
+	amountS, _ := cmd.Flags().GetString(FlagAmount)
+	if amountS != "" {
 		var ok bool
-		params.Amount, ok = math.NewIntFromString(amountStr)
+		params.Amount, ok = math.NewIntFromString(amountS)
 		if !ok {
-			return nil, fmt.Errorf("invalid amount: %s", amountStr)
+			return nil, fmt.Errorf("invalid amount: %s", amountS)
 		}
 	}
 
-	maxFeeStr, _ := cmd.Flags().GetString(FlagMaxFee)
-	if maxFeeStr != "" {
-		params.MaxFee, err = sdk.ParseCoinNormalized(maxFeeStr)
+	maxFeeS, _ := cmd.Flags().GetString(FlagMaxFee)
+	if maxFeeS != "" {
+		params.MaxFee, err = sdk.ParseCoinNormalized(maxFeeS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid max fee: %w", err)
 		}
@@ -395,13 +391,13 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 
 func parseIBCFlags(cmd *cobra.Command) (*IBCParams, error) {
 	channel, _ := cmd.Flags().GetString(FlagChannel)
-	recipient, _ := cmd.Flags().GetString(FlagRecipient)
+	recipient, _ := cmd.Flags().GetString(FlagRecipientDst)
 	if recipient == "" {
-		recipient, _ = cmd.Flags().GetString(FlagDestRecipient)
+		recipient, _ = cmd.Flags().GetString(FlagRecipientDst)
 	}
 
-	timeoutStr, _ := cmd.Flags().GetString(FlagTimeout)
-	timeout, err := time.ParseDuration(timeoutStr)
+	timeoutS, _ := cmd.Flags().GetString(FlagTimeout)
+	timeout, err := time.ParseDuration(timeoutS)
 	if err != nil {
 		return nil, fmt.Errorf("invalid timeout: %w", err)
 	}
@@ -417,9 +413,9 @@ func parseKaspaFlags(cmd *cobra.Command) (*KaspaParams, error) {
 	var params KaspaParams
 	var err error
 
-	kasTokenStr, _ := cmd.Flags().GetString(FlagKasToken)
-	if kasTokenStr != "" {
-		params.TokenPlaceholder, err = util.DecodeHexAddress(kasTokenStr)
+	kasTokenS, _ := cmd.Flags().GetString(FlagKasToken)
+	if kasTokenS != "" {
+		params.TokenPlaceholder, err = util.DecodeHexAddress(kasTokenS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid kas token: %w", err)
 		}
@@ -428,9 +424,9 @@ func parseKaspaFlags(cmd *cobra.Command) (*KaspaParams, error) {
 	params.KasDomain, _ = cmd.Flags().GetUint32(FlagKasDomain)
 	params.HubDomain, _ = cmd.Flags().GetUint32(FlagHubDomain)
 
-	hubRecipientStr, _ := cmd.Flags().GetString(FlagHubRecipient)
-	if hubRecipientStr != "" {
-		params.HubRecipient, err = sdk.AccAddressFromBech32(hubRecipientStr)
+	hubFundsRecipientS, _ := cmd.Flags().GetString(FlagRecipientHub)
+	if hubFundsRecipientS != "" {
+		params.FundsRecipient, err = sdk.AccAddressFromBech32(hubFundsRecipientS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid hub recipient: %w", err)
 		}
@@ -445,21 +441,21 @@ func runCreateMemo(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	switch common.Source {
-	case SourceIBC, SourceEIBC:
+	switch common.Src {
+	case SrcIBC, SrcEIBC:
 		return runCreateMemoFromIBC(cmd, common)
-	case SourceHL:
+	case SrcHL:
 		return runCreateMemoFromHL(cmd, common)
 	default:
-		return fmt.Errorf("unsupported source: %s", common.Source)
+		return fmt.Errorf("unsupported src: %s", common.Src)
 	}
 }
 
 func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 	var memo string
 
-	switch common.Dest {
-	case DestHL:
+	switch common.Dst {
+	case DstHL:
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
@@ -473,7 +469,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 		hook := types.NewHookForwardToHL(
 			hlParams.TokenID,
 			hlParams.DstDomain,
-			hlParams.Recipient,
+			hlParams.RecipientFunds,
 			tokenParams.Amount,
 			hlParams.MaxFee,
 			math.ZeroInt(),
@@ -481,9 +477,9 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			"",
 		)
 
-		if common.Source == SourceEIBC {
-			eibcFeeStr, _ := cmd.Flags().GetString(FlagEIBCFee)
-			memo, err = types.MakeRolForwardToHLMemoString(eibcFeeStr, hook)
+		if common.Src == SrcEIBC {
+			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			memo, err = types.MakeRolForwardToHLMemoString(eibcFeeS, hook)
 		} else {
 			memo, err = types.MakeIBCForwardToHLMemoString(hook)
 		}
@@ -492,7 +488,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			return fmt.Errorf("create memo: %w", err)
 		}
 
-	case DestIBC:
+	case DstIBC:
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -504,9 +500,9 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive // #nosec G115 - Unix time is always positive
 		)
 
-		if common.Source == SourceEIBC {
-			eibcFeeStr, _ := cmd.Flags().GetString(FlagEIBCFee)
-			memo, err = types.MakeRolForwardToIBCMemoString(eibcFeeStr, hook)
+		if common.Src == SrcEIBC {
+			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			memo, err = types.MakeRolForwardToIBCMemoString(eibcFeeS, hook)
 		} else {
 			memo, err = types.MakeIBCForwardToIBCMemoString(hook)
 		}
@@ -516,7 +512,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 		}
 
 	default:
-		return fmt.Errorf("unsupported destination for IBC/EIBC source: %s", common.Dest)
+		return fmt.Errorf("unsupported dstination for IBC/EIBC src: %s", common.Dst)
 	}
 
 	fmt.Println(memo)
@@ -524,8 +520,8 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 }
 
 func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
-	switch common.Dest {
-	case DestIBC:
+	switch common.Dst {
+	case DstIBC:
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -554,7 +550,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			fmt.Printf("%s\n", util.EncodeEthHex(bz))
 		}
 
-	case DestHL:
+	case DstHL:
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
@@ -568,7 +564,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 		hook := types.NewHookForwardToHL(
 			hlParams.TokenID,
 			hlParams.DstDomain,
-			hlParams.Recipient,
+			hlParams.RecipientFunds,
 			tokenParams.Amount,
 			hlParams.MaxFee,
 			math.ZeroInt(),
@@ -594,7 +590,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 		}
 
 	default:
-		return fmt.Errorf("unsupported destination for HL source: %s", common.Dest)
+		return fmt.Errorf("unsupported dstination for HL src: %s", common.Dst)
 	}
 
 	return nil
@@ -606,13 +602,13 @@ func runCreateHLMessage(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	switch common.Source {
-	case SourceKaspa:
+	switch common.Src {
+	case SrcKaspa:
 		return runCreateHLMessageFromKaspa(cmd, common)
-	case SourceHL:
+	case SrcHL:
 		return runCreateHLMessageFromHL(cmd, common)
 	default:
-		return fmt.Errorf("unsupported source: %s", common.Source)
+		return fmt.Errorf("unsupported src: %s", common.Src)
 	}
 }
 
@@ -629,10 +625,10 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 
 	var memo []byte
 
-	switch common.Dest {
-	case DestHub:
+	switch common.Dst {
+	case DstHub:
 		memo = nil
-	case DestIBC:
+	case DstIBC:
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -657,23 +653,23 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 			return fmt.Errorf("marshal metadata: %w", err)
 		}
 
-	case DestHL:
+	case DstHL:
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
 		}
 
-		destAmountStr, _ := cmd.Flags().GetString(FlagDestAmount)
-		destAmount, ok := math.NewIntFromString(destAmountStr)
+		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
+		dstAmount, ok := math.NewIntFromString(dstAmountS)
 		if !ok {
-			return fmt.Errorf("invalid destination amount")
+			return fmt.Errorf("invalid dstination amount")
 		}
 
 		hook := types.NewHookForwardToHL(
 			hlParams.TokenID,
 			hlParams.DstDomain,
-			hlParams.Recipient,
-			destAmount,
+			hlParams.RecipientFunds,
+			dstAmount,
 			hlParams.MaxFee,
 			math.ZeroInt(),
 			nil,
@@ -694,7 +690,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		}
 
 	default:
-		return fmt.Errorf("unsupported destination: %s", common.Dest)
+		return fmt.Errorf("unsupported dstination: %s", common.Dst)
 	}
 
 	m, err := createHyperlaneMessage(
@@ -703,7 +699,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		kaspaParams.TokenPlaceholder,
 		kaspaParams.HubDomain,
 		tokenParams.TokenID,
-		kaspaParams.HubRecipient,
+		kaspaParams.FundsRecipient,
 		tokenParams.Amount,
 		memo,
 	)
@@ -713,13 +709,13 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 
 	if common.Readable {
 		fmt.Printf("hyperlane message: %+v\n", m)
-		switch common.Dest {
-		case DestIBC:
+		switch common.Dst {
+		case DstIBC:
 			fmt.Printf("ibc forward details: channel=%s, recipient=%s\n",
-				cmd.Flag(FlagChannel).Value, cmd.Flag(FlagDestRecipient).Value)
-		case DestHL:
+				cmd.Flag(FlagChannel).Value, cmd.Flag(FlagRecipientDst).Value)
+		case DstHL:
 			fmt.Printf("hl forward details: domain=%s, recipient=%s\n",
-				cmd.Flag(FlagDestDomain).Value, cmd.Flag(FlagDestRecipient).Value)
+				cmd.Flag(FlagDstDomain).Value, cmd.Flag(FlagRecipientDst).Value)
 		}
 	} else {
 		fmt.Print(m)
@@ -739,8 +735,8 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 		return err
 	}
 
-	if common.Dest != DestIBC {
-		return fmt.Errorf("only IBC destination is supported for HL source")
+	if common.Dst != DstIBC {
+		return fmt.Errorf("only IBC dstination is supported for HL src")
 	}
 
 	ibcParams, err := parseIBCFlags(cmd)
@@ -844,27 +840,27 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 }
 
 func runEstimateFees(cmd *cobra.Command, args []string) error {
-	hlAmountStr, _ := cmd.Flags().GetString(FlagHLAmount)
-	hlGasStr, _ := cmd.Flags().GetString(FlagHLGas)
-	eibcFeeStr, _ := cmd.Flags().GetString(FlagEIBCFee)
-	bridgeFeeMulStr, _ := cmd.Flags().GetString(FlagBridgeFeeMul)
+	hlAmountS, _ := cmd.Flags().GetString(FlagHLAmount)
+	hlGasS, _ := cmd.Flags().GetString(FlagHLGas)
+	eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+	bridgeFeeMulS, _ := cmd.Flags().GetString(FlagBridgeFeeMul)
 
-	hlReceiveAmt, ok := math.NewIntFromString(hlAmountStr)
+	hlReceiveAmt, ok := math.NewIntFromString(hlAmountS)
 	if !ok {
 		return fmt.Errorf("invalid hl amount")
 	}
 
-	hlMaxGas, ok := math.NewIntFromString(hlGasStr)
+	hlMaxGas, ok := math.NewIntFromString(hlGasS)
 	if !ok {
 		return fmt.Errorf("invalid hl gas")
 	}
 
-	eibcFee, ok := math.NewIntFromString(eibcFeeStr)
+	eibcFee, ok := math.NewIntFromString(eibcFeeS)
 	if !ok {
 		return fmt.Errorf("invalid eibc fee")
 	}
 
-	bridgeFeeMul, err := math.LegacyNewDecFromStr(bridgeFeeMulStr)
+	bridgeFeeMul, err := math.LegacyNewDecFromStr(bridgeFeeMulS)
 	if err != nil {
 		return fmt.Errorf("invalid bridge fee multiplier: %w", err)
 	}
@@ -882,7 +878,7 @@ func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneSrcContract util.HexAddress,
 	hyperlaneDstDomain uint32,
 	hyperlaneTokenID util.HexAddress,
-	hyperlaneRecipient sdk.AccAddress,
+	fundsRecipient sdk.AccAddress,
 	hyperlaneTokenAmt math.Int,
 	hook *types.HookForwardToIBC,
 ) (util.HyperlaneMessage, error) {
@@ -909,7 +905,7 @@ func MakeForwardToIBCHyperlaneMessage(
 		hyperlaneSrcContract,
 		hyperlaneDstDomain,
 		hyperlaneTokenID,
-		hyperlaneRecipient,
+		fundsRecipient,
 		hyperlaneTokenAmt,
 		memoBz,
 	)
@@ -950,12 +946,12 @@ func createHyperlaneMessage(
 	srcContract util.HexAddress,
 	dstDomain uint32,
 	tokenID util.HexAddress,
-	recipient sdk.AccAddress,
+	fundsRecipient sdk.AccAddress,
 	amt math.Int,
 	memo []byte,
 ) (util.HyperlaneMessage, error) {
 	p := sdk.GetConfig().GetBech32AccountAddrPrefix()
-	bech32, err := sdk.Bech32ifyAddressBytes(p, recipient)
+	bech32, err := sdk.Bech32ifyAddressBytes(p, fundsRecipient)
 	if err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "bech32ify address bytes")
 	}
