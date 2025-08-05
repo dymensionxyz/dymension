@@ -40,7 +40,8 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdMemoHLtoHLRaw())
 	cmd.AddCommand(CmdHLEthTransferRecipientHubAccount())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
-	cmd.AddCommand(CmdTestHLMessageKaspa())
+	cmd.AddCommand(CmdHLMessageKaspaToHub())
+	cmd.AddCommand(CmdHLMessageKaspaToIBC())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
 
@@ -427,12 +428,12 @@ dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
 	return cmd
 }
 
-// Get a (test) message to send in Kaspa payload (Testnet10)
-func CmdTestHLMessageKaspa() *cobra.Command {
+// Get a message to send in Kaspa payload
+func CmdHLMessageKaspaToHub() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder] [kas-domain] [hub-domain]",
 		Args:    cobra.ExactArgs(6),
-		Short:   "Get a test message to send in kaspa payload",
+		Short:   "Get a message to send in kaspa payload",
 		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000 80808082 1260813472`,
 
 		DisableFlagParsing:         true,
@@ -473,7 +474,7 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 				return fmt.Errorf("encode flag: %w", err)
 			}
 
-			m, err := createTestHyperlaneMessage(
+			m, err := createHyperlaneMessage(
 				0, // FIXED AT ZERO
 				uint32(kasDomain),
 				kasTokenPlaceholder,
@@ -489,6 +490,101 @@ func CmdTestHLMessageKaspa() *cobra.Command {
 
 			if readable {
 				fmt.Printf("hyperlane message: %+v\n", m)
+			} else {
+				fmt.Print(m) // encodes with .String()
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a readable format")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// Get a message to send from Kaspa all the way to IBC via the hub
+func CmdHLMessageKaspaToIBC() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "hl-message-kaspa-to-ibc [token-id] [hub recipient] [amount] [kas token placeholder] [kas-domain] [hub-domain] [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
+		Args:    cobra.ExactArgs(9),
+		Short:   "Get a message to send from Kaspa to IBC via the hub",
+		Example: `dymd q forward hl-message-kaspa-to-ibc 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000 80808082 1260813472 channel-0 ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
+
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			hlTokenID, err := util.DecodeHexAddress(args[0])
+			if err != nil {
+				return fmt.Errorf("token id: %w", err)
+			}
+
+			hlRecipient, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return fmt.Errorf("recipient address: %w", err)
+			}
+
+			hlAmt, ok := math.NewIntFromString(args[2])
+			if !ok {
+				return fmt.Errorf("amount")
+			}
+
+			kasTokenPlaceholder, err := util.DecodeHexAddress(args[3])
+			if err != nil {
+				return fmt.Errorf("kas token placeholder: %w", err)
+			}
+
+			kasDomain, err := strconv.ParseUint(args[4], 10, 32)
+			if err != nil {
+				return fmt.Errorf("kas domain: %w", err)
+			}
+
+			hubDomain, err := strconv.ParseUint(args[5], 10, 32)
+			if err != nil {
+				return fmt.Errorf("hub domain: %w", err)
+			}
+
+			hook, err := hookForwardToIBC(args[6:])
+			if err != nil {
+				return fmt.Errorf("hook forward to ibc: %w", err)
+			}
+
+			hookBz, err := proto.Marshal(hook)
+			if err != nil {
+				return fmt.Errorf("marshal hook: %w", err)
+			}
+
+			hlMetadata := &types.HLMetadata{
+				HookForwardToIbc: hookBz,
+			}
+			metadataBz, err := proto.Marshal(hlMetadata)
+			if err != nil {
+				return fmt.Errorf("marshal metadata: %w", err)
+			}
+
+			m, err := createHyperlaneMessage(
+				0, // FIXED AT ZERO
+				uint32(kasDomain),
+				kasTokenPlaceholder,
+				uint32(hubDomain),
+				hlTokenID,
+				hlRecipient,
+				hlAmt,
+				metadataBz, // Pass the metadata as memo
+			)
+			if err != nil {
+				return fmt.Errorf("new hl message: %w", err)
+			}
+
+			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
+			if err != nil {
+				return fmt.Errorf("encode flag: %w", err)
+			}
+
+			if readable {
+				fmt.Printf("hyperlane message: %+v\n", m)
+				fmt.Printf("hook forward to ibc: %+v\n", hook)
 			} else {
 				fmt.Print(m) // encodes with .String()
 			}
@@ -710,7 +806,7 @@ func MakeForwardToIBCHyperlaneMessage(
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal hl metadata")
 	}
 
-	hlM, err := createTestHyperlaneMessage(
+	hlM, err := createHyperlaneMessage(
 		hyperlaneNonce,
 		hyperlaneSrcDomain,
 		hyperlaneSrcContract,
@@ -737,7 +833,7 @@ func MakeForwardToIBCHyperlaneMessage(
 }
 
 // A message which can be sent to the mailbox in TX to trigger a transfer
-func createTestHyperlaneMessage(
+func createHyperlaneMessage(
 	nonce uint32, // e.g. 1
 	srcDomain uint32, // e.g. 1 (Ethereum)
 	srcContract util.HexAddress, // e.g Ethereum token contract
