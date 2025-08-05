@@ -651,9 +651,18 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 
 	switch common.Dst {
 	case DstHub:
-		// For Kaspa->Hub transfers, no forwarding memo is needed
+		// For Kaspa->Hub transfers, create minimal metadata to satisfy validation
 		// The hub recipient (kaspaParams.FundsRecipient) is the final recipient
-		memo = nil
+		hlMetadata := &types.HLMetadata{
+			// All fields are empty as no forwarding is needed
+			Kaspa:            nil,
+			HookForwardToHl:  nil,
+			HookForwardToIbc: nil,
+		}
+		memo, err = proto.Marshal(hlMetadata)
+		if err != nil {
+			return fmt.Errorf("marshal metadata: %w", err)
+		}
 	case DstIBC:
 		// For Kaspa->IBC transfers:
 		// - kaspaParams.FundsRecipient (hub recipient) is the intermediary/recovery address
