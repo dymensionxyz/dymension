@@ -37,7 +37,15 @@ const (
 	FlagHubDomain = "hub-domain"
 	FlagKasDomain = "kas-domain"
 
+	// FlagRecipientDst is the final recipient address on the destination chain (IBC or Hyperlane)
+	// This is where the funds will ultimately be delivered
 	FlagRecipientDst = "funds-recipient-dst"
+	
+	// FlagRecipientHub is the recipient address on the Dymension Hub
+	// This serves dual purposes:
+	// 1. For Kaspa->Hub transfers: this is the final recipient of funds
+	// 2. For Kaspa->IBC/HL transfers: this is the intermediary address that temporarily holds funds
+	//    and also serves as the recovery address if forwarding fails
 	FlagRecipientHub = "funds-recipient-hub"
 
 	FlagChannel = "channel"
@@ -53,7 +61,6 @@ const (
 	FlagSrcContract  = "src-contract"
 	FlagDstTokenID   = "dst-token-id" // #nosec G101 - This is a CLI flag name, not a credential
 	FlagDstAmount    = "dst-amount"
-	FlagRecoveryAddr = "recovery-address"
 
 	FlagKasToken = "kas-token"
 
@@ -146,7 +153,7 @@ The src and dstination determine which type of memo is created.`,
 dymd q forward create-memo --src=ibc --dst=hl \
   --token-id=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
   --dst-domain=1 \
-  --dst-recipient=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --funds-recipient-dst=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
   --amount=10000 \
   --max-fee=20foo
 
@@ -154,7 +161,7 @@ dymd q forward create-memo --src=ibc --dst=hl \
 dymd q forward create-memo --src=eibc --dst=ibc \
   --eibc-fee=100 \
   --channel=channel-0 \
-  --recipient=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
+  --funds-recipient-dst=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
   --timeout=5m`,
 		RunE: runCreateMemo,
 	}
@@ -174,16 +181,25 @@ func CmdCreateHLMessage() *cobra.Command {
 		Short: "Create a Hyperlane message for testing",
 		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various dstinations (Hub, IBC, HL).
 The src and dstination determine the message format and required parameters.`,
-		Example: `# Kaspa to IBC
+		Example: `# Kaspa to Hub (no forwarding - hub recipient is final recipient)
+dymd q forward create-hl-message --src=kaspa --dst=hub \
+  --token-id=0x0000000000000000000000000000000000000000000000000000000000000000 \
+  --funds-recipient-hub=dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 \
+  --amount=1000000000000000000 \
+  --kas-token=0x0000000000000000000000000000000000000000000000000000000000000000 \
+  --kas-domain=80808082 \
+  --hub-domain=1260813472
+
+# Kaspa to IBC (hub recipient is intermediary/recovery address)
 dymd q forward create-hl-message --src=kaspa --dst=ibc \
   --token-id=0x0000000000000000000000000000000000000000000000000000000000000000 \
-  --hub-recipient=dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 \
+  --funds-recipient-hub=dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 \
   --amount=1000000000000000000 \
   --kas-token=0x0000000000000000000000000000000000000000000000000000000000000000 \
   --kas-domain=80808082 \
   --hub-domain=1260813472 \
   --channel=channel-0 \
-  --dst-recipient=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
+  --funds-recipient-dst=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
   --timeout=5m`,
 		RunE: runCreateHLMessage,
 	}
@@ -270,13 +286,12 @@ func addTokenFlags(cmd *cobra.Command) {
 func addHyperlaneFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce")
 	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID")
-	cmd.Flags().Uint32(FlagSrcDomain, 0, "Src domain ID")
-	cmd.Flags().Uint32(FlagDstDomain, 0, "Dstination domain ID")
-	cmd.Flags().String(FlagSrcContract, "", "Src contract (hex)")
-	cmd.Flags().String(FlagDstTokenID, "", "Dstination token ID (hex)")
-	cmd.Flags().String(FlagRecipientDst, "", "Dstination recipient of actual funds")
-	cmd.Flags().String(FlagDstAmount, "", "Dstination amount")
-	cmd.Flags().String(FlagRecoveryAddr, "", "Recovery address")
+	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source domain ID")
+	cmd.Flags().Uint32(FlagDstDomain, 0, "Destination domain ID")
+	cmd.Flags().String(FlagSrcContract, "", "Source contract (hex)")
+	cmd.Flags().String(FlagDstTokenID, "", "Destination token ID (hex)")
+	cmd.Flags().String(FlagRecipientDst, "", "Final recipient address on destination chain")
+	cmd.Flags().String(FlagDstAmount, "", "Destination amount")
 }
 
 func addIBCFlags(cmd *cobra.Command) {
@@ -288,7 +303,7 @@ func addKaspaFlags(cmd *cobra.Command) {
 	cmd.Flags().String(FlagKasToken, "", "Kaspa token placeholder (hex)")
 	cmd.Flags().Uint32(FlagKasDomain, 0, "Kaspa domain ID")
 	cmd.Flags().Uint32(FlagHubDomain, 0, "Hub domain ID")
-	cmd.Flags().String(FlagRecipientHub, "", "Hub recipient address")
+	cmd.Flags().String(FlagRecipientHub, "", "Hub recipient address (final recipient for Kaspa->Hub, or intermediary/recovery address for Kaspa->IBC/HL)")
 }
 
 func parseCommonFlags(cmd *cobra.Command) (*CommonParams, error) {
@@ -392,9 +407,6 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 func parseIBCFlags(cmd *cobra.Command) (*IBCParams, error) {
 	channel, _ := cmd.Flags().GetString(FlagChannel)
 	recipient, _ := cmd.Flags().GetString(FlagRecipientDst)
-	if recipient == "" {
-		recipient, _ = cmd.Flags().GetString(FlagRecipientDst)
-	}
 
 	timeoutS, _ := cmd.Flags().GetString(FlagTimeout)
 	timeout, err := time.ParseDuration(timeoutS)
@@ -627,8 +639,13 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 
 	switch common.Dst {
 	case DstHub:
+		// For Kaspa->Hub transfers, no forwarding memo is needed
+		// The hub recipient (kaspaParams.FundsRecipient) is the final recipient
 		memo = nil
 	case DstIBC:
+		// For Kaspa->IBC transfers:
+		// - kaspaParams.FundsRecipient (hub recipient) is the intermediary/recovery address
+		// - ibcParams.Recipient is the final recipient on the IBC destination chain
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -654,6 +671,9 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		}
 
 	case DstHL:
+		// For Kaspa->HL transfers:
+		// - kaspaParams.FundsRecipient (hub recipient) is the intermediary/recovery address
+		// - hlParams.RecipientFunds is the final recipient on the Hyperlane destination chain
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
@@ -693,6 +713,10 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		return fmt.Errorf("unsupported dstination: %s", common.Dst)
 	}
 
+	// Create the Hyperlane message
+	// - tokenParams.TokenID: becomes HyperlaneMessage.Recipient (the warp router contract)
+	// - kaspaParams.FundsRecipient: becomes the recipient in the warp payload
+	//   This is the hub address that will receive funds (either as final recipient or intermediary)
 	m, err := createHyperlaneMessage(
 		0, // Fixed nonce for Kaspa
 		kaspaParams.KasDomain,
@@ -950,6 +974,10 @@ func createHyperlaneMessage(
 	amt math.Int,
 	memo []byte,
 ) (util.HyperlaneMessage, error) {
+	// Important: In Hyperlane's design, there are two different recipient concepts:
+	// 1. HyperlaneMessage.Recipient = the warp router contract address (tokenID parameter)
+	// 2. WarpPayload.recipient = the actual end user who receives funds (fundsRecipient parameter)
+	
 	p := sdk.GetConfig().GetBech32AccountAddrPrefix()
 	bech32, err := sdk.Bech32ifyAddressBytes(p, fundsRecipient)
 	if err != nil {
@@ -960,6 +988,7 @@ func createHyperlaneMessage(
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "get from bech32")
 	}
 
+	// Create warp payload with the actual funds recipient
 	wmpl, err := warptypes.NewWarpPayload(recip, *big.NewInt(amt.Int64()), memo)
 	if err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "new warp payload")
@@ -972,7 +1001,7 @@ func createHyperlaneMessage(
 		Origin:      srcDomain,
 		Sender:      srcContract,
 		Destination: dstDomain,
-		Recipient:   tokenID,
+		Recipient:   tokenID,     // This is the warp router contract address
 		Body:        body,
 	}, nil
 }
