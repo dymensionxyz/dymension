@@ -42,6 +42,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
 	cmd.AddCommand(CmdHLMessageKaspaToHub())
 	cmd.AddCommand(CmdHLMessageKaspaToIBC())
+	cmd.AddCommand(CmdHLMessageKaspaToHL())
 	cmd.AddCommand(CmdDecodeHyperlaneMessage())
 	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
 
@@ -515,34 +516,9 @@ func CmdHLMessageKaspaToIBC() *cobra.Command {
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			hlTokenID, err := util.DecodeHexAddress(args[0])
+			kaspaArgs, err := parseKaspaMessageArgs(args[:6])
 			if err != nil {
-				return fmt.Errorf("token id: %w", err)
-			}
-
-			hlRecipient, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return fmt.Errorf("recipient address: %w", err)
-			}
-
-			hlAmt, ok := math.NewIntFromString(args[2])
-			if !ok {
-				return fmt.Errorf("amount")
-			}
-
-			kasTokenPlaceholder, err := util.DecodeHexAddress(args[3])
-			if err != nil {
-				return fmt.Errorf("kas token placeholder: %w", err)
-			}
-
-			kasDomain, err := strconv.ParseUint(args[4], 10, 32)
-			if err != nil {
-				return fmt.Errorf("kas domain: %w", err)
-			}
-
-			hubDomain, err := strconv.ParseUint(args[5], 10, 32)
-			if err != nil {
-				return fmt.Errorf("hub domain: %w", err)
+				return fmt.Errorf("parse kaspa args: %w", err)
 			}
 
 			hook, err := hookForwardToIBC(args[6:])
@@ -565,13 +541,13 @@ func CmdHLMessageKaspaToIBC() *cobra.Command {
 
 			m, err := createHyperlaneMessage(
 				0, // FIXED AT ZERO
-				uint32(kasDomain),
-				kasTokenPlaceholder,
-				uint32(hubDomain),
-				hlTokenID,
-				hlRecipient,
-				hlAmt,
-				metadataBz, // Pass the metadata as memo
+				kaspaArgs.kasDomain,
+				kaspaArgs.kasTokenPlaceholder,
+				kaspaArgs.hubDomain,
+				kaspaArgs.hlTokenID,
+				kaspaArgs.hlRecipient,
+				kaspaArgs.hlAmt,
+				metadataBz,
 			)
 			if err != nil {
 				return fmt.Errorf("new hl message: %w", err)
@@ -585,6 +561,76 @@ func CmdHLMessageKaspaToIBC() *cobra.Command {
 			if readable {
 				fmt.Printf("hyperlane message: %+v\n", m)
 				fmt.Printf("hook forward to ibc: %+v\n", hook)
+			} else {
+				fmt.Print(m) // encodes with .String()
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a readable format")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// Get a message to send from Kaspa to Hyperlane via the hub
+func CmdHLMessageKaspaToHL() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "hl-message-kaspa-to-hl [token-id] [hub recipient] [amount] [kas token placeholder] [kas-domain] [hub-domain] [hl-token-id] [hl-destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
+		Args:    cobra.ExactArgs(11),
+		Short:   "Get a message to send from Kaspa to Hyperlane via the hub",
+		Example: `dymd q forward hl-message-kaspa-to-hl 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000 80808082 1260813472 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
+
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			kaspaArgs, err := parseKaspaMessageArgs(args[:6])
+			if err != nil {
+				return fmt.Errorf("parse kaspa args: %w", err)
+			}
+
+			hook, err := hookForwardToHL(args[6:])
+			if err != nil {
+				return fmt.Errorf("hook forward to hl: %w", err)
+			}
+
+			hookBz, err := proto.Marshal(hook)
+			if err != nil {
+				return fmt.Errorf("marshal hook: %w", err)
+			}
+
+			hlMetadata := &types.HLMetadata{
+				HookForwardToHl: hookBz,
+			}
+			metadataBz, err := proto.Marshal(hlMetadata)
+			if err != nil {
+				return fmt.Errorf("marshal metadata: %w", err)
+			}
+
+			m, err := createHyperlaneMessage(
+				0, // FIXED AT ZERO
+				kaspaArgs.kasDomain,
+				kaspaArgs.kasTokenPlaceholder,
+				kaspaArgs.hubDomain,
+				kaspaArgs.hlTokenID,
+				kaspaArgs.hlRecipient,
+				kaspaArgs.hlAmt,
+				metadataBz,
+			)
+			if err != nil {
+				return fmt.Errorf("new hl message: %w", err)
+			}
+
+			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
+			if err != nil {
+				return fmt.Errorf("encode flag: %w", err)
+			}
+
+			if readable {
+				fmt.Printf("hyperlane message: %+v\n", m)
+				fmt.Printf("hook forward to hl: %+v\n", hook)
 			} else {
 				fmt.Print(m) // encodes with .String()
 			}
@@ -830,6 +876,57 @@ func MakeForwardToIBCHyperlaneMessage(
 	}
 
 	return hlM, nil
+}
+
+// Helper to parse common Kaspa message arguments
+type kaspaMessageArgs struct {
+	hlTokenID           util.HexAddress
+	hlRecipient         sdk.AccAddress
+	hlAmt               math.Int
+	kasTokenPlaceholder util.HexAddress
+	kasDomain           uint32
+	hubDomain           uint32
+}
+
+func parseKaspaMessageArgs(args []string) (*kaspaMessageArgs, error) {
+	hlTokenID, err := util.DecodeHexAddress(args[0])
+	if err != nil {
+		return nil, fmt.Errorf("token id: %w", err)
+	}
+
+	hlRecipient, err := sdk.AccAddressFromBech32(args[1])
+	if err != nil {
+		return nil, fmt.Errorf("recipient address: %w", err)
+	}
+
+	hlAmt, ok := math.NewIntFromString(args[2])
+	if !ok {
+		return nil, fmt.Errorf("amount")
+	}
+
+	kasTokenPlaceholder, err := util.DecodeHexAddress(args[3])
+	if err != nil {
+		return nil, fmt.Errorf("kas token placeholder: %w", err)
+	}
+
+	kasDomain, err := strconv.ParseUint(args[4], 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("kas domain: %w", err)
+	}
+
+	hubDomain, err := strconv.ParseUint(args[5], 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("hub domain: %w", err)
+	}
+
+	return &kaspaMessageArgs{
+		hlTokenID:           hlTokenID,
+		hlRecipient:         hlRecipient,
+		hlAmt:               hlAmt,
+		kasTokenPlaceholder: kasTokenPlaceholder,
+		kasDomain:           uint32(kasDomain),
+		hubDomain:           uint32(hubDomain),
+	}, nil
 }
 
 // A message which can be sent to the mailbox in TX to trigger a transfer
