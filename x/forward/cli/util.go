@@ -53,7 +53,7 @@ const (
 
 	FlagNonce        = "nonce"
 	FlagSrcContract  = "src-contract"
-	FlagDestTokenID  = "dest-token-id"
+	FlagDestTokenID  = "dest-token-id" // #nosec G101 - This is a CLI flag name, not a credential
 	FlagDestAmount   = "dest-amount"
 	FlagRecoveryAddr = "recovery-address"
 
@@ -248,10 +248,10 @@ func CmdEstimateFees() *cobra.Command {
 	cmd.Flags().String(FlagHLGas, "", "Max gas for Hyperlane")
 	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee")
 	cmd.Flags().String(FlagBridgeFeeMul, "", "Bridge fee multiplier")
-	cmd.MarkFlagRequired(FlagHLAmount)
-	cmd.MarkFlagRequired(FlagHLGas)
-	cmd.MarkFlagRequired(FlagEIBCFee)
-	cmd.MarkFlagRequired(FlagBridgeFeeMul)
+	_ = cmd.MarkFlagRequired(FlagHLAmount)
+	_ = cmd.MarkFlagRequired(FlagHLGas)
+	_ = cmd.MarkFlagRequired(FlagEIBCFee)
+	_ = cmd.MarkFlagRequired(FlagBridgeFeeMul)
 
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
@@ -261,8 +261,8 @@ func addCommonFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(FlagReadable, false, "Show output in human-readable format")
 	cmd.Flags().String(FlagSource, "", "Source protocol (ibc, eibc, hl, kaspa)")
 	cmd.Flags().String(FlagDest, "", "Destination protocol (ibc, hl, hub)")
-	cmd.MarkFlagRequired(FlagSource)
-	cmd.MarkFlagRequired(FlagDest)
+	_ = cmd.MarkFlagRequired(FlagSource)
+	_ = cmd.MarkFlagRequired(FlagDest)
 }
 
 func addTokenFlags(cmd *cobra.Command) {
@@ -459,7 +459,8 @@ func runCreateMemo(cmd *cobra.Command, args []string) error {
 func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 	var memo string
 
-	if common.Dest == DestHL {
+	switch common.Dest {
+	case DestHL:
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
@@ -492,7 +493,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			return fmt.Errorf("create memo: %w", err)
 		}
 
-	} else if common.Dest == DestIBC {
+	case DestIBC:
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -501,7 +502,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 		hook := types.NewHookForwardToIBC(
 			ibcParams.Channel,
 			ibcParams.Recipient,
-			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()),
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive // #nosec G115 - Unix time is always positive
 		)
 
 		if common.Source == SourceEIBC {
@@ -515,7 +516,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			return fmt.Errorf("create memo: %w", err)
 		}
 
-	} else {
+	default:
 		return fmt.Errorf("unsupported destination for IBC/EIBC source: %s", common.Dest)
 	}
 
@@ -524,7 +525,8 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 }
 
 func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
-	if common.Dest == DestIBC {
+	switch common.Dest {
+	case DestIBC:
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -533,7 +535,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 		hook := types.NewHookForwardToIBC(
 			ibcParams.Channel,
 			ibcParams.Recipient,
-			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()),
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive // #nosec G115 - Unix time is always positive
 		)
 
 		if common.Readable {
@@ -553,7 +555,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			fmt.Printf("%s\n", util.EncodeEthHex(bz))
 		}
 
-	} else if common.Dest == DestHL {
+	case DestHL:
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
@@ -592,7 +594,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			fmt.Printf("%s\n", util.EncodeEthHex(bz))
 		}
 
-	} else {
+	default:
 		return fmt.Errorf("unsupported destination for HL source: %s", common.Dest)
 	}
 
@@ -605,11 +607,12 @@ func runCreateHLMessage(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if common.Source == SourceKaspa {
+	switch common.Source {
+	case SourceKaspa:
 		return runCreateHLMessageFromKaspa(cmd, common)
-	} else if common.Source == SourceHL {
+	case SourceHL:
 		return runCreateHLMessageFromHL(cmd, common)
-	} else {
+	default:
 		return fmt.Errorf("unsupported source: %s", common.Source)
 	}
 }
@@ -627,9 +630,10 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 
 	var memo []byte
 
-	if common.Dest == DestHub {
+	switch common.Dest {
+	case DestHub:
 		memo = nil
-	} else if common.Dest == DestIBC {
+	case DestIBC:
 		ibcParams, err := parseIBCFlags(cmd)
 		if err != nil {
 			return err
@@ -638,7 +642,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		hook := types.NewHookForwardToIBC(
 			ibcParams.Channel,
 			ibcParams.Recipient,
-			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()),
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 		)
 
 		hookBz, err := proto.Marshal(hook)
@@ -654,7 +658,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 			return fmt.Errorf("marshal metadata: %w", err)
 		}
 
-	} else if common.Dest == DestHL {
+	case DestHL:
 		hlParams, err := parseHyperlaneFlags(cmd)
 		if err != nil {
 			return err
@@ -690,7 +694,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 			return fmt.Errorf("marshal metadata: %w", err)
 		}
 
-	} else {
+	default:
 		return fmt.Errorf("unsupported destination: %s", common.Dest)
 	}
 
@@ -710,10 +714,11 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 
 	if common.Readable {
 		fmt.Printf("hyperlane message: %+v\n", m)
-		if common.Dest == DestIBC {
+		switch common.Dest {
+		case DestIBC:
 			fmt.Printf("ibc forward details: channel=%s, recipient=%s\n",
 				cmd.Flag(FlagChannel).Value, cmd.Flag(FlagDestRecipient).Value)
-		} else if common.Dest == DestHL {
+		case DestHL:
 			fmt.Printf("hl forward details: domain=%s, recipient=%s\n",
 				cmd.Flag(FlagDestDomain).Value, cmd.Flag(FlagDestRecipient).Value)
 		}
@@ -747,7 +752,7 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 	hook := types.NewHookForwardToIBC(
 		ibcParams.Channel,
 		ibcParams.Recipient,
-		uint64(time.Now().Add(ibcParams.Timeout).UnixNano()),
+		uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 	)
 
 	m, err := MakeForwardToIBCHyperlaneMessage(
@@ -1013,13 +1018,13 @@ func CmdMemoIBCtoHL() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateMemo()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceIBC)
-			newCmd.Flags().Set(FlagDest, DestHL)
-			newCmd.Flags().Set(FlagTokenID, args[0])
-			newCmd.Flags().Set(FlagDestDomain, args[1])
-			newCmd.Flags().Set(FlagDestRecipient, args[2])
-			newCmd.Flags().Set(FlagAmount, args[3])
-			newCmd.Flags().Set(FlagMaxFee, args[4])
+			_ = newCmd.Flags().Set(FlagSource, SourceIBC)
+			_ = newCmd.Flags().Set(FlagDest, DestHL)
+			_ = newCmd.Flags().Set(FlagTokenID, args[0])
+			_ = newCmd.Flags().Set(FlagDestDomain, args[1])
+			_ = newCmd.Flags().Set(FlagDestRecipient, args[2])
+			_ = newCmd.Flags().Set(FlagAmount, args[3])
+			_ = newCmd.Flags().Set(FlagMaxFee, args[4])
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -1037,14 +1042,14 @@ func CmdMemoEIBCtoHL() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateMemo()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceEIBC)
-			newCmd.Flags().Set(FlagDest, DestHL)
-			newCmd.Flags().Set(FlagEIBCFee, args[0])
-			newCmd.Flags().Set(FlagTokenID, args[1])
-			newCmd.Flags().Set(FlagDestDomain, args[2])
-			newCmd.Flags().Set(FlagDestRecipient, args[3])
-			newCmd.Flags().Set(FlagAmount, args[4])
-			newCmd.Flags().Set(FlagMaxFee, args[5])
+			_ = newCmd.Flags().Set(FlagSource, SourceEIBC)
+			_ = newCmd.Flags().Set(FlagDest, DestHL)
+			_ = newCmd.Flags().Set(FlagEIBCFee, args[0])
+			_ = newCmd.Flags().Set(FlagTokenID, args[1])
+			_ = newCmd.Flags().Set(FlagDestDomain, args[2])
+			_ = newCmd.Flags().Set(FlagDestRecipient, args[3])
+			_ = newCmd.Flags().Set(FlagAmount, args[4])
+			_ = newCmd.Flags().Set(FlagMaxFee, args[5])
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -1062,11 +1067,11 @@ func CmdMemoIBCtoIBC() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateMemo()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceIBC)
-			newCmd.Flags().Set(FlagDest, DestIBC)
-			newCmd.Flags().Set(FlagChannel, args[0])
-			newCmd.Flags().Set(FlagRecipient, args[1])
-			newCmd.Flags().Set(FlagTimeout, args[2])
+			_ = newCmd.Flags().Set(FlagSource, SourceIBC)
+			_ = newCmd.Flags().Set(FlagDest, DestIBC)
+			_ = newCmd.Flags().Set(FlagChannel, args[0])
+			_ = newCmd.Flags().Set(FlagRecipient, args[1])
+			_ = newCmd.Flags().Set(FlagTimeout, args[2])
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -1084,12 +1089,12 @@ func CmdMemoEIBCtoIBC() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateMemo()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceEIBC)
-			newCmd.Flags().Set(FlagDest, DestIBC)
-			newCmd.Flags().Set(FlagEIBCFee, args[0])
-			newCmd.Flags().Set(FlagChannel, args[1])
-			newCmd.Flags().Set(FlagRecipient, args[2])
-			newCmd.Flags().Set(FlagTimeout, args[3])
+			_ = newCmd.Flags().Set(FlagSource, SourceEIBC)
+			_ = newCmd.Flags().Set(FlagDest, DestIBC)
+			_ = newCmd.Flags().Set(FlagEIBCFee, args[0])
+			_ = newCmd.Flags().Set(FlagChannel, args[1])
+			_ = newCmd.Flags().Set(FlagRecipient, args[2])
+			_ = newCmd.Flags().Set(FlagTimeout, args[3])
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -1107,12 +1112,12 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateMemo()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceHL)
-			newCmd.Flags().Set(FlagDest, DestIBC)
-			newCmd.Flags().Set(FlagChannel, args[0])
-			newCmd.Flags().Set(FlagRecipient, args[1])
-			newCmd.Flags().Set(FlagTimeout, args[2])
-			newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			_ = newCmd.Flags().Set(FlagSource, SourceHL)
+			_ = newCmd.Flags().Set(FlagDest, DestIBC)
+			_ = newCmd.Flags().Set(FlagChannel, args[0])
+			_ = newCmd.Flags().Set(FlagRecipient, args[1])
+			_ = newCmd.Flags().Set(FlagTimeout, args[2])
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -1131,14 +1136,14 @@ func CmdMemoHLtoHLRaw() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateMemo()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceHL)
-			newCmd.Flags().Set(FlagDest, DestHL)
-			newCmd.Flags().Set(FlagTokenID, args[0])
-			newCmd.Flags().Set(FlagDestDomain, args[1])
-			newCmd.Flags().Set(FlagDestRecipient, args[2])
-			newCmd.Flags().Set(FlagAmount, args[3])
-			newCmd.Flags().Set(FlagMaxFee, args[4])
-			newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			_ = newCmd.Flags().Set(FlagSource, SourceHL)
+			_ = newCmd.Flags().Set(FlagDest, DestHL)
+			_ = newCmd.Flags().Set(FlagTokenID, args[0])
+			_ = newCmd.Flags().Set(FlagDestDomain, args[1])
+			_ = newCmd.Flags().Set(FlagDestRecipient, args[2])
+			_ = newCmd.Flags().Set(FlagAmount, args[3])
+			_ = newCmd.Flags().Set(FlagMaxFee, args[4])
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -1157,20 +1162,20 @@ func CmdTestHLtoIBCMessage() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateHLMessage()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceHL)
-			newCmd.Flags().Set(FlagDest, DestIBC)
-			newCmd.Flags().Set(FlagNonce, args[0])
-			newCmd.Flags().Set(FlagSrcDomain, args[1])
-			newCmd.Flags().Set(FlagSrcContract, args[2])
-			newCmd.Flags().Set(FlagDestDomain, args[3])
-			newCmd.Flags().Set(FlagTokenID, args[4])
-			newCmd.Flags().Set(FlagRecipient, args[5])
-			newCmd.Flags().Set(FlagAmount, args[6])
-			newCmd.Flags().Set(FlagChannel, args[7])
-			newCmd.Flags().Set(FlagDestRecipient, args[8])
-			newCmd.Flags().Set(FlagTimeout, args[9])
-			newCmd.Flags().Set(FlagRecoveryAddr, args[10])
-			newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			_ = newCmd.Flags().Set(FlagSource, SourceHL)
+			_ = newCmd.Flags().Set(FlagDest, DestIBC)
+			_ = newCmd.Flags().Set(FlagNonce, args[0])
+			_ = newCmd.Flags().Set(FlagSrcDomain, args[1])
+			_ = newCmd.Flags().Set(FlagSrcContract, args[2])
+			_ = newCmd.Flags().Set(FlagDestDomain, args[3])
+			_ = newCmd.Flags().Set(FlagTokenID, args[4])
+			_ = newCmd.Flags().Set(FlagRecipient, args[5])
+			_ = newCmd.Flags().Set(FlagAmount, args[6])
+			_ = newCmd.Flags().Set(FlagChannel, args[7])
+			_ = newCmd.Flags().Set(FlagDestRecipient, args[8])
+			_ = newCmd.Flags().Set(FlagTimeout, args[9])
+			_ = newCmd.Flags().Set(FlagRecoveryAddr, args[10])
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
@@ -1189,15 +1194,15 @@ func CmdHLMessageKaspaToHub() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateHLMessage()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceKaspa)
-			newCmd.Flags().Set(FlagDest, DestHub)
-			newCmd.Flags().Set(FlagTokenID, args[0])
-			newCmd.Flags().Set(FlagHubRecipient, args[1])
-			newCmd.Flags().Set(FlagAmount, args[2])
-			newCmd.Flags().Set(FlagKasToken, args[3])
-			newCmd.Flags().Set(FlagKasDomain, args[4])
-			newCmd.Flags().Set(FlagHubDomain, args[5])
-			newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			_ = newCmd.Flags().Set(FlagSource, SourceKaspa)
+			_ = newCmd.Flags().Set(FlagDest, DestHub)
+			_ = newCmd.Flags().Set(FlagTokenID, args[0])
+			_ = newCmd.Flags().Set(FlagHubRecipient, args[1])
+			_ = newCmd.Flags().Set(FlagAmount, args[2])
+			_ = newCmd.Flags().Set(FlagKasToken, args[3])
+			_ = newCmd.Flags().Set(FlagKasDomain, args[4])
+			_ = newCmd.Flags().Set(FlagHubDomain, args[5])
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
@@ -1216,18 +1221,18 @@ func CmdHLMessageKaspaToIBC() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateHLMessage()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceKaspa)
-			newCmd.Flags().Set(FlagDest, DestIBC)
-			newCmd.Flags().Set(FlagTokenID, args[0])
-			newCmd.Flags().Set(FlagHubRecipient, args[1])
-			newCmd.Flags().Set(FlagAmount, args[2])
-			newCmd.Flags().Set(FlagKasToken, args[3])
-			newCmd.Flags().Set(FlagKasDomain, args[4])
-			newCmd.Flags().Set(FlagHubDomain, args[5])
-			newCmd.Flags().Set(FlagChannel, args[6])
-			newCmd.Flags().Set(FlagDestRecipient, args[7])
-			newCmd.Flags().Set(FlagTimeout, args[8])
-			newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			_ = newCmd.Flags().Set(FlagSource, SourceKaspa)
+			_ = newCmd.Flags().Set(FlagDest, DestIBC)
+			_ = newCmd.Flags().Set(FlagTokenID, args[0])
+			_ = newCmd.Flags().Set(FlagHubRecipient, args[1])
+			_ = newCmd.Flags().Set(FlagAmount, args[2])
+			_ = newCmd.Flags().Set(FlagKasToken, args[3])
+			_ = newCmd.Flags().Set(FlagKasDomain, args[4])
+			_ = newCmd.Flags().Set(FlagHubDomain, args[5])
+			_ = newCmd.Flags().Set(FlagChannel, args[6])
+			_ = newCmd.Flags().Set(FlagDestRecipient, args[7])
+			_ = newCmd.Flags().Set(FlagTimeout, args[8])
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
@@ -1246,20 +1251,20 @@ func CmdHLMessageKaspaToHL() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			newCmd := CmdCreateHLMessage()
 			newCmd.SetArgs([]string{})
-			newCmd.Flags().Set(FlagSource, SourceKaspa)
-			newCmd.Flags().Set(FlagDest, DestHL)
-			newCmd.Flags().Set(FlagTokenID, args[0])
-			newCmd.Flags().Set(FlagHubRecipient, args[1])
-			newCmd.Flags().Set(FlagAmount, args[2])
-			newCmd.Flags().Set(FlagKasToken, args[3])
-			newCmd.Flags().Set(FlagKasDomain, args[4])
-			newCmd.Flags().Set(FlagHubDomain, args[5])
-			newCmd.Flags().Set(FlagDestTokenID, args[6])
-			newCmd.Flags().Set(FlagDestDomain, args[7])
-			newCmd.Flags().Set(FlagDestRecipient, args[8])
-			newCmd.Flags().Set(FlagDestAmount, args[9])
-			newCmd.Flags().Set(FlagMaxFee, args[10])
-			newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			_ = newCmd.Flags().Set(FlagSource, SourceKaspa)
+			_ = newCmd.Flags().Set(FlagDest, DestHL)
+			_ = newCmd.Flags().Set(FlagTokenID, args[0])
+			_ = newCmd.Flags().Set(FlagHubRecipient, args[1])
+			_ = newCmd.Flags().Set(FlagAmount, args[2])
+			_ = newCmd.Flags().Set(FlagKasToken, args[3])
+			_ = newCmd.Flags().Set(FlagKasDomain, args[4])
+			_ = newCmd.Flags().Set(FlagHubDomain, args[5])
+			_ = newCmd.Flags().Set(FlagDestTokenID, args[6])
+			_ = newCmd.Flags().Set(FlagDestDomain, args[7])
+			_ = newCmd.Flags().Set(FlagDestRecipient, args[8])
+			_ = newCmd.Flags().Set(FlagDestAmount, args[9])
+			_ = newCmd.Flags().Set(FlagMaxFee, args[10])
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},

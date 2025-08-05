@@ -12,4 +12,4 @@ proposal.json
 **/__debug_bin*
 .aider*
 repomix.config.json
-bin/dymd
+**/CLAUDE.local.md
