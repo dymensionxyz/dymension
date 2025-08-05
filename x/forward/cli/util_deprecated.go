@@ -116,7 +116,8 @@ func CmdMemoHLtoIBCRaw() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagChannel, args[0])
 			_ = newCmd.Flags().Set(FlagRecipientDst, args[1])
 			_ = newCmd.Flags().Set(FlagTimeout, args[2])
-			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			readable, _ := cmd.Flags().GetBool(FlagReadable)
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(readable))
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -142,7 +143,8 @@ func CmdMemoHLtoHLRaw() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagRecipientDst, args[2])
 			_ = newCmd.Flags().Set(FlagAmount, args[3])
 			_ = newCmd.Flags().Set(FlagMaxFee, args[4])
-			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			readable, _ := cmd.Flags().GetBool(FlagReadable)
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(readable))
 
 			return runCreateMemo(newCmd, []string{})
 		},
@@ -168,12 +170,13 @@ func CmdTestHLtoIBCMessage() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagSrcContract, args[2])
 			_ = newCmd.Flags().Set(FlagDstDomain, args[3])
 			_ = newCmd.Flags().Set(FlagTokenID, args[4])
-			_ = newCmd.Flags().Set(FlagRecipientDst, args[5])
+			_ = newCmd.Flags().Set(FlagRecipientHub, args[5])
 			_ = newCmd.Flags().Set(FlagAmount, args[6])
 			_ = newCmd.Flags().Set(FlagChannel, args[7])
 			_ = newCmd.Flags().Set(FlagRecipientDst, args[8])
 			_ = newCmd.Flags().Set(FlagTimeout, args[9])
-			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			readable, _ := cmd.Flags().GetBool(FlagReadable)
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(readable))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
@@ -200,7 +203,8 @@ func CmdHLMessageKaspaToHub() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagKasToken, args[3])
 			_ = newCmd.Flags().Set(FlagKasDomain, args[4])
 			_ = newCmd.Flags().Set(FlagHubDomain, args[5])
-			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			readable, _ := cmd.Flags().GetBool(FlagReadable)
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(readable))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
@@ -230,7 +234,8 @@ func CmdHLMessageKaspaToIBC() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagChannel, args[6])
 			_ = newCmd.Flags().Set(FlagRecipientDst, args[7])
 			_ = newCmd.Flags().Set(FlagTimeout, args[8])
-			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			readable, _ := cmd.Flags().GetBool(FlagReadable)
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(readable))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
@@ -262,7 +267,8 @@ func CmdHLMessageKaspaToHL() *cobra.Command {
 			_ = newCmd.Flags().Set(FlagRecipientDst, args[8])
 			_ = newCmd.Flags().Set(FlagDstAmount, args[9])
 			_ = newCmd.Flags().Set(FlagMaxFee, args[10])
-			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(cmd.Flag(FlagReadable).Changed))
+			readable, _ := cmd.Flags().GetBool(FlagReadable)
+			_ = newCmd.Flags().Set(FlagReadable, strconv.FormatBool(readable))
 
 			return runCreateHLMessage(newCmd, []string{})
 		},
