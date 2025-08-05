@@ -148,7 +148,7 @@ func CmdCreateMemo() *cobra.Command {
 		Use:   "create-memo",
 		Short: "Create a memo for forwarding between different protocols",
 		Long: `Create a memo for forwarding tokens between IBC, EIBC, and Hyperlane.
-The src and dstination determine which type of memo is created.`,
+The src and destination determine which type of memo is created.`,
 		Example: `# IBC to Hyperlane
 dymd q forward create-memo --src=ibc --dst=hl \
   --token-id=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
@@ -179,8 +179,8 @@ func CmdCreateHLMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-hl-message",
 		Short: "Create a Hyperlane message for testing or for including in Kaspa payloads",
-		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various dstinations (Hub, IBC, HL).
-The src and dstination determine the message format and required parameters.`,
+		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various destination (Hub, IBC, HL).
+The src and destination determine the message format and required parameters.`,
 		Example: `# Kaspa to Hub (no forwarding - hub recipient is final recipient)
 dymd q forward create-hl-message --src=kaspa --dst=hub \
   --token-id=0x0000000000000000000000000000000000000000000000000000000000000000 \
@@ -272,7 +272,7 @@ func CmdEstimateFees() *cobra.Command {
 func addCommonFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(FlagReadable, false, "Show output in human-readable format")
 	cmd.Flags().String(FlagSrc, "", "Src protocol (ibc, eibc, hl, kaspa)")
-	cmd.Flags().String(FlagDst, "", "Dstination protocol (ibc, hl, hub)")
+	cmd.Flags().String(FlagDst, "", "destination protocol (ibc, hl, hub)")
 	_ = cmd.MarkFlagRequired(FlagSrc)
 	_ = cmd.MarkFlagRequired(FlagDst)
 }
@@ -524,7 +524,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 		}
 
 	default:
-		return fmt.Errorf("unsupported dstination for IBC/EIBC src: %s", common.Dst)
+		return fmt.Errorf("unsupported destination for IBC/EIBC src: %s", common.Dst)
 	}
 
 	fmt.Println(memo)
@@ -602,7 +602,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 		}
 
 	default:
-		return fmt.Errorf("unsupported dstination for HL src: %s", common.Dst)
+		return fmt.Errorf("unsupported destination for HL src: %s", common.Dst)
 	}
 
 	return nil
@@ -682,7 +682,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
 		dstAmount, ok := math.NewIntFromString(dstAmountS)
 		if !ok {
-			return fmt.Errorf("invalid dstination amount")
+			return fmt.Errorf("invalid destination amount")
 		}
 
 		hook := types.NewHookForwardToHL(
@@ -710,7 +710,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		}
 
 	default:
-		return fmt.Errorf("unsupported dstination: %s", common.Dst)
+		return fmt.Errorf("unsupported destination: %s", common.Dst)
 	}
 
 	// Create the Hyperlane message
@@ -760,7 +760,7 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 	}
 
 	if common.Dst != DstIBC {
-		return fmt.Errorf("only IBC dstination is supported for HL src")
+		return fmt.Errorf("only IBC destination is supported for HL src")
 	}
 
 	ibcParams, err := parseIBCFlags(cmd)
