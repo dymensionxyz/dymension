@@ -9,6 +9,18 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+// TestGRPCParams tests querying params via gRPC returns the correct response.
+func (suite *KeeperTestSuite) TestGRPCParams() {
+	res, err := suite.querier.Params(suite.Ctx, &types.ParamsRequest{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+	suite.Require().NotNil(res.Params)
+	
+	// Check that we get the expected default params
+	expectedParams := suite.App.StreamerKeeper.GetParams(suite.Ctx)
+	suite.Require().Equal(expectedParams, res.Params)
+}
+
 // TestGRPCStreamByID tests querying streams via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCStreamByID() {
 	// create a stream
