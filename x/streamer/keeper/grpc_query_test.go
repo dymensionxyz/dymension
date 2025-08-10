@@ -15,7 +15,7 @@ func (suite *KeeperTestSuite) TestGRPCParams() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 	suite.Require().NotNil(res.Params)
-	
+
 	// Check that we get the expected default params
 	expectedParams := suite.App.StreamerKeeper.GetParams(suite.Ctx)
 	suite.Require().Equal(expectedParams, res.Params)
