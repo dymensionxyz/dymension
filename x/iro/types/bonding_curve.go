@@ -171,15 +171,14 @@ func (lbc BondingCurve) TokensApproximation(startingX, spendTokens math.LegacyDe
 	}
 
 	// Initial guess for the solution to the bonding curve equation
-	// assuming 1 DYM = 1 token for the initial guess
-	x := spendTokens
+	x := spendTokens.Quo(lbc.spotPriceInternal(startingX))
 
 	// Newton-Raphson iteration
 	epsilonDec := math.LegacyNewDecWithPrec(1, epsilonPrecision)
 	for i := 0; i < maxIterations; i++ {
 		fx := f(x) // diff between spendTokens and the actual cost to get to x
 		// If the function converges, return the result
-		if fx.Abs().LT(epsilonDec) {
+		if !fx.IsPositive() && fx.Abs().LT(epsilonDec) {
 			return x, i, nil
 		}
 		prevX := x
