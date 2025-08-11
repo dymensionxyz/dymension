@@ -196,7 +196,7 @@ Default ports (can be configured via environment variables):
 - Uses custom forks of cosmos-sdk, cometbft, ibc-go, and osmosis
 - Proto generation requires Docker with specific proto-builder images
 - Default chain ID for local development: `dymension_100-1`
-- Default denom: `udym` (1 dym = 1,000,000 udym)
+- Default denom: `adym` (1 dym = 1 * 10^18 adym)
 
 ## Code Style Guidelines
 

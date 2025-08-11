@@ -7,11 +7,17 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/streamer/stream.proto";
+import "dymensionxyz/dymension/streamer/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 // Query defines the gRPC querier service
 service Query {
+  // Params returns the total set of streamer parameters.
+  rpc Params(ParamsRequest) returns (ParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/streamer/params";
+  }
+
   // ModuleToDistributeCoins returns coins that are going to be distributed
   rpc ModuleToDistributeCoins(ModuleToDistributeCoinsRequest)
       returns (ModuleToDistributeCoinsResponse) {
@@ -39,6 +45,11 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/upcoming_streams";
   }
+}
+
+message ParamsRequest {}
+message ParamsResponse {
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
 message ModuleToDistributeCoinsRequest {}

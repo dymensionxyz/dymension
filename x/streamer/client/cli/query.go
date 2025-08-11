@@ -12,12 +12,22 @@ func GetQueryCmd() *cobra.Command {
 	// group streamer queries under a subcommand
 	cmd := osmocli.QueryIndexCmd(types.ModuleName)
 	qcGetter := types.NewQueryClient
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdParams)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdStreams)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdToDistributeCoins)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdStreamByID)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdActiveStreams)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdUpcomingStreams)
 	return cmd
+}
+
+// GetCmdParams returns the streamer module parameters.
+func GetCmdParams() (*osmocli.QueryDescriptor, *types.ParamsRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "params",
+		Short: "Query streamer module parameters",
+		Long:  "Query the current parameters of the streamer module",
+	}, &types.ParamsRequest{}
 }
 
 // GetCmdStreams returns all available streams.
