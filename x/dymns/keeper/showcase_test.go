@@ -202,7 +202,7 @@ func (s *KeeperTestSuite) TestKeeper_DefaultDymNameConfiguration() {
 		// reverse-resolve other addresses will return no result at this point
 		sc.requireReverseResolve(randomTestAccount.bech32()).forChainId("dymension").NoResult()
 
-		// why? Underthe hood, Dym-Name without any config equals with the one have a default config, which look like this
+		// why? Under the hood, Dym-Name without any config equals with the one have a default config, which look like this
 		dymName.Configs = []dymnstypes.DymNameConfig{
 			{
 				Type:    dymnstypes.DymNameConfigType_DCT_NAME,
