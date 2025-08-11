@@ -256,24 +256,40 @@ func TestTokensForDYM(t *testing.T) {
 						for _, xToken := range xTokens {
 							x := math.LegacyMustNewDecFromStr(xToken).MulInt64(1e18).TruncateInt()
 							cost := curve.Cost(startingX, startingX.Add(x))
-							// skip if cost is less than 0.00005USDC or 0.000000000005DYM
-							if cost.LT(math.NewInt(50).Mul(math.NewIntWithDecimal(1, int(liquidityDenomDecimals)-6))) {
+							// skip if cost is less than 0.00005USDC or 0.00005DYM
+							if cost.LT(math.NewIntWithDecimal(5, int(liquidityDenomDecimals)-5)) {
 								t.Logf("cost is less than 50, skipping startingX=%s, xToken=%s, cost=%s", start, xToken, cost)
 								continue
 							}
+							check = true
 
 							tokens, err := curve.TokensForExactInAmount(startingX, cost)
 							require.NoError(t, err)
 
+							// assert that the tokens are within 5% of the expected tokens (at least 0.005 RA tokens)
 							errRatio := testutil.ApproxEqualRatio(x, tokens, 0.05)                   // 5% tolerance
 							errInt := testutil.ApproxEqual(x, tokens, math.NewIntWithDecimal(5, 15)) // 0.005 RA token
 							if errRatio != nil && errInt != nil {
 								assert.NoError(t, errors.Join(errRatio, errInt),
 									fmt.Sprintf("startingX=%s, xToken=%s, cost=%s, tokens=%s", start, xToken, cost, types.ScaleFromBase(tokens, 18)))
 							}
-							check = true
+
+							// assert that the cost is within 0.5% of the expected cost
+							// (at least 0.00005USDC or 0.00005DYM)
+							actualCost := curve.Cost(startingX, startingX.Add(tokens))
+							errCostRatio := testutil.ApproxEqualRatio(cost, actualCost, 0.005) // 0.5% tolerance
+							errCostInt := testutil.ApproxEqual(cost, actualCost, math.NewIntWithDecimal(5, int(liquidityDenomDecimals)-5))
+							if errCostRatio != nil && errCostInt != nil {
+								assert.NoError(t, errors.Join(errCostRatio, errCostInt),
+									fmt.Sprintf("COST ASSERTION FAILED: tokens=%s, expected=%s, cost=%s, actualCost=%s, diff=%s",
+										types.ScaleFromBase(tokens, 18).String(),
+										types.ScaleFromBase(x, 18).String(),
+										types.ScaleFromBase(cost, liquidityDenomDecimals).String(),
+										types.ScaleFromBase(actualCost, liquidityDenomDecimals).String(),
+										types.ScaleFromBase(actualCost.Sub(cost), 18).String()))
+							}
 						}
-						require.True(t, check, "no check was done for startingX=%s", start)
+						require.True(t, check, "no checks were done for startingX=%s", start)
 					}
 				})
 			})

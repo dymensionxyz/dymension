@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"math/big"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +22,97 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
+const (
+	FlagReadable = "readable"
+	FlagSrc      = "src"
+	FlagDst      = "dst"
+
+	FlagTokenID = "token-id"
+	FlagAmount  = "amount"
+	FlagMaxFee  = "max-fee"
+
+	FlagDomain    = "domain"
+	FlagSrcDomain = "src-domain"
+	FlagDstDomain = "dst-domain"
+	FlagHubDomain = "hub-domain"
+	FlagKasDomain = "kas-domain"
+
+	// FlagRecipientDst is the final recipient address on the destination chain (IBC or Hyperlane)
+	// This is where the funds will ultimately be delivered
+	FlagRecipientDst = "funds-recipient-dst"
+
+	// FlagRecipientHub is the recipient address on the Dymension Hub
+	// This serves dual purposes:
+	// 1. For Kaspa->Hub transfers: this is the final recipient of funds
+	// 2. For Kaspa->IBC/HL transfers: this is the intermediary address that temporarily holds funds
+	//    and also serves as the recovery address if forwarding fails
+	FlagRecipientHub = "funds-recipient-hub"
+
+	FlagChannel = "channel"
+	FlagTimeout = "timeout"
+
+	FlagEIBCFee = "eibc-fee"
+
+	FlagHLAmount     = "hl-amount"
+	FlagHLGas        = "hl-gas"
+	FlagBridgeFeeMul = "bridge-fee-mul"
+
+	FlagNonce       = "nonce"
+	FlagSrcContract = "src-contract"
+	FlagDstTokenID  = "dst-token-id" // #nosec G101 - This is a CLI flag name, not a credential
+	FlagDstAmount   = "dst-amount"
+
+	FlagKasToken = "kas-token"
+
+	FlagDecodeMemo = "decode-memo"
+
+	SrcIBC   = "ibc"
+	SrcEIBC  = "eibc"
+	SrcHL    = "hl"
+	SrcKaspa = "kaspa"
+
+	DstIBC = "ibc"
+	DstHL  = "hl"
+	DstHub = "hub"
+)
+
+type CommonParams struct {
+	Readable bool
+	Src      string
+	Dst      string
+}
+
+type TokenParams struct {
+	TokenID   util.HexAddress
+	Amount    math.Int
+	Recipient sdk.AccAddress
+}
+
+type HyperlaneParams struct {
+	TokenID        util.HexAddress
+	Amount         math.Int
+	RecipientFunds util.HexAddress
+	Domain         uint32
+	MaxFee         sdk.Coin
+	Nonce          uint32
+	SrcDomain      uint32
+	SrcContract    util.HexAddress
+	DstDomain      uint32
+}
+
+type IBCParams struct {
+	Channel   string
+	Recipient string
+	Timeout   time.Duration
+}
+
+type KaspaParams struct {
+	TokenPlaceholder util.HexAddress
+	KasDomain        uint32
+	HubDomain        uint32
+	FundsRecipient   sdk.AccAddress
+}
+
 func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -32,665 +122,849 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	cmd.AddCommand(CmdCreateMemo())
+	cmd.AddCommand(CmdCreateHLMessage())
+	cmd.AddCommand(CmdDecodeHL())
+	cmd.AddCommand(CmdCosmosAddrToHLAddr())
+	cmd.AddCommand(CmdEstimateFees())
+
+	// Backward compatibility
 	cmd.AddCommand(CmdMemoIBCtoHL())
 	cmd.AddCommand(CmdMemoIBCtoIBC())
 	cmd.AddCommand(CmdMemoEIBCtoHL())
 	cmd.AddCommand(CmdMemoEIBCtoIBC())
 	cmd.AddCommand(CmdMemoHLtoIBCRaw())
 	cmd.AddCommand(CmdMemoHLtoHLRaw())
-	cmd.AddCommand(CmdHLEthTransferRecipientHubAccount())
 	cmd.AddCommand(CmdTestHLtoIBCMessage())
-	cmd.AddCommand(CmdTestHLMessageKaspa())
-	cmd.AddCommand(CmdDecodeHyperlaneMessage())
-	cmd.AddCommand(EstimateEIBCtoHLTransferAmt())
+	cmd.AddCommand(CmdHLMessageKaspaToHub())
+	cmd.AddCommand(CmdHLMessageKaspaToIBC())
+	cmd.AddCommand(CmdHLMessageKaspaToHL())
 
 	return cmd
 }
 
-const (
-	MessageReadableFlag = "readable"
-	DecodeMemoFlag      = "memo"
-)
-
-// get a memo for the direction (E)IBC -> HL. This should be directly included in the memo of the ibc transfer.
-func CmdMemoEIBCtoHL() *cobra.Command {
+func CmdCreateMemo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "memo-eibc-to-hl [eibc-fee] [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
-		Args:    cobra.ExactArgs(6),
-		Short:   "Create a memo for the direction (E)IBC -> HL",
-		Example: `dymd q forward memo-eibc-to-hl 100 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
+		Use:   "create-memo",
+		Short: "Create a memo for forwarding between different protocols",
+		Long: `Create a memo for forwarding tokens between IBC, EIBC, and Hyperlane.
+The src and destination determine which type of memo is created.`,
+		Example: `# IBC to Hyperlane
+dymd q forward create-memo --src=ibc --dst=hl \
+  --token-id=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --dst-domain=1 \
+  --funds-recipient-dst=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --amount=10000 \
+  --max-fee=20foo
 
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			eibcFee := args[0]
-			_, err := strconv.Atoi(eibcFee)
-			if err != nil {
-				return fmt.Errorf("eibc fee: %w", err)
-			}
-
-			hook, err := hookForwardToHL(args[1:])
-			if err != nil {
-				return fmt.Errorf("hook forward to hl: %w", err)
-			}
-
-			memo, err := types.MakeRolForwardToHLMemoString(eibcFee, hook)
-			if err != nil {
-				return fmt.Errorf("new memo: %w", err)
-			}
-
-			fmt.Println(memo)
-			return nil
-		},
+# EIBC to IBC
+dymd q forward create-memo --src=eibc --dst=ibc \
+  --eibc-fee=100 \
+  --channel=channel-0 \
+  --funds-recipient-dst=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
+  --timeout=5m`,
+		RunE: runCreateMemo,
 	}
 
+	addCommonFlags(cmd)
+	addTokenFlags(cmd)
+	addHyperlaneFlags(cmd)
+	addIBCFlags(cmd)
+	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee (required for EIBC src)")
+
+	return cmd
+}
+
+func CmdCreateHLMessage() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-hl-message",
+		Short: "Create a Hyperlane message for testing or for including in Kaspa payloads",
+		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various destination (Hub, IBC, HL).
+The src and destination determine the message format and required parameters.`,
+		Example: `# Kaspa to Hub (no forwarding - hub recipient is final recipient)
+dymd q forward create-hl-message --src=kaspa --dst=hub \
+  --token-id=0x0000000000000000000000000000000000000000000000000000000000000000 \
+  --funds-recipient-hub=dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 \
+  --amount=1000000000000000000 \
+  --kas-token=0x0000000000000000000000000000000000000000000000000000000000000000 \
+  --kas-domain=80808082 \
+  --hub-domain=1260813472
+
+# Kaspa to IBC (hub recipient is intermediary/recovery address)
+dymd q forward create-hl-message --src=kaspa --dst=ibc \
+  --token-id=0x0000000000000000000000000000000000000000000000000000000000000000 \
+  --funds-recipient-hub=dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 \
+  --amount=1000000000000000000 \
+  --kas-token=0x0000000000000000000000000000000000000000000000000000000000000000 \
+  --kas-domain=80808082 \
+  --hub-domain=1260813472 \
+  --channel=channel-0 \
+  --funds-recipient-dst=ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn \
+  --timeout=5m
+
+# HL to HL forwarding
+dymd q forward create-hl-message --src=hl --dst=hl \
+  --nonce=123 \
+  --src-domain=1 \
+  --src-contract=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --dst-domain=2 \
+  --token-id=0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 \
+  --funds-recipient-dst=0x1234567890123456789012345678901234567890 \
+  --amount=1000000000000000000 \
+  --dst-amount=900000000000000000 \
+  --max-fee=20foo`,
+		RunE: runCreateHLMessage,
+	}
+
+	addCommonFlags(cmd)
+	addTokenFlags(cmd)
+	addHyperlaneFlags(cmd)
+	addIBCFlags(cmd)
+	addKaspaFlags(cmd)
+
+	return cmd
+}
+
+func CmdDecodeHL() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "decode-hl [body|message] [hexsing]",
+		Args:    cobra.ExactArgs(2),
+		Short:   "Decode a Hyperlane message or body from hex string",
+		Example: `dymd q forward decode-hl message 0x00000000... --decode-memo`,
+		RunE:    runDecodeHL,
+	}
+
+	cmd.Flags().Bool(FlagDecodeMemo, false, "Decode the memo from the payload")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
 
-// get a memo for the direction IBC -> HL. This should be directly included in the memo of the ibc transfer.
-func CmdMemoIBCtoHL() *cobra.Command {
+func CmdCosmosAddrToHLAddr() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "memo-ibc-to-hl [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
-		Args:    cobra.ExactArgs(5),
-		Short:   "Create a memo for the direction IBC -> HL",
-		Example: `dymd q forward memo-ibc-to-hl 100 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
-
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hook, err := hookForwardToHL(args)
-			if err != nil {
-				return fmt.Errorf("hook forward to hl: %w", err)
-			}
-
-			memo, err := types.MakeIBCForwardToHLMemoString(hook)
-			if err != nil {
-				return fmt.Errorf("new memo: %w", err)
-			}
-			fmt.Println(memo)
-			return nil
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func hookForwardToHL(args []string) (*types.HookForwardToHL, error) {
-	tokenId, err := util.DecodeHexAddress(args[0])
-	if err != nil {
-		return nil, fmt.Errorf("token id: %w", err)
-	}
-
-	destinationDomain, err := strconv.ParseUint(args[1], 10, 32)
-	if err != nil {
-		return nil, fmt.Errorf("destination domain: %w", err)
-	}
-
-	recipient, err := util.DecodeHexAddress(args[2])
-	if err != nil {
-		return nil, fmt.Errorf("recipient: %w", err)
-	}
-
-	amount, ok := math.NewIntFromString(args[3])
-	if !ok {
-		return nil, fmt.Errorf("amount")
-	}
-
-	maxFee, err := sdk.ParseCoinNormalized(args[4])
-	if err != nil {
-		return nil, fmt.Errorf("max fee: %w", err)
-	}
-
-	return types.NewHookForwardToHL(
-		tokenId,
-		uint32(destinationDomain),
-		recipient,
-		amount,
-		maxFee,
-		math.ZeroInt(), // ignored
-		nil,            // ignored
-		"",             // ignored
-	), nil
-}
-
-// get a memo for the direction (E)IBC -> IBC
-func CmdMemoEIBCtoIBC() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "memo-eibc-to-ibc [eibc-fee] [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
-		Args:    cobra.ExactArgs(4),
-		Short:   "Create a memo for the direction (E)IBC -> IBC",
-		Example: `dymd q forward memo-eibc-to-ibc 100 "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
-
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hook, err := hookForwardToIBC(args[1:])
-			if err != nil {
-				return fmt.Errorf("memo hl to ibc: %w", err)
-			}
-
-			memo, err := types.MakeRolForwardToIBCMemoString(args[0], hook)
-			if err != nil {
-				return fmt.Errorf("new memo: %w", err)
-			}
-
-			fmt.Println(memo)
-			return nil
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// get a memo for the direction (E)IBC -> IBC
-func CmdMemoIBCtoIBC() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "memo-ibc-to-ibc [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
-		Args:    cobra.ExactArgs(3),
-		Short:   "Create a memo for the direction IBC -> IBC",
-		Example: `dymd q forward memo-ibc-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
-
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hook, err := hookForwardToIBC(args[1:])
-			if err != nil {
-				return fmt.Errorf("memo hl to ibc: %w", err)
-			}
-
-			s, err := types.MakeIBCForwardToIBCMemoString(hook)
-			if err != nil {
-				return fmt.Errorf("new memo: %w", err)
-			}
-
-			fmt.Println(s)
-			return nil
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// Get a memo for the direction HL -> (E)IBC
-func CmdMemoHLtoIBCRaw() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "memo-hl-to-ibc [ibc-source-chan] [ibc-recipient] [ibc timeout duration]",
-		Args:                       cobra.ExactArgs(3),
-		Short:                      "Get the memo for the direction HL -> IBC or EIBC",
-		Example:                    `dymd q forward memo-hl-to-ibc "channel-0" ethm1a30y0h95a7p38plnv5s02lzrgcy0m0xumq0ymn 5m`,
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hook, err := hookForwardToIBC(args)
-			if err != nil {
-				return fmt.Errorf("memo hl to ibc: %w", err)
-			}
-
-			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
-			if err != nil {
-				return fmt.Errorf("encode flag: %w", err)
-			}
-
-			if readable {
-				fmt.Printf("hyperlane message: %+v\n", hook)
-			} else {
-				bz, err := proto.Marshal(hook)
-				if err != nil {
-					return fmt.Errorf("marshal: %w", err)
-				}
-				hlMetadata := &types.HLMetadata{
-					HookForwardToIbc: bz,
-				}
-				bz, err = proto.Marshal(hlMetadata)
-				if err != nil {
-					return fmt.Errorf("marshal: %w", err)
-				}
-				fmt.Printf("%s\n", util.EncodeEthHex(bz))
-			}
-
-			return nil
-		},
-	}
-
-	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a human readable format (for debug)")
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// Get a memo for the direction HL -> HL
-func CmdMemoHLtoHLRaw() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "memo-hl-to-hl [token-id] [destination-domain] [hl-recipient] [hl-amount] [max-hl-fee]",
-		Args:                       cobra.ExactArgs(5),
-		Short:                      "Get the memo for the direction HL -> HL",
-		Example:                    `dymd q forward memo-hl-to-hl 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 10000 20foo`,
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hook, err := hookForwardToHL(args)
-			if err != nil {
-				return fmt.Errorf("hook forward to hl: %w", err)
-			}
-
-			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
-			if err != nil {
-				return fmt.Errorf("readable flag: %w", err)
-			}
-
-			if readable {
-				fmt.Printf("hyperlane message: %+v\n", hook)
-			} else {
-				bz, err := proto.Marshal(hook)
-				if err != nil {
-					return fmt.Errorf("marshal: %w", err)
-				}
-				hlMetadata := &types.HLMetadata{
-					HookForwardToHl: bz,
-				}
-				bz, err = proto.Marshal(hlMetadata)
-				if err != nil {
-					return fmt.Errorf("marshal: %w", err)
-				}
-				fmt.Printf("%s\n", util.EncodeEthHex(bz))
-			}
-
-			return nil
-		},
-	}
-
-	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a human readable format (for debug)")
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func hookForwardToIBC(args []string) (*types.HookForwardToIBC, error) {
-	ibcSourceChan := args[0]
-
-	ibcRecipient := args[1]
-
-	ibcTimeoutDuration, err := time.ParseDuration(args[2])
-	if err != nil {
-		return nil, fmt.Errorf("ibc timeout duration: %w", err)
-	}
-
-	ibcTimeoutTimestamp := uint64(time.Now().Add(ibcTimeoutDuration).UnixNano()) //nolint:gosec
-
-	hook := types.NewHookForwardToIBC(
-		ibcSourceChan,
-		ibcRecipient,
-		ibcTimeoutTimestamp,
-	)
-	err = hook.ValidateBasic()
-	if err != nil {
-		return nil, fmt.Errorf("new hl message: %w", err)
-	}
-	return hook, nil
-}
-
-// Get a message for the direction HL -> (E)IBC. Intended for testing (check that the hub handles inbound messages correctly.)
-func CmdTestHLtoIBCMessage() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "hl-message [nonce] [src-domain] [src-contract] [dst-domain] [token-id] [hyperlane recipient] [amount] [ibc-source-chan] [ibc-recipient] [ibc timeout duration] [recovery-address]",
-		Args:  cobra.ExactArgs(11),
-		Short: "Create a hyperlane message for testing Hl -> IBC",
-		Example: `
-		dymd q forward hl-message 1 1
-0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0 1 0x934b867052ca9c65e33362112f35fb548f8732c2fe45f07b9c591958e865def0
-dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 50 channel-0 ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk 5m
-dym1yecvrgz7yp26keaxa4r00554uugatxfegk76hz`,
-
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hlNonce, err := strconv.ParseUint(args[0], 10, 32)
-			if err != nil {
-				return fmt.Errorf("nonce: %w", err)
-			}
-
-			hlSrcDomain, err := strconv.ParseUint(args[1], 10, 32)
-			if err != nil {
-				return fmt.Errorf("counterparty domain: %w", err)
-			}
-
-			hlSrcContract, err := util.DecodeHexAddress(args[2])
-			if err != nil {
-				return fmt.Errorf("counterparty contract: %w", err)
-			}
-
-			hlDstDomain, err := strconv.ParseUint(args[3], 10, 32)
-			if err != nil {
-				return fmt.Errorf("local domain: %w", err)
-			}
-
-			hlTokenID, err := util.DecodeHexAddress(args[4])
-			if err != nil {
-				return fmt.Errorf("token id: %w", err)
-			}
-
-			hlRecipient, err := sdk.AccAddressFromBech32(args[5])
-			if err != nil {
-				return fmt.Errorf("recipient address: %w", err)
-			}
-
-			hlAmt, ok := math.NewIntFromString(args[6])
-			if !ok {
-				return fmt.Errorf("amount")
-			}
-
-			hook, err := hookForwardToIBC(args[7:])
-			if err != nil {
-				return fmt.Errorf("memo hl to ibc: %w", err)
-			}
-
-			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
-			if err != nil {
-				return fmt.Errorf("encode flag: %w", err)
-			}
-
-			m, err := MakeForwardToIBCHyperlaneMessage(
-				uint32(hlNonce),
-				uint32(hlSrcDomain),
-				hlSrcContract,
-				uint32(hlDstDomain),
-				hlTokenID,
-				hlRecipient,
-				hlAmt,
-				hook,
-			)
-			if err != nil {
-				return fmt.Errorf("new hl message: %w", err)
-			}
-
-			if readable {
-				fmt.Printf("hyperlane message: %+v\n", m)
-			} else {
-				fmt.Print(m) // encodes with .String()
-			}
-
-			return nil
-		},
-	}
-
-	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a readable format")
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// Get a (test) message to send in Kaspa payload (Testnet10)
-func CmdTestHLMessageKaspa() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "hl-message-kaspa [token-id] [hub recipient] [amount] [kas token placeholder] [kas-domain] [hub-domain]",
-		Args:    cobra.ExactArgs(6),
-		Short:   "Get a test message to send in kaspa payload",
-		Example: `dymd q forward hl-message-kaspa 0x0000000000000000000000000000000000000000000000000000000000000000 dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9 1000000000000000000 0x0000000000000000000000000000000000000000000000000000000000000000 80808082 1260813472`,
-
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hlTokenID, err := util.DecodeHexAddress(args[0])
-			if err != nil {
-				return fmt.Errorf("token id: %w", err)
-			}
-
-			hlRecipient, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return fmt.Errorf("recipient address: %w", err)
-			}
-
-			hlAmt, ok := math.NewIntFromString(args[2])
-			if !ok {
-				return fmt.Errorf("amount")
-			}
-
-			kasTokenPlaceholder, err := util.DecodeHexAddress(args[3])
-			if err != nil {
-				return fmt.Errorf("kas token placeholder: %w", err)
-			}
-
-			kasDomain, err := strconv.ParseUint(args[4], 10, 32)
-			if err != nil {
-				return fmt.Errorf("kas domain: %w", err)
-			}
-
-			hubDomain, err := strconv.ParseUint(args[5], 10, 32)
-			if err != nil {
-				return fmt.Errorf("hub domain: %w", err)
-			}
-
-			readable, err := cmd.Flags().GetBool(MessageReadableFlag)
-			if err != nil {
-				return fmt.Errorf("encode flag: %w", err)
-			}
-
-			m, err := createTestHyperlaneMessage(
-				0, // FIXED AT ZERO
-				uint32(kasDomain),
-				kasTokenPlaceholder,
-				uint32(hubDomain),
-				hlTokenID,
-				hlRecipient,
-				hlAmt,
-				nil,
-			)
-			if err != nil {
-				return fmt.Errorf("new hl message: %w", err)
-			}
-
-			if readable {
-				fmt.Printf("hyperlane message: %+v\n", m)
-			} else {
-				fmt.Print(m) // encodes with .String()
-			}
-
-			return nil
-		},
-	}
-
-	cmd.Flags().Bool(MessageReadableFlag, false, "Show the message in a readable format")
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// Get a value to pass to Ethereum as the recipient of a token transfer on the hub
-func CmdHLEthTransferRecipientHubAccount() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "hl-eth-recipient [addr]",
-		Args:                       cobra.ExactArgs(1),
-		Short:                      "",
-		Example:                    `dymd q forward eth-hub-recipient dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9`,
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
+		Use:     "cosmos-addr-to-hl-addr [address]",
+		Args:    cobra.ExactArgs(1),
+		Short:   "Convert a Cosmos address to Hyperlane recipient format",
+		Example: `dymd q forward cosmos-addr-to-hl-addr dym139mq752delxv78jvtmwxhasyrycufsvrw4aka9`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			addr, err := EthRecipient(args[0])
 			if err != nil {
-				return fmt.Errorf("hl eth addr: %w", err)
+				return fmt.Errorf("eth recipient: %w", err)
 			}
-
 			fmt.Println(addr)
-
 			return nil
 		},
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-
 	return cmd
 }
 
-// addr like dym166kyzqc2e0ewmwmv4vj68pzqp57tgts5lyawlc
-// returns a value which can be passed to ethereum as recipient, e.g 0x000000000000000000000000d6ac41030acbf2edbb6cab25a384400d3cb42e14
-func EthRecipient(addr string) (string, error) {
-	bz, err := sdk.GetFromBech32(addr, sdk.GetConfig().GetBech32AccountAddrPrefix())
+func CmdEstimateFees() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "estimate-fees",
+		Short:   "Estimate fees for EIBC to HL transfers",
+		Example: `dymd q forward estimate-fees --hl-amount=125000000000000 --hl-gas=200000 --eibc-fee=2000 --bridge-fee-mul=0.01`,
+		RunE:    runEstimateFees,
+	}
+
+	cmd.Flags().String(FlagHLAmount, "", "Amount to receive on Hyperlane")
+	cmd.Flags().String(FlagHLGas, "", "Max gas for Hyperlane")
+	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee")
+	cmd.Flags().String(FlagBridgeFeeMul, "", "Bridge fee multiplier")
+	_ = cmd.MarkFlagRequired(FlagHLAmount)
+	_ = cmd.MarkFlagRequired(FlagHLGas)
+	_ = cmd.MarkFlagRequired(FlagEIBCFee)
+	_ = cmd.MarkFlagRequired(FlagBridgeFeeMul)
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func addCommonFlags(cmd *cobra.Command) {
+	cmd.Flags().Bool(FlagReadable, false, "Show output in human-readable format")
+	cmd.Flags().String(FlagSrc, "", "Src protocol (ibc, eibc, hl, kaspa)")
+	cmd.Flags().String(FlagDst, "", "destination protocol (ibc, hl, hub)")
+	_ = cmd.MarkFlagRequired(FlagSrc)
+	_ = cmd.MarkFlagRequired(FlagDst)
+}
+
+func addTokenFlags(cmd *cobra.Command) {
+	cmd.Flags().String(FlagTokenID, "", "Token ID (hex)")
+	cmd.Flags().String(FlagAmount, "", "Token amount")
+	cmd.Flags().String(FlagMaxFee, "", "Maximum fee (e.g., 20foo)")
+}
+
+func addHyperlaneFlags(cmd *cobra.Command) {
+	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce")
+	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID")
+	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source domain ID")
+	cmd.Flags().Uint32(FlagDstDomain, 0, "Destination domain ID")
+	cmd.Flags().String(FlagSrcContract, "", "Source contract (hex)")
+	cmd.Flags().String(FlagDstTokenID, "", "Destination token ID (hex)")
+	cmd.Flags().String(FlagRecipientDst, "", "Final recipient address on destination chain")
+	cmd.Flags().String(FlagDstAmount, "", "Destination amount")
+}
+
+func addIBCFlags(cmd *cobra.Command) {
+	cmd.Flags().String(FlagChannel, "", "IBC channel")
+	cmd.Flags().String(FlagTimeout, "5m", "IBC timeout duration")
+}
+
+func addKaspaFlags(cmd *cobra.Command) {
+	cmd.Flags().String(FlagKasToken, "", "Kaspa token placeholder (hex)")
+	cmd.Flags().Uint32(FlagKasDomain, 0, "Kaspa domain ID")
+	cmd.Flags().Uint32(FlagHubDomain, 0, "Hub domain ID")
+	cmd.Flags().String(FlagRecipientHub, "", "Hub recipient address (final recipient for Kaspa->Hub, or intermediary/recovery address for Kaspa->IBC/HL)")
+}
+
+func parseCommonFlags(cmd *cobra.Command) (*CommonParams, error) {
+	readable, _ := cmd.Flags().GetBool(FlagReadable)
+	src, _ := cmd.Flags().GetString(FlagSrc)
+	dst, _ := cmd.Flags().GetString(FlagDst)
+
+	return &CommonParams{
+		Readable: readable,
+		Src:      src,
+		Dst:      dst,
+	}, nil
+}
+
+func parseTokenFlags(cmd *cobra.Command) (*TokenParams, error) {
+	tokenIDS, _ := cmd.Flags().GetString(FlagTokenID)
+	amountS, _ := cmd.Flags().GetString(FlagAmount)
+	recipientS, _ := cmd.Flags().GetString(FlagRecipientDst)
+
+	var params TokenParams
+	var err error
+
+	if tokenIDS != "" {
+		params.TokenID, err = util.DecodeHexAddress(tokenIDS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid token ID: %w", err)
+		}
+	}
+
+	if amountS != "" {
+		var ok bool
+		params.Amount, ok = math.NewIntFromString(amountS)
+		if !ok {
+			return nil, fmt.Errorf("invalid amount: %s", amountS)
+		}
+	}
+
+	if recipientS != "" {
+		params.Recipient, err = sdk.AccAddressFromBech32(recipientS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid recipient: %w", err)
+		}
+	}
+
+	return &params, nil
+}
+
+func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
+	var params HyperlaneParams
+	var err error
+
+	params.Nonce, _ = cmd.Flags().GetUint32(FlagNonce)
+	params.Domain, _ = cmd.Flags().GetUint32(FlagDomain)
+	params.SrcDomain, _ = cmd.Flags().GetUint32(FlagSrcDomain)
+	params.DstDomain, _ = cmd.Flags().GetUint32(FlagDstDomain)
+
+	tokenIDS, _ := cmd.Flags().GetString(FlagTokenID)
+	if tokenIDS != "" {
+		params.TokenID, err = util.DecodeHexAddress(tokenIDS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid token ID: %w", err)
+		}
+	}
+
+	srcContractS, _ := cmd.Flags().GetString(FlagSrcContract)
+	if srcContractS != "" {
+		params.SrcContract, err = util.DecodeHexAddress(srcContractS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid src contract: %w", err)
+		}
+	}
+
+	recipientFundsS, _ := cmd.Flags().GetString(FlagRecipientDst)
+	if recipientFundsS != "" {
+		params.RecipientFunds, err = util.DecodeHexAddress(recipientFundsS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid recipient: %w", err)
+		}
+	}
+
+	amountS, _ := cmd.Flags().GetString(FlagAmount)
+	if amountS != "" {
+		var ok bool
+		params.Amount, ok = math.NewIntFromString(amountS)
+		if !ok {
+			return nil, fmt.Errorf("invalid amount: %s", amountS)
+		}
+	}
+
+	maxFeeS, _ := cmd.Flags().GetString(FlagMaxFee)
+	if maxFeeS != "" {
+		params.MaxFee, err = sdk.ParseCoinNormalized(maxFeeS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid max fee: %w", err)
+		}
+	}
+
+	return &params, nil
+}
+
+func parseIBCFlags(cmd *cobra.Command) (*IBCParams, error) {
+	channel, _ := cmd.Flags().GetString(FlagChannel)
+	recipient, _ := cmd.Flags().GetString(FlagRecipientDst)
+
+	timeoutS, _ := cmd.Flags().GetString(FlagTimeout)
+	timeout, err := time.ParseDuration(timeoutS)
 	if err != nil {
-		return "", fmt.Errorf("addr address from bech32: %w", err)
+		return nil, fmt.Errorf("invalid timeout: %w", err)
 	}
 
-	ret := util.EncodeEthHex(bz)
-	ret = strings.TrimPrefix(ret, "0x")
-
-	// an address for eth which will be abi encoded, and then put parsed in the message
-	// the first 24 bytes are for module routing, which aren't needed here, as this is inside the warp payload
-	// https://github.com/dymensionxyz/hyperlane-cosmos/blob/bed4e0313aeddb8d2c59ab98d5e805955e88b300/util/hex_address.go#L29-L30
-	prefix := "0x000000000000000000000000" // TODO: explain
-	ret = prefix + ret
-
-	return ret, nil
+	return &IBCParams{
+		Channel:   channel,
+		Recipient: recipient,
+		Timeout:   timeout,
+	}, nil
 }
 
-// Util to debug a hyperlane message or hyperlane body (including show the memo if there is one). Expects Ethereum Hex bytes
-func CmdDecodeHyperlaneMessage() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "hl-decode (body | message) [hexstring]",
-		Args:                       cobra.ExactArgs(2),
-		Short:                      "Decode a message or message body from an hex string",
-		Long:                       "Provide a HL message or message body string in hex form and see what it decodes to",
-		Example:                    `dymd q forward hl-decode message 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000`,
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			kind := args[0]
-			if kind != "body" && kind != "message" {
-				return fmt.Errorf("unsupported message type: %s", kind)
-			}
-			d := args[1]
+func parseKaspaFlags(cmd *cobra.Command) (*KaspaParams, error) {
+	var params KaspaParams
+	var err error
 
-			// be a bit kinder to what can be passed into the terminal
-			d = strings.TrimSpace(d)
-			d = strings.ReplaceAll(d, `\`, "")
-			d = strings.ReplaceAll(d, " ", "")
-
-			fmt.Printf("input: %s\n", d)
-
-			bz, err := util.DecodeEthHex(d)
-			if err != nil {
-				return fmt.Errorf("decode eth hex: %w", err)
-			}
-
-			body := bz
-			if kind == "message" {
-				var message util.HyperlaneMessage
-				m, err := util.ParseHyperlaneMessage(bz)
-				if err != nil {
-					return fmt.Errorf(" %w", err)
-				}
-				body = m.Body
-				message = m
-				fmt.Printf("hyperlane message: %+v\n", message)
-			}
-
-			memo, err := cmd.Flags().GetBool(DecodeMemoFlag)
-			if err != nil {
-				return fmt.Errorf("encode flag: %w", err)
-			}
-
-			warpPL, err := warptypes.ParseWarpPayload(body)
-			if err != nil {
-				return fmt.Errorf("parse warp payload: %w", err)
-			}
-			if memo {
-				hlMetadata, err := types.UnpackHLMetadata(warpPL.Metadata())
-				if err != nil {
-					return fmt.Errorf("unpack hl metadata: %w", err)
-				}
-				fmt.Printf("hl metadata: %+v\n", hlMetadata)
-
-				// Check for IBC forward
-				if len(hlMetadata.HookForwardToIbc) > 0 {
-					m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
-					if err != nil {
-						return fmt.Errorf("unpack ibc forward from warp message: %w", err)
-					}
-					fmt.Printf("ibc forward: %+v\n", m)
-				}
-
-				// Check for HL forward
-				if len(hlMetadata.HookForwardToHl) > 0 {
-					m, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
-					if err != nil {
-						return fmt.Errorf("unpack hl forward from warp message: %w", err)
-					}
-					fmt.Printf("hl forward: %+v\n", m)
-				}
-			}
-			fmt.Printf("warp payload message: %+v\n", warpPL)
-			fmt.Printf("cosmos account: %s\n", warpPL.GetCosmosAccount().String())
-			fmt.Printf("amount: %s\n", warpPL.Amount().String())
-			return nil
-		},
+	kasTokenS, _ := cmd.Flags().GetString(FlagKasToken)
+	if kasTokenS != "" {
+		params.TokenPlaceholder, err = util.DecodeHexAddress(kasTokenS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid kas token: %w", err)
+		}
 	}
 
-	cmd.Flags().Bool(DecodeMemoFlag, false, "Decode the memo from the payload")
-	flags.AddQueryFlagsToCmd(cmd)
+	params.KasDomain, _ = cmd.Flags().GetUint32(FlagKasDomain)
+	params.HubDomain, _ = cmd.Flags().GetUint32(FlagHubDomain)
 
-	return cmd
-}
-
-func EstimateEIBCtoHLTransferAmt() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        "amt-eibc-to-hl [hl receive amt] [hl max gas] [eibc fee] [bridge fee mul]",
-		Args:                       cobra.ExactArgs(4),
-		Short:                      "Get amount of tokens for ibc transfer to ensure enough arrive on final destination after fees and HL",
-		Long:                       "Estimate the amount of tokens to send over EIBC to be forwarded to HL and to make sure to receive the specified amount on the final destination",
-		Example:                    `dymd q forward amt-eibc-to-hl 125000000000000 200000 2000 0.01`,
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			hlReceiveAmt, ok := math.NewIntFromString(args[0])
-			if !ok {
-				return fmt.Errorf("hl receive amt")
-			}
-
-			hlMaxGas, ok := math.NewIntFromString(args[1])
-			if !ok {
-				return fmt.Errorf("max gas")
-			}
-
-			eibcFee, ok := math.NewIntFromString(args[2])
-			if !ok {
-				return fmt.Errorf("eibc fee")
-			}
-
-			bridgeFeeMul, err := math.LegacyNewDecFromStr(args[3])
-			if err != nil {
-				return fmt.Errorf("fee mul: %w", err)
-			}
-
-			// price calculation always includes the bridge fee, so we don't need to do another calculation for the finalize case
-
-			needForHl := hlReceiveAmt.Add(hlMaxGas)
-
-			transferAmt := eibctypes.CalcTargetPriceAmt(needForHl, eibcFee, bridgeFeeMul)
-
-			fmt.Print(transferAmt)
-			return nil
-		},
+	hubFundsRecipientS, _ := cmd.Flags().GetString(FlagRecipientHub)
+	if hubFundsRecipientS != "" {
+		params.FundsRecipient, err = sdk.AccAddressFromBech32(hubFundsRecipientS)
+		if err != nil {
+			return nil, fmt.Errorf("invalid hub recipient: %w", err)
+		}
 	}
-	return cmd
+
+	return &params, nil
 }
 
-// get a message for sending directly to hyperlane module on hub
-// for testing
-// potentially computationally expensive
+func runCreateMemo(cmd *cobra.Command, args []string) error {
+	common, err := parseCommonFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	switch common.Src {
+	case SrcIBC, SrcEIBC:
+		return runCreateMemoFromIBC(cmd, common)
+	case SrcHL:
+		return runCreateMemoFromHL(cmd, common)
+	default:
+		return fmt.Errorf("unsupported src: %s", common.Src)
+	}
+}
+
+func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
+	var memo string
+
+	switch common.Dst {
+	case DstHL:
+		hlParams, err := parseHyperlaneFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		tokenParams, err := parseTokenFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		hook := types.NewHookForwardToHL(
+			hlParams.TokenID,
+			hlParams.DstDomain,
+			hlParams.RecipientFunds,
+			tokenParams.Amount,
+			hlParams.MaxFee,
+			math.ZeroInt(),
+			nil,
+			"",
+		)
+
+		if common.Src == SrcEIBC {
+			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			memo, err = types.MakeRolForwardToHLMemoString(eibcFeeS, hook)
+		} else {
+			memo, err = types.MakeIBCForwardToHLMemoString(hook)
+		}
+
+		if err != nil {
+			return fmt.Errorf("create memo: %w", err)
+		}
+
+	case DstIBC:
+		ibcParams, err := parseIBCFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		hook := types.NewHookForwardToIBC(
+			ibcParams.Channel,
+			ibcParams.Recipient,
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+		)
+
+		if common.Src == SrcEIBC {
+			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			memo, err = types.MakeRolForwardToIBCMemoString(eibcFeeS, hook)
+		} else {
+			memo, err = types.MakeIBCForwardToIBCMemoString(hook)
+		}
+
+		if err != nil {
+			return fmt.Errorf("create memo: %w", err)
+		}
+
+	default:
+		return fmt.Errorf("unsupported destination for IBC/EIBC src: %s", common.Dst)
+	}
+
+	fmt.Println(memo)
+	return nil
+}
+
+func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
+	switch common.Dst {
+	case DstIBC:
+		ibcParams, err := parseIBCFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		hook := types.NewHookForwardToIBC(
+			ibcParams.Channel,
+			ibcParams.Recipient,
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+		)
+
+		if common.Readable {
+			fmt.Printf("hyperlane message: %+v\n", hook)
+		} else {
+			bz, err := proto.Marshal(hook)
+			if err != nil {
+				return fmt.Errorf("marshal: %w", err)
+			}
+			hlMetadata := &types.HLMetadata{
+				HookForwardToIbc: bz,
+			}
+			bz, err = proto.Marshal(hlMetadata)
+			if err != nil {
+				return fmt.Errorf("marshal: %w", err)
+			}
+			fmt.Printf("%s\n", util.EncodeEthHex(bz))
+		}
+
+	case DstHL:
+		hlParams, err := parseHyperlaneFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		tokenParams, err := parseTokenFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		hook := types.NewHookForwardToHL(
+			hlParams.TokenID,
+			hlParams.DstDomain,
+			hlParams.RecipientFunds,
+			tokenParams.Amount,
+			hlParams.MaxFee,
+			math.ZeroInt(),
+			nil,
+			"",
+		)
+
+		if common.Readable {
+			fmt.Printf("hyperlane message: %+v\n", hook)
+		} else {
+			bz, err := proto.Marshal(hook)
+			if err != nil {
+				return fmt.Errorf("marshal: %w", err)
+			}
+			hlMetadata := &types.HLMetadata{
+				HookForwardToHl: bz,
+			}
+			bz, err = proto.Marshal(hlMetadata)
+			if err != nil {
+				return fmt.Errorf("marshal: %w", err)
+			}
+			fmt.Printf("%s\n", util.EncodeEthHex(bz))
+		}
+
+	default:
+		return fmt.Errorf("unsupported destination for HL src: %s", common.Dst)
+	}
+
+	return nil
+}
+
+func runCreateHLMessage(cmd *cobra.Command, args []string) error {
+	common, err := parseCommonFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	switch common.Src {
+	case SrcKaspa:
+		return runCreateHLMessageFromKaspa(cmd, common)
+	case SrcHL:
+		return runCreateHLMessageFromHL(cmd, common)
+	default:
+		return fmt.Errorf("unsupported src: %s", common.Src)
+	}
+}
+
+func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error {
+	kaspaParams, err := parseKaspaFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	tokenParams, err := parseTokenFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	var memo []byte
+
+	switch common.Dst {
+	case DstHub:
+		// For Kaspa->Hub transfers, create minimal metadata to satisfy validation
+		// The hub recipient (kaspaParams.FundsRecipient) is the final recipient
+		hlMetadata := &types.HLMetadata{
+			// All fields are empty as no forwarding is needed
+			Kaspa:            nil,
+			HookForwardToHl:  nil,
+			HookForwardToIbc: nil,
+		}
+		memo, err = proto.Marshal(hlMetadata)
+		if err != nil {
+			return fmt.Errorf("marshal metadata: %w", err)
+		}
+	case DstIBC:
+		// For Kaspa->IBC transfers:
+		// - kaspaParams.FundsRecipient (hub recipient) is the intermediary/recovery address
+		// - ibcParams.Recipient is the final recipient on the IBC destination chain
+		ibcParams, err := parseIBCFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		hook := types.NewHookForwardToIBC(
+			ibcParams.Channel,
+			ibcParams.Recipient,
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+		)
+
+		hookBz, err := proto.Marshal(hook)
+		if err != nil {
+			return fmt.Errorf("marshal hook: %w", err)
+		}
+
+		hlMetadata := &types.HLMetadata{
+			HookForwardToIbc: hookBz,
+		}
+		memo, err = proto.Marshal(hlMetadata)
+		if err != nil {
+			return fmt.Errorf("marshal metadata: %w", err)
+		}
+
+	case DstHL:
+		// For Kaspa->HL transfers:
+		// - kaspaParams.FundsRecipient (hub recipient) is the intermediary/recovery address
+		// - hlParams.RecipientFunds is the final recipient on the Hyperlane destination chain
+		hlParams, err := parseHyperlaneFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
+		dstAmount, ok := math.NewIntFromString(dstAmountS)
+		if !ok {
+			return fmt.Errorf("invalid destination amount")
+		}
+
+		hook := types.NewHookForwardToHL(
+			hlParams.TokenID,
+			hlParams.DstDomain,
+			hlParams.RecipientFunds,
+			dstAmount,
+			hlParams.MaxFee,
+			math.ZeroInt(),
+			nil,
+			"",
+		)
+
+		hookBz, err := proto.Marshal(hook)
+		if err != nil {
+			return fmt.Errorf("marshal hook: %w", err)
+		}
+
+		hlMetadata := &types.HLMetadata{
+			HookForwardToHl: hookBz,
+		}
+		memo, err = proto.Marshal(hlMetadata)
+		if err != nil {
+			return fmt.Errorf("marshal metadata: %w", err)
+		}
+
+	default:
+		return fmt.Errorf("unsupported destination: %s", common.Dst)
+	}
+
+	// Create the Hyperlane message
+	// - tokenParams.TokenID: becomes HyperlaneMessage.Recipient (the warp router contract)
+	// - kaspaParams.FundsRecipient: becomes the recipient in the warp payload
+	//   This is the hub address that will receive funds (either as final recipient or intermediary)
+	m, err := createHyperlaneMessage(
+		0, // Fixed nonce for Kaspa
+		kaspaParams.KasDomain,
+		kaspaParams.TokenPlaceholder,
+		kaspaParams.HubDomain,
+		tokenParams.TokenID,
+		kaspaParams.FundsRecipient,
+		tokenParams.Amount,
+		memo,
+	)
+	if err != nil {
+		return fmt.Errorf("create hyperlane message: %w", err)
+	}
+
+	if common.Readable {
+		fmt.Printf("hyperlane message: %+v\n", m)
+		switch common.Dst {
+		case DstIBC:
+			fmt.Printf("ibc forward details: channel=%s, recipient=%s\n",
+				cmd.Flag(FlagChannel).Value, cmd.Flag(FlagRecipientDst).Value)
+		case DstHL:
+			fmt.Printf("hl forward details: domain=%s, recipient=%s\n",
+				cmd.Flag(FlagDstDomain).Value, cmd.Flag(FlagRecipientDst).Value)
+		}
+	} else {
+		fmt.Print(m)
+	}
+
+	return nil
+}
+
+func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
+	hlParams, err := parseHyperlaneFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	tokenParams, err := parseTokenFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	var m util.HyperlaneMessage
+
+	switch common.Dst {
+	case DstIBC:
+		ibcParams, err := parseIBCFlags(cmd)
+		if err != nil {
+			return err
+		}
+
+		hook := types.NewHookForwardToIBC(
+			ibcParams.Channel,
+			ibcParams.Recipient,
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+		)
+
+		m, err = MakeForwardToIBCHyperlaneMessage(
+			hlParams.Nonce,
+			hlParams.SrcDomain,
+			hlParams.SrcContract,
+			hlParams.DstDomain,
+			hlParams.TokenID,
+			tokenParams.Recipient,
+			tokenParams.Amount,
+			hook,
+		)
+		if err != nil {
+			return fmt.Errorf("create hl message: %w", err)
+		}
+
+	case DstHL:
+		// For HL->HL transfers:
+		// - tokenParams.Recipient is the hub address that receives funds
+		// - hlParams.RecipientFunds is the final recipient on the destination Hyperlane chain
+		// Need to get destination amount (what the final recipient will receive)
+		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
+		dstAmount, ok := math.NewIntFromString(dstAmountS)
+		if !ok {
+			return fmt.Errorf("invalid destination amount")
+		}
+
+		hook := types.NewHookForwardToHL(
+			hlParams.TokenID,
+			hlParams.DstDomain,
+			hlParams.RecipientFunds,
+			dstAmount,
+			hlParams.MaxFee,
+			math.ZeroInt(),
+			nil,
+			"",
+		)
+
+		m, err = MakeForwardToHLHyperlaneMessage(
+			hlParams.Nonce,
+			hlParams.SrcDomain,
+			hlParams.SrcContract,
+			hlParams.DstDomain,
+			hlParams.TokenID,
+			tokenParams.Recipient,
+			tokenParams.Amount,
+			hook,
+		)
+		if err != nil {
+			return fmt.Errorf("create hl message: %w", err)
+		}
+
+	default:
+		return fmt.Errorf("unsupported destination for HL src: %s", common.Dst)
+	}
+
+	if common.Readable {
+		fmt.Printf("hyperlane message: %+v\n", m)
+	} else {
+		fmt.Print(m)
+	}
+
+	return nil
+}
+
+func runDecodeHL(cmd *cobra.Command, args []string) error {
+	kind := args[0]
+	if kind != "body" && kind != "message" {
+		return fmt.Errorf("unsupported message type: %s (use 'body' or 'message')", kind)
+	}
+
+	d := args[1]
+	d = strings.TrimSpace(d)
+	d = strings.ReplaceAll(d, `\`, "")
+	d = strings.ReplaceAll(d, " ", "")
+
+	fmt.Printf("input: %s\n", d)
+
+	bz, err := util.DecodeEthHex(d)
+	if err != nil {
+		return fmt.Errorf("decode eth hex: %w", err)
+	}
+
+	body := bz
+	if kind == "message" {
+		m, err := util.ParseHyperlaneMessage(bz)
+		if err != nil {
+			return fmt.Errorf("parse message: %w", err)
+		}
+		body = m.Body
+		PrintHyperlaneMessage(m)
+	}
+
+	decodeMemo, _ := cmd.Flags().GetBool(FlagDecodeMemo)
+
+	warpPL, err := warptypes.ParseWarpPayload(body)
+	if err != nil {
+		return fmt.Errorf("parse warp payload: %w", err)
+	}
+
+	if decodeMemo {
+		hlMetadata, err := types.UnpackHLMetadata(warpPL.Metadata())
+		if err != nil {
+			return fmt.Errorf("unpack hl metadata: %w", err)
+		}
+		fmt.Printf("hl metadata: %+v\n", hlMetadata)
+
+		if len(hlMetadata.HookForwardToIbc) > 0 {
+			m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
+			if err != nil {
+				return fmt.Errorf("unpack ibc forward: %w", err)
+			}
+			fmt.Printf("ibc forward: %+v\n", m)
+		}
+
+		if len(hlMetadata.HookForwardToHl) > 0 {
+			m, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
+			if err != nil {
+				return fmt.Errorf("unpack hl forward: %w", err)
+			}
+			fmt.Printf("hl forward: %+v\n", m)
+		}
+	}
+
+	fmt.Printf("warp payload message: %+v\n", warpPL)
+	fmt.Printf("cosmos account: %s\n", warpPL.GetCosmosAccount().String())
+	fmt.Printf("amount: %s\n", warpPL.Amount().String())
+
+	return nil
+}
+
+func runEstimateFees(cmd *cobra.Command, args []string) error {
+	hlAmountS, _ := cmd.Flags().GetString(FlagHLAmount)
+	hlGasS, _ := cmd.Flags().GetString(FlagHLGas)
+	eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+	bridgeFeeMulS, _ := cmd.Flags().GetString(FlagBridgeFeeMul)
+
+	hlReceiveAmt, ok := math.NewIntFromString(hlAmountS)
+	if !ok {
+		return fmt.Errorf("invalid hl amount")
+	}
+
+	hlMaxGas, ok := math.NewIntFromString(hlGasS)
+	if !ok {
+		return fmt.Errorf("invalid hl gas")
+	}
+
+	eibcFee, ok := math.NewIntFromString(eibcFeeS)
+	if !ok {
+		return fmt.Errorf("invalid eibc fee")
+	}
+
+	bridgeFeeMul, err := math.LegacyNewDecFromStr(bridgeFeeMulS)
+	if err != nil {
+		return fmt.Errorf("invalid bridge fee multiplier: %w", err)
+	}
+
+	needForHl := hlReceiveAmt.Add(hlMaxGas)
+	transferAmt := eibctypes.CalcTargetPriceAmt(needForHl, eibcFee, bridgeFeeMul)
+
+	fmt.Print(transferAmt)
+	return nil
+}
+
 func MakeForwardToIBCHyperlaneMessage(
 	hyperlaneNonce uint32,
-	hyperlaneSrcDomain uint32, // e.g. 1 for Ethereum
-	hyperlaneSrcContract util.HexAddress, // e.g. Ethereum token contract as defined in token remote router
-	hyperlaneDstDomain uint32, // e.g. 0 for Dymension
+	hyperlaneSrcDomain uint32,
+	hyperlaneSrcContract util.HexAddress,
+	hyperlaneDstDomain uint32,
 	hyperlaneTokenID util.HexAddress,
-	hyperlaneRecipient sdk.AccAddress, // hub account to get the tokens
-	hyperlaneTokenAmt math.Int, // must be at least hub token amount
+	fundsRecipient sdk.AccAddress,
+	hyperlaneTokenAmt math.Int,
 	hook *types.HookForwardToIBC,
 ) (util.HyperlaneMessage, error) {
 	if err := hook.ValidateBasic(); err != nil {
@@ -710,13 +984,13 @@ func MakeForwardToIBCHyperlaneMessage(
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal hl metadata")
 	}
 
-	hlM, err := createTestHyperlaneMessage(
+	hlM, err := createHyperlaneMessage(
 		hyperlaneNonce,
 		hyperlaneSrcDomain,
 		hyperlaneSrcContract,
 		hyperlaneDstDomain,
 		hyperlaneTokenID,
-		hyperlaneRecipient,
+		fundsRecipient,
 		hyperlaneTokenAmt,
 		memoBz,
 	)
@@ -724,7 +998,6 @@ func MakeForwardToIBCHyperlaneMessage(
 		return util.HyperlaneMessage{}, err
 	}
 
-	// sanity
 	{
 		s := hlM.String()
 		_, err := decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s)
@@ -736,27 +1009,91 @@ func MakeForwardToIBCHyperlaneMessage(
 	return hlM, nil
 }
 
-// A message which can be sent to the mailbox in TX to trigger a transfer
-func createTestHyperlaneMessage(
-	nonce uint32, // e.g. 1
-	srcDomain uint32, // e.g. 1 (Ethereum)
-	srcContract util.HexAddress, // e.g Ethereum token contract
-	dstDomain uint32, // e.g. 0 (Dymension)
+func MakeForwardToHLHyperlaneMessage(
+	hyperlaneNonce uint32,
+	hyperlaneSrcDomain uint32,
+	hyperlaneSrcContract util.HexAddress,
+	hyperlaneDstDomain uint32,
+	hyperlaneTokenID util.HexAddress,
+	fundsRecipient sdk.AccAddress,
+	hyperlaneTokenAmt math.Int,
+	hook *types.HookForwardToHL,
+) (util.HyperlaneMessage, error) {
+	if err := hook.ValidateBasic(); err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "hook validate basic")
+	}
+
+	memoBz, err := proto.Marshal(hook)
+	if err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal memo")
+	}
+
+	hlMetadata := &types.HLMetadata{
+		HookForwardToHl: memoBz,
+	}
+	memoBz, err = proto.Marshal(hlMetadata)
+	if err != nil {
+		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "marshal hl metadata")
+	}
+
+	hlM, err := createHyperlaneMessage(
+		hyperlaneNonce,
+		hyperlaneSrcDomain,
+		hyperlaneSrcContract,
+		hyperlaneDstDomain,
+		hyperlaneTokenID,
+		fundsRecipient,
+		hyperlaneTokenAmt,
+		memoBz,
+	)
+	if err != nil {
+		return util.HyperlaneMessage{}, err
+	}
+
+	return hlM, nil
+}
+
+func EthRecipient(addr string) (string, error) {
+	bz, err := sdk.GetFromBech32(addr, sdk.GetConfig().GetBech32AccountAddrPrefix())
+	if err != nil {
+		return "", fmt.Errorf("addr address from bech32: %w", err)
+	}
+
+	ret := util.EncodeEthHex(bz)
+	ret = strings.TrimPrefix(ret, "0x")
+
+	// https://github.com/dymensionxyz/hyperlane-cosmos/blob/bed4e0313aeddb8d2c59ab98d5e805955e88b300/util/hex_address.go#L29-L30
+	prefix := "0x000000000000000000000000"
+	ret = prefix + ret
+
+	return ret, nil
+}
+
+func createHyperlaneMessage(
+	nonce uint32,
+	srcDomain uint32,
+	srcContract util.HexAddress,
+	dstDomain uint32,
 	tokenID util.HexAddress,
-	recipient sdk.AccAddress,
+	fundsRecipient sdk.AccAddress,
 	amt math.Int,
 	memo []byte,
 ) (util.HyperlaneMessage, error) {
+	// Important: In Hyperlane's design, there are two different recipient concepts:
+	// 1. HyperlaneMessage.Recipient = the warp router contract address (tokenID parameter)
+	// 2. WarpPayload.recipient = the actual end user who receives funds (fundsRecipient parameter)
+
 	p := sdk.GetConfig().GetBech32AccountAddrPrefix()
-	bech32, err := sdk.Bech32ifyAddressBytes(p, recipient) // TODO: fix
+	bech32, err := sdk.Bech32ifyAddressBytes(p, fundsRecipient)
 	if err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "bech32ify address bytes")
 	}
-	recip, err := sdk.GetFromBech32(bech32, p) // TODO: fix
+	recip, err := sdk.GetFromBech32(bech32, p)
 	if err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "get from bech32")
 	}
 
+	// Create warp payload with the actual funds recipient
 	wmpl, err := warptypes.NewWarpPayload(recip, *big.NewInt(amt.Int64()), memo)
 	if err != nil {
 		return util.HyperlaneMessage{}, errorsmod.Wrap(err, "new warp payload")
@@ -769,12 +1106,11 @@ func createTestHyperlaneMessage(
 		Origin:      srcDomain,
 		Sender:      srcContract,
 		Destination: dstDomain,
-		Recipient:   tokenID,
+		Recipient:   tokenID, // This is the warp router contract address
 		Body:        body,
 	}, nil
 }
 
-// intended for tests/clients, expensive
 func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookForwardToIBC, error) {
 	decoded, err := util.DecodeEthHex(s)
 	if err != nil {
@@ -799,4 +1135,15 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookFor
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
 	return d, nil
+}
+
+func PrintHyperlaneMessage(msg util.HyperlaneMessage) {
+	fmt.Printf("HyperlaneMessage: encoded: %+v\n", msg)
+	fmt.Printf("Version: %d\n", msg.Version)
+	fmt.Printf("Nonce: %d\n", msg.Nonce)
+	fmt.Printf("Origin: %d\n", msg.Origin)
+	fmt.Printf("Sender: %s\n", msg.Sender)
+	fmt.Printf("Destination: %d\n", msg.Destination)
+	fmt.Printf("Recipient: %s\n", msg.Recipient)
+	fmt.Printf("Body: %x\n", msg.Body)
 }

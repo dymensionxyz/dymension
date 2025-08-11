@@ -18,7 +18,7 @@ import (
 func NewHookForwardToHL(
 	tokenId hyperutil.HexAddress,
 	destinationDomain uint32,
-	recipient hyperutil.HexAddress,
+	recipientFunds hyperutil.HexAddress,
 	amount math.Int,
 	maxFee sdk.Coin,
 	gasLimit math.Int, // can be zero
@@ -29,7 +29,7 @@ func NewHookForwardToHL(
 		HyperlaneTransfer: &warptypes.MsgRemoteTransfer{
 			TokenId:            tokenId,
 			DestinationDomain:  destinationDomain,
-			Recipient:          recipient,
+			Recipient:          recipientFunds,
 			Amount:             amount,
 			CustomHookId:       customHookId,
 			GasLimit:           gasLimit,

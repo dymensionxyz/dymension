@@ -25,6 +25,13 @@ func NewQuerier(k Keeper) Querier {
 	return Querier{Keeper: k}
 }
 
+// Params returns the total set of streamer parameters.
+func (q Querier) Params(goCtx context.Context, _ *types.ParamsRequest) (*types.ParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	params := q.GetParams(ctx)
+	return &types.ParamsResponse{Params: params}, nil
+}
+
 // ModuleToDistributeCoins returns coins that are going to be distributed.
 func (q Querier) ModuleToDistributeCoins(goCtx context.Context, _ *types.ModuleToDistributeCoinsRequest) (*types.ModuleToDistributeCoinsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
