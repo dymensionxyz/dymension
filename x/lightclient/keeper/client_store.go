@@ -110,7 +110,7 @@ func deleteIterationKey(clientStore storetypes.KVStore, height exported.Height) 
 }
 
 // GetFirstHeight returns the lowest height available for a client.
-func (k Keeper) GetFirstConsensusStateHeight(ctx sdk.Context, clientID string) uint64 {
+func (k Keeper) GetFirstConsensusStateHeight(ctx sdk.Context, clientID string) (uint64, error) {
 	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
 	var height exported.Height
 
@@ -120,9 +120,9 @@ func (k Keeper) GetFirstConsensusStateHeight(ctx sdk.Context, clientID string) u
 	})
 
 	if height == nil {
-		return 0
+		return 0, clienttypes.ErrConsensusStateNotFound
 	}
-	return height.GetRevisionHeight()
+	return height.GetRevisionHeight(), nil
 }
 
 // copied from ibc-go/modules/light-clients/07-tendermint/update.go

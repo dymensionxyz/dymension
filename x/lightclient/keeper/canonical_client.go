@@ -124,7 +124,10 @@ func (k Keeper) validClient(ctx sdk.Context, clientID string, cs *ibctm.ClientSt
 	if !ok {
 		return gerrc.ErrNotFound.Wrap("latest state info index")
 	}
-	baseHeight := k.GetFirstConsensusStateHeight(ctx, clientID)
+	baseHeight, err := k.GetFirstConsensusStateHeight(ctx, clientID)
+	if err != nil {
+		return errorsmod.Wrap(err, "get first consensus state height")
+	}
 	atLeastOneMatch := false
 	for i := sinfo.Index; i > 0; i-- {
 		sInfo, ok := k.rollappKeeper.GetStateInfo(ctx, rollappId, i)
