@@ -54,7 +54,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			// Set the rpllapp packet
+			// Set the rollapp packet
 			keeper.SetRollappPacket(ctx, tc.rollappPacket)
 			// Check the events
 			suite.AssertEventEmitted(ctx, tc.expectedEventType, tc.expectedEventsCountPreUpdate)
