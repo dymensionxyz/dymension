@@ -111,14 +111,17 @@ func deleteIterationKey(clientStore storetypes.KVStore, height exported.Height) 
 
 // GetFirstHeight returns the lowest height available for a client.
 func (k Keeper) GetFirstConsensusStateHeight(ctx sdk.Context, clientID string) uint64 {
-	height := clienttypes.Height{}
-	k.ibcClientKeeper.IterateConsensusStates(ctx, func(id string, cs clienttypes.ConsensusStateWithHeight) bool {
-		if id != clientID {
-			return false
-		}
-		height = cs.Height
-		return true
+	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
+	var height exported.Height
+
+	ibctm.IterateConsensusStateAscending(clientStore, func(h exported.Height) (stop bool) {
+		height = h
+		return true // stop after first iteration
 	})
+
+	if height == nil {
+		return 0
+	}
 	return height.GetRevisionHeight()
 }
 
