@@ -554,7 +554,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 		hook := types.NewHookForwardToIBC(
 			ibcParams.Channel,
 			ibcParams.Recipient,
-			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive // #nosec G115 - Unix time is always positive
+			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 		)
 
 		if common.Readable {
