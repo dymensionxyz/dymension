@@ -77,6 +77,7 @@
 * **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
 * **lightclient:** update IBC headers from state info ([#1836](https://github.com/dymensionxyz/dymension/issues/1836)) ([90824cb](https://github.com/dymensionxyz/dymension/commit/90824cb9a1b1066f31f10fe389c296ab08f2578b))
 * **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
+* print HL message field by field in utils (CLIENT ONLY) ([#1948](https://github.com/dymensionxyz/dymension/issues/1948)) ([01282e3](https://github.com/dymensionxyz/dymension/commit/01282e3198fb3874fa9660205785f75fc8f64d0c))
 * **sponsorship:** added endorsement yielding ([#1748](https://github.com/dymensionxyz/dymension/issues/1748)) ([2dc6b08](https://github.com/dymensionxyz/dymension/commit/2dc6b08cca590d5978202ac49d16271746b93b90))
 * **sponsorship:** lazy accumulator for endorsement yielding ([#1872](https://github.com/dymensionxyz/dymension/issues/1872)) ([8db3019](https://github.com/dymensionxyz/dymension/commit/8db3019c64ec81e49f363a528d52cf7b0505ce47))
 * **sponsorship:** queries to get endorsement and estimate rewards ([#1932](https://github.com/dymensionxyz/dymension/issues/1932)) ([5da9107](https://github.com/dymensionxyz/dymension/commit/5da9107ccb907e2c44b32ac1991b3ea0fcde219d))
