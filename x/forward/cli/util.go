@@ -883,7 +883,7 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("parse message: %w", err)
 		}
 		body = m.Body
-		fmt.Printf("hyperlane message: %+v\n", m)
+		PrintHyperlaneMessage(m)
 	}
 
 	decodeMemo, _ := cmd.Flags().GetBool(FlagDecodeMemo)
