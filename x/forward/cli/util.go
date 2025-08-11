@@ -587,7 +587,7 @@ func CmdDecodeHyperlaneMessage() *cobra.Command {
 				}
 				body = m.Body
 				message = m
-				fmt.Printf("hyperlane message: %+v\n", message)
+				PrintHyperlaneMessage(message)
 			}
 
 			memo, err := cmd.Flags().GetBool(DecodeMemoFlag)
@@ -799,4 +799,15 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookFor
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
 	return d, nil
+}
+
+func PrintHyperlaneMessage(msg util.HyperlaneMessage) {
+	fmt.Printf("HyperlaneMessage: encoded: %+v\n", msg)
+	fmt.Printf("Version: %d\n", msg.Version)
+	fmt.Printf("Nonce: %d\n", msg.Nonce)
+	fmt.Printf("Origin: %d\n", msg.Origin)
+	fmt.Printf("Sender: %s\n", msg.Sender)
+	fmt.Printf("Destination: %d\n", msg.Destination)
+	fmt.Printf("Recipient: %s\n", msg.Recipient)
+	fmt.Printf("Body: %x\n", msg.Body)
 }
