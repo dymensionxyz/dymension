@@ -12,8 +12,8 @@ func (k Keeper) AddGaugeRefByKey(ctx sdk.Context, key []byte, gaugeID uint64) er
 }
 
 // DeleteGaugeRefByKey removes the provided gauge ID from an array associated with the provided key.
-func (k Keeper) DeleteGaugeRefByKey(ctx sdk.Context, key []byte, guageID uint64) error {
-	return k.deleteGaugeRefByKey(ctx, key, guageID)
+func (k Keeper) DeleteGaugeRefByKey(ctx sdk.Context, key []byte, gaugeID uint64) error {
+	return k.deleteGaugeRefByKey(ctx, key, gaugeID)
 }
 
 // GetGaugeRefs returns the gauge IDs specified by the provided key.
@@ -26,7 +26,7 @@ func (k Keeper) GetAllGaugeIDsByDenom(ctx sdk.Context, denom string) []uint64 {
 	return k.getGaugeRefs(ctx, gaugeDenomStoreKey(denom))
 }
 
-// MoveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.
+// MoveUpcomingGaugeToActiveGauge moves a gauge that has reached its start time from an upcoming to an active status.
 func (k Keeper) MoveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gauge) error {
 	return k.moveUpcomingGaugeToActiveGauge(ctx, gauge)
 }
