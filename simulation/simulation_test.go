@@ -205,7 +205,7 @@ func TestAppStateDeterminism(t *testing.T) {
 			}
 
 			appHash := base64.StdEncoding.EncodeToString(dymdApp.LastCommitID().Hash)
-			fmt.Printf("Seed: %d, appempt: %d/%d, app hash: %s\n", config.Seed, j+1, numTimesToRunPerSeed, appHash)
+			fmt.Printf("Seed: %d, attempt: %d/%d, app hash: %s\n", config.Seed, j+1, numTimesToRunPerSeed, appHash)
 			appHashList[j] = appHash
 
 			if j != 0 {
