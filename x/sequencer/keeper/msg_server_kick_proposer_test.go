@@ -57,37 +57,37 @@ func (s *SequencerTestSuite) TestKickProposerSelfKickPrevented() {
 	ra := s.createRollapp()
 	seqAlice := s.createSequencerWithBond(s.Ctx, ra.RollappId, alice, bond)
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
-	
+
 	// Submit some state updates to avoid hard fork issues
 	s.submitAFewRollappStates(ra.RollappId)
-	
+
 	// Make alice kickable by setting penalty to threshold
 	seqAlice.SetPenalty(types.DefaultDishonorKickThreshold)
 	s.k().SetSequencer(s.Ctx, seqAlice)
-	
+
 	// Alice tries to kick herself (self-kick)
 	m := &types.MsgKickProposer{Creator: pkAddr(alice)}
 	_, err := s.msgServer.KickProposer(s.Ctx, m)
-	
+
 	// Self-kick should be prevented
 	utest.IsErr(s.Require(), err, gerrc.ErrPermissionDenied)
 	s.Require().Contains(err.Error(), "sequencer cannot kick itself")
-	
+
 	// Alice should still be the proposer
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
-	
+
 	// Alice should still be bonded
 	seqAliceAfter := s.k().GetSequencer(s.Ctx, seqAlice.Address)
 	s.Require().Equal(types.Bonded, seqAliceAfter.Status)
-	
+
 	// Create another sequencer (Bob) who can properly kick Alice
 	seqBob := s.createSequencerWithBond(s.Ctx, ra.RollappId, bob, bond)
-	
+
 	// Bob successfully kicks Alice
 	mBob := &types.MsgKickProposer{Creator: pkAddr(bob)}
 	_, err = s.msgServer.KickProposer(s.Ctx, mBob)
 	s.Require().NoError(err)
-	
+
 	// Bob is now proposer
 	s.Require().True(s.k().IsProposer(s.Ctx, seqBob))
 	s.Require().False(s.k().IsProposer(s.Ctx, seqAlice))
