@@ -8,6 +8,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -182,6 +183,11 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
 		if err != nil {
 			return fmt.Errorf("failed to get gauge by id: %d: %w", weight.GaugeId, err)
+		}
+
+		// Voting on endorsement gauges is not supported
+		if _, isEndorsement := gauge.DistributeTo.(*incentivestypes.Gauge_Endorsement); isEndorsement {
+			return fmt.Errorf("voting on endorsement gauges is not supported: %d", weight.GaugeId)
 		}
 
 		// All gauges are perpetual
