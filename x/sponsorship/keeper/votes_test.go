@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -504,10 +505,14 @@ func (s *KeeperTestSuite) TestMsgRevokeVote() {
 
 func (s *KeeperTestSuite) TestClearAllVotes() {
 	// Create test accounts
-	addr := apptesting.CreateRandomAccounts(3)
+	addrs := apptesting.CreateRandomAccounts(3)
 
-	// Setup: Create gauges
-	s.CreateGauges(3)
+	// Setup: Create rollapp and endorsement gauge for claimable rewards testing
+	rollappID := s.CreateDefaultRollapp()
+	const rollappGaugeID = 1 // Rollapp gauge is always created with ID 1
+
+	// Setup: Create additional gauges for non-rollapp votes
+	s.CreateGauges(2) // Creates gauges 2 and 3
 
 	// Setup: Create validator and delegate
 	val := s.CreateValidator()
@@ -516,18 +521,23 @@ func (s *KeeperTestSuite) TestClearAllVotes() {
 
 	// Fund and delegate for multiple voters
 	initialAmount := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
-	for _, delAddr := range addr {
+	for _, delAddr := range addrs {
 		apptesting.FundAccount(s.App, s.Ctx, delAddr, sdk.NewCoins(initialAmount))
 		_ = s.Delegate(delAddr, valAddr, initialAmount)
 	}
 
-	// Set initial distribution
-	err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, types.NewDistribution())
-	s.Require().NoError(err)
+	// assert we start with an empty distribution
+	distr := s.GetDistribution()
+	s.Require().True(distr.Equal(types.NewDistribution()), "Distribution should be empty")
 
-	// Have all voters cast votes
-	for i, delAddr := range addr {
-		gaugeId := uint64(i + 1) // Use different gauges
+	// Have all voters cast votes - mix of rollapp and non-rollapp gauges
+	for i, delAddr := range addrs {
+		var gaugeId uint64
+		if i == 0 {
+			gaugeId = rollappGaugeID // First voter votes on rollapp gauge
+		} else {
+			gaugeId = uint64(i + 1) // Others vote on regular gauges (2, 3)
+		}
 		vote := types.MsgVote{
 			Voter: delAddr.String(),
 			Weights: []types.GaugeWeight{
@@ -542,11 +552,52 @@ func (s *KeeperTestSuite) TestClearAllVotes() {
 	s.Require().False(distrBeforeClear.Equal(types.NewDistribution()), "Distribution should not be empty after voting")
 
 	// Verify voters have votes recorded
-	for _, delAddr := range addr {
+	for _, delAddr := range addrs {
 		voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, delAddr)
 		s.Require().NoError(err)
 		s.Require().True(voted, "Voter should have a vote recorded")
 	}
+
+	// Create endorsement gauge for the rollapp
+	gaugeCreator := apptesting.CreateRandomAccounts(1)[0]
+	dym1000 := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.DYM.MulRaw(1000)))
+	s.FundAcc(gaugeCreator, dym1000)
+
+	_, err = s.App.IncentivesKeeper.CreateEndorsementGauge(
+		s.Ctx,
+		false,
+		gaugeCreator,
+		dym1000,
+		incentivestypes.EndorsementGauge{RollappId: rollappID},
+		s.Ctx.BlockTime(),
+		10,
+	)
+	s.Require().NoError(err)
+
+	// Check claimable rewards before clearing votes
+	// Only the first voter voted on the rollapp gauge, so only they should have an endorser position
+	firstVoterAddr := addrs[0]
+	claimableBeforeClear, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, firstVoterAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().True(claimableBeforeClear.IsZero(), "No rewards should be claimable yet (no endorsement gauge distribution)")
+
+	// Verify that the first voter has an endorser position (they voted on rollapp gauge)
+	_, err = s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, firstVoterAddr, rollappID)
+	s.Require().NoError(err, "First voter should have an endorser position")
+
+	// Other voters voted on non-rollapp gauges, so they should NOT have endorser positions
+	for i := 1; i < len(addrs); i++ {
+		_, err := s.App.SponsorshipKeeper.GetEndorserPosition(s.Ctx, addrs[i], rollappID)
+		s.Require().Error(err, "Non-rollapp voters should not have endorser positions")
+	}
+
+	// +100 DYM unlocked
+	s.BeginEpoch(incentivestypes.DefaultDistrEpochIdentifier)
+
+	// Verify claimable rewards after unlocking
+	claimableBeforeClear, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, firstVoterAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().NotZero(claimableBeforeClear, "Claimable rewards should be non-zero")
 
 	// Call ClearAllVotes
 	err = s.App.SponsorshipKeeper.ClearAllVotes(s.Ctx)
@@ -557,18 +608,25 @@ func (s *KeeperTestSuite) TestClearAllVotes() {
 	s.Require().True(storedDistribution.Equal(types.NewDistribution()), "Stored distribution should be empty")
 
 	// Verify all votes are cleared
-	for _, delAddr := range addr {
+	for _, delAddr := range addrs {
 		voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, delAddr)
 		s.Require().NoError(err)
 		s.Require().False(voted, "Voter should not have a vote recorded after clear")
 	}
 
 	// Verify all delegator power mappings are cleared
-	for _, delAddr := range addr {
+	for _, delAddr := range addrs {
 		err := s.App.SponsorshipKeeper.IterateDelegatorValidatorPower(s.Ctx, delAddr, func(valAddr sdk.ValAddress, power math.Int) (stop bool, err error) {
 			s.Require().Fail("No delegator validator power should remain after clear")
 			return true, nil
 		})
 		s.Require().NoError(err)
 	}
+
+	// Check claimable rewards after clearing votes
+	// The first voter (who voted on rollapp gauge) should still be able to claim any accumulated rewards
+	// Even though their vote was cleared, their endorser position should preserve accumulated rewards
+	claimableAfterClear, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, firstVoterAddr, rollappID)
+	s.Require().NoError(err)
+	s.Require().Equal(claimableBeforeClear, claimableAfterClear, "Claimable rewards should be the same before and after clearing votes")
 }
