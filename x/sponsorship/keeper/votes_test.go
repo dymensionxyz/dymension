@@ -501,3 +501,74 @@ func (s *KeeperTestSuite) TestMsgRevokeVote() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestClearAllVotes() {
+	// Create test accounts
+	addr := apptesting.CreateRandomAccounts(3)
+
+	// Setup: Create gauges
+	s.CreateGauges(3)
+
+	// Setup: Create validator and delegate
+	val := s.CreateValidator()
+	valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+	s.Require().NoError(err)
+
+	// Fund and delegate for multiple voters
+	initialAmount := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000))
+	for _, delAddr := range addr {
+		apptesting.FundAccount(s.App, s.Ctx, delAddr, sdk.NewCoins(initialAmount))
+		_ = s.Delegate(delAddr, valAddr, initialAmount)
+	}
+
+	// Set initial distribution
+	err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, types.NewDistribution())
+	s.Require().NoError(err)
+
+	// Have all voters cast votes
+	for i, delAddr := range addr {
+		gaugeId := uint64(i + 1) // Use different gauges
+		vote := types.MsgVote{
+			Voter: delAddr.String(),
+			Weights: []types.GaugeWeight{
+				{GaugeId: gaugeId, Weight: types.DYM.MulRaw(100)},
+			},
+		}
+		s.Vote(vote)
+	}
+
+	// Verify votes were placed
+	distrBeforeClear := s.GetDistribution()
+	s.Require().False(distrBeforeClear.Equal(types.NewDistribution()), "Distribution should not be empty after voting")
+
+	// Verify voters have votes recorded
+	for _, delAddr := range addr {
+		voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, delAddr)
+		s.Require().NoError(err)
+		s.Require().True(voted, "Voter should have a vote recorded")
+	}
+
+	// Call ClearAllVotes
+	err = s.App.SponsorshipKeeper.ClearAllVotes(s.Ctx)
+	s.Require().NoError(err)
+
+	// Verify stored distribution is empty
+	storedDistribution := s.GetDistribution()
+	s.Require().True(storedDistribution.Equal(types.NewDistribution()), "Stored distribution should be empty")
+
+	// Verify all votes are cleared
+	for _, delAddr := range addr {
+		voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, delAddr)
+		s.Require().NoError(err)
+		s.Require().False(voted, "Voter should not have a vote recorded after clear")
+	}
+
+	// Verify all delegator power mappings are cleared
+	for _, delAddr := range addr {
+		err := s.App.SponsorshipKeeper.IterateDelegatorValidatorPower(s.Ctx, delAddr, func(valAddr sdk.ValAddress, power math.Int) (stop bool, err error) {
+			s.Require().Fail("No delegator validator power should remain after clear")
+			return true, nil
+		})
+		s.Require().NoError(err)
+	}
+}
