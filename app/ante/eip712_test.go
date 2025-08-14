@@ -239,6 +239,7 @@ func (s *AnteTestSuite) TestEIP712() {
 				str, err := json.MarshalIndent(data, "", "  ") // Indent with 2 spaces
 				s.Assert().NoError(err)
 				s.T().Log(string(str))
+				fmt.Println(string(str))
 			}
 		})
 	}
