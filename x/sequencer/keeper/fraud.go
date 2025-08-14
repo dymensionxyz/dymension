@@ -23,7 +23,7 @@ func (k Keeper) TryKickProposer(ctx sdk.Context, kicker types.Sequencer) error {
 
 	// Prevent self-kick: kicker cannot be the current proposer
 	if kicker.Address == proposer.Address {
-		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "sequencer cannot kick itself")
+		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "sequencer cannot kick itself")
 	}
 
 	if !k.Kickable(ctx, proposer) {
