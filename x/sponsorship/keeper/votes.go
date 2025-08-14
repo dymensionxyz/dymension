@@ -287,7 +287,10 @@ func (k Keeper) ClearAllVotes(ctx sdk.Context) error {
 		return fmt.Errorf("failed to save empty distribution: %w", err)
 	}
 
-	// FIXME: emit event
+	err = uevent.EmitTypedEvent(ctx, &types.EventClearAllVotes{})
+	if err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
 
 	return nil
 }
