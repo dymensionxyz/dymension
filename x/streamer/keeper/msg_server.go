@@ -43,6 +43,13 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 		return nil, err
 	}
 
+	if msg.Sponsored && msg.ClearAllVotes {
+		err = s.Keeper.sk.ClearAllVotes(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &types.MsgCreateStreamResponse{
 		StreamId: streamID,
 	}, nil

@@ -77,6 +77,9 @@ message MsgCreateStream {
 
   // Sponsored indicates if the stream is based on the sponsorship distribution
   bool sponsored = 7;
+
+  // ClearAllVotes indicates if the stream should clear all votes (only for sponsored streams)
+  bool clear_all_votes = 8;
 }
 
 message MsgCreateStreamResponse { uint64 stream_id = 1; }
