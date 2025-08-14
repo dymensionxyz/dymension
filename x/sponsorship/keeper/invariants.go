@@ -3,6 +3,7 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
@@ -17,6 +18,7 @@ var invs = uinv.NamedFuncsList[Keeper]{
 	{Name: "distribution", Func: InvariantDistribution},
 	{Name: "votes", Func: InvariantVotes},
 	{Name: "general", Func: InvariantGeneral},
+	{Name: "staking-sync", Func: InvariantStakingSync},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
@@ -105,5 +107,57 @@ func InvariantGeneral(k Keeper) uinv.Func {
 		}
 
 		return nil
+	})
+}
+
+// InvariantStakingSync validates that delegatorValidatorPower matches actual staking delegations
+func InvariantStakingSync(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
+
+		// Check every delegatorValidatorPower entry against actual staking
+		err := k.delegatorValidatorPower.Walk(ctx, nil,
+			func(key collections.Pair[sdk.AccAddress, sdk.ValAddress], sponsorshipVP math.Int) (stop bool, err error) {
+				delAddr := key.K1()
+				valAddr := key.K2()
+
+				// Get actual delegation from staking module
+				delegation, err := k.stakingKeeper.GetDelegation(ctx, delAddr, valAddr)
+				if err != nil {
+					// Check for delegation not found error (the error message pattern)
+					if strings.Contains(err.Error(), "no delegation for") {
+						// Delegation doesn't exist in staking but exists in sponsorship
+						errs = append(errs, fmt.Errorf("delegation not found in staking for delegator %s validator %s, but sponsorship has power %s",
+							delAddr, valAddr, sponsorshipVP))
+						return false, nil
+					}
+					return false, fmt.Errorf("get delegation %s -> %s: %w", delAddr, valAddr, err)
+				}
+
+				// Get validator to calculate voting power
+				validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+				if err != nil {
+					return false, fmt.Errorf("get validator %s: %w", valAddr, err)
+				}
+
+				// Calculate expected voting power from staking
+				expectedVP := validator.TokensFromShares(delegation.GetShares()).TruncateInt()
+
+				// Allow small rounding differences (due to truncation)
+				diff := expectedVP.Sub(sponsorshipVP).Abs()
+				tolerance := math.NewInt(1) // 1 unit tolerance for rounding
+
+				if diff.GT(tolerance) {
+					errs = append(errs, fmt.Errorf("voting power mismatch for delegator %s validator %s: staking=%s sponsorship=%s diff=%s",
+						delAddr, valAddr, expectedVP, sponsorshipVP, diff))
+				}
+
+				return false, nil
+			})
+		if err != nil {
+			return fmt.Errorf("walk delegator validator power: %w", err)
+		}
+
+		return errors.Join(errs...)
 	})
 }
