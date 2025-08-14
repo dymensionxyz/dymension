@@ -12,6 +12,9 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	ethcryptocodec "github.com/evmos/ethermint/crypto/codec"
 
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
 	eip712 "github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -65,6 +68,8 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 	legacytx.RegressionTestingAminoCodec = cdc
 	eip712.SetEncodingConfig(cdc, interfaceRegistry)
 
+	RegisterMissingIBCAminoTypes(cdc)
+
 	return sdktestutil.TestEncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
 		Codec:             codec,
@@ -78,6 +83,12 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	sdk.RegisterLegacyAminoCodec(cdc)
 	codec.RegisterEvidences(cdc)
 	ethcryptocodec.RegisterCrypto(cdc)
+}
+
+// Workaround: add manually amino register of ibc msgs
+func RegisterMissingIBCAminoTypes(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&ibcclienttypes.MsgUpdateClient{}, "ibc/MsgUpdateClient", nil)
+	cdc.RegisterConcrete(&ibcchanneltypes.MsgRecvPacket{}, "ibc/MsgRecvPacket", nil)
 }
 
 // RegisterInterfaces registers Interfaces from types, crypto, and SDK std.
