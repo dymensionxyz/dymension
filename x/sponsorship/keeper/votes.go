@@ -8,6 +8,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -184,6 +185,11 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 			return fmt.Errorf("failed to get gauge by id: %d: %w", weight.GaugeId, err)
 		}
 
+		// Voting on endorsement gauges is not supported
+		if _, isEndorsement := gauge.DistributeTo.(*incentivestypes.Gauge_Endorsement); isEndorsement {
+			return fmt.Errorf("voting on endorsement gauges is not supported: %d", weight.GaugeId)
+		}
+
 		// All gauges are perpetual
 		if !gauge.IsPerpetual {
 			return fmt.Errorf("gauge is not perpetual: %d", weight.GaugeId)
@@ -247,4 +253,108 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 		TotalPower: totalPower,
 		Breakdown:  breakdown,
 	}, nil
+}
+
+// ClearAllVotes efficiently clears all votes and resets the distribution while preserving accumulated rewards.
+// This method is equivalent to running RevokeVote on all existing votes but optimized for bulk operations.
+// Accumulated rewards in endorsements are preserved by updating endorser positions before clearing their shares.
+func (k Keeper) ClearAllVotes(ctx sdk.Context) error {
+	// Accumulate rewards for all endorser positions before clearing their voting shares
+	err := k.accumulateAllEndorserRewards(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to accumulate endorser rewards: %w", err)
+	}
+
+	// Reset endorsement total shares to zero while preserving accumulated rewards
+	err = k.resetEndorsementShares(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to reset endorsement shares: %w", err)
+	}
+
+	err = k.votes.Clear(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to clear votes: %w", err)
+	}
+
+	err = k.delegatorValidatorPower.Clear(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to clear delegator validator power: %w", err)
+	}
+
+	// Reset distribution to empty state
+	err = k.SaveDistribution(ctx, types.NewDistribution())
+	if err != nil {
+		return fmt.Errorf("failed to save empty distribution: %w", err)
+	}
+
+	err = uevent.EmitTypedEvent(ctx, &types.EventClearAllVotes{})
+	if err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
+
+	return nil
+}
+
+func (k Keeper) accumulateAllEndorserRewards(ctx sdk.Context) error {
+	iterator, err := k.endorserPositions.Iterate(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to iterate endorser positions: %w", err)
+	}
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		kv, err := iterator.KeyValue()
+		if err != nil {
+			return fmt.Errorf("failed to get key-value: %w", err)
+		}
+
+		voterAddr := kv.Key.K1()
+		rollappID := kv.Key.K2()
+		endorserPosition := kv.Value
+
+		endorsement, err := k.GetEndorsement(ctx, rollappID)
+		if err != nil {
+			return fmt.Errorf("failed to get endorsement for rollapp %s: %w", rollappID, err)
+		}
+
+		// Update endorser position
+		newlyAccruedRewards := endorserPosition.RewardsToBank(endorsement.Accumulator)
+		endorserPosition.LastSeenAccumulator = endorsement.Accumulator
+		endorserPosition.AccumulatedRewards = endorserPosition.AccumulatedRewards.Add(newlyAccruedRewards...)
+
+		// Reset shares to zero since we're clearing all votes
+		endorserPosition.Shares = math.LegacyZeroDec()
+
+		err = k.SaveEndorserPosition(ctx, voterAddr, rollappID, endorserPosition)
+		if err != nil {
+			return fmt.Errorf("failed to save endorser position for voter %s, rollapp %s: %w", voterAddr, rollappID, err)
+		}
+	}
+
+	return nil
+}
+
+func (k Keeper) resetEndorsementShares(ctx sdk.Context) error {
+	iterator, err := k.raEndorsements.Iterate(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to iterate endorsements: %w", err)
+	}
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		kv, err := iterator.KeyValue()
+		if err != nil {
+			return fmt.Errorf("failed to get key-value: %w", err)
+		}
+
+		endorsement := kv.Value
+
+		endorsement.TotalShares = math.LegacyZeroDec()
+		err = k.SaveEndorsement(ctx, endorsement)
+		if err != nil {
+			return fmt.Errorf("failed to save endorsement for rollapp %s: %w", endorsement.RollappId, err)
+		}
+	}
+
+	return nil
 }
