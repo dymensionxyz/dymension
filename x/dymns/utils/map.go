@@ -1,6 +1,6 @@
 package utils
 
-import "sort"
+import "slices"
 
 // GetSortedStringKeys returns the sorted keys of a map[string]V.
 func GetSortedStringKeys[V any](m map[string]V) []string {
@@ -8,8 +8,6 @@ func GetSortedStringKeys[V any](m map[string]V) []string {
 	for k := range m {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
+	slices.Sort(keys)
 	return keys
 }
