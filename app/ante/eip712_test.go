@@ -2,12 +2,14 @@ package ante_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
 	"cosmossdk.io/math"
 	feegrant "cosmossdk.io/x/feegrant"
 	"github.com/cometbft/cometbft/libs/rand"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -15,9 +17,14 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	hyperutil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -29,6 +36,27 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 )
+
+func (s *AnteTestSuite) getMsgRecvPacket(from sdk.AccAddress) sdk.Msg {
+	packet := ibcchanneltypes.NewPacket(
+		[]byte("data"),
+		1,
+		"source_port",
+		"source_channel",
+		"destination_port",
+		"destination_channel",
+		ibcclienttypes.NewHeight(0, 1),
+		1,
+	)
+
+	msgRecvPacket := ibcchanneltypes.NewMsgRecvPacket(
+		packet,
+		[]byte("data"),
+		ibcclienttypes.NewHeight(0, 1),
+		from.String(),
+	)
+	return msgRecvPacket
+}
 
 func (s *AnteTestSuite) getMsgSend(from sdk.AccAddress) sdk.Msg {
 	privkey2, _ := ethsecp256k1.GenerateKey()
@@ -47,6 +75,24 @@ func (s *AnteTestSuite) getMsgCreateValidator(from sdk.AccAddress) sdk.Msg {
 	)
 	s.Assert().NoError(err)
 	return msgCreate
+}
+
+func (s *AnteTestSuite) getMsgRemoteTransfer(from sdk.AccAddress) sdk.Msg {
+	tokenId, err := hyperutil.DecodeHexAddress("0xd7194459d45619d04a5a0f9e78dc9594a0f37fd6da8382fe12ddda6f2f46d647")
+	s.Require().NoError(err)
+	recipient, err := hyperutil.DecodeHexAddress("0x68797065726c616e650000000000000000000000000000010000000000000001")
+	s.Require().NoError(err)
+
+	msgRemoteTransfer := &warptypes.MsgRemoteTransfer{
+		Sender:            from.String(),
+		TokenId:           tokenId,
+		DestinationDomain: 1000,
+		Recipient:         recipient,
+		Amount:            math.NewInt(1000000),
+		GasLimit:          math.NewInt(100000),
+		MaxFee:            sdk.NewCoin(params.DisplayDenom, math.NewInt(1000)),
+	}
+	return msgRemoteTransfer
 }
 
 func (s *AnteTestSuite) getMsgGrantEIBC(from sdk.AccAddress) *authz.MsgGrant {
@@ -101,6 +147,31 @@ func (s *AnteTestSuite) getMsgSubmitProposal(from sdk.AccAddress) sdk.Msg {
 	msgSubmit, err := govtypes.NewMsgSubmitProposal(proposal, deposit, from)
 	s.Require().NoError(err)
 	return msgSubmit
+}
+
+func (s *AnteTestSuite) getMsgGovProposal(from sdk.AccAddress) sdk.Msg {
+	// Create a simple text proposal message as the content of the gov v1 proposal
+	textMsg := &banktypes.MsgSend{
+		FromAddress: from.String(),
+		ToAddress:   from.String(), // Send to self for simplicity
+		Amount:      sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, math.NewInt(1))),
+	}
+
+	// Pack the message into Any
+	msgAny, err := codectypes.NewAnyWithValue(textMsg)
+	s.Require().NoError(err)
+
+	deposit := sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, math.NewInt(10)))
+	govMsg := &govtypesv1.MsgSubmitProposal{
+		Messages:       []*codectypes.Any{msgAny},
+		InitialDeposit: deposit,
+		Proposer:       from.String(),
+		Metadata:       "Test metadata",
+		Title:          "Test Gov V1 Proposal",
+		Summary:        "This is a test governance v1 proposal for EIP712 testing",
+	}
+
+	return govMsg
 }
 
 func (s *AnteTestSuite) getMsgGrantAllowance(from sdk.AccAddress) sdk.Msg {
@@ -213,10 +284,14 @@ func (s *AnteTestSuite) TestEIP712() {
 		{"MsgGrant", s.getMsgGrant(from), false},
 		{"MsgGrantAllowance", s.getMsgGrantAllowance(from), false},
 		{"MsgSubmitProposal", s.getMsgSubmitProposal(from), false},
+		{"MsgGovProposal", s.getMsgGovProposal(from), false},
 		{"MsgGrantEIBC", s.getMsgGrantEIBC(from), false},
 		{"MsgCreateValidator", s.getMsgCreateValidator(from), false},
-		{"MsgCreateAssetGauge", s.getMsgCreateAssetGauge(from), true},
-		{"MsgCreateEndorsementGauge", s.getMsgCreateEndorsementGauge(from), true},
+		{"MsgCreateAssetGauge", s.getMsgCreateAssetGauge(from), false},
+		{"MsgCreateEndorsementGauge", s.getMsgCreateEndorsementGauge(from), false},
+		{"MsgGovProposal", s.getMsgGovProposal(from), false},
+		{"MsgRemoteTransfer", s.getMsgRemoteTransfer(from), false},
+		{"MsgRecvPacket", s.getMsgRecvPacket(from), false},
 	}
 
 	// can toggle here between legacy and non-legacy EIP712 typed data struct
