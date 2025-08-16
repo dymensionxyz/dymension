@@ -61,7 +61,7 @@ func (a *AppKeepers) GenerateKeys() {
 	a.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 
-// GetSubspace gets existing substore from keeper.
+// GetSubspace gets the existing substore from keeper.
 func (a *AppKeepers) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := a.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
