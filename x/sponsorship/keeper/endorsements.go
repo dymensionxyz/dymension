@@ -45,12 +45,11 @@ func (k Keeper) UpdateEndorsementsAndPositions(
 		endorsement.TotalShares = endorsement.TotalShares.Add(shares)
 
 		endorserPosition, err := k.GetEndorserPosition(ctx, voter, raID)
-		if err != nil && !errors.Is(err, collections.ErrNotFound) {
-			return fmt.Errorf("has endorser position: %w", err)
-		}
 		if errors.Is(err, collections.ErrNotFound) {
 			// Must initialize endorser shares with zero to avoid panic
 			endorserPosition = types.NewDefaultEndorserPosition()
+		} else if err != nil {
+			return fmt.Errorf("get endorser position: %w", err)
 		}
 
 		// RewardsToBank truncates the decimal part of the rewards. They will accumulate as dust in x/incentives.

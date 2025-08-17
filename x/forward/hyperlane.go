@@ -91,7 +91,7 @@ func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, bu
 		CustomHookId:       d.HyperlaneTransfer.CustomHookId,
 	}
 
-	_, err = k.warpS.RemoteTransfer(ctx, m) // TODO: responsse?
+	_, err = k.warpS.RemoteTransfer(ctx, m) // TODO: response?
 	return errorsmod.Wrap(err, "dym remote transfer")
 }
 
