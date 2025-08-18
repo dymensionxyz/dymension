@@ -304,7 +304,7 @@ func (s *RollappTestSuite) TestUpdateStateDowngradeTimestamp() {
 }
 
 // ---------------------------------------
-// verifyAll receives a list of expected results and a map of rollapId->rollapp
+// verifyAll receives a list of expected results and a map of rollappId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
 func verifyAll(suite *RollappTestSuite, rollappsExpect []*types.RollappSummary, rollappsRes map[string]*types.RollappSummary) {
 	// check number of items are equal
