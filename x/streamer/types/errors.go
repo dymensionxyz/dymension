@@ -4,7 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-// The following regiisters various lockdrop errors.
+// The following registers various lockdrop errors.
 var (
 	ErrNoGaugeIdExist                = errorsmod.Register(ModuleName, 1, "no gauge id exist")
 	ErrDistrRecordNotPositiveWeight  = errorsmod.Register(ModuleName, 2, "weight in record should be non negative")
