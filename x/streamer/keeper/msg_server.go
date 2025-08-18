@@ -44,7 +44,7 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 	}
 
 	if msg.Sponsored && msg.ClearAllVotes {
-		err = s.Keeper.sk.ClearAllVotes(ctx)
+		err = s.sk.ClearAllVotes(ctx)
 		if err != nil {
 			return nil, err
 		}
