@@ -26,7 +26,8 @@ message OnDemandLP {
   // [0,1])
   string minFee = 5 [
     (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.LegacyDec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.moretags) = "yaml:\"min_fee\"",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
   ];
 
