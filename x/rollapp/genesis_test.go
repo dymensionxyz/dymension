@@ -15,7 +15,7 @@ import (
 func TestInitExportGenesis(t *testing.T) {
 	const (
 		rollappID1 = "rollapp_1234-1"
-		rollappID2 = "rollupp_1235-1"
+		rollappID2 = "rollapp_1235-1"
 		appID1     = "app1"
 		appID2     = "app2"
 	)

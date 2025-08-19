@@ -103,7 +103,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 			latestFinalizedStateIdx, okLatestFinalized := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 
 			if !okLatest && okLatestFinalized {
-				msg += fmt.Sprintf("rollapp (%s) has latest finalized ix but not lastest ix\n", rollapp.RollappId)
+				msg += fmt.Sprintf("rollapp (%s) has latest finalized ix but not latest ix\n", rollapp.RollappId)
 				broken = true
 				continue
 			}
