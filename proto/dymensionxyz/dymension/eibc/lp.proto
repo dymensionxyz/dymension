@@ -11,15 +11,16 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 message OnDemandLP {
   // where funds come from, bech32-encoded
-  string funds_addr = 1;
-  string rollapp = 2;
-  string denom = 3;
+  string funds_addr = 1 [ (gogoproto.moretags) = "yaml:\"funds_addr\"" ];
+  string rollapp = 2 [ (gogoproto.moretags) = "yaml:\"rollapp\"" ];
+  string denom = 3 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
 
   // will not fulfill if price is above this
   string maxPrice = 4 [
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.moretags) = "yaml:\"max_price\""
   ];
 
   // will not fulfill if fee is below this (percentage of price expressed in
@@ -27,22 +28,24 @@ message OnDemandLP {
   string minFee = 5 [
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.moretags) = "yaml:\"min_fee\"",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.moretags) = "yaml:\"min_fee\""
   ];
 
   // will not fulfill if brings amt spent above limit
   string spendLimit = 6 [
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.moretags) = "yaml:\"spend_limit\""
   ];
 
   // will not fulfill orders which were created fewer than this blocks in the
   // past e.g. compatibility check occurs at height 7, order existed since block
   // 4,
   //      then fulfill if this field is 3 or less
-  uint64 orderMinAgeBlocks = 7;
+  uint64 orderMinAgeBlocks = 7
+      [ (gogoproto.moretags) = "yaml:\"order_min_age_blocks\"" ];
 }
 
 message OnDemandLPRecord {

@@ -132,9 +132,9 @@ message MsgTryFulfillOnDemandResponse {}
 
 message MsgCreateOnDemandLP {
   option (cosmos.msg.v1.signer) = "signer";
-  string signer = 3;
+  string signer = 1 [ (gogoproto.moretags) = "yaml:\"signer\"" ];
 
-  OnDemandLP lp = 2;
+  OnDemandLP lp = 2 [ (gogoproto.moretags) = "yaml:\"lp\"" ];
 }
 message MsgCreateOnDemandLPResponse { uint64 id = 1; }
 
