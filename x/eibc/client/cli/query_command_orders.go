@@ -22,9 +22,6 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 		Short: "Query eIBC demand orders by status with optional filters",
 		Long: `Query eIBC demand orders filtered by status and various optional criteria.
 
-The eIBC (enhanced IBC) system enables fast finality for IBC packets through a marketplace
-where fulfillers can provide immediate liquidity in exchange for fees.
-
 Required argument:
   status - Order status: "pending" (awaiting fulfillment), "finalized" (completed), or "reverted" (rolled back)
 
