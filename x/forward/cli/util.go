@@ -331,6 +331,10 @@ func parseCommonFlags(cmd *cobra.Command) (*CommonParams, error) {
 }
 
 func parseTokenFlags(cmd *cobra.Command) (*TokenParams, error) {
+	return parseTokenFlagsWithContext(cmd, false)
+}
+
+func parseTokenFlagsWithContext(cmd *cobra.Command, skipRecipient bool) (*TokenParams, error) {
 	tokenIDS, _ := cmd.Flags().GetString(FlagTokenID)
 	amountS, _ := cmd.Flags().GetString(FlagAmount)
 	recipientS, _ := cmd.Flags().GetString(FlagRecipientDst)
@@ -353,7 +357,9 @@ func parseTokenFlags(cmd *cobra.Command) (*TokenParams, error) {
 		}
 	}
 
-	if recipientS != "" {
+	// Skip recipient parsing when it will be handled by parseHyperlaneFlags
+	// This occurs when forwarding from IBC/EIBC to Hyperlane destinations
+	if recipientS != "" && !skipRecipient {
 		params.Recipient, err = sdk.AccAddressFromBech32(recipientS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient: %w", err)
@@ -485,7 +491,8 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			return err
 		}
 
-		tokenParams, err := parseTokenFlags(cmd)
+		// Skip recipient parsing since it's handled by parseHyperlaneFlags
+		tokenParams, err := parseTokenFlagsWithContext(cmd, true)
 		if err != nil {
 			return err
 		}
@@ -580,7 +587,8 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			return err
 		}
 
-		tokenParams, err := parseTokenFlags(cmd)
+		// Skip recipient parsing since it's handled by parseHyperlaneFlags
+		tokenParams, err := parseTokenFlagsWithContext(cmd, true)
 		if err != nil {
 			return err
 		}
