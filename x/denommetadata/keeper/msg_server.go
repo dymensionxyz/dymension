@@ -13,7 +13,7 @@ type msgServer struct {
 	*Keeper
 }
 
-// RegisterDenomMetadata implements types.MsgServer.
+// RegisterHLTokenDenomMetadata implements types.MsgServer.
 func (m msgServer) RegisterHLTokenDenomMetadata(goCtx context.Context, msg *types.MsgRegisterHLTokenDenomMetadata) (*types.MsgRegisterHLTokenDenomMetadataResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	t, err := m.warpK.HypTokens.Get(ctx, msg.HlTokenId.GetInternalId())
