@@ -262,8 +262,8 @@ func CmdCosmosAddrToHLAddr() *cobra.Command {
 
 func CmdEstimateFees() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "estimate-fees",
-		Short:   "Estimate fees for EIBC to HL transfers",
+		Use:   "estimate-fees",
+		Short: "Estimate fees for EIBC to HL transfers",
 		Long: `Calculate the total IBC transfer amount needed when sending tokens from RollApp through EIBC to Hyperlane.
 		
 The bridge fee multiplier is a percentage fee taken by the bridge operator (e.g., 0.01 = 1% fee).
