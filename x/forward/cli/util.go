@@ -518,8 +518,16 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			"",
 		)
 
+		// Validate the created hook to ensure all required fields are populated
+		if err := validateHookForwardToHL(hook); err != nil {
+			return fmt.Errorf("invalid Hyperlane forward hook: %w", err)
+		}
+
 		if common.Src == SrcEIBC {
 			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			if eibcFeeS == "" {
+				return fmt.Errorf("EIBC fee is required when forwarding from EIBC to Hyperlane")
+			}
 			memo, err = types.MakeRolForwardToHLMemoString(eibcFeeS, hook)
 		} else {
 			memo, err = types.MakeIBCForwardToHLMemoString(hook)
@@ -541,8 +549,16 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 		)
 
+		// Validate the created hook to ensure all required fields are populated
+		if err := validateHookForwardToIBC(hook); err != nil {
+			return fmt.Errorf("invalid IBC forward hook: %w", err)
+		}
+
 		if common.Src == SrcEIBC {
 			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			if eibcFeeS == "" {
+				return fmt.Errorf("EIBC fee is required when forwarding from EIBC to IBC")
+			}
 			memo, err = types.MakeRolForwardToIBCMemoString(eibcFeeS, hook)
 		} else {
 			memo, err = types.MakeIBCForwardToIBCMemoString(hook)
@@ -573,6 +589,11 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			ibcParams.Recipient,
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 		)
+
+		// Validate the created hook to ensure all required fields are populated
+		if err := validateHookForwardToIBC(hook); err != nil {
+			return fmt.Errorf("invalid IBC forward hook: %w", err)
+		}
 
 		if common.Readable {
 			fmt.Printf("hyperlane message: %+v\n", hook)
@@ -950,22 +971,37 @@ func runEstimateFees(cmd *cobra.Command, args []string) error {
 
 	hlReceiveAmt, ok := math.NewIntFromString(hlAmountS)
 	if !ok {
-		return fmt.Errorf("invalid hl amount")
+		return fmt.Errorf("invalid hl amount: %s", hlAmountS)
+	}
+	if hlReceiveAmt.IsNegative() {
+		return fmt.Errorf("hl amount cannot be negative")
 	}
 
 	hlMaxGas, ok := math.NewIntFromString(hlGasS)
 	if !ok {
-		return fmt.Errorf("invalid hl gas")
+		return fmt.Errorf("invalid hl gas: %s", hlGasS)
+	}
+	if hlMaxGas.IsNegative() {
+		return fmt.Errorf("hl gas cannot be negative")
 	}
 
 	eibcFee, ok := math.NewIntFromString(eibcFeeS)
 	if !ok {
-		return fmt.Errorf("invalid eibc fee")
+		return fmt.Errorf("invalid eibc fee: %s", eibcFeeS)
+	}
+	if eibcFee.IsNegative() {
+		return fmt.Errorf("eibc fee cannot be negative")
 	}
 
 	bridgeFeeMul, err := math.LegacyNewDecFromStr(bridgeFeeMulS)
 	if err != nil {
 		return fmt.Errorf("invalid bridge fee multiplier: %w", err)
+	}
+	if bridgeFeeMul.IsNegative() {
+		return fmt.Errorf("bridge fee multiplier cannot be negative")
+	}
+	if bridgeFeeMul.GTE(math.LegacyNewDec(1)) {
+		return fmt.Errorf("bridge fee multiplier must be less than 1 (100%%), got %s", bridgeFeeMulS)
 	}
 
 	needForHl := hlReceiveAmt.Add(hlMaxGas)
@@ -1164,4 +1200,87 @@ func PrintHyperlaneMessage(msg util.HyperlaneMessage) {
 	fmt.Printf("Destination: %d\n", msg.Destination)
 	fmt.Printf("Recipient: %s\n", msg.Recipient)
 	fmt.Printf("Body: %x\n", msg.Body)
+}
+
+// validateHookForwardToIBC validates that all required fields for IBC forwarding are populated
+func validateHookForwardToIBC(hook *types.HookForwardToIBC) error {
+	if hook == nil {
+		return fmt.Errorf("hook is nil")
+	}
+
+	// The hook's ValidateBasic will check if Transfer is nil and call Transfer.ValidateBasic()
+	// which validates channel format, receiver format, etc.
+	// We only need to check for empty values that ValidateBasic doesn't catch
+
+	if hook.Transfer != nil {
+		// MsgTransfer.ValidateBasic checks channel format but allows empty strings
+		if hook.Transfer.SourceChannel == "" {
+			return fmt.Errorf("channel is required for IBC forwarding")
+		}
+
+		// MsgTransfer.ValidateBasic checks receiver is not empty (strings.TrimSpace(msg.Receiver) == "")
+		// so we don't need to duplicate that check
+
+		if hook.Transfer.TimeoutTimestamp == 0 {
+			return fmt.Errorf("timeout is required for IBC forwarding")
+		}
+	}
+
+	// Run the built-in validation which handles most checks
+	if err := hook.ValidateBasic(); err != nil {
+		return fmt.Errorf("hook validation failed: %w", err)
+	}
+
+	return nil
+}
+
+// validateHookForwardToHL validates that all required fields for Hyperlane forwarding are populated
+func validateHookForwardToHL(hook *types.HookForwardToHL) error {
+	if hook == nil {
+		return fmt.Errorf("hook is nil")
+	}
+
+	// The hook's ValidateBasic only checks if HyperlaneTransfer is nil
+	// MsgRemoteTransfer doesn't have a ValidateBasic, so we need to check all fields ourselves
+
+	if hook.HyperlaneTransfer != nil {
+		// TokenId is a fixed-size array, so check if all bytes are zero
+		if isZeroHexAddress(hook.HyperlaneTransfer.TokenId) {
+			return fmt.Errorf("token ID is required for Hyperlane forwarding")
+		}
+
+		if hook.HyperlaneTransfer.DestinationDomain == 0 {
+			return fmt.Errorf("destination domain is required for Hyperlane forwarding")
+		}
+
+		// Recipient is also a fixed-size array, check if all bytes are zero
+		if isZeroHexAddress(hook.HyperlaneTransfer.Recipient) {
+			return fmt.Errorf("recipient address is required for Hyperlane forwarding")
+		}
+
+		if hook.HyperlaneTransfer.Amount.IsNil() || hook.HyperlaneTransfer.Amount.IsZero() {
+			return fmt.Errorf("amount must be greater than zero for Hyperlane forwarding")
+		}
+
+		if hook.HyperlaneTransfer.MaxFee.IsNil() || hook.HyperlaneTransfer.MaxFee.IsZero() {
+			return fmt.Errorf("max fee must be greater than zero for Hyperlane forwarding")
+		}
+	}
+
+	// Run the built-in validation (only checks HyperlaneTransfer != nil)
+	if err := hook.ValidateBasic(); err != nil {
+		return fmt.Errorf("hook validation failed: %w", err)
+	}
+
+	return nil
+}
+
+// isZeroHexAddress checks if a HexAddress (32-byte array) is all zeros
+func isZeroHexAddress(addr util.HexAddress) bool {
+	for _, b := range addr {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
 }
