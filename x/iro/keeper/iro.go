@@ -19,7 +19,7 @@ func (k Keeper) SetPlan(ctx sdk.Context, plan types.Plan) {
 
 	planByRollappKey := types.PlansByRollappKey(plan.RollappId)
 	// Store the plan ID instead of the plan itself
-	store.Set(planByRollappKey, []byte(fmt.Sprintf("%d", plan.Id)))
+	store.Set(planByRollappKey, fmt.Appendf(nil, "%d", plan.Id))
 }
 
 // GetPlan returns a plan from its index

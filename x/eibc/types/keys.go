@@ -53,5 +53,5 @@ func GetDemandOrderKey(packetStatus commontypes.Status, orderId string) ([]byte,
 	default:
 		return nil, fmt.Errorf("invalid packet status: %s", packetStatus)
 	}
-	return []byte(fmt.Sprintf("%s%s%s%s%s", prefix, KeySeparator, packetStatus, KeySeparator, orderId)), nil
+	return fmt.Appendf(nil, "%s%s%s%s%s", prefix, KeySeparator, packetStatus, KeySeparator, orderId), nil
 }
