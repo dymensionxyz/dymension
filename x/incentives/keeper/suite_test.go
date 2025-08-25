@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) setupAddr(addrNum int, prefix string, balance sdk.
 		prefix = string(prefixBz)
 	}
 
-	addr := sdk.AccAddress([]byte(fmt.Sprintf("addr%s%8d", prefix, addrNum)))
+	addr := sdk.AccAddress(fmt.Appendf(nil, "addr%s%8d", prefix, addrNum))
 	suite.FundAcc(addr, balance)
 	return addr
 }

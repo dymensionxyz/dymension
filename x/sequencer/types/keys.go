@@ -65,7 +65,7 @@ var (
 
 func SequencerKey(sequencerAddress string) []byte {
 	sequencerAddrBytes := []byte(sequencerAddress)
-	return []byte(fmt.Sprintf("%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes))
+	return fmt.Appendf(nil, "%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes)
 }
 
 // SequencerByRollappByStatusKey returns the store key to retrieve a SequencersByRollapp from the index fields
@@ -82,7 +82,7 @@ func SequencersKey() []byte {
 // SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
 func SequencersByRollappKey(rollappId string) []byte {
 	rollappIdBytes := []byte(rollappId)
-	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes))
+	return fmt.Appendf(nil, "%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes)
 }
 
 // SequencersByRollappByStatusKey returns the store key to retrieve a SequencersByRollappByStatus from the index fields
@@ -96,7 +96,7 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 		prefix = UnbondedSequencersKeyPrefix
 	}
 
-	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix))
+	return fmt.Appendf(nil, "%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix)
 }
 
 /* --------------------------  queues keys -------------------------- */
@@ -115,9 +115,9 @@ func NoticeQueueBySeqTimeKey(sequencerAddress string, endTime time.Time) []byte 
 /* --------------------- proposer and successor keys --------------------- */
 
 func ProposerByRollappKey(rollappId string) []byte {
-	return []byte(fmt.Sprintf("%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId)))
+	return fmt.Appendf(nil, "%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId))
 }
 
 func SuccessorByRollappKey(rollappId string) []byte {
-	return []byte(fmt.Sprintf("%s%s%s", NextProposerKeyPrefix, KeySeparator, []byte(rollappId)))
+	return fmt.Appendf(nil, "%s%s%s", NextProposerKeyPrefix, KeySeparator, []byte(rollappId))
 }

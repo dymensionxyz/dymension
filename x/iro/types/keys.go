@@ -32,11 +32,11 @@ var (
 
 /* --------------------- specific plan ID keys -------------------- */
 func PlanKey(planId string) []byte {
-	return []byte(fmt.Sprintf("%s%s%s", PlanKeyPrefix, KeySeparator, planId))
+	return fmt.Appendf(nil, "%s%s%s", PlanKeyPrefix, KeySeparator, planId)
 }
 
 /* ------------------------- multiple plans keys ------------------------ */
 func PlansByRollappKey(rollappId string) []byte {
 	rollappIdBytes := []byte(rollappId)
-	return []byte(fmt.Sprintf("%s%s%s", PlansByRollappKeyPrefix, KeySeparator, rollappIdBytes))
+	return fmt.Appendf(nil, "%s%s%s", PlansByRollappKeyPrefix, KeySeparator, rollappIdBytes)
 }
