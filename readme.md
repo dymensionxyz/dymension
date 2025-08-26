@@ -242,5 +242,5 @@ For support, join our [Discord](http://discord.gg/dymension) community and find 
 To setup push hooks, run the following command:
 
 ```sh
-./scripts/setup_push_hooks.sh
+./scripts/setup-git-hooks.sh
 ```
