@@ -4,11 +4,16 @@ import (
 	context "context"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -44,4 +49,27 @@ type SponsorshipKeeper interface {
 	GetDistribution(ctx sdk.Context) (types.Distribution, error)
 	SaveEndorsement(ctx sdk.Context, e types.Endorsement) error
 	ClearAllVotes(ctx sdk.Context) error
+}
+
+type MintParamsGetter interface {
+	Get(ctx context.Context) (minttypes.Params, error)
+}
+
+type IROKeeper interface {
+	GetPlanByRollapp(ctx sdk.Context, rollappId string) (irotypes.Plan, bool)
+	BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error
+}
+
+type PoolManagerKeeper interface {
+	RouteExactAmountIn(
+		ctx sdk.Context,
+		sender sdk.AccAddress,
+		routes []poolmanagertypes.SwapAmountInRoute,
+		tokenIn sdk.Coin,
+		tokenOutMinAmount math.Int,
+	) (tokenOutAmount math.Int, err error)
+}
+
+type RollappKeeper interface {
+	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
 }

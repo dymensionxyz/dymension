@@ -48,3 +48,8 @@ func (stream *Stream) AddDistributedCoins(coins sdk.Coins) {
 func (stream Stream) Key() uint64 {
 	return stream.Id
 }
+
+// IsPumpStream returns true if the stream has pump parameters configured
+func (stream Stream) IsPumpStream() bool {
+	return stream.PumpParams != nil
+}

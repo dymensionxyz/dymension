@@ -19,13 +19,19 @@ import (
 
 // Keeper provides a way to manage streamer module storage.
 type Keeper struct {
-	cdc       codec.BinaryCodec
-	storeKey  storetypes.StoreKey
-	bk        types.BankKeeper
-	ek        types.EpochKeeper
-	ak        types.AccountKeeper
-	ik        types.IncentivesKeeper
-	sk        types.SponsorshipKeeper
+	cdc      codec.BinaryCodec
+	storeKey storetypes.StoreKey
+	bk       types.BankKeeper
+	ek       types.EpochKeeper
+	ak       types.AccountKeeper
+	ik       types.IncentivesKeeper
+	sk       types.SponsorshipKeeper
+
+	mintParams        types.MintParamsGetter
+	iroKeeper         types.IROKeeper
+	poolManagerKeeper types.PoolManagerKeeper
+	rollappKeeper     types.RollappKeeper
+
 	authority string
 
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
@@ -41,19 +47,27 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	ik types.IncentivesKeeper,
 	sk types.SponsorshipKeeper,
+	mintParams types.MintParamsGetter,
+	iroKeeper types.IROKeeper,
+	poolManagerKeeper types.PoolManagerKeeper,
+	rollappKeeper types.RollappKeeper,
 	authority string,
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
 	return &Keeper{
-		cdc:       cdc,
-		storeKey:  storeKey,
-		bk:        bk,
-		ek:        ek,
-		ak:        ak,
-		ik:        ik,
-		sk:        sk,
-		authority: authority,
+		cdc:               cdc,
+		storeKey:          storeKey,
+		bk:                bk,
+		ek:                ek,
+		ak:                ak,
+		ik:                ik,
+		sk:                sk,
+		mintParams:        mintParams,
+		iroKeeper:         iroKeeper,
+		poolManagerKeeper: poolManagerKeeper,
+		rollappKeeper:     rollappKeeper,
+		authority:         authority,
 		epochPointers: collections.NewMap(
 			sb,
 			types.KeyPrefixEpochPointers,
