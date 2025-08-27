@@ -22,6 +22,8 @@ service Msg {
   // CreatePlan is used to create a new plan.
   rpc CreatePlan(MsgCreatePlan) returns (MsgCreatePlanResponse);
 
+  rpc CreateFairLaunchPlan(MsgCreateFairLaunchPlan) returns (MsgCreatePlanResponse);
+
   rpc EnableTrading(MsgEnableTrading) returns (MsgEnableTradingResponse);
 
   // Buy is used to buy allocation.
@@ -111,6 +113,21 @@ message MsgCreatePlan {
   ];
 }
 
+
+message MsgCreateFairLaunchPlan {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  string rollapp_id = 2;
+
+    // Whether trading is enabled for the plan. default to true
+  // can be set to false initially, to require EnableTrading tx for this IRO
+  bool trading_enabled = 3;
+
+  string liquidity_denom = 4;
+}
+
 message MsgCreatePlanResponse {
   // The ID of the plan.
   string plan_id = 1;
@@ -151,6 +168,7 @@ message MsgBuy {
     (gogoproto.nullable) = false
   ];
 }
+
 
 message MsgBuyExactSpend {
   option (cosmos.msg.v1.signer) = "buyer";
