@@ -117,7 +117,11 @@ message QueryPlansRequest {
   // non_settled_only is an optional flag to filter out plans that are already
   // settled.
   bool non_settled_only = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  // graduated_only is an optional flag to filter out plans that are not graduated.
+  bool graduated_only = 2;
+  // fair_launched_only is an optional flag to filter out plans that are not fair launched.
+  bool fair_launched_only = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 // QueryPlanResponse is the response type for the Query/QueryPlan RPC method.
