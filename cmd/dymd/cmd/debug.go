@@ -58,7 +58,7 @@ func PubkeyCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "pubkey [pubkey]",
 		Short: "Decode a pubkey from proto JSON",
-		Long:  "Decode a pubkey from proto JSON and display it's address",
+		Long:  "Decode a pubkey from proto JSON and display its address",
 		Example: fmt.Sprintf(
 			`"$ %s debug pubkey '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AurroA7jvfPd1AadmmOvWM2rJSwipXfRf8yD6pLbA2DJ"}'`, //gitleaks:allow
 			version.AppName,
