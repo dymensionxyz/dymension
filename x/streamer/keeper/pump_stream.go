@@ -8,10 +8,35 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 )
+
+func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int) []types.PumpPressure {
+	multiplier := pumpBudget.Quo(distr.VotingPower)
+	var rollappRecords []types.PumpPressure
+	for _, gauge := range distr.Gauges {
+		g, err := k.ik.GetGaugeByID(ctx, gauge.GaugeId)
+		if err != nil {
+			k.Logger(ctx).Error("failed to get gauge", "gaugeID", gauge.GaugeId, "error", err)
+			continue
+		}
+		if ra := g.GetRollapp(); ra != nil {
+			rollappRecords = append(rollappRecords, types.PumpPressure{
+				RollappId: ra.RollappId,
+				Pressure:  gauge.Power.Mul(multiplier),
+			})
+		}
+	}
+
+	// Sort all records which are rollapp gauges by weight in descending order
+	sort.Slice(rollappRecords, func(i, j int) bool {
+		return rollappRecords[i].Pressure.GT(rollappRecords[j].Pressure)
+	})
+
+	return rollappRecords
+}
 
 // ShouldPump decides if the pump should happen in this block. It uses block
 // hash and block time as entropy.
@@ -158,45 +183,34 @@ func (k Keeper) ExecutePump(
 
 		return nil
 	})
+	if err != nil {
+		return sdk.Coin{}, err
+	}
 
-	return sdk.NewCoin(targetDenom, tokenOutAmt), err
-}
-
-// getFeeTokenForDenom gets the FeeToken configuration for a given denom
-// TODO: This is a placeholder - the actual implementation should use the txfees module
-func (k Keeper) getFeeTokenForDenom(ctx sdk.Context, denom string) (*FeeToken, error) {
-	// TODO: Implement using txfees keeper to get FeeToken with Route
-	// For now, return a mock structure
-	return &FeeToken{
-		Route: []poolmanagertypes.SwapAmountInRoute{
-			{
-				PoolId:        1, // TODO: get proper pool ID from txfees
-				TokenOutDenom: denom,
-			},
-		},
-	}, nil
-}
-
-// FeeToken represents the fee token configuration with routing information
-type FeeToken struct {
-	Route []poolmanagertypes.SwapAmountInRoute
+	return sdk.NewCoin(targetDenom, tokenOutAmt), nil
 }
 
 // DistributePumpStreams processes all pump streams and executes pumps if conditions are met
 func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Stream) error {
+	// All bought tokens should be burned
+	toBurn := make(sdk.Coins, 0)
+
+	sponsorshipDistr, err := k.sk.GetDistribution(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get sponsorship distribution: %w", err)
+	}
+
 	for _, stream := range pumpStreams {
-		// Skip non-pump streams
-		if stream.PumpParams == nil {
+		if !stream.IsPumpStream() {
+			// Skip non-pump streams
 			continue
 		}
 
-		// Calculate epoch blocks for randomization
 		epochBlocks, err := k.EpochBlocks(ctx, stream.DistrEpochIdentifier)
 		if err != nil {
 			return fmt.Errorf("failed to get epoch blocks: %w", err)
 		}
 
-		// Use ShouldPump directly to determine pump amount
 		pumpAmt, err := ShouldPump(
 			ctx,
 			stream.PumpParams.EpochBudget,
@@ -213,24 +227,26 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			continue
 		}
 
-		// Get top rollapps from the stream's distribution
-		rollapps := k.TopRollapps(ctx, stream.DistributeTo.Records, stream.PumpParams.NumTopRollapps)
+		// Get top N rollapps by cast voting power
+		pressure := k.PumpPressure(ctx, sponsorshipDistr, pumpAmt)
+		if len(pressure) > int(stream.PumpParams.NumTopRollapps) {
+			pressure = pressure[:int(stream.PumpParams.NumTopRollapps)]
+		}
 
 		// Distribute pump amount proportionally to each rollapp
-		for _, rollapp := range rollapps {
-			// Calculate proportional pump amount based on rollapp weight
-			pumpAmtRA := pumpAmt.Mul(rollapp.Weight).Quo(stream.DistributeTo.TotalWeight)
-
-			if pumpAmtRA.IsZero() {
+		for _, p := range pressure {
+			if p.Pressure.IsZero() {
 				continue
 			}
 
-			err := k.ExecutePump(ctx, pumpAmtRA, rollapp.RollappID)
+			tokenOut, err := k.ExecutePump(ctx, p.Pressure, p.RollappId)
 			if err != nil {
-				k.Logger(ctx).Error("failed to execute pump", "streamID", stream.Id, "rollappID", rollapp.RollappID, "error", err)
+				k.Logger(ctx).Error("failed to execute pump", "streamID", stream.Id, "rollappID", p.RollappId, "error", err)
 				// Continue with other rollapps even if one fails
 				continue
 			}
+
+			toBurn = append(toBurn, tokenOut)
 		}
 
 		// Update the stream's epoch budget left
@@ -242,41 +258,15 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			return fmt.Errorf("failed to update stream after pump: %w", err)
 		}
 	}
-	return nil
-}
 
-type RollappWeight struct {
-	RollappID string
-	Weight    math.Int
-}
-
-// TopRollapps selects nop N rollapps and returns their IDs.
-func (k Keeper) TopRollapps(ctx sdk.Context, records []types.DistrRecord, topN uint32) []RollappWeight {
-	// Filter out non-rollapp gauges
-	var rollappRecords []RollappWeight
-	for _, record := range records {
-		gauge, err := k.ik.GetGaugeByID(ctx, record.GaugeId)
+	if toBurn.Len() == 0 {
+		err := k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
 		if err != nil {
-			k.Logger(ctx).Error("failed to get gauge", "gaugeID", record.GaugeId, "error", err)
-			continue
-		}
-		if ra := gauge.GetRollapp(); ra != nil {
-			rollappRecords = append(rollappRecords, RollappWeight{
-				RollappID: ra.RollappId,
-				Weight:    record.Weight,
-			})
+			return fmt.Errorf("failed to burn coins: %w", err)
 		}
 	}
 
-	// Sort all records which are rollapp gauges by weight in descending order
-	sort.Slice(rollappRecords, func(i, j int) bool {
-		return rollappRecords[i].Weight.GT(rollappRecords[j].Weight)
-	})
-
-	if len(rollappRecords) <= int(topN) {
-		return rollappRecords
-	}
-	return rollappRecords[:topN]
+	return nil
 }
 
 // Number of seconds in the year.

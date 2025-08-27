@@ -72,17 +72,17 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	coins1 := sdk.NewCoins(currModuleBalance[0])
 	coins2 := sdk.NewCoins(currModuleBalance[1])
 
-	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, NonSponsored)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, NonSponsored, nil)
 	suite.Require().NoError(err)
 
 	// Check that all tokens are alloceted for distribution
 	toDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(currModuleBalance, toDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
 	suite.Require().Error(err)
 
 	// mint more tokens to the streamer account
@@ -92,10 +92,10 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	newToDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(toDistribute, newToDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
 	suite.Require().Error(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
 	suite.Require().NoError(err)
 }
 
@@ -198,7 +198,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	}
 
 	for _, tc := range tests {
-		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored)
+		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored, nil)
 		if tc.expectErr {
 			suite.Require().Error(err, tc.name)
 		} else {
@@ -217,6 +217,9 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 		epochIdentifier   string
 		initialVote       sponsorshiptypes.MsgVote // the vote that forms the initial distribution
 		numEpochsPaidOver uint64
+		sponsored         bool
+		pumpParams        *types.MsgCreateStream_PumpParams
+		expectErr         bool
 	}{
 		{
 			name:              "empty initial distr",
@@ -225,6 +228,9 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 			epochIdentifier:   "day",
 			initialVote:       sponsorshiptypes.MsgVote{},
 			numEpochsPaidOver: 30,
+			sponsored:         true,
+			pumpParams:        nil,
+			expectErr:         false,
 		},
 		{
 			name:            "non-empty initial distr",
@@ -239,6 +245,9 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 				},
 			},
 			numEpochsPaidOver: 30,
+			sponsored:         true,
+			pumpParams:        nil,
+			expectErr:         false,
 		},
 		{
 			name:  "stream distr info doesn't play any role",
@@ -263,20 +272,43 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 				},
 			},
 			numEpochsPaidOver: 30,
+			sponsored:         true,
+			pumpParams:        nil,
+			expectErr:         false,
+		},
+		{
+			name:              "pump params with non-sponsored stream should fail",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo:           defaultDistrInfo,
+			epochIdentifier:   "day",
+			initialVote:       sponsorshiptypes.MsgVote{},
+			numEpochsPaidOver: 30,
+			sponsored:         true,
+			pumpParams:        &types.MsgCreateStream_PumpParams{},
+			expectErr:         true,
 		},
 	}
 
 	for _, tc := range tests {
 		suite.SetupTest()
-		sID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, Sponsored)
-		suite.Require().NoError(err, tc.name)
+		sID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, tc.sponsored, tc.pumpParams)
 
-		// Check that the stream distr matches the current sponsorship distr
-		actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
-		suite.Require().NoError(err)
-		initialDistr := suite.Distribution()
-		initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
-		suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
-		suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
+		if tc.expectErr {
+			suite.Require().Error(err)
+
+			// Verify no stream was actually created by checking that GetStreamByID fails
+			streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
+			suite.Require().Empty(streams)
+		} else {
+			suite.Require().NoError(err)
+
+			// Check that the stream distr matches the current sponsorship distr
+			actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
+			suite.Require().NoError(err)
+			initialDistr := suite.Distribution()
+			initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
+			suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
+			suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
+		}
 	}
 }

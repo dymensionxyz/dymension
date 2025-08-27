@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 
 // CreateStream creates a non-sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored, nil)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -90,7 +90,7 @@ func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sd
 
 // CreateSponsoredStream creates a sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored, nil)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)

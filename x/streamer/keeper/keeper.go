@@ -87,7 +87,16 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // CreateStream creates a stream and sends coins to the stream.
-func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64, sponsored bool) (uint64, error) {
+func (k Keeper) CreateStream(
+	ctx sdk.Context,
+	coins sdk.Coins,
+	records []types.DistrRecord,
+	startTime time.Time,
+	epochIdentifier string,
+	numEpochsPaidOver uint64,
+	sponsored bool,
+	pumpParams *types.MsgCreateStream_PumpParams,
+) (uint64, error) {
 	if !coins.IsAllPositive() {
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
@@ -105,6 +114,10 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 			return 0, err
 		}
 		distrInfo = distr
+	}
+
+	if pumpParams != nil && sponsored {
+		return 0, fmt.Errorf("pump params can only be set for non-sponsored streams")
 	}
 
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
@@ -135,6 +148,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		epochIdentifier,
 		numEpochsPaidOver,
 		sponsored,
+		pumpParams,
 	)
 
 	err := k.SetStream(ctx, &stream)

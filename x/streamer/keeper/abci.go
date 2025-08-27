@@ -13,23 +13,20 @@ import (
 func (k Keeper) BeginBlock(ctx sdk.Context) error {
 	// Get all active streams
 	streams := k.GetActiveStreams(ctx)
-	
+
 	// Filter pump streams
 	var pumpStreams []types.Stream
 	for _, stream := range streams {
-		if stream.PumpParams != nil {
+		if stream.IsPumpStream() {
 			pumpStreams = append(pumpStreams, stream)
 		}
 	}
-	
-	// Process pump streams
-	if len(pumpStreams) > 0 {
-		err := k.DistributePumpStreams(ctx, pumpStreams)
-		if err != nil {
-			return fmt.Errorf("failed to distribute pump streams: %w", err)
-		}
+
+	err := k.DistributePumpStreams(ctx, pumpStreams)
+	if err != nil {
+		return fmt.Errorf("failed to distribute pump streams: %w", err)
 	}
-	
+
 	return nil
 }
 

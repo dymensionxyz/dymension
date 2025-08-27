@@ -29,6 +29,12 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 		stream.DistributeTo = types.DistrInfoFromDistribution(distr)
 	}
 
+	if stream.IsPumpStream() {
+		// Pump streams should always have one
+		stream.PumpParams.EpochBudget = epochCoins[0].Amount
+		stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudget
+	}
+
 	// Add coins to distribute during the next epoch
 	stream.EpochCoins = epochCoins
 

@@ -38,6 +38,7 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 		msg.DistrEpochIdentifier,
 		msg.NumEpochsPaidOver,
 		msg.Sponsored,
+		msg.PumpParams,
 	)
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/streamer/stream.proto";
+import "dymensionxyz/dymension/streamer/streamer.proto";
 import "dymensionxyz/dymension/streamer/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
@@ -44,6 +45,16 @@ service Query {
       returns (UpcomingStreamsResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/upcoming_streams";
+  }
+
+  rpc RollappPumpPressure(RollappPumpPressureRequest) returns (RollappPumpPressureResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/rollapp_pump_pressure/{rollapp_id}";
+  }
+
+  rpc PumpPressure(PumpPressureRequest) returns (PumpPressureResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/pump_pressure";
   }
 }
 
@@ -101,4 +112,16 @@ message UpcomingStreamsResponse {
   repeated Stream data = 1 [ (gogoproto.nullable) = false ];
   // Pagination defines pagination for the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message RollappPumpPressureRequest {
+  uint64 rollapp_id = 1;
+}
+message RollappPumpPressureResponse {
+  PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
+}
+
+message PumpPressureRequest {}
+message PumpPressureResponse {
+  repeated PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
 }
