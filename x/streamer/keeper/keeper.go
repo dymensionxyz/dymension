@@ -31,6 +31,7 @@ type Keeper struct {
 	iroKeeper         types.IROKeeper
 	poolManagerKeeper types.PoolManagerKeeper
 	rollappKeeper     types.RollappKeeper
+	txFeesKeeper      types.TxFeesKeeper
 
 	authority string
 
@@ -51,6 +52,7 @@ func NewKeeper(
 	iroKeeper types.IROKeeper,
 	poolManagerKeeper types.PoolManagerKeeper,
 	rollappKeeper types.RollappKeeper,
+	txFeesKeeper types.TxFeesKeeper,
 	authority string,
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
@@ -67,6 +69,7 @@ func NewKeeper(
 		iroKeeper:         iroKeeper,
 		poolManagerKeeper: poolManagerKeeper,
 		rollappKeeper:     rollappKeeper,
+		txFeesKeeper:      txFeesKeeper,
 		authority:         authority,
 		epochPointers: collections.NewMap(
 			sb,

@@ -9,6 +9,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -57,7 +58,7 @@ type MintParamsGetter interface {
 
 type IROKeeper interface {
 	GetPlanByRollapp(ctx sdk.Context, rollappId string) (irotypes.Plan, bool)
-	BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) error
+	BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) (math.Int, error)
 }
 
 type PoolManagerKeeper interface {
@@ -72,4 +73,9 @@ type PoolManagerKeeper interface {
 
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
+}
+
+type TxFeesKeeper interface {
+	GetFeeToken(ctx sdk.Context, denom string) (txfeestypes.FeeToken, error)
+	GetBaseDenom(ctx sdk.Context) (string, error)
 }

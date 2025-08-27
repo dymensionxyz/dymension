@@ -13,29 +13,6 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 )
 
-// ShouldExecutePump decides if the pump should happen in this block based on stream's pump params.
-func (k Keeper) ShouldExecutePump(ctx sdk.Context, stream types.Stream) (bool, error) {
-	if stream.PumpParams == nil {
-		return false, nil
-	}
-
-	if stream.PumpParams.EpochBudgetLeft.IsZero() {
-		return false, nil
-	}
-
-	epochBlocks, err := k.EpochBlocks(ctx, stream.DistrEpochIdentifier)
-	if err != nil {
-		return false, fmt.Errorf("failed to get epoch blocks: %w", err)
-	}
-
-	pumpAmt, err := ShouldPump(ctx, stream.PumpParams.EpochBudget, stream.PumpParams.EpochBudgetLeft, stream.PumpParams.NumPumps, epochBlocks)
-	if err != nil {
-		return false, fmt.Errorf("failed to calculate pump amount: %w", err)
-	}
-
-	return !pumpAmt.IsZero(), nil
-}
-
 // ShouldPump decides if the pump should happen in this block. It uses block
 // hash and block time as entropy.
 //
@@ -116,63 +93,73 @@ func (k Keeper) ExecutePump(
 	ctx sdk.Context,
 	pumpAmt math.Int,
 	rollappID string,
-) error {
+) (tokenOut sdk.Coin, err error) {
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, rollappID)
 	if !found {
-		return fmt.Errorf("rollapp not found: %s", rollappID)
+		return sdk.Coin{}, fmt.Errorf("rollapp not found: %s", rollappID)
 	}
 
 	plan, found := k.iroKeeper.GetPlanByRollapp(ctx, rollapp.RollappId)
 	if !found {
-		return fmt.Errorf("IRO plan not found for rollapp: %s", rollappID)
+		return sdk.Coin{}, fmt.Errorf("IRO plan not found for rollapp: %s", rollappID)
 	}
 
-	address := k.ak.GetModuleAddress(types.ModuleName)
-	// TODO: get base denom
-	baseDenom := "adym" // Base denom for budget
+	// Always use base denom for budget
+	baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("get base denom: %w", err)
+	}
 
-	return osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		var targetDenom string
-		if plan.IsSettled() {
-			targetDenom = plan.SettledDenom
-		} else {
-			targetDenom = plan.LiquidityDenom
-		}
+	var targetDenom string
+	if plan.IsSettled() {
+		targetDenom = plan.SettledDenom
+	} else {
+		targetDenom = plan.LiquidityDenom
+	}
 
-		// Get FeeToken for target denom to find routing
-		feeToken, err := k.getFeeTokenForDenom(ctx, targetDenom)
-		if err != nil {
-			return fmt.Errorf("get fee token for denom %s: %w", targetDenom, err)
-		}
+	// Get FeeToken for target denom to find routing to the base denom.
+	// Every token must have a route to the base denom.
+	feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, targetDenom)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("get fee token for denom %s: %w", targetDenom, err)
+	}
 
-		tokenIn := sdk.NewCoin(baseDenom, pumpAmt)
+	buyer := k.ak.GetModuleAddress(types.ModuleName)
+	var tokenOutAmt math.Int
 
-		targetAmount, err := k.poolManagerKeeper.RouteExactAmountIn(
+	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+		// Buy:
+		// - RA tokens if IRO is over
+		// - Liquidity tokens if IRO is in progress
+		tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
 			ctx,
-			address,
-			feeToken.Route, // Use route from FeeToken
-			tokenIn,
-			math.ZeroInt(), // tokenOutMinAmount = 0 (ignore slippage for now)
+			buyer,
+			feeToken.Route,
+			sdk.NewCoin(baseDenom, pumpAmt), // token in
+			math.ZeroInt(),                  // no slippage)
 		)
 		if err != nil {
 			return fmt.Errorf("route exact amount in: target denom: %s, error: %w", targetDenom, err)
 		}
 
 		if !plan.IsSettled() {
-			err = k.iroKeeper.BuyExactSpend(
+			// If IRO is in progress, use liquidity tokens to buy IRO tokens
+			tokenOutAmt, err = k.iroKeeper.BuyExactSpend(
 				ctx,
 				fmt.Sprintf("%d", plan.Id),
-				address,
-				targetAmount,   // amountToSpend
-				math.ZeroInt(), // minTokensAmt = 0
+				buyer,
+				tokenOutAmt,    // amountToSpend
+				math.ZeroInt(), // no slippage
 			)
 			if err != nil {
-				return fmt.Errorf("buy from IRO: %w", err)
+				return fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
 			}
 		}
 
 		return nil
 	})
+
+	return sdk.NewCoin(targetDenom, tokenOutAmt), err
 }
 
 // getFeeTokenForDenom gets the FeeToken configuration for a given denom
@@ -210,33 +197,29 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Use ShouldPump directly to determine pump amount
-		pumpAmt, err := ShouldPump(ctx, stream.PumpParams.EpochBudget, stream.PumpParams.EpochBudgetLeft, stream.PumpParams.NumPumps, epochBlocks)
+		pumpAmt, err := ShouldPump(
+			ctx,
+			stream.PumpParams.EpochBudget,
+			stream.PumpParams.EpochBudgetLeft,
+			stream.PumpParams.NumPumps,
+			epochBlocks,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to calculate pump amount: %w", err)
 		}
 
 		if pumpAmt.IsZero() {
+			// Shouldn't pump on this iteration
 			continue
 		}
 
 		// Get top rollapps from the stream's distribution
 		rollapps := k.TopRollapps(ctx, stream.DistributeTo.Records, stream.PumpParams.NumTopRollapps)
 
-		// Calculate total weight for proportional distribution
-		totalWeight := math.ZeroInt()
-		for _, rollapp := range rollapps {
-			totalWeight = totalWeight.Add(rollapp.Weight)
-		}
-
-		if totalWeight.IsZero() {
-			k.Logger(ctx).Info("no valid rollapps found for pump stream", "streamID", stream.Id)
-			continue
-		}
-
 		// Distribute pump amount proportionally to each rollapp
 		for _, rollapp := range rollapps {
 			// Calculate proportional pump amount based on rollapp weight
-			pumpAmtRA := pumpAmt.Mul(rollapp.Weight).Quo(totalWeight)
+			pumpAmtRA := pumpAmt.Mul(rollapp.Weight).Quo(stream.DistributeTo.TotalWeight)
 
 			if pumpAmtRA.IsZero() {
 				continue
