@@ -11,7 +11,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-const FlagNonSettledOnly = "non-settled"
+const (
+	FlagNonSettledOnly   = "non-settled"
+	FlagFairLaunchedOnly = "fair-launched"
+)
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
@@ -48,6 +51,11 @@ func CmdQueryPlans() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
+			fairLaunchedOnly, err := cmd.Flags().GetBool(FlagFairLaunchedOnly)
+			if err != nil {
+				return err
+			}
+
 			nonSettledOnly, err := cmd.Flags().GetBool(FlagNonSettledOnly)
 			if err != nil {
 				return err
@@ -59,8 +67,9 @@ func CmdQueryPlans() *cobra.Command {
 			}
 
 			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{
-				NonSettledOnly: nonSettledOnly,
-				Pagination:     pageReq,
+				NonSettledOnly:   nonSettledOnly,
+				FairLaunchedOnly: fairLaunchedOnly,
+				Pagination:       pageReq,
 			})
 			if err != nil {
 				return err
@@ -73,6 +82,7 @@ func CmdQueryPlans() *cobra.Command {
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	cmd.Flags().BoolP(FlagNonSettledOnly, "s", false, "Query only unsettled IRO plans")
+	cmd.Flags().BoolP(FlagFairLaunchedOnly, "f", false, "Query only fair launched IRO plans")
 	return cmd
 }
 
