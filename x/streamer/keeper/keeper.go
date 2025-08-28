@@ -116,8 +116,18 @@ func (k Keeper) CreateStream(
 		distrInfo = distr
 	}
 
-	if pumpParams != nil && sponsored {
-		return 0, fmt.Errorf("pump params can only be set for non-sponsored streams")
+	// Pump stream has additional restrictions
+	if pumpParams != nil {
+		if sponsored {
+			return 0, fmt.Errorf("pump params can only be set for non-sponsored streams")
+		}
+		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("get base denom: %w", err)
+		}
+		if coins.Len() != 1 || coins[0].Denom != baseDenom {
+			return 0, fmt.Errorf("pump stream must have one coin with base denom")
+		}
 	}
 
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
