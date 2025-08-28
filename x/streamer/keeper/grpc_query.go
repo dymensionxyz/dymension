@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -105,8 +104,6 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequest) (*types.PumpPressureResponse, error) {
 	//TODO implement me
 	panic("implement me")
-
-	q.Keeper.PumpPressure(ctx, d, q.TotalPumpBudget(ctx))
 }
 
 func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPressureByRollappRequest) (*types.PumpPressureByRollappResponse, error) {
@@ -131,7 +128,7 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 	//
 	totalPressure.Quo(d.VotingPower).ToLegacyDec().Mul(e.TotalShares)
 
-	return
+	return nil, nil
 }
 
 // getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.
