@@ -50,6 +50,11 @@ func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.
 	return plan
 }
 
+// GetID returns the ID of the plan as a string
+func (p Plan) GetID() string {
+	return fmt.Sprintf("%d", p.Id)
+}
+
 // ValidateBasic checks if the plan is valid
 func (p Plan) ValidateBasic() error {
 	if err := p.BondingCurve.ValidateBasic(); err != nil {
@@ -101,6 +106,15 @@ func (p Plan) ValidateBasic() error {
 // SpotPrice returns the spot price of the plan
 func (p Plan) SpotPrice() math.LegacyDec {
 	return p.BondingCurve.SpotPrice(p.SoldAmt)
+}
+
+// PreGraduation returns true if the plan is in the pre-graduation status
+func (p Plan) PreGraduation() bool {
+	return p.GraduationStatus == GraduationStatus_PRE_GRADUATION
+}
+
+func (p Plan) IsGraduated() bool {
+	return p.GraduationStatus == GraduationStatus_POOL_CREATED
 }
 
 func (p Plan) IsSettled() bool {

@@ -54,21 +54,31 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return err
 	}
 
-	raisedLiquidityAmt := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom).Amount
-	poolTokens := raisedLiquidityAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
-	ownerTokens := raisedLiquidityAmt.Sub(poolTokens)
-
-	// start the vesting schedule for the owner tokens
-	plan.VestingPlan.Amount = ownerTokens
-	plan.VestingPlan.StartTime = ctx.BlockHeader().Time.Add(plan.VestingPlan.StartTimeAfterSettlement)
-	plan.VestingPlan.EndTime = plan.VestingPlan.StartTime.Add(plan.VestingPlan.VestingDuration)
+	var poolID uint64
+	// FIXME: if already graduated, we need to swap the IRO asset tokens with the settled tokens
+	if plan.GraduationStatus == types.GraduationStatus_POOL_CREATED {
+		poolID = plan.GraduatedPoolId
+		// FIXME: handle asset swap + hooks update
+		// call SwapPoolAsset to swap the pool asset to the settled denom
+		err = k.gk.SwapPoolAsset(ctx, plan.GetAddress(), poolID, plan.LiquidityDenom, plan.SettledDenom, plan.SoldAmt)
+		if err != nil {
+			return err
+		}
+	} else {
+		poolID, err = k.GraduatePlan(ctx, plan.GetID())
+		if err != nil {
+			return err
+		}
+		// load the plan again to get the updated poolID
+		plan = k.MustGetPlan(ctx, plan.GetID())
+	}
 
 	// mark the plan as `settled`, allowing users to claim tokens
 	plan.SettledDenom = rollappIBCDenom
 	k.SetPlan(ctx, plan)
 
-	// uses the raised liquidity and unsold tokens to bootstrap the rollapp's liquidity pool
-	poolID, gaugeID, err := k.bootstrapLiquidityPool(ctx, plan, poolTokens)
+	// add incentives to the pool
+	gaugeID, err := k.addIncentivesToPool(ctx, plan, poolID)
 	if err != nil {
 		return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
@@ -80,7 +90,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		IBCDenom:      rollappIBCDenom,
 		PoolId:        poolID,
 		GaugeId:       gaugeID,
-		VestingAmount: ownerTokens,
+		VestingAmount: plan.VestingPlan.Amount,
 	})
 	if err != nil {
 		return err
@@ -96,7 +106,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 // - Determines the required pool liquidity amounts to fulfill the last price.
 // - Creates a balancer pool with the determined tokens and liquidity.
 // - Uses leftover tokens as incentives to the pool LP token holders.
-func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTokens math.Int) (poolID, gaugeID uint64, err error) {
+func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTokens math.Int) (uint64, error) {
 	// claimable amount is kept in the module account and used for user's claims
 	claimableAmt := plan.SoldAmt.Sub(plan.ClaimedAmt)
 
@@ -104,9 +114,9 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	unallocatedTokens := plan.TotalAllocation.Amount.Sub(claimableAmt)
 
 	// send the raised liquidity token to the iro module as it will be used as the pool creator
-	err = k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, poolTokens)))
+	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, poolTokens)))
 	if err != nil {
-		return 0, 0, err
+		return 0, err
 	}
 
 	// find the raTokens needed to bootstrap the pool, to fulfill last price
@@ -131,8 +141,14 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	// we call the pool manager directly, instead of the gamm keeper, to avoid the pool creation fee
 	poolId, err := k.pm.CreatePool(ctx, balancerPool)
 	if err != nil {
-		return 0, 0, err
+		return 0, err
 	}
+
+	return poolId, nil
+}
+
+// addIncentivesToPool(ctx sdk.Context, plan types.Plan, poolID uint64) error {
+func (k Keeper) addIncentivesToPool(ctx sdk.Context, plan types.Plan, poolID uint64) (gaugeID uint64, err error) {
 
 	// Add incentives
 	poolDenom := gammtypes.GetPoolShareDenom(poolId)
@@ -150,5 +166,5 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 		return 0, 0, err
 	}
 
-	return poolID, gaugeID, nil
+	return gaugeID, nil
 }

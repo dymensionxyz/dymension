@@ -111,6 +111,16 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		return err
 	}
 
+	// if all tokens are sold, we need to graduate the plan
+	if plan.SoldAmt.Equal(plan.MaxAmountToSell) {
+		_, err := k.GraduatePlan(ctx, planId)
+		if err != nil {
+			return err
+		}
+	}
+
+	// FIXME: add graduation event
+
 	return nil
 }
 
@@ -248,7 +258,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 // GetTradeableIRO returns the tradeable IRO plan
 // - plan must exist
-// - plan must not be settled
+// - plan must not be graduated or settled
 // - plan must have started (unless the trader is the owner)
 func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAddress) (*types.Plan, error) {
 	plan, found := k.GetPlan(ctx, planId)
@@ -256,8 +266,8 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 		return nil, types.ErrPlanNotFound
 	}
 
-	if plan.IsSettled() {
-		return nil, errorsmod.Wrapf(types.ErrPlanSettled, "planId: %d", plan.Id)
+	if !plan.PreGraduation() {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "planId: %d, status: %s", plan.Id, plan.GraduationStatus.String())
 	}
 
 	// Validate start time started (unless the trader is the owner)
