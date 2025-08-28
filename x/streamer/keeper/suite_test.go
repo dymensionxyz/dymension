@@ -48,14 +48,21 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 
-	err := suite.CreateGauge()
+	// Disable any distribution threshold for tests
+	ip := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
+	bd, err := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+	suite.Require().NoError(err)
+	ip.MinValueForDistribution = sdk.NewCoin(bd, math.ZeroInt())
+	suite.App.IncentivesKeeper.SetParams(suite.Ctx, ip)
+
+	err = suite.CreateGauge()
 	suite.Require().NoError(err)
 	err = suite.CreateGauge()
 	suite.Require().NoError(err)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	t.Skip("FIXME: broken due to v50 upgrade") // #1739
+	//t.Skip("FIXME: broken due to v50 upgrade") // #1739
 	suite.Run(t, new(KeeperTestSuite))
 }
 
