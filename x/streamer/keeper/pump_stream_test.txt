@@ -1,0 +1,40 @@
+I need to test a pump stream feature. Help me do this. I'll give you references and examples for most of the methods.
+
+I need to create a complex generic test with dynamic parameters stored in a test case map. Reference: @x/sponsorship/keeper/votes_test.go#L21-L31
+
+Generic test scenario:
+
+1. Create 4 rollapps – @app/apptesting/test_suite.go#L49
+2. Create 2 users (delegators) who have staking power. Both delegate 100 DYM – @x/sponsorship/keeper/endorsements_test.go#L44-L55
+3. Vote on rollapps. User 1 votes 60 on RA1 and 40 on RA2. User 2 votes 60 on RA2 and 40 on RA3. RA4 should stay empty – @x/sponsorship/keeper/endorsements_test.go#L97-L102
+4. Create an IRO. LiquidityDenom is  – @x/iro/keeper/claim_test.go#L29
+5. Create a Pump Stream. All fields in PumpParams should be configurable and dependent on the test scenario – @x/streamer/keeper/keeper.go#L90
+6. Validate the Pump Stream. It must have only BaseDenom coin in the Coins list. EpochBudget and EpochBudgetLeft are 0. Validate that it’s not active yet.
+7. Simulate an epoch start – @x/sponsorship/keeper/endorsements_test.go#L639
+8. Validate the Pump Stream. EpochBudget and EpochBudgetLeft are changes with respect to NumEpochsPaidOver.
+9. Put a predictable block hash in sdk.Context that the pump won’t definitely take place – @x/streamer/keeper/pump_stream.go#L72
+10. Simulate a new block and verify that the pump wasn’t executed – check DistributedCoins, EpochBudgetLeft, and IRO plan SoldAmt are the same and no EventPumped event. x/streamer balance should stay the same.
+11. Put a predictable block hash in sdk.Context that the pump will definitely take place.
+12. Simulate a new block and verify that the pump was executed – Check existence of EventPumped and EventBurn. Check pumped (or burned) amount for every RollApp from any event and see that the distribution of pumped amount was correct. Check DistributedCoins, EpochBudgetLeft, IRO plan SoldAmt are changed accordingly.
+13. Simulate the next epoch start. It should end the previous epoch and start a new one.
+14. Validate the Pump Stream. EpochBudget and EpochBudgetLeft are changes with respect to NumEpochsPaidOver. Filled epochs should increase by 1.
+15. Settle the IRO – @x/iro/keeper/settle_test.go#L51
+16. Put a predictable block hash in sdk.Context that the pump won’t definitely take place – @x/streamer/keeper/pump_stream.go#L72
+17. Simulate a new block and verify that the pump wasn’t executed – check DistributedCoins, EpochBudgetLeft, and AMM pool params are the same and no EventPumped nor AMM swap events events. x/streamer balance should stay the same.
+18. Put a predictable block hash in sdk.Context that the pump will definitely take place.
+19. Simulate a new block and verify that the pump was executed – Check existence of EventPumped and EventBurn and AMM swap events. Check pumped (or burned) amount for every RollApp from any event and see that the distribution of pumped amount was correct. Check DistributedCoins, EpochBudgetLeft, AMM pool params are changed accordingly.
+
+Test dynamic params in a test case map:
+- All PumpParams
+- Stream num epochs paid over
+- Stream epoch ID
+- Stream coins
+- IRO LiquidityDenom
+
+Basic scenario:
+- PumpParams.num_top_rollapps = 2
+- PumpParams.num_pumps = 10
+- Stream num epochs paid over = 10
+- Stream epoch ID = "day"
+- Stream coins = 100 DYM
+- IRO LiquidityDenom = “adym” ie BaseDenom

@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
@@ -36,6 +37,17 @@ func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distributio
 	})
 
 	return rollappRecords
+}
+
+// TotalPumpBudget is the total number of DYM that all pump streams hold.
+func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
+	var totalBudget math.Int
+	for _, stream := range k.GetActiveStreams(ctx) {
+		if stream.IsPumpStream() {
+			totalBudget = totalBudget.Add(stream.Coins[0].Amount)
+		}
+	}
+	return totalBudget
 }
 
 // ShouldPump decides if the pump should happen in this block. It uses block
@@ -116,7 +128,7 @@ func GenerateUnifiedRandom(ctx sdk.Context, modulo *big.Int) *big.Int {
 // ExecutePump performs the pump operation by buying tokens for a specific rollapp.
 func (k Keeper) ExecutePump(
 	ctx sdk.Context,
-	pumpAmt math.Int,
+	pumpAmt sdk.Coin,
 	rollappID string,
 ) (tokenOut sdk.Coin, err error) {
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, rollappID)
@@ -127,12 +139,6 @@ func (k Keeper) ExecutePump(
 	plan, found := k.iroKeeper.GetPlanByRollapp(ctx, rollapp.RollappId)
 	if !found {
 		return sdk.Coin{}, fmt.Errorf("IRO plan not found for rollapp: %s", rollappID)
-	}
-
-	// Always use base denom for budget
-	baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
-	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("get base denom: %w", err)
 	}
 
 	var targetDenom string
@@ -160,8 +166,8 @@ func (k Keeper) ExecutePump(
 			ctx,
 			buyer,
 			feeToken.Route,
-			sdk.NewCoin(baseDenom, pumpAmt), // token in
-			math.ZeroInt(),                  // no slippage)
+			pumpAmt,        // token in
+			math.ZeroInt(), // no slippage)
 		)
 		if err != nil {
 			return fmt.Errorf("route exact amount in: target denom: %s, error: %w", targetDenom, err)
@@ -194,10 +200,17 @@ func (k Keeper) ExecutePump(
 func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Stream) error {
 	// All bought tokens should be burned
 	toBurn := make(sdk.Coins, 0)
+	event := make([]types.EventPumped_Pump, 0)
 
 	sponsorshipDistr, err := k.sk.GetDistribution(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get sponsorship distribution: %w", err)
+	}
+
+	// Always use base denom for budget
+	baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
+	if err != nil {
+		return fmt.Errorf("get base denom: %w", err)
 	}
 
 	for _, stream := range pumpStreams {
@@ -234,24 +247,34 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Distribute pump amount proportionally to each rollapp
+		var pumped sdk.Coin
 		for _, p := range pressure {
 			if p.Pressure.IsZero() {
 				continue
 			}
+			pumpCoin := sdk.NewCoin(baseDenom, p.Pressure)
 
-			tokenOut, err := k.ExecutePump(ctx, p.Pressure, p.RollappId)
+			tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
 			if err != nil {
 				k.Logger(ctx).Error("failed to execute pump", "streamID", stream.Id, "rollappID", p.RollappId, "error", err)
 				// Continue with other rollapps even if one fails
 				continue
 			}
 
-			toBurn = append(toBurn, tokenOut)
+			pumped = pumped.Add(pumpCoin)
+			toBurn = toBurn.Add(tokenOut)
+			event = append(event, types.EventPumped_Pump{
+				RollappId: p.RollappId,
+				StreamId:  stream.Id,
+				PumpAmt:   p.Pressure,
+				TokenOut:  tokenOut,
+			})
 		}
 
 		// Update the stream's epoch budget left
 		updatedStream := stream
 		updatedStream.PumpParams.EpochBudgetLeft = updatedStream.PumpParams.EpochBudgetLeft.Sub(pumpAmt)
+		updatedStream.AddDistributedCoins(sdk.NewCoins(pumped))
 
 		err = k.SetStream(ctx, &updatedStream)
 		if err != nil {
@@ -260,9 +283,14 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 	}
 
 	if toBurn.Len() == 0 {
-		err := k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
+		err = k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
 		if err != nil {
 			return fmt.Errorf("failed to burn coins: %w", err)
+		}
+
+		err = uevent.EmitTypedEvent(ctx, &types.EventPumped{Pumps: event})
+		if err != nil {
+			return fmt.Errorf("emit EventPumped: %w", err)
 		}
 	}
 

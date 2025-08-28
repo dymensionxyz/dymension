@@ -18,13 +18,12 @@ func NewStream(
 	sponsored bool,
 	pumpParams *MsgCreateStream_PumpParams,
 ) Stream {
-	epochCoins := coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver))
 	var pump *PumpParams
 	if pumpParams != nil {
 		pump = &PumpParams{
 			NumTopRollapps:  pumpParams.NumTopRollapps,
-			EpochBudget:     epochCoins[0].Amount,
-			EpochBudgetLeft: epochCoins[0].Amount,
+			EpochBudget:     math.ZeroInt(),
+			EpochBudgetLeft: math.ZeroInt(),
 			NumPumps:        pumpParams.NumPumps,
 		}
 	}
@@ -38,7 +37,7 @@ func NewStream(
 		FilledEpochs:         0,
 		DistributedCoins:     sdk.Coins{},
 		Sponsored:            sponsored,
-		EpochCoins:           epochCoins,
+		EpochCoins:           coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
 		PumpParams:           pump,
 	}
 }

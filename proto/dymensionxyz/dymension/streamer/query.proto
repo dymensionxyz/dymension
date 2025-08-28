@@ -123,7 +123,7 @@ message PumpPressureResponse {
 }
 
 message PumpPressureByRollappRequest {
-  uint64 rollapp_id = 1;
+  string rollapp_id = 1;
 }
 message PumpPressureByRollappResponse {
   PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];

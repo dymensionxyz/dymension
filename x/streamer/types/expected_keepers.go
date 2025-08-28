@@ -50,6 +50,7 @@ type IncentivesKeeper interface {
 type SponsorshipKeeper interface {
 	GetDistribution(ctx sdk.Context) (types.Distribution, error)
 	SaveEndorsement(ctx sdk.Context, e types.Endorsement) error
+	GetEndorsement(ctx sdk.Context, rollappID string) (types.Endorsement, error)
 	ClearAllVotes(ctx sdk.Context) error
 }
 

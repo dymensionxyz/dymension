@@ -283,7 +283,7 @@ func request_Query_PumpPressureByRollapp_0(ctx context.Context, marshaler runtim
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "rollapp_id")
 	}
 
-	protoReq.RollappId, err = runtime.Uint64(val)
+	protoReq.RollappId, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollapp_id", err)
@@ -310,7 +310,7 @@ func local_request_Query_PumpPressureByRollapp_0(ctx context.Context, marshaler 
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "rollapp_id")
 	}
 
-	protoReq.RollappId, err = runtime.Uint64(val)
+	protoReq.RollappId, err = runtime.String(val)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollapp_id", err)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -104,14 +105,33 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequest) (*types.PumpPressureResponse, error) {
 	//TODO implement me
 	panic("implement me")
+
+	q.Keeper.PumpPressure(ctx, d, q.TotalPumpBudget(ctx))
 }
 
 func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPressureByRollappRequest) (*types.PumpPressureByRollappResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	panic("implement me")
-	//ctx := sdk.UnwrapSDKContext(goCtx)
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	e, err := q.sk.GetEndorsement(ctx, req.RollappId)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := q.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPressure := q.TotalPumpBudget(ctx)
+
+	//
+	totalPressure.Quo(d.VotingPower).ToLegacyDec().Mul(e.TotalShares)
+
+	return
 }
 
 // getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.
