@@ -193,3 +193,40 @@ func TestCalcLiquidityPoolTokens(t *testing.T) {
 		}
 	}
 }
+
+func TestFairLaunchEquilibrium(t *testing.T) {
+	allocation := int64(1e9) // 1B RA tokens
+	allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
+
+	raiseTarget := int64(2 * 1e4) // 20K DYM
+	exponent := []sdkmath.LegacyDec{
+		sdkmath.LegacyMustNewDecFromStr("0.5"),
+		sdkmath.LegacyMustNewDecFromStr("1.0"),
+		sdkmath.LegacyMustNewDecFromStr("1.5"),
+	}
+	liquidityPart := []sdkmath.LegacyDec{
+		sdkmath.LegacyMustNewDecFromStr("0.5"),
+		sdkmath.LegacyMustNewDecFromStr("0.7"),
+		sdkmath.LegacyMustNewDecFromStr("1.0"),
+	}
+
+	for _, exponent := range exponent {
+		for _, liquidityPart := range liquidityPart {
+			t.Run(fmt.Sprintf("exponent=%s, liquidityPart=%s", exponent.String(), liquidityPart.String()), func(t *testing.T) {
+				calculatedM := types.CalculateM(
+					sdkmath.LegacyNewDec(raiseTarget),
+					sdkmath.LegacyNewDec(allocation),
+					exponent,
+					liquidityPart,
+				)
+				require.True(t, calculatedM.IsPositive())
+
+				curve := types.NewBondingCurve(calculatedM, exponent, sdkmath.LegacyZeroDec(), 18, 6)
+				eq := types.FindEquilibrium(curve, allocationScaled, liquidityPart)
+				require.True(t, eq.IsPositive())
+				ratio := eq.ToLegacyDec().Quo(allocationScaled.ToLegacyDec())
+				t.Logf("ratio=%s", ratio.String())
+			})
+		}
+	}
+}
