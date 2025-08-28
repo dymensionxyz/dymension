@@ -177,7 +177,6 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
-	// FIXME: review
 	// Convert target raise from its original denom to the requested liquidity denom
 	// This is needed because params.FairLaunch.TargetRaise might be in a different denom
 	convertedTargetRaise, err := m.convertTargetRaiseToLiquidityDenom(ctx, params.FairLaunch.TargetRaise, req.LiquidityDenom)
@@ -220,7 +219,7 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 		true, // fair launched
 		rollapp,
 		bondingCurve,
-		types.DefaultIncentivePlanParams(),
+		types.DefaultIncentivePlanParams(), // FIXME: review
 		params.FairLaunch.LiquidityPart,
 		// FIXME: review
 		params.MinVestingDuration,
@@ -313,13 +312,23 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 // If the denoms are the same, it returns the original target raise
 // If they're different, it attempts to find a conversion path or returns an error
 func (m msgServer) convertTargetRaiseToLiquidityDenom(ctx sdk.Context, targetRaise sdk.Coin, liquidityDenom string) (sdk.Coin, error) {
-	// If denoms are the same, no conversion needed
+	// if the target raise denom is the same as the liquidity denom, return the original target raise
 	if targetRaise.Denom == liquidityDenom {
 		return targetRaise, nil
 	}
 
-	// FIXME: fix!!
-	return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "target raise denom %s must match liquidity denom %s for fair launches", targetRaise.Denom, liquidityDenom)
+	// convert the target raise to the base denom (just in case it's not set in base denom)
+	baseTargetRaise, err := m.tk.CalcCoinInBaseDenom(ctx, targetRaise)
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to base denom: %v", err)
+	}
+
+	// now get the target raise in the required liquidity denom
+	liquidityTargetRaise, err := m.tk.CalcBaseInCoin(ctx, baseTargetRaise, liquidityDenom)
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err)
+	}
+	return liquidityTargetRaise, nil
 }
 
 func (k Keeper) CreateModuleAccountForPlan(ctx sdk.Context, plan types.Plan) (sdk.ModuleAccountI, error) {
