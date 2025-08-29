@@ -27,3 +27,19 @@ message EventEpochEnd {
 }
 
 message EventEpochStart { uint64 active_streams_num = 1; }
+
+message EventPumped {
+  message Pump {
+    string rollapp_id = 1;
+    uint64 stream_id = 2;
+    string pumpAmt = 3 [
+      (gogoproto.customtype) = "cosmossdk.io/math.Int",
+      (gogoproto.nullable) = false
+    ];
+    cosmos.base.v1beta1.Coin tokenOut = 4 [
+      (gogoproto.nullable) = false,
+      (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"
+    ];
+  }
+  repeated Pump pumps = 1 [ (gogoproto.nullable) = false ];
+}

@@ -56,7 +56,7 @@ func (m msgServer) BuyExactSpend(ctx context.Context, req *types.MsgBuyExactSpen
 		return nil, err
 	}
 
-	err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
+	_, err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
 	if err != nil {
 		return nil, err
 	}

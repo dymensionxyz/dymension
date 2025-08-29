@@ -21,3 +21,13 @@ message EpochPointer {
   google.protobuf.Duration epoch_duration = 4
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
 }
+
+message PumpPressure {
+  string rollapp_id = 1;
+  // Pressure is how much DYM will be used for buying RA tokens
+  // if the pump occurs
+  string pressure = 2 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}

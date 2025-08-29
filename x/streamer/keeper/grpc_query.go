@@ -101,6 +101,36 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 	return &types.UpcomingStreamsResponse{Data: streams, Pagination: pageRes}, nil
 }
 
+func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequest) (*types.PumpPressureResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPressureByRollappRequest) (*types.PumpPressureByRollappResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	e, err := q.sk.GetEndorsement(ctx, req.RollappId)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := q.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPressure := q.TotalPumpBudget(ctx)
+
+	//
+	totalPressure.Quo(d.VotingPower).ToLegacyDec().Mul(e.TotalShares)
+
+	return nil, nil
+}
+
 // getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.
 func (k Keeper) getStreamFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]types.Stream, error) {
 	streams := []types.Stream{}

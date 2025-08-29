@@ -19,8 +19,11 @@ func RandomDelegation(ctx sdk.Context, r *rand.Rand, k StakingKeeper) *stakingty
 		return nil
 	}
 
-	srcAddr := sdk.MustAccAddressFromBech32(srcVal.GetOperator())
-	delegations, err := k.GetValidatorDelegations(ctx, sdk.ValAddress(srcAddr))
+	srcValAddr, err := sdk.ValAddressFromBech32(srcVal.GetOperator())
+	if err != nil {
+		return nil
+	}
+	delegations, err := k.GetValidatorDelegations(ctx, srcValAddr)
 	if delegations == nil || err != nil {
 		return nil
 	}

@@ -8,7 +8,25 @@ import (
 )
 
 // NewStream creates a new stream struct given the required stream parameters.
-func NewStream(id uint64, distrTo DistrInfo, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64, sponsored bool) Stream {
+func NewStream(
+	id uint64,
+	distrTo DistrInfo,
+	coins sdk.Coins,
+	startTime time.Time,
+	epochIdentifier string,
+	numEpochsPaidOver uint64,
+	sponsored bool,
+	pumpParams *MsgCreateStream_PumpParams,
+) Stream {
+	var pump *PumpParams
+	if pumpParams != nil {
+		pump = &PumpParams{
+			NumTopRollapps:  pumpParams.NumTopRollapps,
+			EpochBudget:     math.ZeroInt(),
+			EpochBudgetLeft: math.ZeroInt(),
+			NumPumps:        pumpParams.NumPumps,
+		}
+	}
 	return Stream{
 		Id:                   id,
 		DistributeTo:         distrTo,
@@ -20,6 +38,7 @@ func NewStream(id uint64, distrTo DistrInfo, coins sdk.Coins, startTime time.Tim
 		DistributedCoins:     sdk.Coins{},
 		Sponsored:            sponsored,
 		EpochCoins:           coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
+		PumpParams:           pump,
 	}
 }
 
@@ -47,4 +66,9 @@ func (stream *Stream) AddDistributedCoins(coins sdk.Coins) {
 
 func (stream Stream) Key() uint64 {
 	return stream.Id
+}
+
+// IsPumpStream returns true if the stream has pump parameters configured
+func (stream Stream) IsPumpStream() bool {
+	return stream.PumpParams != nil
 }

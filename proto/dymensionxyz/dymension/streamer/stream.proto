@@ -17,7 +17,7 @@ message Stream {
   uint64 id = 1;
 
   // distribute_to is the distr_info.
-  DistrInfo distribute_to = 2 [ (gogoproto.nullable) = false ];
+  DistrInfo distribute_to = 2 [(gogoproto.nullable) = false];
 
   // coins is the total amount of coins that have been in the stream
   // Can distribute multiple coin denoms
@@ -36,7 +36,7 @@ message Stream {
   // by
   // (day, week, etc.)
   string distr_epoch_identifier = 5
-      [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+  [(gogoproto.moretags) = "yaml:\"distr_epoch_identifier\""];
 
   // num_epochs_paid_over is the number of total epochs distribution will be
   // completed over
@@ -58,4 +58,30 @@ message Stream {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+
+  // PumpParams is an *optional* field indicating if the stream
+  // is pumping or distributing. If non-null, it contains pumping params.
+  // For now, every pump stream should be sponsored.
+  PumpParams pump_params = 11;
+}
+
+message PumpParams {
+  // NumTopRollapps is a number of rollapps, top N by the voting power,
+  // that will be pumped on every pump iteration.
+  uint32 num_top_rollapps = 1;
+  // EpochBudget is how many DYM are dedicated for pumping
+  // in this Epoch.
+  string epoch_budget = 2 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // EpochBudgetLeft is DYM that is left for pumping in the epoch.
+  // epoch_budget_left <= epoch_budget.
+  string epoch_budget_left = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // NumPumps is a target number of pumps that expected to happen
+  // in the epoch (probabilistically)
+  uint64 num_pumps = 4;
 }
