@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -43,8 +44,12 @@ type KeeperTestSuite struct {
 // SetupTest sets streamer parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.App = apptesting.Setup(suite.T())
-	suite.Ctx = suite.App.NewContext(false)
-	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500000)), sdk.NewCoin("udym", math.NewInt(2500000)))
+	suite.Ctx = suite.App.NewContext(false).WithBlockTime(time.Now())
+	streamerCoins := sdk.NewCoins(
+		sdk.NewCoin(sdk.DefaultBondDenom, common.DYM.MulRaw(100)),
+		sdk.NewCoin("udym", math.NewInt(2500000)),
+		common.DymUint64(100),
+	)
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 
@@ -54,6 +59,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	ip.MinValueForDistribution = sdk.NewCoin(bd, math.ZeroInt())
 	suite.App.IncentivesKeeper.SetParams(suite.Ctx, ip)
+
+	// Fund alice, the default rollapp creator, so she has enough balance for IRO creation
+	funds := suite.App.IROKeeper.GetParams(suite.Ctx).CreationFee.Mul(math.NewInt(10)) // 10 times the creation fee
+	suite.FundAcc(sdk.MustAccAddressFromBech32(apptesting.Alice), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, funds)))
 
 	err = suite.CreateGauge()
 	suite.Require().NoError(err)
@@ -151,7 +160,7 @@ func (suite *KeeperTestSuite) Distribution() sponsorshiptypes.Distribution {
 
 // Vote creates two validators and a delegator, then delegates the stake to these validators.
 // The delegator then casts the vote to gauges through x/sponsorship.
-func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower math.Int) {
+func (suite *KeeperTestSuite) CreateValVote(vote sponsorshiptypes.MsgVote, votingPower math.Int) {
 	suite.T().Helper()
 
 	val1 := suite.CreateValidator()
@@ -173,10 +182,10 @@ func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower ma
 	suite.Delegate(delAddr, val1Addr, delegation) // delegator 1 -> validator 1
 	suite.Delegate(delAddr, val2Addr, delegation) // delegator 1 -> validator 2
 
-	suite.vote(vote)
+	suite.Vote(vote)
 }
 
-func (suite *KeeperTestSuite) vote(vote sponsorshiptypes.MsgVote) {
+func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote) {
 	suite.T().Helper()
 
 	msgServer := sponsorshipkeeper.NewMsgServer(suite.App.SponsorshipKeeper)
@@ -218,7 +227,7 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
 	suite.T().Helper()
 
-	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1_000_000_000))
+	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, common.DYM.MulRaw(1_000))
 	delAddr := delAddrs[0]
 	return suite.Delegate(delAddr, valAddr, coin)
 }

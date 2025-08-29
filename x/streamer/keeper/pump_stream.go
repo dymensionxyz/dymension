@@ -15,7 +15,6 @@ import (
 )
 
 func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int) []types.PumpPressure {
-	multiplier := pumpBudget.Quo(distr.VotingPower)
 	var rollappRecords []types.PumpPressure
 	for _, gauge := range distr.Gauges {
 		g, err := k.ik.GetGaugeByID(ctx, gauge.GaugeId)
@@ -26,7 +25,8 @@ func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distributio
 		if ra := g.GetRollapp(); ra != nil {
 			rollappRecords = append(rollappRecords, types.PumpPressure{
 				RollappId: ra.RollappId,
-				Pressure:  gauge.Power.Mul(multiplier),
+				// Don't pre-calculate 'pumpBudget / distr.VotingPower' bc it loses precision
+				Pressure: gauge.Power.Mul(pumpBudget).Quo(distr.VotingPower),
 			})
 		}
 	}
@@ -53,6 +53,8 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 // ShouldPump decides if the pump should happen in this block. It uses block
 // hash and block time as entropy.
 //
+// epochBlocks is consumed!
+//
 // Example:
 //
 // seed = 123,456,789,012,345,678,901,234,567,890 (derived from the block context)
@@ -74,22 +76,21 @@ func ShouldPump(
 	budget math.Int,
 	left math.Int,
 	pumpNum uint64,
-	epochBlocks uint64,
+	epochBlocks math.Int, // is consumed!
 ) (math.Int, error) {
 	if pumpNum == 0 {
 		// Should not pump at all
 		return math.ZeroInt(), nil
 	}
-	if epochBlocks == 0 {
+	if epochBlocks.IsZero() {
 		return math.ZeroInt(), fmt.Errorf("epochBlocks cannot be zero")
 	}
-	if pumpNum > epochBlocks {
+	if pumpNum > epochBlocks.Uint64() {
 		return math.ZeroInt(), fmt.Errorf("pumpNum (%d) cannot be greater than epochBlocks (%d)", pumpNum, epochBlocks)
 	}
 
 	// Scale down the random value to range [0, epochBlocks)
-	modulo := new(big.Int).SetUint64(epochBlocks)
-	randomInRange := GenerateUnifiedRandom(ctx, modulo)
+	randomInRange := GenerateUnifiedRandom(ctx, epochBlocks.BigIntMut())
 
 	// Check if the random value falls within the pump probability
 	// For pumpNum pumps in epochBlocks: success if random value < pumpNum
@@ -126,6 +127,7 @@ func GenerateUnifiedRandom(ctx sdk.Context, modulo *big.Int) *big.Int {
 }
 
 // ExecutePump performs the pump operation by buying tokens for a specific rollapp.
+// CONTRACT: pumpAmt is always in base denom.
 func (k Keeper) ExecutePump(
 	ctx sdk.Context,
 	pumpAmt sdk.Coin,
@@ -148,29 +150,48 @@ func (k Keeper) ExecutePump(
 		targetDenom = plan.LiquidityDenom
 	}
 
-	// Get FeeToken for target denom to find routing to the base denom.
-	// Every token must have a route to the base denom.
-	feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, targetDenom)
-	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("get fee token for denom %s: %w", targetDenom, err)
-	}
-
 	buyer := k.ak.GetModuleAddress(types.ModuleName)
 	var tokenOutAmt math.Int
 
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		// Buy:
-		// - RA tokens if IRO is over
-		// - Liquidity tokens if IRO is in progress
-		tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
-			ctx,
-			buyer,
-			feeToken.Route,
-			pumpAmt,        // token in
-			math.ZeroInt(), // no slippage)
-		)
-		if err != nil {
-			return fmt.Errorf("route exact amount in: target denom: %s, error: %w", targetDenom, err)
+		// There are several cases:
+		// - targetDenom == plan.SettledDenom =>
+		//     IRO is settled =>
+		//     RA token exists =>
+		//     every RA token has an AMM route to DYM =>
+		//     do an AMM swap using feetoken
+		//
+		// - targetDenom == plan.LiquidityDenom != baseDenom =>
+		//     IRO is not settled =>
+		//     need to buy IRO using liquidity tokens =>
+		//     every liquidity token has an AMM route to DYM =>
+		//     do an AMM swap using feetoken =>
+		//     buy IRO using tokenOut of liquidity tokens
+		//
+		// - targetDenom == plan.LiquidityDenom == baseDenom =>
+		//     IRO is not settled =>
+		//     need to buy IRO using liquidity tokens =>
+		//     pump amount is already in base denom =>
+		//     buy IRO using pumpAmt of baseDenom
+
+		if targetDenom == pumpAmt.Denom {
+			tokenOutAmt = pumpAmt.Amount
+		} else {
+			feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, targetDenom)
+			if err != nil {
+				return fmt.Errorf("get fee token for denom %s: %w", targetDenom, err)
+			}
+
+			tokenOutAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
+				ctx,
+				buyer,
+				feeToken.Route,
+				pumpAmt,        // token in
+				math.ZeroInt(), // no slippage
+			)
+			if err != nil {
+				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", targetDenom, err)
+			}
 		}
 
 		if !plan.IsSettled() {
@@ -247,7 +268,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Distribute pump amount proportionally to each rollapp
-		var pumped sdk.Coin
+		pumpedAmt := math.ZeroInt()
 		for _, p := range pressure {
 			if p.Pressure.IsZero() {
 				continue
@@ -261,7 +282,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 				continue
 			}
 
-			pumped = pumped.Add(pumpCoin)
+			pumpedAmt = pumpedAmt.Add(pumpCoin.Amount)
 			toBurn = toBurn.Add(tokenOut)
 			event = append(event, types.EventPumped_Pump{
 				RollappId: p.RollappId,
@@ -271,18 +292,19 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			})
 		}
 
-		// Update the stream's epoch budget left
-		updatedStream := stream
-		updatedStream.PumpParams.EpochBudgetLeft = updatedStream.PumpParams.EpochBudgetLeft.Sub(pumpAmt)
-		updatedStream.AddDistributedCoins(sdk.NewCoins(pumped))
+		// Update the stream if needed
+		if !pumpedAmt.IsZero() {
+			stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudgetLeft.Sub(pumpedAmt)
+			stream.AddDistributedCoins(sdk.NewCoins(sdk.NewCoin(baseDenom, pumpedAmt)))
 
-		err = k.SetStream(ctx, &updatedStream)
-		if err != nil {
-			return fmt.Errorf("failed to update stream after pump: %w", err)
+			err = k.SetStream(ctx, &stream)
+			if err != nil {
+				return fmt.Errorf("failed to update stream after pump: %w", err)
+			}
 		}
 	}
 
-	if toBurn.Len() == 0 {
+	if toBurn.Len() != 0 {
 		err = k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
 		if err != nil {
 			return fmt.Errorf("failed to burn coins: %w", err)
@@ -300,16 +322,20 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 // Number of seconds in the year.
 // 60 * 60 * 8766 is how the SDK defines it:
 // https://github.com/cosmos/cosmos-sdk/blob/v0.50.14/x/mint/types/params.go#L33
-const year = 60 * 60 * 8766
+const yearSecs = 60 * 8766
 
-func (k Keeper) EpochBlocks(ctx sdk.Context, epochID string) (uint64, error) {
+func (k Keeper) EpochBlocks(ctx sdk.Context, epochID string) (math.Int, error) {
 	info := k.ek.GetEpochInfo(ctx, epochID)
 	mintParams, err := k.mintParams.Get(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("get mint params: %w", err)
+		return math.ZeroInt(), fmt.Errorf("get mint params: %w", err)
 	}
-	blocksPerSecond := mintParams.BlocksPerYear / year
 	// info.Duration might be "hour", "day", or "week" and is defined as
 	// an integer, so it's safe to cast it to uint64.
-	return uint64(info.Duration.Seconds()) * blocksPerSecond, nil
+	var (
+		year          = math.NewInt(yearSecs)
+		blocksPerYear = math.NewIntFromUint64(mintParams.BlocksPerYear)
+		epochSecs     = math.NewInt(int64(info.Duration))
+	)
+	return epochSecs.Mul(blocksPerYear).Quo(year), nil
 }

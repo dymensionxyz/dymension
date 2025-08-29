@@ -102,32 +102,36 @@ func (k Keeper) CreateStream(
 	}
 
 	var distrInfo types.DistrInfo
-	if sponsored {
-		distr, err := k.sk.GetDistribution(ctx)
-		if err != nil {
-			return 0, fmt.Errorf("failed to get sponsorship distribution: %w", err)
-		}
-		distrInfo = types.DistrInfoFromDistribution(distr)
-	} else {
-		distr, err := k.NewDistrInfo(ctx, records)
-		if err != nil {
-			return 0, err
-		}
-		distrInfo = distr
-	}
+	switch {
+	case pumpParams != nil && sponsored:
+		// Invalid Stream
+		return 0, fmt.Errorf("pump steram cannot be set for sponsored")
 
-	// Pump stream has additional restrictions
-	if pumpParams != nil {
-		if sponsored {
-			return 0, fmt.Errorf("pump params can only be set for non-sponsored streams")
-		}
+	case pumpParams != nil:
+		// Pump Stream
 		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
 		if err != nil {
 			return 0, fmt.Errorf("get base denom: %w", err)
 		}
 		if coins.Len() != 1 || coins[0].Denom != baseDenom {
-			return 0, fmt.Errorf("pump stream must have one coin with base denom")
+			return 0, fmt.Errorf("pump stream must have one coin with base denom: base denom: %s, coins: %s", baseDenom, coins)
 		}
+
+	case sponsored:
+		// Sponsored Stream
+		distr, err := k.sk.GetDistribution(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get sponsorship distribution: %w", err)
+		}
+		distrInfo = types.DistrInfoFromDistribution(distr)
+
+	default:
+		// Usual Stream
+		distr, err := k.NewDistrInfo(ctx, records)
+		if err != nil {
+			return 0, err
+		}
+		distrInfo = distr
 	}
 
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
