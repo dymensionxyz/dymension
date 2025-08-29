@@ -144,14 +144,14 @@ func (k Keeper) ExecutePump(
 		return sdk.Coin{}, fmt.Errorf("IRO plan not found for rollapp: %s", rollappID)
 	}
 
-	var targetDenom string
-	if plan.IsSettled() {
-		targetDenom = plan.SettledDenom
-	} else {
-		targetDenom = plan.LiquidityDenom
-	}
-
 	buyer := k.ak.GetModuleAddress(types.ModuleName)
+
+	var tokenOutDenom string
+	if plan.IsSettled() {
+		tokenOutDenom = plan.SettledDenom
+	} else {
+		tokenOutDenom = plan.LiquidityDenom
+	}
 	var tokenOutAmt math.Int
 
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
@@ -162,28 +162,29 @@ func (k Keeper) ExecutePump(
 		//     every RA token has an AMM route to DYM =>
 		//     do an AMM swap using feetoken
 		//
-		// - targetDenom == plan.LiquidityDenom != baseDenom =>
+		// - targetDenom == plan.LiquidityDenom != BaseDenom =>
 		//     IRO is not settled =>
 		//     need to buy IRO using liquidity tokens =>
 		//     every liquidity token has an AMM route to DYM =>
 		//     do an AMM swap using feetoken =>
 		//     buy IRO using tokenOut of liquidity tokens
 		//
-		// - targetDenom == plan.LiquidityDenom == baseDenom =>
+		// - targetDenom == plan.LiquidityDenom == BaseDenom =>
 		//     IRO is not settled =>
 		//     need to buy IRO using liquidity tokens =>
 		//     pump amount is already in base denom =>
-		//     buy IRO using pumpAmt of baseDenom
+		//     buy IRO using pumpAmt of BaseDenom
 
-		if targetDenom == pumpAmt.Denom {
+		if tokenOutDenom == pumpAmt.Denom {
+			// This can happen only for unsettled IRO with LiquidityToken == BaseDenom
 			tokenOutAmt = pumpAmt.Amount
 		} else {
-			feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, targetDenom)
+			feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, tokenOutDenom)
 			if err != nil {
-				return fmt.Errorf("get fee token for denom %s: %w", targetDenom, err)
+				return fmt.Errorf("get fee token for denom %s: %w", tokenOutDenom, err)
 			}
 
-			reverseRoute := reverseInRoute(feeToken.Route, targetDenom)
+			reverseRoute := reverseInRoute(feeToken.Route, tokenOutDenom)
 			tokenOutAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
 				ctx,
 				buyer,
@@ -192,7 +193,7 @@ func (k Keeper) ExecutePump(
 				math.ZeroInt(), // no slippage
 			)
 			if err != nil {
-				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", targetDenom, err)
+				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", tokenOutDenom, err)
 			}
 		}
 
@@ -208,6 +209,8 @@ func (k Keeper) ExecutePump(
 			if err != nil {
 				return fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
 			}
+			// In that case, tokenOut is an IRO token
+			tokenOutDenom = plan.GetIRODenom()
 		}
 
 		return nil
@@ -216,7 +219,7 @@ func (k Keeper) ExecutePump(
 		return sdk.Coin{}, err
 	}
 
-	return sdk.NewCoin(targetDenom, tokenOutAmt), nil
+	return sdk.NewCoin(tokenOutDenom, tokenOutAmt), nil
 }
 
 // DistributePumpStreams processes all pump streams and executes pumps if conditions are met
@@ -270,7 +273,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Distribute pump amount proportionally to each rollapp
-		pumpedAmt := math.ZeroInt()
+		totalPumped := sdk.NewCoins()
 		for _, p := range pressure {
 			if p.Pressure.IsZero() {
 				continue
@@ -284,7 +287,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 				continue
 			}
 
-			pumpedAmt = pumpedAmt.Add(pumpCoin.Amount)
+			totalPumped = totalPumped.Add(pumpCoin)
 			toBurn = toBurn.Add(tokenOut)
 			event = append(event, types.EventPumped_Pump{
 				RollappId: p.RollappId,
@@ -295,9 +298,9 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Update the stream if needed
-		if !pumpedAmt.IsZero() {
-			stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudgetLeft.Sub(pumpedAmt)
-			stream.AddDistributedCoins(sdk.NewCoins(sdk.NewCoin(baseDenom, pumpedAmt)))
+		if !totalPumped.IsZero() {
+			stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudgetLeft.Sub(totalPumped.AmountOfNoDenomValidation(baseDenom))
+			stream.AddDistributedCoins(totalPumped)
 
 			err = k.SetStream(ctx, &stream)
 			if err != nil {
