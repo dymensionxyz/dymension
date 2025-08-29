@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"time"
 
 	"cosmossdk.io/math"
@@ -115,7 +116,10 @@ func (s *KeeperTestSuite) TestPumpStream() {
 //  7. Simulate an epoch start.
 //  8. Validate the Pump Stream – EpochBudget and EpochBudgetLeft are changed = 10 DYM.
 //  9. Use a predictable block hash in sdk.Context that the pump won’t definitely happen.
-//  10. Simulate a new block and verify that the pump wasn’t executed – DistributedCoins, EpochBudgetLeft, IRO.SoldAmt are the same and no EventPumped event. x/streamer balance is the same.
+//  10. Simulate a new block and verify that the pump wasn’t executed:
+//     – DistributedCoins, EpochBudgetLeft, IRO.SoldAmt are the same
+//     - No EventPumped event
+//     - x/streamer balance is the same
 //  11. Put a predictable block hash in sdk.Context that the pump will definitely happen.
 //  12. Simulate a new block and verify that the pump was executed:
 //     - TopRollappNum == 2 => Select the top two RAs by power – RA1 (60 DYM) and RA2 (100 DYM)
@@ -131,11 +135,19 @@ func (s *KeeperTestSuite) TestPumpStream() {
 //  14. Validate the Pump Stream:
 //     - FilledEpochs += 1
 //     - EpochBudget == EpochBudgetLeft == (100 DYM - 18069 aDYM) / 9 == 1 111 111 111 111 109 103
-//  15. Settle the IRO – @x/iro/keeper/settle_test.go#L51
-//  16. Put a predictable block hash in sdk.Context that the pump won’t definitely take place – @x/streamer/keeper/pump_stream.go#L72
-//  17. Simulate a new block and verify that the pump wasn’t executed – check DistributedCoins, EpochBudgetLeft, and AMM pool params are the same and no EventPumped nor AMM swap events events. x/streamer balance should stay the same.
-//  18. Put a predictable block hash in sdk.Context that the pump will definitely take place.
-//  19. Simulate a new block and verify that the pump was executed – Check existence of EventPumped and EventBurn and AMM swap events. Check pumped (or burned) amount for every RollApp from any event and see that the distribution of pumped amount was correct. Check DistributedCoins, EpochBudgetLeft, AMM pool params are changed accordingly.
+//  15. Settle the IRO
+//  16. Put a predictable block hash in sdk.Context that the pump won’t definitely happen
+//  17. Simulate a new block and verify that the pump wasn’t executed (see 10)
+//  18. Put a predictable block hash in sdk.Context that the pump will definitely happen.
+//  19. Simulate a new block and verify that the pump was executed:
+//     - TopRollappNum == 2 => Select the top two RAs by power – RA1 (60 DYM) and RA2 (100 DYM)
+//     - Total VP is 200 DYM => RA1 gets 60/200 = 30% and RA2 gets 100/200 = 50% of rewards
+//     - With the above header hash, we will pump for 27379 aDYM in this epoch (pre-calculated)
+//     - RA1 gets 8213 aDYM, RA2 gets 13689 aDYM => Total is 21902 aDYM
+//     - Stream.DistributedCoins += 21902 aDYM
+//     - Stream.EpochBudgetLeft -= 21902 aDYM
+//     - x/streamer balance -= 21902 aDYM
+//     - EventPumped, EvenBurn and swap events occur
 func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	// Step 1: Create 4 rollapps
 	rollapps := s.createRollapps(4)
@@ -147,8 +159,8 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	s.voteOnRollapps(delegators)
 
 	// Step 4: Create IRO
-	planID1 := s.createIRO(rollapps[0], tc.liquidityDenom)
-	planID2 := s.createIRO(rollapps[1], tc.liquidityDenom)
+	_, iroReserved1 := s.createIRO(rollapps[0])
+	_, iroReserved2 := s.createIRO(rollapps[1])
 
 	// Step 5: Create Pump Stream
 	streamID := s.createPumpStream(tc)
@@ -163,16 +175,16 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	s.validatePumpStreamAfterEpochStart(streamID, tc)
 
 	// Step 9: Set predictable hash for no pump
-	ctxNoPump := s.hashNoPump(s.Ctx)
+	s.Ctx = s.hashNoPump(s.Ctx)
 
 	// Step 10: Simulate block and verify no pump
-	s.simulateBlockAndVerifyNoPump(ctxNoPump, streamID, []string{planID1, planID2})
+	s.simulateBlockAndVerifyNoPump(s.Ctx, streamID)
 
 	// Step 11: Set predictable hash for pump execution
-	ctxPump := s.hashPump(s.Ctx)
+	s.Ctx = s.hashPump(s.Ctx)
 
 	// Step 12: Simulate block and verify pump execution
-	s.simulateBlockAndVerifyPump(ctxPump, streamID, []string{planID1, planID2})
+	s.simulateBlockAndVerifyPump(s.Ctx, streamID)
 
 	// Step 13: Simulate next epoch start
 	s.simulateEpochStart(tc.epochIdentifier)
@@ -180,20 +192,22 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	// Step 14: Validate pump stream after second epoch
 	s.validatePumpStreamAfterSecondEpoch(streamID)
 
-	// Step 15: Settle IRO
-	s.settleIRO(rollapps[0])
+	// Step 15: Settle IROs
+	s.settleIRO(rollapps[0], iroReserved1)
+	s.settleIRO(rollapps[1], iroReserved2)
 
 	// Step 16: Set predictable hash for no pump (post-settlement)
-	ctxNoPumpSettled := s.hashNoPump(s.Ctx)
+	s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
+	s.Ctx = s.hashNoPump(s.Ctx)
 
 	// Step 17: Simulate block and verify no pump (post-settlement)
-	s.simulateBlockAndVerifyNoPumpPostSettlement(ctxNoPumpSettled, streamID)
+	s.simulateBlockAndVerifyNoPumpPostSettlement(s.Ctx, streamID)
 
 	// Step 18: Set predictable hash for pump (post-settlement)
-	ctxPumpSettled := s.hashPump(s.Ctx)
+	s.Ctx = s.hashPump(s.Ctx)
 
 	// Step 19: Simulate block and verify pump with AMM swap (post-settlement)
-	s.simulateBlockAndVerifyPumpWithAMM(ctxPumpSettled, streamID)
+	s.simulateBlockAndVerifyPumpWithAMM(s.Ctx, streamID)
 }
 
 // Helper functions
@@ -247,7 +261,7 @@ func (s *KeeperTestSuite) voteOnRollapps(delegators []sdk.AccAddress) {
 	s.Vote(vote2)
 }
 
-func (s *KeeperTestSuite) createIRO(rollappID, liquidityDenom string) string {
+func (s *KeeperTestSuite) createIRO(rollappID string) (planID string, reservedAmt math.Int) {
 	k := s.App.IROKeeper
 	curve := irotypes.DefaultBondingCurve()
 	incentives := irotypes.DefaultIncentivePlanParams()
@@ -258,7 +272,7 @@ func (s *KeeperTestSuite) createIRO(rollappID, liquidityDenom string) string {
 	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now(), true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
-	return planID
+	return planID, k.MustGetPlan(s.Ctx, planID).SoldAmt
 }
 
 func (s *KeeperTestSuite) createPumpStream(tc pumpTestCase) uint64 {
@@ -326,7 +340,7 @@ func (s *KeeperTestSuite) hashPump(ctx sdk.Context) sdk.Context {
 	return ctx.WithHeaderHash(hash)
 }
 
-func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID uint64, planIDs []string) {
+func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID uint64) {
 	// Get initial state
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
@@ -372,7 +386,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 0)
 }
 
-func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID uint64, planIDs []string) {
+func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID uint64) {
 	// Get initial state
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
@@ -434,13 +448,19 @@ func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64) {
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
 }
 
-func (s *KeeperTestSuite) settleIRO(rollappID string) {
+func (s *KeeperTestSuite) settleIRO(rollappID string, reserveAmt math.Int) {
 	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
 	s.Require().True(found)
 
-	// Fund module for settlement
-	rollappDenom := plan.TotalAllocation.Denom
-	amt := plan.TotalAllocation.Amount
+	// Fund module with insufficient funds for settlement
+	// Sold amount
+	iroDenom := plan.TotalAllocation.Denom
+	amt := plan.SoldAmt.Sub(reserveAmt)
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(iroDenom, amt)))
+
+	// Settlement token
+	rollappDenom := fmt.Sprintf("hui/%s", rollappID)
+	amt = plan.TotalAllocation.Amount
 	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
 
 	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
@@ -451,9 +471,6 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPumpPostSettlement(ctx sdk.Con
 	// Similar to simulateBlockAndVerifyNoPump but for post-settlement state
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
-
-	initialDistributedCoins := initialStream.DistributedCoins
-	initialEpochBudgetLeft := initialStream.PumpParams.EpochBudgetLeft
 
 	// Execute pump distribution
 	pumpStreams := s.App.StreamerKeeper.GetActiveStreams(ctx)
@@ -471,8 +488,8 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPumpPostSettlement(ctx sdk.Con
 	finalStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
 
-	s.Require().True(finalStream.DistributedCoins.Equal(initialDistributedCoins))
-	s.Require().Equal(initialEpochBudgetLeft, finalStream.PumpParams.EpochBudgetLeft)
+	s.Require().True(finalStream.DistributedCoins.Equal(initialStream.DistributedCoins))
+	s.Require().Equal(initialStream.PumpParams.EpochBudgetLeft, finalStream.PumpParams.EpochBudgetLeft)
 
 	// Verify no events
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 0)

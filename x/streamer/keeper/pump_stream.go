@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 )
 
 func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int) []types.PumpPressure {
@@ -182,10 +183,11 @@ func (k Keeper) ExecutePump(
 				return fmt.Errorf("get fee token for denom %s: %w", targetDenom, err)
 			}
 
+			reverseRoute := reverseInRoute(feeToken.Route, targetDenom)
 			tokenOutAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
 				ctx,
 				buyer,
-				feeToken.Route,
+				reverseRoute,
 				pumpAmt,        // token in
 				math.ZeroInt(), // no slippage
 			)
@@ -338,4 +340,28 @@ func (k Keeper) EpochBlocks(ctx sdk.Context, epochID string) (math.Int, error) {
 		epochSecs     = math.NewInt(int64(info.Duration))
 	)
 	return epochSecs.Mul(blocksPerYear).Quo(year), nil
+}
+
+// copy of https://github.com/dymensionxyz/osmosis/blob/4e25bd944ed7b5d4b83b023715a141f0aa6cb4f8/x/txfees/keeper/fees.go#L236
+func reverseInRoute(feeTokenRoute []poolmanagertypes.SwapAmountInRoute, denom string) []poolmanagertypes.SwapAmountInRoute {
+	newInRoute := make([]poolmanagertypes.SwapAmountInRoute, len(feeTokenRoute))
+
+	lstIdx := len(feeTokenRoute) - 1
+	for i := lstIdx; i >= 0; i-- {
+		inRoute := feeTokenRoute[i]
+		var outDenom string
+		if i > 0 {
+			outDenom = feeTokenRoute[i-1].TokenOutDenom
+		} else {
+			outDenom = denom
+		}
+
+		j := lstIdx - i
+		newInRoute[j] = poolmanagertypes.SwapAmountInRoute{
+			PoolId:        inRoute.PoolId,
+			TokenOutDenom: outDenom,
+		}
+	}
+
+	return newInRoute
 }
