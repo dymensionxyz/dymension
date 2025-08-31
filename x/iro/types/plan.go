@@ -88,16 +88,18 @@ func (p Plan) ValidateBasic() error {
 		return errors.New("liquidity part must be between 0 and 1")
 	}
 
-	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
-		return errors.Join(ErrInvalidIncentivePlanParams, err)
-	}
-
-	if err := p.VestingPlan.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "vesting plan")
-	}
-
 	if err := sdk.ValidateDenom(p.LiquidityDenom); err != nil {
 		return errorsmod.Wrap(err, "invalid liquidity denom")
+	}
+
+	if !p.FairLaunched {
+		if err := p.VestingPlan.ValidateBasic(); err != nil {
+			return errorsmod.Wrap(err, "vesting plan")
+		}
+
+		if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
+			return errors.Join(ErrInvalidIncentivePlanParams, err)
+		}
 	}
 
 	return nil

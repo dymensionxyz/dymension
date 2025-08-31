@@ -109,7 +109,19 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.LiquidityDenom, req.AllocatedAmount, req.IroPlanDuration, req.StartTime, req.TradingEnabled, false, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration, req.VestingStartTimeAfterSettlement)
+	planId, err := m.Keeper.CreatePlan(ctx,
+		req.LiquidityDenom,
+		req.AllocatedAmount,
+		req.IroPlanDuration,
+		req.StartTime,
+		req.TradingEnabled,
+		false,
+		rollapp,
+		req.BondingCurve,
+		req.IncentivePlanParams,
+		req.LiquidityPart,
+		req.VestingDuration,
+		req.VestingStartTimeAfterSettlement)
 	if err != nil {
 		return nil, err
 	}
@@ -188,8 +200,9 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 	// Convert amounts to decimal representation for calculation
 	allocationDec := types.ScaleFromBase(params.FairLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
+	liquidityPart := math.LegacyOneDec()
 
-	calculatedM := types.CalculateM(targetRaiseDec, allocationDec, params.FairLaunch.CurveExp, params.FairLaunch.LiquidityPart)
+	calculatedM := types.CalculateM(targetRaiseDec, allocationDec, params.FairLaunch.CurveExp, liquidityPart)
 	if !calculatedM.IsPositive() {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
 	}
@@ -213,17 +226,16 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 		ctx,
 		req.LiquidityDenom,
 		params.FairLaunch.AllocationAmount,
-		params.MinPlanDuration, // FIXME: review
-		time.Time{},
+		0,           // no minimum plan duration
+		time.Time{}, // no start time
 		req.TradingEnabled,
 		true, // fair launched
 		rollapp,
 		bondingCurve,
-		types.DefaultIncentivePlanParams(), // FIXME: review
-		params.FairLaunch.LiquidityPart,
-		// FIXME: review
-		params.MinVestingDuration,
-		params.MinVestingStartTimeAfterSettlement,
+		types.IncentivePlanParams{}, // no incentive plan params for fair launch
+		liquidityPart,
+		0, // liquidity part for fair launch is 1.0, so no vesting duration
+		0, // liquidity part for fair launch is 1.0, so no vesting start time after settlement
 	)
 	if err != nil {
 		return nil, err
@@ -274,7 +286,6 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 		return "", errors.Join(gerrc.ErrInvalidArgument, err)
 	}
 
-	// FIXME: review
 	err = k.rk.SetIROPlanToRollapp(ctx, &rollapp, plan)
 	if err != nil {
 		return "", errors.Join(gerrc.ErrFailedPrecondition, err)
@@ -305,7 +316,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 	// Set the plan in the store
 	k.SetPlan(ctx, plan)
 
-	return fmt.Sprintf("%d", plan.Id), nil
+	return plan.GetID(), nil
 }
 
 // convertTargetRaiseToLiquidityDenom converts the target raise from its original denom to the requested liquidity denom
