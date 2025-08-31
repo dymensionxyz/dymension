@@ -25,7 +25,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 
@@ -118,7 +118,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			// Create IRO plan
 			planDenom := "adym"
 			apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin(planDenom, k.GetParams(s.Ctx).CreationFee)))
-			planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, startTime, true, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+			planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 			s.Require().NoError(err)
 			reservedTokens := k.MustGetPlan(s.Ctx, planId).SoldAmt
 
@@ -131,6 +131,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 			plan := k.MustGetPlan(s.Ctx, planId)
 			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
+			// FIXME: test the pool created
 			s.Require().Equal(tc.expectedDYM.String(), raisedDYM.Amount.String())
 
 			unallocatedTokensAmt := allocation.Sub(plan.SoldAmt).Add(reservedTokens)
@@ -150,7 +151,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 			poolCoins := pool.GetTotalPoolLiquidity(s.Ctx)
 			s.Require().Equal(expectedDYMInPool.String(), poolCoins.AmountOf("adym").String())
-			s.Require().Equal(expectedTokensInPool, poolCoins.AmountOf(rollappDenom))
+			s.Require().Equal(expectedTokensInPool.String(), poolCoins.AmountOf(rollappDenom).String(), "poolCoins: %s", poolCoins.String())
 
 			// Assert pool price
 			lastIROPrice := plan.SpotPrice()
