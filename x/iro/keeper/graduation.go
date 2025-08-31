@@ -39,5 +39,12 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, error) {
 
 	k.SetPlan(ctx, plan)
 
+	// graduated plans can be launched, thus we need to set the pre launch time
+	rollapp, found := k.rk.GetRollapp(ctx, plan.RollappId)
+	if !found {
+		return 0, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp not found")
+	}
+	k.rk.SetPreLaunchTime(ctx, &rollapp, ctx.BlockTime())
+
 	return poolID, nil
 }
