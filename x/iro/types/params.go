@@ -24,7 +24,6 @@ var (
 		AllocationAmount: math.NewInt(1e9).MulRaw(1e18),                      // 1B RA tokens
 		TargetRaise:      sdk.NewCoin("adym", math.NewInt(2e4).MulRaw(1e18)), // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.5"),
-		LiquidityPart:    math.LegacyMustNewDecFromStr("1.0"),
 	}
 )
 
@@ -94,10 +93,6 @@ func (p Params) ValidateBasic() error {
 
 	if !p.FairLaunch.TargetRaise.IsValid() {
 		return fmt.Errorf("target raise is not valid: %s", p.FairLaunch.TargetRaise)
-	}
-
-	if !p.FairLaunch.LiquidityPart.IsPositive() || p.FairLaunch.LiquidityPart.GT(math.LegacyOneDec()) {
-		return fmt.Errorf("liquidity part must be positive and less than 1: %s", p.FairLaunch.LiquidityPart)
 	}
 
 	return nil

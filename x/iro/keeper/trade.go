@@ -270,6 +270,10 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 		return nil, types.ErrPlanNotFound
 	}
 
+	if !plan.TradingEnabled {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading disabled")
+	}
+
 	if !plan.PreGraduation() {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "planId: %d, status: %s", plan.Id, plan.GraduationStatus.String())
 	}
@@ -278,11 +282,6 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	if owner.Equals(trader) {
 		return &plan, nil
-	}
-
-	// validate trading enabled
-	if !plan.TradingEnabled {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading disabled")
 	}
 
 	if ctx.BlockTime().Before(plan.StartTime) {
