@@ -47,40 +47,44 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
-	// burn all the remaining IRO token.
-	iroTokenBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
-	err := k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(iroTokenBalance))
-	if err != nil {
-		return err
-	}
+	// update the settled denom
+	plan.SettledDenom = rollappIBCDenom
 
+	var err error
 	var poolID, gaugeID uint64
 	// if already graduated, we need to swap the IRO asset tokens with the settled tokens
 	if plan.GraduationStatus == types.GraduationStatus_POOL_CREATED {
 		poolID = plan.GraduatedPoolId
 		// call SwapPoolAsset to swap the pool asset to the settled denom
-		err = k.gk.SwapPoolAsset(ctx, plan.GetAddress(), poolID, plan.LiquidityDenom, plan.SettledDenom, plan.SoldAmt)
+		err := k.gk.SwapPoolAsset(ctx, plan.GetAddress(), poolID, plan.GetIRODenom(), plan.SettledDenom, plan.SoldAmt)
 		if err != nil {
 			return err
 		}
 	} else {
 		var incentives sdk.Coins
-		poolID, incentives, err = k.GraduatePlan(ctx, plan.GetID())
+		poolID, incentives, err = k.createPoolForPlan(ctx, plan)
 		if err != nil {
 			return err
 		}
-		// load the plan again to get the updated plan
-		plan = k.MustGetPlan(ctx, plan.GetID())
 
 		// add incentives to the pool
 		gaugeID, err = k.addIncentivesToPool(ctx, plan, poolID, incentives)
 		if err != nil {
 			return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 		}
+
+		plan.GraduatedPoolId = poolID
+	}
+
+	// burn all the remaining IRO token.
+	iroTokenBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
+	err = k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(iroTokenBalance))
+	if err != nil {
+		return err
 	}
 
 	// mark the plan as `settled`, allowing users to claim tokens
-	plan.SettledDenom = rollappIBCDenom
+	plan.GraduationStatus = types.GraduationStatus_SETTLED
 	k.SetPlan(ctx, plan)
 
 	// Emit event
@@ -119,9 +123,14 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 		return 0, nil, err
 	}
 
+	denom := plan.SettledDenom
+	if denom == "" {
+		denom = plan.GetIRODenom()
+	}
+
 	// find the raTokens needed to bootstrap the pool, to fulfill last price
 	raTokens, liquidityTokens := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
-	rollappLiquidityCoin := sdk.NewCoin(plan.SettledDenom, raTokens)
+	rollappLiquidityCoin := sdk.NewCoin(denom, raTokens)
 	baseLiquidityCoin := sdk.NewCoin(plan.LiquidityDenom, liquidityTokens)
 
 	// create pool
