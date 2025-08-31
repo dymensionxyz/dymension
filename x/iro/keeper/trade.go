@@ -117,7 +117,7 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 
 	// if all tokens are sold, we need to graduate the plan
 	if plan.SoldAmt.Equal(plan.MaxAmountToSell) {
-		_, err := k.GraduatePlan(ctx, planId)
+		_, _, err := k.GraduatePlan(ctx, planId)
 		if err != nil {
 			return err
 		}

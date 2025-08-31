@@ -10,13 +10,15 @@ import (
 )
 
 // GraduatePlan graduates the plan into a pool
-func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, error) {
+func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins, error) {
 	plan, found := k.GetPlan(ctx, planId)
 	if !found {
-		return 0, errorsmod.Wrapf(gerrc.ErrNotFound, "plan not found")
+		return 0, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "plan not found")
 	}
 
-	// FIXME: check that the plan is in the pre-graduation status
+	if !plan.PreGraduation() {
+		return 0, nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "planId: %d, status: %s", plan.Id, plan.GraduationStatus.String())
+	}
 
 	raisedLiquidityAmt := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom).Amount
 	poolTokens := raisedLiquidityAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
@@ -28,23 +30,24 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, error) {
 	plan.VestingPlan.EndTime = plan.VestingPlan.StartTime.Add(plan.VestingPlan.VestingDuration)
 
 	// uses the raised liquidity and unsold tokens to bootstrap the rollapp's liquidity pool
-	poolID, err := k.bootstrapLiquidityPool(ctx, plan, poolTokens)
+	poolID, leftoverTokens, err := k.bootstrapLiquidityPool(ctx, plan, poolTokens)
 	if err != nil {
-		return 0, errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
+		return 0, nil, errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
 
 	// set the plan to the graduated status
 	plan.GraduationStatus = types.GraduationStatus_POOL_CREATED
 	plan.GraduatedPoolId = poolID
-
 	k.SetPlan(ctx, plan)
 
-	// graduated plans can be launched, thus we need to set the pre launch time
 	rollapp, found := k.rk.GetRollapp(ctx, plan.RollappId)
 	if !found {
-		return 0, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp not found")
+		return 0, nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp not found")
 	}
-	k.rk.SetPreLaunchTime(ctx, &rollapp, ctx.BlockTime())
+	// graduated plans can be launched, thus we need to update the pre launch time
+	if rollapp.PreLaunchTime.After(ctx.BlockTime()) {
+		k.rk.SetPreLaunchTime(ctx, &rollapp, ctx.BlockTime())
+	}
 
-	return poolID, nil
+	return poolID, leftoverTokens, nil
 }
