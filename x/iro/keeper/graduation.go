@@ -36,8 +36,7 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins,
 		return 0, nil, errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
 
-	// set the plan to the graduated status
-	plan.GraduationStatus = types.GraduationStatus_POOL_CREATED
+	// set the pool ID to the plan
 	plan.GraduatedPoolId = poolID
 	k.SetPlan(ctx, plan)
 

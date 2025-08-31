@@ -10,21 +10,6 @@ import "dymensionxyz/dymension/iro/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/iro/types";
 
-
-// graduation status
-// 0 - pre graduation
-// 1- pool created
-// 2 - settled
-enum GraduationStatus {
-  PRE_GRADUATION = 0;
-  POOL_CREATED = 1;
-  SETTLED = 2;
-}
-
-
-
-
-
 // Bonding curve represents a bonding curve in the IRO module.
 // BondingCurve represents a bonding curve with parameters M, N, and C.
 // The price of the token is calculated as follows:
@@ -126,17 +111,12 @@ message Plan {
   // the denom used for raising liquidity
   string liquidity_denom = 17;
 
-
-  /* FIXME: add proper documentation */
-
   // Whether the plan was created as a fair launch
   bool fair_launched = 18;
 
-  // graduation status
-  GraduationStatus graduation_status = 19;
-
   // graduated pool ID
-  uint64 graduated_pool_id = 20;
+  uint64 graduated_pool_id = 19;
+
 }
 
 message IncentivePlanParams {

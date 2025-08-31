@@ -53,7 +53,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	var err error
 	var poolID, gaugeID uint64
 	// if already graduated, we need to swap the IRO asset tokens with the settled tokens
-	if plan.GraduationStatus == types.GraduationStatus_POOL_CREATED {
+	if plan.IsGraduated() {
 		poolID = plan.GraduatedPoolId
 		// call SwapPoolAsset to swap the pool asset to the settled denom
 		err := k.gk.SwapPoolAsset(ctx, plan.GetAddress(), poolID, plan.GetIRODenom(), plan.SettledDenom, plan.SoldAmt)
@@ -75,6 +75,8 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 		plan.GraduatedPoolId = poolID
 	}
+	// commit the settled plan
+	k.SetPlan(ctx, plan)
 
 	// burn all the remaining IRO token.
 	iroTokenBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
@@ -82,10 +84,6 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	if err != nil {
 		return err
 	}
-
-	// mark the plan as `settled`, allowing users to claim tokens
-	plan.GraduationStatus = types.GraduationStatus_SETTLED
-	k.SetPlan(ctx, plan)
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventSettle{

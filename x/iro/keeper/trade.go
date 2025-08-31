@@ -271,7 +271,7 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 	}
 
 	if !plan.PreGraduation() {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "planId: %d, status: %s", plan.Id, plan.GraduationStatus.String())
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "planId: %d, status: %s", plan.Id, plan.GetGraduationStatus().String())
 	}
 
 	// Validate trading enabled and start time started (unless the trader is the owner)

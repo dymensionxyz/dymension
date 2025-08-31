@@ -110,19 +110,6 @@ func (p Plan) SpotPrice() math.LegacyDec {
 	return p.BondingCurve.SpotPrice(p.SoldAmt)
 }
 
-// PreGraduation returns true if the plan is in the pre-graduation status
-func (p Plan) PreGraduation() bool {
-	return p.GraduationStatus == GraduationStatus_PRE_GRADUATION
-}
-
-func (p Plan) IsGraduated() bool {
-	return p.GraduationStatus == GraduationStatus_POOL_CREATED
-}
-
-func (p Plan) IsSettled() bool {
-	return p.SettledDenom != ""
-}
-
 func (p Plan) ModuleAccName() string {
 	return ModuleName + "-" + p.RollappId
 }
