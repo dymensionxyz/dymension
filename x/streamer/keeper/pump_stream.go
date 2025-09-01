@@ -15,6 +15,8 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 )
 
+// PumpPressure calculated how much DYM the RA gets if the given budget is
+// applied using the given weight distribution.
 func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int) []types.PumpPressure {
 	var rollappRecords []types.PumpPressure
 	for _, gauge := range distr.Gauges {
@@ -95,19 +97,19 @@ func ShouldPump(
 
 	// Check if the random value falls within the pump probability
 	// For pumpNum pumps in epochBlocks: success if random value < pumpNum
-	numeratorBig := big.NewInt(int64(pumpNum))
+	pumpNumBig := new(big.Int).SetUint64(pumpNum)
 
-	// If randomInRange < numeratorBig
-	if randomInRange.Cmp(numeratorBig) < 0 {
-		return PumpAmt(ctx, budget, left, pumpNum)
+	// If randomInRange < pumpNumBig
+	if randomInRange.Cmp(pumpNumBig) < 0 {
+		return PumpAmt(ctx, budget, left, math.NewIntFromBigIntMut(pumpNumBig))
 	}
 
 	return math.ZeroInt(), nil
 }
 
 // PumpAmt computes min(Uniform(0, 2 * Budget / PumpNum), Left).
-func PumpAmt(ctx sdk.Context, budget math.Int, left math.Int, pumpNum uint64) (math.Int, error) {
-	modulo := budget.MulRaw(2).QuoRaw(int64(pumpNum))
+func PumpAmt(ctx sdk.Context, budget, left, pumpNum math.Int) (math.Int, error) {
+	modulo := budget.MulRaw(2).Quo(pumpNum)
 	if modulo.IsZero() {
 		return math.ZeroInt(), fmt.Errorf("budget per pump is fractional: too small budget (%s) or too many pumps (%d)", budget, pumpNum)
 	}
@@ -120,7 +122,6 @@ func PumpAmt(ctx sdk.Context, budget math.Int, left math.Int, pumpNum uint64) (m
 func GenerateUnifiedRandom(ctx sdk.Context, modulo *big.Int) *big.Int {
 	h := sha256.New()
 	h.Write(ctx.HeaderHash())
-	// h.Write(blockTimeBytes)
 	seed := h.Sum(nil)
 
 	randomBig := new(big.Int).SetBytes(seed)
@@ -131,7 +132,7 @@ func GenerateUnifiedRandom(ctx sdk.Context, modulo *big.Int) *big.Int {
 // CONTRACT: pumpAmt is always in base denom.
 func (k Keeper) ExecutePump(
 	ctx sdk.Context,
-	pumpAmt sdk.Coin,
+	pumpCoin sdk.Coin,
 	rollappID string,
 ) (tokenOut sdk.Coin, err error) {
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, rollappID)
@@ -146,80 +147,79 @@ func (k Keeper) ExecutePump(
 
 	buyer := k.ak.GetModuleAddress(types.ModuleName)
 
-	var tokenOutDenom string
-	if plan.IsSettled() {
-		tokenOutDenom = plan.SettledDenom
-	} else {
-		tokenOutDenom = plan.LiquidityDenom
-	}
-	var tokenOutAmt math.Int
-
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		// There are several cases:
-		// - targetDenom == plan.SettledDenom =>
-		//     IRO is settled =>
-		//     RA token exists =>
-		//     every RA token has an AMM route to DYM =>
-		//     do an AMM swap using feetoken
-		//
-		// - targetDenom == plan.LiquidityDenom != BaseDenom =>
-		//     IRO is not settled =>
-		//     need to buy IRO using liquidity tokens =>
-		//     every liquidity token has an AMM route to DYM =>
-		//     do an AMM swap using feetoken =>
-		//     buy IRO using tokenOut of liquidity tokens
-		//
-		// - targetDenom == plan.LiquidityDenom == BaseDenom =>
-		//     IRO is not settled =>
-		//     need to buy IRO using liquidity tokens =>
-		//     pump amount is already in base denom =>
-		//     buy IRO using pumpAmt of BaseDenom
-
-		if tokenOutDenom == pumpAmt.Denom {
-			// This can happen only for unsettled IRO with LiquidityToken == BaseDenom
-			tokenOutAmt = pumpAmt.Amount
-		} else {
+		if plan.IsSettled() {
+			// IRO is settled -> use AMM:
+			//   1. RA token exists
+			//   2. Every RA token has an AMM route to DYM
+			//   3. Do an AMM swap: PumpDenom -> SettledDenom
+			//   4. Return Coin(SettledDenom; AMM token out)
+			tokenOutDenom := plan.SettledDenom
 			feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, tokenOutDenom)
 			if err != nil {
 				return fmt.Errorf("get fee token for denom %s: %w", tokenOutDenom, err)
 			}
 
 			reverseRoute := reverseInRoute(feeToken.Route, tokenOutDenom)
-			tokenOutAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
+			tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
 				ctx,
 				buyer,
 				reverseRoute,
-				pumpAmt,        // token in
+				pumpCoin,       // token in
 				math.ZeroInt(), // no slippage
 			)
 			if err != nil {
 				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", tokenOutDenom, err)
 			}
-		}
 
-		if !plan.IsSettled() {
-			// If IRO is in progress, use liquidity tokens to buy IRO tokens
-			tokenOutAmt, err = k.iroKeeper.BuyExactSpend(
+			tokenOut = sdk.NewCoin(tokenOutDenom, tokenOutAmt)
+			return nil
+		} else {
+			// IRO is not settled:
+			//   1. Need to buy IRO using LiquidityDenom
+			//   2. if (PumpDenom != LiquidityDenom), do an AMM swap: PumpDenom -> LiquidityDenom
+			//   3. Buy IRO: LiquidityDenom -> IRO denom
+			//   4. Return Coin(IRO denom; IRO token out)
+			pumpAmt := pumpCoin.Amount
+			if pumpCoin.Denom != plan.LiquidityDenom {
+				feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, plan.LiquidityDenom)
+				if err != nil {
+					return fmt.Errorf("get fee token for denom %s: %w", plan.LiquidityDenom, err)
+				}
+
+				reverseRoute := reverseInRoute(feeToken.Route, plan.LiquidityDenom)
+				pumpAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
+					ctx,
+					buyer,
+					reverseRoute,
+					pumpCoin,       // token in
+					math.ZeroInt(), // no slippage
+				)
+				if err != nil {
+					return fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+				}
+			}
+
+			tokenOutAmt, err := k.iroKeeper.BuyExactSpend(
 				ctx,
 				fmt.Sprintf("%d", plan.Id),
 				buyer,
-				tokenOutAmt,    // amountToSpend
+				pumpAmt,        // amountToSpend
 				math.ZeroInt(), // no slippage
 			)
 			if err != nil {
 				return fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
 			}
-			// In that case, tokenOut is an IRO token
-			tokenOutDenom = plan.GetIRODenom()
-		}
 
-		return nil
+			tokenOut = sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt)
+			return nil
+		}
 	})
 	if err != nil {
 		return sdk.Coin{}, err
 	}
 
-	return sdk.NewCoin(tokenOutDenom, tokenOutAmt), nil
+	return tokenOut, nil
 }
 
 // DistributePumpStreams processes all pump streams and executes pumps if conditions are met
@@ -324,10 +324,10 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 	return nil
 }
 
-// Number of seconds in the year.
+// Number of milliseconds in the year.
 // 60 * 60 * 8766 is how the SDK defines it:
 // https://github.com/cosmos/cosmos-sdk/blob/v0.50.14/x/mint/types/params.go#L33
-const yearSecs = 60 * 8766
+const yearMs = 60 * 60 * 8766 * 1000
 
 func (k Keeper) EpochBlocks(ctx sdk.Context, epochID string) (math.Int, error) {
 	info := k.ek.GetEpochInfo(ctx, epochID)
@@ -338,11 +338,11 @@ func (k Keeper) EpochBlocks(ctx sdk.Context, epochID string) (math.Int, error) {
 	// info.Duration might be "hour", "day", or "week" and is defined as
 	// an integer, so it's safe to cast it to uint64.
 	var (
-		year          = math.NewInt(yearSecs)
+		year          = math.NewInt(yearMs)
 		blocksPerYear = math.NewIntFromUint64(mintParams.BlocksPerYear)
-		epochSecs     = math.NewInt(int64(info.Duration))
+		epochMs       = math.NewInt(info.Duration.Milliseconds())
 	)
-	return epochSecs.Mul(blocksPerYear).Quo(year), nil
+	return epochMs.Mul(blocksPerYear).Quo(year), nil
 }
 
 // copy of https://github.com/dymensionxyz/osmosis/blob/4e25bd944ed7b5d4b83b023715a141f0aa6cb4f8/x/txfees/keeper/fees.go#L236

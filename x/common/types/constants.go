@@ -24,7 +24,7 @@ func Dym(nDym math.Int) sdk.Coin {
 
 // return DYM
 func DymUint64(nDym uint64) sdk.Coin {
-	return Dym(math.NewInt(int64(nDym)))
+	return Dym(math.NewIntFromUint64(nDym))
 }
 
 // return ADYM

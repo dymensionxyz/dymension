@@ -20,18 +20,13 @@ type pumpTestCase struct {
 	numEpochsPaidOver uint64
 	epochIdentifier   string
 	streamCoins       sdk.Coins
-	liquidityDenom    string
-	expectedNumPumped int
-	expectPumpSuccess bool
-	expectBurnEvents  bool
-	contextOverride   func(ctx sdk.Context) sdk.Context
 }
 
 func (s *KeeperTestSuite) TestShouldPump() {
 	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
 	s.Require().NoError(err)
 
-	pumpNum := uint64(600000000000000)
+	pumpNum := uint64(5000)
 
 	s.Run("GenerateUnifiedRandom", func() {
 		// Pump hash
@@ -48,8 +43,8 @@ func (s *KeeperTestSuite) TestShouldPump() {
 
 		middle := math.NewIntFromUint64(pumpNum)
 
-		s.Require().True(r1.LT(middle))
-		s.Require().True(middle.LT(r2))
+		s.Require().True(r1.LT(middle), "expected r1 < middle, got: %s < %s", r1, middle)
+		s.Require().True(middle.LT(r2), "expected middle < r2, got: %s < %s ", middle, r2)
 	})
 
 	s.Run("ShouldPump", func() {
@@ -64,7 +59,8 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		)
 		s.Require().NoError(err)
 		s.Require().False(pumpAmt.IsZero())
-		s.Require().True(math.NewInt(22587).Equal(pumpAmt))
+		expectedAmt := math.NewInt(2040061966151279)
+		s.Require().True(expectedAmt.Equal(pumpAmt), "expected %s, got: %s", expectedAmt, pumpAmt)
 
 		// No pump hash should not pump
 		ctx = s.hashNoPump(s.Ctx)
@@ -87,15 +83,11 @@ func (s *KeeperTestSuite) TestPumpStream() {
 			name: "pump stream scenario",
 			pumpParams: &types.MsgCreateStream_PumpParams{
 				NumTopRollapps: 2,
-				NumPumps:       600000000000000, // This is a hardcoded number for test convenience
+				NumPumps:       5000, // This is a hardcoded number for test convenience
 			},
 			numEpochsPaidOver: 10,
 			epochIdentifier:   "day",
 			streamCoins:       sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100))),
-			liquidityDenom:    sdk.DefaultBondDenom,
-			expectedNumPumped: 2,
-			expectPumpSuccess: true,
-			expectBurnEvents:  true,
 		},
 	}
 
@@ -124,17 +116,17 @@ func (s *KeeperTestSuite) TestPumpStream() {
 //  12. Simulate a new block and verify that the pump was executed:
 //     - TopRollappNum == 2 => Select the top two RAs by power – RA1 (60 DYM) and RA2 (100 DYM)
 //     - Total VP is 200 DYM => RA1 gets 60/200 = 30% and RA2 gets 100/200 = 50% of rewards
-//     - With the above header hash, we will pump for 22587 aDYM in this epoch (pre-calculated)
-//     - RA1 gets 6776 aDYM, RA2 gets 11293 aDYM => Total is 18069 aDYM
-//     - Stream.DistributedCoins += 18069 aDYM
-//     - Stream.EpochBudgetLeft -= 18069 aDYM
+//     - With the above header hash, we will pump for 2040061966151279 aDYM in this epoch (pre-calculated)
+//     - RA1 gets 612 018 589 845 383 aDYM, RA2 gets 1 020 030 983 075 639 aDYM => Total is 1 632 049 572 921 022 aDYM
+//     - Stream.DistributedCoins += 1 632 049 572 921 022 aDYM
+//     - Stream.EpochBudgetLeft -= 1 632 049 572 921 022 aDYM
 //     - IRO.SoldAmt increases (we don't test the exact number here)
-//     - x/streamer balance -= 18069 aDYM
+//     - x/streamer balance -= 1 632 049 572 921 022 aDYM
 //     - EventPumped and EventBurn occur
 //  13. Simulate the next epoch start. It should end the previous epoch and start a new one.
 //  14. Validate the Pump Stream:
 //     - FilledEpochs += 1
-//     - EpochBudget == EpochBudgetLeft == (100 DYM - 18069 aDYM) / 9 == 1 111 111 111 111 109 103
+//     - EpochBudget == EpochBudgetLeft == (100 DYM - 1 632 049 572 921 022 aDYM) / 9 == 11 110 929 772 269 675 442
 //  15. Settle the IRO
 //  16. Put a predictable block hash in sdk.Context that the pump won’t definitely happen
 //  17. Simulate a new block and verify that the pump wasn’t executed (see 10)
@@ -142,11 +134,11 @@ func (s *KeeperTestSuite) TestPumpStream() {
 //  19. Simulate a new block and verify that the pump was executed:
 //     - TopRollappNum == 2 => Select the top two RAs by power – RA1 (60 DYM) and RA2 (100 DYM)
 //     - Total VP is 200 DYM => RA1 gets 60/200 = 30% and RA2 gets 100/200 = 50% of rewards
-//     - With the above header hash, we will pump for 27379 aDYM in this epoch (pre-calculated)
-//     - RA1 gets 8213 aDYM, RA2 gets 13689 aDYM => Total is 21902 aDYM
-//     - Stream.DistributedCoins += 21902 aDYM
-//     - Stream.EpochBudgetLeft -= 21902 aDYM
-//     - x/streamer balance -= 21902 aDYM
+//     - With the above header hash, we will pump for 2 756 280 626 895 729 aDYM in this epoch (pre-calculated)
+//     - RA1 gets 826 884 188 068 718 aDYM, RA2 gets 1 378 140 313 447 864 aDYM => Total is 2 205 024 501 516 582 aDYM
+//     - Stream.DistributedCoins += 2 205 024 501 516 582 aDYM
+//     - Stream.EpochBudgetLeft -= 2 205 024 501 516 582 aDYM
+//     - x/streamer balance -= 2 205 024 501 516 582 aDYM
 //     - EventPumped, EvenBurn and swap events occur
 func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	// Step 1: Create 4 rollapps
@@ -329,7 +321,7 @@ func (s *KeeperTestSuite) hashNoPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in no pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 3
+	hash[31] = 9
 	return ctx.WithHeaderHash(hash)
 }
 
@@ -357,10 +349,6 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID
 	}
 
 	initialStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-
-	// Finalize block
-	//s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	//s.Commit()
 
 	// Simulate pump distribution call
 	pumpStreams := s.App.StreamerKeeper.GetActiveStreams(ctx)
@@ -428,12 +416,13 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 
 	// DistributedCoins should have increased
 	distributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
-	expectedDistr := math.NewInt(18069)
+	expectedDistr, ok := math.NewIntFromString("1632049572921022")
+	s.Require().True(ok)
 	s.Require().True(distributed.Equal(expectedDistr), "expected %s, got %s", expectedDistr, distributed)
 
 	// EpochBudgetLeft should have decreased
 	left := finalStream.PumpParams.EpochBudgetLeft
-	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(math.NewInt(18069))
+	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(expectedDistr)
 	s.Require().True(left.Equal(expectedLeft), "expected %s, got %s", expectedLeft, left)
 
 	// EpochBudget should be the same
@@ -449,7 +438,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 
 	// x/streamer balance should have decreased
 	finalStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(math.NewInt(18069))
+	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(expectedDistr)
 	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance.Amount, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance.Amount)
 
 	// Verify EventPumped and EventBurn events were emitted
@@ -464,7 +453,7 @@ func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64) {
 	s.Require().Equal(uint64(1), stream.FilledEpochs)
 
 	// EpochBudget and EpochBudgetLeft should be recalculated
-	expectedBudget, ok := math.NewIntFromString("11111111111111109103")
+	expectedBudget, ok := math.NewIntFromString("11110929772269675442")
 	s.Require().True(ok)
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudget)
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
@@ -542,13 +531,15 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 	s.Require().NoError(err)
 
 	// DistributedCoins should have increased
-	distributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
-	expectedDistr := initialStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom).Add(math.NewInt(21902))
-	s.Require().True(distributed.Equal(expectedDistr), "expected %s, got %s", expectedDistr, distributed)
+	distributed, ok := math.NewIntFromString("2205024501516582")
+	s.Require().True(ok)
+	finalDistributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
+	expectedDistr := initialStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom).Add(distributed)
+	s.Require().True(finalDistributed.Equal(expectedDistr), "expected %s, got %s", expectedDistr, finalDistributed)
 
 	// EpochBudgetLeft should have decreased
 	left := finalStream.PumpParams.EpochBudgetLeft
-	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(math.NewInt(21902))
+	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(distributed)
 	s.Require().True(left.Equal(expectedLeft), "expected %s, got %s", expectedLeft, left)
 
 	// EpochBudget should be the same
@@ -558,7 +549,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 
 	// x/streamer balance should have decreased by expected amount (21902 aDYM according to comment)
 	finalStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(math.NewInt(21902))
+	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(distributed)
 	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance.Amount, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance.Amount)
 
 	// Verify pump events, burn events and swap events
