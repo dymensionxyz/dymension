@@ -199,10 +199,10 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 	// Calculate M parameter for the bonding curve
 	// Convert amounts to decimal representation for calculation
 	allocationDec := types.ScaleFromBase(params.FairLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
-	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
+	evaluationDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent)).MulInt64(2)
 	liquidityPart := math.LegacyOneDec()
 
-	calculatedM := types.CalculateM(targetRaiseDec, allocationDec, params.FairLaunch.CurveExp, liquidityPart)
+	calculatedM := types.CalculateM(evaluationDec, allocationDec, params.FairLaunch.CurveExp, liquidityPart)
 	if !calculatedM.IsPositive() {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
 	}

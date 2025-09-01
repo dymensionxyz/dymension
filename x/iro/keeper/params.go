@@ -45,10 +45,10 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 	// validate curve is valid
 	allocationDec := types.ScaleFromBase(fairLaunch.AllocationAmount, 18)
-	targetRaiseDec := types.ScaleFromBase(targetRaise.Amount, int64(targetRaiseExponent))
+	evaluationDec := types.ScaleFromBase(targetRaise.Amount, int64(targetRaiseExponent)).MulInt64(2)
 	liquidityPart := math.LegacyOneDec()
 
-	calculatedM := types.CalculateM(targetRaiseDec, allocationDec, fairLaunch.CurveExp, liquidityPart)
+	calculatedM := types.CalculateM(evaluationDec, allocationDec, fairLaunch.CurveExp, liquidityPart)
 	if !calculatedM.IsPositive() {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
 	}
