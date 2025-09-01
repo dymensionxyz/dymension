@@ -83,4 +83,13 @@ message EventSettle {
   ];
 }
 
-// TODO: add events for enable trading
+message EventTradingEnabled {
+  string plan_id = 1;
+  string rollapp_id = 2;
+}
+
+message EventGraduation {
+  string plan_id = 1;
+  string rollapp_id = 2;
+  uint64 pool_id = 3;
+}

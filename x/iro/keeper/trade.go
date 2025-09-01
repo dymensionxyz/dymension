@@ -49,6 +49,15 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 	if !plan.FairLaunched {
 		k.rk.SetPreLaunchTime(ctx, &rollapp, plan.PreLaunchTime)
 	}
+
+	err := uevent.EmitTypedEvent(ctx, &types.EventTradingEnabled{
+		PlanId:    planId,
+		RollappId: plan.RollappId,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -117,13 +126,20 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 
 	// if all tokens are sold, we need to graduate the plan
 	if plan.SoldAmt.Equal(plan.MaxAmountToSell) {
-		_, _, err := k.GraduatePlan(ctx, planId)
+		poolID, _, err := k.GraduatePlan(ctx, planId)
+		if err != nil {
+			return err
+		}
+
+		err = uevent.EmitTypedEvent(ctx, &types.EventGraduation{
+			PlanId:    planId,
+			RollappId: plan.RollappId,
+			PoolId:    poolID,
+		})
 		if err != nil {
 			return err
 		}
 	}
-
-	// FIXME: add graduation event
 
 	return nil
 }
