@@ -106,7 +106,7 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	s.Require().Equal(planId2, fmt.Sprintf("%d", plan.Id))
 
 	// test get all plans
-	plans := k.GetAllPlans(s.Ctx, false)
+	plans := k.GetAllPlans(s.Ctx)
 	s.Require().Len(plans, 2)
 
 	ok := s.App.AccountKeeper.HasAccount(s.Ctx, plan.GetAddress())

@@ -67,7 +67,7 @@ func (k Keeper) MustGetPlanByRollapp(ctx sdk.Context, rollappId string) types.Pl
 }
 
 // GetAllPlans returns plans sorted lexically by ID e.g. 1,10,100...
-func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Plan) {
+func (k Keeper) GetAllPlans(ctx sdk.Context) (list []types.Plan) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
@@ -76,16 +76,13 @@ func (k Keeper) GetAllPlans(ctx sdk.Context, tradableOnly bool) (list []types.Pl
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Plan
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if tradableOnly && (val.IsSettled() || val.StartTime.After(ctx.BlockTime())) {
-			continue
-		}
 		list = append(list, val)
 	}
 
 	return
 }
 
-func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, nonSettled, fairLaunched bool, pageReq *query.PageRequest) (list []types.Plan, pageRes *query.PageResponse, err error) {
+func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, nonSettled, nonGraduated, fairLaunched bool, pageReq *query.PageRequest) (list []types.Plan, pageRes *query.PageResponse, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
 
 	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
@@ -95,6 +92,10 @@ func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, nonSettled, fairLaunched b
 		}
 
 		if nonSettled && val.IsSettled() {
+			return nil
+		}
+
+		if nonGraduated && val.IsGraduated() {
 			return nil
 		}
 
