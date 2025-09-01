@@ -4,7 +4,6 @@ import (
 	context "context"
 	"time"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
@@ -48,7 +47,7 @@ type IncentivesKeeper interface {
 // GammKeeper defines the expected interface needed to retrieve account balances.
 type GammKeeper interface {
 	GetParams(ctx sdk.Context) (params gammtypes.Params)
-	SwapPoolAsset(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, oldDenom string, newDenom string, newAmount math.Int) error
+	ReplacePoolAsset(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, oldDenom, newDenom string) error
 }
 
 // PoolManagerKeeper defines the expected interface needed to retrieve account balances.

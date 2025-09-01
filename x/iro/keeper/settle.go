@@ -56,7 +56,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	if plan.IsGraduated() {
 		poolID = plan.GraduatedPoolId
 		// call SwapPoolAsset to swap the pool asset to the settled denom
-		err := k.gk.SwapPoolAsset(ctx, plan.GetAddress(), poolID, plan.GetIRODenom(), plan.SettledDenom, plan.SoldAmt)
+		err := k.gk.ReplacePoolAsset(ctx, plan.GetAddress(), poolID, plan.GetIRODenom(), plan.SettledDenom)
 		if err != nil {
 			return err
 		}
