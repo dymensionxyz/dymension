@@ -21,7 +21,7 @@ var (
 	DefaultMinVestingStartTimeAfterSettlement           = 0 * time.Minute             // default: no enforced minimum by default
 
 	DefaultFairLaunch = FairLaunch{
-		AllocationAmount: math.NewInt(1e9).MulRaw(1e18),                      // 1B RA tokens
+		AllocationAmount: math.NewInt(1e8).MulRaw(1e18),                      // 100M RA tokens
 		TargetRaise:      sdk.NewCoin("adym", math.NewInt(2e4).MulRaw(1e18)), // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.5"),
 	}
