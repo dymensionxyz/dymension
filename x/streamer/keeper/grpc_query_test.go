@@ -3,10 +3,8 @@ package keeper_test
 import (
 	"time"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/ibc-apps/modules/rate-limiting/v8/testing/simapp/apptesting"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -265,58 +263,95 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	suite.Require().Equal(res.Coins, sdk.Coins{sdk.NewInt64Coin("stake", 280000)})
 }
 
-func (suite *KeeperTestSuite) TestPumpPressure() {
-	rollapp1ID := suite.CreateDefaultRollapp()
-	_ = suite.CreateDefaultRollapp()
+func (s *KeeperTestSuite) TestPumpPressure() {
+	ra1 := s.CreateDefaultRollapp()
+	_ = s.CreateDefaultRollapp()
 
-	userAddr := apptesting.CreateRandomAccounts(1)[0]
+	val := s.CreateValidator()
+	valAddr, _ := sdk.ValAddressFromBech32(val.GetOperator())
 
-	vote := sponsorshiptypes.MsgVote{
-		Voter: userAddr.String(),
+	// Gauges 3 and 4 are rollapp gauges
+	del1 := s.CreateDelegator(valAddr, common.DYM.MulRaw(100))
+	vote1 := sponsorshiptypes.MsgVote{
+		Voter: del1.GetDelegatorAddr(),
 		Weights: []sponsorshiptypes.GaugeWeight{
-			{GaugeId: 1, Weight: common.DYM.MulRaw(60)},
-			{GaugeId: 2, Weight: common.DYM.MulRaw(40)},
+			{GaugeId: 3, Weight: common.DYM.MulRaw(60)},
+			{GaugeId: 4, Weight: common.DYM.MulRaw(40)},
 		},
 	}
-	suite.CreateValVote(vote, common.DYM.MulRaw(100))
+	s.Vote(vote1)
 
+	del2 := s.CreateDelegator(valAddr, common.DYM.MulRaw(100))
+	vote2 := sponsorshiptypes.MsgVote{
+		Voter: del2.GetDelegatorAddr(),
+		Weights: []sponsorshiptypes.GaugeWeight{
+			{GaugeId: 3, Weight: common.DYM.MulRaw(40)},
+			{GaugeId: 4, Weight: common.DYM.MulRaw(10)},
+		},
+	}
+	s.Vote(vote2)
+
+	err := s.App.TxFeesKeeper.SetBaseDenom(s.Ctx, "adym")
+	s.Require().NoError(err)
+
+	// Create a stream and activate it
 	coins := sdk.NewCoins(common.DymUint64(100))
-	suite.CreatePumpStream(coins, time.Now(), "day", 30, &types.MsgCreateStream_PumpParams{})
+	_, stream := s.CreatePumpStream(coins, time.Now(), "day", 30, &types.MsgCreateStream_PumpParams{})
+	s.Ctx = s.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
+	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream)
+	s.Require().NoError(err)
 
-	suite.Run("PumpPressure returns all rollapp pressures", func() {
-		res, err := suite.querier.PumpPressure(suite.Ctx, &types.PumpPressureRequest{})
-		suite.Require().NoError(err)
-		suite.Require().NotNil(res)
-		suite.Require().Len(res.Pressure, 2)
-	})
+	expectedPressureRA1 := common.DYM.MulRaw(50)
+	expectedPressureRA2 := common.DYM.MulRaw(25)
+	expectedUserPressureRA1 := common.DYM.MulRaw(30)
+	expectedUserPressureRA2 := common.DYM.MulRaw(20)
 
-	suite.Run("PumpPressureByRollapp returns specific rollapp pressure", func() {
-		res, err := suite.querier.PumpPressureByRollapp(suite.Ctx, &types.PumpPressureByRollappRequest{
-			RollappId: rollapp1ID,
+	// PumpPressure returns all rollapp pressures
+	{
+		g := s.App.IncentivesKeeper.GetGauges(s.Ctx)
+		_ = g
+		res, err := s.querier.PumpPressure(s.Ctx, &types.PumpPressureRequest{})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+		s.Require().Len(res.Pressure, 2)
+
+		s.Require().Equal(expectedPressureRA1, res.Pressure[0].Pressure)
+		s.Require().Equal(expectedPressureRA2, res.Pressure[1].Pressure)
+	}
+
+	// PumpPressureByRollapp returns specific rollapp pressure
+	{
+		res, err := s.querier.PumpPressureByRollapp(s.Ctx, &types.PumpPressureByRollappRequest{
+			RollappId: ra1,
 		})
-		suite.Require().NoError(err)
-		suite.Require().NotNil(res)
-		suite.Require().Equal(res.Pressure.RollappId, rollapp1ID)
-		suite.Require().True(res.Pressure.Pressure.GT(math.ZeroInt()))
-	})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
 
-	suite.Run("PumpPressureByUser returns user pressure for all rollapps", func() {
-		res, err := suite.querier.PumpPressureByUser(suite.Ctx, &types.PumpPressureByUserRequest{
-			Address: userAddr.String(),
-		})
-		suite.Require().NoError(err)
-		suite.Require().NotNil(res)
-		suite.Require().Len(res.Pressure, 2)
-	})
+		s.Require().Equal(expectedPressureRA1, res.Pressure.Pressure)
+	}
 
-	suite.Run("PumpPressureByUserByRollapp returns user pressure for specific rollapp", func() {
-		res, err := suite.querier.PumpPressureByUserByRollapp(suite.Ctx, &types.PumpPressureByUserByRollappRequest{
-			Address:   userAddr.String(),
-			RollappId: rollapp1ID,
+	// PumpPressureByUser returns user pressure for all rollapps
+	{
+		res, err := s.querier.PumpPressureByUser(s.Ctx, &types.PumpPressureByUserRequest{
+			Address: del1.GetDelegatorAddr(),
 		})
-		suite.Require().NoError(err)
-		suite.Require().NotNil(res)
-		suite.Require().Equal(res.Pressure.RollappId, rollapp1ID)
-		suite.Require().True(res.Pressure.Pressure.GT(math.ZeroInt()))
-	})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+		s.Require().Len(res.Pressure, 2)
+
+		s.Require().Equal(expectedUserPressureRA1, res.Pressure[0].Pressure)
+		s.Require().Equal(expectedUserPressureRA2, res.Pressure[1].Pressure)
+	}
+
+	// PumpPressureByUserByRollapp returns user pressure for specific rollapp
+	{
+		res, err := s.querier.PumpPressureByUserByRollapp(s.Ctx, &types.PumpPressureByUserByRollappRequest{
+			Address:   del1.GetDelegatorAddr(),
+			RollappId: ra1,
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+
+		s.Require().Equal(expectedUserPressureRA1, res.Pressure.Pressure)
+	}
 }

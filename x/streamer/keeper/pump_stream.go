@@ -44,7 +44,7 @@ func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distributio
 
 // TotalPumpBudget is the total number of DYM that all pump streams hold.
 func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
-	var totalBudget math.Int
+	var totalBudget = math.ZeroInt()
 	for _, stream := range k.GetActiveStreams(ctx) {
 		if stream.IsPumpStream() {
 			totalBudget = totalBudget.Add(stream.Coins[0].Amount)

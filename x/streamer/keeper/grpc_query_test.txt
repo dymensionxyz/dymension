@@ -1,7 +1,0 @@
-Now write tests for new methods. Steps to test:
-
-1. Create 3 rollapps – @app/apptesting/test_suite.go#L49
-2. Create a user account
-3. Vote using CreateValVote – @x/streamer/keeper/suite_test.go#L162 – 100 DYM: 60 to RA1, 40 to RA2
-4. Create a pump stream – @x/streamer/keeper/keeper.go#L90
-5. Test all queries: PumpPressure, PumpPressureByRollapp, PumpPressureByUser, PumpPressureByUserByRollapp

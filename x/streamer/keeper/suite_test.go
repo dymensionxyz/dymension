@@ -232,9 +232,10 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	return val
 }
 
-func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
+func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coinAmt math.Int) stakingtypes.DelegationI {
 	suite.T().Helper()
 
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, coinAmt)
 	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, common.DYM.MulRaw(1_000))
 	delAddr := delAddrs[0]
 	return suite.Delegate(delAddr, valAddr, coin)

@@ -30,13 +30,13 @@ func (s *KeeperTestSuite) TestShouldPump() {
 
 	s.Run("GenerateUnifiedRandom", func() {
 		// Pump hash
-		ctx := s.hashPump(s.Ctx)
+		ctx := hashPump(s.Ctx)
 		r1 := math.NewIntFromBigIntMut(
 			keeper.GenerateUnifiedRandom(ctx, b.BigIntMut()),
 		) //  510461966151279
 
 		// No pump hash
-		ctx = s.hashNoPump(s.Ctx)
+		ctx = hashNoPump(s.Ctx)
 		r2 := math.NewIntFromBigIntMut(
 			keeper.GenerateUnifiedRandom(ctx, b.BigIntMut()),
 		) //  723264247167302
@@ -49,7 +49,7 @@ func (s *KeeperTestSuite) TestShouldPump() {
 
 	s.Run("ShouldPump", func() {
 		// Pump hash should pump
-		ctx := s.hashPump(s.Ctx)
+		ctx := hashPump(s.Ctx)
 		pumpAmt, err := keeper.ShouldPump(
 			ctx,
 			commontypes.DYM.MulRaw(10),
@@ -63,7 +63,7 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		s.Require().True(expectedAmt.Equal(pumpAmt), "expected %s, got: %s", expectedAmt, pumpAmt)
 
 		// No pump hash should not pump
-		ctx = s.hashNoPump(s.Ctx)
+		ctx = hashNoPump(s.Ctx)
 		pumpAmt, err = keeper.ShouldPump(
 			ctx,
 			commontypes.DYM.MulRaw(10),
@@ -169,13 +169,13 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	s.validatePumpStreamAfterEpochStart(streamID, tc)
 
 	// Step 9: Set predictable hash for no pump
-	s.Ctx = s.hashNoPump(s.Ctx)
+	s.Ctx = hashNoPump(s.Ctx)
 
 	// Step 10: Simulate block and verify no pump
 	s.simulateBlockAndVerifyNoPump(s.Ctx, streamID, planIDs)
 
 	// Step 11: Set predictable hash for pump execution
-	s.Ctx = s.hashPump(s.Ctx)
+	s.Ctx = hashPump(s.Ctx)
 
 	// Step 12: Simulate block and verify pump execution
 	s.simulateBlockAndVerifyPump(s.Ctx, streamID, planIDs)
@@ -192,13 +192,13 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 
 	// Step 16: Set predictable hash for no pump (post-settlement)
 	s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
-	s.Ctx = s.hashNoPump(s.Ctx)
+	s.Ctx = hashNoPump(s.Ctx)
 
 	// Step 17: Simulate block and verify no pump (post-settlement)
 	s.simulateBlockAndVerifyNoPumpPostSettlement(s.Ctx, streamID)
 
 	// Step 18: Set predictable hash for pump (post-settlement)
-	s.Ctx = s.hashPump(s.Ctx)
+	s.Ctx = hashPump(s.Ctx)
 
 	// Step 19: Simulate block and verify pump with AMM swap (post-settlement)
 	s.simulateBlockAndVerifyPumpWithAMM(s.Ctx, streamID)
@@ -221,9 +221,8 @@ func (s *KeeperTestSuite) createDelegatorsWithStaking() []sdk.AccAddress {
 	s.Require().NoError(err)
 
 	// Create two delegators with 100 DYM each
-	initial := sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100))
-	del1 := s.CreateDelegator(valAddr, initial)
-	del2 := s.CreateDelegator(valAddr, initial)
+	del1 := s.CreateDelegator(valAddr, commontypes.DYM.MulRaw(100))
+	del2 := s.CreateDelegator(valAddr, commontypes.DYM.MulRaw(100))
 
 	delAddr1, _ := sdk.AccAddressFromBech32(del1.GetDelegatorAddr())
 	delAddr2, _ := sdk.AccAddressFromBech32(del2.GetDelegatorAddr())
@@ -302,7 +301,7 @@ func (s *KeeperTestSuite) validatePumpStreamAfterEpochStart(streamID uint64, tc 
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
 }
 
-func (s *KeeperTestSuite) hashNoPump(ctx sdk.Context) sdk.Context {
+func hashNoPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in no pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
@@ -310,7 +309,7 @@ func (s *KeeperTestSuite) hashNoPump(ctx sdk.Context) sdk.Context {
 	return ctx.WithHeaderHash(hash)
 }
 
-func (s *KeeperTestSuite) hashPump(ctx sdk.Context) sdk.Context {
+func hashPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in a pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
