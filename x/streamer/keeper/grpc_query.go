@@ -102,8 +102,25 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 }
 
 func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequest) (*types.PumpPressureResponse, error) {
-	// TODO implement me
-	panic("implement me")
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	d, err := q.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPressure := q.TotalPumpBudget(ctx)
+
+	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure)
+
+	return &types.PumpPressureResponse{
+		Pressure:   pressure,
+		Pagination: nil, // TODO: pagination?
+	}, nil
 }
 
 func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPressureByRollappRequest) (*types.PumpPressureByRollappResponse, error) {
@@ -125,10 +142,18 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 
 	totalPressure := q.TotalPumpBudget(ctx)
 
+	// RA pressure is a RA power (aka endorsement.TotalShares) divided by the total voting power and
+	// multiplied by the total number of DYM dedicated to pumping from *all* streams:
 	//
-	totalPressure.Quo(d.VotingPower).ToLegacyDec().Mul(e.TotalShares)
+	//   total pressure * (RA power / total power)
+	raPressure := e.TotalShares.MulInt(totalPressure).QuoInt(d.VotingPower).TruncateInt()
 
-	return nil, nil
+	return &types.PumpPressureByRollappResponse{
+		Pressure: types.PumpPressure{
+			RollappId: req.RollappId,
+			Pressure:  raPressure,
+		},
+	}, nil
 }
 
 // getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.

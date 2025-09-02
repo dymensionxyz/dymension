@@ -22,10 +22,9 @@ message EpochPointer {
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
 }
 
+// PumpPressure is how much DYM will be used for buying RA tokens if pump occurs
 message PumpPressure {
   string rollapp_id = 1;
-  // Pressure is how much DYM will be used for buying RA tokens
-  // if the pump occurs
   string pressure = 2 [
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

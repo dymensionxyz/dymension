@@ -15,7 +15,7 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 )
 
-// PumpPressure calculated how much DYM the RA gets if the given budget is
+// PumpPressure calculated how much DYM each RA gets if the given budget is
 // applied using the given weight distribution.
 func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int) []types.PumpPressure {
 	var rollappRecords []types.PumpPressure

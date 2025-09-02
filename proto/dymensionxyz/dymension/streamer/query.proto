@@ -46,15 +46,29 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/upcoming_streams";
   }
-
+  // PumpPressure is how much DYM will be used for buying RA tokens if pump occurs.
+  // Returns pump pressure for all rollapps from all streams.
   rpc PumpPressure(PumpPressureRequest) returns (PumpPressureResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/pump_pressure";
   }
-
+  // PumpPressureByRollapp is how much DYM will be used for buying RA tokens if pump occurs.
+  // Returns pump pressure for a specific rollapp from all streams.
   rpc PumpPressureByRollapp(PumpPressureByRollappRequest) returns (PumpPressureByRollappResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/pump_pressure_by_rollapp/{rollapp_id}";
+  }
+  // PumpPressureByUser is how much pump pressure the user puts on RAs with their cast voting power.
+  // Returns pump pressure for all rollapps from all streams.
+  rpc PumpPressureByUser(PumpPressureByUserRequest) returns (PumpPressureByUserResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/pump_pressure_by_user/{address}";
+  }
+  // PumpPressureByUserByRollapp is how much pump pressure the user puts on RAs with their cast voting power.
+  // Returns pump pressure for a specific rollapp from all streams.
+  rpc PumpPressureByUserByRollapp(PumpPressureByUserByRollappRequest) returns (PumpPressureByUserByRollappResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/pump_pressure_by_user_by_rollapp/{address}/{rollapp_id}";
   }
 }
 
