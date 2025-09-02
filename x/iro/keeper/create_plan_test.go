@@ -330,3 +330,47 @@ func (s *KeeperTestSuite) TestFairLaunch_TargetRaiseConversion() {
 	err = testutil.ApproxEqualRatio(scaledUsdcTargetRaise.MulInt64(priceRatio), scaledTargetRaise, 0.01) // 1% tolerance
 	s.Require().NoError(err)
 }
+
+// TestFairLaunch_TargetRaise_InUSDC tests the case where the target raise is in USDC.
+// we create fair launch rollapp with DYM as the liquidity denom
+func (s *KeeperTestSuite) TestFairLaunch_TargetRaise_InUSDC() {
+	s.App.BankKeeper.SetDenomMetaData(s.Ctx, dymDenomMetadata)
+	gammParams := s.App.GAMMKeeper.GetParams(s.Ctx)
+	gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
+	s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
+
+	// create pool with usdc and adym with price 1 usdc = 5 adym
+	priceRatio := int64(5)
+	s.PreparePoolWithCoins(sdk.NewCoins(
+		sdk.NewCoin("usdc", math.NewInt(1_000_000).MulRaw(1e6)),
+		sdk.NewCoin("adym", math.NewInt(1_000_000).MulRaw(priceRatio).MulRaw(1e18)),
+	))
+
+	iroParams := s.App.IROKeeper.GetParams(s.Ctx)
+	iroParams.FairLaunch.TargetRaise = sdk.NewCoin("usdc", math.NewInt(5_000).MulRaw(1e6)) // 5K USDC
+	s.App.IROKeeper.SetParams(s.Ctx, iroParams)
+
+	rollappId := s.CreateFairLaunchRollapp()
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	owner := rollapp.Owner
+
+	// Fund owner with liquidity denom for creation fee
+	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
+	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+		RollappId:      rollappId,
+		Owner:          owner,
+		TradingEnabled: true,
+		LiquidityDenom: "adym",
+	})
+	s.Require().NoError(err)
+
+	k := s.App.IROKeeper
+	params := k.GetParams(s.Ctx)
+	plan := k.MustGetPlan(s.Ctx, res.PlanId)
+
+	dymRaised := plan.BondingCurve.Cost(math.ZeroInt(), plan.MaxAmountToSell)
+	scaledDymRaised := types.ScaleFromBase(dymRaised, 18)
+	scaledTargetRaise := types.ScaleFromBase(params.FairLaunch.TargetRaise.Amount, 6)
+	err = testutil.ApproxEqualRatio(scaledTargetRaise, scaledDymRaised.QuoInt64(priceRatio), 0.01) // 1% tolerance
+	s.Require().NoError(err)
+}

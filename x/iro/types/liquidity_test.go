@@ -198,16 +198,14 @@ func TestFairLaunchEquilibrium(t *testing.T) {
 	allocation := int64(1e9) // 1B RA tokens
 	allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
 
-	raiseTarget := int64(2 * 1e4) // 20K DYM
+	raiseTarget := int64(5 * 1e3) // 5K USD
 	evaluation := raiseTarget * 2
 	exponent := []sdkmath.LegacyDec{
 		sdkmath.LegacyMustNewDecFromStr("0.5"),
 		sdkmath.LegacyMustNewDecFromStr("1.0"),
-		sdkmath.LegacyMustNewDecFromStr("1.5"),
+		sdkmath.LegacyMustNewDecFromStr("1.25"),
 	}
 	liquidityPart := []sdkmath.LegacyDec{
-		sdkmath.LegacyMustNewDecFromStr("0.5"),
-		sdkmath.LegacyMustNewDecFromStr("0.7"),
 		sdkmath.LegacyMustNewDecFromStr("1.0"),
 	}
 
@@ -227,6 +225,9 @@ func TestFairLaunchEquilibrium(t *testing.T) {
 				require.True(t, eq.IsPositive())
 				ratio := eq.ToLegacyDec().Quo(allocationScaled.ToLegacyDec())
 				t.Logf("ratio=%s", ratio.String())
+
+				// Due to Frontend restrictions, we want M to be > 10^-16
+				require.True(t, calculatedM.GT(sdkmath.LegacyNewDecWithPrec(1, 16)), "calculatedM:%s", calculatedM.String())
 			})
 		}
 	}

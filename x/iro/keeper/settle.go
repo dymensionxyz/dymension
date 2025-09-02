@@ -45,24 +45,19 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		return errorsmod.Wrapf(gerrc.ErrInternal, "required: %s, available: %s", plan.TotalAllocation.String(), balance.String())
 	}
 
-	// FIXME: make this DRY
-
 	var err error
-	var poolID, gaugeID uint64
+	var gaugeID uint64
 	// if already graduated, we need to swap the IRO asset tokens with the settled tokens
 	if plan.IsGraduated() {
-		poolID = plan.GraduatedPoolId
 		// call SwapPoolAsset to swap the pool asset to the settled denom
-		err := k.gk.ReplacePoolAsset(ctx, k.AK.GetModuleAddress(types.ModuleName), poolID, plan.GetIRODenom(), rollappIBCDenom)
+		err := k.gk.ReplacePoolAsset(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.GraduatedPoolId, plan.GetIRODenom(), rollappIBCDenom)
 		if err != nil {
 			return err
 		}
 		plan.SettledDenom = rollappIBCDenom
-
 	} else {
-		var incentives sdk.Coins
 		plan.SettledDenom = rollappIBCDenom
-		poolID, incentives, err = k.createPoolForPlan(ctx, &plan)
+		poolID, incentives, err := k.createPoolForPlan(ctx, &plan)
 		if err != nil {
 			return err
 		}
@@ -90,7 +85,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		PlanId:        fmt.Sprintf("%d", plan.Id),
 		RollappId:     rollappId,
 		IBCDenom:      rollappIBCDenom,
-		PoolId:        poolID,
+		PoolId:        plan.GraduatedPoolId,
 		GaugeId:       gaugeID,
 		VestingAmount: plan.VestingPlan.Amount,
 	})
