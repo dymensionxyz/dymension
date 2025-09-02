@@ -116,7 +116,6 @@ message Plan {
 
   // graduated pool ID
   uint64 graduated_pool_id = 19;
-
 }
 
 message IncentivePlanParams {

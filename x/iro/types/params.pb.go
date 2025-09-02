@@ -140,7 +140,8 @@ type FairLaunch struct {
 	// Target raise amount for fair launch
 	TargetRaise types.Coin `protobuf:"bytes,2,opt,name=target_raise,json=targetRaise,proto3" json:"target_raise"`
 	// Curve exponent for fair launch pricing curve
-	// curve's M will be calculated according to the allocation amount and target raise
+	// curve's M will be calculated according to the allocation amount and target
+	// raise
 	CurveExp cosmossdk_io_math.LegacyDec `protobuf:"bytes,3,opt,name=curve_exp,json=curveExp,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"curve_exp"`
 }
 

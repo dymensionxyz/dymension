@@ -70,11 +70,11 @@ message FairLaunch {
   ];
 
   // Target raise amount for fair launch
-  cosmos.base.v1beta1.Coin target_raise = 2
-      [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin target_raise = 2 [ (gogoproto.nullable) = false ];
 
   // Curve exponent for fair launch pricing curve
-  // curve's M will be calculated according to the allocation amount and target raise
+  // curve's M will be calculated according to the allocation amount and target
+  // raise
   string curve_exp = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",

@@ -261,10 +261,8 @@ func (m *MsgCreatePlan) GetVestingStartTimeAfterSettlement() time.Duration {
 }
 
 type MsgCreateFairLaunchPlan struct {
-	Owner     string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	// Whether trading is enabled for the plan. default to true
-	// can be set to false initially, to require EnableTrading tx for this IRO
+	Owner          string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	RollappId      string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	TradingEnabled bool   `protobuf:"varint,3,opt,name=trading_enabled,json=tradingEnabled,proto3" json:"trading_enabled,omitempty"`
 	LiquidityDenom string `protobuf:"bytes,4,opt,name=liquidity_denom,json=liquidityDenom,proto3" json:"liquidity_denom,omitempty"`
 }

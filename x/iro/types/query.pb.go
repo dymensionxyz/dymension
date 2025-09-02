@@ -219,9 +219,11 @@ type QueryPlansRequest struct {
 	// non_settled_only is an optional flag to filter out plans that are already
 	// settled.
 	NonSettledOnly bool `protobuf:"varint,1,opt,name=non_settled_only,json=nonSettledOnly,proto3" json:"non_settled_only,omitempty"`
-	// non_graduated_only is an optional flag to filter out plans that are already graduated.
+	// non_graduated_only is an optional flag to filter out plans that are already
+	// graduated.
 	NonGraduatedOnly bool `protobuf:"varint,2,opt,name=non_graduated_only,json=nonGraduatedOnly,proto3" json:"non_graduated_only,omitempty"`
-	// fair_launched_only is an optional flag to filter out plans that are not fair launched.
+	// fair_launched_only is an optional flag to filter out plans that are not
+	// fair launched.
 	FairLaunchedOnly bool               `protobuf:"varint,3,opt,name=fair_launched_only,json=fairLaunchedOnly,proto3" json:"fair_launched_only,omitempty"`
 	Pagination       *query.PageRequest `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
