@@ -111,7 +111,6 @@ func (s *KeeperTestSuite) TestGraduatePlan() {
 	s.Require().Equal(expectedIROCoins.String(), iroCoins.Amount.String())
 
 	// FIXME: assert fee token is updated
-
 }
 
 // This test:
@@ -214,5 +213,4 @@ func (s *KeeperTestSuite) TestGraduateFairLaunchPlan() {
 	s.Require().Equal(expectedIROCoins.String(), iroCoins.Amount.String())
 
 	// FIXME: assert fee token is updated
-
 }
