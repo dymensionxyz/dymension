@@ -60,7 +60,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	s.Require().Equal(soldAmt, balance.Amount)
 }
 
-func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
+func (s *KeeperTestSuite) TestBootstrapLiquidityPool_OnSettle() {
 	curve := types.BondingCurve{
 		M:                      math.LegacyMustNewDecFromStr("0"),
 		N:                      math.LegacyMustNewDecFromStr("1"),
@@ -131,7 +131,6 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 
 			plan := k.MustGetPlan(s.Ctx, planId)
 			raisedDYM := k.BK.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
-			// FIXME: test the pool created
 			s.Require().Equal(tc.expectedDYM.String(), raisedDYM.Amount.String())
 
 			unallocatedTokensAmt := allocation.Sub(plan.SoldAmt).Add(reservedTokens)
@@ -145,7 +144,8 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool() {
 			expectedDYMInPool := tc.expectedDYM.ToLegacyDec().Mul(liquidityPart).TruncateInt()
 			expectedTokensInPool := expectedDYMInPool.ToLegacyDec().Quo(curve.C).TruncateInt()
 
-			poolId := uint64(1)
+			plan = k.MustGetPlan(s.Ctx, planId)
+			poolId := plan.GraduatedPoolId
 			pool, err := s.App.GAMMKeeper.GetPool(s.Ctx, poolId)
 			s.Require().NoError(err)
 

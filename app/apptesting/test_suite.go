@@ -52,6 +52,27 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 	return rollappId
 }
 
+func (s *KeeperTestHelper) CreateFairLaunchRollapp() string {
+	iroParams := s.App.IROKeeper.GetParams(s.Ctx)
+
+	rollappId := urand.RollappID()
+	s.CreateRollappByName(rollappId)
+
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	rollapp.GenesisInfo.InitialSupply = iroParams.FairLaunch.AllocationAmount
+	rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
+		Accounts: []rollapptypes.GenesisAccount{
+			{
+				Address: s.App.IROKeeper.GetModuleAccountAddress(),
+				Amount:  iroParams.FairLaunch.AllocationAmount,
+			},
+		},
+	}
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+
+	return rollappId
+}
+
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          Alice,
