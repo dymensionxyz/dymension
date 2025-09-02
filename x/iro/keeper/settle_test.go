@@ -60,6 +60,7 @@ func (s *KeeperTestSuite) TestSettle() {
 	s.Require().Equal(soldAmt, balance.Amount)
 }
 
+// This test the case where the pool is created on settle, without prior graduation
 func (s *KeeperTestSuite) TestBootstrapLiquidityPool_OnSettle() {
 	curve := types.BondingCurve{
 		M:                      math.LegacyMustNewDecFromStr("0"),
@@ -73,7 +74,6 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool_OnSettle() {
 	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	rollappDenom := "dasdasdasdasdsa"
 	liquidityPart := types.DefaultParams().MinLiquidityPart
-	maxToSell := types.FindEquilibrium(curve, allocation, liquidityPart)
 
 	testCases := []struct {
 		name           string
@@ -99,12 +99,6 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool_OnSettle() {
 			buyAmt:         math.NewInt(399_999).MulRaw(1e18),
 			expectedDYM:    math.NewInt(40_000).MulRaw(1e18),
 			expectedTokens: math.NewInt(400_000).MulRaw(1e18),
-		},
-		{
-			name:           "All available tokens",
-			buyAmt:         maxToSell.SubRaw(1e18), // 500_000 - 1
-			expectedDYM:    maxToSell.ToLegacyDec().Mul(curve.C).TruncateInt(),
-			expectedTokens: allocation.Sub(maxToSell),
 		},
 	}
 

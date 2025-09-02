@@ -85,12 +85,12 @@ func (s *KeeperTestSuite) TestClaimVested() {
 	soldAmt := math.NewInt(1_000).MulRaw(1e18)
 	s.BuySomeTokens(planId, sample.Acc(), soldAmt)
 
-	owner := s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId)
 	plan := k.MustGetPlan(s.Ctx, planId)
 	raisedDym := s.App.BankKeeper.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
 	poolFunds := liquidityPart.MulInt(raisedDym.Amount).TruncateInt()
 	expectedOwnerFunds := raisedDym.Amount.Sub(poolFunds)
 
+	owner := sdk.MustAccAddressFromBech32(rollapp.Owner)
 	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, owner, plan.LiquidityDenom)
 	// settle
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))

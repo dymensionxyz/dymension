@@ -62,7 +62,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 	} else {
 		var incentives sdk.Coins
 		plan.SettledDenom = rollappIBCDenom
-		poolID, incentives, err = k.createPoolForPlan(ctx, plan)
+		poolID, incentives, err = k.createPoolForPlan(ctx, &plan)
 		if err != nil {
 			return err
 		}

@@ -19,7 +19,7 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins,
 		return 0, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "plan not found")
 	}
 
-	poolID, leftoverTokens, err := k.createPoolForPlan(ctx, plan)
+	poolID, leftoverTokens, err := k.createPoolForPlan(ctx, &plan)
 	if err != nil {
 		return 0, nil, errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
@@ -49,7 +49,7 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins,
 
 // createPoolForPlan creates a pool for the plan
 // can be called both from graduation and settle
-func (k Keeper) createPoolForPlan(ctx sdk.Context, plan types.Plan) (uint64, sdk.Coins, error) {
+func (k Keeper) createPoolForPlan(ctx sdk.Context, plan *types.Plan) (uint64, sdk.Coins, error) {
 	raisedLiquidityAmt := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom).Amount
 	poolTokens := raisedLiquidityAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
 	ownerTokens := raisedLiquidityAmt.Sub(poolTokens)
@@ -60,7 +60,7 @@ func (k Keeper) createPoolForPlan(ctx sdk.Context, plan types.Plan) (uint64, sdk
 	plan.VestingPlan.EndTime = plan.VestingPlan.StartTime.Add(plan.VestingPlan.VestingDuration)
 
 	// uses the raised liquidity and unsold tokens to bootstrap the rollapp's liquidity pool
-	return k.bootstrapLiquidityPool(ctx, plan, poolTokens)
+	return k.bootstrapLiquidityPool(ctx, *plan, poolTokens)
 }
 
 // bootstrapLiquidityPool bootstraps the liquidity pool with the raised liquidity and unsold tokens.
