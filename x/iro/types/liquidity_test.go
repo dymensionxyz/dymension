@@ -199,6 +199,7 @@ func TestFairLaunchEquilibrium(t *testing.T) {
 	allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
 
 	raiseTarget := int64(2 * 1e4) // 20K DYM
+	evaluation := raiseTarget * 2
 	exponent := []sdkmath.LegacyDec{
 		sdkmath.LegacyMustNewDecFromStr("0.5"),
 		sdkmath.LegacyMustNewDecFromStr("1.0"),
@@ -214,7 +215,7 @@ func TestFairLaunchEquilibrium(t *testing.T) {
 		for _, liquidityPart := range liquidityPart {
 			t.Run(fmt.Sprintf("exponent=%s, liquidityPart=%s", exponent.String(), liquidityPart.String()), func(t *testing.T) {
 				calculatedM := types.CalculateM(
-					sdkmath.LegacyNewDec(raiseTarget),
+					sdkmath.LegacyNewDec(evaluation),
 					sdkmath.LegacyNewDec(allocation),
 					exponent,
 					liquidityPart,

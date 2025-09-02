@@ -203,23 +203,9 @@ func (s *KeeperTestSuite) TestFairLaunchIROPreconditions() {
 		gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
 		s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
 
-		rollappId := s.CreateDefaultRollapp()
-		k := s.App.IROKeeper
-		params := k.GetParams(s.Ctx)
-
+		rollappId := s.CreateFairLaunchRollapp()
 		rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 		owner := rollapp.Owner
-
-		rollapp.GenesisInfo.InitialSupply = params.FairLaunch.AllocationAmount
-		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
-			Accounts: []rollapptypes.GenesisAccount{
-				{
-					Address: k.GetModuleAccountAddress(),
-					Amount:  params.FairLaunch.AllocationAmount,
-				},
-			},
-		}
-		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
 		// Fund owner with liquidity denom for creation fee
 		s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
@@ -265,7 +251,6 @@ func (s *KeeperTestSuite) TestFairLaunchIROPreconditions() {
 
 		// Fund owner with liquidity denom for creation fee
 		s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
-
 		_, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
 			RollappId:      rollappId,
 			Owner:          owner,
@@ -283,26 +268,12 @@ func (s *KeeperTestSuite) TestFairLaunch_TargetRaise() {
 	gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
 	s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
 
-	rollappId := s.CreateDefaultRollapp()
+	rollappId := s.CreateFairLaunchRollapp()
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	owner := rollapp.Owner
 
-	k := s.App.IROKeeper
-	params := k.GetParams(s.Ctx)
-	rollapp.GenesisInfo.InitialSupply = params.FairLaunch.AllocationAmount
-	rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
-		Accounts: []rollapptypes.GenesisAccount{
-			{
-				Address: k.GetModuleAccountAddress(),
-				Amount:  params.FairLaunch.AllocationAmount,
-			},
-		},
-	}
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-
 	// Fund owner with liquidity denom for creation fee
 	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
-
 	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
 		RollappId:      rollappId,
 		Owner:          owner,
@@ -311,6 +282,8 @@ func (s *KeeperTestSuite) TestFairLaunch_TargetRaise() {
 	})
 	s.Require().NoError(err)
 
+	k := s.App.IROKeeper
+	params := k.GetParams(s.Ctx)
 	plan := k.MustGetPlan(s.Ctx, res.PlanId)
 	actualRaised := plan.BondingCurve.Cost(math.ZeroInt(), plan.MaxAmountToSell)
 	err = testutil.ApproxEqualRatio(params.FairLaunch.TargetRaise.Amount, actualRaised, 0.01) // 1% tolerance
@@ -333,26 +306,12 @@ func (s *KeeperTestSuite) TestFairLaunch_TargetRaiseConversion() {
 		sdk.NewCoin("adym", math.NewInt(1_000_000).MulRaw(priceRatio).MulRaw(1e18)),
 	))
 
-	rollappId := s.CreateDefaultRollapp()
+	rollappId := s.CreateFairLaunchRollapp()
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
 	owner := rollapp.Owner
 
-	k := s.App.IROKeeper
-	params := k.GetParams(s.Ctx)
-	rollapp.GenesisInfo.InitialSupply = params.FairLaunch.AllocationAmount
-	rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
-		Accounts: []rollapptypes.GenesisAccount{
-			{
-				Address: k.GetModuleAccountAddress(),
-				Amount:  params.FairLaunch.AllocationAmount,
-			},
-		},
-	}
-	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
-
 	// Fund owner with liquidity denom for creation fee
 	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100_000).MulRaw(1e6))))
-
 	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
 		RollappId:      rollappId,
 		Owner:          owner,
@@ -361,6 +320,8 @@ func (s *KeeperTestSuite) TestFairLaunch_TargetRaiseConversion() {
 	})
 	s.Require().NoError(err)
 
+	k := s.App.IROKeeper
+	params := k.GetParams(s.Ctx)
 	plan := k.MustGetPlan(s.Ctx, res.PlanId)
 
 	usdcTargetRaise := plan.BondingCurve.Cost(math.ZeroInt(), plan.MaxAmountToSell)
