@@ -104,11 +104,10 @@ func (m *EpochPointer) GetEpochDuration() time.Duration {
 	return 0
 }
 
+// PumpPressure is how much DYM will be used for buying RA tokens if pump occurs
 type PumpPressure struct {
-	RollappId string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	// Pressure is how much DYM will be used for buying RA tokens
-	// if the pump occurs
-	Pressure cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=pressure,proto3,customtype=cosmossdk.io/math.Int" json:"pressure"`
+	RollappId string                `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	Pressure  cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=pressure,proto3,customtype=cosmossdk.io/math.Int" json:"pressure"`
 }
 
 func (m *PumpPressure) Reset()         { *m = PumpPressure{} }

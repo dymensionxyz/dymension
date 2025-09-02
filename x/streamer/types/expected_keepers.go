@@ -15,7 +15,7 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -48,10 +48,12 @@ type IncentivesKeeper interface {
 }
 
 type SponsorshipKeeper interface {
-	GetDistribution(ctx sdk.Context) (types.Distribution, error)
-	SaveEndorsement(ctx sdk.Context, e types.Endorsement) error
-	GetEndorsement(ctx sdk.Context, rollappID string) (types.Endorsement, error)
+	GetDistribution(ctx sdk.Context) (sponsorshiptypes.Distribution, error)
+	SaveEndorsement(ctx sdk.Context, e sponsorshiptypes.Endorsement) error
+	GetEndorsement(ctx sdk.Context, rollappID string) (sponsorshiptypes.Endorsement, error)
 	ClearAllVotes(ctx sdk.Context) error
+	GetEndorserPosition(ctx sdk.Context, voterAddr sdk.AccAddress, rollappID string) (sponsorshiptypes.EndorserPosition, error)
+	GetVote(ctx sdk.Context, voterAddr sdk.AccAddress) (sponsorshiptypes.Vote, error)
 }
 
 type MintParamsGetter interface {

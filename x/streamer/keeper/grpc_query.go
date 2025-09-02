@@ -114,7 +114,6 @@ func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequ
 	}
 
 	totalPressure := q.TotalPumpBudget(ctx)
-
 	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure)
 
 	return &types.PumpPressureResponse{
@@ -134,7 +133,6 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 	if err != nil {
 		return nil, err
 	}
-
 	d, err := q.sk.GetDistribution(ctx)
 	if err != nil {
 		return nil, err
@@ -145,13 +143,78 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 	// RA pressure is a RA power (aka endorsement.TotalShares) divided by the total voting power and
 	// multiplied by the total number of DYM dedicated to pumping from *all* streams:
 	//
-	//   total pressure * (RA power / total power)
+	//   (RA power / total power) * total pressure
 	raPressure := e.TotalShares.MulInt(totalPressure).QuoInt(d.VotingPower).TruncateInt()
 
 	return &types.PumpPressureByRollappResponse{
 		Pressure: types.PumpPressure{
 			RollappId: req.RollappId,
 			Pressure:  raPressure,
+		},
+	}, nil
+}
+
+func (q Querier) PumpPressureByUser(goCtx context.Context, req *types.PumpPressureByUserRequest) (*types.PumpPressureByUserResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	userAddr, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	vote, err := q.sk.GetVote(ctx, userAddr)
+	if err != nil {
+		return nil, err
+	}
+	d, err := q.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// We need to see how the user contributes to the total distribution.
+	// Use total voting power with user's weights to get PumpPressure.
+	d.Gauges = vote.ToDistribution().Gauges
+	totalPressure := q.TotalPumpBudget(ctx)
+	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure)
+
+	return &types.PumpPressureByUserResponse{
+		Pressure:   pressure,
+		Pagination: nil, // TODO: pagination?
+	}, nil
+}
+
+func (q Querier) PumpPressureByUserByRollapp(goCtx context.Context, req *types.PumpPressureByUserByRollappRequest) (*types.PumpPressureByUserByRollappResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	userAddr, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	p, err := q.sk.GetEndorserPosition(ctx, userAddr, req.RollappId)
+	if err != nil {
+		return nil, err
+	}
+	d, err := q.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPressure := q.TotalPumpBudget(ctx)
+
+	// User pressure for this rollapp = (user's power / total power) * total pressure
+	userRAPressure := p.Shares.MulInt(totalPressure).QuoInt(d.VotingPower).TruncateInt()
+
+	return &types.PumpPressureByUserByRollappResponse{
+		Pressure: types.PumpPressure{
+			RollappId: req.RollappId,
+			Pressure:  userRAPressure,
 		},
 	}, nil
 }

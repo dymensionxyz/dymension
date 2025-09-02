@@ -142,3 +142,20 @@ message PumpPressureByRollappRequest {
 message PumpPressureByRollappResponse {
   PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
 }
+
+message PumpPressureByUserRequest {
+  string address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+message PumpPressureByUserResponse {
+  repeated PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message PumpPressureByUserByRollappRequest {
+  string address = 1;
+  string rollapp_id = 2;
+}
+message PumpPressureByUserByRollappResponse {
+  PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
+}
