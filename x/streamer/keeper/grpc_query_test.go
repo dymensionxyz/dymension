@@ -3,9 +3,13 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/cosmos/ibc-apps/modules/rate-limiting/v8/testing/simapp/apptesting"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -259,4 +263,60 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, sdk.Coins{sdk.NewInt64Coin("stake", 280000)})
+}
+
+func (suite *KeeperTestSuite) TestPumpPressure() {
+	rollapp1ID := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultRollapp()
+
+	userAddr := apptesting.CreateRandomAccounts(1)[0]
+
+	vote := sponsorshiptypes.MsgVote{
+		Voter: userAddr.String(),
+		Weights: []sponsorshiptypes.GaugeWeight{
+			{GaugeId: 1, Weight: common.DYM.MulRaw(60)},
+			{GaugeId: 2, Weight: common.DYM.MulRaw(40)},
+		},
+	}
+	suite.CreateValVote(vote, common.DYM.MulRaw(100))
+
+	coins := sdk.NewCoins(common.DymUint64(100))
+	suite.CreatePumpStream(coins, time.Now(), "day", 30, &types.MsgCreateStream_PumpParams{})
+
+	suite.Run("PumpPressure returns all rollapp pressures", func() {
+		res, err := suite.querier.PumpPressure(suite.Ctx, &types.PumpPressureRequest{})
+		suite.Require().NoError(err)
+		suite.Require().NotNil(res)
+		suite.Require().Len(res.Pressure, 2)
+	})
+
+	suite.Run("PumpPressureByRollapp returns specific rollapp pressure", func() {
+		res, err := suite.querier.PumpPressureByRollapp(suite.Ctx, &types.PumpPressureByRollappRequest{
+			RollappId: rollapp1ID,
+		})
+		suite.Require().NoError(err)
+		suite.Require().NotNil(res)
+		suite.Require().Equal(res.Pressure.RollappId, rollapp1ID)
+		suite.Require().True(res.Pressure.Pressure.GT(math.ZeroInt()))
+	})
+
+	suite.Run("PumpPressureByUser returns user pressure for all rollapps", func() {
+		res, err := suite.querier.PumpPressureByUser(suite.Ctx, &types.PumpPressureByUserRequest{
+			Address: userAddr.String(),
+		})
+		suite.Require().NoError(err)
+		suite.Require().NotNil(res)
+		suite.Require().Len(res.Pressure, 2)
+	})
+
+	suite.Run("PumpPressureByUserByRollapp returns user pressure for specific rollapp", func() {
+		res, err := suite.querier.PumpPressureByUserByRollapp(suite.Ctx, &types.PumpPressureByUserByRollappRequest{
+			Address:   userAddr.String(),
+			RollappId: rollapp1ID,
+		})
+		suite.Require().NoError(err)
+		suite.Require().NotNil(res)
+		suite.Require().Equal(res.Pressure.RollappId, rollapp1ID)
+		suite.Require().True(res.Pressure.Pressure.GT(math.ZeroInt()))
+	})
 }

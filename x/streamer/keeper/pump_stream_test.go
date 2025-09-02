@@ -156,7 +156,8 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	planIDs := []string{planID1, planID2}
 
 	// Step 5: Create Pump Stream
-	streamID := s.createPumpStream(tc)
+	startTime := time.Now().Add(-time.Minute)
+	streamID, _ := s.CreatePumpStream(tc.streamCoins, startTime, tc.epochIdentifier, tc.numEpochsPaidOver, tc.pumpParams)
 
 	// Step 6: Validate initial pump stream state
 	s.validateInitialPumpStream(streamID)
@@ -266,22 +267,6 @@ func (s *KeeperTestSuite) createIRO(rollappID string) (planID string, reservedAm
 	s.Require().NoError(err)
 
 	return planID, k.MustGetPlan(s.Ctx, planID).SoldAmt
-}
-
-func (s *KeeperTestSuite) createPumpStream(tc pumpTestCase) uint64 {
-	startTime := time.Now().Add(-time.Minute)
-	streamID, err := s.App.StreamerKeeper.CreateStream(
-		s.Ctx,
-		tc.streamCoins,
-		[]types.DistrRecord{}, // Empty for pump stream
-		startTime,
-		tc.epochIdentifier,
-		tc.numEpochsPaidOver,
-		false, // not sponsored
-		tc.pumpParams,
-	)
-	s.Require().NoError(err)
-	return streamID
 }
 
 func (s *KeeperTestSuite) validateInitialPumpStream(streamID uint64) {
