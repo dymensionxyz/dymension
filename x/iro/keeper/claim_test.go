@@ -26,7 +26,7 @@ func (s *KeeperTestSuite) TestClaim() {
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
@@ -74,7 +74,7 @@ func (s *KeeperTestSuite) TestClaimVested() {
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
@@ -85,12 +85,12 @@ func (s *KeeperTestSuite) TestClaimVested() {
 	soldAmt := math.NewInt(1_000).MulRaw(1e18)
 	s.BuySomeTokens(planId, sample.Acc(), soldAmt)
 
+	owner := s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId)
 	plan := k.MustGetPlan(s.Ctx, planId)
 	raisedDym := s.App.BankKeeper.GetBalance(s.Ctx, plan.GetAddress(), plan.LiquidityDenom)
 	poolFunds := liquidityPart.MulInt(raisedDym.Amount).TruncateInt()
 	expectedOwnerFunds := raisedDym.Amount.Sub(poolFunds)
 
-	owner := sdk.MustAccAddressFromBech32(rollapp.Owner)
 	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, owner, plan.LiquidityDenom)
 	// settle
 	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))

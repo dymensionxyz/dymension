@@ -58,6 +58,7 @@ func (s *KeeperTestHelper) CreateFairLaunchRollapp() string {
 	rollappId := urand.RollappID()
 	s.CreateRollappByName(rollappId)
 
+	// make the rollapp have 100% IRO allocation
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	rollapp.GenesisInfo.InitialSupply = iroParams.FairLaunch.AllocationAmount
 	rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
