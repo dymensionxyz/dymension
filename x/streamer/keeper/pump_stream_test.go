@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"cosmossdk.io/math"
@@ -32,13 +33,13 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		// Pump hash
 		ctx := hashPump(s.Ctx)
 		r1 := math.NewIntFromBigIntMut(
-			keeper.GenerateUnifiedRandom(ctx, b.BigIntMut()),
+			keeper.GenerateUnifiedRandomMod(ctx, b.BigIntMut()),
 		) //  510461966151279
 
 		// No pump hash
 		ctx = hashNoPump(s.Ctx)
 		r2 := math.NewIntFromBigIntMut(
-			keeper.GenerateUnifiedRandom(ctx, b.BigIntMut()),
+			keeper.GenerateUnifiedRandomMod(ctx, b.BigIntMut()),
 		) //  723264247167302
 
 		middle := math.NewIntFromUint64(pumpNum)
@@ -74,6 +75,75 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		s.Require().NoError(err)
 		s.Require().True(pumpAmt.IsZero())
 	})
+}
+
+func (s *KeeperTestSuite) TestUniformRandom() {
+	//s.T().Skip("This test is for debugging and visualizing the distribution.")
+	ctx := hashPump(s.Ctx)
+
+	const iterations = 250
+
+	modulo := math.NewInt(10_000)
+	var values = make([]uint64, 0, iterations)
+	total := math.ZeroInt()
+
+	for iteration := 0; iteration < iterations; iteration++ {
+		hash := ctx.HeaderInfo().Hash
+		newHash := nextPermutation([32]byte(hash), iteration)
+		headerInfo := ctx.HeaderInfo()
+		headerInfo.Hash = newHash[:]
+		ctx = ctx.WithHeaderInfo(headerInfo)
+
+		random := keeper.GenerateUnifiedRandomMod(ctx, modulo.BigInt())
+		total = total.Add(math.NewIntFromBigIntMut(random))
+		values = append(values, random.Uint64())
+	}
+
+	slices.Sort(values)
+	for _, v := range values {
+		println(v)
+	}
+	s.T().Log("Target mean", modulo.QuoRaw(2))
+	s.T().Log("Actual mean", total.QuoRaw(iterations))
+}
+
+func (s *KeeperTestSuite) TestRandomExp() {
+	//s.T().Skip("This test is for debugging and visualizing the distribution.")
+	ctx := hashPump(s.Ctx)
+
+	const iterations = 250
+
+	budget := math.NewInt(100_000)
+	pumpNum := math.NewInt(100)
+	var values = make([]uint64, 0, iterations)
+	total := math.ZeroInt()
+
+	for iteration := 0; iteration < iterations; iteration++ {
+		hash := ctx.HeaderInfo().Hash
+		newHash := nextPermutation([32]byte(hash), iteration)
+		headerInfo := ctx.HeaderInfo()
+		headerInfo.Hash = newHash[:]
+		ctx = ctx.WithHeaderInfo(headerInfo)
+
+		random := keeper.GenerateExpRandomLambda(ctx, pumpNum.BigInt(), budget.BigInt())
+		rInt, _ := random.Int(nil)
+		total = total.Add(math.NewIntFromBigIntMut(rInt))
+		values = append(values, rInt.Uint64())
+	}
+
+	slices.Sort(values)
+	for _, v := range values {
+		println(v)
+	}
+	s.T().Log("Target mean", budget.Quo(pumpNum))
+	s.T().Log("Actual mean", total.QuoRaw(iterations))
+}
+
+func nextPermutation(currentHash [32]byte, seed int) [32]byte {
+	for i := 0; i < 32; i++ {
+		currentHash[i] ^= byte((seed + i*7) % 256)
+	}
+	return currentHash
 }
 
 func (s *KeeperTestSuite) TestPumpStream() {
@@ -306,7 +376,9 @@ func hashNoPump(ctx sdk.Context) sdk.Context {
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
 	hash[31] = 9
-	return ctx.WithHeaderHash(hash)
+	headerInfo := ctx.HeaderInfo()
+	headerInfo.Hash = hash
+	return ctx.WithHeaderInfo(headerInfo)
 }
 
 func hashPump(ctx sdk.Context) sdk.Context {
@@ -314,7 +386,9 @@ func hashPump(ctx sdk.Context) sdk.Context {
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
 	hash[31] = 4
-	return ctx.WithHeaderHash(hash)
+	headerInfo := ctx.HeaderInfo()
+	headerInfo.Hash = hash
+	return ctx.WithHeaderInfo(headerInfo)
 }
 
 func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID uint64, planIDs []string) {

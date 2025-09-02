@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/big"
+	"math/rand/v2"
 	"sort"
 
 	"cosmossdk.io/math"
@@ -93,7 +94,7 @@ func ShouldPump(
 	}
 
 	// Scale down the random value to range [0, epochBlocks)
-	randomInRange := GenerateUnifiedRandom(ctx, epochBlocks.BigIntMut())
+	randomInRange := GenerateUnifiedRandomMod(ctx, epochBlocks.BigIntMut())
 
 	// Check if the random value falls within the pump probability
 	// For pumpNum pumps in epochBlocks: success if random value < pumpNum
@@ -113,19 +114,58 @@ func PumpAmt(ctx sdk.Context, budget, left, pumpNum math.Int) (math.Int, error) 
 	if modulo.IsZero() {
 		return math.ZeroInt(), fmt.Errorf("budget per pump is fractional: too small budget (%s) or too many pumps (%d)", budget, pumpNum)
 	}
-	randBig := GenerateUnifiedRandom(ctx, modulo.BigIntMut())
-	rand := math.NewIntFromBigIntMut(randBig)
-	return math.MinInt(rand, left), nil
+	randBig := GenerateUnifiedRandomMod(ctx, modulo.BigIntMut())
+	r := math.NewIntFromBigIntMut(randBig)
+	return math.MinInt(r, left), nil
 }
 
-// GenerateUnifiedRandom a unified random variable by modulo.
-func GenerateUnifiedRandom(ctx sdk.Context, modulo *big.Int) *big.Int {
-	h := sha256.New()
-	h.Write(ctx.HeaderHash())
-	seed := h.Sum(nil)
+// GenerateUnifiedRandom draws a random uniform variable in [0; 1)
+func GenerateUnifiedRandom(ctx sdk.Context) *big.Float {
+	// Take block hash
+	hash := ctx.HeaderInfo().Hash
 
-	randomBig := new(big.Int).SetBytes(seed)
-	return new(big.Int).Mod(randomBig, modulo)
+	// Get 32 bytes hash from it
+	h := sha256.New()
+	h.Write(hash)
+	seed := [32]byte(h.Sum(nil))
+
+	// Use a PRNG to generate a float in [0; 1)
+	generator := rand.New(rand.NewChaCha8(seed))
+	return big.NewFloat(generator.Float64())
+}
+
+// GenerateUnifiedRandomMod a unified random variable by modulo.
+func GenerateUnifiedRandomMod(ctx sdk.Context, modulo *big.Int) *big.Int {
+	randFloat := GenerateUnifiedRandom(ctx)
+	randFloat.Mul(randFloat, new(big.Float).SetInt(modulo))
+	randInt, _ := randFloat.Int(nil)
+	return randInt
+}
+
+// GenerateExpRandom draws a random exp variable in (0, +math.MaxFloat64]
+// with lambda = 1.
+func GenerateExpRandom(ctx sdk.Context) *big.Float {
+	// Take block hash
+	hash := ctx.HeaderInfo().Hash
+
+	// Get 32 bytes hash from it
+	h := sha256.New()
+	h.Write(hash)
+	seed := [32]byte(h.Sum(nil))
+
+	// Use a PRNG to generate an exp float in (0, +math.MaxFloat64]
+	generator := rand.New(rand.NewChaCha8(seed))
+	return big.NewFloat(generator.ExpFloat64())
+}
+
+// GenerateExpRandomLambda draws a random exp variable in (0, +math.MaxFloat64]
+// with lambda = numerator / denominator
+func GenerateExpRandomLambda(ctx sdk.Context, numerator, denominator *big.Int) *big.Float {
+	// expRnd = expRnd / lambda = expRnd * denominator / numerator
+	expRnd := GenerateExpRandom(ctx)
+	expRnd.Mul(expRnd, new(big.Float).SetInt(denominator))
+	expRnd.Quo(expRnd, new(big.Float).SetInt(numerator))
+	return expRnd
 }
 
 // ExecutePump performs the pump operation by buying tokens for a specific rollapp.
