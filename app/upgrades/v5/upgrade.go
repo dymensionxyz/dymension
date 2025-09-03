@@ -248,8 +248,8 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params.FairLaunch = defParams.FairLaunch
 	// overwrite target raise to use mainnet USDC values
 	params.FairLaunch.TargetRaise = sdk.NewCoin(
-		"ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4",
-		math.NewInt(10*1e3).MulRaw(1e6)) // 10K USDC
+		NobleUSDCDenom,
+		math.NewIntWithDecimal(10, 3).MulRaw(1e6)) // 10K USDC
 
 	k.SetParams(ctx, params)
 }
