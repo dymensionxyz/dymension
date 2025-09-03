@@ -144,7 +144,8 @@ type MsgCreateStream struct {
 	NumEpochsPaidOver uint64 `protobuf:"varint,6,opt,name=num_epochs_paid_over,json=numEpochsPaidOver,proto3" json:"num_epochs_paid_over,omitempty"`
 	// Sponsored indicates if the stream is based on the sponsorship distribution
 	Sponsored bool `protobuf:"varint,7,opt,name=sponsored,proto3" json:"sponsored,omitempty"`
-	// ClearAllVotes indicates if the stream should clear all votes (only for sponsored streams)
+	// ClearAllVotes indicates if the stream should clear all votes (only for
+	// sponsored streams)
 	ClearAllVotes bool `protobuf:"varint,8,opt,name=clear_all_votes,json=clearAllVotes,proto3" json:"clear_all_votes,omitempty"`
 	// PumpParams is an *optional* field indicating if the stream
 	// is pumping or distributing. If non-null, it contains pumping params.

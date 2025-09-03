@@ -1086,17 +1086,19 @@ type QueryClient interface {
 	ActiveStreams(ctx context.Context, in *ActiveStreamsRequest, opts ...grpc.CallOption) (*ActiveStreamsResponse, error)
 	// Returns scheduled streams that have not yet occurred
 	UpcomingStreams(ctx context.Context, in *UpcomingStreamsRequest, opts ...grpc.CallOption) (*UpcomingStreamsResponse, error)
-	// PumpPressure is how much DYM will be used for buying RA tokens if pump occurs.
-	// Returns pump pressure for all rollapps from all streams.
+	// PumpPressure is how much DYM will be used for buying RA tokens if pump
+	// occurs. Returns pump pressure for all rollapps from all streams.
 	PumpPressure(ctx context.Context, in *PumpPressureRequest, opts ...grpc.CallOption) (*PumpPressureResponse, error)
-	// PumpPressureByRollapp is how much DYM will be used for buying RA tokens if pump occurs.
-	// Returns pump pressure for a specific rollapp from all streams.
+	// PumpPressureByRollapp is how much DYM will be used for buying RA tokens if
+	// pump occurs. Returns pump pressure for a specific rollapp from all streams.
 	PumpPressureByRollapp(ctx context.Context, in *PumpPressureByRollappRequest, opts ...grpc.CallOption) (*PumpPressureByRollappResponse, error)
-	// PumpPressureByUser is how much pump pressure the user puts on RAs with their cast voting power.
-	// Returns pump pressure for all rollapps from all streams.
+	// PumpPressureByUser is how much pump pressure the user puts on RAs with
+	// their cast voting power. Returns pump pressure for all rollapps from all
+	// streams.
 	PumpPressureByUser(ctx context.Context, in *PumpPressureByUserRequest, opts ...grpc.CallOption) (*PumpPressureByUserResponse, error)
-	// PumpPressureByUserByRollapp is how much pump pressure the user puts on RAs with their cast voting power.
-	// Returns pump pressure for a specific rollapp from all streams.
+	// PumpPressureByUserByRollapp is how much pump pressure the user puts on RAs
+	// with their cast voting power. Returns pump pressure for a specific rollapp
+	// from all streams.
 	PumpPressureByUserByRollapp(ctx context.Context, in *PumpPressureByUserByRollappRequest, opts ...grpc.CallOption) (*PumpPressureByUserByRollappResponse, error)
 }
 
@@ -1212,17 +1214,19 @@ type QueryServer interface {
 	ActiveStreams(context.Context, *ActiveStreamsRequest) (*ActiveStreamsResponse, error)
 	// Returns scheduled streams that have not yet occurred
 	UpcomingStreams(context.Context, *UpcomingStreamsRequest) (*UpcomingStreamsResponse, error)
-	// PumpPressure is how much DYM will be used for buying RA tokens if pump occurs.
-	// Returns pump pressure for all rollapps from all streams.
+	// PumpPressure is how much DYM will be used for buying RA tokens if pump
+	// occurs. Returns pump pressure for all rollapps from all streams.
 	PumpPressure(context.Context, *PumpPressureRequest) (*PumpPressureResponse, error)
-	// PumpPressureByRollapp is how much DYM will be used for buying RA tokens if pump occurs.
-	// Returns pump pressure for a specific rollapp from all streams.
+	// PumpPressureByRollapp is how much DYM will be used for buying RA tokens if
+	// pump occurs. Returns pump pressure for a specific rollapp from all streams.
 	PumpPressureByRollapp(context.Context, *PumpPressureByRollappRequest) (*PumpPressureByRollappResponse, error)
-	// PumpPressureByUser is how much pump pressure the user puts on RAs with their cast voting power.
-	// Returns pump pressure for all rollapps from all streams.
+	// PumpPressureByUser is how much pump pressure the user puts on RAs with
+	// their cast voting power. Returns pump pressure for all rollapps from all
+	// streams.
 	PumpPressureByUser(context.Context, *PumpPressureByUserRequest) (*PumpPressureByUserResponse, error)
-	// PumpPressureByUserByRollapp is how much pump pressure the user puts on RAs with their cast voting power.
-	// Returns pump pressure for a specific rollapp from all streams.
+	// PumpPressureByUserByRollapp is how much pump pressure the user puts on RAs
+	// with their cast voting power. Returns pump pressure for a specific rollapp
+	// from all streams.
 	PumpPressureByUserByRollapp(context.Context, *PumpPressureByUserByRollappRequest) (*PumpPressureByUserByRollappResponse, error)
 }
 
