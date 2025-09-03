@@ -90,7 +90,7 @@ message MsgCreateStream {
     // in the epoch (probabilistically)
     uint64 num_pumps = 2;
     // PumpDistr is a distribution used to determine pump amount
-    PumpDistr pump_distr = 5;
+    PumpDistr pump_distr = 3;
   }
 
   // PumpParams is an *optional* field indicating if the stream
