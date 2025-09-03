@@ -9,7 +9,7 @@ const (
 	GraduationStatus_SETTLED        GraduationStatus = 2
 )
 
-// graduitstatus st4ring
+// graduation status string
 var GraduationStatusString = map[GraduationStatus]string{
 	GraduationStatus_PRE_GRADUATION: "pre_graduation",
 	GraduationStatus_POOL_CREATED:   "pool_created",

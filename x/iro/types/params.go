@@ -91,7 +91,7 @@ func (p Params) ValidateBasic() error {
 		return fmt.Errorf("allocation amount must be positive: %s", p.FairLaunch.AllocationAmount)
 	}
 
-	if !p.FairLaunch.TargetRaise.IsValid() {
+	if !p.FairLaunch.TargetRaise.IsValid() || !p.FairLaunch.TargetRaise.Amount.IsPositive() {
 		return fmt.Errorf("target raise is not valid: %s", p.FairLaunch.TargetRaise)
 	}
 
