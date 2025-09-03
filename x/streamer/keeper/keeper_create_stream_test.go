@@ -68,14 +68,18 @@ func TestSpendable(t *testing.T) {
 
 func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	currModuleBalance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, authtypes.NewModuleAddress(types.ModuleName))
-	suite.Require().Equal(len(currModuleBalance), 2)
+	suite.Require().Equal(len(currModuleBalance), 3)
 	coins1 := sdk.NewCoins(currModuleBalance[0])
 	coins2 := sdk.NewCoins(currModuleBalance[1])
+	coins3 := sdk.NewCoins(currModuleBalance[2])
 
 	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, NonSponsored, nil)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, NonSponsored, &types.MsgCreateStream_PumpParams{})
+	suite.Require().NoError(err)
+
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins3, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, Sponsored, nil)
 	suite.Require().NoError(err)
 
 	// Check that all tokens are alloceted for distribution

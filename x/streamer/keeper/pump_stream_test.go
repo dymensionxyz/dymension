@@ -278,8 +278,8 @@ func (s *KeeperTestSuite) validateInitialPumpStream(streamID uint64) {
 	s.Require().Equal(sdk.DefaultBondDenom, stream.Coins[0].Denom)
 
 	// EpochBudget and EpochBudgetLeft should be 0 initially
-	s.Require().True(stream.PumpParams.EpochBudget.IsZero())
-	s.Require().True(stream.PumpParams.EpochBudgetLeft.IsZero())
+	s.Require().True(stream.PumpParams.EpochBudget.Equal(commontypes.DYM.MulRaw(10)))
+	s.Require().True(stream.PumpParams.EpochBudgetLeft.Equal(commontypes.DYM.MulRaw(10)))
 
 	// Stream should not be active yet in epoch terms
 	s.Require().Equal(uint64(0), stream.FilledEpochs)
