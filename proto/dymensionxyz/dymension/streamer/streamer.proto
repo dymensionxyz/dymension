@@ -26,6 +26,7 @@ message EpochPointer {
 message PumpPressure {
   string rollapp_id = 1;
   string pressure = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
