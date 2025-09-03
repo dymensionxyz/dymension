@@ -155,7 +155,7 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 	autoCliOpts.ClientCtx = initClientCtx
 
 	// a workaround to wire the legacy proposals to the cli
-	// autoCli uses AppModule, while the legacy proposals registered on the AppModuleBasic
+	// autoCli uses AppModule, while the legacy proposals are registered on the AppModuleBasic
 	govModule, ok := autoCliOpts.Modules["gov"].(gov.AppModule)
 	if !ok {
 		panic("gov module not found")

@@ -52,7 +52,7 @@ message Rollapp {
   // to register. if set to "*" any sequencer can register.
   string initial_sequencer = 13;
 
-  // How much a sequencer needs to have at stake to be proposer be proposer.
+  // How much a sequencer needs to have at stake to be proposer.
   // Denom is dym. It is empty or ONE coin only. Coins is just a convenience to
   // avoid marshalling issues.
   repeated cosmos.base.v1beta1.Coin min_sequencer_bond = 20 [
