@@ -25,6 +25,7 @@ func NewStream(
 			EpochBudget:     math.ZeroInt(),
 			EpochBudgetLeft: math.ZeroInt(),
 			NumPumps:        pumpParams.NumPumps,
+			PumpDistr:       pumpParams.PumpDistr,
 		}
 	}
 	return Stream{

@@ -65,6 +65,13 @@ message Stream {
   PumpParams pump_params = 11;
 }
 
+// PumpDistr is a distribution used to determine pump amount
+enum PumpDistr {
+  PUMP_DISTR_UNSPECIFIED = 0;
+  PUMP_DISTR_UNIFORM = 1;
+  PUMP_DISTR_EXPONENTIAL = 2;
+}
+
 message PumpParams {
   // NumTopRollapps is a number of rollapps, top N by the voting power,
   // that will be pumped on every pump iteration.
@@ -84,4 +91,6 @@ message PumpParams {
   // NumPumps is a target number of pumps that expected to happen
   // in the epoch (probabilistically)
   uint64 num_pumps = 4;
+  // PumpDistr is a distribution used to determine pump amount
+  PumpDistr pump_distr = 5;
 }
