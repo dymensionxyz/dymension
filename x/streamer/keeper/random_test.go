@@ -78,7 +78,7 @@ func (s *KeeperTestSuite) TestUniformRandom() {
 	const iterations = 250
 
 	modulo := math.NewInt(10_000)
-	var values = make([]uint64, 0, iterations)
+	values := make([]uint64, 0, iterations)
 	total := math.ZeroInt()
 
 	for iteration := 0; iteration < iterations; iteration++ {
@@ -101,7 +101,7 @@ func (s *KeeperTestSuite) TestUniformRandom() {
 	s.T().Log("Actual mean", total.QuoRaw(iterations))
 }
 
-func (s *KeeperTestSuite) TestRandomExp() {
+func (s *KeeperTestSuite) TestExpRandom() {
 	s.T().Skip("This test is for debugging and visualizing the distribution.")
 	ctx := hashPump(s.Ctx)
 
@@ -109,7 +109,7 @@ func (s *KeeperTestSuite) TestRandomExp() {
 
 	budget := math.NewInt(100_000)
 	pumpNum := math.NewInt(100)
-	var values = make([]uint64, 0, iterations)
+	values := make([]uint64, 0, iterations)
 	total := math.ZeroInt()
 
 	for iteration := 0; iteration < iterations; iteration++ {
@@ -130,6 +130,68 @@ func (s *KeeperTestSuite) TestRandomExp() {
 	}
 	s.T().Log("Target mean", budget.Quo(pumpNum))
 	s.T().Log("Actual mean", total.QuoRaw(iterations))
+}
+
+func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
+	s.T().Skip("This test is for debugging and visualizing the distribution.")
+
+	var (
+		epochBudget     = math.NewInt(200_000)
+		epochBudgetLeft = epochBudget
+		pumpNum         = int64(200)
+		ctx             = hashPump(s.Ctx)
+		pumpFunc        = types.PumpDistr_PUMP_DISTR_UNIFORM
+	)
+
+	values := make([]math.Int, 0, pumpNum)
+	total := math.ZeroInt()
+
+	for iteration := int64(0); iteration < pumpNum; iteration++ {
+		hash := ctx.HeaderInfo().Hash
+		newHash := nextPermutation([32]byte(hash), int(iteration))
+		headerInfo := ctx.HeaderInfo()
+		headerInfo.Hash = newHash[:]
+		ctx = ctx.WithHeaderInfo(headerInfo)
+
+		pumpAmt, err := keeper.PumpAmt(ctx, types.PumpParams{
+			NumTopRollapps:  0,
+			EpochBudget:     epochBudget,
+			EpochBudgetLeft: epochBudgetLeft,
+			NumPumps:        uint64(pumpNum),
+			PumpDistr:       pumpFunc,
+		})
+		s.Require().NoError(err)
+
+		epochBudgetLeft = epochBudgetLeft.Sub(pumpAmt)
+		total = total.Add(pumpAmt)
+		values = append(values, pumpAmt)
+	}
+
+	valuesCpy := make([]math.Int, len(values))
+	copy(valuesCpy, values)
+	slices.SortFunc(values, func(a, b math.Int) int {
+		if a.LT(b) {
+			return -1
+		}
+		if a.GT(b) {
+			return 1
+		}
+		return 0
+	})
+
+	s.T().Log("Sorted samples – CDF function")
+	for _, v := range values {
+		println(v.String())
+	}
+
+	s.T().Log("Not sorted samples")
+	for _, v := range valuesCpy {
+		println(v.String())
+	}
+
+	s.T().Log("Target mean", epochBudget.QuoRaw(pumpNum))
+	s.T().Log("Actual mean", total.QuoRaw(pumpNum))
+	s.T().Log("Total distr", total)
 }
 
 func nextPermutation(currentHash [32]byte, seed int) [32]byte {

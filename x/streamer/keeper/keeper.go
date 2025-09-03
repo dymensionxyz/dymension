@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -34,8 +33,7 @@ type Keeper struct {
 	rollappKeeper     types.RollappKeeper
 	txFeesKeeper      types.TxFeesKeeper
 
-	authority     string
-	headerService header.Service
+	authority string
 
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
 	epochPointers collections.Map[string, types.EpochPointer]

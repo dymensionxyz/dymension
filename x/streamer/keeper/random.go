@@ -19,6 +19,7 @@ func GenerateUnifiedRandom(ctx sdk.Context) *big.Float {
 	seed := [32]byte(h.Sum(nil))
 
 	// Use a PRNG to generate a float in [0; 1)
+	//nolint:gosec // math/rand/v2 is used for purpose
 	generator := rand.New(rand.NewChaCha8(seed))
 	return big.NewFloat(generator.Float64())
 }
@@ -51,6 +52,7 @@ func GenerateExpRandom(ctx sdk.Context) *big.Float {
 	seed := [32]byte(h.Sum(nil))
 
 	// Use a PRNG to generate an exp float in (0, +math.MaxFloat64]
+	//nolint:gosec // math/rand/v2 is used for purpose
 	generator := rand.New(rand.NewChaCha8(seed))
 	return big.NewFloat(generator.ExpFloat64())
 }
@@ -58,7 +60,7 @@ func GenerateExpRandom(ctx sdk.Context) *big.Float {
 // GenerateExpRandomLambda draws an exp random variable in (0, +math.MaxFloat64]
 // with lambda = numerator / denominator and mean = denominator / numerator.
 func GenerateExpRandomLambda(ctx sdk.Context, numerator, denominator *big.Int) *big.Float {
-	// expRnd = expRnd / lambda = expRnd * denominator / numerator
+	// scaledRnd = expRnd / lambda = expRnd * denominator / numerator
 	expRnd := GenerateExpRandom(ctx)
 	expRnd.Mul(expRnd, new(big.Float).SetInt(denominator))
 	expRnd.Quo(expRnd, new(big.Float).SetInt(numerator))
