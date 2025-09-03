@@ -105,7 +105,7 @@ func (k Keeper) CreateStream(
 	switch {
 	case pumpParams != nil && sponsored:
 		// Invalid Stream
-		return 0, fmt.Errorf("pump steram cannot be set for sponsored")
+		return 0, fmt.Errorf("pump stream cannot be set for sponsored")
 
 	case pumpParams != nil:
 		// Pump Stream

@@ -18,12 +18,13 @@ func NewStream(
 	sponsored bool,
 	pumpParams *MsgCreateStream_PumpParams,
 ) Stream {
+	epochCoins := coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver))
 	var pump *PumpParams
 	if pumpParams != nil {
 		pump = &PumpParams{
 			NumTopRollapps:  pumpParams.NumTopRollapps,
-			EpochBudget:     math.ZeroInt(),
-			EpochBudgetLeft: math.ZeroInt(),
+			EpochBudget:     epochCoins[0].Amount,
+			EpochBudgetLeft: epochCoins[0].Amount,
 			NumPumps:        pumpParams.NumPumps,
 			PumpDistr:       pumpParams.PumpDistr,
 		}
