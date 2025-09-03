@@ -8,6 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
@@ -67,4 +68,5 @@ type TxFeesKeeper interface {
 	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
 	CalcCoinInBaseDenom(ctx sdk.Context, inputFee sdk.Coin) (sdk.Coin, error)
 	CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error)
+	GetFeeToken(ctx sdk.Context, denom string) (txfeestypes.FeeToken, error)
 }

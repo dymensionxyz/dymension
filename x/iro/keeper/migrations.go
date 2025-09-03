@@ -59,6 +59,19 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 		if err := plan.ValidateBasic(); err != nil {
 			panic(fmt.Errorf("invalid plan: %w", err))
 		}
+
+		// For settled plans, find and set the pool ID
+		if plan.SettledDenom != "" {
+			feeToken, err := m.k.tk.GetFeeToken(ctx, plan.SettledDenom)
+			if err != nil {
+				return fmt.Errorf("failed to get fee token for denom %s: %w", plan.SettledDenom, err)
+			}
+			if len(feeToken.Route) == 0 || feeToken.Route[0].TokenOutDenom != "adym" {
+				return fmt.Errorf("fee token for denom %s does not have a route to adym", plan.SettledDenom)
+			}
+			plan.GraduatedPoolId = feeToken.Route[0].PoolId
+		}
+
 		m.k.SetPlan(ctx, plan)
 	}
 

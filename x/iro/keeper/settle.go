@@ -47,9 +47,9 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 	var err error
 	var gaugeID uint64
-	// if already graduated, we need to swap the IRO asset tokens with the settled tokens
+	// if already graduated, we need to replace the IRO asset tokens with the settled denom
 	if plan.IsGraduated() {
-		// call SwapPoolAsset to swap the pool asset to the settled denom
+		// call ReplacePoolAsset to replace the IRO asset with the settled denom
 		err := k.gk.ReplacePoolAsset(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.GraduatedPoolId, plan.GetIRODenom(), rollappIBCDenom)
 		if err != nil {
 			return err
