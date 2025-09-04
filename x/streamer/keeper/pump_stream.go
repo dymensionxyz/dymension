@@ -1,13 +1,13 @@
 package keeper
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"math/big"
 	"sort"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -76,56 +76,63 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 // 890 ≥ 25, so no pump this block
 func ShouldPump(
 	ctx sdk.Context,
-	budget math.Int,
-	left math.Int,
-	pumpNum uint64,
+	pumpParams types.PumpParams,
 	epochBlocks math.Int, // is consumed!
 ) (math.Int, error) {
-	if pumpNum == 0 {
+	if pumpParams.NumPumps == 0 {
 		// Should not pump at all
 		return math.ZeroInt(), nil
 	}
 	if epochBlocks.IsZero() {
 		return math.ZeroInt(), fmt.Errorf("epochBlocks cannot be zero")
 	}
-	if pumpNum > epochBlocks.Uint64() {
-		return math.ZeroInt(), fmt.Errorf("pumpNum (%d) cannot be greater than epochBlocks (%d)", pumpNum, epochBlocks)
-	}
 
-	// Scale down the random value to range [0, epochBlocks)
-	randomInRange := GenerateUnifiedRandom(ctx, epochBlocks.BigIntMut())
+	// Draw a random value in range [0, epochBlocks)
+	randomInRangeBig := rand.GenerateUnifiedRandomModInt(ctx, epochBlocks.BigIntMut(), nil)
 
-	// Check if the random value falls within the pump probability
-	// For pumpNum pumps in epochBlocks: success if random value < pumpNum
-	pumpNumBig := new(big.Int).SetUint64(pumpNum)
+	// If NumPumps >= epochBlocks => we should pump on every block
+	// If NumPumps < epochBlocks => pump is probabilistic
+	// In any case, epochBlocks should fall in uint64 since NumPumps is uint64
+	// Therefore, it's safe to cast big.Int to uint64
+	randomInRange := randomInRangeBig.Uint64()
 
-	// If randomInRange < pumpNumBig
-	if randomInRange.Cmp(pumpNumBig) < 0 {
-		return PumpAmt(ctx, budget, left, math.NewIntFromBigIntMut(pumpNumBig))
+	// Check if the random value falls within the pump probability:
+	// success if random value < pumpNum
+	if randomInRange < pumpParams.NumPumps {
+		return PumpAmt(ctx, pumpParams)
 	}
 
 	return math.ZeroInt(), nil
 }
 
-// PumpAmt computes min(Uniform(0, 2 * Budget / PumpNum), Left).
-func PumpAmt(ctx sdk.Context, budget, left, pumpNum math.Int) (math.Int, error) {
-	modulo := budget.MulRaw(2).Quo(pumpNum)
-	if modulo.IsZero() {
-		return math.ZeroInt(), fmt.Errorf("budget per pump is fractional: too small budget (%s) or too many pumps (%d)", budget, pumpNum)
+// PumpAmt computes the random pump amount.
+func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
+	numPumps := math.NewIntFromUint64(pumpParams.NumPumps)
+
+	if pumpParams.EpochBudget.LT(numPumps) {
+		return math.ZeroInt(), fmt.Errorf("budget per pump is fractional: too small budget (%s) or too many pumps (%d)", pumpParams.EpochBudget, pumpParams.NumPumps)
 	}
-	randBig := GenerateUnifiedRandom(ctx, modulo.BigIntMut())
-	rand := math.NewIntFromBigIntMut(randBig)
-	return math.MinInt(rand, left), nil
-}
 
-// GenerateUnifiedRandom a unified random variable by modulo.
-func GenerateUnifiedRandom(ctx sdk.Context, modulo *big.Int) *big.Int {
-	h := sha256.New()
-	h.Write(ctx.HeaderHash())
-	seed := h.Sum(nil)
+	randBig := new(big.Int)
 
-	randomBig := new(big.Int).SetBytes(seed)
-	return new(big.Int).Mod(randomBig, modulo)
+	switch pumpParams.PumpDistr {
+	case types.PumpDistr_PUMP_DISTR_UNIFORM:
+		// Draw a Uniform(0; 2*B/N) value
+		// Mean is B/N
+		modulo := pumpParams.EpochBudget.MulRaw(2).Quo(numPumps)
+		rand.GenerateUnifiedRandomModInt(ctx, modulo.BigIntMut(), randBig)
+
+	case types.PumpDistr_PUMP_DISTR_EXPONENTIAL:
+		// Draw an Exp(N/B) value
+		// Mean is B/N
+		rand.GenerateExpRandomLambdaInt(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt(), randBig)
+
+	case types.PumpDistr_PUMP_DISTR_UNSPECIFIED:
+		return math.ZeroInt(), fmt.Errorf("pump distribution not specified")
+	}
+
+	r := math.NewIntFromBigIntMut(randBig)
+	return math.MinInt(r, pumpParams.EpochBudgetLeft), nil
 }
 
 // ExecutePump performs the pump operation by buying tokens for a specific rollapp.
@@ -252,9 +259,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 
 		pumpAmt, err := ShouldPump(
 			ctx,
-			stream.PumpParams.EpochBudget,
-			stream.PumpParams.EpochBudgetLeft,
-			stream.PumpParams.NumPumps,
+			*stream.PumpParams,
 			epochBlocks,
 		)
 		if err != nil {

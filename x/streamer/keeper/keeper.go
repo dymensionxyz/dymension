@@ -109,6 +109,18 @@ func (k Keeper) CreateStream(
 
 	case pumpParams != nil:
 		// Pump Stream
+		if len(records) != 0 {
+			return 0, fmt.Errorf("pump stream cannot have distr records")
+		}
+		if pumpParams.PumpDistr == types.PumpDistr_PUMP_DISTR_UNSPECIFIED {
+			return 0, fmt.Errorf("pump distribution must be set")
+		}
+		if pumpParams.NumPumps == 0 {
+			return 0, fmt.Errorf("num pumps must be greater than 0")
+		}
+		if pumpParams.NumTopRollapps == 0 {
+			return 0, fmt.Errorf("num top rollapps must be greater than 0")
+		}
 		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
 		if err != nil {
 			return 0, fmt.Errorf("get base denom: %w", err)

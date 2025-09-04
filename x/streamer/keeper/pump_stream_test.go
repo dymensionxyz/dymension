@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -13,92 +15,17 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
-// Test case parameters structure
 type pumpTestCase struct {
-	name              string
-	pumpParams        *types.MsgCreateStream_PumpParams
-	numEpochsPaidOver uint64
-	epochIdentifier   string
-	streamCoins       sdk.Coins
+	pumpParams            *types.MsgCreateStream_PumpParams
+	numEpochsPaidOver     uint64
+	epochIdentifier       string
+	streamCoins           sdk.Coins
+	balanceChangeIter1    math.Int
+	balanceChangeIter2    math.Int
+	epochBudgetAfterIter1 math.Int
 }
 
-func (s *KeeperTestSuite) TestShouldPump() {
-	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
-	s.Require().NoError(err)
-
-	pumpNum := uint64(5000)
-
-	s.Run("GenerateUnifiedRandom", func() {
-		// Pump hash
-		ctx := hashPump(s.Ctx)
-		r1 := math.NewIntFromBigIntMut(
-			keeper.GenerateUnifiedRandom(ctx, b.BigIntMut()),
-		) //  510461966151279
-
-		// No pump hash
-		ctx = hashNoPump(s.Ctx)
-		r2 := math.NewIntFromBigIntMut(
-			keeper.GenerateUnifiedRandom(ctx, b.BigIntMut()),
-		) //  723264247167302
-
-		middle := math.NewIntFromUint64(pumpNum)
-
-		s.Require().True(r1.LT(middle), "expected r1 < middle, got: %s < %s", r1, middle)
-		s.Require().True(middle.LT(r2), "expected middle < r2, got: %s < %s ", middle, r2)
-	})
-
-	s.Run("ShouldPump", func() {
-		// Pump hash should pump
-		ctx := hashPump(s.Ctx)
-		pumpAmt, err := keeper.ShouldPump(
-			ctx,
-			commontypes.DYM.MulRaw(10),
-			commontypes.DYM.MulRaw(10),
-			pumpNum,
-			b,
-		)
-		s.Require().NoError(err)
-		s.Require().False(pumpAmt.IsZero())
-		expectedAmt := math.NewInt(2040061966151279)
-		s.Require().True(expectedAmt.Equal(pumpAmt), "expected %s, got: %s", expectedAmt, pumpAmt)
-
-		// No pump hash should not pump
-		ctx = hashNoPump(s.Ctx)
-		pumpAmt, err = keeper.ShouldPump(
-			ctx,
-			commontypes.DYM.MulRaw(10),
-			commontypes.DYM.MulRaw(10),
-			pumpNum,
-			b,
-		)
-		s.Require().NoError(err)
-		s.Require().True(pumpAmt.IsZero())
-	})
-}
-
-func (s *KeeperTestSuite) TestPumpStream() {
-	// Define test cases with different parameters
-	testCases := []pumpTestCase{
-		{
-			name: "pump stream scenario",
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       5000, // This is a hardcoded number for test convenience
-			},
-			numEpochsPaidOver: 10,
-			epochIdentifier:   "day",
-			streamCoins:       sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(100))),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.runPumpStreamTest(tc)
-		})
-	}
-}
-
-// Scenario:
+// Scenario (numbers are just for reference, real numbers are pre-calculated in the test):
 //  1. Create 4 rollapps
 //  2. Create 2 users (delegators) who have staking power. Both delegate 100 DYM.
 //  3. Vote on rollapps. User 1 votes 60 on RA1 and 40 on RA2. User 2 votes 60 on RA2 and 40 on RA3. RA4 is not endorsed.
@@ -140,7 +67,10 @@ func (s *KeeperTestSuite) TestPumpStream() {
 //     - Stream.EpochBudgetLeft -= 2 205 024 501 516 582 aDYM
 //     - x/streamer balance -= 2 205 024 501 516 582 aDYM
 //     - EventPumped, EvenBurn and swap events occur
-func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
+func (s *KeeperTestSuite) TestPumpStream() {
+	// Stop 0: Pre-calculate all important numbers and prepare the test
+	tc := s.prepareTestCase()
+
 	// Step 1: Create 4 rollapps
 	rollapps := s.createRollapps(4)
 
@@ -178,13 +108,13 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	s.Ctx = hashPump(s.Ctx)
 
 	// Step 12: Simulate block and verify pump execution
-	s.simulateBlockAndVerifyPump(s.Ctx, streamID, planIDs)
+	s.simulateBlockAndVerifyPump(s.Ctx, streamID, planIDs, tc.balanceChangeIter1)
 
 	// Step 13: Simulate next epoch start
 	s.simulateEpochStart(tc.epochIdentifier)
 
 	// Step 14: Validate pump stream after second epoch
-	s.validatePumpStreamAfterSecondEpoch(streamID)
+	s.validatePumpStreamAfterSecondEpoch(streamID, tc.epochBudgetAfterIter1)
 
 	// Step 15: Settle IROs
 	s.settleIRO(rollapps[0], iroReserved1)
@@ -201,10 +131,75 @@ func (s *KeeperTestSuite) runPumpStreamTest(tc pumpTestCase) {
 	s.Ctx = hashPump(s.Ctx)
 
 	// Step 19: Simulate block and verify pump with AMM swap (post-settlement)
-	s.simulateBlockAndVerifyPumpWithAMM(s.Ctx, streamID)
+	s.simulateBlockAndVerifyPumpWithAMM(s.Ctx, streamID, tc.balanceChangeIter2)
 }
 
-// Helper functions
+func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
+	var (
+		epochID               = "day"
+		numEpochsPaidOver     = uint64(10)
+		remainEpochs          = numEpochsPaidOver
+		streamCoinsAmtInitial = commontypes.DYM.MulRaw(100)
+		pumpNum               = uint64(9000)
+		ctx                   = hashPump(s.Ctx)
+		epochBudget           = streamCoinsAmtInitial.Quo(math.NewIntFromUint64(remainEpochs))
+		epochBudgetLeft       = epochBudget
+		numTopRollapps        = uint32(2)
+	)
+
+	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, epochID)
+	s.Require().NoError(err)
+
+	// Pump amount on step (12)
+	pumpAmtIter1, err := keeper.ShouldPump(ctx, types.PumpParams{
+		NumTopRollapps:  numTopRollapps,
+		EpochBudget:     epochBudget,
+		EpochBudgetLeft: epochBudgetLeft,
+		NumPumps:        pumpNum,
+		PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
+	}, b)
+	s.Require().NoError(err)
+	s.Require().True(!pumpAmtIter1.IsZero())
+
+	remainEpochs = remainEpochs - 1
+	var (
+		ra1Share    = pumpAmtIter1.MulRaw(30).QuoRaw(100) // 30%
+		ra2Share    = pumpAmtIter1.MulRaw(50).QuoRaw(100) // 50%
+		changeIter1 = ra1Share.Add(ra2Share)
+
+		streamCoinsAmtAfterPump  = streamCoinsAmtInitial.Sub(changeIter1)
+		epochBudgetAfterPump     = streamCoinsAmtAfterPump.Quo(math.NewIntFromUint64(remainEpochs))
+		epochBudgetLeftAfterPump = epochBudgetAfterPump
+	)
+
+	// Pump amount on step (19)
+	pumpAmtIter2, err := keeper.ShouldPump(ctx, types.PumpParams{
+		NumTopRollapps:  numTopRollapps,
+		EpochBudget:     epochBudgetAfterPump,
+		EpochBudgetLeft: epochBudgetLeftAfterPump,
+		NumPumps:        pumpNum,
+		PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
+	}, b)
+	s.Require().NoError(err)
+	s.Require().True(!pumpAmtIter2.IsZero())
+	ra1Share = pumpAmtIter2.MulRaw(30).QuoRaw(100) // 30%
+	ra2Share = pumpAmtIter2.MulRaw(50).QuoRaw(100) // 50%
+	changeIter2 := ra1Share.Add(ra2Share)
+
+	return pumpTestCase{
+		pumpParams: &types.MsgCreateStream_PumpParams{
+			NumTopRollapps: numTopRollapps,
+			NumPumps:       pumpNum,
+			PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+		},
+		numEpochsPaidOver:     numEpochsPaidOver,
+		epochIdentifier:       epochID,
+		streamCoins:           sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, streamCoinsAmtInitial)),
+		balanceChangeIter1:    changeIter1,
+		balanceChangeIter2:    changeIter2,
+		epochBudgetAfterIter1: epochBudgetLeftAfterPump,
+	}
+}
 
 func (s *KeeperTestSuite) createRollapps(count int) []string {
 	rollapps := make([]string, count)
@@ -306,15 +301,19 @@ func hashNoPump(ctx sdk.Context) sdk.Context {
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
 	hash[31] = 9
-	return ctx.WithHeaderHash(hash)
+	headerInfo := ctx.HeaderInfo()
+	headerInfo.Hash = hash
+	return ctx.WithHeaderInfo(headerInfo)
 }
 
 func hashPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in a pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 4
-	return ctx.WithHeaderHash(hash)
+	hash[31] = 5
+	headerInfo := ctx.HeaderInfo()
+	headerInfo.Hash = hash
+	return ctx.WithHeaderInfo(headerInfo)
 }
 
 func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID uint64, planIDs []string) {
@@ -367,7 +366,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 0)
 }
 
-func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID uint64, planIDs []string) {
+func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID uint64, planIDs []string, expectedChange math.Int) {
 	// Get initial state
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
@@ -400,13 +399,11 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 
 	// DistributedCoins should have increased
 	distributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
-	expectedDistr, ok := math.NewIntFromString("1632049572921022")
-	s.Require().True(ok)
-	s.Require().True(distributed.Equal(expectedDistr), "expected %s, got %s", expectedDistr, distributed)
+	s.Require().True(distributed.Equal(expectedChange), "expected %s, got %s", expectedChange, distributed)
 
 	// EpochBudgetLeft should have decreased
 	left := finalStream.PumpParams.EpochBudgetLeft
-	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(expectedDistr)
+	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(expectedChange)
 	s.Require().True(left.Equal(expectedLeft), "expected %s, got %s", expectedLeft, left)
 
 	// EpochBudget should be the same
@@ -422,14 +419,14 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 
 	// x/streamer balance should have decreased
 	finalStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(expectedDistr)
+	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(expectedChange)
 	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance.Amount, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance.Amount)
 
 	// Verify EventPumped and EventBurn events were emitted
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 1)
 }
 
-func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64) {
+func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64, expectedBudget math.Int) {
 	stream, err := s.App.StreamerKeeper.GetStreamByID(s.Ctx, streamID)
 	s.Require().NoError(err)
 
@@ -437,8 +434,6 @@ func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64) {
 	s.Require().Equal(uint64(1), stream.FilledEpochs)
 
 	// EpochBudget and EpochBudgetLeft should be recalculated
-	expectedBudget, ok := math.NewIntFromString("11110929772269675442")
-	s.Require().True(ok)
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudget)
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
 }
@@ -490,7 +485,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPumpPostSettlement(ctx sdk.Con
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 0)
 }
 
-func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, streamID uint64) {
+func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, streamID uint64, expectedChange math.Int) {
 	// Similar to simulateBlockAndVerifyPump but expects AMM swap events post-settlement
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
@@ -515,15 +510,13 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 	s.Require().NoError(err)
 
 	// DistributedCoins should have increased
-	distributed, ok := math.NewIntFromString("2205024501516582")
-	s.Require().True(ok)
 	finalDistributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
-	expectedDistr := initialStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom).Add(distributed)
+	expectedDistr := initialStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom).Add(expectedChange)
 	s.Require().True(finalDistributed.Equal(expectedDistr), "expected %s, got %s", expectedDistr, finalDistributed)
 
 	// EpochBudgetLeft should have decreased
 	left := finalStream.PumpParams.EpochBudgetLeft
-	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(distributed)
+	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(expectedChange)
 	s.Require().True(left.Equal(expectedLeft), "expected %s, got %s", expectedLeft, left)
 
 	// EpochBudget should be the same
@@ -531,11 +524,133 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 	expectedBudget := initialStream.PumpParams.EpochBudget
 	s.Require().True(budget.Equal(expectedBudget), "expected %s, got %s", expectedBudget, budget)
 
-	// x/streamer balance should have decreased by expected amount (21902 aDYM according to comment)
+	// x/streamer balance should have decreased by expected amount
 	finalStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(distributed)
+	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(expectedChange)
 	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance.Amount, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance.Amount)
 
 	// Verify pump events, burn events and swap events
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 1)
+}
+
+func (s *KeeperTestSuite) TestShouldPump() {
+	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
+	s.Require().NoError(err)
+
+	pumpNum := uint64(9000)
+
+	s.Run("GenerateUnifiedRandom", func() {
+		// Pump hash
+		ctx := hashPump(s.Ctx)
+		r1 := math.NewIntFromBigIntMut(
+			rand.GenerateUnifiedRandomModInt(ctx, b.BigIntMut(), nil),
+		) //  7639
+
+		// No pump hash
+		ctx = hashNoPump(s.Ctx)
+		r2 := math.NewIntFromBigIntMut(
+			rand.GenerateUnifiedRandomModInt(ctx, b.BigIntMut(), nil),
+		) //  11118
+
+		middle := math.NewIntFromUint64(pumpNum)
+
+		s.Require().True(r1.LT(middle), "expected r1 < middle, got: %s < %s", r1, middle)
+		s.Require().True(middle.LT(r2), "expected middle < r2, got: %s < %s ", middle, r2)
+	})
+
+	s.Run("ShouldPump", func() {
+		// Pump hash should pump
+		ctx := hashPump(s.Ctx)
+		pumpAmt, err := keeper.ShouldPump(
+			ctx,
+			types.PumpParams{
+				NumTopRollapps:  0,
+				EpochBudget:     commontypes.DYM.MulRaw(10),
+				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
+				NumPumps:        pumpNum,
+				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
+			},
+			b,
+		)
+		s.Require().NoError(err)
+		s.Require().False(pumpAmt.IsZero())
+
+		// No pump hash should not pump
+		ctx = hashNoPump(s.Ctx)
+		pumpAmt, err = keeper.ShouldPump(
+			ctx,
+			types.PumpParams{
+				NumTopRollapps:  0,
+				EpochBudget:     commontypes.DYM.MulRaw(10),
+				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
+				NumPumps:        pumpNum,
+				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
+			},
+			b,
+		)
+		s.Require().NoError(err)
+		s.Require().True(pumpAmt.IsZero())
+	})
+}
+
+func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
+	s.T().Skip("This test is for debugging and visualizing the distribution.")
+
+	var (
+		epochBudget     = math.NewInt(200_000)
+		epochBudgetLeft = epochBudget
+		pumpNum         = int64(200)
+		ctx             = hashPump(s.Ctx)
+		pumpFunc        = types.PumpDistr_PUMP_DISTR_UNIFORM
+	)
+
+	values := make([]math.Int, 0, pumpNum)
+	total := math.ZeroInt()
+
+	for iteration := int64(0); iteration < pumpNum; iteration++ {
+		hash := ctx.HeaderInfo().Hash
+		newHash := rand.NextPermutation([32]byte(hash), int(iteration))
+		headerInfo := ctx.HeaderInfo()
+		headerInfo.Hash = newHash[:]
+		ctx = ctx.WithHeaderInfo(headerInfo)
+
+		pumpAmt, err := keeper.PumpAmt(ctx, types.PumpParams{
+			NumTopRollapps:  0,
+			EpochBudget:     epochBudget,
+			EpochBudgetLeft: epochBudgetLeft,
+			NumPumps:        uint64(pumpNum),
+			PumpDistr:       pumpFunc,
+		})
+		s.Require().NoError(err)
+
+		epochBudgetLeft = epochBudgetLeft.Sub(pumpAmt)
+		total = total.Add(pumpAmt)
+		values = append(values, pumpAmt)
+	}
+
+	valuesCpy := make([]math.Int, len(values))
+	copy(valuesCpy, values)
+	slices.SortFunc(values, func(a, b math.Int) int {
+		if a.LT(b) {
+			return -1
+		}
+		if a.GT(b) {
+			return 1
+		}
+		return 0
+	})
+
+	s.T().Log("Sorted samples – CDF function")
+	for _, v := range values {
+		println(v.String())
+	}
+
+	s.T().Log("Not sorted samples")
+	for _, v := range valuesCpy {
+		println(v.String())
+	}
+
+	s.T().Log("Target mean", epochBudget.QuoRaw(pumpNum))
+	s.T().Log("Actual mean", total.QuoRaw(pumpNum))
+	s.T().Log("Total distr", total)
 }

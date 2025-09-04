@@ -5,6 +5,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/streamer/params.proto";
+import "dymensionxyz/dymension/streamer/stream.proto";
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -89,6 +90,8 @@ message MsgCreateStream {
     // NumPumps is a target number of pumps that expected to happen
     // in the epoch (probabilistically)
     uint64 num_pumps = 2;
+    // PumpDistr is a distribution used to determine pump amount
+    PumpDistr pump_distr = 3;
   }
 
   // PumpParams is an *optional* field indicating if the stream
