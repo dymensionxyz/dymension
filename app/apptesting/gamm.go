@@ -65,6 +65,8 @@ func (s *KeeperTestHelper) PrepareDefaultPool() uint64 {
 
 // PreparePoolWithCoins returns a pool consisted of given coins with equal weight and default pool parameters.
 func (s *KeeperTestHelper) PreparePoolWithCoins(coins sdk.Coins) uint64 {
+	s.FundAcc(sdk.MustAccAddressFromBech32(Alice), coins)
+
 	poolAssets := coinsToAssets(coins)
 	return s.PrepareCustomPool(poolAssets, DefaultPoolParams)
 }

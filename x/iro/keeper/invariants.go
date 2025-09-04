@@ -27,7 +27,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 // the plan should validate and struct level bookkeeping for tokens should be sensible
 func InvariantPlan(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-		plans := k.GetAllPlans(ctx, false)
+		plans := k.GetAllPlans(ctx)
 
 		if len(plans) == 0 {
 			return nil
@@ -78,7 +78,7 @@ func checkPlan(plan types.Plan) error {
 // the plan and module accounts should have sufficient and correct balances
 func InvariantAccounting(k Keeper) uinv.Func {
 	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
-		plans := k.GetAllPlans(ctx, false)
+		plans := k.GetAllPlans(ctx)
 		var errs []error
 
 		for _, plan := range plans {

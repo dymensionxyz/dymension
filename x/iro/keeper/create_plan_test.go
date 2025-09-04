@@ -5,8 +5,48 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	testutil "github.com/dymensionxyz/dymension/v3/testutil/math"
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+)
+
+var (
+	dymDenomMetadata = banktypes.Metadata{
+		Description: "Denom of the Hub",
+		Base:        "adym",
+		Display:     "DYM",
+		Name:        "DYM",
+		Symbol:      "adym",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "adym",
+				Exponent: 0,
+			}, {
+				Denom:    "DYM",
+				Exponent: 18,
+			},
+		},
+	}
+
+	usdcDenomMetadata = banktypes.Metadata{
+		Description: "Denom of the USDC",
+		Base:        "usdc",
+		Display:     "USDC",
+		Name:        "USDC",
+		Symbol:      "usdc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "usdc",
+				Exponent: 0,
+			}, {
+				Denom:    "USDC",
+				Exponent: 6,
+			},
+		},
+	}
 )
 
 // TestValidateRollappPreconditions tests the validation of rollapp preconditions in the CreatePlan function.
@@ -104,7 +144,7 @@ func (s *KeeperTestSuite) TestCreatePlan() {
 	s.Require().Equal(planId2, fmt.Sprintf("%d", plan.Id))
 
 	// test get all plans
-	plans := k.GetAllPlans(s.Ctx, false)
+	plans := k.GetAllPlans(s.Ctx)
 	s.Require().Len(plans, 2)
 
 	ok := s.App.AccountKeeper.HasAccount(s.Ctx, plan.GetAddress())
@@ -150,4 +190,187 @@ func (s *KeeperTestSuite) TestMintAllocation() {
 	s.Assert().True(allocatedAmount.Equal(minted.Amount))
 	coins := s.App.BankKeeper.GetSupply(s.Ctx, expectedBaseDenom)
 	s.Require().Equal(allocatedAmount, coins.Amount)
+}
+
+// TestFairLaunchIROPreconditions tests the preconditions for fair launch IRO creation
+// should be 100% IRO allocation
+// should be registered and whitelisted liquidity denom
+func (s *KeeperTestSuite) TestFairLaunchIROPreconditions() {
+	s.Run("happy flow", func() {
+		s.SetupTest()
+		s.App.BankKeeper.SetDenomMetaData(s.Ctx, dymDenomMetadata)
+		gammParams := s.App.GAMMKeeper.GetParams(s.Ctx)
+		gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
+		s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
+
+		rollappId := s.CreateFairLaunchRollapp()
+		rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+		owner := rollapp.Owner
+
+		// Fund owner with liquidity denom for creation fee
+		s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
+
+		_, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+			RollappId:      rollappId,
+			Owner:          owner,
+			TradingEnabled: true,
+			LiquidityDenom: "adym",
+		})
+		s.Require().NoError(err)
+	})
+
+	s.Run("not 100% IRO allocation", func() {
+		s.SetupTest()
+		s.App.BankKeeper.SetDenomMetaData(s.Ctx, dymDenomMetadata)
+		gammParams := s.App.GAMMKeeper.GetParams(s.Ctx)
+		gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
+		s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
+
+		rollappId := s.CreateDefaultRollapp()
+		k := s.App.IROKeeper
+		params := k.GetParams(s.Ctx)
+
+		rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+		owner := rollapp.Owner
+
+		partialAmount := params.FairLaunch.AllocationAmount.QuoRaw(2) // Half allocation
+		rollapp.GenesisInfo.InitialSupply = params.FairLaunch.AllocationAmount
+		rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
+			Accounts: []rollapptypes.GenesisAccount{
+				{
+					Address: k.GetModuleAccountAddress(),
+					Amount:  partialAmount, // Only partial amount for IRO
+				},
+				{
+					Address: "dym1otheraddress", // Some other account with remaining
+					Amount:  partialAmount,
+				},
+			},
+		}
+		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+
+		// Fund owner with liquidity denom for creation fee
+		s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
+		_, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+			RollappId:      rollappId,
+			Owner:          owner,
+			TradingEnabled: true,
+			LiquidityDenom: "adym",
+		})
+		s.Require().Error(err)
+	})
+}
+
+func (s *KeeperTestSuite) TestFairLaunch_TargetRaise() {
+	s.SetupTest()
+	s.App.BankKeeper.SetDenomMetaData(s.Ctx, dymDenomMetadata)
+	gammParams := s.App.GAMMKeeper.GetParams(s.Ctx)
+	gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
+	s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
+
+	rollappId := s.CreateFairLaunchRollapp()
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	owner := rollapp.Owner
+
+	// Fund owner with liquidity denom for creation fee
+	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
+	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+		RollappId:      rollappId,
+		Owner:          owner,
+		TradingEnabled: true,
+		LiquidityDenom: "adym",
+	})
+	s.Require().NoError(err)
+
+	k := s.App.IROKeeper
+	params := k.GetParams(s.Ctx)
+	plan := k.MustGetPlan(s.Ctx, res.PlanId)
+	actualRaised := plan.BondingCurve.Cost(math.ZeroInt(), plan.MaxAmountToSell)
+	err = testutil.ApproxEqualRatio(params.FairLaunch.TargetRaise.Amount, actualRaised, 0.01) // 1% tolerance
+	s.Require().NoError(err)
+}
+
+// TestFairLaunchTargetRaiseConversion tests the conversion from params' target raise
+// to liquidity denom and validates that the bonding curve is correctly configured
+func (s *KeeperTestSuite) TestFairLaunch_TargetRaiseConversion() {
+	s.SetupTest()
+	s.App.BankKeeper.SetDenomMetaData(s.Ctx, usdcDenomMetadata)
+	gammParams := s.App.GAMMKeeper.GetParams(s.Ctx)
+	gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "usdc")
+	s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
+
+	// create pool with usdc and adym with price 1 usdc = 5 adym
+	priceRatio := int64(5)
+	s.PreparePoolWithCoins(sdk.NewCoins(
+		sdk.NewCoin("usdc", math.NewInt(1_000_000).MulRaw(1e6)),
+		sdk.NewCoin("adym", math.NewInt(1_000_000).MulRaw(priceRatio).MulRaw(1e18)),
+	))
+
+	rollappId := s.CreateFairLaunchRollapp()
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	owner := rollapp.Owner
+
+	// Fund owner with liquidity denom for creation fee
+	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100_000).MulRaw(1e6))))
+	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+		RollappId:      rollappId,
+		Owner:          owner,
+		TradingEnabled: true,
+		LiquidityDenom: "usdc",
+	})
+	s.Require().NoError(err)
+
+	k := s.App.IROKeeper
+	params := k.GetParams(s.Ctx)
+	plan := k.MustGetPlan(s.Ctx, res.PlanId)
+
+	usdcTargetRaise := plan.BondingCurve.Cost(math.ZeroInt(), plan.MaxAmountToSell)
+	scaledUsdcTargetRaise := types.ScaleFromBase(usdcTargetRaise, 6)
+	scaledTargetRaise := types.ScaleFromBase(params.FairLaunch.TargetRaise.Amount, 18)
+	err = testutil.ApproxEqualRatio(scaledUsdcTargetRaise.MulInt64(priceRatio), scaledTargetRaise, 0.01) // 1% tolerance
+	s.Require().NoError(err)
+}
+
+// TestFairLaunch_TargetRaise_InUSDC tests the case where the target raise is in USDC.
+// we create fair launch rollapp with DYM as the liquidity denom
+func (s *KeeperTestSuite) TestFairLaunch_TargetRaise_InUSDC() {
+	s.App.BankKeeper.SetDenomMetaData(s.Ctx, dymDenomMetadata)
+	gammParams := s.App.GAMMKeeper.GetParams(s.Ctx)
+	gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
+	s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
+
+	// create pool with usdc and adym with price 1 usdc = 5 adym
+	priceRatio := int64(5)
+	s.PreparePoolWithCoins(sdk.NewCoins(
+		sdk.NewCoin("usdc", math.NewInt(1_000_000).MulRaw(1e6)),
+		sdk.NewCoin("adym", math.NewInt(1_000_000).MulRaw(priceRatio).MulRaw(1e18)),
+	))
+
+	iroParams := s.App.IROKeeper.GetParams(s.Ctx)
+	iroParams.FairLaunch.TargetRaise = sdk.NewCoin("usdc", math.NewInt(5_000).MulRaw(1e6)) // 5K USDC
+	s.App.IROKeeper.SetParams(s.Ctx, iroParams)
+
+	rollappId := s.CreateFairLaunchRollapp()
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	owner := rollapp.Owner
+
+	// Fund owner with liquidity denom for creation fee
+	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
+	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+		RollappId:      rollappId,
+		Owner:          owner,
+		TradingEnabled: true,
+		LiquidityDenom: "adym",
+	})
+	s.Require().NoError(err)
+
+	k := s.App.IROKeeper
+	params := k.GetParams(s.Ctx)
+	plan := k.MustGetPlan(s.Ctx, res.PlanId)
+
+	dymRaised := plan.BondingCurve.Cost(math.ZeroInt(), plan.MaxAmountToSell)
+	scaledDymRaised := types.ScaleFromBase(dymRaised, 18)
+	scaledTargetRaise := types.ScaleFromBase(params.FairLaunch.TargetRaise.Amount, 6)
+	err = testutil.ApproxEqualRatio(scaledTargetRaise, scaledDymRaised.QuoInt64(priceRatio), 0.01) // 1% tolerance
+	s.Require().NoError(err)
 }

@@ -20,6 +20,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateIRO())
+	cmd.AddCommand(CmdCreateFairLaunchIRO())
 	cmd.AddCommand(CmdBuy())
 	cmd.AddCommand(CmdSell())
 	cmd.AddCommand(CmdClaim())
