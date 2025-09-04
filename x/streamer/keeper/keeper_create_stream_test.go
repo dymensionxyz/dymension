@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, NonSponsored, types.DefaultPumpParams())
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, nil, time.Now().Add(10*time.Minute), "day", 30, NonSponsored, types.DefaultPumpParams())
 	suite.Require().NoError(err)
 
 	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins3, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, Sponsored, nil)
