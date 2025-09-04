@@ -109,6 +109,9 @@ func (k Keeper) CreateStream(
 
 	case pumpParams != nil:
 		// Pump Stream
+		if len(records) != 0 {
+			return 0, fmt.Errorf("pump stream cannot have distr records")
+		}
 		if pumpParams.PumpDistr == types.PumpDistr_PUMP_DISTR_UNSPECIFIED {
 			return 0, fmt.Errorf("pump distribution must be set")
 		}
