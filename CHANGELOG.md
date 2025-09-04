@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-03)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-04)
 
 
 ### Bug Fixes
@@ -44,6 +44,7 @@
 * **sequencer:** prevent self-kick to avoid state inconsistency ([#1964](https://github.com/dymensionxyz/dymension/issues/1964)) ([776e205](https://github.com/dymensionxyz/dymension/commit/776e205b6fbd29c3eea6457fca6d631895895633)), closes [#1967](https://github.com/dymensionxyz/dymension/issues/1967)
 * **sponsorship:** added epoch identifier ([#1864](https://github.com/dymensionxyz/dymension/issues/1864)) ([1094223](https://github.com/dymensionxyz/dymension/commit/109422326685781577a3148e5284efdeeb80a2e1))
 * **sponsorship:** missing total power in the endorsement migration ([#1865](https://github.com/dymensionxyz/dymension/issues/1865)) ([3e0e9ef](https://github.com/dymensionxyz/dymension/commit/3e0e9effdd628dfd8c3c21cae98ff3a14162791f))
+* **streamer:** tests after v50 ([#1983](https://github.com/dymensionxyz/dymension/issues/1983)) ([1e2563c](https://github.com/dymensionxyz/dymension/commit/1e2563c967ea4f06862a828bf9c9b342e29b305a))
 * **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([5ce245c](https://github.com/dymensionxyz/dymension/commit/5ce245c1eddcbbe150ce2db97ce6cfcde936a35e))
 * **upgrade:** params migration to support fast block time ([#1903](https://github.com/dymensionxyz/dymension/issues/1903)) ([32b9533](https://github.com/dymensionxyz/dymension/commit/32b9533bbbce810567be6d2bacf281c93a13e85b))
 
