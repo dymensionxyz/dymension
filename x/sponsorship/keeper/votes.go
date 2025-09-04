@@ -185,9 +185,10 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 			return fmt.Errorf("failed to get gauge by id: %d: %w", weight.GaugeId, err)
 		}
 
-		// Voting on endorsement gauges is not supported
-		if _, isEndorsement := gauge.DistributeTo.(*incentivestypes.Gauge_Endorsement); isEndorsement {
-			return fmt.Errorf("voting on endorsement gauges is not supported: %d", weight.GaugeId)
+		// Only vote on rollapp gauges
+		_, isRA := gauge.DistributeTo.(*incentivestypes.Gauge_Rollapp)
+		if !isRA {
+			return fmt.Errorf("voting is only allowed for rollapp gauges: got %T: gaugeId %d", gauge.DistributeTo, weight.GaugeId)
 		}
 
 		// All gauges are perpetual
