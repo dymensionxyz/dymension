@@ -74,3 +74,11 @@ func (stream Stream) Key() uint64 {
 func (stream Stream) IsPumpStream() bool {
 	return stream.PumpParams != nil
 }
+
+func DefaultPumpParams() *MsgCreateStream_PumpParams {
+	return &MsgCreateStream_PumpParams{
+		NumTopRollapps: 1,
+		NumPumps:       1,
+		PumpDistr:      PumpDistr_PUMP_DISTR_UNIFORM,
+	}
+}

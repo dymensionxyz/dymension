@@ -1,4 +1,4 @@
-package keeper
+package rand
 
 import (
 	"crypto/sha256"

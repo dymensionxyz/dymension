@@ -7,6 +7,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -87,7 +88,7 @@ func ShouldPump(
 	}
 
 	// Draw a random value in range [0, epochBlocks)
-	randomInRangeBig := GenerateUnifiedRandomModInt(ctx, epochBlocks.BigIntMut(), nil)
+	randomInRangeBig := rand.GenerateUnifiedRandomModInt(ctx, epochBlocks.BigIntMut(), nil)
 
 	// If NumPumps >= epochBlocks => we should pump on every block
 	// If NumPumps < epochBlocks => pump is probabilistic
@@ -119,12 +120,12 @@ func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
 		// Draw a Uniform(0; 2*B/N) value
 		// Mean is B/N
 		modulo := pumpParams.EpochBudget.MulRaw(2).Quo(numPumps)
-		GenerateUnifiedRandomModInt(ctx, modulo.BigIntMut(), randBig)
+		rand.GenerateUnifiedRandomModInt(ctx, modulo.BigIntMut(), randBig)
 
 	case types.PumpDistr_PUMP_DISTR_EXPONENTIAL:
 		// Draw an Exp(N/B) value
 		// Mean is B/N
-		GenerateExpRandomLambdaInt(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt(), randBig)
+		rand.GenerateExpRandomLambdaInt(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt(), randBig)
 
 	case types.PumpDistr_PUMP_DISTR_UNSPECIFIED:
 		return math.ZeroInt(), fmt.Errorf("pump distribution not specified")

@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -529,4 +531,126 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 
 	// Verify pump events, burn events and swap events
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 1)
+}
+
+func (s *KeeperTestSuite) TestShouldPump() {
+	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
+	s.Require().NoError(err)
+
+	pumpNum := uint64(9000)
+
+	s.Run("GenerateUnifiedRandom", func() {
+		// Pump hash
+		ctx := hashPump(s.Ctx)
+		r1 := math.NewIntFromBigIntMut(
+			rand.GenerateUnifiedRandomModInt(ctx, b.BigIntMut(), nil),
+		) //  7639
+
+		// No pump hash
+		ctx = hashNoPump(s.Ctx)
+		r2 := math.NewIntFromBigIntMut(
+			rand.GenerateUnifiedRandomModInt(ctx, b.BigIntMut(), nil),
+		) //  11118
+
+		middle := math.NewIntFromUint64(pumpNum)
+
+		s.Require().True(r1.LT(middle), "expected r1 < middle, got: %s < %s", r1, middle)
+		s.Require().True(middle.LT(r2), "expected middle < r2, got: %s < %s ", middle, r2)
+	})
+
+	s.Run("ShouldPump", func() {
+		// Pump hash should pump
+		ctx := hashPump(s.Ctx)
+		pumpAmt, err := keeper.ShouldPump(
+			ctx,
+			types.PumpParams{
+				NumTopRollapps:  0,
+				EpochBudget:     commontypes.DYM.MulRaw(10),
+				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
+				NumPumps:        pumpNum,
+				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
+			},
+			b,
+		)
+		s.Require().NoError(err)
+		s.Require().False(pumpAmt.IsZero())
+
+		// No pump hash should not pump
+		ctx = hashNoPump(s.Ctx)
+		pumpAmt, err = keeper.ShouldPump(
+			ctx,
+			types.PumpParams{
+				NumTopRollapps:  0,
+				EpochBudget:     commontypes.DYM.MulRaw(10),
+				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
+				NumPumps:        pumpNum,
+				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
+			},
+			b,
+		)
+		s.Require().NoError(err)
+		s.Require().True(pumpAmt.IsZero())
+	})
+}
+
+func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
+	s.T().Skip("This test is for debugging and visualizing the distribution.")
+
+	var (
+		epochBudget     = math.NewInt(200_000)
+		epochBudgetLeft = epochBudget
+		pumpNum         = int64(200)
+		ctx             = hashPump(s.Ctx)
+		pumpFunc        = types.PumpDistr_PUMP_DISTR_UNIFORM
+	)
+
+	values := make([]math.Int, 0, pumpNum)
+	total := math.ZeroInt()
+
+	for iteration := int64(0); iteration < pumpNum; iteration++ {
+		hash := ctx.HeaderInfo().Hash
+		newHash := rand.NextPermutation([32]byte(hash), int(iteration))
+		headerInfo := ctx.HeaderInfo()
+		headerInfo.Hash = newHash[:]
+		ctx = ctx.WithHeaderInfo(headerInfo)
+
+		pumpAmt, err := keeper.PumpAmt(ctx, types.PumpParams{
+			NumTopRollapps:  0,
+			EpochBudget:     epochBudget,
+			EpochBudgetLeft: epochBudgetLeft,
+			NumPumps:        uint64(pumpNum),
+			PumpDistr:       pumpFunc,
+		})
+		s.Require().NoError(err)
+
+		epochBudgetLeft = epochBudgetLeft.Sub(pumpAmt)
+		total = total.Add(pumpAmt)
+		values = append(values, pumpAmt)
+	}
+
+	valuesCpy := make([]math.Int, len(values))
+	copy(valuesCpy, values)
+	slices.SortFunc(values, func(a, b math.Int) int {
+		if a.LT(b) {
+			return -1
+		}
+		if a.GT(b) {
+			return 1
+		}
+		return 0
+	})
+
+	s.T().Log("Sorted samples – CDF function")
+	for _, v := range values {
+		println(v.String())
+	}
+
+	s.T().Log("Not sorted samples")
+	for _, v := range valuesCpy {
+		println(v.String())
+	}
+
+	s.T().Log("Target mean", epochBudget.QuoRaw(pumpNum))
+	s.T().Log("Actual mean", total.QuoRaw(pumpNum))
+	s.T().Log("Total distr", total)
 }
