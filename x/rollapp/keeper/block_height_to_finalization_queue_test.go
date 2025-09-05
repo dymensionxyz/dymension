@@ -14,6 +14,7 @@ import (
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -914,4 +915,151 @@ func (s *RollappTestSuite) TestUnbondConditionFlow() {
 
 	err = k.CanUnbond(ctx, seq)
 	s.NoError(err)
+}
+
+func (s *RollappTestSuite) TestFastFinalizeRollappStatesUntilStateIndex() {
+	k := s.k()
+	ctx := &s.Ctx
+	
+	// Create rollapp and proposer
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
+	
+	// Create 5 state updates
+	initialHeight := uint64(10)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight))
+	
+	// Post state updates 1-5
+	for i := uint64(1); i <= 5; i++ {
+		s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight + i - 1))
+		_, err := s.PostStateUpdate(*ctx, rollapp, proposer, i*10+1, 10)
+		s.Require().NoError(err)
+	}
+	
+	// Verify all states are pending
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_PENDING, stateInfo.Status)
+	}
+	
+	// Test 1: Fast finalize states up to index 3
+	err := k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 3)
+	s.Require().NoError(err)
+	
+	// Verify states 1-3 are finalized
+	for i := uint64(1); i <= 3; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
+	}
+	
+	// Verify states 4-5 are still pending
+	for i := uint64(4); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_PENDING, stateInfo.Status, "state %d should be pending", i)
+	}
+	
+	// Test 2: Fast finalize remaining states
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 5)
+	s.Require().NoError(err)
+	
+	// Verify all states are finalized
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
+	}
+	
+	// Test 3: Verify idempotency - fast finalizing already finalized states should work
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 3)
+	s.Require().NoError(err)
+	
+	// All states should remain finalized
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should remain finalized", i)
+	}
+	
+	// Test 4: Fast finalize with index beyond existing states
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 10)
+	s.Require().NoError(err)
+	
+	// All existing states should be finalized
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
+	}
+}
+
+func (s *RollappTestSuite) TestFastFinalizeRollappStatesWithFailure() {
+	k := s.k()
+	ctx := &s.Ctx
+	
+	// Create rollapp and proposer
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
+	
+	// Create 3 state updates
+	initialHeight := uint64(10)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight))
+	
+	for i := uint64(1); i <= 3; i++ {
+		s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight + i - 1))
+		_, err := s.PostStateUpdate(*ctx, rollapp, proposer, i*10+1, 10)
+		s.Require().NoError(err)
+	}
+	
+	// Set up hook to fail on state 2
+	s.setMockErrRollappKeeperHooks([]types.StateInfoIndex{
+		{RollappId: rollapp, Index: 2},
+	})
+	
+	// Check the queue before fast finalization
+	queuesBefore, err := k.GetFinalizationQueueByRollapp(*ctx, rollapp)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(queuesBefore)
+	
+	// Attempt to fast finalize up to state 3
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 3)
+	s.Require().NoError(err) // Method doesn't return error, but state 2 should fail
+	
+	// Check the queue after fast finalization
+	queuesAfter, err := k.GetFinalizationQueueByRollapp(*ctx, rollapp)
+	s.Require().NoError(err)
+	
+	// Verify state 1 is finalized
+	stateInfo1, found := k.GetStateInfo(*ctx, rollapp, 1)
+	s.Require().True(found)
+	s.Require().Equal(common.Status_FINALIZED, stateInfo1.Status, "state 1 should be finalized")
+	
+	// Verify states 2 and 3 are still pending (because 2 failed)
+	for i := uint64(2); i <= 3; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_PENDING, stateInfo.Status, "state %d should be pending", i)
+	}
+	
+	// The queue should still contain states 2 and 3
+	s.Require().NotEmpty(queuesAfter, "Queue should still contain pending states")
+	remainingStates := 0
+	for _, q := range queuesAfter {
+		remainingStates += len(q.FinalizationQueue)
+	}
+	s.Require().Equal(2, remainingStates, "Should have 2 states remaining in queue")
+	
+	// Fix the hook error and retry
+	s.setMockErrRollappKeeperHooks([]types.StateInfoIndex{})
+	
+	// Fast finalize again
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 3)
+	s.Require().NoError(err)
+	
+	// Now all states up to 3 should be finalized
+	for i := uint64(1); i <= 3; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
+	}
 }
