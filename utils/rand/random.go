@@ -1,78 +1,52 @@
 package rand
 
 import (
-	"crypto/sha256"
+	"math"
 	"math/big"
 	"math/rand/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/osmosis/osmomath"
 )
 
-// GenerateUnifiedRandom draws a uniform random variable in [0; 1)
-func GenerateUnifiedRandom(ctx sdk.Context) *big.Float {
-	// Take block hash
-	hash := ctx.HeaderInfo().Hash
-
-	// Get 32 bytes hash from it
-	h := sha256.New()
-	h.Write(hash)
-	seed := [32]byte(h.Sum(nil))
-
-	// Use a PRNG to generate a float in [0; 1)
-	//nolint:gosec // math/rand/v2 is used for purpose
-	generator := rand.New(rand.NewChaCha8(seed))
-	return big.NewFloat(generator.Float64())
+// GenerateUniformRandom draws a uniform random 64-bit variable
+func GenerateUniformRandom(ctx sdk.Context) *big.Int {
+	// Take block hash. Tendermint uses SHA-256.
+	seed := ctx.HeaderInfo().Hash
+	//nolint:gosec // math/rand/v2 is used for a purpose: we need a custom seed
+	generator := rand.NewChaCha8([32]byte(seed))
+	return new(big.Int).SetUint64(generator.Uint64())
 }
 
-// GenerateUnifiedRandomMod draws a uniform random variable in [0; modulo)
-func GenerateUnifiedRandomMod(ctx sdk.Context, modulo *big.Int) *big.Float {
-	randFloat := GenerateUnifiedRandom(ctx)
-	randFloat.Mul(randFloat, new(big.Float).SetInt(modulo))
-	return randFloat
+// GenerateUniformRandomMod draws a uniform random variable in [0; modulo)
+func GenerateUniformRandomMod(ctx sdk.Context, modulo *big.Int) *big.Int {
+	// Generate a uniform random variable in [0; MaxUint64)
+	u := GenerateUniformRandom(ctx)
+	// Normalize it to [0; 1) = uniform / (MAX_UINT64 + 1)
+	un := osmomath.NewDecFromBigInt(u).QuoInt(osmomath.NewIntFromUint64(math.MaxUint64).AddRaw(1))
+	// Scale it up to the modulo
+	return un.MulInt(osmomath.NewIntFromBigInt(modulo)).TruncateInt().BigInt()
 }
 
-// GenerateUnifiedRandomModInt draws a uniform random variable in [0; modulo).
-// Result is truncated to Int.
-// If `result` is provided, store the result there instead of allocating a new Int.
-func GenerateUnifiedRandomModInt(ctx sdk.Context, modulo *big.Int, result *big.Int) *big.Int {
-	randFloat := GenerateUnifiedRandomMod(ctx, modulo)
-	result, _ = randFloat.Int(result)
-	return result
-}
+var BigMaxUint64 = osmomath.NewIntFromUint64(math.MaxUint64)
 
-// GenerateExpRandom draws an exp random variable in (0, +math.MaxFloat64]
-// with lambda = 1 and mean = 1.
-func GenerateExpRandom(ctx sdk.Context) *big.Float {
-	// Take block hash
-	hash := ctx.HeaderInfo().Hash
-
-	// Get 32 bytes hash from it
-	h := sha256.New()
-	h.Write(hash)
-	seed := [32]byte(h.Sum(nil))
-
-	// Use a PRNG to generate an exp float in (0, +math.MaxFloat64]
-	//nolint:gosec // math/rand/v2 is used for purpose
-	generator := rand.New(rand.NewChaCha8(seed))
-	return big.NewFloat(generator.ExpFloat64())
-}
-
-// GenerateExpRandomLambda draws an exp random variable in (0, +math.MaxFloat64]
+// GenerateExpRandomLambda draws an exp random variable in [0, +inf)
 // with lambda = numerator / denominator and mean = denominator / numerator.
-func GenerateExpRandomLambda(ctx sdk.Context, numerator, denominator *big.Int) *big.Float {
-	// scaledRnd = expRnd / lambda = expRnd * denominator / numerator
-	expRnd := GenerateExpRandom(ctx)
-	expRnd.Mul(expRnd, new(big.Float).SetInt(denominator))
-	expRnd.Quo(expRnd, new(big.Float).SetInt(numerator))
-	return expRnd
-}
+func GenerateExpRandomLambda(ctx sdk.Context, lambdaNumerator, lambdaDenominator *big.Int) *big.Int {
+	// Generate a uniform random variable in [0; MaxUint64]
+	u := GenerateUniformRandom(ctx)
 
-// GenerateExpRandomLambdaInt draws a random exp variable in (0, +math.MaxFloat64]
-// with lambda = numerator / denominator and mean = denominator / numerator.
-// Result is truncated to Int.
-// If `result` is provided, store the result there instead of allocating a new Int.
-func GenerateExpRandomLambdaInt(ctx sdk.Context, numerator, denominator *big.Int, result *big.Int) *big.Int {
-	expRnd := GenerateExpRandomLambda(ctx, numerator, denominator)
-	result, _ = expRnd.Int(result)
-	return result
+	// Handle u = 0 case to avoid ln(0)
+	// The variable is in (0; MaxUint64]
+	if u.Cmp(big.NewInt(0)) == 0 {
+		u = big.NewInt(1)
+	}
+
+	// Normalize it to (0; 1] = uniform / MaxUint64
+	un := osmomath.NewDecFromBigInt(u).QuoInt(BigMaxUint64)
+	num := osmomath.NewDecFromBigInt(lambdaNumerator)
+	den := osmomath.NewDecFromBigInt(lambdaDenominator)
+	// Use the inverse transform method:
+	// exp = -ln(uniform) / λ = -ln(uniform) * den / num
+	return un.Ln().Mul(den).Quo(num).Neg().TruncateInt().BigInt()
 }

@@ -33,6 +33,7 @@ message EventPumped {
     string rollapp_id = 1;
     uint64 stream_id = 2;
     string pumpAmt = 3 [
+      (cosmos_proto.scalar) = "cosmos.Int",
       (gogoproto.customtype) = "cosmossdk.io/math.Int",
       (gogoproto.nullable) = false
     ];

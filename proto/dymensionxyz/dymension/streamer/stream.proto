@@ -79,12 +79,14 @@ message PumpParams {
   // EpochBudget is how many DYM are dedicated for pumping
   // in this Epoch.
   string epoch_budget = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // EpochBudgetLeft is DYM that is left for pumping in the epoch.
   // epoch_budget_left <= epoch_budget.
   string epoch_budget_left = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];

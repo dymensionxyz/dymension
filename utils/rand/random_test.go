@@ -31,7 +31,7 @@ func TestUniformRandom(t *testing.T) {
 		headerInfo.Hash = newHash[:]
 		ctx = ctx.WithHeaderInfo(headerInfo)
 
-		random := rand.GenerateUnifiedRandomModInt(ctx, modulo.BigInt(), nil)
+		random := rand.GenerateUniformRandomMod(ctx, modulo.BigInt())
 		total = total.Add(math.NewIntFromBigIntMut(random))
 		values = append(values, random.Uint64())
 	}
@@ -45,7 +45,7 @@ func TestUniformRandom(t *testing.T) {
 }
 
 func TestExpRandom(t *testing.T) {
-	t.Skip("This test is for debugging and visualizing the distribution.")
+	//t.Skip("This test is for debugging and visualizing the distribution.")
 
 	// Prepare hash
 	hash := make([]byte, 32)
@@ -66,7 +66,7 @@ func TestExpRandom(t *testing.T) {
 		headerInfo.Hash = newHash[:]
 		ctx = ctx.WithHeaderInfo(headerInfo)
 
-		random := rand.GenerateExpRandomLambdaInt(ctx, pumpNum.BigInt(), budget.BigInt(), nil)
+		random := rand.GenerateExpRandomLambda(ctx, pumpNum.BigInt(), budget.BigInt())
 		total = total.Add(math.NewIntFromBigIntMut(random))
 		values = append(values, random.Uint64())
 	}

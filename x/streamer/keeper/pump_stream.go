@@ -17,7 +17,7 @@ import (
 
 // PumpPressure calculated how much DYM each RA gets if the given budget is
 // applied using the given weight distribution.
-func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int) []types.PumpPressure {
+func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int, limit *uint32) []types.PumpPressure {
 	var rollappRecords []types.PumpPressure
 	for _, gauge := range distr.Gauges {
 		g, err := k.ik.GetGaugeByID(ctx, gauge.GaugeId)
@@ -39,6 +39,10 @@ func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distributio
 		return rollappRecords[i].Pressure.GT(rollappRecords[j].Pressure)
 	})
 
+	if limit != nil && len(rollappRecords) > int(*limit) {
+		rollappRecords = rollappRecords[:int(*limit)]
+	}
+
 	return rollappRecords
 }
 
@@ -55,8 +59,6 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 
 // ShouldPump decides if the pump should happen in this block. It uses block
 // hash and block time as entropy.
-//
-// epochBlocks is consumed!
 //
 // Example:
 //
@@ -77,7 +79,7 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 func ShouldPump(
 	ctx sdk.Context,
 	pumpParams types.PumpParams,
-	epochBlocks math.Int, // is consumed!
+	epochBlocks math.Int,
 ) (math.Int, error) {
 	if pumpParams.NumPumps == 0 {
 		// Should not pump at all
@@ -88,7 +90,7 @@ func ShouldPump(
 	}
 
 	// Draw a random value in range [0, epochBlocks)
-	randomInRangeBig := rand.GenerateUnifiedRandomModInt(ctx, epochBlocks.BigIntMut(), nil)
+	randomInRangeBig := rand.GenerateUniformRandomMod(ctx, epochBlocks.BigInt())
 
 	// If NumPumps >= epochBlocks => we should pump on every block
 	// If NumPumps < epochBlocks => pump is probabilistic
@@ -120,12 +122,12 @@ func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
 		// Draw a Uniform(0; 2*B/N) value
 		// Mean is B/N
 		modulo := pumpParams.EpochBudget.MulRaw(2).Quo(numPumps)
-		rand.GenerateUnifiedRandomModInt(ctx, modulo.BigIntMut(), randBig)
+		randBig = rand.GenerateUniformRandomMod(ctx, modulo.BigIntMut())
 
 	case types.PumpDistr_PUMP_DISTR_EXPONENTIAL:
 		// Draw an Exp(N/B) value
 		// Mean is B/N
-		rand.GenerateExpRandomLambdaInt(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt(), randBig)
+		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt())
 
 	case types.PumpDistr_PUMP_DISTR_UNSPECIFIED:
 		return math.ZeroInt(), fmt.Errorf("pump distribution not specified")
@@ -272,10 +274,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Get top N rollapps by cast voting power
-		pressure := k.PumpPressure(ctx, sponsorshipDistr, pumpAmt)
-		if len(pressure) > int(stream.PumpParams.NumTopRollapps) {
-			pressure = pressure[:int(stream.PumpParams.NumTopRollapps)]
-		}
+		pressure := k.PumpPressure(ctx, sponsorshipDistr, pumpAmt, &stream.PumpParams.NumTopRollapps)
 
 		// Distribute pump amount proportionally to each rollapp
 		totalPumped := sdk.NewCoins()

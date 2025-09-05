@@ -114,7 +114,7 @@ func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequ
 	}
 
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure)
+	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure, nil)
 
 	return &types.PumpPressureResponse{
 		Pressure:   pressure,
@@ -178,7 +178,7 @@ func (q Querier) PumpPressureByUser(goCtx context.Context, req *types.PumpPressu
 	// Use total voting power with user's weights to get PumpPressure.
 	d.Gauges = vote.ToDistribution().Gauges
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure)
+	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure, nil)
 
 	return &types.PumpPressureByUserResponse{
 		Pressure:   pressure,

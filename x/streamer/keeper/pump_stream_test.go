@@ -539,17 +539,17 @@ func (s *KeeperTestSuite) TestShouldPump() {
 
 	pumpNum := uint64(9000)
 
-	s.Run("GenerateUnifiedRandom", func() {
+	s.Run("GenerateUniformRandom", func() {
 		// Pump hash
 		ctx := hashPump(s.Ctx)
 		r1 := math.NewIntFromBigIntMut(
-			rand.GenerateUnifiedRandomModInt(ctx, b.BigIntMut(), nil),
+			rand.GenerateUniformRandomMod(ctx, b.BigIntMut()),
 		) //  7639
 
 		// No pump hash
 		ctx = hashNoPump(s.Ctx)
 		r2 := math.NewIntFromBigIntMut(
-			rand.GenerateUnifiedRandomModInt(ctx, b.BigIntMut(), nil),
+			rand.GenerateUniformRandomMod(ctx, b.BigIntMut()),
 		) //  11118
 
 		middle := math.NewIntFromUint64(pumpNum)
@@ -594,14 +594,14 @@ func (s *KeeperTestSuite) TestShouldPump() {
 }
 
 func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
-	s.T().Skip("This test is for debugging and visualizing the distribution.")
+	//s.T().Skip("This test is for debugging and visualizing the distribution.")
 
 	var (
 		epochBudget     = math.NewInt(200_000)
 		epochBudgetLeft = epochBudget
 		pumpNum         = int64(200)
 		ctx             = hashPump(s.Ctx)
-		pumpFunc        = types.PumpDistr_PUMP_DISTR_UNIFORM
+		pumpFunc        = types.PumpDistr_PUMP_DISTR_EXPONENTIAL
 	)
 
 	values := make([]math.Int, 0, pumpNum)
