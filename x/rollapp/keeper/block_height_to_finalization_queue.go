@@ -145,6 +145,86 @@ func (k Keeper) FinalizeStates(ctx sdk.Context, queue types.BlockHeightToFinaliz
 	return true
 }
 
+// FastFinalizeRollappStatesUntilStateIndex finalizes states up to the given state index
+// This is used when TEE attestation provides proof that states are valid
+func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollappID string, stateIndex uint64) error {
+	// Get the finalization queue for this rollapp
+	queues, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to get finalization queue")
+	}
+
+	// Track if we hit an error to stop processing subsequent queues
+	var errorOccurred bool
+
+	for _, queue := range queues {
+		if errorOccurred {
+			// Stop processing queues if we hit an error in a previous queue
+			break
+		}
+
+		finalizedCount := 0
+
+		// Process each state in the finalization queue for this creation height
+		for _, stateInfoIdx := range queue.FinalizationQueue {
+			// Check if we've reached beyond our target state index
+			// Since the queue is sorted, we can break early
+			if stateInfoIdx.Index > stateIndex {
+				break
+			}
+
+			// Check if already finalized
+			stateInfo, found := k.GetStateInfo(ctx, rollappID, stateInfoIdx.Index)
+			if !found {
+				continue
+			}
+
+			if stateInfo.Status == common.Status_FINALIZED {
+				finalizedCount++
+				continue
+			}
+
+			// Use same transactional pattern as FinalizeStates
+			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return k.finalizePendingState(ctx, stateInfoIdx)
+			})
+			if err != nil {
+				k.Logger(ctx).
+					With("rollapp_id", stateInfoIdx.RollappId, "index", stateInfoIdx.Index, "err", err.Error()).
+					Error("failed to fast finalize rollapp state")
+				// Remove from the queue only the indexes that were successfully finalized
+				if finalizedCount > 0 {
+					queue.FinalizationQueue = slices.Delete(queue.FinalizationQueue, 0, finalizedCount)
+				}
+
+				// Save the current queue with leftover rollapp state changes
+				k.MustSetFinalizationQueue(ctx, queue)
+
+				// Mark that an error occurred to stop processing other queues
+				errorOccurred = true
+				break
+			}
+			finalizedCount++
+		}
+
+		// Update the queue after processing (only if no error occurred)
+		if !errorOccurred && finalizedCount > 0 {
+			// Remove finalized states from the queue
+			remainingStates := queue.FinalizationQueue[finalizedCount:]
+			if len(remainingStates) > 0 {
+				// Update the queue with remaining states
+				queue.FinalizationQueue = remainingStates
+				k.MustSetFinalizationQueue(ctx, queue)
+			} else {
+				// All states in this queue were finalized
+				k.MustRemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
 	stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 	if stateInfo.Status != common.Status_PENDING {
