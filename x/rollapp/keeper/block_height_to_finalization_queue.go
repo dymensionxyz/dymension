@@ -149,18 +149,28 @@ func (k Keeper) FinalizeStates(ctx sdk.Context, queue types.BlockHeightToFinaliz
 // This is used when TEE attestation provides proof that states are valid
 func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollappID string, stateIndex uint64) error {
 	// Get the finalization queue for this rollapp
-	queue, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	queues, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to get finalization queue")
 	}
 
-	statesFinalized := false
-	for _, item := range queue {
+	// Track if we hit an error to stop processing subsequent queues
+	var errorOccurred bool
+	
+	for _, queue := range queues {
+		if errorOccurred {
+			// Stop processing queues if we hit an error in a previous queue
+			break
+		}
+		
+		finalizedCount := 0
+		
 		// Process each state in the finalization queue for this creation height
-		for _, stateInfoIdx := range item.FinalizationQueue {
-			// Only finalize states up to the specified index
+		for _, stateInfoIdx := range queue.FinalizationQueue {
+			// Check if we've reached beyond our target state index
+			// Since the queue is sorted, we can break early
 			if stateInfoIdx.Index > stateIndex {
-				continue
+				break
 			}
 			
 			// Check if already finalized
@@ -170,31 +180,44 @@ func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollap
 			}
 			
 			if stateInfo.Status == common.Status_FINALIZED {
+				finalizedCount++
 				continue
 			}
 			
-			// Finalize this state
-			stateInfo.Status = common.Status_FINALIZED
-			k.SetStateInfo(ctx, stateInfo)
-			
-			statesFinalized = true
-			
-			// Emit finalization event for each state
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeStateFinalized,
-					sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
-					sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", stateInfoIdx.Index)),
-				),
-			)
+			// Use same transactional pattern as FinalizeStates
+			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return k.finalizePendingState(ctx, stateInfoIdx)
+			})
+			if err != nil {
+				k.Logger(ctx).
+					With("rollapp_id", stateInfoIdx.RollappId, "index", stateInfoIdx.Index, "err", err.Error()).
+					Error("failed to fast finalize rollapp state")
+				// Remove from the queue only the indexes that were successfully finalized
+				if finalizedCount > 0 {
+					queue.FinalizationQueue = slices.Delete(queue.FinalizationQueue, 0, finalizedCount)
+				}
+				
+				// Save the current queue with leftover rollapp state changes
+				k.MustSetFinalizationQueue(ctx, queue)
+				
+				// Mark that an error occurred to stop processing other queues
+				errorOccurred = true
+				break
+			}
+			finalizedCount++
 		}
 		
-		// Remove entire queue entry once all its states are processed
-		if len(item.FinalizationQueue) > 0 && statesFinalized {
-			err = k.RemoveFinalizationQueue(ctx, item.CreationHeight, rollappID)
-			if err != nil {
-				// Log but don't fail
-				ctx.Logger().Error("Failed to remove from finalization queue", "error", err)
+		// Update the queue after processing (only if no error occurred)
+		if !errorOccurred && finalizedCount > 0 {
+			// Remove finalized states from the queue
+			remainingStates := queue.FinalizationQueue[finalizedCount:]
+			if len(remainingStates) > 0 {
+				// Update the queue with remaining states
+				queue.FinalizationQueue = remainingStates
+				k.MustSetFinalizationQueue(ctx, queue)
+			} else {
+				// All states in this queue were finalized
+				k.MustRemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
 			}
 		}
 	}
