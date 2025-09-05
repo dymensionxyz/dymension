@@ -177,7 +177,7 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 	bridgingFee := w.BridgingFeeFromAmt(ctx, amt)
 	denom := denomutils.GetIncomingTransferDenom(packet, transfer.FungibleTokenPacketData)
 	budget := sdk.NewCoin(denom, amt.Sub(bridgingFee))
-	
+
 	fundsSrc, err := sdk.AccAddressFromBech32(transfer.Receiver)
 	if err != nil {
 		l.Error("Invalid receiver address", "err", err)

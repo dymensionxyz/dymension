@@ -156,15 +156,15 @@ func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollap
 
 	// Track if we hit an error to stop processing subsequent queues
 	var errorOccurred bool
-	
+
 	for _, queue := range queues {
 		if errorOccurred {
 			// Stop processing queues if we hit an error in a previous queue
 			break
 		}
-		
+
 		finalizedCount := 0
-		
+
 		// Process each state in the finalization queue for this creation height
 		for _, stateInfoIdx := range queue.FinalizationQueue {
 			// Check if we've reached beyond our target state index
@@ -172,18 +172,18 @@ func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollap
 			if stateInfoIdx.Index > stateIndex {
 				break
 			}
-			
+
 			// Check if already finalized
 			stateInfo, found := k.GetStateInfo(ctx, rollappID, stateInfoIdx.Index)
 			if !found {
 				continue
 			}
-			
+
 			if stateInfo.Status == common.Status_FINALIZED {
 				finalizedCount++
 				continue
 			}
-			
+
 			// Use same transactional pattern as FinalizeStates
 			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 				return k.finalizePendingState(ctx, stateInfoIdx)
@@ -196,17 +196,17 @@ func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollap
 				if finalizedCount > 0 {
 					queue.FinalizationQueue = slices.Delete(queue.FinalizationQueue, 0, finalizedCount)
 				}
-				
+
 				// Save the current queue with leftover rollapp state changes
 				k.MustSetFinalizationQueue(ctx, queue)
-				
+
 				// Mark that an error occurred to stop processing other queues
 				errorOccurred = true
 				break
 			}
 			finalizedCount++
 		}
-		
+
 		// Update the queue after processing (only if no error occurred)
 		if !errorOccurred && finalizedCount > 0 {
 			// Remove finalized states from the queue
@@ -221,7 +221,7 @@ func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollap
 			}
 		}
 	}
-	
+
 	return nil
 }
 
