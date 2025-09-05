@@ -26,5 +26,4 @@ const (
 	EventTypeStateFinalized       = "state_finalized"
 	AttributeKeyStateIndex        = "state_index"
 	AttributeKeyStatesFinalized   = "states_finalized"
-	AttributeKeyFinalizedBy       = "finalized_by"
 )
