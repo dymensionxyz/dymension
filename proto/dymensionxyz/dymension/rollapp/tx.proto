@@ -244,15 +244,9 @@ message TEENonce {
   // state_index matches the state to be finalized
   uint64 state_index = 1;
   
-  // chain_id of the rollapp
-  string chain_id = 2;
-  
   // last_block_hash of the validated height
-  bytes last_block_hash = 3;
+  bytes last_block_hash = 2;
 }
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE
-message MsgFastFinalizeWithTEEResponse {
-  // states_finalized is the number of states that were finalized
-  uint64 states_finalized = 1;
-}
+message MsgFastFinalizeWithTEEResponse {}
