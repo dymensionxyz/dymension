@@ -145,6 +145,63 @@ func (k Keeper) FinalizeStates(ctx sdk.Context, queue types.BlockHeightToFinaliz
 	return true
 }
 
+// FastFinalizeRollappStatesUntilStateIndex finalizes states up to the given state index
+// This is used when TEE attestation provides proof that states are valid
+func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollappID string, stateIndex uint64) error {
+	// Get the finalization queue for this rollapp
+	queue, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to get finalization queue")
+	}
+
+	statesFinalized := false
+	for _, item := range queue {
+		// Process each state in the finalization queue for this creation height
+		for _, stateInfoIdx := range item.FinalizationQueue {
+			// Only finalize states up to the specified index
+			if stateInfoIdx.Index > stateIndex {
+				continue
+			}
+			
+			// Check if already finalized
+			stateInfo, found := k.GetStateInfo(ctx, rollappID, stateInfoIdx.Index)
+			if !found {
+				continue
+			}
+			
+			if stateInfo.Status == common.Status_FINALIZED {
+				continue
+			}
+			
+			// Finalize this state
+			stateInfo.Status = common.Status_FINALIZED
+			k.SetStateInfo(ctx, stateInfo)
+			
+			statesFinalized = true
+			
+			// Emit finalization event for each state
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeStateFinalized,
+					sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
+					sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", stateInfoIdx.Index)),
+				),
+			)
+		}
+		
+		// Remove entire queue entry once all its states are processed
+		if len(item.FinalizationQueue) > 0 && statesFinalized {
+			err = k.RemoveFinalizationQueue(ctx, item.CreationHeight, rollappID)
+			if err != nil {
+				// Log but don't fail
+				ctx.Logger().Error("Failed to remove from finalization queue", "error", err)
+			}
+		}
+	}
+	
+	return nil
+}
+
 func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
 	stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 	if stateInfo.Status != common.Status_PENDING {
