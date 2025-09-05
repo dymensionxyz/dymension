@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.streamer;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -58,4 +59,41 @@ message Stream {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+
+  // PumpParams is an *optional* field indicating if the stream
+  // is pumping or distributing. If non-null, it contains pumping params.
+  // For now, every pump stream should be sponsored.
+  PumpParams pump_params = 11;
+}
+
+// PumpDistr is a distribution used to determine pump amount
+enum PumpDistr {
+  PUMP_DISTR_UNSPECIFIED = 0;
+  PUMP_DISTR_UNIFORM = 1;
+  PUMP_DISTR_EXPONENTIAL = 2;
+}
+
+message PumpParams {
+  // NumTopRollapps is a number of rollapps, top N by the voting power,
+  // that will be pumped on every pump iteration.
+  uint32 num_top_rollapps = 1;
+  // EpochBudget is how many DYM are dedicated for pumping
+  // in this Epoch.
+  string epoch_budget = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // EpochBudgetLeft is DYM that is left for pumping in the epoch.
+  // epoch_budget_left <= epoch_budget.
+  string epoch_budget_left = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // NumPumps is a target number of pumps that expected to happen
+  // in the epoch (probabilistically)
+  uint64 num_pumps = 4;
+  // PumpDistr is a distribution used to determine pump amount
+  PumpDistr pump_distr = 5;
 }

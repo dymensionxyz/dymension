@@ -75,6 +75,13 @@ func TestFullAppSimulation(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimulationAppChainID
 
+	// Configure SDK address prefixes before creating app
+	sdkConfig := types.GetConfig()
+	sdkConfig.SetBech32PrefixForAccount("dym", "dympub")
+	sdkConfig.SetBech32PrefixForValidator("dymvaloper", "dymvaloperpub")
+	sdkConfig.SetBech32PrefixForConsensusNode("dymvalcons", "dymvalconspub")
+	sdkConfig.Seal()
+
 	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
 	if skip {
 		t.Skip("skipping application simulation")
@@ -144,6 +151,13 @@ func TestAppStateDeterminism(t *testing.T) {
 	if !simcli.FlagEnabledValue {
 		t.Skip("skipping application simulation")
 	}
+
+	// Configure SDK address prefixes before creating app
+	sdkConfig := types.GetConfig()
+	sdkConfig.SetBech32PrefixForAccount("dym", "dympub")
+	sdkConfig.SetBech32PrefixForValidator("dymvaloper", "dymvaloperpub")
+	sdkConfig.SetBech32PrefixForConsensusNode("dymvalcons", "dymvalconspub")
+	sdkConfig.Seal()
 
 	config := simcli.NewConfigFromFlags()
 	config.InitialBlockHeight = 1

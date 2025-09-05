@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -44,7 +45,11 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.App = apptesting.Setup(suite.T())
 	suite.Ctx = suite.App.NewContext(false).WithBlockTime(time.Now())
-	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500000)), sdk.NewCoin("udym", math.NewInt(2500000)))
+	streamerCoins := sdk.NewCoins(
+		sdk.NewCoin(sdk.DefaultBondDenom, common.DYM.MulRaw(100)),
+		sdk.NewCoin("udym", math.NewInt(2500000)),
+		common.DymUint64(100),
+	)
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 
@@ -54,6 +59,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	ip.MinValueForDistribution = sdk.NewCoin(bd, math.ZeroInt())
 	suite.App.IncentivesKeeper.SetParams(suite.Ctx, ip)
+
+	// Fund alice, the default rollapp creator, so she has enough balance for IRO creation
+	funds := suite.App.IROKeeper.GetParams(suite.Ctx).CreationFee.Mul(math.NewInt(10)) // 10 times the creation fee
+	suite.FundAcc(sdk.MustAccAddressFromBech32(apptesting.Alice), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, funds)))
 
 	err = suite.CreateGauge()
 	suite.Require().NoError(err)
@@ -80,7 +89,7 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 
 // CreateStream creates a non-sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored, nil)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -89,7 +98,16 @@ func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sd
 
 // CreateSponsoredStream creates a sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored, nil)
+	suite.Require().NoError(err)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
+	suite.Require().NoError(err)
+	return streamID, stream
+}
+
+// CreateStream creates a pump stream struct given the required params.
+func (suite *KeeperTestSuite) CreatePumpStream(coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64, pumpParams *types.MsgCreateStream_PumpParams) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, []types.DistrRecord{}, startTime, epochIdentifier, numEpoch, NonSponsored, pumpParams)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -150,7 +168,7 @@ func (suite *KeeperTestSuite) Distribution() sponsorshiptypes.Distribution {
 
 // Vote creates two validators and a delegator, then delegates the stake to these validators.
 // The delegator then casts the vote to gauges through x/sponsorship.
-func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower math.Int) {
+func (suite *KeeperTestSuite) CreateValVote(vote sponsorshiptypes.MsgVote, votingPower math.Int) {
 	suite.T().Helper()
 
 	val1 := suite.CreateValidator()
@@ -172,10 +190,10 @@ func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower ma
 	suite.Delegate(delAddr, val1Addr, delegation) // delegator 1 -> validator 1
 	suite.Delegate(delAddr, val2Addr, delegation) // delegator 1 -> validator 2
 
-	suite.vote(vote)
+	suite.Vote(vote)
 }
 
-func (suite *KeeperTestSuite) vote(vote sponsorshiptypes.MsgVote) {
+func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote) {
 	suite.T().Helper()
 
 	msgServer := sponsorshipkeeper.NewMsgServer(suite.App.SponsorshipKeeper)
@@ -214,10 +232,11 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	return val
 }
 
-func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
+func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coinAmt math.Int) stakingtypes.DelegationI {
 	suite.T().Helper()
 
-	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1_000_000_000))
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, coinAmt)
+	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, common.DYM.MulRaw(1_000))
 	delAddr := delAddrs[0]
 	return suite.Delegate(delAddr, valAddr, coin)
 }

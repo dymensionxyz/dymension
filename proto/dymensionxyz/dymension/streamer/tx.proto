@@ -5,6 +5,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/streamer/params.proto";
+import "dymensionxyz/dymension/streamer/stream.proto";
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -78,8 +79,25 @@ message MsgCreateStream {
   // Sponsored indicates if the stream is based on the sponsorship distribution
   bool sponsored = 7;
 
-  // ClearAllVotes indicates if the stream should clear all votes (only for sponsored streams)
+  // ClearAllVotes indicates if the stream should clear all votes (only for
+  // sponsored streams)
   bool clear_all_votes = 8;
+
+  message PumpParams {
+    // NumTopRollapps is a number of rollapps, top N by the voting power,
+    // that will be pumped on every pump iteration.
+    uint32 num_top_rollapps = 1;
+    // NumPumps is a target number of pumps that expected to happen
+    // in the epoch (probabilistically)
+    uint64 num_pumps = 2;
+    // PumpDistr is a distribution used to determine pump amount
+    PumpDistr pump_distr = 3;
+  }
+
+  // PumpParams is an *optional* field indicating if the stream
+  // is pumping or distributing. If non-null, it contains pumping params.
+  // For now, every pump stream should be sponsored.
+  PumpParams pump_params = 9;
 }
 
 message MsgCreateStreamResponse { uint64 stream_id = 1; }

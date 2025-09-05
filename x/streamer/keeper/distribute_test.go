@@ -235,7 +235,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// Cast an initial vote
 			if tc.hasInitialDistr {
-				suite.Vote(tc.initialVote, sponsorshiptypes.DYM)
+				suite.CreateValVote(tc.initialVote, sponsorshiptypes.DYM)
 			}
 
 			// Create a stream
@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// Cast an intermediate vote
 			if tc.hasIntermediateDistr {
-				suite.Vote(tc.intermediateVote, sponsorshiptypes.DYM)
+				suite.CreateValVote(tc.intermediateVote, sponsorshiptypes.DYM)
 			}
 
 			// Distribute
