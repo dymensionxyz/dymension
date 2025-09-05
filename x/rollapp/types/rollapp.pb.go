@@ -130,7 +130,7 @@ type Rollapp struct {
 	// register and serve for this rollapp. if left empty, no sequencer is allowed
 	// to register. if set to "*" any sequencer can register.
 	InitialSequencer string `protobuf:"bytes,13,opt,name=initial_sequencer,json=initialSequencer,proto3" json:"initial_sequencer,omitempty"`
-	// How much a sequencer needs to have at stake to be proposer be proposer.
+	// How much a sequencer needs to have at stake to be proposer.
 	// Denom is dym. It is empty or ONE coin only. Coins is just a convenience to
 	// avoid marshalling issues.
 	MinSequencerBond github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,20,rep,name=min_sequencer_bond,json=minSequencerBond,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"min_sequencer_bond" yaml:"min_sequencer_bond"`
