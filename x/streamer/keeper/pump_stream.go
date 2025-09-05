@@ -235,7 +235,6 @@ func (k Keeper) ExecutePump(
 func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Stream) error {
 	// All bought tokens should be burned
 	toBurn := make(sdk.Coins, 0)
-	event := make([]types.EventPumped_Pump, 0)
 
 	sponsorshipDistr, err := k.sk.GetDistribution(ctx)
 	if err != nil {
@@ -276,8 +275,10 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		// Get top N rollapps by cast voting power
 		pressure := k.PumpPressure(ctx, sponsorshipDistr, pumpAmt, &stream.PumpParams.NumTopRollapps)
 
-		// Distribute pump amount proportionally to each rollapp
 		totalPumped := sdk.NewCoins()
+		events := make([]types.EventPumped_Pump, 0)
+
+		// Distribute pump amount proportionally to each rollapp
 		for _, p := range pressure {
 			if p.Pressure.IsZero() {
 				continue
@@ -293,9 +294,8 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 
 			totalPumped = totalPumped.Add(pumpCoin)
 			toBurn = toBurn.Add(tokenOut)
-			event = append(event, types.EventPumped_Pump{
+			events = append(events, types.EventPumped_Pump{
 				RollappId: p.RollappId,
-				StreamId:  stream.Id,
 				PumpAmt:   p.Pressure,
 				TokenOut:  tokenOut,
 			})
@@ -310,6 +310,11 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			if err != nil {
 				return fmt.Errorf("failed to update stream after pump: %w", err)
 			}
+
+			err = uevent.EmitTypedEvent(ctx, &types.EventPumped{StreamId: stream.Id, Pumps: events})
+			if err != nil {
+				return fmt.Errorf("emit EventPumped: %w", err)
+			}
 		}
 	}
 
@@ -317,11 +322,6 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		err = k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
 		if err != nil {
 			return fmt.Errorf("failed to burn coins: %w", err)
-		}
-
-		err = uevent.EmitTypedEvent(ctx, &types.EventPumped{Pumps: event})
-		if err != nil {
-			return fmt.Errorf("emit EventPumped: %w", err)
 		}
 	}
 
