@@ -1,0 +1,98 @@
+package keeper
+
+import (
+	"context"
+
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/auctionhouse/types"
+)
+
+type msgServer struct {
+	Keeper
+}
+
+// NewMsgServerImpl returns an implementation of the MsgServer interface
+// for the provided Keeper.
+func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+	return &msgServer{Keeper: keeper}
+}
+
+var _ types.MsgServer = msgServer{}
+
+// UpdateParams defines a method to update the module params
+func (ms msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if ms.GetAuthority() != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.GetAuthority(), req.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := ms.SetParams(ctx, req.Params); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+// Buy handles token purchase requests
+func (ms msgServer) Buy(goCtx context.Context, req *types.MsgBuy) (*types.MsgBuyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Convert buyer address
+	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalidAddress, err.Error())
+	}
+
+	paymentCoin, err := ms.Keeper.Buy(ctx, buyer, req.AuctionId, req.AmountToBuy, req.DenomToPay)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgBuyResponse{
+		TokensPurchased: req.AmountToBuy,
+		PaymentCoin:     paymentCoin,
+	}, nil
+}
+
+func (ms msgServer) BuyExactSpend(goCtx context.Context, req *types.MsgBuyExactSpend) (*types.MsgBuyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Convert buyer address
+	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalidAddress, err.Error())
+	}
+
+	tokensPurchased, err := ms.Keeper.BuyExactSpend(ctx, buyer, req.AuctionId, req.PaymentCoin)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgBuyResponse{
+		TokensPurchased: tokensPurchased,
+		PaymentCoin:     req.PaymentCoin,
+	}, nil
+}
+
+// ClaimTokens handles token claim requests
+func (ms msgServer) ClaimTokens(goCtx context.Context, req *types.MsgClaimTokens) (*types.MsgClaimTokensResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Convert claimer address
+	claimer, err := sdk.AccAddressFromBech32(req.Claimer)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalidAddress, err.Error())
+	}
+
+	claimedAmount, err := ms.ClaimVestedTokens(ctx, claimer, req.AuctionId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgClaimTokensResponse{
+		ClaimedAmount: claimedAmount,
+	}, nil
+}

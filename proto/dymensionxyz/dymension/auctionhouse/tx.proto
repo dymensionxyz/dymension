@@ -16,8 +16,11 @@ service Msg {
   // UpdateParams is used for updating module params.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
-  // Buy allows users to purchase tokens in an auction
+  // Buy allows users to purchase specific amount of tokens in an auction
   rpc Buy(MsgBuy) returns (MsgBuyResponse);
+
+  // BuyExactSpend allows users to purchase tokens in an auction with exact amount of tokens
+  rpc BuyExactSpend(MsgBuyExactSpend) returns (MsgBuyResponse);
 
   // ClaimTokens allows users to claim their vested tokens
   rpc ClaimTokens(MsgClaimTokens) returns (MsgClaimTokensResponse);
@@ -40,7 +43,7 @@ message MsgBuy {
 
   string buyer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   uint64 auction_id = 2;
-  string tokens_to_buy = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  string amount_to_buy = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
   string denom_to_pay = 4;
 }
 
@@ -56,7 +59,7 @@ message MsgBuyExactSpend {
   uint64 auction_id = 2;
   
   // Amount to pay (in one of the accepted tokens)
-  cosmos.base.v1beta1.Coin amount_to_pay = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin payment_coin = 3 [(gogoproto.nullable) = false];
 }
 
 
@@ -68,6 +71,9 @@ message MsgBuyResponse {
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
+
+  // Payment coin
+  cosmos.base.v1beta1.Coin payment_coin = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgClaimTokens allows users to claim their vested tokens
