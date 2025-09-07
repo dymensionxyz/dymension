@@ -42,7 +42,7 @@ func (nf NamedFunc[K]) Exec(ctx sdk.Context, module string, keeper K) (string, b
 		broken = errorsmod.IsOf(err, ErrBroken)
 		if !broken {
 			ctx.Logger().Error("Invariant function error but not breaking.", "module", module, "name", nf.Name, "error", err)
-			// Note that if it is broken the SDK wil take care of logging the error somewhere else
+			// Note that if it is broken the SDK will take care of logging the error somewhere else
 		}
 		msg = sdk.FormatInvariant(module, nf.Name, err.Error())
 	}
