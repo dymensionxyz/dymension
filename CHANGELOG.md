@@ -9,6 +9,7 @@
 * add missing validations in x/rollapp/types/genesis.go ([#1657](https://github.com/dymensionxyz/dymension/issues/1657)) ([4ebef89](https://github.com/dymensionxyz/dymension/commit/4ebef89664fbefbede41aa2df24cc0087e01a288))
 * **codec:** added missing codec registrations ([#1896](https://github.com/dymensionxyz/dymension/issues/1896)) ([845cf55](https://github.com/dymensionxyz/dymension/commit/845cf55999b92f498e76f916b2827935a0370f56))
 * **codec:** shorten and consistency in amino names ([#1908](https://github.com/dymensionxyz/dymension/issues/1908)) ([88f3eff](https://github.com/dymensionxyz/dymension/commit/88f3eff79a05e81845489435d76e0e87cd4ec664))
+* correct error message for RollappPacket ValidateBasic ([#1992](https://github.com/dymensionxyz/dymension/issues/1992)) ([74bd7d9](https://github.com/dymensionxyz/dymension/commit/74bd7d9fdec0a760e2b5ad092782dc4c14478129))
 * correct two usages of indefinite articles in cli ([#1698](https://github.com/dymensionxyz/dymension/issues/1698)) ([1750571](https://github.com/dymensionxyz/dymension/commit/1750571db86c1ff77538e01d01de240a1ededa42))
 * **denommetadata:** wrong key in paginated guery for registered denoms ([#1798](https://github.com/dymensionxyz/dymension/issues/1798)) ([c5d94ab](https://github.com/dymensionxyz/dymension/commit/c5d94ab99849a0a48e855e011ef980b78ed359b6))
 * **eibc:** authorization min fee truncating ([#1756](https://github.com/dymensionxyz/dymension/issues/1756)) ([e4fc14b](https://github.com/dymensionxyz/dymension/commit/e4fc14bb315a083737f81ce8eb3662053a15bc16))
