@@ -5,14 +5,14 @@ type GraduationStatus int32
 
 const (
 	GraduationStatus_PRE_GRADUATION GraduationStatus = 0
-	GraduationStatus_POOL_CREATED   GraduationStatus = 1
+	GraduationStatus_GRADUATED      GraduationStatus = 1
 	GraduationStatus_SETTLED        GraduationStatus = 2
 )
 
 // graduation status string
 var GraduationStatusString = map[GraduationStatus]string{
 	GraduationStatus_PRE_GRADUATION: "pre_graduation",
-	GraduationStatus_POOL_CREATED:   "pool_created",
+	GraduationStatus_GRADUATED:      "graduated",
 	GraduationStatus_SETTLED:        "settled",
 }
 
@@ -23,13 +23,13 @@ func (s GraduationStatus) String() string {
 
 // GetGraduationStatus computes the current status from field presence
 func (p Plan) GetGraduationStatus() GraduationStatus {
-	if p.GraduatedPoolId == 0 {
-		return GraduationStatus_PRE_GRADUATION
+	if p.SettledDenom != "" {
+		return GraduationStatus_SETTLED
 	}
-	if p.SettledDenom == "" {
-		return GraduationStatus_POOL_CREATED
+	if p.GraduatedPoolId != 0 {
+		return GraduationStatus_GRADUATED
 	}
-	return GraduationStatus_SETTLED
+	return GraduationStatus_PRE_GRADUATION
 }
 
 // Helper methods using computed status
@@ -38,7 +38,7 @@ func (p Plan) PreGraduation() bool {
 }
 
 func (p Plan) IsGraduated() bool {
-	return p.GetGraduationStatus() == GraduationStatus_POOL_CREATED
+	return p.GetGraduationStatus() == GraduationStatus_GRADUATED
 }
 
 func (p Plan) IsSettled() bool {
