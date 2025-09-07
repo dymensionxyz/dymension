@@ -1,0 +1,20 @@
+syntax = "proto3";
+package dymensionxyz.dymension.auctionhouse;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/auctionhouse/params.proto";
+import "dymensionxyz/dymension/auctionhouse/auction.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types";
+
+// GenesisState defines the auctionhouse module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+  
+  // auctions contains all the auctions stored in state
+  repeated Auction auctions = 2 [(gogoproto.nullable) = false];
+
+  // next_auction_id is the next available auction ID
+  uint64 next_auction_id = 3;
+}

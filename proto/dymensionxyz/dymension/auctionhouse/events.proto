@@ -1,0 +1,140 @@
+syntax = "proto3";
+package dymensionxyz.dymension.auctionhouse;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types";
+
+// EventAuctionCreated is emitted when a new auction is created
+message EventAuctionCreated {
+  // Auction ID
+  uint64 auction_id = 1;
+  
+  // Token allocation for the auction
+  cosmos.base.v1beta1.Coin allocation = 2 [(gogoproto.nullable) = false];
+
+  // Start time of the auction
+  string start_time = 4;
+  
+  // Duration of the auction  
+  string end_time = 5;
+  
+  // Initial discount percentage
+  string initial_discount = 6;
+  
+  // Maximum discount percentage
+  string max_discount = 7;
+}
+
+// EventTokensPurchased is emitted when tokens are purchased in an auction
+message EventTokensPurchased {
+  // Auction ID
+  uint64 auction_id = 1;
+  
+  // Buyer address
+  string buyer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  
+  // Amount of tokens purchased
+  string tokens_purchased = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  
+  // Amount paid by buyer
+  cosmos.base.v1beta1.Coin amount_paid = 4 [(gogoproto.nullable) = false];
+  
+  // Price per token
+  string price_per_token = 5 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  
+}
+
+// EventAuctionCompleted is emitted when an auction ends
+message EventAuctionCompleted {
+  // Auction ID
+  uint64 auction_id = 1;
+  
+  // Total tokens sold
+  string total_sold = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  
+  // Total amount raised in all accepted tokens
+  repeated cosmos.base.v1beta1.Coin total_raised = 3 [(gogoproto.nullable) = false];
+  
+  // Final sale price per token
+  string final_price = 4 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  
+  // Reason for completion (sold_out, time_expired, etc.)
+  string completion_reason = 5;
+}
+
+// EventTokensClaimed is emitted when a user claims vested tokens
+message EventTokensClaimed {
+  // Auction ID
+  uint64 auction_id = 1;
+  
+  // Claimer address
+  string claimer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  
+  // Amount of tokens claimed
+  string claimed_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  
+  // Remaining vesting amount
+  string remaining_vesting = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventAuctionCancelled is emitted when an auction is cancelled
+message EventAuctionCancelled {
+  // Auction ID
+  uint64 auction_id = 1;
+  
+  // Reason for cancellation
+  string reason = 2;
+  
+  // Who cancelled the auction
+  string cancelled_by = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+
+/* FIXME
+// EventProceedsProcessed is emitted when auction proceeds are processed
+message EventProceedsProcessed {
+  // Auction ID
+  uint64 auction_id = 1;
+  
+  // Amount used to buy DYM tokens
+  repeated cosmos.base.v1beta1.Coin amount_to_buy_dym = 2 [(gogoproto.nullable) = false];
+  
+  // Amount of DYM tokens purchased
+  string dym_purchased = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  
+  // Treasury address where DYM was sent
+  string treasury_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+*/

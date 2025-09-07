@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.auctionhouse;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types";
+
+
+// Params defines the parameters for the AuctionHouse module
+message Params {
+    repeated string accepted_tokens = 1;
+}
