@@ -17,6 +17,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgReplaceStream{}, "streamer/ReplaceStream", nil)
 	cdc.RegisterConcrete(&MsgUpdateStream{}, "streamer/UpdateStream", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "streamer/UpdateParams", nil)
+	cdc.RegisterConcrete(&MsgCreateAuction{}, "streamer/CreateAuction", nil)
+	cdc.RegisterConcrete(&MsgTerminateAuction{}, "streamer/TerminateAuction", nil)
 	cdc.RegisterConcrete(Params{}, "streamer/Params", nil)
 
 	// Register legacy proposal types for backward compatibility with existing state
@@ -32,6 +34,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgReplaceStream{},
 		&MsgUpdateStream{},
 		&MsgUpdateParams{},
+		&MsgCreateAuction{},
+		&MsgTerminateAuction{},
 	)
 
 	registry.RegisterImplementations(

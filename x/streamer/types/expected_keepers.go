@@ -4,9 +4,11 @@ import (
 	context "context"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
+	ahtypes "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -44,4 +46,17 @@ type SponsorshipKeeper interface {
 	GetDistribution(ctx sdk.Context) (types.Distribution, error)
 	SaveEndorsement(ctx sdk.Context, e types.Endorsement) error
 	ClearAllVotes(ctx sdk.Context) error
+}
+
+// AuctionHouseKeeper defines the expected interface for the AuctionHouse module.
+type AuctionHouseKeeper interface {
+	CreateAuction(
+		ctx sdk.Context,
+		allocation sdk.Coin,
+		startTime time.Time,
+		endTime time.Time,
+		initialDiscount math.LegacyDec,
+		maxDiscount math.LegacyDec,
+		vestingPlan ahtypes.Auction_VestingPlan,
+	) (uint64, error)
 }
