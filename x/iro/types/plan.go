@@ -65,8 +65,8 @@ func (p Plan) ValidateBasic() error {
 	if !allocationDec.GT(MinTokenAllocation) {
 		return ErrInvalidAllocation
 	}
-	if p.PreLaunchTime.Before(p.StartTime) {
-		return ErrInvalidEndTime
+	if p.IroPlanDuration < 0 {
+		return ErrInvalidDuration
 	}
 	if p.ModuleAccAddress == "" {
 		return errors.New("module account address cannot be empty")
@@ -129,7 +129,6 @@ func (p Plan) GetIRODenom() string {
 func (p *Plan) EnableTradingWithStartTime(startTime time.Time) {
 	p.TradingEnabled = true
 	p.StartTime = startTime
-	p.PreLaunchTime = startTime.Add(p.IroPlanDuration)
 }
 
 func DefaultIncentivePlanParams() IncentivePlanParams {

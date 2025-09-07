@@ -41,7 +41,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	}
 
 	if m.IroPlanDuration < 0 {
-		return ErrInvalidEndTime
+		return ErrInvalidDuration
 	}
 
 	// if start time set, trading must be enabled

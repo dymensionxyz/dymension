@@ -27,8 +27,7 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins,
 	// just in case the owner bought all the tokens before enabling trading
 	// we mark it as trading enabled just for consistency
 	if !plan.TradingEnabled {
-		plan.TradingEnabled = true
-		plan.StartTime = ctx.BlockTime()
+		plan.EnableTradingWithStartTime(ctx.BlockTime())
 	}
 
 	// set the pool ID to the plan

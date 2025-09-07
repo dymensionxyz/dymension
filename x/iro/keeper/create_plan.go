@@ -44,7 +44,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 
 	// check minimal plan duration
 	if req.IroPlanDuration < params.MinPlanDuration {
-		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidEndTime)
+		return nil, errors.Join(gerrc.ErrFailedPrecondition, types.ErrInvalidDuration)
 	}
 
 	// check minimal liquidity part
@@ -289,6 +289,12 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 	err = k.rk.SetIROPlanToRollapp(ctx, &rollapp, plan)
 	if err != nil {
 		return "", errors.Join(gerrc.ErrFailedPrecondition, err)
+	}
+
+	// set the fixed pre-launch time for custom and enabled plan
+	// otherwise, prelaunch time will be updated once the requirement achieved
+	if plan.TradingEnabled && !plan.FairLaunched {
+		k.rk.SetPreLaunchTime(ctx, &rollapp, plan.StartTime.Add(plan.IroPlanDuration))
 	}
 
 	// Create a new module account for the IRO plan

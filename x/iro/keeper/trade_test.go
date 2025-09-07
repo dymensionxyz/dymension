@@ -21,17 +21,19 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
+	planDuration := time.Hour
 	maxAmt := math.NewInt(1_000_000_000).MulRaw(1e18)
 	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, false, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, planDuration, startTime, false, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	s.Assert().False(plan.TradingEnabled)
 	s.Assert().True(plan.StartTime.IsZero())
-	s.Assert().True(plan.PreLaunchTime.IsZero())
+	s.Assert().True(plan.DeprecatedPreLaunchTime.IsZero())
+	s.Assert().Equal(plan.IroPlanDuration, planDuration)
 
 	// Verify rollapp is not launchable (pre-launch time is far in the future)
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
@@ -71,12 +73,11 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	plan = k.MustGetPlan(s.Ctx, planId)
 	s.Assert().True(plan.TradingEnabled)
 	s.Assert().Equal(enableTime, plan.StartTime)
-	s.Assert().Equal(enableTime.Add(plan.IroPlanDuration), plan.PreLaunchTime)
 
 	// Verify rollapp pre-launch time is updated
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	s.Require().NotNil(rollapp.PreLaunchTime)
-	s.Assert().Equal(plan.PreLaunchTime, *rollapp.PreLaunchTime)
+	s.Assert().Equal(enableTime.Add(plan.IroPlanDuration), *rollapp.PreLaunchTime)
 
 	// Buy should now succeed
 	err = k.Buy(s.Ctx.WithBlockTime(enableTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)

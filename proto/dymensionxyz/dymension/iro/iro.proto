@@ -62,8 +62,9 @@ message Plan {
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The time before which the rollapp cannot be started.
-  google.protobuf.Timestamp pre_launch_time = 8
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // Deprecated: use iro_plan_duration instead.
+  google.protobuf.Timestamp deprecated_pre_launch_time = 8 
+      [ deprecated = true , (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The amount of tokens sold so far.
   string sold_amt = 9 [
@@ -104,7 +105,7 @@ message Plan {
   // Whether trading is enabled for the plan. default to true
   // can be set to false initially, to require EnableTrading tx for this IRO
   bool trading_enabled = 15;
-  // The duration of the plan.
+  // The duration of the plan (minimal time from start time to pre-launch time)
   google.protobuf.Duration iro_plan_duration = 16
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
