@@ -109,14 +109,21 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
-	planId, err := m.Keeper.CreatePlan(ctx, req.LiquidityDenom, req.AllocatedAmount, req.IroPlanDuration, req.StartTime, req.TradingEnabled, rollapp, req.BondingCurve, req.IncentivePlanParams, req.LiquidityPart, req.VestingDuration, req.VestingStartTimeAfterSettlement)
+	planId, err := m.Keeper.CreatePlan(ctx,
+		req.LiquidityDenom,
+		req.AllocatedAmount,
+		req.IroPlanDuration,
+		req.StartTime,
+		req.TradingEnabled,
+		false,
+		rollapp,
+		req.BondingCurve,
+		req.IncentivePlanParams,
+		req.LiquidityPart,
+		req.VestingDuration,
+		req.VestingStartTimeAfterSettlement)
 	if err != nil {
 		return nil, err
-	}
-
-	plan := m.MustGetPlan(ctx, planId)
-	if err := plan.ValidateBasic(); err != nil {
-		return nil, errors.Join(gerrc.ErrInvalidArgument, err)
 	}
 
 	// Emit event
@@ -222,6 +229,7 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 		0,           // no minimum plan duration
 		time.Time{}, // no start time
 		req.TradingEnabled,
+		true, // fair launched
 		rollapp,
 		bondingCurve,
 		types.IncentivePlanParams{}, // no incentive plan params for fair launch
@@ -231,13 +239,6 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 	)
 	if err != nil {
 		return nil, err
-	}
-	plan := m.MustGetPlan(ctx, planId)
-	plan.FairLaunched = true
-	m.SetPlan(ctx, plan)
-
-	if err := plan.ValidateBasic(); err != nil {
-		return nil, errors.Join(gerrc.ErrInvalidArgument, err)
 	}
 
 	// Emit event
@@ -264,13 +265,14 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 // 4. Creates a new module account for the IRO plan.
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
-func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, fairLaunched bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
 	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, liquidityDenom, allocation, curve, planDuration, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
+	plan.FairLaunched = fairLaunched
 
 	// if trading enabled initially, set start time and pre-launch time
 	if tradingEnabled {
@@ -278,6 +280,10 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 			startTime = ctx.BlockTime()
 		}
 		plan.EnableTradingWithStartTime(startTime)
+	}
+
+	if err := plan.ValidateBasic(); err != nil {
+		return "", errors.Join(gerrc.ErrInvalidArgument, err)
 	}
 
 	err = k.rk.SetIROPlanToRollapp(ctx, &rollapp, plan)
