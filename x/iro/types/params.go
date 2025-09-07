@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 // Default parameter values
@@ -21,8 +22,8 @@ var (
 	DefaultMinVestingStartTimeAfterSettlement           = 0 * time.Minute             // default: no enforced minimum by default
 
 	DefaultFairLaunch = FairLaunch{
-		AllocationAmount: math.NewInt(1e9).MulRaw(1e18),                      // 1B RA tokens
-		TargetRaise:      sdk.NewCoin("adym", math.NewInt(2e4).MulRaw(1e18)), // 20K DYM
+		AllocationAmount: math.NewInt(1e9).MulRaw(1e18),                                // 1B RA tokens
+		TargetRaise:      sdk.NewCoin(params.BaseDenom, math.NewInt(2e4).MulRaw(1e18)), // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.25"),
 	}
 )
