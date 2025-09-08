@@ -11,11 +11,16 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
 	"github.com/open-policy-agent/opa/v1/util"
 )
+
+/*
+Validation logic is from https://github.com/GoogleCloudPlatform/confidential-space/blob/b6ade09bb9d3c7f39bb6af482ba71c7156184fd0/codelabs/health_data_analysis_codelab/src/uwear/workload.go#L1-L380 (https://codelabs.developers.google.com/confidential-space-pki?hl=en#0)
+*/
 
 //go:embed asset/tee_attestation_policy.rego
 var opaPolicy string
@@ -118,21 +123,21 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyDat
 
 // verifyCertificateChain verifies the certificate chain from leaf to root.
 // It also checks that all certificate lifetimes are valid.
-func verifyCertificateChain(certificates CertificateChain) error {
+func verifyCertificateChain(certificates CertificateChain, now time.Time) error {
 	// Additional check: Verify that all certificates in the cert chain are valid.
 	// Note: The *x509.Certificate Verify method in golang already validates this but for other coding
 	// languages it is important to make sure the certificate lifetimes are checked.
-	if isCertificateLifetimeValid(certificates.LeafCert) {
+	if isCertificateLifetimeValid(certificates.LeafCert, now) {
 		return fmt.Errorf("leaf certificate is not valid")
 	}
 
-	if isCertificateLifetimeValid(certificates.IntermediateCert) {
+	if isCertificateLifetimeValid(certificates.IntermediateCert, now) {
 		return fmt.Errorf("intermediate certificate is not valid")
 	}
 	interPool := x509.NewCertPool()
 	interPool.AddCert(certificates.IntermediateCert)
 
-	if isCertificateLifetimeValid(certificates.RootCert) {
+	if isCertificateLifetimeValid(certificates.RootCert, now) {
 		return fmt.Errorf("root certificate is not valid")
 	}
 	rootPool := x509.NewCertPool()
@@ -150,19 +155,8 @@ func verifyCertificateChain(certificates CertificateChain) error {
 	return nil
 }
 
-func isCertificateLifetimeValid(certificate *x509.Certificate) bool {
-	currentTime := time.Now()
-	// check the current time is after the certificate NotBefore time
-	if !currentTime.After(certificate.NotBefore) {
-		return false
-	}
-
-	// check the current time is before the certificate NotAfter time
-	if currentTime.Before(certificate.NotAfter) {
-		return false
-	}
-
-	return true
+func isCertificateLifetimeValid(certificate *x509.Certificate, now time.Time) bool {
+	return now.After(certificate.NotBefore) && now.Before(certificate.NotAfter)
 }
 
 // compareCertificates compares two certificate fingerprints.
@@ -190,7 +184,11 @@ func extractCertificatesFromX5CHeader(x5cHeaders []any) (CertificateChain, error
 
 	x5c := []string{}
 	for _, header := range x5cHeaders {
-		x5c = append(x5c, header.(string))
+		asString, ok := header.(string)
+		if !ok {
+			return CertificateChain{}, gerrc.ErrInvalidArgument.Wrapf("x5c header is not a string")
+		}
+		x5c = append(x5c, asString)
 	}
 
 	// x5c header should have at least 3 certificates - leaf, intermediate and root
@@ -257,7 +255,10 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 	// https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.7
 	// This is included in golangs jwt.Parse function
 
-	x5cHeaders := jwtHeaders["x5c"].([]any)
+	x5cHeaders, ok := jwtHeaders["x5c"].([]any)
+	if !ok {
+		return jwt.Token{}, gerrc.ErrInvalidArgument.Wrapf("x5c header not set")
+	}
 	certificates, err := extractCertificatesFromX5CHeader(x5cHeaders)
 	if err != nil {
 		return jwt.Token{}, fmt.Errorf("ExtractCertificatesFromX5CHeader(x5cHeaders) returned error: %w", err)
@@ -281,7 +282,7 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 		return jwt.Token{}, fmt.Errorf(" verify certificate chain: %w", err)
 	}
 
-	err = verifyCertificateChain(certificates)
+	err = verifyCertificateChain(certificates, ctx.BlockTime())
 	if err != nil {
 		return jwt.Token{}, fmt.Errorf("VerifyCertificateChain(CertificateChain) - error verifying x5c chain: %v", err)
 	}
