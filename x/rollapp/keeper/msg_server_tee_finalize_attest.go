@@ -43,7 +43,7 @@ func (k msgServer) validateAttestation(ctx sdk.Context, nonce, token string) err
 func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
 	block, _ := pem.Decode(k.GetParams(ctx).TeeConfig.GcpRootCertPem)
 	if block == nil {
-		return nil, fmt.Errorf("parse PEM block")
+		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
 	}
 	return x509.ParseCertificate(block.Bytes)
 }
@@ -54,10 +54,10 @@ func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token
 
 	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData, policyQuery)
 	if err != nil {
-		return fmt.Errorf("evaluate OPA policy: %w", err)
+		return errorsmod.Wrap(err, "evaluate opa policy")
 	}
 	if !authorized {
-		return fmt.Errorf("tee policy not authorized")
+		return gerrc.ErrFailedPrecondition.Wrap("tee policy not authorized")
 	}
 	return nil
 }
@@ -67,7 +67,7 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyDat
 	var claims jwt.MapClaims
 	var ok bool
 	if claims, ok = token.Claims.(jwt.MapClaims); !ok {
-		return false, fmt.Errorf(" get the claims from the JWT")
+		return false, gerrc.ErrInvalidArgument.Wrap("get claims from jwt")
 	}
 
 	module := fmt.Sprintf(opaPolicy, nonce)
@@ -75,7 +75,7 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyDat
 	var json map[string]any
 	err := util.UnmarshalJSON([]byte(policyData), &json)
 	if err != nil {
-		return false, fmt.Errorf("unmarshal JSON: %w", err)
+		return false, errorsmod.Wrap(err, "unmarshal json")
 	}
 	store := inmem.NewFromObject(json)
 
@@ -87,37 +87,23 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyDat
 		rego.Module("confidential_space.rego", module), // Argument 3 (Policy module)
 	).PrepareForEval(ctx)
 	if err != nil {
-		fmt.Printf("Error creating query: %v\n", err)
-		return false, err
+		return false, errorsmod.Wrap(err, "create opa query")
 	}
 
-	fmt.Println("Performing OPA query evaluation...")
 	results, err := query.Eval(ctx, rego.EvalInput(claims))
 
 	if err != nil {
-		fmt.Printf("Error evaluating OPA policy: %v\n", err)
-		return false, err
+		return false, errorsmod.Wrap(err, "evaluate opa policy")
 	} else if len(results) == 0 {
-		fmt.Println("Undefined result from evaluating OPA policy")
-		return false, err
-	} else if result, ok := results[0].Bindings["allow"].(bool); !ok {
-		fmt.Printf("Unexpected result type: %v\n", ok)
-		fmt.Printf("Result: %+v\n", result)
-		return false, err
+		return false, gerrc.ErrInvalidArgument.Wrap("undefined result from opa policy evaluation")
+	} else if _, ok := results[0].Bindings["allow"].(bool); !ok {
+		return false, gerrc.ErrInvalidArgument.Wrap("unexpected result type from opa policy")
 	}
 
-	fmt.Println("OPA policy evaluation completed.")
-
-	fmt.Println("OPA policy result values:")
-	for key, value := range results[0].Bindings {
-		fmt.Printf("[ %s ]: %v\n", key, value)
-	}
 	result := results[0].Bindings["allow"]
 	if result == true {
-		fmt.Println("Policy check PASSED")
 		return true, nil
 	}
-	fmt.Println("Policy check FAILED")
 	return false, nil
 }
 
@@ -127,18 +113,18 @@ func verifyCertificateChain(certificates CertificateChain, now time.Time) error 
 	// Additional check: Verify that all certificates in the cert chain are valid.
 	// Note: The *x509.Certificate Verify method in golang already validates this but for other coding
 	// languages it is important to make sure the certificate lifetimes are checked.
-	if isCertificateLifetimeValid(certificates.LeafCert, now) {
-		return fmt.Errorf("leaf certificate is not valid")
+	if !isCertificateLifetimeValid(certificates.LeafCert, now) {
+		return gerrc.ErrInvalidArgument.Wrap("leaf certificate lifetime not valid")
 	}
 
-	if isCertificateLifetimeValid(certificates.IntermediateCert, now) {
-		return fmt.Errorf("intermediate certificate is not valid")
+	if !isCertificateLifetimeValid(certificates.IntermediateCert, now) {
+		return gerrc.ErrInvalidArgument.Wrap("intermediate certificate lifetime not valid")
 	}
 	interPool := x509.NewCertPool()
 	interPool.AddCert(certificates.IntermediateCert)
 
-	if isCertificateLifetimeValid(certificates.RootCert, now) {
-		return fmt.Errorf("root certificate is not valid")
+	if !isCertificateLifetimeValid(certificates.RootCert, now) {
+		return gerrc.ErrInvalidArgument.Wrap("root certificate lifetime not valid")
 	}
 	rootPool := x509.NewCertPool()
 	rootPool.AddCert(certificates.RootCert)
@@ -149,7 +135,7 @@ func verifyCertificateChain(certificates CertificateChain, now time.Time) error 
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	})
 	if err != nil {
-		return fmt.Errorf(" verify certificate chain: %v", err)
+		return errorsmod.Wrap(err, "verify certificate chain")
 	}
 
 	return nil
@@ -164,7 +150,7 @@ func compareCertificates(cert1 x509.Certificate, cert2 x509.Certificate) error {
 	fingerprint1 := sha256.Sum256(cert1.Raw)
 	fingerprint2 := sha256.Sum256(cert2.Raw)
 	if fingerprint1 != fingerprint2 {
-		return fmt.Errorf("certificate fingerprint mismatch")
+		return gerrc.ErrInvalidArgument.Wrap("certificate fingerprint mismatch")
 	}
 	return nil
 }
@@ -179,7 +165,7 @@ type CertificateChain struct {
 // extractCertificatesFromX5CHeader extracts the certificates from the given x5c header.
 func extractCertificatesFromX5CHeader(x5cHeaders []any) (CertificateChain, error) {
 	if x5cHeaders == nil {
-		return CertificateChain{}, fmt.Errorf("x5c header not set")
+		return CertificateChain{}, gerrc.ErrInvalidArgument.Wrap("x5c header not set")
 	}
 
 	x5c := []string{}
@@ -193,22 +179,22 @@ func extractCertificatesFromX5CHeader(x5cHeaders []any) (CertificateChain, error
 
 	// x5c header should have at least 3 certificates - leaf, intermediate and root
 	if len(x5c) < 3 {
-		return CertificateChain{}, fmt.Errorf("not enough certificates in x5c header, expected 3 certificates, but got %v", len(x5c))
+		return CertificateChain{}, gerrc.ErrInvalidArgument.Wrapf("not enough certificates in x5c header expected 3 got %v", len(x5c))
 	}
 
 	leafCert, err := decodeAndParseDERCertificate(x5c[0])
 	if err != nil {
-		return CertificateChain{}, fmt.Errorf("cannot parse leaf certificate: %v", err)
+		return CertificateChain{}, errorsmod.Wrap(err, "parse leaf certificate")
 	}
 
 	intermediateCert, err := decodeAndParseDERCertificate(x5c[1])
 	if err != nil {
-		return CertificateChain{}, fmt.Errorf("cannot parse intermediate certificate: %v", err)
+		return CertificateChain{}, errorsmod.Wrap(err, "parse intermediate certificate")
 	}
 
 	rootCert, err := decodeAndParseDERCertificate(x5c[2])
 	if err != nil {
-		return CertificateChain{}, fmt.Errorf("cannot parse root certificate: %v", err)
+		return CertificateChain{}, errorsmod.Wrap(err, "parse root certificate")
 	}
 
 	certificates := CertificateChain{
@@ -225,7 +211,7 @@ func decodeAndParseDERCertificate(certificate string) (*x509.Certificate, error)
 
 	cert, err := x509.ParseCertificate(bytes)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse certificate: %v", err)
+		return nil, errorsmod.Wrap(err, "parse certificate")
 	}
 
 	return cert, nil
@@ -239,16 +225,16 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 	// the signature is verified.
 	storedRootCert, err := k.pemCert(ctx)
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf("DecodeAndParsePEMCertificate(string) -  decode and parse root certificate: %w", err)
+		return jwt.Token{}, errorsmod.Wrap(err, "decode and parse root certificate")
 	}
 
 	jwtHeaders, err := extractJWTHeaders(attestationToken)
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf("ExtractJWTHeaders(token) -  extract JWT headers: %w", err)
+		return jwt.Token{}, errorsmod.Wrap(err, "extract jwt headers")
 	}
 
 	if jwtHeaders["alg"] != "RS256" {
-		return jwt.Token{}, fmt.Errorf("ValidatePKIToken(attestationToken, ekm) - got Alg: %v, want: %v", jwtHeaders["alg"], "RS256")
+		return jwt.Token{}, gerrc.ErrInvalidArgument.Wrapf("got alg %v want rs256", jwtHeaders["alg"])
 	}
 
 	// Additional Check: Validate the ALG in the header matches the certificate SPKI.
@@ -261,17 +247,17 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 	}
 	certificates, err := extractCertificatesFromX5CHeader(x5cHeaders)
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf("ExtractCertificatesFromX5CHeader(x5cHeaders) returned error: %w", err)
+		return jwt.Token{}, errorsmod.Wrap(err, "extract certificates from x5c header")
 	}
 
 	// Verify the leaf certificate signature algorithm is an RSA key
 	if certificates.LeafCert.SignatureAlgorithm != x509.SHA256WithRSA {
-		return jwt.Token{}, fmt.Errorf("leaf certificate signature algorithm is not SHA256WithRSA")
+		return jwt.Token{}, gerrc.ErrInvalidArgument.Wrap("leaf certificate signature algorithm is not sha256withrsa")
 	}
 
 	// Verify the leaf certificate public key algorithm is RSA
 	if certificates.LeafCert.PublicKeyAlgorithm != x509.RSA {
-		return jwt.Token{}, fmt.Errorf("leaf certificate public key algorithm is not RSA")
+		return jwt.Token{}, gerrc.ErrInvalidArgument.Wrap("leaf certificate public key algorithm is not rsa")
 	}
 
 	// Verify the storedRootCertificate is the same as the root certificate returned in the token
@@ -279,12 +265,12 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 	// https://confidentialcomputing.googleapis.com/.well-known/attestation-pki-root
 	err = compareCertificates(*storedRootCert, *certificates.RootCert)
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf(" verify certificate chain: %w", err)
+		return jwt.Token{}, errorsmod.Wrap(err, "verify certificate chain")
 	}
 
 	err = verifyCertificateChain(certificates, ctx.BlockTime())
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf("VerifyCertificateChain(CertificateChain) - error verifying x5c chain: %v", err)
+		return jwt.Token{}, errorsmod.Wrap(err, "verify x5c chain")
 	}
 
 	keyFunc := func(token *jwt.Token) (any, error) {
@@ -304,7 +290,7 @@ func extractJWTHeaders(token string) (map[string]any, error) {
 	unverifiedClaims := &jwt.MapClaims{}
 	parsedToken, _, err := parser.ParseUnverified(token, unverifiedClaims)
 	if err != nil {
-		return nil, fmt.Errorf(" parse claims token: %v", err)
+		return nil, errorsmod.Wrap(err, "parse claims token")
 	}
 
 	return parsedToken.Header, nil
