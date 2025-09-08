@@ -63,7 +63,7 @@ message Plan {
 
   // The time before which the rollapp cannot be started.
   // Deprecated: use iro_plan_duration instead.
-  google.protobuf.Timestamp deprecated_pre_launch_time = 8 
+  google.protobuf.Timestamp pre_launch_time = 8 
       [ deprecated = true , (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The amount of tokens sold so far.

@@ -32,7 +32,7 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	plan := k.MustGetPlan(s.Ctx, planId)
 	s.Assert().False(plan.TradingEnabled)
 	s.Assert().True(plan.StartTime.IsZero())
-	s.Assert().True(plan.DeprecatedPreLaunchTime.IsZero())
+	s.Assert().True(plan.PreLaunchTime.IsZero())
 	s.Assert().Equal(plan.IroPlanDuration, planDuration)
 
 	// Verify rollapp is not launchable (pre-launch time is far in the future)

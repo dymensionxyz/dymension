@@ -54,7 +54,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 
 		plan.TradingEnabled = true
 
-		plan.IroPlanDuration = plan.DeprecatedPreLaunchTime.Sub(plan.StartTime)
+		plan.IroPlanDuration = plan.PreLaunchTime.Sub(plan.StartTime)
 
 		if err := plan.ValidateBasic(); err != nil {
 			panic(fmt.Errorf("invalid plan: %w", err))
