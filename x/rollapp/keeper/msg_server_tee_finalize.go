@@ -73,16 +73,9 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
 	}
 
-	token, err := k.validatePKIToken(ctx, msg.AttestationToken, teeConfig.GcpRootCertPem)
+	err := k.validateAttestation(ctx, teeConfig.GcpRootCertPem, msg.Nonce.Hash(), msg.AttestationToken)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "validate PKI token")
-	}
-
-	expectedNonce := msg.Nonce.Hash()
-
-	err = k.validateClaimsWithOPA(ctx, *token, expectedNonce, teeConfig)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "claims validation")
+		return nil, errorsmod.Wrap(err, "validate attestation")
 	}
 
 	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, ix)
@@ -99,6 +92,19 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	)
 
 	return &types.MsgFastFinalizeWithTEEResponse{}, nil
+}
+
+func (k msgServer) validateAttestation(ctx sdk.Context, gcpCert []byte, nonce, token string) error {
+	jwt, err := k.validatePKIToken(ctx, token, gcpCert)
+	if err != nil {
+		return errorsmod.Wrap(err, "validate PKI token")
+	}
+
+	err = k.validateClaimsWithOPA(ctx, *jwt, nonce, teeConfig)
+	if err != nil {
+		return errorsmod.Wrap(err, "claims validation")
+	}
+	return nil
 }
 
 // validatePKIToken validates the PKI token returned from the attestation service
