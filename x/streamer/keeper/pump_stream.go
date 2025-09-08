@@ -132,7 +132,10 @@ func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
 	numPumps := math.NewIntFromUint64(pumpParams.NumPumps)
 
 	if pumpParams.EpochBudget.LT(numPumps) {
-		return math.ZeroInt(), fmt.Errorf("budget per pump is fractional: too small budget (%s) or too many pumps (%d)", pumpParams.EpochBudget, pumpParams.NumPumps)
+		// The budget is too small to use it for pumping. It might happen
+		// close to the stream end if the epoch budget is too low, but it's
+		// not probable since EpochBudget ≈ 10^20, numPumps ≈ 10^5.
+		return math.ZeroInt(), nil
 	}
 
 	randBig := new(big.Int)
