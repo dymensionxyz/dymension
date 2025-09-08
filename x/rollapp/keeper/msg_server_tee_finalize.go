@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"crypto/rsa"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/x509"
 	_ "embed"
@@ -11,7 +10,6 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"strings"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -52,17 +50,13 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 			proposer.Address, msg.Creator)
 	}
 
-	pemSHA1 := sha1.Sum(msg.PemCert)
-	pemSHA1Hex := hex.EncodeToString(pemSHA1[:])
-
-	if !strings.EqualFold(pemSHA1Hex, teeConfig.GcpRootCertSha1) {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("PEM cert SHA1 mismatch: expected %s, got %s",
-			teeConfig.GcpRootCertSha1, pemSHA1Hex)
+	if len(teeConfig.GcpRootCertPem) == 0 {
+		return nil, gerrc.ErrInvalidArgument.Wrap("GCP root cert PEM not configured")
 	}
 
-	token, err := k.validatePKIToken(ctx, msg.AttestationToken, msg.PemCert)
+	token, err := k.validatePKIToken(ctx, msg.AttestationToken, teeConfig.GcpRootCertPem)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to validate PKI token")
+		return nil, errorsmod.Wrap(err, "validate PKI token")
 	}
 
 	if msg.StateIndex != msg.Nonce.StateIndex {
@@ -78,7 +72,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 
 	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, msg.RollappId, msg.StateIndex)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to fast finalize states")
+		return nil, errorsmod.Wrap(err, "fast finalize states")
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -114,24 +108,24 @@ func (k msgServer) validatePKIToken(ctx sdk.Context, attestationToken string, pe
 	for i, certStr := range x5c {
 		certDER, err := base64.StdEncoding.DecodeString(certStr.(string))
 		if err != nil {
-			return nil, fmt.Errorf("failed to decode certificate %d: %w", i, err)
+			return nil, fmt.Errorf("decode certificate %d: %w", i, err)
 		}
 
 		cert, err := x509.ParseCertificate(certDER)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse certificate %d: %w", i, err)
+			return nil, fmt.Errorf("parse certificate %d: %w", i, err)
 		}
 		certs = append(certs, cert)
 	}
 
 	block, _ := pem.Decode(pemCert)
 	if block == nil {
-		return nil, fmt.Errorf("failed to parse PEM block")
+		return nil, fmt.Errorf("parse PEM block")
 	}
 
 	rootCert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse root certificate: %w", err)
+		return nil, fmt.Errorf("parse root certificate: %w", err)
 	}
 
 	rootPool := x509.NewCertPool()
@@ -168,7 +162,7 @@ func (k msgServer) validatePKIToken(ctx sdk.Context, attestationToken string, pe
 		return certs[0].PublicKey.(*rsa.PublicKey), nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse/validate JWT token: %w", err)
+		return nil, fmt.Errorf("parse/validate JWT token: %w", err)
 	}
 
 	if !token.Valid {
@@ -191,7 +185,7 @@ func (k msgServer) validatePKIToken(ctx sdk.Context, attestationToken string, pe
 func (k msgServer) validateClaimsWithOPA(ctx sdk.Context, token jwt.Token, expectedNonce string, teeConfig types.TEEConfig) error {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return fmt.Errorf("failed to extract JWT claims")
+		return fmt.Errorf("extract JWT claims")
 	}
 
 	policyData := map[string]interface{}{
