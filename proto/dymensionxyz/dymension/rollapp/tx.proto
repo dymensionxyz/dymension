@@ -225,13 +225,22 @@ message MsgFastFinalizeWithTEE {
   // nonce contains the data that was signed by TEE
   TEENonce nonce = 5 [(gogoproto.nullable) = false];
 
-  uint64 state_index = 6;
+  uint64 curr_state_index = 6;
+  uint64 finalized_state_index = 7;
 }
 
 message TEENonce {
-  uint64 height = 1;
   string rollapp_id = 2;
-  bytes state_root = 3;
+ 
+  // height TEE recently validated
+  uint64 curr_height = 1;
+  // state_root TEE recently validated (corresponds to height)
+  bytes curr_state_root = 3;
+
+  // height TEE started from (which must be finalized)
+  uint64 finalized_height = 4;
+  // state_root TEE started from (which must be finalized, corresponds to height)
+  bytes finalized_state_root = 5;
 }
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE

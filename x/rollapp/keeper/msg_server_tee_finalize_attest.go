@@ -18,16 +18,12 @@ import (
 	"github.com/open-policy-agent/opa/v1/util"
 )
 
+//go:embed asset/tee_policy.rego
+var opaPolicy string
+
 /*
 Validation logic is from https://github.com/GoogleCloudPlatform/confidential-space/blob/b6ade09bb9d3c7f39bb6af482ba71c7156184fd0/codelabs/health_data_analysis_codelab/src/uwear/workload.go#L1-L380 (https://codelabs.developers.google.com/confidential-space-pki?hl=en#0)
 */
-
-//go:embed asset/tee_attestation_policy.rego
-var opaPolicy string
-
-const (
-	regoQuery = "allow = data.confidential_space.allow; hw_verified = data.confidential_space.hw_verified; image__digest_verified = data.confidential_space.image_digest_verified; audience_verified = data.confidential_space.audience_verified; nonce_verified = data.confidential_space.nonce_verified; issuer_verified = data.confidential_space.issuer_verified; secboot_verified = data.confidential_space.secboot_verified; sw_name_verified = data.confidential_space.sw_name_verified"
-)
 
 func (k msgServer) validateAttestation(ctx sdk.Context, nonce, token string) error {
 	// make sure the token really came from GCP
@@ -52,10 +48,11 @@ func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-var policyData string
-
 func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, nonce string) error {
-	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData)
+	policyData := k.GetParams(ctx).TeeConfig.PolicyData
+	policyQuery := k.GetParams(ctx).TeeConfig.PolicyQuery
+
+	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData, policyQuery)
 	if err != nil {
 		return fmt.Errorf("evaluate OPA policy: %w", err)
 	}
@@ -66,7 +63,7 @@ func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token
 }
 
 // evaluateOPAPolicy returns boolean indicating if OPA policy is satisfied or not, or error if occurred
-func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyData string) (bool, error) {
+func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyData string, policyQuery string) (bool, error) {
 	var claims jwt.MapClaims
 	var ok bool
 	if claims, ok = token.Claims.(jwt.MapClaims); !ok {
@@ -77,12 +74,15 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyDat
 
 	var json map[string]any
 	err := util.UnmarshalJSON([]byte(policyData), &json)
+	if err != nil {
+		return false, fmt.Errorf("unmarshal JSON: %w", err)
+	}
 	store := inmem.NewFromObject(json)
 
 	// Bind 'allow' to the value of the policy decision
 	// Bind 'hw_verified', 'image_verified', 'audience_verified, 'nonce_verified' to their respective policy evaluations
 	query, err := rego.New(
-		rego.Query(regoQuery),                          // Argument 1 (Query string)
+		rego.Query(policyQuery),                        // Argument 1 (Query string)
 		rego.Store(store),                              // Argument 2 (Data store)
 		rego.Module("confidential_space.rego", module), // Argument 3 (Policy module)
 	).PrepareForEval(ctx)
