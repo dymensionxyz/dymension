@@ -71,3 +71,16 @@ func (l NamedFuncsList[K]) All(module string, keeper K) sdk.Invariant {
 		return "", false
 	}
 }
+
+// Combines all invariants into one function returning error
+func (l NamedFuncsList[K]) AllFn(keeper K) Func {
+	return func(ctx sdk.Context) error {
+		for _, invar := range l {
+			err := invar.Func(keeper)(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
