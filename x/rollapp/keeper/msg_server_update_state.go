@@ -49,7 +49,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 		// if previous block descriptor has timestamp, it means the rollapp is upgraded
 		// therefore all new BDs need to have timestamp
-		lastBD := stateInfo.GetLatestBlockDescriptor()
+		lastBD, _ := stateInfo.GetLatestBlockDescriptor()
 		if !lastBD.Timestamp.IsZero() {
 			err := msg.BDs.Validate()
 			if err != nil {
@@ -100,7 +100,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// check only last block descriptor DRS, since if that last is not obsolete it means the rollapp already upgraded and is not obsolete anymore
 	if k.IsStateUpdateObsolete(ctx, stateInfo) {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "MsgUpdateState with an obsolete DRS version. rollapp_id: %s, drs_version: %d",
-			msg.RollappId, stateInfo.GetLatestBlockDescriptor().DrsVersion)
+			msg.RollappId, stateInfo.MustGetLatestBlockDescriptor().DrsVersion)
 	}
 
 	// Write new index information to the store
@@ -170,5 +170,5 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 // IsStateUpdateObsolete checks if the given DRS version is obsolete
 func (k msgServer) IsStateUpdateObsolete(ctx sdk.Context, stateInfo *types.StateInfo) bool {
-	return k.IsDRSVersionObsolete(ctx, stateInfo.GetLatestBlockDescriptor().DrsVersion)
+	return k.IsDRSVersionObsolete(ctx, stateInfo.MustGetLatestBlockDescriptor().DrsVersion)
 }

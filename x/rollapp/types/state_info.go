@@ -71,9 +71,12 @@ func (s *StateInfo) GetLatestBlockDescriptor() (BlockDescriptor, bool) {
 	return s.GetBlockDescriptor(s.GetLatestHeight())
 }
 
-func (s *StateInfo) GetLatestBlockDescriptor() BlockDescriptor {
-	// return s.BDs.BD[s.NumBlocks-1] // todo: should it be this? or the one below? using this breaks ibctesting tests
-	return s.BDs.BD[len(s.BDs.BD)-1]
+func (s *StateInfo) MustGetLatestBlockDescriptor() BlockDescriptor {
+	bd, ok := s.GetBlockDescriptor(s.GetLatestHeight())
+	if !ok {
+		panic("latest block descriptor not found")
+	}
+	return bd
 }
 
 func (s *StateInfo) NextSequencerForHeight(height uint64) string {

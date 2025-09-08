@@ -100,7 +100,7 @@ func (k msgServer) validateAttestation(ctx sdk.Context, gcpCert []byte, nonce, t
 		return errorsmod.Wrap(err, "validate PKI token")
 	}
 
-	err = k.validateClaimsWithOPA(ctx, *jwt, nonce, teeConfig)
+	err = k.validateClaimsWithOPA(ctx, *jwt, nonce)
 	if err != nil {
 		return errorsmod.Wrap(err, "claims validation")
 	}
@@ -203,14 +203,14 @@ func (k msgServer) validatePKIToken(ctx sdk.Context, attestationToken string, pe
 }
 
 // validateClaimsWithOPA validates the claims using OPA policy
-func (k msgServer) validateClaimsWithOPA(ctx sdk.Context, token jwt.Token, expectedNonce string, teeConfig types.TEEConfig) error {
+func (k msgServer) validateClaimsWithOPA(ctx sdk.Context, token jwt.Token, expectedNonce string) error {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return fmt.Errorf("extract JWT claims")
 	}
 
 	policyData := map[string]interface{}{
-		"allowed_image_digests": teeConfig.AllowedImageDigests,
+		"allowed_image_digests": "",
 		"expected_nonce":        expectedNonce,
 	}
 	store := inmem.NewFromObject(policyData)

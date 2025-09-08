@@ -78,7 +78,7 @@ func (k Keeper) ResolveHardFork(ctx sdk.Context, rollappID string) error {
 func (k Keeper) UpdateClientFromStateInfo(ctx sdk.Context, clientID string, stateInfo *rollapptypes.StateInfo) error {
 	clientStore := k.ibcClientKeeper.ClientStore(ctx, clientID)
 
-	bd := stateInfo.GetLatestBlockDescriptor()
+	bd, _ := stateInfo.GetLatestBlockDescriptor()
 	height := bd.Height
 
 	// sanity check
