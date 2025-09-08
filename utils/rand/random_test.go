@@ -45,7 +45,7 @@ func TestUniformRandom(t *testing.T) {
 }
 
 func TestExpRandom(t *testing.T) {
-	//t.Skip("This test is for debugging and visualizing the distribution.")
+	t.Skip("This test is for debugging and visualizing the distribution.")
 
 	// Prepare hash
 	hash := make([]byte, 32)

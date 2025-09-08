@@ -117,7 +117,7 @@ func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequ
 	}
 
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.TopRollapps(ctx, d.Gauges, totalPressure, nil)
+	pressure := q.TopRollapps(ctx, d.Gauges, totalPressure, nil)
 
 	return &types.PumpPressureResponse{
 		Pressure:   pressure,
@@ -139,7 +139,7 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 	}
 
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.TopRollapps(ctx, d.Gauges, totalPressure, nil)
+	pressure := q.TopRollapps(ctx, d.Gauges, totalPressure, nil)
 	idx := slices.IndexFunc(pressure, func(p types.PumpPressure) bool {
 		return p.RollappId == req.RollappId
 	})
