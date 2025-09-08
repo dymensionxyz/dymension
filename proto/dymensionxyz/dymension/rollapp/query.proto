@@ -43,6 +43,13 @@ service Query {
         "/dymensionxyz/dymension/rollapp/latest_height/{rollappId}";
   }
 
+  // Queries the latest finalized height by rollapp-id.
+  rpc LatestFinalizedHeight(QueryGetLatestFinalizedHeightRequest)
+      returns (QueryGetLatestFinalizedHeightResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/latest_finalized_height/{rollappId}";
+  }
+
   // Queries a LatestStateIndex by rollapp-id.
   rpc LatestStateIndex(QueryGetLatestStateIndexRequest)
       returns (QueryGetLatestStateIndexResponse) {
@@ -102,6 +109,12 @@ message QueryGetLatestHeightRequest {
 }
 
 message QueryGetLatestHeightResponse { uint64 height = 1; }
+
+message QueryGetLatestFinalizedHeightRequest {
+  string rollappId = 1;
+}
+
+message QueryGetLatestFinalizedHeightResponse { uint64 height = 1; }
 
 message QueryGetLatestStateIndexRequest {
   string rollappId = 1;
