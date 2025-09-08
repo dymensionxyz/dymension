@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
-	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -96,10 +95,6 @@ func (w IBCMiddleware) OnRecvPacket(
 	}
 
 	if !transfer.IsRollapp() || transfer.Finalized {
-		// For fast-finalized rollapp packets, we need to handle completion hooks
-		if transfer.IsRollapp() && transfer.Finalized {
-			return w.handleFastFinalizedPacket(ctx, packet, relayer, transfer)
-		}
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -123,69 +118,6 @@ func (w IBCMiddleware) OnRecvPacket(
 	}
 
 	return nil
-}
-
-// handleFastFinalizedPacket handles packets from rollapp that arrive after TEE fast finalization
-// It processes the packet and runs any completion hooks if present
-func (w IBCMiddleware) handleFastFinalizedPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-	transfer types.TransferDataWithFinalization,
-) exported.Acknowledgement {
-	l := w.logger(ctx, packet, "handleFastFinalizedPacket")
-
-	ack := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	if !ack.Success() {
-		return ack
-	}
-
-	if transfer.Memo == "" {
-		return ack
-	}
-
-	memo, err := types.ParseMemo(transfer.Memo)
-	if err != nil {
-		// If we can't parse the memo or it doesn't have EIBC data, just return the ack
-		if errorsmod.IsOf(err, types.ErrEIBCMemoEmpty) || errorsmod.IsOf(err, types.ErrMemoUnmarshal) {
-			return ack
-		}
-		l.Error("Parse memo for completion hook", "err", err)
-		return ack
-	}
-
-	onComplete, err := memo.EIBC.GetCompletionHook()
-	if err != nil {
-		l.Error("Get completion hook", "err", err)
-		return ack
-	}
-	if onComplete == nil {
-		return ack
-	}
-
-	if err := w.ValidateCompletionHook(*onComplete); err != nil {
-		l.Error("Invalid completion hook", "err", err)
-		return ack
-	}
-
-	// Calculate the funds available for the hook (amount minus bridging fee)
-	amt := transfer.MustAmountInt()
-	bridgingFee := w.BridgingFeeFromAmt(ctx, amt)
-	denom := denomutils.GetIncomingTransferDenom(packet, transfer.FungibleTokenPacketData)
-	budget := sdk.NewCoin(denom, amt.Sub(bridgingFee))
-
-	fundsSrc, err := sdk.AccAddressFromBech32(transfer.Receiver)
-	if err != nil {
-		l.Error("Invalid receiver address", "err", err)
-		return ack
-	}
-
-	if err := w.RunCompletionHook(ctx, fundsSrc, budget, *onComplete); err != nil {
-		l.Error("Run completion hook", "err", err)
-		// Don't fail the packet, just log the error
-	}
-
-	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
