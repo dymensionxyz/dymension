@@ -54,9 +54,9 @@ message TEEConfig {
   repeated string allowed_image_digests = 2
       [ (gogoproto.moretags) = "yaml:\"allowed_image_digests\"" ];
   
-  // gcp_root_cert_sha1 is the SHA1 fingerprint of the GCP root certificate
-  string gcp_root_cert_sha1 = 3
-      [ (gogoproto.moretags) = "yaml:\"gcp_root_cert_sha1\"" ];
+  // gcp_root_cert_pem is the GCP root certificate in PEM format
+  bytes gcp_root_cert_pem = 3
+      [ (gogoproto.moretags) = "yaml:\"gcp_root_cert_pem\"" ];
   
   // allowed_launch_policies are optional launch policy requirements
   repeated string allowed_launch_policies = 4

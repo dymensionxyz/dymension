@@ -232,11 +232,8 @@ message MsgFastFinalizeWithTEE {
   // attestation_token is the JWT token from GCP
   string attestation_token = 4;
   
-  // pem_cert is the PEM certificate for verification
-  bytes pem_cert = 5;
-  
   // nonce contains the data that was signed by TEE
-  TEENonce nonce = 6 [(gogoproto.nullable) = false];
+  TEENonce nonce = 5 [(gogoproto.nullable) = false];
 }
 
 // TEENonce represents the data signed by the TEE
