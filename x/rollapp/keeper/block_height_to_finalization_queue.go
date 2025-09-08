@@ -145,71 +145,27 @@ func (k Keeper) FinalizeStates(ctx sdk.Context, queue types.BlockHeightToFinaliz
 	return true
 }
 
-// FastFinalizeRollappStatesUntilStateIndex finalizes states up to the given state index
-// This is used when TEE attestation provides proof that states are valid
+// FastFinalizeRollappStatesUntilStateIndex finalizes states up to the given state index inclusive
 func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollappID string, stateIndex uint64) error {
 	queues, err := k.GetFinalizationQueueByRollapp(ctx, rollappID)
 	if err != nil {
 		return errorsmod.Wrap(err, "get finalization queue")
 	}
 
-	// Track if we hit an error to stop processing subsequent queues
-	var errorOccurred bool
-
-	for _, queue := range queues {
-		if errorOccurred {
-			// Stop processing queues if we hit an error in a previous queue
-			break
-		}
-
-		finalizedCount := 0
-
-		for _, stateInfoIdx := range queue.FinalizationQueue {
-			// Since the queue is sorted, we can break early
+	for _, q := range queues {
+		for j, stateInfoIdx := range q.FinalizationQueue {
 			if stateInfoIdx.Index > stateIndex {
-				break
+				// Since the queue of queues is sorted, we can break early
+				return nil
 			}
-
-			stateInfo, found := k.GetStateInfo(ctx, rollappID, stateInfoIdx.Index)
-			if !found {
-				continue
-			}
-
-			if stateInfo.Status == common.Status_FINALIZED {
-				finalizedCount++
-				continue
-			}
-
-			// Use same transactional pattern as FinalizeStates
-			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return k.finalizePendingState(ctx, stateInfoIdx)
-			})
+			err := k.finalizePending(ctx, stateInfoIdx)
 			if err != nil {
-				k.Logger(ctx).
-					With("rollapp_id", stateInfoIdx.RollappId, "index", stateInfoIdx.Index, "err", err.Error()).
-					Error("fast finalize rollapp state")
-				// Remove from the queue only the indexes that were successfully finalized
-				if finalizedCount > 0 {
-					queue.FinalizationQueue = slices.Delete(queue.FinalizationQueue, 0, finalizedCount)
-				}
-
-				k.MustSetFinalizationQueue(ctx, queue)
-
-				errorOccurred = true
-				break
+				return errorsmod.Wrap(err, "finalize pending")
 			}
-			finalizedCount++
+			q.FinalizationQueue = slices.Delete(q.FinalizationQueue, 0, j)
+			k.MustSetFinalizationQueue(ctx, q)
 		}
-
-		if !errorOccurred && finalizedCount > 0 {
-			remainingStates := queue.FinalizationQueue[finalizedCount:]
-			if len(remainingStates) > 0 {
-				queue.FinalizationQueue = remainingStates
-				k.MustSetFinalizationQueue(ctx, queue)
-			} else {
-				k.MustRemoveFinalizationQueue(ctx, queue.CreationHeight, queue.RollappId)
-			}
-		}
+		k.MustRemoveFinalizationQueue(ctx, q.CreationHeight, rollappID)
 	}
 
 	return nil

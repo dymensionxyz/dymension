@@ -50,10 +50,6 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 			proposer.Address, msg.Creator)
 	}
 
-	if len(teeConfig.GcpRootCertPem) == 0 {
-		return nil, gerrc.ErrInvalidArgument.Wrap("GCP root cert PEM not configured")
-	}
-
 	token, err := k.validatePKIToken(ctx, msg.AttestationToken, teeConfig.GcpRootCertPem)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "validate PKI token")
@@ -200,12 +196,12 @@ func (k msgServer) validateClaimsWithOPA(ctx sdk.Context, token jwt.Token, expec
 		rego.Module("tee_attestation.rego", opaPolicy),
 	).PrepareForEval(ctx.Context())
 	if err != nil {
-		return fmt.Errorf("error creating OPA query: %w", err)
+		return fmt.Errorf("creating OPA query: %w", err)
 	}
 
 	results, err := query.Eval(ctx.Context(), rego.EvalInput(claims))
 	if err != nil {
-		return fmt.Errorf("error evaluating OPA policy: %w", err)
+		return fmt.Errorf("evaluating OPA policy: %w", err)
 	}
 
 	if len(results) == 0 {
