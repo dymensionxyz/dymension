@@ -194,7 +194,7 @@ func TestCalcLiquidityPoolTokens(t *testing.T) {
 	}
 }
 
-func TestFairLaunchEquilibrium(t *testing.T) {
+func TestStandardLaunchEquilibrium(t *testing.T) {
 	allocation := int64(1e9) // 1B RA tokens
 	allocationScaled := sdkmath.NewInt(allocation).MulRaw(1e18)
 

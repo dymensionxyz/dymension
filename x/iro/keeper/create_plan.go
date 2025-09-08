@@ -141,13 +141,13 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	}, nil
 }
 
-// CreateFairLaunchPlan creates a new IRO plan using global FairLaunch parameters
+// CreateStandardLaunchPlan creates a new IRO plan using global StandardLaunch parameters
 // This function performs the following steps:
 // 1. Validates the rollapp and owner authorization
-// 2. Ensures 100% IRO allocation by comparing rollapp's InitialSupply with FairLaunch allocation
+// 2. Ensures 100% IRO allocation by comparing rollapp's InitialSupply with StandardLaunch allocation
 // 3. Calculates M parameter for the bonding curve using converted target raise
-// 4. Creates a plan with global FairLaunch parameters and fair_launched = true
-func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCreateFairLaunchPlan) (*types.MsgCreatePlanResponse, error) {
+// 4. Creates a plan with global StandardLaunch parameters and standard_launched = true
+func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.MsgCreateStandardLaunchPlan) (*types.MsgCreatePlanResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	rollapp, found := m.rk.GetRollapp(ctx, req.RollappId)
@@ -168,12 +168,12 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 	}
 
 	// Validate 100% IRO allocation
-	if !rollapp.GenesisInfo.InitialSupply.Equal(params.FairLaunch.AllocationAmount) || len(rollapp.GenesisInfo.Accounts()) != 1 {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "rollapp must have 100%% IRO allocation: expected %s, got %s", params.FairLaunch.AllocationAmount, rollapp.GenesisInfo.InitialSupply)
+	if !rollapp.GenesisInfo.InitialSupply.Equal(params.StandardLaunch.AllocationAmount) || len(rollapp.GenesisInfo.Accounts()) != 1 {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "rollapp must have 100%% IRO allocation: expected %s, got %s", params.StandardLaunch.AllocationAmount, rollapp.GenesisInfo.InitialSupply)
 	}
 
 	gAcc := rollapp.GenesisInfo.Accounts()[0]
-	if gAcc.Address != m.GetModuleAccountAddress() || !gAcc.Amount.Equal(params.FairLaunch.AllocationAmount) {
+	if gAcc.Address != m.GetModuleAccountAddress() || !gAcc.Amount.Equal(params.StandardLaunch.AllocationAmount) {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "allocated amount mismatch")
 	}
 
@@ -190,19 +190,19 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 	}
 
 	// Convert target raise from its original denom to the requested liquidity denom
-	// This is needed because params.FairLaunch.TargetRaise might be in a different denom
-	convertedTargetRaise, err := m.convertTargetRaiseToLiquidityDenom(ctx, params.FairLaunch.TargetRaise, req.LiquidityDenom)
+	// This is needed because params.StandardLaunch.TargetRaise might be in a different denom
+	convertedTargetRaise, err := m.convertTargetRaiseToLiquidityDenom(ctx, params.StandardLaunch.TargetRaise, req.LiquidityDenom)
 	if err != nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err)
 	}
 
 	// Calculate M parameter for the bonding curve
 	// Convert amounts to decimal representation for calculation
-	allocationDec := types.ScaleFromBase(params.FairLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
+	allocationDec := types.ScaleFromBase(params.StandardLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	evaluationDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent)).MulInt64(2)
 	liquidityPart := math.LegacyOneDec()
 
-	calculatedM := types.CalculateM(evaluationDec, allocationDec, params.FairLaunch.CurveExp, liquidityPart)
+	calculatedM := types.CalculateM(evaluationDec, allocationDec, params.StandardLaunch.CurveExp, liquidityPart)
 	if !calculatedM.IsPositive() {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
 	}
@@ -210,7 +210,7 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 	// Create bonding curve with calculated M and global parameters
 	bondingCurve := types.NewBondingCurve(
 		calculatedM,
-		params.FairLaunch.CurveExp,
+		params.StandardLaunch.CurveExp,
 		math.LegacyZeroDec(),
 		uint64(rollapp.GenesisInfo.NativeDenom.Exponent),
 		uint64(liqTokenExponent),
@@ -221,21 +221,21 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err)
 	}
 
-	// Create plan using global FairLaunch parameters
+	// Create plan using global StandardLaunch parameters
 	planId, err := m.Keeper.CreatePlan(
 		ctx,
 		req.LiquidityDenom,
-		params.FairLaunch.AllocationAmount,
+		params.StandardLaunch.AllocationAmount,
 		0,           // no minimum plan duration
 		time.Time{}, // no start time
 		req.TradingEnabled,
-		true, // fair launched
+		true, // standard launched
 		rollapp,
 		bondingCurve,
-		types.IncentivePlanParams{}, // no incentive plan params for fair launch
+		types.IncentivePlanParams{}, // no incentive plan params for standard launch
 		liquidityPart,
-		0, // liquidity part for fair launch is 1.0, so no vesting duration
-		0, // liquidity part for fair launch is 1.0, so no vesting start time after settlement
+		0, // liquidity part for standard launch is 1.0, so no vesting duration
+		0, // liquidity part for standard launch is 1.0, so no vesting start time after settlement
 	)
 	if err != nil {
 		return nil, err
@@ -243,10 +243,10 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventNewIROPlan{
-		Creator:      rollapp.Owner,
-		PlanId:       planId,
-		RollappId:    rollapp.RollappId,
-		FairLaunched: true,
+		Creator:        rollapp.Owner,
+		PlanId:         planId,
+		RollappId:      rollapp.RollappId,
+		StandardLaunch: true,
 	})
 	if err != nil {
 		return nil, err
@@ -265,14 +265,14 @@ func (m msgServer) CreateFairLaunchPlan(goCtx context.Context, req *types.MsgCre
 // 4. Creates a new module account for the IRO plan.
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
-func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, fairLaunched bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, standardLaunch bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
 	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, liquidityDenom, allocation, curve, planDuration, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
-	plan.FairLaunched = fairLaunched
+	plan.StandardLaunch = standardLaunch
 
 	// if trading enabled initially, set start time and pre-launch time
 	if tradingEnabled {
@@ -293,7 +293,7 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 
 	// set the fixed pre-launch time for custom and enabled plan
 	// otherwise, prelaunch time will be updated once the requirement achieved
-	if plan.TradingEnabled && !plan.FairLaunched {
+	if plan.TradingEnabled && !plan.StandardLaunch {
 		k.rk.SetPreLaunchTime(ctx, &rollapp, plan.StartTime.Add(plan.IroPlanDuration))
 	}
 

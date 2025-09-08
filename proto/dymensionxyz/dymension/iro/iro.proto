@@ -112,8 +112,8 @@ message Plan {
   // the denom used for raising liquidity
   string liquidity_denom = 17;
 
-  // Whether the plan was created as a fair launch
-  bool fair_launched = 18;
+  // Whether the plan was created as a standard launch
+  bool standard_launch = 18;
 
   // graduated pool ID
   uint64 graduated_pool_id = 19;

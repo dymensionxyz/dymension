@@ -121,7 +121,7 @@ func (k Keeper) QueryPlans(goCtx context.Context, req *types.QueryPlansRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	plans, pageRes, err := k.GetAllPlansPaginated(ctx, req.NonSettledOnly, req.NonGraduatedOnly, req.FairLaunchedOnly, req.Pagination)
+	plans, pageRes, err := k.GetAllPlansPaginated(ctx, req.NonSettledOnly, req.NonGraduatedOnly, req.StandardLaunchOnly, req.Pagination)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

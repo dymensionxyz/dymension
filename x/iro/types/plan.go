@@ -92,7 +92,7 @@ func (p Plan) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid liquidity denom")
 	}
 
-	if !p.FairLaunched {
+	if !p.StandardLaunch {
 		if err := p.VestingPlan.ValidateBasic(); err != nil {
 			return errorsmod.Wrap(err, "vesting plan")
 		}

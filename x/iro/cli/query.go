@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	FlagNonSettledOnly   = "non-settled"
-	FlagNonGraduatedOnly = "non-graduated"
-	FlagFairLaunchedOnly = "fair-launched"
+	FlagNonSettledOnly     = "non-settled"
+	FlagNonGraduatedOnly   = "non-graduated"
+	FlagStandardLaunchOnly = "standard-launch"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -49,7 +49,7 @@ func CmdQueryPlans() *cobra.Command {
 This command allows you to retrieve all IRO plans in the system with various filtering options:
 - Filter by settlement status (settled vs non-settled)
 - Filter by graduation status (graduated vs non-graduated) 
-- Filter by launch type (fair launched vs regular)
+- Filter by launch type (standard launched vs regular)
 
 Plans are paginated for efficient querying of large datasets.`,
 		Example: `
@@ -62,11 +62,11 @@ Plans are paginated for efficient querying of large datasets.`,
   # Query only non-graduated plans  
   dymd query iro plans --non-graduated
 
-  # Query only fair launched plans
-  dymd query iro plans --fair-launched
+  # Query only standard launched plans
+  dymd query iro plans --standard-launch
 
-  # Combine filters (non-settled AND fair-launched plans)
-  dymd query iro plans --non-settled --fair-launched
+  # Combine filters (non-settled AND standard launched plans)
+  dymd query iro plans --non-settled --standard-launch
 
   # Query with pagination
   dymd query iro plans --limit 10 --offset 20`,
@@ -78,7 +78,7 @@ Plans are paginated for efficient querying of large datasets.`,
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			fairLaunchedOnly, err := cmd.Flags().GetBool(FlagFairLaunchedOnly)
+			standardLaunchOnly, err := cmd.Flags().GetBool(FlagStandardLaunchOnly)
 			if err != nil {
 				return err
 			}
@@ -99,10 +99,10 @@ Plans are paginated for efficient querying of large datasets.`,
 			}
 
 			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{
-				NonSettledOnly:   nonSettledOnly,
-				NonGraduatedOnly: nonGraduatedOnly,
-				FairLaunchedOnly: fairLaunchedOnly,
-				Pagination:       pageReq,
+				NonSettledOnly:     nonSettledOnly,
+				NonGraduatedOnly:   nonGraduatedOnly,
+				StandardLaunchOnly: standardLaunchOnly,
+				Pagination:         pageReq,
 			})
 			if err != nil {
 				return err
@@ -116,7 +116,7 @@ Plans are paginated for efficient querying of large datasets.`,
 	flags.AddQueryFlagsToCmd(cmd)
 	cmd.Flags().BoolP(FlagNonSettledOnly, "s", false, "Query only unsettled IRO plans")
 	cmd.Flags().BoolP(FlagNonGraduatedOnly, "g", false, "Query only non-graduated IRO plans")
-	cmd.Flags().BoolP(FlagFairLaunchedOnly, "f", false, "Query only fair launched IRO plans")
+	cmd.Flags().BoolP(FlagStandardLaunchOnly, "f", false, "Query only standard launched IRO plans")
 	return cmd
 }
 

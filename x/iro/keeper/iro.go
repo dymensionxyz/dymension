@@ -82,7 +82,7 @@ func (k Keeper) GetAllPlans(ctx sdk.Context) (list []types.Plan) {
 	return
 }
 
-func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, nonSettled, nonGraduated, fairLaunched bool, pageReq *query.PageRequest) (list []types.Plan, pageRes *query.PageResponse, err error) {
+func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, nonSettled, nonGraduated, standardLaunch bool, pageReq *query.PageRequest) (list []types.Plan, pageRes *query.PageResponse, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PlanKeyPrefix)
 
 	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
@@ -99,7 +99,7 @@ func (k Keeper) GetAllPlansPaginated(ctx sdk.Context, nonSettled, nonGraduated, 
 			return nil
 		}
 
-		if fairLaunched && !val.FairLaunched {
+		if standardLaunch && !val.StandardLaunch {
 			return nil
 		}
 

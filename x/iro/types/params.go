@@ -21,7 +21,7 @@ var (
 	DefaultMinVestingDuration                           = 7 * 24 * time.Hour          // default: min 7 days
 	DefaultMinVestingStartTimeAfterSettlement           = 0 * time.Minute             // default: no enforced minimum by default
 
-	DefaultFairLaunch = FairLaunch{
+	DefaultStandardLaunch = StandardLaunch{
 		AllocationAmount: math.NewInt(1e9).MulRaw(1e18),                                // 1B RA tokens
 		TargetRaise:      sdk.NewCoin(params.BaseDenom, math.NewInt(2e4).MulRaw(1e18)), // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.25"),
@@ -29,7 +29,7 @@ var (
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams, minVestingDuration, minVestingStartTimeAfterSettlement time.Duration, fairLaunch FairLaunch) Params {
+func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams, minVestingDuration, minVestingStartTimeAfterSettlement time.Duration, standardLaunch StandardLaunch) Params {
 	return Params{
 		TakerFee:                              takerFee,
 		CreationFee:                           creationFee,
@@ -39,7 +39,7 @@ func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, min
 		MinLiquidityPart:                      liquidityPart,
 		MinVestingDuration:                    minVestingDuration,
 		MinVestingStartTimeAfterSettlement:    minVestingStartTimeAfterSettlement,
-		FairLaunch:                            fairLaunch,
+		StandardLaunch:                        standardLaunch,
 	}
 }
 
@@ -54,7 +54,7 @@ func DefaultParams() Params {
 		MinLiquidityPart:                      math.LegacyMustNewDecFromStr(DefaultMinLiquidityPart),
 		MinVestingDuration:                    DefaultMinVestingDuration,
 		MinVestingStartTimeAfterSettlement:    DefaultMinVestingStartTimeAfterSettlement,
-		FairLaunch:                            DefaultFairLaunch,
+		StandardLaunch:                        DefaultStandardLaunch,
 	}
 }
 
@@ -88,12 +88,12 @@ func (p Params) ValidateBasic() error {
 		return fmt.Errorf("minimum vesting duration must be non-negative: %v", p.MinVestingDuration)
 	}
 
-	if !p.FairLaunch.AllocationAmount.IsPositive() {
-		return fmt.Errorf("allocation amount must be positive: %s", p.FairLaunch.AllocationAmount)
+	if !p.StandardLaunch.AllocationAmount.IsPositive() {
+		return fmt.Errorf("allocation amount must be positive: %s", p.StandardLaunch.AllocationAmount)
 	}
 
-	if !p.FairLaunch.TargetRaise.IsValid() || !p.FairLaunch.TargetRaise.Amount.IsPositive() {
-		return fmt.Errorf("target raise is not valid: %s", p.FairLaunch.TargetRaise)
+	if !p.StandardLaunch.TargetRaise.IsValid() || !p.StandardLaunch.TargetRaise.Amount.IsPositive() {
+		return fmt.Errorf("target raise is not valid: %s", p.StandardLaunch.TargetRaise)
 	}
 
 	return nil

@@ -117,7 +117,7 @@ func (s *KeeperTestSuite) TestGraduatePlan() {
 // creates fair launch IRO plan
 // buy all the tokens and asserts that the plan is graduated, and the liquidity pool is according to the target raise
 // settles the graudauted plan and asserts that the pool is updated with the settled denom
-func (s *KeeperTestSuite) TestGraduateFairLaunchPlan() {
+func (s *KeeperTestSuite) TestGraduateStandardLaunchPlan() {
 	k := s.App.IROKeeper
 	iroParams := k.GetParams(s.Ctx)
 
@@ -126,14 +126,14 @@ func (s *KeeperTestSuite) TestGraduateFairLaunchPlan() {
 	gammParams.AllowedPoolCreationDenoms = append(gammParams.AllowedPoolCreationDenoms, "adym")
 	s.App.GAMMKeeper.SetParams(s.Ctx, gammParams)
 
-	rollappId := s.CreateFairLaunchRollapp()
+	rollappId := s.CreateStandardLaunchRollapp()
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	owner := rollapp.Owner
 
 	// Fund owner with liquidity denom for creation fee
 	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18))))
 
-	res, err := s.msgServer.CreateFairLaunchPlan(s.Ctx, &types.MsgCreateFairLaunchPlan{
+	res, err := s.msgServer.CreateStandardLaunchPlan(s.Ctx, &types.MsgCreateStandardLaunchPlan{
 		RollappId:      rollappId,
 		Owner:          owner,
 		TradingEnabled: true,
@@ -167,7 +167,7 @@ func (s *KeeperTestSuite) TestGraduateFairLaunchPlan() {
 	s.Require().NoError(err)
 
 	// The expected DYM in the pool is the target raise (1% tolerance)
-	expectedDYMInPool := iroParams.FairLaunch.TargetRaise.Amount
+	expectedDYMInPool := iroParams.StandardLaunch.TargetRaise.Amount
 	poolCoins := pool.GetTotalPoolLiquidity(s.Ctx)
 	s.Require().NoError(testutil.ApproxEqualRatio(expectedDYMInPool, poolCoins.AmountOf("adym"), 0.01))
 
@@ -190,7 +190,7 @@ func (s *KeeperTestSuite) TestGraduateFairLaunchPlan() {
 
 	// Settle
 	rollappDenom := "dasdasdasdasdsa"
-	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, iroParams.FairLaunch.AllocationAmount)))
+	s.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, iroParams.StandardLaunch.AllocationAmount)))
 	err = k.Settle(s.Ctx, rollappId, rollappDenom)
 	s.Require().NoError(err)
 	plan = k.MustGetPlan(s.Ctx, planId)

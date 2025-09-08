@@ -14,16 +14,16 @@ const (
 	FlagLiquidityDenom = "liquidity-denom"
 )
 
-func CmdCreateFairLaunchIRO() *cobra.Command {
+func CmdCreateStandardLaunchIRO() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-fairlaunch-iro [rollapp-id]",
-		Short: "Create a new Fair Launch Initial RollApp Offering (IRO) plan",
-		Long: `Create a new Fair Launch Initial RollApp Offering (IRO) plan for a specific RollApp.
+		Use:   "create-standard-iro [rollapp-id]",
+		Short: "Create a new Standard Launch Initial RollApp Offering (IRO) plan",
+		Long: `Create a new Standard Launch Initial RollApp Offering (IRO) plan for a specific RollApp.
 
-Fair Launch IROs use global parameters defined in the module params
+Standard Launch IROs use global parameters defined in the module params
 
 Parameters:
-  [rollapp-id]: The unique identifier of the RollApp for which the Fair Launch IRO is being created.
+  [rollapp-id]: The unique identifier of the RollApp for which the Standard Launch IRO is being created.
 
 Optional Flags:
   --liquidity-denom: The denomination to use for liquidity (e.g., "adym", "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4"). Default: "adym"
@@ -31,9 +31,9 @@ Optional Flags:
                      Default: false (trading enabled)
 
 Examples:
-  dymd tx iro create-fairlaunch-iro myrollapp1 --from mykey
-  dymd tx iro create-fairlaunch-iro myrollapp2 --liquidity-denom ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4 --from mykey
-  dymd tx iro create-fairlaunch-iro myrollapp3 --trading-disabled --from mykey
+  dymd tx iro create-standard-iro myrollapp1 --from mykey
+  dymd tx iro create-standard-iro myrollapp2 --liquidity-denom ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4 --from mykey
+  dymd tx iro create-standard-iro myrollapp3 --trading-disabled --from mykey
 `,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -56,7 +56,7 @@ Examples:
 				return err
 			}
 
-			msg := types.MsgCreateFairLaunchPlan{
+			msg := types.MsgCreateStandardLaunchPlan{
 				Owner:          clientCtx.GetFromAddress().String(),
 				RollappId:      argRollappId,
 				TradingEnabled: !tradingDisabled,

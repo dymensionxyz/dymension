@@ -11,7 +11,7 @@ import (
 
 var (
 	_ sdk.Msg = &MsgCreatePlan{}
-	_ sdk.Msg = &MsgCreateFairLaunchPlan{}
+	_ sdk.Msg = &MsgCreateStandardLaunchPlan{}
 	_ sdk.Msg = &MsgBuy{}
 	_ sdk.Msg = &MsgBuyExactSpend{}
 	_ sdk.Msg = &MsgSell{}

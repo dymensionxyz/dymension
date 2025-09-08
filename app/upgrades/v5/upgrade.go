@@ -245,9 +245,9 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement // default: no enforced minimum by default
 
 	// Fair launch params
-	params.FairLaunch = defParams.FairLaunch
+	params.StandardLaunch = defParams.StandardLaunch
 	// overwrite target raise to use mainnet USDC values
-	params.FairLaunch.TargetRaise = sdk.NewCoin(
+	params.StandardLaunch.TargetRaise = sdk.NewCoin(
 		NobleUSDCDenom,
 		math.NewIntWithDecimal(10, 3).MulRaw(1e6)) // 10K USDC
 

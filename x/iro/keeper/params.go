@@ -26,12 +26,12 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, err
 	}
 	/* -------------------------------------------------------------------------- */
-	/*                 stateful validation for fair launch params                 */
+	/*                 stateful validation for standard launch params                 */
 	/* -------------------------------------------------------------------------- */
-	fairLaunch := req.NewParams.FairLaunch
+	standardLaunch := req.NewParams.StandardLaunch
 
 	// validate target raise denom is allowed
-	targetRaise := fairLaunch.TargetRaise
+	targetRaise := standardLaunch.TargetRaise
 	targetRaiseMetadata, ok := m.BK.GetDenomMetaData(ctx, targetRaise.Denom)
 	if !ok {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "denom %s not registered", targetRaise.Denom)
@@ -44,11 +44,11 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	}
 
 	// validate curve is valid
-	allocationDec := types.ScaleFromBase(fairLaunch.AllocationAmount, 18)
+	allocationDec := types.ScaleFromBase(standardLaunch.AllocationAmount, 18)
 	evaluationDec := types.ScaleFromBase(targetRaise.Amount, int64(targetRaiseExponent)).MulInt64(2)
 	liquidityPart := math.LegacyOneDec()
 
-	calculatedM := types.CalculateM(evaluationDec, allocationDec, fairLaunch.CurveExp, liquidityPart)
+	calculatedM := types.CalculateM(evaluationDec, allocationDec, standardLaunch.CurveExp, liquidityPart)
 	if !calculatedM.IsPositive() {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
 	}
@@ -56,7 +56,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	// Create bonding curve with calculated M and global parameters
 	bondingCurve := types.NewBondingCurve(
 		calculatedM,
-		fairLaunch.CurveExp,
+		standardLaunch.CurveExp,
 		math.LegacyZeroDec(),
 		18,
 		uint64(targetRaiseExponent),

@@ -44,9 +44,9 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 	plan.EnableTradingWithStartTime(ctx.BlockTime())
 	k.SetPlan(ctx, plan)
 
-	// non fair launched plans need to set the pre launch time
-	// fair launched plans will allow launch once graduated
-	if !plan.FairLaunched {
+	// non standard launched plans need to set the pre launch time
+	// standard launched plans will allow launch once graduated
+	if !plan.StandardLaunch {
 		k.rk.SetPreLaunchTime(ctx, &rollapp, plan.StartTime.Add(plan.IroPlanDuration))
 	}
 

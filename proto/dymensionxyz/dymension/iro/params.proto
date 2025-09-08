@@ -55,24 +55,24 @@ message Params {
   google.protobuf.Duration min_vesting_start_time_after_settlement = 8
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
-  // Global parameters for fair launch IROs
-  // those params are used for all fair launch IROs
-  FairLaunch fair_launch = 9 [ (gogoproto.nullable) = false ];
+  // Global parameters for standard launch IROs
+  // those params are used for all standard launch IROs
+  StandardLaunch standard_launch = 9 [ (gogoproto.nullable) = false ];
 }
 
-// FairLaunch contains the parameters for fair launch functionality
-message FairLaunch {
-  // Allocation amount for fair launch
+// StandardLaunch contains the parameters for standard launch functionality
+message StandardLaunch {
+  // Allocation amount for standard launch
   string allocation_amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
-  // Target raise amount for fair launch
+  // Target raise amount for standard launch
   cosmos.base.v1beta1.Coin target_raise = 2 [ (gogoproto.nullable) = false ];
 
-  // Curve exponent for fair launch pricing curve
+  // Curve exponent for standard launch pricing curve
   // curve's M will be calculated according to the allocation amount and target
   // raise
   string curve_exp = 3 [
