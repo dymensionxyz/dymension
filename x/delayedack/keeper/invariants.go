@@ -43,13 +43,10 @@ func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
 	// but will still check packets
 	var latestFinalizedHeight uint64
 
-	latestFinalizedStateIndex, ok := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, ra.RollappId)
-	if !ok {
-		return nil
+	latestFinalizedHeight, err := k.rollappKeeper.GetLatestFinalizedHeight(ctx, ra.RollappId)
+	if err != nil {
+		return err
 	}
-
-	latestFinalizedStateInfo := k.rollappKeeper.MustGetStateInfo(ctx, ra.RollappId, latestFinalizedStateIndex.Index)
-	latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
 
 	packets := k.ListRollappPackets(ctx, types.ByRollappID(ra.RollappId))
 	var errs []error

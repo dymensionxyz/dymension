@@ -7,7 +7,6 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -19,9 +18,8 @@ func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, 
 		return nil, fmt.Errorf("get rollapp packet: %s: %w", rollappPacketKey, err)
 	}
 
-	err = k.VerifyHeightFinalized(ctx, packet.RollappId, packet.ProofHeight)
-	if err != nil {
-		return packet, fmt.Errorf("verify height: rollapp '%s': %w", packet.RollappId, err)
+	if !k.rollappKeeper.IsHeightFinalized(ctx, packet.RollappId, packet.ProofHeight) {
+		return packet, fmt.Errorf("packet height is not finalized yet")
 	}
 
 	err = k.finalizeRollappPacket(ctx, ibc, packet.RollappId, *packet)
@@ -115,18 +113,4 @@ func (k Keeper) onTimeoutPacket(rollappPacket commontypes.RollappPacket, ibc por
 	return func(ctx sdk.Context) (err error) {
 		return ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 	}
-}
-
-func (k Keeper) VerifyHeightFinalized(ctx sdk.Context, rollappID string, height uint64) error {
-	// TODO: can extract rollapp keeper IsHeightFinalized method
-	latestFinalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, rollappID)
-	if err != nil {
-		return err
-	}
-
-	// Check the latest finalized height of the rollapp is higher than the height specified
-	if height > latestFinalizedHeight {
-		return gerrc.ErrInvalidArgument.Wrapf("packet height is not finalized yet: height '%d', latest finalized height '%d'", height, latestFinalizedHeight)
-	}
-	return nil
 }

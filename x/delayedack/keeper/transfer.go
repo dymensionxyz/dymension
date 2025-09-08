@@ -37,7 +37,7 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	}
 
 	// TODO: can extract rollapp keeper IsHeightFinalized method
-	finalizedHeight, err := k.GetRollappLatestFinalizedHeight(ctx, data.Rollapp.RollappId)
+	finalizedHeight, err := k.rollappKeeper.GetLatestFinalizedHeight(ctx, data.Rollapp.RollappId)
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		err = nil
 	} else if err != nil {

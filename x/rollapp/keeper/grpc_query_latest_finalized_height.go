@@ -4,7 +4,6 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -17,14 +16,12 @@ func (k Keeper) LatestFinalizedHeight(c context.Context, req *types.QueryGetLate
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	latestIndex, found := k.GetLatestFinalizedStateIndex(ctx, req.RollappId)
-	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	latestFinalizedHeight, err := k.GetLatestFinalizedHeight(ctx, req.RollappId)
+	if err != nil {
+		return nil, err
 	}
 
-	stateInfo := k.MustGetStateInfo(ctx, req.RollappId, latestIndex.Index)
-
 	return &types.QueryGetLatestFinalizedHeightResponse{
-		Height: stateInfo.GetLatestHeight(),
+		Height: latestFinalizedHeight,
 	}, nil
 }
