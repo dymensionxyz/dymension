@@ -18,17 +18,17 @@ func GenerateUniformRandom(ctx sdk.Context) *big.Int {
 	return new(big.Int).SetUint64(generator.Uint64())
 }
 
+var BigMaxUint64 = osmomath.NewIntFromUint64(math.MaxUint64)
+
 // GenerateUniformRandomMod draws a uniform random variable in [0; modulo)
 func GenerateUniformRandomMod(ctx sdk.Context, modulo *big.Int) *big.Int {
-	// Generate a uniform random variable in [0; MaxUint64)
+	// Generate a uniform random variable in [0; MaxUint64]
 	u := GenerateUniformRandom(ctx)
 	// Normalize it to [0; 1) = uniform / (MAX_UINT64 + 1)
-	un := osmomath.NewDecFromBigInt(u).QuoInt(osmomath.NewIntFromUint64(math.MaxUint64).AddRaw(1))
+	un := osmomath.NewDecFromBigInt(u).QuoInt(BigMaxUint64.AddRaw(1))
 	// Scale it up to the modulo
 	return un.MulInt(osmomath.NewIntFromBigInt(modulo)).TruncateInt().BigInt()
 }
-
-var BigMaxUint64 = osmomath.NewIntFromUint64(math.MaxUint64)
 
 // GenerateExpRandomLambda draws an exp random variable in [0, +inf)
 // with lambda = numerator / denominator and mean = denominator / numerator.
