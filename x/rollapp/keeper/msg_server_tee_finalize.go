@@ -63,7 +63,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 
 	err = k.validateClaimsWithOPA(ctx, *token, expectedNonce, teeConfig)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "claims validation failed")
+		return nil, errorsmod.Wrap(err, "claims validation")
 	}
 
 	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, msg.RollappId, msg.StateIndex)
