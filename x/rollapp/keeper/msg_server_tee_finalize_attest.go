@@ -100,11 +100,8 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyDat
 		return false, gerrc.ErrInvalidArgument.Wrap("unexpected result type from opa policy")
 	}
 
-	result := results[0].Bindings["allow"]
-	if result == true {
-		return true, nil
-	}
-	return false, nil
+	result, _ := results[0].Bindings["allow"].(bool)
+	return result, nil
 }
 
 // verifyCertificateChain verifies the certificate chain from leaf to root.

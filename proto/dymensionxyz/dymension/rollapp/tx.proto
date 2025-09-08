@@ -29,7 +29,6 @@ service Msg {
   rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
   rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps) returns (MsgMarkObsoleteRollappsResponse);
 
-  // FastFinalizeWithTEE fast-finalizes rollapp state using TEE attestation
   rpc FastFinalizeWithTEE(MsgFastFinalizeWithTEE) returns (MsgFastFinalizeWithTEEResponse);
 }
 
@@ -225,7 +224,9 @@ message MsgFastFinalizeWithTEE {
   // nonce contains the data that was signed by TEE
   TEENonce nonce = 5 [(gogoproto.nullable) = false];
 
+  // what should be finalized immediately
   uint64 curr_state_index = 6;
+  // an index which is already finalized that the TEE node ran from 
   uint64 finalized_state_index = 7;
 }
 

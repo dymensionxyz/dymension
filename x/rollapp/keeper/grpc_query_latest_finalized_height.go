@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
@@ -18,17 +17,14 @@ func (k Keeper) LatestFinalizedHeight(c context.Context, req *types.QueryGetLate
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetLatestFinalizedStateIndex(
-		ctx,
-		req.RollappId,
-	)
+	latestIndex, found := k.GetLatestFinalizedStateIndex(ctx, req.RollappId)
 	if !found {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "latest finalized index")
+		return nil, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
 	}
 
-	state := k.MustGetStateInfo(ctx, req.RollappId, val.Index)
+	stateInfo := k.MustGetStateInfo(ctx, req.RollappId, latestIndex.Index)
 
 	return &types.QueryGetLatestFinalizedHeightResponse{
-		Height: state.GetLatestHeight(),
+		Height: stateInfo.GetLatestHeight(),
 	}, nil
 }
