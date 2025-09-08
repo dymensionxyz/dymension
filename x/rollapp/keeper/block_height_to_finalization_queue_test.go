@@ -1016,4 +1016,3 @@ func (s *RollappTestSuite) TestFastFinalizeRollappStatesUntilStateIndex() {
 		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
 	}
 }
-
