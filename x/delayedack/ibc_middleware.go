@@ -135,13 +135,11 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "handleFastFinalizedPacket")
 
-	// Process the packet through the underlying IBC module
 	ack := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	if !ack.Success() {
 		return ack
 	}
 
-	// Check for completion hooks in the memo
 	if transfer.Memo == "" {
 		return ack
 	}
@@ -156,7 +154,6 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 		return ack
 	}
 
-	// Get completion hook from memo
 	onComplete, err := memo.EIBC.GetCompletionHook()
 	if err != nil {
 		l.Error("Failed to get completion hook", "err", err)
@@ -166,7 +163,6 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 		return ack
 	}
 
-	// Validate and run the completion hook
 	if err := w.ValidateCompletionHook(*onComplete); err != nil {
 		l.Error("Invalid completion hook", "err", err)
 		return ack
@@ -184,7 +180,6 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 		return ack
 	}
 
-	// Run the completion hook
 	if err := w.RunCompletionHook(ctx, fundsSrc, budget, *onComplete); err != nil {
 		l.Error("Failed to run completion hook", "err", err)
 		// Don't fail the packet, just log the error
