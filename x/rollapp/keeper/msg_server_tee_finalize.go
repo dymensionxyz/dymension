@@ -1,13 +1,13 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	_ "embed"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"time"
@@ -26,6 +26,10 @@ var opaPolicy string
 
 // FastFinalizeWithTEE handles TEE attestation-based fast finalization
 func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFastFinalizeWithTEE) (*types.MsgFastFinalizeWithTEEResponse, error) {
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	params := k.GetParams(ctx)
@@ -35,19 +39,38 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrFailedPrecondition.Wrap("TEE fast finalization is not enabled")
 	}
 
-	_, found := k.GetRollapp(ctx, msg.RollappId)
+	rollapp := msg.Nonce.RollappId
+	ix := msg.StateIndex
+
+	_, found := k.GetRollapp(ctx, rollapp)
 	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("rollapp: %s", msg.RollappId)
+		return nil, gerrc.ErrNotFound.Wrapf("rollapp: %s", rollapp)
 	}
 
-	proposer := k.SequencerK.GetProposer(ctx, msg.RollappId)
-	if proposer.Sentinel() {
-		return nil, gerrc.ErrNotFound.Wrap("no active sequencer for rollapp")
-	}
+	proposer := k.SequencerK.GetProposer(ctx, rollapp)
 
 	if proposer.Address != msg.Creator {
 		return nil, gerrc.ErrPermissionDenied.Wrapf("only active sequencer can submit TEE attestation: expected %s, got %s",
 			proposer.Address, msg.Creator)
+	}
+
+	if k.IsFinalizedIndex(ctx, rollapp, ix) {
+		return nil, gerrc.ErrOutOfRange.Wrapf("state index is already finalized")
+	}
+
+	info, found := k.GetStateInfo(ctx, rollapp, ix)
+	if !found {
+		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
+	}
+
+	if info.GetLatestHeight() != uint64(msg.Nonce.Height) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
+	}
+
+	bd, _ := info.GetLatestBlockDescriptor()
+
+	if !bytes.Equal(bd.StateRoot, msg.Nonce.StateRoot) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
 	}
 
 	token, err := k.validatePKIToken(ctx, msg.AttestationToken, teeConfig.GcpRootCertPem)
@@ -55,18 +78,14 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, errorsmod.Wrap(err, "validate PKI token")
 	}
 
-	if msg.StateIndex != msg.Nonce.StateIndex {
-		return nil, gerrc.ErrInvalidArgument.Wrap("state index mismatch between message and nonce")
-	}
-
-	expectedNonce := k.calculateTEENonce(msg.RollappId, msg.Nonce)
+	expectedNonce := msg.Nonce.Hash()
 
 	err = k.validateClaimsWithOPA(ctx, *token, expectedNonce, teeConfig)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "claims validation")
 	}
 
-	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, msg.RollappId, msg.StateIndex)
+	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, ix)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "fast finalize states")
 	}
@@ -74,8 +93,8 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeTEEFastFinalization,
-			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
-			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", msg.StateIndex)),
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
+			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", ix)),
 		),
 	)
 
@@ -213,12 +232,4 @@ func (k msgServer) validateClaimsWithOPA(ctx sdk.Context, token jwt.Token, expec
 	}
 
 	return nil
-}
-
-// calculateTEENonce calculates the expected nonce hash
-func (k msgServer) calculateTEENonce(rollappID string, nonce types.TEENonce) string {
-	nonceData := fmt.Sprintf("%d:%s:%x", nonce.StateIndex, rollappID, nonce.LastBlockHash)
-
-	hash := sha256.Sum256([]byte(nonceData))
-	return hex.EncodeToString(hash[:])
 }
