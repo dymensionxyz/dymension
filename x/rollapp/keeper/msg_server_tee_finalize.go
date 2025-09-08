@@ -14,6 +14,10 @@ import (
 
 // FastFinalizeWithTEE handles TEE attestation-based fast finalization
 func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFastFinalizeWithTEE) (*types.MsgFastFinalizeWithTEEResponse, error) {
+	///////////
+	// TEE feature must be enabled, message from proposer etc
+	///////////
+
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrap(err, "validate basic")
 	}
@@ -28,7 +32,6 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	}
 
 	rollapp := msg.Nonce.RollappId
-	ix := msg.StateIndex
 
 	_, found := k.GetRollapp(ctx, rollapp)
 	if !found {
@@ -42,22 +45,48 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 			proposer.Address, msg.Creator)
 	}
 
-	if k.IsFinalizedIndex(ctx, rollapp, ix) {
-		return nil, gerrc.ErrOutOfRange.Wrapf("state index is already finalized")
+	///////////
+	// TEE node must have started from a finalized state
+	///////////
+
+	if !k.IsFinalizedIndex(ctx, rollapp, msg.FinalizedStateIndex) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("finalized state index is not finalized")
 	}
 
-	info, found := k.GetStateInfo(ctx, rollapp, ix)
+	info, found := k.GetStateInfo(ctx, rollapp, msg.FinalizedStateIndex)
 	if !found {
 		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
 	}
 
-	if info.GetLatestHeight() != msg.Nonce.Height {
+	bd, ok := info.GetBlockDescriptor(msg.Nonce.FinalizedHeight)
+	if !ok {
+		return nil, gerrc.ErrNotFound.Wrapf("block descriptor for height: %d", msg.Nonce.FinalizedHeight)
+	}
+
+	if !bytes.Equal(bd.StateRoot, msg.Nonce.FinalizedStateRoot) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("finalized state root mismatch")
+	}
+
+	///////////
+	// TEE node must genuinely have reached the proposed new latest finalized state
+	///////////
+
+	if k.IsFinalizedIndex(ctx, rollapp, msg.CurrStateIndex) {
+		return nil, gerrc.ErrOutOfRange.Wrapf("state index is already finalized")
+	}
+
+	info, found = k.GetStateInfo(ctx, rollapp, msg.CurrStateIndex)
+	if !found {
+		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
+	}
+
+	if info.GetLatestHeight() != msg.Nonce.CurrHeight {
 		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
 	}
 
-	bd, _ := info.LastBlockDescriptor()
+	bd, _ = info.LastBlockDescriptor()
 
-	if !bytes.Equal(bd.StateRoot, msg.Nonce.StateRoot) {
+	if !bytes.Equal(bd.StateRoot, msg.Nonce.CurrStateRoot) {
 		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
 	}
 
@@ -66,7 +95,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, errorsmod.Wrap(err, "validate attestation")
 	}
 
-	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, ix)
+	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, msg.CurrStateIndex)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "fast finalize states")
 	}
@@ -75,7 +104,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		sdk.NewEvent(
 			types.EventTypeTEEFastFinalization,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
-			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", ix)),
+			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", msg.CurrStateIndex)),
 		),
 	)
 
