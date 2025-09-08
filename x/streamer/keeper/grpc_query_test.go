@@ -295,16 +295,16 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 	s.Require().NoError(err)
 
 	// Create a stream and activate it
-	coins := sdk.NewCoins(common.DymUint64(100))
+	coins := sdk.NewCoins(common.DymUint64(30))
 	_, stream := s.CreatePumpStream(coins, time.Now(), "day", 30, types.DefaultPumpParams())
 	s.Ctx = s.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream)
 	s.Require().NoError(err)
 
-	expectedPressureRA1 := common.DYM.MulRaw(50)
-	expectedPressureRA2 := common.DYM.MulRaw(25)
-	expectedUserPressureRA1 := common.DYM.MulRaw(30)
-	expectedUserPressureRA2 := common.DYM.MulRaw(20)
+	expectedPressureRA1 := common.DYM.MulRaw(20)
+	expectedPressureRA2 := common.DYM.MulRaw(10)
+	expectedUserPressureRA1 := common.DYM.MulRaw(12)
+	expectedUserPressureRA2 := common.DYM.MulRaw(8)
 
 	// PumpPressure returns all rollapp pressures
 	{
@@ -315,8 +315,8 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 		s.Require().NotNil(res)
 		s.Require().Len(res.Pressure, 2)
 
-		s.Require().Equal(expectedPressureRA1, res.Pressure[0].Pressure)
-		s.Require().Equal(expectedPressureRA2, res.Pressure[1].Pressure)
+		s.Require().Equal(expectedPressureRA1, res.Pressure[0].Pressure, "expected: %s, got: %s", expectedPressureRA1, res.Pressure[0].Pressure)
+		s.Require().Equal(expectedPressureRA2, res.Pressure[1].Pressure, "expected: %s, got: %s", expectedPressureRA2, res.Pressure[1].Pressure)
 	}
 
 	// PumpPressureByRollapp returns specific rollapp pressure
@@ -327,7 +327,7 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 		s.Require().NoError(err)
 		s.Require().NotNil(res)
 
-		s.Require().Equal(expectedPressureRA1, res.Pressure.Pressure)
+		s.Require().Equal(expectedPressureRA1, res.Pressure.Pressure, "expected: %s, got: %s", expectedPressureRA1, res.Pressure.Pressure)
 	}
 
 	// PumpPressureByUser returns user pressure for all rollapps
@@ -339,8 +339,8 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 		s.Require().NotNil(res)
 		s.Require().Len(res.Pressure, 2)
 
-		s.Require().Equal(expectedUserPressureRA1, res.Pressure[0].Pressure)
-		s.Require().Equal(expectedUserPressureRA2, res.Pressure[1].Pressure)
+		s.Require().Equal(expectedUserPressureRA1, res.Pressure[0].Pressure, "expected: %s, got: %s", expectedUserPressureRA1, res.Pressure[0].Pressure)
+		s.Require().Equal(expectedUserPressureRA2, res.Pressure[1].Pressure, "expected: %s, got: %s", expectedUserPressureRA2, res.Pressure[1].Pressure)
 	}
 
 	// PumpPressureByUserByRollapp returns user pressure for specific rollapp
@@ -352,6 +352,6 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 		s.Require().NoError(err)
 		s.Require().NotNil(res)
 
-		s.Require().Equal(expectedUserPressureRA1, res.Pressure.Pressure)
+		s.Require().Equal(expectedUserPressureRA1, res.Pressure.Pressure, "expected: %s, got: %s", expectedUserPressureRA1, res.Pressure.Pressure)
 	}
 }

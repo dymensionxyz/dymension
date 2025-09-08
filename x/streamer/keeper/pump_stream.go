@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 	"math/big"
-	"sort"
+	"slices"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,11 +15,40 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 )
 
-// PumpPressure calculated how much DYM each RA gets if the given budget is
-// applied using the given weight distribution.
-func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distribution, pumpBudget math.Int, limit *uint32) []types.PumpPressure {
+// TopRollapps calculated how much DYM each RA gets if the given budget is
+// applied using the given weight distribution. Returns a sorted list of orders
+// in descending order by pressure. Pressure for rollapps is normalized
+// over the total amount of pressure. Example:
+//
+//	RA1 gets 30%
+//	RA2 gets 50%
+//	RA3 gets 20% but is not selected to pump
+//	=> Normalize:
+//	RA1 gets 3/8 = 37.5%
+//	RA2 gets 5/8 = 62.5%
+//
+// CONTRACT: all sponsorshiptypes.Distribution gauges are rollapp gauges.
+func (k Keeper) TopRollapps(ctx sdk.Context, gauges []sponsorshiptypes.Gauge, pumpBudget math.Int, limit *uint32) []types.PumpPressure {
+	// Sort in descending order
+	slices.SortFunc(gauges, func(left, right sponsorshiptypes.Gauge) int {
+		return right.Power.BigIntMut().Cmp(left.Power.BigIntMut())
+	})
+
+	if limit != nil && int(*limit) < len(gauges) {
+		gauges = gauges[:int(*limit)]
+	}
+
+	totalWeight := math.ZeroInt()
+	for _, gauge := range gauges {
+		totalWeight = totalWeight.Add(gauge.Power)
+	}
+
+	return k.PumpPressure(ctx, gauges, pumpBudget, totalWeight)
+}
+
+func (k Keeper) PumpPressure(ctx sdk.Context, gauges []sponsorshiptypes.Gauge, pumpBudget, totalWeight math.Int) []types.PumpPressure {
 	var rollappRecords []types.PumpPressure
-	for _, gauge := range distr.Gauges {
+	for _, gauge := range gauges {
 		g, err := k.ik.GetGaugeByID(ctx, gauge.GaugeId)
 		if err != nil {
 			k.Logger(ctx).Error("failed to get gauge", "gaugeID", gauge.GaugeId, "error", err)
@@ -28,19 +57,10 @@ func (k Keeper) PumpPressure(ctx sdk.Context, distr sponsorshiptypes.Distributio
 		if ra := g.GetRollapp(); ra != nil {
 			rollappRecords = append(rollappRecords, types.PumpPressure{
 				RollappId: ra.RollappId,
-				// Don't pre-calculate 'pumpBudget / distr.VotingPower' bc it loses precision
-				Pressure: gauge.Power.Mul(pumpBudget).Quo(distr.VotingPower),
+				// Don't pre-calculate 'pumpBudget / totalWeight' bc it loses precision
+				Pressure: gauge.Power.Mul(pumpBudget).Quo(totalWeight),
 			})
 		}
-	}
-
-	// Sort all records which are rollapp gauges by weight in descending order
-	sort.Slice(rollappRecords, func(i, j int) bool {
-		return rollappRecords[i].Pressure.GT(rollappRecords[j].Pressure)
-	})
-
-	if limit != nil && len(rollappRecords) > int(*limit) {
-		rollappRecords = rollappRecords[:int(*limit)]
 	}
 
 	return rollappRecords
@@ -273,7 +293,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 
 		// Get top N rollapps by cast voting power
-		pressure := k.PumpPressure(ctx, sponsorshipDistr, pumpAmt, &stream.PumpParams.NumTopRollapps)
+		pressure := k.TopRollapps(ctx, sponsorshipDistr.Gauges, pumpAmt, &stream.PumpParams.NumTopRollapps)
 
 		totalPumped := sdk.NewCoins()
 		events := make([]types.EventPumped_Pump, 0)

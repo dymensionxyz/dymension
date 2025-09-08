@@ -140,7 +140,7 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 		numEpochsPaidOver     = uint64(10)
 		remainEpochs          = numEpochsPaidOver
 		streamCoinsAmtInitial = commontypes.DYM.MulRaw(100)
-		pumpNum               = uint64(9000)
+		pumpNum               = uint64(7000)
 		ctx                   = hashPump(s.Ctx)
 		epochBudget           = streamCoinsAmtInitial.Quo(math.NewIntFromUint64(remainEpochs))
 		epochBudgetLeft       = epochBudget
@@ -163,8 +163,14 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 
 	remainEpochs = remainEpochs - 1
 	var (
-		ra1Share    = pumpAmtIter1.MulRaw(30).QuoRaw(100) // 30%
-		ra2Share    = pumpAmtIter1.MulRaw(50).QuoRaw(100) // 50%
+		// RA1 gets 30%
+		// RA2 gets 50%
+		// RA3 gets 20% but is not selected to pump
+		// => Normalize:
+		// RA1 gets 3/8 = 37.5%
+		// RA2 gets 5/8 = 62.5%
+		ra1Share    = pumpAmtIter1.MulRaw(3).QuoRaw(8) // 37.5%
+		ra2Share    = pumpAmtIter1.MulRaw(5).QuoRaw(8) // 62.5%
 		changeIter1 = ra1Share.Add(ra2Share)
 
 		streamCoinsAmtAfterPump  = streamCoinsAmtInitial.Sub(changeIter1)
@@ -182,8 +188,8 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	}, b)
 	s.Require().NoError(err)
 	s.Require().True(!pumpAmtIter2.IsZero())
-	ra1Share = pumpAmtIter2.MulRaw(30).QuoRaw(100) // 30%
-	ra2Share = pumpAmtIter2.MulRaw(50).QuoRaw(100) // 50%
+	ra1Share = pumpAmtIter2.MulRaw(3).QuoRaw(8) // 37.5%
+	ra2Share = pumpAmtIter2.MulRaw(5).QuoRaw(8) // 62.5%
 	changeIter2 := ra1Share.Add(ra2Share)
 
 	return pumpTestCase{
@@ -300,7 +306,7 @@ func hashNoPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in no pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 9
+	hash[31] = 5
 	headerInfo := ctx.HeaderInfo()
 	headerInfo.Hash = hash
 	return ctx.WithHeaderInfo(headerInfo)
@@ -310,7 +316,7 @@ func hashPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in a pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 5
+	hash[31] = 9
 	headerInfo := ctx.HeaderInfo()
 	headerInfo.Hash = hash
 	return ctx.WithHeaderInfo(headerInfo)
@@ -537,7 +543,7 @@ func (s *KeeperTestSuite) TestShouldPump() {
 	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
 	s.Require().NoError(err)
 
-	pumpNum := uint64(9000)
+	pumpNum := uint64(7000)
 
 	s.Run("GenerateUniformRandom", func() {
 		// Pump hash
@@ -594,7 +600,7 @@ func (s *KeeperTestSuite) TestShouldPump() {
 }
 
 func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
-	//s.T().Skip("This test is for debugging and visualizing the distribution.")
+	s.T().Skip("This test is for debugging and visualizing the distribution.")
 
 	var (
 		epochBudget     = math.NewInt(200_000)

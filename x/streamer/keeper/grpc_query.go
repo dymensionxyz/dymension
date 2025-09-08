@@ -3,7 +3,9 @@ package keeper
 import (
 	"context"
 	"encoding/json"
+	"slices"
 
+	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -101,6 +103,7 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 	return &types.UpcomingStreamsResponse{Data: streams, Pagination: pageRes}, nil
 }
 
+// PumpPressure for every RA_i is calculated as RA_i / ∑^N RA_j
 func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequest) (*types.PumpPressureResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -114,7 +117,7 @@ func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequ
 	}
 
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure, nil)
+	pressure := q.Keeper.TopRollapps(ctx, d.Gauges, totalPressure, nil)
 
 	return &types.PumpPressureResponse{
 		Pressure:   pressure,
@@ -122,6 +125,7 @@ func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequ
 	}, nil
 }
 
+// PumpPressureByRollapp for RA_i is calculated as RA_i / ∑^N RA_j
 func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPressureByRollappRequest) (*types.PumpPressureByRollappResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -129,31 +133,27 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	e, err := q.sk.GetEndorsement(ctx, req.RollappId)
-	if err != nil {
-		return nil, err
-	}
 	d, err := q.sk.GetDistribution(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	totalPressure := q.TotalPumpBudget(ctx)
-
-	// RA pressure is a RA power (aka endorsement.TotalShares) divided by the total voting power and
-	// multiplied by the total number of DYM dedicated to pumping from *all* streams:
-	//
-	//   (RA power / total power) * total pressure
-	raPressure := e.TotalShares.MulInt(totalPressure).QuoInt(d.VotingPower).TruncateInt()
+	pressure := q.Keeper.TopRollapps(ctx, d.Gauges, totalPressure, nil)
+	idx := slices.IndexFunc(pressure, func(p types.PumpPressure) bool {
+		return p.RollappId == req.RollappId
+	})
+	if idx < 0 {
+		return nil, status.Error(codes.NotFound, "rollapp don't have any pressure")
+	}
 
 	return &types.PumpPressureByRollappResponse{
-		Pressure: types.PumpPressure{
-			RollappId: req.RollappId,
-			Pressure:  raPressure,
-		},
+		Pressure: pressure[idx],
 	}, nil
 }
 
+// PumpPressureByUser for U and for each RA_u_i, which got a vote from U,
+// is calculated as RA_u_i / ∑^N RA_j
 func (q Querier) PumpPressureByUser(goCtx context.Context, req *types.PumpPressureByUserRequest) (*types.PumpPressureByUserResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -174,11 +174,15 @@ func (q Querier) PumpPressureByUser(goCtx context.Context, req *types.PumpPressu
 		return nil, err
 	}
 
+	totalWeight := math.ZeroInt()
+	for _, gauge := range d.Gauges {
+		totalWeight = totalWeight.Add(gauge.Power)
+	}
+
 	// We need to see how the user contributes to the total distribution.
 	// Use total voting power with user's weights to get PumpPressure.
-	d.Gauges = vote.ToDistribution().Gauges
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.PumpPressure(ctx, d, totalPressure, nil)
+	pressure := q.Keeper.PumpPressure(ctx, vote.ToDistribution().Gauges, totalPressure, totalWeight)
 
 	return &types.PumpPressureByUserResponse{
 		Pressure:   pressure,
@@ -186,6 +190,8 @@ func (q Querier) PumpPressureByUser(goCtx context.Context, req *types.PumpPressu
 	}, nil
 }
 
+// PumpPressureByUserByRollapp for U and for RA_u_i, which got a vote from U,
+// is calculated as RA_u_i / ∑^N RA_j
 func (q Querier) PumpPressureByUserByRollapp(goCtx context.Context, req *types.PumpPressureByUserByRollappRequest) (*types.PumpPressureByUserByRollappResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -197,7 +203,7 @@ func (q Querier) PumpPressureByUserByRollapp(goCtx context.Context, req *types.P
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	p, err := q.sk.GetEndorserPosition(ctx, userAddr, req.RollappId)
+	vote, err := q.sk.GetVote(ctx, userAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -206,16 +212,24 @@ func (q Querier) PumpPressureByUserByRollapp(goCtx context.Context, req *types.P
 		return nil, err
 	}
 
-	totalPressure := q.TotalPumpBudget(ctx)
+	totalWeight := math.ZeroInt()
+	for _, gauge := range d.Gauges {
+		totalWeight = totalWeight.Add(gauge.Power)
+	}
 
-	// User pressure for this rollapp = (user's power / total power) * total pressure
-	userRAPressure := p.Shares.MulInt(totalPressure).QuoInt(d.VotingPower).TruncateInt()
+	// We need to see how the user contributes to the total distribution.
+	// Use total voting power with user's weights to get PumpPressure.
+	totalPressure := q.TotalPumpBudget(ctx)
+	pressure := q.Keeper.PumpPressure(ctx, vote.ToDistribution().Gauges, totalPressure, totalWeight)
+	idx := slices.IndexFunc(pressure, func(p types.PumpPressure) bool {
+		return p.RollappId == req.RollappId
+	})
+	if idx < 0 {
+		return nil, status.Error(codes.NotFound, "rollapp don't have any pressure")
+	}
 
 	return &types.PumpPressureByUserByRollappResponse{
-		Pressure: types.PumpPressure{
-			RollappId: req.RollappId,
-			Pressure:  userRAPressure,
-		},
+		Pressure: pressure[idx],
 	}, nil
 }
 
