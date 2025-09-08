@@ -67,12 +67,12 @@ func (s *StateInfo) GetBlockDescriptor(height uint64) (BlockDescriptor, bool) {
 	return s.BDs.BD[height-s.StartHeight], true
 }
 
-func (s *StateInfo) GetLatestBlockDescriptor() (BlockDescriptor, bool) {
+func (s *StateInfo) LastBlockDescriptor() (BlockDescriptor, bool) {
 	return s.GetBlockDescriptor(s.GetLatestHeight())
 }
 
-func (s *StateInfo) MustGetLatestBlockDescriptor() BlockDescriptor {
-	bd, ok := s.GetBlockDescriptor(s.GetLatestHeight())
+func (s *StateInfo) MustLastBlockDescriptor() BlockDescriptor {
+	bd, ok := s.LastBlockDescriptor()
 	if !ok {
 		panic("latest block descriptor not found")
 	}

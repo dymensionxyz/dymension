@@ -67,7 +67,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
 	}
 
-	bd, _ := info.GetLatestBlockDescriptor()
+	bd, _ := info.LastBlockDescriptor()
 
 	if !bytes.Equal(bd.StateRoot, msg.Nonce.StateRoot) {
 		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
@@ -95,20 +95,22 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 }
 
 func (k msgServer) validateAttestation(ctx sdk.Context, gcpCert []byte, nonce, token string) error {
-	jwt, err := k.validatePKIToken(ctx, token, gcpCert)
+	// make sure the token really came from GCP
+	jwt, err := k.validateAttestationAuthenticity(ctx, token, gcpCert)
 	if err != nil {
 		return errorsmod.Wrap(err, "validate PKI token")
 	}
 
-	err = k.validateClaimsWithOPA(ctx, *jwt, nonce)
+	// make the sure token actually certifies the non-tampered with computation
+	err = k.validateAttestationIntegrity(ctx, *jwt, nonce)
 	if err != nil {
 		return errorsmod.Wrap(err, "claims validation")
 	}
 	return nil
 }
 
-// validatePKIToken validates the PKI token returned from the attestation service
-func (k msgServer) validatePKIToken(ctx sdk.Context, attestationToken string, pemCert []byte) (*jwt.Token, error) {
+// validateAttestationAuthenticity validates the PKI token returned from the attestation service
+func (k msgServer) validateAttestationAuthenticity(ctx sdk.Context, attestationToken string, pemCert []byte) (*jwt.Token, error) {
 	// Parse the token without verification first to get the x5c header
 	unverifiedToken, _, err := jwt.NewParser().ParseUnverified(attestationToken, jwt.MapClaims{})
 	if err != nil {
@@ -202,8 +204,8 @@ func (k msgServer) validatePKIToken(ctx sdk.Context, attestationToken string, pe
 	return token, nil
 }
 
-// validateClaimsWithOPA validates the claims using OPA policy
-func (k msgServer) validateClaimsWithOPA(ctx sdk.Context, token jwt.Token, expectedNonce string) error {
+// validateAttestationIntegrity validates the claims using OPA policy
+func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, expectedNonce string) error {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return fmt.Errorf("extract JWT claims")
