@@ -94,9 +94,9 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	return &types.MsgFastFinalizeWithTEEResponse{}, nil
 }
 
-func (k msgServer) validateAttestation(ctx sdk.Context, gcpCert []byte, nonce, token string) error {
+func (k msgServer) validateAttestation(ctx sdk.Context, nonce, token string) error {
 	// make sure the token really came from GCP
-	jwt, err := k.validateAttestationAuthenticity(ctx, token, gcpCert)
+	jwt, err := k.validateAttestationAuthenticity(ctx, token)
 	if err != nil {
 		return errorsmod.Wrap(err, "validate PKI token")
 	}
@@ -110,7 +110,7 @@ func (k msgServer) validateAttestation(ctx sdk.Context, gcpCert []byte, nonce, t
 }
 
 // validateAttestationAuthenticity validates the PKI token returned from the attestation service
-func (k msgServer) validateAttestationAuthenticity(ctx sdk.Context, attestationToken string, pemCert []byte) (*jwt.Token, error) {
+func (k msgServer) validateAttestationAuthenticity(ctx sdk.Context, attestationToken string) (*jwt.Token, error) {
 	// Parse the token without verification first to get the x5c header
 	unverifiedToken, _, err := jwt.NewParser().ParseUnverified(attestationToken, jwt.MapClaims{})
 	if err != nil {
@@ -240,4 +240,12 @@ func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token
 	}
 
 	return nil
+}
+
+func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
+	block, _ := pem.Decode(k.GetParams(ctx).TeeConfig.GcpRootCertPem)
+	if block == nil {
+		return nil, fmt.Errorf("parse PEM block")
+	}
+	return x509.ParseCertificate(block.Bytes)
 }
