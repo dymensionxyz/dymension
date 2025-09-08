@@ -45,7 +45,7 @@ func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
 
 	latestFinalizedHeight, err := k.rollappKeeper.GetLatestFinalizedHeight(ctx, ra.RollappId)
 	if err != nil {
-		return err
+		return nil
 	}
 
 	packets := k.ListRollappPackets(ctx, types.ByRollappID(ra.RollappId))
