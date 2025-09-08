@@ -150,13 +150,13 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 		if errorsmod.IsOf(err, types.ErrEIBCMemoEmpty) || errorsmod.IsOf(err, types.ErrMemoUnmarshal) {
 			return ack
 		}
-		l.Error("Failed to parse memo for completion hook", "err", err)
+		l.Error("Parse memo for completion hook", "err", err)
 		return ack
 	}
 
 	onComplete, err := memo.EIBC.GetCompletionHook()
 	if err != nil {
-		l.Error("Failed to get completion hook", "err", err)
+		l.Error("Get completion hook", "err", err)
 		return ack
 	}
 	if onComplete == nil {
@@ -181,7 +181,7 @@ func (w IBCMiddleware) handleFastFinalizedPacket(
 	}
 
 	if err := w.RunCompletionHook(ctx, fundsSrc, budget, *onComplete); err != nil {
-		l.Error("Failed to run completion hook", "err", err)
+		l.Error("Run completion hook", "err", err)
 		// Don't fail the packet, just log the error
 	}
 
