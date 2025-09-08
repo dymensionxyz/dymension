@@ -54,10 +54,8 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		if err != nil {
 			return err
 		}
-		plan.SettledDenom = rollappIBCDenom
 	} else {
-		plan.SettledDenom = rollappIBCDenom
-		poolID, incentives, err := k.createPoolForPlan(ctx, &plan)
+		poolID, incentives, err := k.createPoolForPlan(ctx, &plan, rollappIBCDenom)
 		if err != nil {
 			return err
 		}
@@ -71,6 +69,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		plan.GraduatedPoolId = poolID
 	}
 	// commit the settled plan
+	plan.SettledDenom = rollappIBCDenom
 	k.SetPlan(ctx, plan)
 
 	// burn all the remaining IRO token.

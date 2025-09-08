@@ -19,7 +19,7 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins,
 		return 0, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "plan not found")
 	}
 
-	poolID, leftoverTokens, err := k.createPoolForPlan(ctx, &plan)
+	poolID, leftoverTokens, err := k.createPoolForPlan(ctx, &plan, plan.GetIRODenom())
 	if err != nil {
 		return 0, nil, errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 	}
@@ -48,7 +48,7 @@ func (k Keeper) GraduatePlan(ctx sdk.Context, planId string) (uint64, sdk.Coins,
 
 // createPoolForPlan creates a pool for the plan
 // can be called both from graduation and settle
-func (k Keeper) createPoolForPlan(ctx sdk.Context, plan *types.Plan) (uint64, sdk.Coins, error) {
+func (k Keeper) createPoolForPlan(ctx sdk.Context, plan *types.Plan, denom string) (uint64, sdk.Coins, error) {
 	raisedLiquidityAmt := k.BK.GetBalance(ctx, plan.GetAddress(), plan.LiquidityDenom).Amount
 	poolTokens := raisedLiquidityAmt.ToLegacyDec().Mul(plan.LiquidityPart).TruncateInt()
 	ownerTokens := raisedLiquidityAmt.Sub(poolTokens)
@@ -59,7 +59,7 @@ func (k Keeper) createPoolForPlan(ctx sdk.Context, plan *types.Plan) (uint64, sd
 	plan.VestingPlan.EndTime = plan.VestingPlan.StartTime.Add(plan.VestingPlan.VestingDuration)
 
 	// uses the raised liquidity and unsold tokens to bootstrap the rollapp's liquidity pool
-	return k.bootstrapLiquidityPool(ctx, *plan, poolTokens)
+	return k.bootstrapLiquidityPool(ctx, *plan, poolTokens, denom)
 }
 
 // bootstrapLiquidityPool bootstraps the liquidity pool with the raised liquidity and unsold tokens.
@@ -68,7 +68,7 @@ func (k Keeper) createPoolForPlan(ctx sdk.Context, plan *types.Plan) (uint64, sd
 // - Sends the raised liquidity to the IRO module to be used as the pool creator.
 // - Determines the required pool liquidity amounts to fulfill the last price.
 // - Creates a balancer pool with the determined tokens and liquidity.
-func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTokens math.Int) (uint64, sdk.Coins, error) {
+func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTokens math.Int, denom string) (uint64, sdk.Coins, error) {
 	// claimable amount is kept in the module account and used for user's claims
 	claimableAmt := plan.SoldAmt.Sub(plan.ClaimedAmt)
 
@@ -79,13 +79,6 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	err := k.BK.SendCoinsFromAccountToModule(ctx, plan.GetAddress(), types.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, poolTokens)))
 	if err != nil {
 		return 0, nil, err
-	}
-
-	// if the plan is settled, use the settled denom
-	// otherwise use the IRO denom
-	denom := plan.SettledDenom
-	if denom == "" {
-		denom = plan.GetIRODenom()
 	}
 
 	// find the raTokens needed to bootstrap the pool, to fulfill last price
