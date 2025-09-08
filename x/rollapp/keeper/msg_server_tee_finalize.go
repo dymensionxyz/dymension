@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+)
 
 // FastFinalizeWithTEE handles TEE attestation-based fast finalization
 func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFastFinalizeWithTEE) (*types.MsgFastFinalizeWithTEEResponse, error) {
@@ -50,7 +51,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
 	}
 
-	if info.GetLatestHeight() != uint64(msg.Nonce.Height) {
+	if info.GetLatestHeight() != msg.Nonce.Height {
 		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
 	}
 
@@ -60,7 +61,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
 	}
 
-	err := k.validateAttestation(ctx, teeConfig.GcpRootCertPem, msg.Nonce.Hash(), msg.AttestationToken)
+	err := k.validateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "validate attestation")
 	}

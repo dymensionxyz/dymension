@@ -1,9 +1,6 @@
 package keeper
 
 import (
-	"bytes"
-	"context"
-	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	_ "embed"
@@ -14,85 +11,18 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/util"
 )
 
 //go:embed asset/tee_attestation_policy.rego
 var opaPolicy string
 
-// FastFinalizeWithTEE handles TEE attestation-based fast finalization
-func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFastFinalizeWithTEE) (*types.MsgFastFinalizeWithTEEResponse, error) {
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrap(err, "validate basic")
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	params := k.GetParams(ctx)
-	teeConfig := params.TeeConfig
-
-	if !teeConfig.Enabled {
-		return nil, gerrc.ErrFailedPrecondition.Wrap("TEE fast finalization is not enabled")
-	}
-
-	rollapp := msg.Nonce.RollappId
-	ix := msg.StateIndex
-
-	_, found := k.GetRollapp(ctx, rollapp)
-	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("rollapp: %s", rollapp)
-	}
-
-	proposer := k.SequencerK.GetProposer(ctx, rollapp)
-
-	if proposer.Address != msg.Creator {
-		return nil, gerrc.ErrPermissionDenied.Wrapf("only active sequencer can submit TEE attestation: expected %s, got %s",
-			proposer.Address, msg.Creator)
-	}
-
-	if k.IsFinalizedIndex(ctx, rollapp, ix) {
-		return nil, gerrc.ErrOutOfRange.Wrapf("state index is already finalized")
-	}
-
-	info, found := k.GetStateInfo(ctx, rollapp, ix)
-	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
-	}
-
-	if info.GetLatestHeight() != uint64(msg.Nonce.Height) {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
-	}
-
-	bd, _ := info.LastBlockDescriptor()
-
-	if !bytes.Equal(bd.StateRoot, msg.Nonce.StateRoot) {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
-	}
-
-	err := k.validateAttestation(ctx, teeConfig.GcpRootCertPem, msg.Nonce.Hash(), msg.AttestationToken)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "validate attestation")
-	}
-
-	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, ix)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "fast finalize states")
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeTEEFastFinalization,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
-			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", ix)),
-		),
-	)
-
-	return &types.MsgFastFinalizeWithTEEResponse{}, nil
-}
+const (
+	regoQuery = "allow = data.confidential_space.allow; hw_verified = data.confidential_space.hw_verified; image__digest_verified = data.confidential_space.image_digest_verified; audience_verified = data.confidential_space.audience_verified; nonce_verified = data.confidential_space.nonce_verified; issuer_verified = data.confidential_space.issuer_verified; secboot_verified = data.confidential_space.secboot_verified; sw_name_verified = data.confidential_space.sw_name_verified"
+)
 
 func (k msgServer) validateAttestation(ctx sdk.Context, nonce, token string) error {
 	// make sure the token really came from GCP
@@ -102,116 +32,221 @@ func (k msgServer) validateAttestation(ctx sdk.Context, nonce, token string) err
 	}
 
 	// make the sure token actually certifies the non-tampered with computation
-	err = k.validateAttestationIntegrity(ctx, *jwt, nonce)
+	err = k.validateAttestationIntegrity(ctx, jwt, nonce)
 	if err != nil {
 		return errorsmod.Wrap(err, "claims validation")
 	}
 	return nil
 }
 
-// validateAttestationAuthenticity validates the PKI token returned from the attestation service
-func (k msgServer) validateAttestationAuthenticity(ctx sdk.Context, attestationToken string) (*jwt.Token, error) {
-	// Parse the token without verification first to get the x5c header
-	unverifiedToken, _, err := jwt.NewParser().ParseUnverified(attestationToken, jwt.MapClaims{})
-	if err != nil {
-		return nil, fmt.Errorf("parse unverified token: %w", err)
-	}
-
-	if unverifiedToken.Header["alg"] != "RS256" {
-		return nil, fmt.Errorf("unexpected signing method: %v", unverifiedToken.Header["alg"])
-	}
-
-	x5cInterface, ok := unverifiedToken.Header["x5c"]
-	if !ok {
-		return nil, fmt.Errorf("x5c header not found in token")
-	}
-
-	x5c, ok := x5cInterface.([]interface{})
-	if !ok || len(x5c) < 3 {
-		return nil, fmt.Errorf("invalid x5c header format or insufficient certificates")
-	}
-
-	var certs []*x509.Certificate
-	for i, certStr := range x5c {
-		certDER, err := base64.StdEncoding.DecodeString(certStr.(string))
-		if err != nil {
-			return nil, fmt.Errorf("decode certificate %d: %w", i, err)
-		}
-
-		cert, err := x509.ParseCertificate(certDER)
-		if err != nil {
-			return nil, fmt.Errorf("parse certificate %d: %w", i, err)
-		}
-		certs = append(certs, cert)
-	}
-
-	block, _ := pem.Decode(pemCert)
+func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
+	block, _ := pem.Decode(k.GetParams(ctx).TeeConfig.GcpRootCertPem)
 	if block == nil {
 		return nil, fmt.Errorf("parse PEM block")
 	}
-
-	rootCert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("parse root certificate: %w", err)
-	}
-
-	rootPool := x509.NewCertPool()
-	rootPool.AddCert(rootCert)
-
-	intermediatePool := x509.NewCertPool()
-	if len(certs) > 2 {
-		for i := 1; i < len(certs)-1; i++ {
-			intermediatePool.AddCert(certs[i])
-		}
-	}
-
-	opts := x509.VerifyOptions{
-		Roots:         rootPool,
-		Intermediates: intermediatePool,
-		CurrentTime:   ctx.BlockTime(),
-	}
-
-	if _, err := certs[0].Verify(opts); err != nil {
-		return nil, fmt.Errorf("certificate chain verification failed: %w", err)
-	}
-
-	providedRootFingerprint := sha256.Sum256(certs[len(certs)-1].Raw)
-	expectedRootFingerprint := sha256.Sum256(rootCert.Raw)
-	if providedRootFingerprint != expectedRootFingerprint {
-		return nil, fmt.Errorf("root certificate fingerprint mismatch")
-	}
-
-	token, err := jwt.Parse(attestationToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		// Return the leaf certificate's public key for JWT verification
-		return certs[0].PublicKey.(*rsa.PublicKey), nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("parse/validate JWT token: %w", err)
-	}
-
-	if !token.Valid {
-		return nil, fmt.Errorf("invalid JWT token")
-	}
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if exp, ok := claims["exp"].(float64); ok {
-			expTime := time.Unix(int64(exp), 0)
-			if ctx.BlockTime().After(expTime) {
-				return nil, fmt.Errorf("token has expired")
-			}
-		}
-	}
-
-	return token, nil
+	return x509.ParseCertificate(block.Bytes)
 }
 
-func validatePKIToken(attestationToken string) (jwt.Token, error) {
+var policyData string
+
+func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, nonce string) error {
+	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData)
+	if err != nil {
+		return fmt.Errorf("evaluate OPA policy: %w", err)
+	}
+	if !authorized {
+		return fmt.Errorf("tee policy not authorized")
+	}
+	return nil
+}
+
+// evaluateOPAPolicy returns boolean indicating if OPA policy is satisfied or not, or error if occurred
+func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyData string) (bool, error) {
+	var claims jwt.MapClaims
+	var ok bool
+	if claims, ok = token.Claims.(jwt.MapClaims); !ok {
+		return false, fmt.Errorf(" get the claims from the JWT")
+	}
+
+	module := fmt.Sprintf(opaPolicy, nonce)
+
+	var json map[string]any
+	err := util.UnmarshalJSON([]byte(policyData), &json)
+	store := inmem.NewFromObject(json)
+
+	// Bind 'allow' to the value of the policy decision
+	// Bind 'hw_verified', 'image_verified', 'audience_verified, 'nonce_verified' to their respective policy evaluations
+	query, err := rego.New(
+		rego.Query(regoQuery),                          // Argument 1 (Query string)
+		rego.Store(store),                              // Argument 2 (Data store)
+		rego.Module("confidential_space.rego", module), // Argument 3 (Policy module)
+	).PrepareForEval(ctx)
+	if err != nil {
+		fmt.Printf("Error creating query: %v\n", err)
+		return false, err
+	}
+
+	fmt.Println("Performing OPA query evaluation...")
+	results, err := query.Eval(ctx, rego.EvalInput(claims))
+
+	if err != nil {
+		fmt.Printf("Error evaluating OPA policy: %v\n", err)
+		return false, err
+	} else if len(results) == 0 {
+		fmt.Println("Undefined result from evaluating OPA policy")
+		return false, err
+	} else if result, ok := results[0].Bindings["allow"].(bool); !ok {
+		fmt.Printf("Unexpected result type: %v\n", ok)
+		fmt.Printf("Result: %+v\n", result)
+		return false, err
+	}
+
+	fmt.Println("OPA policy evaluation completed.")
+
+	fmt.Println("OPA policy result values:")
+	for key, value := range results[0].Bindings {
+		fmt.Printf("[ %s ]: %v\n", key, value)
+	}
+	result := results[0].Bindings["allow"]
+	if result == true {
+		fmt.Println("Policy check PASSED")
+		return true, nil
+	}
+	fmt.Println("Policy check FAILED")
+	return false, nil
+}
+
+// verifyCertificateChain verifies the certificate chain from leaf to root.
+// It also checks that all certificate lifetimes are valid.
+func verifyCertificateChain(certificates CertificateChain) error {
+	// Additional check: Verify that all certificates in the cert chain are valid.
+	// Note: The *x509.Certificate Verify method in golang already validates this but for other coding
+	// languages it is important to make sure the certificate lifetimes are checked.
+	if isCertificateLifetimeValid(certificates.LeafCert) {
+		return fmt.Errorf("leaf certificate is not valid")
+	}
+
+	if isCertificateLifetimeValid(certificates.IntermediateCert) {
+		return fmt.Errorf("intermediate certificate is not valid")
+	}
+	interPool := x509.NewCertPool()
+	interPool.AddCert(certificates.IntermediateCert)
+
+	if isCertificateLifetimeValid(certificates.RootCert) {
+		return fmt.Errorf("root certificate is not valid")
+	}
+	rootPool := x509.NewCertPool()
+	rootPool.AddCert(certificates.RootCert)
+
+	_, err := certificates.LeafCert.Verify(x509.VerifyOptions{
+		Intermediates: interPool,
+		Roots:         rootPool,
+		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+	})
+	if err != nil {
+		return fmt.Errorf(" verify certificate chain: %v", err)
+	}
+
+	return nil
+}
+
+func isCertificateLifetimeValid(certificate *x509.Certificate) bool {
+	currentTime := time.Now()
+	// check the current time is after the certificate NotBefore time
+	if !currentTime.After(certificate.NotBefore) {
+		return false
+	}
+
+	// check the current time is before the certificate NotAfter time
+	if currentTime.Before(certificate.NotAfter) {
+		return false
+	}
+
+	return true
+}
+
+// compareCertificates compares two certificate fingerprints.
+func compareCertificates(cert1 x509.Certificate, cert2 x509.Certificate) error {
+	fingerprint1 := sha256.Sum256(cert1.Raw)
+	fingerprint2 := sha256.Sum256(cert2.Raw)
+	if fingerprint1 != fingerprint2 {
+		return fmt.Errorf("certificate fingerprint mismatch")
+	}
+	return nil
+}
+
+// CertificateChain contains the certificates extracted from the x5c header.
+type CertificateChain struct {
+	LeafCert         *x509.Certificate
+	IntermediateCert *x509.Certificate
+	RootCert         *x509.Certificate
+}
+
+// extractCertificatesFromX5CHeader extracts the certificates from the given x5c header.
+func extractCertificatesFromX5CHeader(x5cHeaders []any) (CertificateChain, error) {
+	if x5cHeaders == nil {
+		return CertificateChain{}, fmt.Errorf("x5c header not set")
+	}
+
+	x5c := []string{}
+	for _, header := range x5cHeaders {
+		x5c = append(x5c, header.(string))
+	}
+
+	// x5c header should have at least 3 certificates - leaf, intermediate and root
+	if len(x5c) < 3 {
+		return CertificateChain{}, fmt.Errorf("not enough certificates in x5c header, expected 3 certificates, but got %v", len(x5c))
+	}
+
+	leafCert, err := decodeAndParseDERCertificate(x5c[0])
+	if err != nil {
+		return CertificateChain{}, fmt.Errorf("cannot parse leaf certificate: %v", err)
+	}
+
+	intermediateCert, err := decodeAndParseDERCertificate(x5c[1])
+	if err != nil {
+		return CertificateChain{}, fmt.Errorf("cannot parse intermediate certificate: %v", err)
+	}
+
+	rootCert, err := decodeAndParseDERCertificate(x5c[2])
+	if err != nil {
+		return CertificateChain{}, fmt.Errorf("cannot parse root certificate: %v", err)
+	}
+
+	certificates := CertificateChain{
+		LeafCert:         leafCert,
+		IntermediateCert: intermediateCert,
+		RootCert:         rootCert,
+	}
+	return certificates, nil
+}
+
+// decodeAndParseDERCertificate decodes the given DER certificate string and parses it into an x509 certificate.
+func decodeAndParseDERCertificate(certificate string) (*x509.Certificate, error) {
+	bytes, _ := base64.StdEncoding.DecodeString(certificate)
+
+	cert, err := x509.ParseCertificate(bytes)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse certificate: %v", err)
+	}
+
+	return cert, nil
+}
+
+// validatePKIToken validates the PKI token returned from the attestation service.
+// It verifies the token the certificate chain and that the token is signed by Google
+// Returns a jwt.Token or returns an error if invalid.
+func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToken string) (jwt.Token, error) {
+	// IMPORTANT: The attestation token should be considered untrusted until the certificate chain and
+	// the signature is verified.
+	storedRootCert, err := k.pemCert(ctx)
+	if err != nil {
+		return jwt.Token{}, fmt.Errorf("DecodeAndParsePEMCertificate(string) -  decode and parse root certificate: %w", err)
+	}
+
 	jwtHeaders, err := extractJWTHeaders(attestationToken)
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf("ExtractJWTHeaders(token) - failed to extract JWT headers: %w", err)
+		return jwt.Token{}, fmt.Errorf("ExtractJWTHeaders(token) -  extract JWT headers: %w", err)
 	}
 
 	if jwtHeaders["alg"] != "RS256" {
@@ -243,7 +278,7 @@ func validatePKIToken(attestationToken string) (jwt.Token, error) {
 	// https://confidentialcomputing.googleapis.com/.well-known/attestation-pki-root
 	err = compareCertificates(*storedRootCert, *certificates.RootCert)
 	if err != nil {
-		return jwt.Token{}, fmt.Errorf("failed to verify certificate chain: %w", err)
+		return jwt.Token{}, fmt.Errorf(" verify certificate chain: %w", err)
 	}
 
 	err = verifyCertificateChain(certificates)
@@ -268,54 +303,8 @@ func extractJWTHeaders(token string) (map[string]any, error) {
 	unverifiedClaims := &jwt.MapClaims{}
 	parsedToken, _, err := parser.ParseUnverified(token, unverifiedClaims)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse claims token: %v", err)
+		return nil, fmt.Errorf(" parse claims token: %v", err)
 	}
 
 	return parsedToken.Header, nil
-}
-
-// validateAttestationIntegrity validates the claims using OPA policy
-func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, expectedNonce string) error {
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return fmt.Errorf("extract JWT claims")
-	}
-
-	policyData := map[string]interface{}{
-		"allowed_image_digests": "",
-		"expected_nonce":        expectedNonce,
-	}
-	store := inmem.NewFromObject(policyData)
-
-	query, err := rego.New(
-		rego.Query("data.tee_attestation.allow"),
-		rego.Store(store),
-		rego.Module("tee_attestation.rego", opaPolicy),
-	).PrepareForEval(ctx.Context())
-	if err != nil {
-		return fmt.Errorf("creating OPA query: %w", err)
-	}
-
-	results, err := query.Eval(ctx.Context(), rego.EvalInput(claims))
-	if err != nil {
-		return fmt.Errorf("evaluating OPA policy: %w", err)
-	}
-
-	if len(results) == 0 {
-		return fmt.Errorf("undefined result from OPA policy evaluation")
-	}
-
-	if allowed, ok := results[0].Expressions[0].Value.(bool); !ok || !allowed {
-		return fmt.Errorf("TEE attestation claims failed policy validation")
-	}
-
-	return nil
-}
-
-func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
-	block, _ := pem.Decode(k.GetParams(ctx).TeeConfig.GcpRootCertPem)
-	if block == nil {
-		return nil, fmt.Errorf("parse PEM block")
-	}
-	return x509.ParseCertificate(block.Bytes)
 }
