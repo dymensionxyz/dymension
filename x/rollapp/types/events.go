@@ -20,10 +20,10 @@ const (
 
 	// EventTypeTransfersEnabled is when the bridge is enabled
 	EventTypeTransfersEnabled = "transfers_enabled"
-	
+
 	// EventTypeTEEFastFinalization is emitted when TEE attestation fast finalizes states
 	EventTypeTEEFastFinalization = "tee_fast_finalization"
-	EventTypeStateFinalized       = "state_finalized"
-	AttributeKeyStateIndex        = "state_index"
-	AttributeKeyStatesFinalized   = "states_finalized"
+	EventTypeStateFinalized      = "state_finalized"
+	AttributeKeyStateIndex       = "state_index"
+	AttributeKeyStatesFinalized  = "states_finalized"
 )
