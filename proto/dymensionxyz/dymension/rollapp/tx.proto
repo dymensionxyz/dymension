@@ -230,6 +230,7 @@ message MsgFastFinalizeWithTEE {
   uint64 finalized_state_index = 7;
 }
 
+// what the verifying full node inside the tee actually attests over
 message TEENonce {
   string rollapp_id = 2;
  
