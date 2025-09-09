@@ -61,7 +61,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 		}
 
 		// add incentives to the pool
-		gaugeID, err = k.addIncentivesToPool(ctx, plan, poolID, incentives)
+		gaugeID, err = k.addIncentivesToPool(ctx, plan.IncentivePlanParams, poolID, incentives)
 		if err != nil {
 			return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
 		}
@@ -74,9 +74,11 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 
 	// burn all the remaining IRO token.
 	iroTokenBalance := k.BK.GetBalance(ctx, k.AK.GetModuleAddress(types.ModuleName), plan.TotalAllocation.Denom)
-	err = k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(iroTokenBalance))
-	if err != nil {
-		return err
+	if !iroTokenBalance.IsZero() {
+		err = k.BK.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(iroTokenBalance))
+		if err != nil {
+			return err
+		}
 	}
 
 	// Emit event
@@ -96,7 +98,7 @@ func (k Keeper) Settle(ctx sdk.Context, rollappId, rollappIBCDenom string) error
 }
 
 // addIncentivesToPool adds incentives to the pool
-func (k Keeper) addIncentivesToPool(ctx sdk.Context, plan types.Plan, poolID uint64, incentives sdk.Coins) (gaugeID uint64, err error) {
+func (k Keeper) addIncentivesToPool(ctx sdk.Context, incentivesParams types.IncentivePlanParams, poolID uint64, incentives sdk.Coins) (gaugeID uint64, err error) {
 	poolDenom := gammtypes.GetPoolShareDenom(poolID)
 	distrTo := lockuptypes.QueryCondition{
 		Denom:    poolDenom,
@@ -108,7 +110,7 @@ func (k Keeper) addIncentivesToPool(ctx sdk.Context, plan types.Plan, poolID uin
 		k.AK.GetModuleAddress(types.ModuleName),
 		incentives,
 		distrTo,
-		ctx.BlockTime().Add(plan.IncentivePlanParams.StartTimeAfterSettlement),
-		plan.IncentivePlanParams.NumEpochsPaidOver,
+		ctx.BlockTime().Add(incentivesParams.StartTimeAfterSettlement),
+		incentivesParams.NumEpochsPaidOver,
 	)
 }
