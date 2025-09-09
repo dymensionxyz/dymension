@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -706,6 +705,7 @@ func (s *KeeperTestSuite) buyIRO(planID string, buyAmt math.Int) {
 	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(1000))))
 	tokenIn := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(buyAmt))
 	plusTakerFeeAmt, _, err := s.App.IROKeeper.ApplyTakerFee(tokenIn, s.App.IROKeeper.GetParams(s.Ctx).TakerFee, true)
+	s.Require().NoError(err)
 	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, plusTakerFeeAmt)))
 
 	if buyAmt.GT(plan.MaxAmountToSell.Sub(plan.SoldAmt)) {
@@ -713,19 +713,5 @@ func (s *KeeperTestSuite) buyIRO(planID string, buyAmt math.Int) {
 	}
 
 	_, err = s.App.IROKeeper.Buy(s.Ctx, planID, buyer, buyAmt, plusTakerFeeAmt)
-	s.Require().NoError(err)
-}
-
-func (s *KeeperTestSuite) settleIROForExecutePump(rollappID, rollappDenom string) {
-	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
-	s.Require().True(found)
-
-	// Fund module with IRO tokens for settlement
-	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.GetIRODenom(), plan.SoldAmt)))
-
-	// Fund module with rollapp tokens
-	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, plan.TotalAllocation.Amount)))
-
-	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
 	s.Require().NoError(err)
 }
