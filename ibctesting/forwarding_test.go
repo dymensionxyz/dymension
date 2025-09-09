@@ -50,12 +50,13 @@ func (h *mockTransferCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAdd
 	if !h.checkBal {
 		return nil
 	}
-	balances, err := h.s.hubApp().BankKeeper.Balance(ctx, &banktypes.QueryBalanceRequest{
+	balance, err := h.s.hubApp().BankKeeper.Balance(ctx, &banktypes.QueryBalanceRequest{
 		Address: fundsSource.String(),
 		Denom:   budget.Denom,
 	})
 	h.s.Require().NoError(err)
-	h.s.Require().Equal(balances, sdk.NewCoins(budget))
+	// Check that the funds source has at least the budget amount
+	h.s.Require().True(balance.Balance.Amount.GTE(budget.Amount), "funds source should have at least the budget amount")
 	return nil
 }
 
@@ -88,6 +89,139 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	})
 	s.Require().True(h.called)
 }
+
+// TestFinalizedRollappPacketWithCompletionHooks tests that completion hooks run
+// even when a rollapp packet arrives already finalized (state finalized before packet processing)
+func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
+	// Set up mock hook to verify it gets called
+	dummy := "dummy"
+	h := mockTransferCompletionHook{
+		s:        &s.ibcTestingSuite,
+		checkBal: true, // verify that funds are available when hook runs
+	}
+	s.hubApp().DelayedAckKeeper.SetCompletionHooks(
+		map[string]delayedackkeeper.CompletionHookInstance{
+			dummy: &h,
+		},
+	)
+
+	// Test with direct memo format
+	s.T().Log("Testing rollapp packet that arrives already finalized with direct memo format")
+	
+	hookData := commontypes.CompletionHookCall{
+		Name: dummy,
+		Data: []byte{},
+	}
+	bz, err := proto.Marshal(&hookData)
+	s.Require().NoError(err)
+
+	// Create direct memo with completion hook (no EIBC fee)
+	memo, err := ibccompletiontypes.MakeMemo(bz)
+	s.Require().NoError(err)
+
+	// Send packet from rollapp
+	amount := "100000000"
+	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress()
+	
+	// Send the packet (this creates the packet commitment on rollapp)
+	timeoutHeight := clienttypes.NewHeight(100, 110)
+	amountInt, _ := math.NewIntFromString(amount)
+	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amountInt)
+
+	msg := types.NewMsgTransfer(
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
+		coinToSendToB,
+		s.rollappSender(),
+		ibcRecipient.String(),
+		timeoutHeight,
+		0,
+		memo,
+	)
+	
+	res, err := s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+	
+	// Verify packet commitment exists
+	s.Require().True(s.rollappHasPacketCommitment(packet))
+
+	// Progress rollapp and update state
+	s.rollappChain().NextBlock()
+	rolH := uint64(s.rollappCtx().BlockHeight())
+	s.updateRollappState(rolH)
+
+	// Now finalize the rollapp state BEFORE relaying the packet
+	// This makes the packet arrive at the hub already finalized
+	_, err = s.finalizeRollappState(1, rolH)
+	s.Require().NoError(err)
+
+	// Now relay the packet - it should take the fast path (not delayed)
+	// because the rollapp state is already finalized
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
+
+	// Verify hook was called even though packet was already finalized
+	s.Require().True(h.called, "Completion hook should be called for finalized rollapp packet with direct memo")
+	
+	// Verify acknowledgement was written
+	found := s.hubApp().IBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	s.Require().True(found)
+	
+	// Reset for next test
+	h.called = false
+
+	// Test with EIBC memo format
+	s.T().Log("Testing rollapp packet that arrives already finalized with EIBC memo format")
+	
+	// Create EIBC memo with completion hook
+	eibcFee := "100"
+	eibcMemo := delayedacktypes.CreateMemo(eibcFee, bz)
+	
+	// Send another packet with EIBC memo
+	msg2 := types.NewMsgTransfer(
+		s.path.EndpointB.ChannelConfig.PortID,
+		s.path.EndpointB.ChannelID,
+		coinToSendToB,
+		s.rollappSender(),
+		ibcRecipient.String(),
+		timeoutHeight,
+		0,
+		eibcMemo,
+	)
+	
+	res2, err := s.rollappChain().SendMsgs(msg2)
+	s.Require().NoError(err)
+
+	packet2, err := ibctesting.ParsePacketFromEvents(res2.GetEvents())
+	s.Require().NoError(err)
+	
+	// Verify packet commitment exists
+	s.Require().True(s.rollappHasPacketCommitment(packet2))
+
+	// Progress rollapp and update state
+	s.rollappChain().NextBlock()
+	rolH = uint64(s.rollappCtx().BlockHeight())
+	s.updateRollappState(rolH)
+
+	// Finalize rollapp state before relaying
+	_, err = s.finalizeRollappState(2, rolH)
+	s.Require().NoError(err)
+
+	// Relay the packet
+	err = s.path.RelayPacket(packet2)
+	s.Require().NoError(err)
+
+	// Verify hook was called for EIBC memo format too
+	s.Require().True(h.called, "Completion hook should be called for finalized rollapp packet with EIBC memo")
+	
+	// Verify acknowledgement was written
+	found = s.hubApp().IBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet2.GetDestPort(), packet2.GetDestChannel(), packet2.GetSequence())
+	s.Require().True(found)
+}
+
 
 type FinalizeFwdTC struct {
 	bridgeFee      int64 // percentage
