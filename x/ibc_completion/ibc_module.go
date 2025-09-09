@@ -126,7 +126,7 @@ func (m IBCModule) getCompletionHookToRun(ctx sdk.Context, packet channeltypes.P
 		return completionHookRunnable{}, ErrDelayed
 	}
 
-	hook, err := getCompletionHookFromMemo(packet.GetData())
+	hook, err := getCompletionHookFromMemo([]byte(transfer.FungibleTokenPacketData.Memo))
 	if err != nil {
 		return completionHookRunnable{}, err
 	}
