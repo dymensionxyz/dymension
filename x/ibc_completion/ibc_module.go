@@ -85,7 +85,9 @@ func (m IBCModule) OnRecvPacket(
 		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
-	if transfer.IsRollapp() {
+	routedThroughEIBC := !commontypes.WasNotDelayed(ctx)
+
+	if routedThroughEIBC {
 		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -141,6 +143,9 @@ func (m IBCModule) OnRecvPacket(
 	}
 
 	return ack
+}
+
+func (m IBCModule) getCompletionHookToRun(ctx sdk.Context) error {
 }
 
 func memoHasConflictingMiddleware(memoBz []byte) bool {
