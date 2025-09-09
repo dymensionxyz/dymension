@@ -93,7 +93,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		l.Error("Get valid rollapp and transfer.", "err", err)
 		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "delayed ack: get valid transfer with finalization info"))
 	}
-	
+
 	if !transfer.IsRollapp() || transfer.Finalized {
 		ctx = commontypes.WithWasNotDelayed(ctx)
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)

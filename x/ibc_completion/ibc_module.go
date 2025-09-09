@@ -17,6 +17,7 @@ import (
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
+	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -126,7 +127,7 @@ func (m IBCModule) getCompletionHookToRun(ctx sdk.Context, packet channeltypes.P
 		return completionHookRunnable{}, ErrDelayed
 	}
 
-	hook, err := getCompletionHookFromMemo([]byte(transfer.FungibleTokenPacketData.Memo))
+	hook, err := getCompletionHookFromMemo([]byte(transfer.Memo))
 	if err != nil {
 		return completionHookRunnable{}, err
 	}
@@ -162,6 +163,22 @@ func getCompletionHookFromMemo(memoBz []byte) (commontypes.CompletionHookCall, e
 	if memoHasConflictingMiddleware(memoBz) {
 		return commontypes.CompletionHookCall{}, ErrIrrelevantMemo
 	}
+	/*
+		For legacy reasons, we are able to parse the completion hook from both a top level memo (i.e. {"on_completion": "..."})
+		and also from an eibc memo (i.e. {"eibc": {"fee": "100", "dym_on_completion": "..."}}).
+	*/
+	c, err1 := parseTopLevelMemo(memoBz)
+	if err1 == nil {
+		return c, nil
+	}
+	c, err2 := parseEIBCMemo(memoBz)
+	if err2 == nil {
+		return c, nil
+	}
+	return commontypes.CompletionHookCall{}, errorsmod.Wrapf(ErrIrrelevantMemo, "parse memo")
+}
+
+func parseTopLevelMemo(memoBz []byte) (commontypes.CompletionHookCall, error) {
 	var memo types.Memo
 	err := json.Unmarshal(memoBz, &memo)
 	if err != nil {
@@ -178,8 +195,24 @@ func getCompletionHookFromMemo(memoBz []byte) (commontypes.CompletionHookCall, e
 	return hook, nil
 }
 
+func parseEIBCMemo(memoBz []byte) (commontypes.CompletionHookCall, error) {
+	ememo, err := eibckeeper.GetEIBCMemo(string(memoBz))
+	if err != nil {
+		return commontypes.CompletionHookCall{}, errorsmod.Wrapf(ErrIrrelevantMemo, "get eibc memo")
+	}
+	onComplete, err := ememo.GetCompletionHook()
+	if onComplete == nil {
+		return commontypes.CompletionHookCall{}, errorsmod.Wrapf(ErrIrrelevantMemo, "no completion hook in memo")
+	}
+	if err != nil {
+		return commontypes.CompletionHookCall{}, err
+	}
+	return *onComplete, nil
+}
+
 func memoHasConflictingMiddleware(memoBz []byte) bool {
 	d := make(map[string]interface{})
 	err := json.Unmarshal(memoBz, &d)
-	return err != nil || d[pfmKey] != nil
+	containsCosmosPacketForwardMemo := d[pfmKey] != nil
+	return err != nil || containsCosmosPacketForwardMemo
 }
