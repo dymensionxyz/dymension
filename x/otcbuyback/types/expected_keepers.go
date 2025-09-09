@@ -39,5 +39,6 @@ type BankKeeper interface {
 
 // AMMKeeper defines the expected interface for AMM price fetching.
 type AMMKeeper interface {
+	GetPoolDenoms(ctx sdk.Context, poolId uint64) ([]string, error)
 	CalculateSpotPrice(ctx sdk.Context, poolID uint64, quoteAssetDenom, baseAssetDenom string) (spotPrice math.LegacyDec, err error)
 }

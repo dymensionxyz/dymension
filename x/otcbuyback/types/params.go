@@ -4,14 +4,12 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 // DefaultParams returns the default parameters for the Otcbuyback module
 func DefaultParams() Params {
 	return Params{
-		AcceptedTokens: []string{params.BaseDenom},
+		AcceptedTokens: []AcceptedToken{},
 	}
 }
 
@@ -23,7 +21,7 @@ func (p Params) ValidateBasic() error {
 
 	// Validate each token denom format (basic validation)
 	for _, token := range p.AcceptedTokens {
-		if err := sdk.ValidateDenom(token); err != nil {
+		if err := sdk.ValidateDenom(token.Token); err != nil {
 			return err
 		}
 	}

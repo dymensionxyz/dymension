@@ -169,3 +169,21 @@ func (k Keeper) GetAuctionPurchases(ctx sdk.Context, auctionID uint64) ([]types.
 	})
 	return purchases, err
 }
+
+// func (k Keeper) SetAcceptedToken(ctx sdk.Context, token string, poolID uint64) error {
+// 	return k.acceptedTokens.Set(ctx, token, poolID)
+// }
+
+func (k Keeper) GetAcceptedTokenPoolID(ctx sdk.Context, token string) (uint64, error) {
+	for _, t := range k.MustGetParams(ctx).AcceptedTokens {
+		if t.Token == token {
+			return t.PoolId, nil
+		}
+	}
+	return 0, errorsmod.Wrap(gerrc.ErrInvalidArgument, "token not registered")
+	// return k.acceptedTokens.Get(ctx, token)
+}
+
+// func (k Keeper) ClearAcceptedTokens(ctx sdk.Context) error {
+// 	return k.acceptedTokens.Clear(ctx, nil)
+// }

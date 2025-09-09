@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -33,8 +32,7 @@ func (k Keeper) Buy(
 	}
 
 	// Validate payment token is accepted
-	allowedDenoms := k.MustGetParams(ctx).AcceptedTokens
-	if !slices.Contains(allowedDenoms, denomToPay) {
+	if !k.IsAcceptedDenom(ctx, denomToPay) {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrTokenNotAccepted,
 			"token %s not accepted for this auction", denomToPay)
 	}
@@ -156,19 +154,19 @@ func (k Keeper) BuyExactSpend(
 
 // GetCurrentPrice returns the current price for an active auction
 func (k Keeper) GetCurrentPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time) (math.LegacyDec, error) {
-
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
 		return math.LegacyZeroDec(), types.ErrAuctionNotFound
 	}
-	baseDenom := auction.Allocation.Denom
 
-	// FIXME: Get pool ID for quote denom
-	var poolID uint64
+	poolID, err := k.GetAcceptedTokenPoolID(ctx, quoteDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), err
+	}
 
 	// Get base price
 	// FIXME: wrap with TWAP logic
-	base_price, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, baseDenom)
+	base_price, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
