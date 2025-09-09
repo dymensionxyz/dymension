@@ -308,7 +308,7 @@ func (k Keeper) executePumpPreGraduation(
 		// In that case, we want to buy the leftover from the AMM pool (if any).
 		leftover := amountToSpend.Sub(actuallySpent)
 		if !leftover.IsZero() {
-			plan = k.iroKeeper.MustGetPlan(ctx, plan.RollappId)
+			plan = k.iroKeeper.MustGetPlan(ctx, plan.GetID())
 			if !plan.IsGraduated() {
 				// Sanity check. Should never happen.
 				return sdk.Coin{}, fmt.Errorf("plan is not graduated after buying max number of IRO tokens")

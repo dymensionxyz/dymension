@@ -1,12 +1,12 @@
 package keeper_test
 
 import (
-	"fmt"
 	"slices"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
@@ -81,8 +81,10 @@ func (s *KeeperTestSuite) TestPumpStream() {
 	s.voteOnRollapps(delegators)
 
 	// Step 4: Create IRO
-	planID1, iroReserved1 := s.createIRO(rollapps[0])
-	planID2, iroReserved2 := s.createIRO(rollapps[1])
+	planID1 := s.CreateDefaultPlan(rollapps[0])
+	iroReserved1 := s.App.IROKeeper.MustGetPlan(s.Ctx, planID1).SoldAmt
+	planID2 := s.CreateDefaultPlan(rollapps[1])
+	iroReserved2 := s.App.IROKeeper.MustGetPlan(s.Ctx, planID2).SoldAmt
 	planIDs := []string{planID1, planID2}
 
 	// Step 5: Create Pump Stream
@@ -117,8 +119,8 @@ func (s *KeeperTestSuite) TestPumpStream() {
 	s.validatePumpStreamAfterSecondEpoch(streamID, tc.epochBudgetAfterIter1)
 
 	// Step 15: Settle IROs
-	s.settleIRO(rollapps[0], iroReserved1)
-	s.settleIRO(rollapps[1], iroReserved2)
+	s.SettleIRO(rollapps[0], iroReserved1)
+	s.SettleIRO(rollapps[1], iroReserved2)
 
 	// Step 16: Set predictable hash for no pump (post-settlement)
 	s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
@@ -253,20 +255,6 @@ func (s *KeeperTestSuite) voteOnRollapps(delegators []sdk.AccAddress) {
 		},
 	}
 	s.Vote(vote2)
-}
-
-func (s *KeeperTestSuite) createIRO(rollappID string) (planID string, reservedAmt math.Int) {
-	k := s.App.IROKeeper
-	curve := irotypes.DefaultBondingCurve()
-	incentives := irotypes.DefaultIncentivePlanParams()
-	allocation := math.NewInt(100).MulRaw(1e18)
-	liquidityPart := irotypes.DefaultParams().MinLiquidityPart
-
-	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
-	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
-	s.Require().NoError(err)
-
-	return planID, k.MustGetPlan(s.Ctx, planID).SoldAmt
 }
 
 func (s *KeeperTestSuite) validateInitialPumpStream(streamID uint64) {
@@ -442,25 +430,6 @@ func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64, ex
 	// EpochBudget and EpochBudgetLeft should be recalculated
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudget)
 	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
-}
-
-func (s *KeeperTestSuite) settleIRO(rollappID string, reserveAmt math.Int) {
-	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
-	s.Require().True(found)
-
-	// Fund module with insufficient funds for settlement
-	// Sold amount
-	iroDenom := plan.TotalAllocation.Denom
-	amt := plan.SoldAmt.Sub(reserveAmt)
-	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(iroDenom, amt)))
-
-	// Settlement token
-	rollappDenom := fmt.Sprintf("hui/%s", rollappID)
-	amt = plan.TotalAllocation.Amount
-	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
-
-	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
-	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) simulateBlockAndVerifyNoPumpPostSettlement(ctx sdk.Context, streamID uint64) {
@@ -659,4 +628,104 @@ func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
 	s.T().Log("Target mean", epochBudget.QuoRaw(pumpNum))
 	s.T().Log("Actual mean", total.QuoRaw(pumpNum))
 	s.T().Log("Total distr", total)
+}
+
+func (s *KeeperTestSuite) TestExecutePump() {
+	testCases := []struct {
+		name           string
+		pumpAmt        math.Int
+		initialBuyAmt  math.Int
+		planAllocation math.Int
+		settled        bool
+	}{
+		{
+			name:           "pre-graduation buy",
+			pumpAmt:        commontypes.DYM.MulRaw(10),
+			initialBuyAmt:  math.ZeroInt(),
+			planAllocation: commontypes.DYM.MulRaw(100),
+		},
+		{
+			name:           "pre-graduation buy - don't hit graduation",
+			pumpAmt:        commontypes.DYM.MulRaw(10),
+			initialBuyAmt:  commontypes.DYM.MulRaw(30),
+			planAllocation: commontypes.DYM.MulRaw(100),
+		},
+		{
+			name:           "pre-graduation buy - triggers graduation",
+			pumpAmt:        commontypes.DYM.MulRaw(50), // large pumpAmt to trigger graduation
+			initialBuyAmt:  commontypes.DYM.MulRaw(70),
+			planAllocation: commontypes.DYM.MulRaw(100),
+		},
+		{
+			name:           "graduated buy - AMM swap",
+			pumpAmt:        commontypes.DYM.MulRaw(10),
+			initialBuyAmt:  commontypes.DYM.MulRaw(100), // buy the whole IRO to graduate it
+			planAllocation: commontypes.DYM.MulRaw(100),
+		},
+		{
+			name:           "settled buy - AMM swap to rollapp token",
+			pumpAmt:        commontypes.DYM.MulRaw(10),
+			initialBuyAmt:  commontypes.DYM.MulRaw(100), // buy the whole IRO to graduate it
+			planAllocation: commontypes.DYM.MulRaw(100),
+			settled:        true,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			rollappID := s.CreateDefaultRollapp()
+			planID := s.CreatePlan(rollappID, tc.planAllocation, false)
+			if !tc.initialBuyAmt.IsZero() {
+				s.buyIRO(planID, tc.initialBuyAmt)
+			}
+			if tc.settled {
+				reserved := s.App.IROKeeper.MustGetPlan(s.Ctx, planID).SoldAmt
+				s.SettleIRO(rollappID, reserved)
+			}
+
+			tokenOut, err := s.App.StreamerKeeper.ExecutePump(
+				s.Ctx,
+				tc.pumpAmt,
+				sdk.DefaultBondDenom,
+				rollappID,
+			)
+			s.Require().NoError(err)
+
+			s.T().Log("Token out", tokenOut.String())
+
+			// TODO: better tests!
+		})
+	}
+}
+
+// buyAmt is in IRO denom. If buyAmt > plan.MaxAmountToSell, then buy the entire plan and graduate.
+func (s *KeeperTestSuite) buyIRO(planID string, buyAmt math.Int) {
+	plan := s.App.IROKeeper.MustGetPlan(s.Ctx, planID)
+
+	buyer := apptesting.CreateRandomAccounts(1)[0]
+	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, commontypes.DYM.MulRaw(1000))))
+	tokenIn := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(buyAmt))
+	plusTakerFeeAmt, _, err := s.App.IROKeeper.ApplyTakerFee(tokenIn, s.App.IROKeeper.GetParams(s.Ctx).TakerFee, true)
+	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin(plan.LiquidityDenom, plusTakerFeeAmt)))
+
+	if buyAmt.GT(plan.MaxAmountToSell.Sub(plan.SoldAmt)) {
+		buyAmt = plan.MaxAmountToSell.Sub(plan.SoldAmt)
+	}
+
+	_, err = s.App.IROKeeper.Buy(s.Ctx, planID, buyer, buyAmt, plusTakerFeeAmt)
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) settleIROForExecutePump(rollappID, rollappDenom string) {
+	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
+	s.Require().True(found)
+
+	// Fund module with IRO tokens for settlement
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(plan.GetIRODenom(), plan.SoldAmt)))
+
+	// Fund module with rollapp tokens
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, plan.TotalAllocation.Amount)))
+
+	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
+	s.Require().NoError(err)
 }
