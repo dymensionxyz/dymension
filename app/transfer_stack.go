@@ -36,6 +36,7 @@ func (a *AppKeepers) InitTransferStack() {
 	)
 	a.TransferStack = ibccompletion.NewIBCModule(
 		a.TransferStack,
+		a.RollappKeeper,
 		a.DelayedAckKeeper,
 	)
 

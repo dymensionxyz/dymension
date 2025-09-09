@@ -7,6 +7,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/ante"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // GetValidTransferWithFinalizationInfo does GetValidTransferFromReceivedPacket, but additionally it gets the finalization status and proof height
@@ -35,7 +36,15 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 		return
 	}
 
-	data.Finalized = k.rollappKeeper.IsHeightFinalized(ctx, data.Rollapp.RollappId, data.ProofHeight)
+	// TODO: can extract rollapp keeper IsHeightFinalized method
+	finalizedHeight, err := k.rollappKeeper.GetLatestFinalizedHeight(ctx, data.Rollapp.RollappId)
+	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
+		err = nil
+	} else if err != nil {
+		err = errorsmod.Wrap(err, "get rollapp finalized height")
+	} else {
+		data.Finalized = data.ProofHeight <= finalizedHeight
+	}
 
 	return
 }
