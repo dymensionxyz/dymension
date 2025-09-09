@@ -49,7 +49,6 @@ func TestBlockDescriptorsValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.bds.Validate()
 			if tc.expPass {
@@ -85,7 +84,6 @@ func TestBlockDescriptorValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.bd.Validate()
 			if tc.expPass {

@@ -5,7 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 
+	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
@@ -259,4 +261,97 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	res, err = suite.querier.ModuleToDistributeCoins(suite.Ctx, &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
 	suite.Require().Equal(res.Coins, sdk.Coins{sdk.NewInt64Coin("stake", 280000)})
+}
+
+func (s *KeeperTestSuite) TestPumpPressure() {
+	ra1 := s.CreateDefaultRollapp()
+	_ = s.CreateDefaultRollapp()
+
+	val := s.CreateValidator()
+	valAddr, _ := sdk.ValAddressFromBech32(val.GetOperator())
+
+	// Gauges 3 and 4 are rollapp gauges
+	del1 := s.CreateDelegator(valAddr, common.DYM.MulRaw(100))
+	vote1 := sponsorshiptypes.MsgVote{
+		Voter: del1.GetDelegatorAddr(),
+		Weights: []sponsorshiptypes.GaugeWeight{
+			{GaugeId: 3, Weight: common.DYM.MulRaw(60)},
+			{GaugeId: 4, Weight: common.DYM.MulRaw(40)},
+		},
+	}
+	s.Vote(vote1)
+
+	del2 := s.CreateDelegator(valAddr, common.DYM.MulRaw(100))
+	vote2 := sponsorshiptypes.MsgVote{
+		Voter: del2.GetDelegatorAddr(),
+		Weights: []sponsorshiptypes.GaugeWeight{
+			{GaugeId: 3, Weight: common.DYM.MulRaw(40)},
+			{GaugeId: 4, Weight: common.DYM.MulRaw(10)},
+		},
+	}
+	s.Vote(vote2)
+
+	err := s.App.TxFeesKeeper.SetBaseDenom(s.Ctx, "adym")
+	s.Require().NoError(err)
+
+	// Create a stream and activate it
+	coins := sdk.NewCoins(common.DymUint64(30))
+	_, stream := s.CreatePumpStream(coins, time.Now(), "day", 30, types.DefaultPumpParams())
+	s.Ctx = s.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
+	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream)
+	s.Require().NoError(err)
+
+	expectedPressureRA1 := common.DYM.MulRaw(20)
+	expectedPressureRA2 := common.DYM.MulRaw(10)
+	expectedUserPressureRA1 := common.DYM.MulRaw(12)
+	expectedUserPressureRA2 := common.DYM.MulRaw(8)
+
+	// PumpPressure returns all rollapp pressures
+	{
+		g := s.App.IncentivesKeeper.GetGauges(s.Ctx)
+		_ = g
+		res, err := s.querier.PumpPressure(s.Ctx, &types.PumpPressureRequest{})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+		s.Require().Len(res.Pressure, 2)
+
+		s.Require().Equal(expectedPressureRA1, res.Pressure[0].Pressure, "expected: %s, got: %s", expectedPressureRA1, res.Pressure[0].Pressure)
+		s.Require().Equal(expectedPressureRA2, res.Pressure[1].Pressure, "expected: %s, got: %s", expectedPressureRA2, res.Pressure[1].Pressure)
+	}
+
+	// PumpPressureByRollapp returns specific rollapp pressure
+	{
+		res, err := s.querier.PumpPressureByRollapp(s.Ctx, &types.PumpPressureByRollappRequest{
+			RollappId: ra1,
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+
+		s.Require().Equal(expectedPressureRA1, res.Pressure.Pressure, "expected: %s, got: %s", expectedPressureRA1, res.Pressure.Pressure)
+	}
+
+	// PumpPressureByUser returns user pressure for all rollapps
+	{
+		res, err := s.querier.PumpPressureByUser(s.Ctx, &types.PumpPressureByUserRequest{
+			Address: del1.GetDelegatorAddr(),
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+		s.Require().Len(res.Pressure, 2)
+
+		s.Require().Equal(expectedUserPressureRA1, res.Pressure[0].Pressure, "expected: %s, got: %s", expectedUserPressureRA1, res.Pressure[0].Pressure)
+		s.Require().Equal(expectedUserPressureRA2, res.Pressure[1].Pressure, "expected: %s, got: %s", expectedUserPressureRA2, res.Pressure[1].Pressure)
+	}
+
+	// PumpPressureByUserByRollapp returns user pressure for specific rollapp
+	{
+		res, err := s.querier.PumpPressureByUserByRollapp(s.Ctx, &types.PumpPressureByUserByRollappRequest{
+			Address:   del1.GetDelegatorAddr(),
+			RollappId: ra1,
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(res)
+
+		s.Require().Equal(expectedUserPressureRA1, res.Pressure.Pressure, "expected: %s, got: %s", expectedUserPressureRA1, res.Pressure.Pressure)
+	}
 }
