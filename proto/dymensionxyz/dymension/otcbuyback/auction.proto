@@ -50,7 +50,7 @@ message Auction {
     (gogoproto.nullable) = false
   ];
 
-  message VestingPlan {
+  message VestingParams {
     // Vesting period for purchased tokens (e.g., "3 months")
     google.protobuf.Duration vesting_period = 1
         [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
@@ -60,7 +60,7 @@ message Auction {
         [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   }
 
-  VestingPlan vesting_plan = 10 [ (gogoproto.nullable) = false ];
+  VestingParams vesting_params = 10 [ (gogoproto.nullable) = false ];
 
   // Total raised amount in all accepted tokens
   repeated cosmos.base.v1beta1.Coin raised_amount = 11 [
@@ -69,8 +69,9 @@ message Auction {
   ];
 }
 
-// UserVestingPlan defines vesting parameters for purchased tokens
-message UserVestingPlan {
+
+// VestingPlan defines vesting parameters for purchased tokens
+message VestingPlan {
   // Amount of tokens purchased
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",

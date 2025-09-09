@@ -20,7 +20,7 @@ func (k Keeper) CreateAuction(
 	endTime time.Time,
 	initialDiscount math.LegacyDec,
 	maxDiscount math.LegacyDec,
-	vestingPlan types.Auction_VestingPlan,
+	vestingParams types.Auction_VestingParams,
 ) (uint64, error) {
 
 	if allocation.Denom != k.baseDenom {
@@ -44,7 +44,7 @@ func (k Keeper) CreateAuction(
 		endTime,
 		initialDiscount,
 		maxDiscount,
-		vestingPlan,
+		vestingParams,
 	)
 
 	// Validate auction

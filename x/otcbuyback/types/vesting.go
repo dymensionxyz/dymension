@@ -8,7 +8,7 @@ import (
 )
 
 // ValidateBasic performs basic validation on the user vesting plan
-func (v UserVestingPlan) ValidateBasic() error {
+func (v VestingPlan) ValidateBasic() error {
 	if !v.Amount.IsPositive() {
 		return errors.New("vesting amount must be positive")
 	}
@@ -27,7 +27,7 @@ func (v UserVestingPlan) ValidateBasic() error {
 // FIXME: review
 // VestedAmount calculates the amount of tokens that have vested and are claimable
 // This uses the same linear vesting calculation as the IRO module
-func (v UserVestingPlan) VestedAmount(currTime time.Time) math.Int {
+func (v VestingPlan) VestedAmount(currTime time.Time) math.Int {
 	unclaimed := v.Amount.Sub(v.Claimed)
 
 	// no tokens to claim
@@ -62,30 +62,30 @@ func (v UserVestingPlan) VestedAmount(currTime time.Time) math.Int {
 }
 
 // IsFullyVested returns true if all tokens have been vested (STUB)
-func (v UserVestingPlan) IsFullyVested(currTime time.Time) bool {
+func (v VestingPlan) IsFullyVested(currTime time.Time) bool {
 	// TODO: Implement vesting logic with auction end time context
 	return false
 }
 
 // IsVestingStarted returns true if vesting has started (STUB)
-func (v UserVestingPlan) IsVestingStarted(currTime time.Time) bool {
+func (v VestingPlan) IsVestingStarted(currTime time.Time) bool {
 	// TODO: Implement vesting logic with auction end time context
 	return false
 }
 
 // GetVestingProgress returns the vesting progress as a decimal between 0 and 1 (STUB)
-func (v UserVestingPlan) GetVestingProgress(currTime time.Time) math.LegacyDec {
+func (v VestingPlan) GetVestingProgress(currTime time.Time) math.LegacyDec {
 	// TODO: Implement vesting progress calculation
 	return math.LegacyZeroDec()
 }
 
-// NewUserVestingPlan creates a new user vesting plan
-func NewUserVestingPlan(
+// NewVestingPlan creates a new user vesting plan
+func NewVestingPlan(
 	amount math.Int,
 	startTime time.Time,
 	endTime time.Time,
-) UserVestingPlan {
-	return UserVestingPlan{
+) VestingPlan {
+	return VestingPlan{
 		Amount:    amount,
 		Claimed:   math.ZeroInt(),
 		StartTime: startTime,
@@ -94,17 +94,17 @@ func NewUserVestingPlan(
 }
 
 // ClaimTokens updates the vesting plan after a successful claim
-func (v *UserVestingPlan) ClaimTokens(amount math.Int) {
+func (v *VestingPlan) ClaimTokens(amount math.Int) {
 	v.Claimed = v.Claimed.Add(amount)
 }
 
 // GetRemainingVesting returns the amount still vesting (not yet claimed)
-func (v UserVestingPlan) GetRemainingVesting() math.Int {
+func (v VestingPlan) GetRemainingVesting() math.Int {
 	return v.Amount.Sub(v.Claimed)
 }
 
 // ValidateBasic performs basic validation on the user vesting plan
-func (v UserVestingPlan) ValidateBasic() error {
+func (v VestingPlan) ValidateBasic() error {
 	if v.VestingDuration <= 0 {
 		return errors.New("vesting duration must be positive")
 	}

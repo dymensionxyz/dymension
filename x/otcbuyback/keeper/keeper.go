@@ -34,7 +34,7 @@ type (
 		// Collections for storing auction data
 		nextAuctionID collections.Sequence
 		auctions      collections.Map[uint64, types.Auction]
-		purchases     collections.Map[collections.Pair[uint64, string], types.UserVestingPlan] // [auctionID, buyer] -> UserVestingPlan
+		purchases     collections.Map[collections.Pair[uint64, string], types.VestingPlan] // [auctionID, buyer] -> VestingPlan
 		params        collections.Item[types.Params]
 
 		// FIXME: refactor params to this collection, together with the TWAP logic
@@ -84,7 +84,7 @@ func NewKeeper(
 			types.PurchaseKeyPrefix,
 			"purchases",
 			collections.PairKeyCodec(collections.Uint64Key, collections.StringKey),
-			collcompat.ProtoValue[types.UserVestingPlan](cdc),
+			collcompat.ProtoValue[types.VestingPlan](cdc),
 		),
 		params: collections.NewItem(
 			sb,
@@ -143,43 +143,19 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) (uint64, error) {
 }
 
 // SetPurchase stores a purchase using collections
-func (k Keeper) SetPurchase(ctx sdk.Context, auctionID uint64, buyer string, purchase types.UserVestingPlan) error {
+func (k Keeper) SetPurchase(ctx sdk.Context, auctionID uint64, buyer string, purchase types.VestingPlan) error {
 	key := collections.Join(auctionID, buyer)
 	return k.purchases.Set(ctx, key, purchase)
 }
 
 // GetPurchase retrieves a purchase by auction ID and buyer using collections
-func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer string) (types.UserVestingPlan, bool) {
+func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer string) (types.VestingPlan, bool) {
 	key := collections.Join(auctionID, buyer)
 	purchase, err := k.purchases.Get(ctx, key)
 	if err != nil {
-		return types.UserVestingPlan{}, false
+		return types.VestingPlan{}, false
 	}
 	return purchase, true
-}
-
-// GetUserPurchases retrieves all purchases for a specific user using collections
-func (k Keeper) GetUserPurchases(ctx sdk.Context, buyer string) ([]types.UserVestingPlan, error) {
-	var purchases []types.UserVestingPlan
-	err := k.purchases.Walk(ctx, nil, func(key collections.Pair[uint64, string], purchase types.UserVestingPlan) (bool, error) {
-		// Filter by buyer (second element of the pair)
-		if key.K2() == buyer {
-			purchases = append(purchases, purchase)
-		}
-		return false, nil
-	})
-	return purchases, err
-}
-
-// GetAuctionPurchases retrieves all purchases for a specific auction using collections
-func (k Keeper) GetAuctionPurchases(ctx sdk.Context, auctionID uint64) ([]types.UserVestingPlan, error) {
-	var purchases []types.UserVestingPlan
-	rng := collections.NewPrefixedPairRange[uint64, string](auctionID)
-	err := k.purchases.Walk(ctx, rng, func(key collections.Pair[uint64, string], purchase types.UserVestingPlan) (bool, error) {
-		purchases = append(purchases, purchase)
-		return false, nil
-	})
-	return purchases, err
 }
 
 // func (k Keeper) SetAcceptedToken(ctx sdk.Context, token string, poolID uint64) error {

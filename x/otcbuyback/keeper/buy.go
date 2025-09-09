@@ -75,7 +75,7 @@ func (k Keeper) Buy(
 		purchase.Amount = purchase.Amount.Add(amountToBuy)
 	} else {
 		// Create new purchase record
-		purchase = types.NewUserVestingPlan(
+		purchase = types.NewVestingPlan(
 			amountToBuy,
 			auction.GetVestingStartTime(),
 			auction.GetVestingEndTime(),
