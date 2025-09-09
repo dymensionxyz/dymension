@@ -55,7 +55,6 @@ func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueGet() {
 	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		item := item
 		rst, found := k.GetFinalizationQueue(
 			ctx,
 			item.CreationHeight,
