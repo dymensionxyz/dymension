@@ -107,7 +107,7 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 
 	// Test with direct memo format
 	s.T().Log("Testing rollapp packet that arrives already finalized with direct memo format")
-	
+
 	hookData := commontypes.CompletionHookCall{
 		Name: dummy,
 		Data: []byte{},
@@ -122,7 +122,7 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 	// Send packet from rollapp
 	amount := "100000000"
 	ibcRecipient := s.hubChain().SenderAccounts[0].SenderAccount.GetAddress()
-	
+
 	// Send the packet (this creates the packet commitment on rollapp)
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amountInt, _ := math.NewIntFromString(amount)
@@ -138,13 +138,13 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 		0,
 		memo,
 	)
-	
+
 	res, err := s.rollappChain().SendMsgs(msg)
 	s.Require().NoError(err)
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
-	
+
 	// Verify packet commitment exists
 	s.Require().True(s.rollappHasPacketCommitment(packet))
 
@@ -165,21 +165,21 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 
 	// Verify hook was called even though packet was already finalized
 	s.Require().True(h.called, "Completion hook should be called for finalized rollapp packet with direct memo")
-	
+
 	// Verify acknowledgement was written
 	found := s.hubApp().IBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
-	
+
 	// Reset for next test
 	h.called = false
 
 	// Test with EIBC memo format
 	s.T().Log("Testing rollapp packet that arrives already finalized with EIBC memo format")
-	
+
 	// Create EIBC memo with completion hook
 	eibcFee := "100"
 	eibcMemo := delayedacktypes.CreateMemo(eibcFee, bz)
-	
+
 	// Send another packet with EIBC memo
 	msg2 := types.NewMsgTransfer(
 		s.path.EndpointB.ChannelConfig.PortID,
@@ -191,13 +191,13 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 		0,
 		eibcMemo,
 	)
-	
+
 	res2, err := s.rollappChain().SendMsgs(msg2)
 	s.Require().NoError(err)
 
 	packet2, err := ibctesting.ParsePacketFromEvents(res2.GetEvents())
 	s.Require().NoError(err)
-	
+
 	// Verify packet commitment exists
 	s.Require().True(s.rollappHasPacketCommitment(packet2))
 
@@ -216,12 +216,11 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 
 	// Verify hook was called for EIBC memo format too
 	s.Require().True(h.called, "Completion hook should be called for finalized rollapp packet with EIBC memo")
-	
+
 	// Verify acknowledgement was written
 	found = s.hubApp().IBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet2.GetDestPort(), packet2.GetDestChannel(), packet2.GetSequence())
 	s.Require().True(found)
 }
-
 
 type FinalizeFwdTC struct {
 	bridgeFee      int64 // percentage
