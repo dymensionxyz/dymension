@@ -219,7 +219,7 @@ func (k Keeper) ExecutePump(
 		return nil
 	})
 
-	return tokenOut, nil
+	return tokenOut, err
 }
 
 // swapPumpAmtToLiquidityDenom swaps pump tokens to the plan's liquidity denomination if needed
@@ -259,12 +259,9 @@ func (k Keeper) executePumpPreGraduation(
 	amountToSpend math.Int,
 	plan irotypes.Plan,
 ) (sdk.Coin, error) {
-	takerFee := k.iroKeeper.GetParams(ctx).TakerFee
-	leftover := math.ZeroInt()
-
 	// Find how many tokens we can buy with pumpAmt
 	// Subtract taker fee -> get net amount to spend
-	toSpendMinusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(amountToSpend, takerFee, false)
+	toSpendMinusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(amountToSpend, k.iroKeeper.GetParams(ctx).TakerFee, false)
 	if err != nil {
 		return sdk.Coin{}, fmt.Errorf("apply taker fee: %w", err)
 	}
@@ -274,51 +271,58 @@ func (k Keeper) executePumpPreGraduation(
 		return sdk.Coin{}, fmt.Errorf("tokens for exact in amount: %w", err)
 	}
 
-	// If too many tokens, buy only the remaining
-	if tokenOutAmt.Add(plan.SoldAmt).GT(plan.MaxAmountToSell) {
-		// Find how much this remaining part costs in LiquidityDenom
-		costAmt := plan.BondingCurve.Cost(plan.SoldAmt, plan.MaxAmountToSell)
-		costPlusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(costAmt, k.iroKeeper.GetParams(ctx).TakerFee, true)
+	remaining := plan.MaxAmountToSell.Sub(plan.SoldAmt)
+
+	if tokenOutAmt.LT(remaining) {
+		// IRO has enough tokens to sell, use `BuyExactSpend` for accuracy
+		boughtAmt, err := k.iroKeeper.BuyExactSpend(
+			ctx,
+			plan.GetID(),
+			k.ak.GetModuleAddress(types.ModuleName),
+			amountToSpend,
+			math.ZeroInt(), // no min tokens
+		)
 		if err != nil {
-			return sdk.Coin{}, fmt.Errorf("apply taker fee: %w", err)
+			return sdk.Coin{}, fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
+		}
+		return sdk.NewCoin(plan.GetIRODenom(), boughtAmt), nil
+	} else {
+		// If too many tokens, buy only the remaining and trigger graduation (use `Buy`).
+		//
+		// amountToSpend covers costs for tokenOutAmt and tokenOutAmt >= remaining,
+		// thus amountToSpend covers costs for the remaining, and actuallySpent < amountToSpend.
+		actuallySpent, err := k.iroKeeper.Buy(
+			ctx,
+			plan.GetID(),
+			k.ak.GetModuleAddress(types.ModuleName),
+			remaining,
+			amountToSpend,
+		)
+		if err != nil {
+			return sdk.Coin{}, fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
 		}
 
-		if costPlusTakerFeeAmt.GT(amountToSpend) {
-			// Sanity check. This should never happen.
-			// If amountToSpend covers tokenOutAmt and tokenOutAmt >= remaining,
-			// then amountToSpend covers the remaining.
-			return sdk.Coin{}, fmt.Errorf("cost of remaining part is greater than amount to spend")
-		}
+		tokenOut := sdk.NewCoin(plan.GetIRODenom(), remaining)
 
-		tokenOutAmt = plan.MaxAmountToSell.Sub(plan.SoldAmt)
-		leftover = amountToSpend.Sub(costPlusTakerFeeAmt)
-		amountToSpend = costPlusTakerFeeAmt
-	}
-
-	err = k.iroKeeper.Buy(ctx, plan.GetID(), k.ak.GetModuleAddress(types.ModuleName), tokenOutAmt, amountToSpend)
-	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
-	}
-
-	tokenOut := sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt)
-
-	if !leftover.IsZero() {
 		// We bought the max number of IRO tokens, and the plan should be graduated now.
-		// In that case, we want to buy the leftover from AMM pool.
-		plan = k.iroKeeper.MustGetPlan(ctx, plan.RollappId)
-		if !plan.IsGraduated() {
-			// Sanity check. Should never happen.
-			return sdk.Coin{}, fmt.Errorf("plan is not graduated after buying max number of IRO tokens")
+		// In that case, we want to buy the leftover from the AMM pool (if any).
+		leftover := amountToSpend.Sub(actuallySpent)
+		if !leftover.IsZero() {
+			plan = k.iroKeeper.MustGetPlan(ctx, plan.RollappId)
+			if !plan.IsGraduated() {
+				// Sanity check. Should never happen.
+				return sdk.Coin{}, fmt.Errorf("plan is not graduated after buying max number of IRO tokens")
+			}
+
+			graduatedTokenOut, err := k.executePumpGraduated(ctx, leftover, plan)
+			if err != nil {
+				return sdk.Coin{}, fmt.Errorf("execute pump graduated: %w", err)
+			}
+			tokenOut = tokenOut.Add(graduatedTokenOut)
 		}
 
-		graduatedTokenOut, err := k.executePumpGraduated(ctx, leftover, plan)
-		if err != nil {
-			return sdk.Coin{}, err
-		}
-		tokenOut = tokenOut.Add(graduatedTokenOut)
+		return tokenOut, nil
 	}
-
-	return tokenOut, nil
 }
 
 // CONTRACT: plan is graduated
