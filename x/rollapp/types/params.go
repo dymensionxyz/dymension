@@ -69,6 +69,11 @@ func (p Params) WithLivenessSlashInterval(x uint64) Params {
 	return p
 }
 
+func (p Params) WithTeeConfig(x TEEConfig) Params {
+	p.TeeConfig = x
+	return p
+}
+
 // Validate validates the set of params
 func (p Params) ValidateBasic() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {

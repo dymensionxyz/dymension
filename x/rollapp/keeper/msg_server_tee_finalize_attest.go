@@ -22,7 +22,7 @@ import (
 Validation logic is from https://github.com/GoogleCloudPlatform/confidential-space/blob/b6ade09bb9d3c7f39bb6af482ba71c7156184fd0/codelabs/health_data_analysis_codelab/src/uwear/workload.go#L1-L380 (https://codelabs.developers.google.com/confidential-space-pki?hl=en#0)
 */
 
-func (k msgServer) validateAttestation(ctx sdk.Context, nonce, token string) error {
+func (k Keeper) ValidateAttestation(ctx sdk.Context, nonce, token string) error {
 	// make sure the token really came from GCP
 	jwt, err := k.validateAttestationAuthenticity(ctx, token)
 	if err != nil {
@@ -45,7 +45,7 @@ func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, nonce string) error {
+func (k Keeper) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, nonce string) error {
 	policyData := k.GetParams(ctx).TeeConfig.PolicyValues
 	policyQuery := k.GetParams(ctx).TeeConfig.PolicyQuery
 	policyStructure := k.GetParams(ctx).TeeConfig.PolicyStructure

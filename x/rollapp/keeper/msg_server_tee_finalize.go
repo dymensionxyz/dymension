@@ -90,7 +90,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
 	}
 
-	err := k.validateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
+	err := k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "validate attestation")
 	}

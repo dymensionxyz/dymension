@@ -3,7 +3,7 @@
     "sha256:bc4c32cb2ca046ba07dcd964b07a320b7d0ca88a5cf8e979da15cae68a2103ee"
   ],
   "allowed_hwmodel": [
-    "GCP_INTEL_TDX",
+    "GCP_INTEL_TDX"
   ],
   "allowed_aud": [
     "dymension"
