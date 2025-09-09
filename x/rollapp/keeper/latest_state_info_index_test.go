@@ -30,7 +30,6 @@ func TestLatestStateInfoIndexGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items := createNLatestStateInfoIndex(keeper, ctx, 10)
 	for _, item := range items {
-		item := item
 		rst, found := keeper.GetLatestStateInfoIndex(ctx,
 			item.RollappId,
 		)

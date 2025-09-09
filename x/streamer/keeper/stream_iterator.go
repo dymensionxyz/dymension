@@ -103,20 +103,24 @@ func (i *StreamIterator) findNextStream() {
 
 // validInvariants validates the iterator invariants:
 // 1. streamIdx is less than the number of streams: the iterator points to the existing stream
-// 2. Stream is non-empty: there are some gauges assigned to this stream
-// 3. Stream epoch identifier matches the provided
-// 4. gaugeIdx is less than the number of gauges: the iterator points to the existing gauge
+// 2. Stream is not pumping
+// 3. Stream is non-empty: there are some gauges assigned to this stream
+// 4. Stream epoch identifier matches the provided
+// 5. gaugeIdx is less than the number of gauges: the iterator points to the existing gauge
 func (i StreamIterator) validInvariants() bool {
 	/////  1. streamIdx is less than the number of streams
 	return i.streamIdx < len(i.data) &&
 
-		// 2. stream is non-empty
+		// 2. stream is not pumping
+		!i.data[i.streamIdx].IsPumpStream() &&
+
+		// 3. stream is non-empty
 		len(i.data[i.streamIdx].DistributeTo.Records) != 0 &&
 
-		// 3. stream epoch identifier matches the provided
+		// 4. stream epoch identifier matches the provided
 		i.data[i.streamIdx].DistrEpochIdentifier == i.epochIdentifier &&
 
-		// 4. gaugeIdx is less than the number of gauges
+		// 5. gaugeIdx is less than the number of gauges
 		i.gaugeIdx < len(i.data[i.streamIdx].DistributeTo.Records)
 }
 
