@@ -86,10 +86,7 @@ func (m IBCModule) OnRecvPacket(
 	}
 
 	h, err := m.getCompletionHookToRun(ctx, packet, transfer)
-	if errorsmod.IsOf(err, ErrRoutedThroughEIBC) {
-		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-	if errorsmod.IsOf(err, ErrMemoHasConflictingMiddleware) {
+	if errorsmod.IsOf(err, ErrDelayed) || errorsmod.IsOf(err, ErrIrrelevantMemo) {
 		return m.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
@@ -118,15 +115,15 @@ type completionHookRunnable struct {
 }
 
 var (
-	ErrRoutedThroughEIBC            = errors.New("routed through EIBC")
-	ErrMemoHasConflictingMiddleware = errors.New("memo has conflicting middleware")
+	ErrDelayed        = errors.New("routed through delayedack")
+	ErrIrrelevantMemo = errors.New("irrelevant memo")
 )
 
 func (m IBCModule) getCompletionHookToRun(ctx sdk.Context, packet channeltypes.Packet, transfer rollapptypes.TransferData) (completionHookRunnable, error) {
-	routedThroughEIBC := !commontypes.WasNotDelayed(ctx)
+	delayed := !commontypes.WasNotDelayed(ctx)
 
-	if routedThroughEIBC {
-		return completionHookRunnable{}, ErrRoutedThroughEIBC
+	if delayed {
+		return completionHookRunnable{}, ErrDelayed
 	}
 
 	hook, err := getCompletionHookFromMemo(packet.GetData())
@@ -163,15 +160,15 @@ func (m IBCModule) getCompletionHookToRun(ctx sdk.Context, packet channeltypes.P
 
 func getCompletionHookFromMemo(memoBz []byte) (commontypes.CompletionHookCall, error) {
 	if memoHasConflictingMiddleware(memoBz) {
-		return commontypes.CompletionHookCall{}, ErrMemoHasConflictingMiddleware
+		return commontypes.CompletionHookCall{}, ErrIrrelevantMemo
 	}
 	var memo types.Memo
 	err := json.Unmarshal(memoBz, &memo)
 	if err != nil {
-		return commontypes.CompletionHookCall{}, errors.New("invalid memo")
+		return commontypes.CompletionHookCall{}, errorsmod.Wrapf(ErrIrrelevantMemo, "unmarshal")
 	}
 	if len(memo.OnCompletionHook) == 0 {
-		return commontypes.CompletionHookCall{}, errors.New("no completion hook in memo")
+		return commontypes.CompletionHookCall{}, errorsmod.Wrapf(ErrIrrelevantMemo, "no completion hook in memo")
 	}
 	var hook commontypes.CompletionHookCall
 	err = proto.Unmarshal(memo.OnCompletionHook, &hook)
