@@ -1129,9 +1129,11 @@ type MsgFastFinalizeWithTEE struct {
 	// attestation_token is the JWT token from GCP
 	AttestationToken string `protobuf:"bytes,4,opt,name=attestation_token,json=attestationToken,proto3" json:"attestation_token,omitempty"`
 	// nonce contains the data that was signed by TEE
-	Nonce               TEENonce `protobuf:"bytes,5,opt,name=nonce,proto3" json:"nonce"`
-	CurrStateIndex      uint64   `protobuf:"varint,6,opt,name=curr_state_index,json=currStateIndex,proto3" json:"curr_state_index,omitempty"`
-	FinalizedStateIndex uint64   `protobuf:"varint,7,opt,name=finalized_state_index,json=finalizedStateIndex,proto3" json:"finalized_state_index,omitempty"`
+	Nonce TEENonce `protobuf:"bytes,5,opt,name=nonce,proto3" json:"nonce"`
+	// what should be finalized immediately
+	CurrStateIndex uint64 `protobuf:"varint,6,opt,name=curr_state_index,json=currStateIndex,proto3" json:"curr_state_index,omitempty"`
+	// an index which is already finalized that the TEE node ran from
+	FinalizedStateIndex uint64 `protobuf:"varint,7,opt,name=finalized_state_index,json=finalizedStateIndex,proto3" json:"finalized_state_index,omitempty"`
 }
 
 func (m *MsgFastFinalizeWithTEE) Reset()         { *m = MsgFastFinalizeWithTEE{} }
@@ -1202,6 +1204,7 @@ func (m *MsgFastFinalizeWithTEE) GetFinalizedStateIndex() uint64 {
 	return 0
 }
 
+// what the verifying full node inside the tee actually attests over
 type TEENonce struct {
 	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	// height TEE recently validated
@@ -1465,7 +1468,6 @@ type MsgClient interface {
 	UpdateApp(ctx context.Context, in *MsgUpdateApp, opts ...grpc.CallOption) (*MsgUpdateAppResponse, error)
 	RemoveApp(ctx context.Context, in *MsgRemoveApp, opts ...grpc.CallOption) (*MsgRemoveAppResponse, error)
 	MarkObsoleteRollapps(ctx context.Context, in *MsgMarkObsoleteRollapps, opts ...grpc.CallOption) (*MsgMarkObsoleteRollappsResponse, error)
-	// FastFinalizeWithTEE fast-finalizes rollapp state using TEE attestation
 	FastFinalizeWithTEE(ctx context.Context, in *MsgFastFinalizeWithTEE, opts ...grpc.CallOption) (*MsgFastFinalizeWithTEEResponse, error)
 }
 
@@ -1579,7 +1581,6 @@ type MsgServer interface {
 	UpdateApp(context.Context, *MsgUpdateApp) (*MsgUpdateAppResponse, error)
 	RemoveApp(context.Context, *MsgRemoveApp) (*MsgRemoveAppResponse, error)
 	MarkObsoleteRollapps(context.Context, *MsgMarkObsoleteRollapps) (*MsgMarkObsoleteRollappsResponse, error)
-	// FastFinalizeWithTEE fast-finalizes rollapp state using TEE attestation
 	FastFinalizeWithTEE(context.Context, *MsgFastFinalizeWithTEE) (*MsgFastFinalizeWithTEEResponse, error)
 }
 

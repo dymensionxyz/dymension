@@ -18,9 +18,6 @@ import (
 	"github.com/open-policy-agent/opa/v1/util"
 )
 
-//go:embed asset/tee_policy.rego
-var opaPolicy string
-
 /*
 Validation logic is from https://github.com/GoogleCloudPlatform/confidential-space/blob/b6ade09bb9d3c7f39bb6af482ba71c7156184fd0/codelabs/health_data_analysis_codelab/src/uwear/workload.go#L1-L380 (https://codelabs.developers.google.com/confidential-space-pki?hl=en#0)
 */
@@ -49,10 +46,11 @@ func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
 }
 
 func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, nonce string) error {
-	policyData := k.GetParams(ctx).TeeConfig.PolicyData
+	policyData := k.GetParams(ctx).TeeConfig.PolicyValues
 	policyQuery := k.GetParams(ctx).TeeConfig.PolicyQuery
+	policyStructure := k.GetParams(ctx).TeeConfig.PolicyStructure
 
-	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData, policyQuery)
+	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData, policyQuery, policyStructure)
 	if err != nil {
 		return errorsmod.Wrap(err, "evaluate opa policy")
 	}
@@ -63,14 +61,14 @@ func (k msgServer) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token
 }
 
 // evaluateOPAPolicy returns boolean indicating if OPA policy is satisfied or not, or error if occurred
-func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyData string, policyQuery string) (bool, error) {
+func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyData string, policyQuery string, policyStructure string) (bool, error) {
 	var claims jwt.MapClaims
 	var ok bool
 	if claims, ok = token.Claims.(jwt.MapClaims); !ok {
 		return false, gerrc.ErrInvalidArgument.Wrap("get claims from jwt")
 	}
 
-	module := fmt.Sprintf(opaPolicy, nonce)
+	module := fmt.Sprintf(policyStructure, nonce)
 
 	var json map[string]any
 	err := util.UnmarshalJSON([]byte(policyData), &json)
