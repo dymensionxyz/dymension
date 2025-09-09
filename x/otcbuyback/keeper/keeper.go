@@ -4,13 +4,16 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type (
@@ -18,6 +21,8 @@ type (
 		cdc      codec.BinaryCodec
 		storeKey storetypes.StoreKey
 		logger   log.Logger
+
+		baseDenom string
 
 		authority string
 		treasury  string
@@ -31,6 +36,9 @@ type (
 		auctions      collections.Map[uint64, types.Auction]
 		purchases     collections.Map[collections.Pair[uint64, string], types.UserVestingPlan] // [auctionID, buyer] -> UserVestingPlan
 		params        collections.Item[types.Params]
+
+		// FIXME: refactor params to this collection, together with the TWAP logic
+		// acceptedTokens collections.Map[string, uint64] // [denom] -> poolID
 	}
 )
 
@@ -43,6 +51,7 @@ func NewKeeper(
 	bankKeeper types.BankKeeper,
 	ammKeeper types.AMMKeeper,
 ) Keeper {
+
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
 	return Keeper{
@@ -50,6 +59,9 @@ func NewKeeper(
 		storeKey:  storeKey,
 		logger:    logger,
 		authority: authority,
+		treasury:  treasury,
+
+		baseDenom: params.BaseDenom, // set "adym" as the base denom
 
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,

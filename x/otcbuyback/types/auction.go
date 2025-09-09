@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type AuctionStatus string
@@ -18,7 +17,7 @@ const (
 // NewAuction creates a new auction
 func NewAuction(
 	id uint64,
-	allocation sdk.Coin,
+	allocation math.Int,
 	startTime, endTime time.Time,
 	initialDiscount, maxDiscount math.LegacyDec,
 	vestingPlan Auction_VestingPlan,
@@ -45,11 +44,10 @@ func (a Auction) ValidateBasic() error {
 		return ErrInvalidAuctionID
 	}
 
-	if !a.Allocation.IsValid() || a.Allocation.IsZero() {
+	if !a.Allocation.IsPositive() {
 		return ErrInvalidAllocation
 	}
 
-	// enf time before start time
 	if a.EndTime.Before(a.StartTime) {
 		return ErrInvalidEndTime
 	}
@@ -114,7 +112,7 @@ func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
 
 // GetRemainingAllocation returns the amount of tokens still available for purchase
 func (a Auction) GetRemainingAllocation() math.Int {
-	return a.Allocation.Amount.Sub(a.SoldAmount)
+	return a.Allocation.Sub(a.SoldAmount)
 }
 
 // GetVestingStartTime returns the start time of the vesting period
@@ -139,7 +137,7 @@ func (a Auction) GetStatus(currentTime time.Time) AuctionStatus {
 	}
 
 	// Check if auction has ended due to time
-	if currentTime.After(a.EndTime) || a.SoldAmount.GTE(a.Allocation.Amount) {
+	if currentTime.After(a.EndTime) || a.SoldAmount.GTE(a.Allocation) {
 		return AUCTION_STATUS_COMPLETED
 	}
 

@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -21,13 +22,12 @@ func (k Keeper) CreateAuction(
 	maxDiscount math.LegacyDec,
 	vestingPlan types.Auction_VestingPlan,
 ) (uint64, error) {
-	// Validate allocation
-	if !allocation.IsValid() || !allocation.IsPositive() {
-		return 0, types.ErrInvalidAllocation
+
+	if allocation.Denom != k.baseDenom {
+		return 0, errorsmod.Wrap(gerrc.ErrInvalidArgument, "allocation must be in base denom")
 	}
 
 	// FIXME: validate the funds available in the module account
-
 	// FIXME: need to mark them as allocated
 
 	// Get next auction ID
@@ -39,7 +39,7 @@ func (k Keeper) CreateAuction(
 	// Create auction
 	auction := types.NewAuction(
 		auctionID,
-		allocation,
+		allocation.Amount,
 		startTime,
 		endTime,
 		initialDiscount,

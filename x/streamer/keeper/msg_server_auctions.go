@@ -21,7 +21,7 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 	// FIXME: move funds from the module account to the auction account
 
 	// Create the auction and stream
-	auctionID, err := s.Keeper.ahk.CreateAuction(
+	auctionID, err := s.Keeper.otck.CreateAuction(
 		ctx,
 		msg.Allocation,
 		msg.StartTime,

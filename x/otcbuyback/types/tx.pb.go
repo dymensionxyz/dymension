@@ -465,7 +465,8 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// Buy allows users to purchase specific amount of tokens in an auction
 	Buy(ctx context.Context, in *MsgBuy, opts ...grpc.CallOption) (*MsgBuyResponse, error)
-	// BuyExactSpend allows users to purchase tokens in an auction with exact amount of tokens
+	// BuyExactSpend allows users to purchase tokens in an auction with exact
+	// amount of tokens
 	BuyExactSpend(ctx context.Context, in *MsgBuyExactSpend, opts ...grpc.CallOption) (*MsgBuyResponse, error)
 	// ClaimTokens allows users to claim their vested tokens
 	ClaimTokens(ctx context.Context, in *MsgClaimTokens, opts ...grpc.CallOption) (*MsgClaimTokensResponse, error)
@@ -521,7 +522,8 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// Buy allows users to purchase specific amount of tokens in an auction
 	Buy(context.Context, *MsgBuy) (*MsgBuyResponse, error)
-	// BuyExactSpend allows users to purchase tokens in an auction with exact amount of tokens
+	// BuyExactSpend allows users to purchase tokens in an auction with exact
+	// amount of tokens
 	BuyExactSpend(context.Context, *MsgBuyExactSpend) (*MsgBuyResponse, error)
 	// ClaimTokens allows users to claim their vested tokens
 	ClaimTokens(context.Context, *MsgClaimTokens) (*MsgClaimTokensResponse, error)

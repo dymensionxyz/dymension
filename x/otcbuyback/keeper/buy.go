@@ -92,7 +92,10 @@ func (k Keeper) Buy(
 	auction.RaisedAmount = auction.RaisedAmount.Add(paymentCoin)
 
 	// Save updated auction
-	k.SetAuction(ctx, auction)
+	err = k.SetAuction(ctx, auction)
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrap(err, "failed to save updated auction")
+	}
 
 	// Emit purchase event
 	err = uevent.EmitTypedEvent(ctx, &types.EventTokensPurchased{
@@ -114,7 +117,7 @@ func (k Keeper) Buy(
 		"price", currentPrice)
 
 	// Check if auction should end (sold out)
-	if auction.SoldAmount.GTE(auction.Allocation.Amount) {
+	if auction.SoldAmount.GTE(auction.Allocation) {
 		auction.EndTime = ctx.BlockTime()
 
 		// FIXME: call end auction

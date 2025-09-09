@@ -44,7 +44,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	}
 
 	// Transfer tokens from auction module to claimer
-	claimCoin := sdk.NewCoin(auction.Allocation.Denom, claimableAmount)
+	claimCoin := sdk.NewCoin(k.baseDenom, claimableAmount)
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(
 		ctx,
 		types.ModuleName,

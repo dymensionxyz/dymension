@@ -36,10 +36,6 @@ func (k Keeper) GetParams(ctx sdk.Context) (types.Params, error) {
 
 // SetParams set the params
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
-	if err := params.ValidateBasic(); err != nil {
-		return err
-	}
-
 	for _, token := range params.AcceptedTokens {
 		denoms, err := k.ammKeeper.GetPoolDenoms(ctx, token.PoolId)
 		if err != nil {
