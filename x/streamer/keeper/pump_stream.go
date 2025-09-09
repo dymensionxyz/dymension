@@ -178,146 +178,185 @@ func (k Keeper) ExecutePump(
 		return sdk.Coin{}, fmt.Errorf("IRO plan not found for rollapp: %s", rollappID)
 	}
 
-	buyer := k.ak.GetModuleAddress(types.ModuleName)
-
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		// Swap pump token to liquidity token in AMM
-		if pumpDenom != plan.LiquidityDenom {
-			// LiquidityDenom should be a fee token
-			feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, plan.LiquidityDenom)
-			if err != nil {
-				return fmt.Errorf("get fee token for denom %s: %w", plan.LiquidityDenom, err)
-			}
-
-			reverseRoute := reverseInRoute(feeToken.Route, plan.LiquidityDenom)
-			pumpAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
-				ctx,
-				buyer,
-				reverseRoute,
-				sdk.NewCoin(pumpDenom, pumpAmt), // token in
-				math.ZeroInt(),                  // no slippage
-			)
-			if err != nil {
-				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
-			}
+		liquidityAmt, err := k.swapPumpAmtToLiquidityDenom(ctx, pumpAmt, pumpDenom, plan.LiquidityDenom)
+		if err != nil {
+			return err
 		}
-		// Now pumpAmt is in LiquidityDenom
-		// We need to spend pumpAmt
-		amountToSpend := pumpAmt
 
 		switch plan.GetGraduationStatus() {
 		case irotypes.GraduationStatus_PRE_GRADUATION:
 			// IRO is not graduated:
 			//   - How many IRO tokens can buy with pumpAmt considering taker fee?
-			//   - If tokenOut is greater than plan's MaxAmountToSell, buy only the remaining part: MaxAmountToSell - SoldAmt
+			//   - If tokenOut is greater than plan's MaxAmountToSell buy only the remaining part: MaxAmountToSell - SoldAmt
+			//   - If the plan graduates and there's any leftover, spend it in the respective AMM pool
 			//   - Return Coin(IRO denom; IRO token out)
-			takerFee := k.iroKeeper.GetParams(ctx).TakerFee
-			leftover := math.ZeroInt()
-
-			// Find how many tokens we can buy with pumpAmt
-			// Subtract taker fee -> get net amount to spend
-			toSpendMinusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(amountToSpend, takerFee, false)
+			tokenOut, err = k.executePumpPreGraduation(ctx, liquidityAmt, plan)
 			if err != nil {
-				return fmt.Errorf("apply taker fee: %w", err)
+				return fmt.Errorf("execute pump pre-graduation: %w", err)
 			}
-
-			tokenOutAmt, err := plan.BondingCurve.TokensForExactInAmount(plan.SoldAmt, toSpendMinusTakerFeeAmt)
-			if err != nil {
-				return fmt.Errorf("tokens for exact in amount: %w", err)
-			}
-
-			// If too many tokens, buy only the remaining
-			if tokenOutAmt.Add(plan.SoldAmt).GT(plan.MaxAmountToSell) {
-				// Find how much this remaining part costs in LiquidityDenom
-				costAmt := plan.BondingCurve.Cost(plan.SoldAmt, plan.MaxAmountToSell)
-				costPlusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(costAmt, takerFee, true)
-				if err != nil {
-					return fmt.Errorf("apply taker fee: %w", err)
-				}
-				if costPlusTakerFeeAmt.GT(amountToSpend) {
-					// Sanity check. This should never happen.
-					// If amountToSpend covers tokenOutAmt and tokenOutAmt >= remaining,
-					// then amountToSpend covers the remaining.
-					return fmt.Errorf("cost of remaining part is greater than amount to spend")
-				}
-
-				tokenOutAmt = plan.MaxAmountToSell.Sub(plan.SoldAmt)
-				leftover = amountToSpend.Sub(costPlusTakerFeeAmt)
-				amountToSpend = costPlusTakerFeeAmt
-
-			}
-
-			err = k.iroKeeper.Buy(ctx, plan.GetID(), buyer, tokenOutAmt, amountToSpend)
-			if err != nil {
-				return fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
-			}
-
-			tokenOut = sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt)
-
-			if !leftover.IsZero() {
-				goto graduated
-			}
-			break
-
-		graduated:
-			// We bought the max number of IRO tokens, and the plan should be graduated now.
-			// In that case, we want to buy the leftover from AMM pool.
-
-			// At that point, the plan surely exists
-			plan = k.iroKeeper.MustGetPlan(ctx, rollapp.RollappId)
-			if !plan.IsGraduated() {
-				// Sanity check. Should never happen.
-				return fmt.Errorf("plan is not graduated after buying max number of IRO tokens")
-			}
-			amountToSpend = leftover
-			fallthrough
-
 		case irotypes.GraduationStatus_GRADUATED:
 			// IRO is graduated:
 			//   - Buy IRO tokens from AMM using GraduatedPoolId
 			//   - Return Coin(IRO denom; IRO token out)
-			tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
-				ctx,
-				buyer,
-				[]poolmanagertypes.SwapAmountInRoute{{
-					PoolId:        plan.GraduatedPoolId,
-					TokenOutDenom: plan.GetIRODenom(),
-				}},
-				sdk.NewCoin(plan.LiquidityDenom, amountToSpend), // token in
-				math.ZeroInt(),                                  // no slippage
-			)
+			tokenOut, err = k.executePumpGraduated(ctx, liquidityAmt, plan)
 			if err != nil {
-				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+				return fmt.Errorf("execute pump graduated: %w", err)
 			}
-
-			tokenOut = sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt)
-
 		case irotypes.GraduationStatus_SETTLED:
 			// IRO is settled:
 			//   - Buy RA tokens from AMM using GraduatedPoolId
 			//   - Return Coin(settled denom; RA token out)
-			pumpAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
-				ctx,
-				buyer,
-				[]poolmanagertypes.SwapAmountInRoute{{
-					PoolId:        plan.GraduatedPoolId,
-					TokenOutDenom: plan.SettledDenom,
-				}},
-				sdk.NewCoin(plan.LiquidityDenom, amountToSpend), // token in
-				math.ZeroInt(),                                  // no slippage
-			)
+			tokenOut, err = k.executePumpSettled(ctx, liquidityAmt, plan)
 			if err != nil {
-				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+				return fmt.Errorf("execute pump settled: %w", err)
 			}
+		default:
+			// Should never happen
+			return fmt.Errorf("unknown graduation status: %v", plan.GetGraduationStatus())
 		}
 
 		return nil
 	})
+
+	return tokenOut, nil
+}
+
+// swapPumpAmtToLiquidityDenom swaps pump tokens to the plan's liquidity denomination if needed
+func (k Keeper) swapPumpAmtToLiquidityDenom(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	liquidityDenom string,
+) (math.Int, error) {
+	if pumpDenom == liquidityDenom {
+		return pumpAmt, nil
+	}
+
+	feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, liquidityDenom)
 	if err != nil {
-		return sdk.Coin{}, err
+		return math.ZeroInt(), fmt.Errorf("get fee token for denom %s: %w", liquidityDenom, err)
+	}
+
+	reverseRoute := reverseInRoute(feeToken.Route, liquidityDenom)
+	liquidityAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		reverseRoute,
+		sdk.NewCoin(pumpDenom, pumpAmt),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return math.ZeroInt(), fmt.Errorf("route exact amount in: target denom: %s, error: %w", liquidityDenom, err)
+	}
+
+	return liquidityAmt, nil
+}
+
+// CONTRACT: plan is pre-graduated
+func (k Keeper) executePumpPreGraduation(
+	ctx sdk.Context,
+	amountToSpend math.Int,
+	plan irotypes.Plan,
+) (sdk.Coin, error) {
+	takerFee := k.iroKeeper.GetParams(ctx).TakerFee
+	leftover := math.ZeroInt()
+
+	// Find how many tokens we can buy with pumpAmt
+	// Subtract taker fee -> get net amount to spend
+	toSpendMinusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(amountToSpend, takerFee, false)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("apply taker fee: %w", err)
+	}
+
+	tokenOutAmt, err := plan.BondingCurve.TokensForExactInAmount(plan.SoldAmt, toSpendMinusTakerFeeAmt)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("tokens for exact in amount: %w", err)
+	}
+
+	// If too many tokens, buy only the remaining
+	if tokenOutAmt.Add(plan.SoldAmt).GT(plan.MaxAmountToSell) {
+		// Find how much this remaining part costs in LiquidityDenom
+		costAmt := plan.BondingCurve.Cost(plan.SoldAmt, plan.MaxAmountToSell)
+		costPlusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(costAmt, k.iroKeeper.GetParams(ctx).TakerFee, true)
+		if err != nil {
+			return sdk.Coin{}, fmt.Errorf("apply taker fee: %w", err)
+		}
+
+		if costPlusTakerFeeAmt.GT(amountToSpend) {
+			// Sanity check. This should never happen.
+			// If amountToSpend covers tokenOutAmt and tokenOutAmt >= remaining,
+			// then amountToSpend covers the remaining.
+			return sdk.Coin{}, fmt.Errorf("cost of remaining part is greater than amount to spend")
+		}
+
+		tokenOutAmt = plan.MaxAmountToSell.Sub(plan.SoldAmt)
+		leftover = amountToSpend.Sub(costPlusTakerFeeAmt)
+		amountToSpend = costPlusTakerFeeAmt
+	}
+
+	err = k.iroKeeper.Buy(ctx, plan.GetID(), k.ak.GetModuleAddress(types.ModuleName), tokenOutAmt, amountToSpend)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
+	}
+
+	tokenOut := sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt)
+
+	if !leftover.IsZero() {
+		// We bought the max number of IRO tokens, and the plan should be graduated now.
+		// In that case, we want to buy the leftover from AMM pool.
+		plan = k.iroKeeper.MustGetPlan(ctx, plan.RollappId)
+		if !plan.IsGraduated() {
+			// Sanity check. Should never happen.
+			return sdk.Coin{}, fmt.Errorf("plan is not graduated after buying max number of IRO tokens")
+		}
+
+		graduatedTokenOut, err := k.executePumpGraduated(ctx, leftover, plan)
+		if err != nil {
+			return sdk.Coin{}, err
+		}
+		tokenOut = tokenOut.Add(graduatedTokenOut)
 	}
 
 	return tokenOut, nil
+}
+
+// CONTRACT: plan is graduated
+func (k Keeper) executePumpGraduated(ctx sdk.Context, amountToSpend math.Int, plan irotypes.Plan) (sdk.Coin, error) {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        plan.GraduatedPoolId,
+			TokenOutDenom: plan.GetIRODenom(),
+		}},
+		sdk.NewCoin(plan.LiquidityDenom, amountToSpend),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+	}
+
+	return sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt), nil
+}
+
+// CONTRACT: plan is settled
+func (k Keeper) executePumpSettled(ctx sdk.Context, amountToSpend math.Int, plan irotypes.Plan) (sdk.Coin, error) {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        plan.GraduatedPoolId,
+			TokenOutDenom: plan.SettledDenom,
+		}},
+		sdk.NewCoin(plan.LiquidityDenom, amountToSpend),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+	}
+
+	return sdk.NewCoin(plan.SettledDenom, tokenOutAmt), nil
 }
 
 // DistributePumpStreams processes all pump streams and executes pumps if conditions are met
