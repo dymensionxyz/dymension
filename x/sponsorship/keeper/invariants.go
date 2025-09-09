@@ -16,6 +16,7 @@ var invs = uinv.NamedFuncsList[Keeper]{
 	{Name: "delegator-validator-power", Func: InvariantDelegatorValidatorPower},
 	{Name: "distribution", Func: InvariantDistribution},
 	{Name: "votes", Func: InvariantVotes},
+	{Name: "endorsements", Func: InvariantEndorsements},
 	{Name: "general", Func: InvariantGeneral},
 }
 
@@ -26,6 +27,10 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 // DO NOT DELETE
 func AllInvariants(k Keeper) sdk.Invariant {
 	return invs.All(types.ModuleName, k)
+}
+
+func AllInvariantsFn(k Keeper) uinv.Func {
+	return invs.AllFn(k)
 }
 
 // delegator validator power is non-negative
@@ -67,6 +72,35 @@ func InvariantVotes(k Keeper) uinv.Func {
 		})
 		errs = append(errs, err)
 		return errors.Join(errs...)
+	})
+}
+
+// endorsement total shares should equal voting power cast to the corresponding RA gauge
+func InvariantEndorsements(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		distr, err := k.GetDistribution(ctx)
+		if err != nil {
+			return fmt.Errorf("get distribution: %w", err)
+		}
+
+		for _, gauge := range distr.Gauges {
+			g, err := k.incentivesKeeper.GetGaugeByID(ctx, gauge.GaugeId)
+			if err != nil {
+				return fmt.Errorf("failed to get gauge by id: %d: %w", gauge.GaugeId, err)
+			}
+			if g.GetRollapp() == nil {
+				continue
+			}
+			endorsement, err := k.GetEndorsement(ctx, g.GetRollapp().RollappId)
+			if err != nil {
+				return fmt.Errorf("failed to get rollapp by id: %s: %w", g.GetRollapp().RollappId, err)
+			}
+			if !endorsement.TotalShares.Equal(math.LegacyNewDecFromInt(gauge.Power)) {
+				return fmt.Errorf("endorsement total shares does not equal gauge power: rollapp id %s, shares %s: power %s", g.GetRollapp().RollappId, endorsement.TotalShares, gauge.Power)
+			}
+		}
+
+		return nil
 	})
 }
 
