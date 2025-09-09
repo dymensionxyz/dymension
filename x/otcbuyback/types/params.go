@@ -8,7 +8,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 )
 
-// DefaultParams returns the default parameters for the AuctionHouse module
+// DefaultParams returns the default parameters for the Otcbuyback module
 func DefaultParams() Params {
 	return Params{
 		AcceptedTokens: []string{params.BaseDenom},

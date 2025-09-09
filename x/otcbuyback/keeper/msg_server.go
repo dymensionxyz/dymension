@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/auctionhouse/types"
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 )
 
 type msgServer struct {

@@ -1,13 +1,13 @@
 syntax = "proto3";
-package dymensionxyz.dymension.auctionhouse;
+package dymensionxyz.dymension.otcbuyback;
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
 import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/auctionhouse/params.proto";
+import "dymensionxyz/dymension/otcbuyback/params.proto";
 
 // Msg defines the Msg service.
 service Msg {

@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
-	"github.com/dymensionxyz/dymension/v3/x/auctionhouse/types"
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 )
 
 type (

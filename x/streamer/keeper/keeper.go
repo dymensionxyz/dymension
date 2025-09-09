@@ -26,7 +26,7 @@ type Keeper struct {
 	ak        types.AccountKeeper
 	ik        types.IncentivesKeeper
 	sk        types.SponsorshipKeeper
-	ahk       types.AuctionHouseKeeper
+	ahk       types.OtcbuybackKeeper
 	authority string
 
 	// epochPointers holds a mapping from the epoch identifier to EpochPointer.
@@ -42,7 +42,7 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	ik types.IncentivesKeeper,
 	sk types.SponsorshipKeeper,
-	ahk types.AuctionHouseKeeper,
+	ahk types.OtcbuybackKeeper,
 	authority string,
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))

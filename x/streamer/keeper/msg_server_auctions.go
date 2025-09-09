@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	hatypes "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types"
+	hatypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )

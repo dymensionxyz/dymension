@@ -1,5 +1,5 @@
 syntax = "proto3";
-package dymensionxyz.dymension.auctionhouse;
+package dymensionxyz.dymension.otcbuyback;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
@@ -7,7 +7,7 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
 // Auction represents a Dutch auction with decreasing prices over time
 message Auction {

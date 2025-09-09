@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
-	ahtypes "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	ahtypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -48,8 +48,8 @@ type SponsorshipKeeper interface {
 	ClearAllVotes(ctx sdk.Context) error
 }
 
-// AuctionHouseKeeper defines the expected interface for the AuctionHouse module.
-type AuctionHouseKeeper interface {
+// OtcbuybackKeeper defines the expected interface for the Otcbuyback module.
+type OtcbuybackKeeper interface {
 	CreateAuction(
 		ctx sdk.Context,
 		allocation sdk.Coin,

@@ -1,13 +1,13 @@
 syntax = "proto3";
-package dymensionxyz.dymension.auctionhouse;
+package dymensionxyz.dymension.otcbuyback;
 
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/auctionhouse/params.proto";
-import "dymensionxyz/dymension/auctionhouse/auction.proto";
+import "dymensionxyz/dymension/otcbuyback/params.proto";
+import "dymensionxyz/dymension/otcbuyback/auction.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/auctionhouse/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
-// GenesisState defines the auctionhouse module's genesis state.
+// GenesisState defines the otcbuyback module's genesis state.
 message GenesisState {
   // params defines all the parameters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
