@@ -77,7 +77,8 @@ func (m IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	l := m.logger(ctx, packet, "OnRecvPacket")
-	transfer, err := m.rollappK.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+	port, channel := commontypes.PacketHubPortChan(commontypes.RollappPacket_ON_RECV, packet)
+	transfer, err := m.rollappK.GetValidTransfer(ctx, packet.GetData(), port, channel)
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
 		err = errorsmod.Wrapf(err, "%s: get valid transfer", ModuleName)
