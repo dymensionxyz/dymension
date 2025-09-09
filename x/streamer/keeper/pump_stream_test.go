@@ -263,7 +263,7 @@ func (s *KeeperTestSuite) createIRO(rollappID string) (planID string, reservedAm
 	liquidityPart := irotypes.DefaultParams().MinLiquidityPart
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
-	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now(), true, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	return planID, k.MustGetPlan(s.Ctx, planID).SoldAmt
