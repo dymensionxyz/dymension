@@ -16,9 +16,9 @@ import (
 
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
@@ -31,27 +31,21 @@ var _ porttypes.IBCModule = &IBCModule{}
 
 type IBCModule struct {
 	porttypes.IBCModule
-	rollappK RolKeeper
-	dackK    DackKeeper
+	dackK DackKeeper
 }
 
 func NewIBCModule(
 	next porttypes.IBCModule,
-	rollappKeeper RolKeeper,
 	dackKeeper DackKeeper,
 ) IBCModule {
 	return IBCModule{
 		IBCModule: next,
-		rollappK:  rollappKeeper,
 		dackK:     dackKeeper,
 	}
 }
 
-type RolKeeper interface {
-	GetValidTransfer(ctx sdk.Context, data []byte, destPort string, destChannel string) (rollapptypes.TransferData, error)
-}
-
 type DackKeeper interface {
+	GetValidTransferWithFinalizationInfo(ctx sdk.Context, packet channeltypes.Packet, packetType commontypes.RollappPacket_Type) (dacktypes.TransferDataWithFinalization, error)
 	ValidateCompletionHook(info commontypes.CompletionHookCall) error
 	RunCompletionHook(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error
 }
@@ -77,7 +71,7 @@ func (m IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	l := m.logger(ctx, packet, "OnRecvPacket")
-	transfer, err := m.rollappK.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+	transfer, err := m.dackK.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
 		err = errorsmod.Wrapf(err, "%s: get valid transfer", ModuleName)
