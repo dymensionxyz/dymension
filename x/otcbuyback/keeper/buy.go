@@ -154,14 +154,28 @@ func (k Keeper) BuyExactSpend(
 	return tokensToPurchase, nil
 }
 
-// FIXME: review
-// GetCurrentPrice returns the current price for an active auction (STUB)
+// GetCurrentPrice returns the current price for an active auction
 func (k Keeper) GetCurrentPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time) (math.LegacyDec, error) {
-	// TODO: Implement price calculation logic with AMM integration
 
-	// GetCurrentPrice calculates the current price per token
+	auction, found := k.GetAuction(ctx, auctionID)
+	if !found {
+		return math.LegacyZeroDec(), types.ErrAuctionNotFound
+	}
+	baseDenom := auction.Allocation.Denom
+
+	// FIXME: Get pool ID for quote denom
+	var poolID uint64
+
+	// Get base price
+	// FIXME: wrap with TWAP logic
+	base_price, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, baseDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), err
+	}
+
+	discount := auction.GetCurrentDiscount(currentTime)
+
 	// Price = AMM Price × (1 - Current Discount%)
-	discount := a.GetCurrentDiscount(currentTime)
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
-	return ammPrice.Mul(discountMultiplier), nil
+	return base_price.Mul(discountMultiplier), nil
 }

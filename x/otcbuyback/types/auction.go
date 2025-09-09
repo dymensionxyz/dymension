@@ -77,7 +77,6 @@ func (a Auction) ValidateBasic() error {
 	return nil
 }
 
-// FIXME: review
 // GetCurrentDiscount calculates the current discount percentage based on time elapsed
 func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
 	// If auction hasn't started, return initial discount

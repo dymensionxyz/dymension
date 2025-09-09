@@ -38,12 +38,6 @@ type BankKeeper interface {
 }
 
 // AMMKeeper defines the expected interface for AMM price fetching.
-// This could be a DEX module or external price oracle integration.
 type AMMKeeper interface {
-	// GetPrice returns the current price of a token in terms of another token
-	// For example, GetPrice("DYM", "USDC") returns DYM price in USDC
-	GetPrice(ctx sdk.Context, baseDenom, quoteDenom string) (math.LegacyDec, error)
-
-	// GetSpotPrice returns spot price for immediate trades
-	GetSpotPrice(ctx sdk.Context, poolID uint64, baseDenom, quoteDenom string) (math.LegacyDec, error)
+	CalculateSpotPrice(ctx sdk.Context, poolID uint64, quoteAssetDenom, baseAssetDenom string) (spotPrice math.LegacyDec, err error)
 }
