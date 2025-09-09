@@ -10,11 +10,8 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 // GenesisState defines the otcbuyback module's genesis state.
 message GenesisState {
   // params defines all the parameters of the module.
-  Params params = 1 [(gogoproto.nullable) = false];
-  
-  // auctions contains all the auctions stored in state
-  repeated Auction auctions = 2 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 
-  // next_auction_id is the next available auction ID
-  uint64 next_auction_id = 3;
+  // auctions contains all the auctions stored in state
+  repeated Auction auctions = 2 [ (gogoproto.nullable) = false ];
 }
