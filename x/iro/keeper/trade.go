@@ -62,7 +62,7 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 }
 
 // Buy buys fixed amount of allocation with price according to the price curve
-func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountTokensToBuy, maxCostAmt math.Int) error {
+func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountTokensToBuy, maxCostAmt math.Int) (math.Int, error) {
 	plan, err := k.GetTradeableIRO(ctx, planId, buyer)
 	if err != nil {
 		return err
