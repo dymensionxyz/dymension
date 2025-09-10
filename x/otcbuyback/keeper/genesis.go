@@ -50,7 +50,18 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	genesis := &types.GenesisState{}
 
 	// Export parameters
-	genesis.Params = k.MustGetParams(ctx)
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.Params = params
+
+	// Export all accepted tokens
+	acceptedTokens, err := k.GetAllAcceptedTokens(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.AcceptedTokens = acceptedTokens
 
 	// Export all auctions
 	auctions, err := k.GetAllAuctions(ctx)

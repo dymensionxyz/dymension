@@ -96,3 +96,10 @@ message VestingPlan {
   google.protobuf.Timestamp end_time = 4
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
+
+
+// AcceptedToken defines an accepted token for auctions
+message AcceptedToken {
+  string token = 1;
+  uint64 pool_id = 2;
+}

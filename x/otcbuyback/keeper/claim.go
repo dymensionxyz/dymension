@@ -19,7 +19,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	}
 
 	// Only allow claiming from completed auctions
-	if !auction.IsCompleted(ctx.BlockTime()) {
+	if !auction.IsCompleted() {
 		return math.ZeroInt(), errorsmod.Wrap(gerrc.ErrFailedPrecondition, "auction must be completed to claim tokens")
 	}
 

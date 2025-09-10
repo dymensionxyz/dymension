@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/collections"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,7 +12,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type (
@@ -37,8 +35,8 @@ type (
 		purchases     collections.Map[collections.Pair[uint64, string], types.VestingPlan] // [auctionID, buyer] -> VestingPlan
 		params        collections.Item[types.Params]
 
-		// FIXME: refactor params to this collection, together with the TWAP logic
-		// acceptedTokens collections.Map[string, uint64] // [denom] -> poolID
+		// acceptedTokens stores accepted tokens and their pool IDs
+		acceptedTokens collections.Map[string, uint64] // [denom] -> poolID
 	}
 )
 
@@ -91,6 +89,13 @@ func NewKeeper(
 			types.ParamsKey,
 			"params",
 			collcompat.ProtoValue[types.Params](cdc),
+		),
+		acceptedTokens: collections.NewMap(
+			sb,
+			types.AcceptedTokensKeyPrefix,
+			"accepted_tokens",
+			collections.StringKey,
+			collections.Uint64Value,
 		),
 	}
 }
@@ -158,20 +163,51 @@ func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer string) (ty
 	return purchase, true
 }
 
-// func (k Keeper) SetAcceptedToken(ctx sdk.Context, token string, poolID uint64) error {
-// 	return k.acceptedTokens.Set(ctx, token, poolID)
-// }
-
-func (k Keeper) GetAcceptedTokenPoolID(ctx sdk.Context, token string) (uint64, error) {
-	for _, t := range k.MustGetParams(ctx).AcceptedTokens {
-		if t.Token == token {
-			return t.PoolId, nil
-		}
-	}
-	return 0, errorsmod.Wrap(gerrc.ErrInvalidArgument, "token not registered")
-	// return k.acceptedTokens.Get(ctx, token)
+// SetAcceptedToken stores an accepted token and its pool ID
+func (k Keeper) SetAcceptedToken(ctx sdk.Context, token string, poolID uint64) error {
+	return k.acceptedTokens.Set(ctx, token, poolID)
 }
 
-// func (k Keeper) ClearAcceptedTokens(ctx sdk.Context) error {
-// 	return k.acceptedTokens.Clear(ctx, nil)
-// }
+// GetAcceptedTokenPoolID retrieves the pool ID for a given token
+func (k Keeper) GetAcceptedTokenPoolID(ctx sdk.Context, token string) (uint64, error) {
+	return k.acceptedTokens.Get(ctx, token)
+}
+
+func (k Keeper) IsAcceptedDenom(ctx sdk.Context, denom string) bool {
+	ok, _ := k.acceptedTokens.Has(ctx, denom)
+	return ok
+}
+
+// GetAllAcceptedTokens retrieves all accepted tokens
+func (k Keeper) GetAllAcceptedTokens(ctx sdk.Context) ([]types.AcceptedToken, error) {
+	var acceptedTokens []types.AcceptedToken
+	err := k.acceptedTokens.Walk(ctx, nil, func(token string, poolID uint64) (bool, error) {
+		acceptedTokens = append(acceptedTokens, types.AcceptedToken{
+			Token:  token,
+			PoolId: poolID,
+		})
+		return false, nil
+	})
+	return acceptedTokens, err
+}
+
+// SetAcceptedTokens replaces all accepted tokens with the provided list
+func (k Keeper) SetAcceptedTokens(ctx sdk.Context, tokens []types.AcceptedToken) error {
+	// Clear existing tokens
+	if err := k.acceptedTokens.Clear(ctx, nil); err != nil {
+		return err
+	}
+
+	// Set new tokens
+	for _, token := range tokens {
+		if err := k.acceptedTokens.Set(ctx, token.Token, token.PoolId); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ClearAcceptedTokens removes all accepted tokens
+func (k Keeper) ClearAcceptedTokens(ctx sdk.Context) error {
+	return k.acceptedTokens.Clear(ctx, nil)
+}

@@ -26,4 +26,7 @@ var (
 
 	// ParamsKey is the key for module parameters
 	ParamsKey = []byte{0x04}
+
+	// AcceptedTokensKeyPrefix is the prefix for accepted tokens keys
+	AcceptedTokensKeyPrefix = []byte{0x05}
 )

@@ -12,6 +12,9 @@ message GenesisState {
   // params defines all the parameters of the module.
   Params params = 1 [ (gogoproto.nullable) = false ];
 
+  // accepted_tokens contains all the accepted tokens stored in state
+  repeated AcceptedToken accepted_tokens = 2 [ (gogoproto.nullable) = false ];
+
   // auctions contains all the auctions stored in state
-  repeated Auction auctions = 2 [ (gogoproto.nullable) = false ];
+  repeated Auction auctions = 3 [ (gogoproto.nullable) = false ];
 }

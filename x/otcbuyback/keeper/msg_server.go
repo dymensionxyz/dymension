@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,6 +35,36 @@ func (ms msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdatePara
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+// SetAcceptedTokens allows authority to set/update accepted tokens for auctions
+func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAcceptedTokens) (*types.MsgSetAcceptedTokensResponse, error) {
+	if ms.GetAuthority() != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.GetAuthority(), req.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	for _, token := range req.AcceptedTokens {
+		denoms, err := ms.Keeper.ammKeeper.GetPoolDenoms(ctx, token.PoolId)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(denoms) != 2 {
+			return nil, fmt.Errorf("pool must have two denoms")
+		}
+		if (denoms[0] != ms.Keeper.baseDenom && denoms[1] != token.Token) ||
+			(denoms[1] != ms.Keeper.baseDenom && denoms[0] != token.Token) {
+			return nil, fmt.Errorf("pool must have the token denom and the base denom, got %s and %s", denoms[0], denoms[1])
+		}
+	}
+
+	if err := ms.Keeper.SetAcceptedTokens(ctx, req.AcceptedTokens); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSetAcceptedTokensResponse{}, nil
 }
 
 // Buy handles token purchase requests
