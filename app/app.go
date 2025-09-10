@@ -206,8 +206,8 @@ func New(
 	app.mm.SetOrderInitGenesis(InitGenesis...)
 	app.mm.SetOrderExportGenesis(InitGenesis...)
 
-	// Uncomment if you want to set a custom migration order here.
-	// app.mm.SetOrderMigrations(custom order)
+	// Set a custom migration order here.
+	app.mm.SetOrderMigrations(CustomMigrationOrder(app.mm.ModuleNames())...)
 
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 

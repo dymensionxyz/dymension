@@ -11,7 +11,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/iro/types"
 )
 
-const FlagNonSettledOnly = "non-settled"
+const (
+	FlagNonSettledOnly     = "non-settled"
+	FlagNonGraduatedOnly   = "non-graduated"
+	FlagStandardLaunchOnly = "standard-launch"
+)
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
@@ -40,7 +44,33 @@ func CmdQueryPlans() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plans",
 		Short: "Query all IRO plans",
-		Args:  cobra.NoArgs,
+		Long: `Query all Initial RollApp Offering (IRO) plans with optional filtering.
+
+This command allows you to retrieve all IRO plans in the system with various filtering options:
+- Filter by settlement status (settled vs non-settled)
+- Filter by graduation status (graduated vs non-graduated) 
+- Filter by launch type (standard launched vs regular)
+
+Plans are paginated for efficient querying of large datasets.`,
+		Example: `
+  # Query all IRO plans
+  dymd query iro plans
+
+  # Query only non-settled plans
+  dymd query iro plans --non-settled
+
+  # Query only non-graduated plans  
+  dymd query iro plans --non-graduated
+
+  # Query only standard launched plans
+  dymd query iro plans --standard-launch
+
+  # Combine filters (non-settled AND standard launched plans)
+  dymd query iro plans --non-settled --standard-launch
+
+  # Query with pagination
+  dymd query iro plans --limit 10 --offset 20`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -48,7 +78,17 @@ func CmdQueryPlans() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
+			standardLaunchOnly, err := cmd.Flags().GetBool(FlagStandardLaunchOnly)
+			if err != nil {
+				return err
+			}
+
 			nonSettledOnly, err := cmd.Flags().GetBool(FlagNonSettledOnly)
+			if err != nil {
+				return err
+			}
+
+			nonGraduatedOnly, err := cmd.Flags().GetBool(FlagNonGraduatedOnly)
 			if err != nil {
 				return err
 			}
@@ -59,8 +99,10 @@ func CmdQueryPlans() *cobra.Command {
 			}
 
 			res, err := queryClient.QueryPlans(cmd.Context(), &types.QueryPlansRequest{
-				NonSettledOnly: nonSettledOnly,
-				Pagination:     pageReq,
+				NonSettledOnly:     nonSettledOnly,
+				NonGraduatedOnly:   nonGraduatedOnly,
+				StandardLaunchOnly: standardLaunchOnly,
+				Pagination:         pageReq,
 			})
 			if err != nil {
 				return err
@@ -73,6 +115,8 @@ func CmdQueryPlans() *cobra.Command {
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	cmd.Flags().BoolP(FlagNonSettledOnly, "s", false, "Query only unsettled IRO plans")
+	cmd.Flags().BoolP(FlagNonGraduatedOnly, "g", false, "Query only non-graduated IRO plans")
+	cmd.Flags().BoolP(FlagStandardLaunchOnly, "f", false, "Query only standard launched IRO plans")
 	return cmd
 }
 

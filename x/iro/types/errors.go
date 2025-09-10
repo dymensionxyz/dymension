@@ -12,7 +12,7 @@ var (
 	ErrRollappTokenSymbolNotSet     = errorsmod.Register(ModuleName, 1102, "rollapp token symbol not set")
 	ErrRollappSealed                = errorsmod.Register(ModuleName, 1103, "rollapp is sealed")
 	ErrPlanExists                   = errorsmod.Register(ModuleName, 1104, "plan already exists")
-	ErrInvalidEndTime               = errorsmod.Register(ModuleName, 1105, "invalid end time")
+	ErrInvalidDuration              = errorsmod.Register(ModuleName, 1105, "invalid duration")
 	ErrPlanSettled                  = errorsmod.Register(ModuleName, 1106, "plan is settled")
 	ErrPlanNotStarted               = errorsmod.Register(ModuleName, 1107, "plan has not started")
 	ErrPlanNotFound                 = errorsmod.Register(ModuleName, 1108, "plan not found")

@@ -50,6 +50,11 @@ func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.
 	return plan
 }
 
+// GetID returns the ID of the plan as a string
+func (p Plan) GetID() string {
+	return fmt.Sprintf("%d", p.Id)
+}
+
 // ValidateBasic checks if the plan is valid
 func (p Plan) ValidateBasic() error {
 	if err := p.BondingCurve.ValidateBasic(); err != nil {
@@ -60,8 +65,8 @@ func (p Plan) ValidateBasic() error {
 	if !allocationDec.GT(MinTokenAllocation) {
 		return ErrInvalidAllocation
 	}
-	if p.PreLaunchTime.Before(p.StartTime) {
-		return ErrInvalidEndTime
+	if p.IroPlanDuration < 0 {
+		return ErrInvalidDuration
 	}
 	if p.ModuleAccAddress == "" {
 		return errors.New("module account address cannot be empty")
@@ -83,16 +88,18 @@ func (p Plan) ValidateBasic() error {
 		return errors.New("liquidity part must be between 0 and 1")
 	}
 
-	if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
-		return errors.Join(ErrInvalidIncentivePlanParams, err)
-	}
-
-	if err := p.VestingPlan.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "vesting plan")
-	}
-
 	if err := sdk.ValidateDenom(p.LiquidityDenom); err != nil {
 		return errorsmod.Wrap(err, "invalid liquidity denom")
+	}
+
+	if !p.StandardLaunch {
+		if err := p.VestingPlan.ValidateBasic(); err != nil {
+			return errorsmod.Wrap(err, "vesting plan")
+		}
+
+		if err := p.IncentivePlanParams.ValidateBasic(); err != nil {
+			return errors.Join(ErrInvalidIncentivePlanParams, err)
+		}
 	}
 
 	return nil
@@ -101,10 +108,6 @@ func (p Plan) ValidateBasic() error {
 // SpotPrice returns the spot price of the plan
 func (p Plan) SpotPrice() math.LegacyDec {
 	return p.BondingCurve.SpotPrice(p.SoldAmt)
-}
-
-func (p Plan) IsSettled() bool {
-	return p.SettledDenom != ""
 }
 
 func (p Plan) ModuleAccName() string {
@@ -126,7 +129,6 @@ func (p Plan) GetIRODenom() string {
 func (p *Plan) EnableTradingWithStartTime(startTime time.Time) {
 	p.TradingEnabled = true
 	p.StartTime = startTime
-	p.PreLaunchTime = startTime.Add(p.IroPlanDuration)
 }
 
 func DefaultIncentivePlanParams() IncentivePlanParams {

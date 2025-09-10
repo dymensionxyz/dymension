@@ -52,6 +52,28 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 	return rollappId
 }
 
+func (s *KeeperTestHelper) CreateStandardLaunchRollapp() string {
+	iroParams := s.App.IROKeeper.GetParams(s.Ctx)
+
+	rollappId := urand.RollappID()
+	s.CreateRollappByName(rollappId)
+
+	// make the rollapp have 100% IRO allocation
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	rollapp.GenesisInfo.InitialSupply = iroParams.StandardLaunch.AllocationAmount
+	rollapp.GenesisInfo.GenesisAccounts = &rollapptypes.GenesisAccounts{
+		Accounts: []rollapptypes.GenesisAccount{
+			{
+				Address: s.App.IROKeeper.GetModuleAccountAddress(),
+				Amount:  iroParams.StandardLaunch.AllocationAmount,
+			},
+		},
+	}
+	s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
+
+	return rollappId
+}
+
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          Alice,
