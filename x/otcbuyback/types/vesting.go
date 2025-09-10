@@ -30,11 +30,10 @@ func (v VestingPlan) GetRemainingVesting() math.Int {
 	return v.Amount.Sub(v.Claimed)
 }
 
-// FIXME: review
 // VestedAmount calculates the amount of tokens that have vested and are claimable
 // This uses the same linear vesting calculation as the IRO module
 func (v VestingPlan) VestedAmount(currTime time.Time) math.Int {
-	unclaimed := v.Amount.Sub(v.Claimed)
+	unclaimed := v.GetRemainingVesting()
 
 	// no tokens to claim
 	if !unclaimed.IsPositive() {
@@ -65,22 +64,4 @@ func (v VestingPlan) VestedAmount(currTime time.Time) math.Int {
 	}
 
 	return claimable
-}
-
-// IsFullyVested returns true if all tokens have been vested (STUB)
-func (v VestingPlan) IsFullyVested(currTime time.Time) bool {
-	// TODO: Implement vesting logic with auction end time context
-	return false
-}
-
-// IsVestingStarted returns true if vesting has started (STUB)
-func (v VestingPlan) IsVestingStarted(currTime time.Time) bool {
-	// TODO: Implement vesting logic with auction end time context
-	return false
-}
-
-// GetVestingProgress returns the vesting progress as a decimal between 0 and 1 (STUB)
-func (v VestingPlan) GetVestingProgress(currTime time.Time) math.LegacyDec {
-	// TODO: Implement vesting progress calculation
-	return math.LegacyZeroDec()
 }
