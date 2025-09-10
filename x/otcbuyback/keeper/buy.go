@@ -168,16 +168,21 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, auctionID uint64, quoteDenom st
 		return math.LegacyZeroDec(), err
 	}
 
-	// Get base price
-	// FIXME: wrap with TWAP logic
-	base_price, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
+	// Get base price (max(curr_price, average_price))
+	// we take the max, to avoid double discount in case the price is peaking
+	curr_price, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
+	twap_price, err := k.GetTWAPPrice(ctx, quoteDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), err
+	}
+	base_price := math.LegacyMaxDec(curr_price, twap_price)
 
 	discount := auction.GetCurrentDiscount(currentTime)
+	discountMultiplier := math.LegacyOneDec().Sub(discount)
 
 	// Price = AMM Price × (1 - Current Discount%)
-	discountMultiplier := math.LegacyOneDec().Sub(discount)
 	return base_price.Mul(discountMultiplier), nil
 }

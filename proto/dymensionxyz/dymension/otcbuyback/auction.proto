@@ -109,9 +109,24 @@ message PumpParams {
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }
 
+// TokenData defines data for an accepted token
+message TokenData {
+  uint64 pool_id = 1;
+  string last_average_price = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+}
 
 // AcceptedToken defines an accepted token for auctions
 message AcceptedToken {
-  string token = 1;
-  uint64 pool_id = 2;
-}
+    string denom = 1;
+    TokenData token_data = 2 [ (gogoproto.nullable) = false ];
+  }
+
+  message UserVesting{
+    string buyer = 1;
+    VestingPlan purchase = 2 [ (gogoproto.nullable) = false ];
+  }
+  

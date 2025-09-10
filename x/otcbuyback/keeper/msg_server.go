@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -45,6 +46,7 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	var acceptedTokens []types.AcceptedToken
 	for _, token := range req.AcceptedTokens {
 		denoms, err := ms.Keeper.ammKeeper.GetPoolDenoms(ctx, token.PoolId)
 		if err != nil {
@@ -54,13 +56,21 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 		if len(denoms) != 2 {
 			return nil, fmt.Errorf("pool must have two denoms")
 		}
-		if (denoms[0] != ms.Keeper.baseDenom && denoms[1] != token.Token) ||
-			(denoms[1] != ms.Keeper.baseDenom && denoms[0] != token.Token) {
+		if (denoms[0] != ms.Keeper.baseDenom && denoms[1] != token.Denom) ||
+			(denoms[1] != ms.Keeper.baseDenom && denoms[0] != token.Denom) {
 			return nil, fmt.Errorf("pool must have the token denom and the base denom, got %s and %s", denoms[0], denoms[1])
 		}
+
+		acceptedTokens = append(acceptedTokens, types.AcceptedToken{
+			Denom: token.Denom,
+			TokenData: types.TokenData{
+				PoolId:           token.PoolId,
+				LastAveragePrice: math.LegacyZeroDec(),
+			},
+		})
 	}
 
-	if err := ms.Keeper.SetAcceptedTokens(ctx, req.AcceptedTokens); err != nil {
+	if err := ms.Keeper.SetAcceptedTokens(ctx, acceptedTokens); err != nil {
 		return nil, err
 	}
 

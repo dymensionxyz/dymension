@@ -3,7 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
@@ -41,17 +43,59 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 	}
 
 	// Update the TWAPs for all accepted tokens
-	err = k.UpdateTWAPs(ctx)
-	if err != nil {
-		k.Logger(ctx).Error("failed to update TWAPs", "error", err)
-		// FIXME: maybe we should halt the the auction in this case??
-	}
+	k.UpdateTWAPs(ctx)
 
 	return nil
 }
 
 // UpdateTWAPs updates the TWAPs for all accepted tokens
-func (k Keeper) UpdateTWAPs(ctx sdk.Context) error {
-	// FIXME: TODO
+func (k Keeper) UpdateTWAPs(ctx sdk.Context) {
+	var denoms []string
+
+	// Collect keys first
+	err := k.acceptedTokens.Walk(ctx, nil, func(denom string, _ types.TokenData) (bool, error) {
+		denoms = append(denoms, denom)
+		return false, nil
+	})
+	if err != nil {
+		k.Logger(ctx).Error("failed to collect denoms", "error", err)
+		return
+	}
+
+	for _, denom := range denoms {
+		//ApplyFuncIfNoError
+		err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			return k.UpdateTWAP(ctx, denom)
+		})
+		if err != nil {
+			k.Logger(ctx).Error("failed to update TWAPs", "error", err)
+			// FIXME: maybe we should halt the the auction in this case??
+		}
+	}
+}
+
+func (k Keeper) UpdateTWAP(ctx sdk.Context, denom string) error {
+	tokenData, err := k.GetAcceptedTokenData(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	// get current price from amm
+	price, err := k.ammKeeper.CalculateSpotPrice(ctx, tokenData.PoolId, denom, k.baseDenom)
+	if err != nil {
+		return err
+	}
+
+	// EMA formula: new_avg = alpha * current_price + (1 - alpha) * old_avg
+	alpha := k.MustGetParams(ctx).MovingAverageSmoothingFactor
+	oneMinusAlpha := math.LegacyOneDec().Sub(alpha)
+	newAverage := alpha.Mul(price).Add(oneMinusAlpha.Mul(tokenData.LastAveragePrice))
+
+	tokenData.LastAveragePrice = newAverage
+	err = k.SetAcceptedToken(ctx, denom, tokenData)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
