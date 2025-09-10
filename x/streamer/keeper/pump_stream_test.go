@@ -6,12 +6,15 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/utils/rand"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 )
 
 type pumpTestCase struct {
@@ -635,6 +638,8 @@ func (s *KeeperTestSuite) TestExecutePump() {
 		pumpAmt        math.Int
 		initialBuyAmt  math.Int
 		planAllocation math.Int
+		preGraduated   bool
+		graduated      bool
 		settled        bool
 	}{
 		{
@@ -642,24 +647,29 @@ func (s *KeeperTestSuite) TestExecutePump() {
 			pumpAmt:        commontypes.DYM.MulRaw(10),
 			initialBuyAmt:  math.ZeroInt(),
 			planAllocation: commontypes.DYM.MulRaw(100),
+			preGraduated:   true,
 		},
 		{
 			name:           "pre-graduation buy - don't hit graduation",
 			pumpAmt:        commontypes.DYM.MulRaw(10),
 			initialBuyAmt:  commontypes.DYM.MulRaw(30),
 			planAllocation: commontypes.DYM.MulRaw(100),
+			preGraduated:   true,
 		},
 		{
 			name:           "pre-graduation buy - triggers graduation",
 			pumpAmt:        commontypes.DYM.MulRaw(50), // large pumpAmt to trigger graduation
 			initialBuyAmt:  commontypes.DYM.MulRaw(70),
 			planAllocation: commontypes.DYM.MulRaw(100),
+			preGraduated:   true,
+			graduated:      true,
 		},
 		{
 			name:           "graduated buy - AMM swap",
 			pumpAmt:        commontypes.DYM.MulRaw(10),
 			initialBuyAmt:  commontypes.DYM.MulRaw(100), // buy the whole IRO to graduate it
 			planAllocation: commontypes.DYM.MulRaw(100),
+			graduated:      true,
 		},
 		{
 			name:           "settled buy - AMM swap to rollapp token",
@@ -682,6 +692,11 @@ func (s *KeeperTestSuite) TestExecutePump() {
 				s.SettleIRO(rollappID, reserved)
 			}
 
+			initialStreamerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName))
+
+			// Reset event manager
+			s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
+
 			tokenOut, err := s.App.StreamerKeeper.ExecutePump(
 				s.Ctx,
 				tc.pumpAmt,
@@ -690,9 +705,37 @@ func (s *KeeperTestSuite) TestExecutePump() {
 			)
 			s.Require().NoError(err)
 
-			s.T().Log("Token out", tokenOut.String())
+			actualStreamerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName))
+			expectedStreamerBalance := initialStreamerBalance.Add(tokenOut).Sub(sdk.NewCoin(sdk.DefaultBondDenom, tc.pumpAmt))
+			s.Require().Equal(expectedStreamerBalance, actualStreamerBalance, "expected %s, got %s", expectedStreamerBalance, actualStreamerBalance)
 
-			// TODO: better tests!
+			plan := s.App.IROKeeper.MustGetPlan(s.Ctx, planID)
+
+			switch {
+			case tc.preGraduated && tc.graduated:
+				s.Require().True(plan.IsGraduated())
+				s.AssertEventEmitted(s.Ctx, proto.MessageName(new(irotypes.EventBuy)), 1)
+				s.AssertEventEmitted(s.Ctx, gammtypes.TypeEvtTokenSwapped, 1)
+				s.AssertEventEmitted(s.Ctx, proto.MessageName(new(irotypes.EventGraduation)), 1)
+
+			case tc.preGraduated:
+				s.Require().True(plan.PreGraduation())
+				s.AssertEventEmitted(s.Ctx, proto.MessageName(new(irotypes.EventBuy)), 1)
+				s.AssertEventNotEmitted(s.Ctx, gammtypes.TypeEvtTokenSwapped)
+				s.AssertEventNotEmitted(s.Ctx, proto.MessageName(new(irotypes.EventGraduation)))
+
+			case tc.graduated:
+				s.Require().True(plan.IsGraduated())
+				s.AssertEventNotEmitted(s.Ctx, proto.MessageName(new(irotypes.EventBuy)))
+				s.AssertEventEmitted(s.Ctx, gammtypes.TypeEvtTokenSwapped, 1)
+				s.AssertEventNotEmitted(s.Ctx, proto.MessageName(new(irotypes.EventGraduation)))
+
+			case tc.settled:
+				s.Require().True(plan.IsSettled())
+				s.AssertEventNotEmitted(s.Ctx, proto.MessageName(new(irotypes.EventBuy)))
+				s.AssertEventEmitted(s.Ctx, gammtypes.TypeEvtTokenSwapped, 1)
+				s.AssertEventNotEmitted(s.Ctx, proto.MessageName(new(irotypes.EventGraduation)))
+			}
 		})
 	}
 }
