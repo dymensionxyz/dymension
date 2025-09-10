@@ -409,7 +409,7 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// UpdateParams is used for updating module params.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
-	// FinalizePacket finalizes a singe packet.
+	// FinalizePacket finalizes a single packet.
 	FinalizePacket(ctx context.Context, in *MsgFinalizePacket, opts ...grpc.CallOption) (*MsgFinalizePacketResponse, error)
 	FinalizePacketByPacketKey(ctx context.Context, in *MsgFinalizePacketByPacketKey, opts ...grpc.CallOption) (*MsgFinalizePacketByPacketKeyResponse, error)
 }
@@ -453,7 +453,7 @@ func (c *msgClient) FinalizePacketByPacketKey(ctx context.Context, in *MsgFinali
 type MsgServer interface {
 	// UpdateParams is used for updating module params.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
-	// FinalizePacket finalizes a singe packet.
+	// FinalizePacket finalizes a single packet.
 	FinalizePacket(context.Context, *MsgFinalizePacket) (*MsgFinalizePacketResponse, error)
 	FinalizePacketByPacketKey(context.Context, *MsgFinalizePacketByPacketKey) (*MsgFinalizePacketByPacketKeyResponse, error)
 }
