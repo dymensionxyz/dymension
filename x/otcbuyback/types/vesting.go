@@ -1,27 +1,33 @@
 package types
 
 import (
-	"errors"
 	"time"
 
 	"cosmossdk.io/math"
 )
 
-// ValidateBasic performs basic validation on the user vesting plan
-func (v VestingPlan) ValidateBasic() error {
-	if !v.Amount.IsPositive() {
-		return errors.New("vesting amount must be positive")
+// NewVestingPlan creates a new user vesting plan
+func NewVestingPlan(
+	amount math.Int,
+	startTime time.Time,
+	endTime time.Time,
+) VestingPlan {
+	return VestingPlan{
+		Amount:    amount,
+		Claimed:   math.ZeroInt(),
+		StartTime: startTime,
+		EndTime:   endTime,
 	}
+}
 
-	if v.Amount.LT(v.Claimed) {
-		return errors.New("amount cannot be less than claimed")
-	}
+// ClaimTokens updates the vesting plan after a successful claim
+func (v *VestingPlan) ClaimTokens(amount math.Int) {
+	v.Claimed = v.Claimed.Add(amount)
+}
 
-	if !v.StartTime.IsZero() && !v.EndTime.IsZero() && v.StartTime.After(v.EndTime) {
-		return errors.New("start time cannot be after end time")
-	}
-
-	return nil
+// GetRemainingVesting returns the amount still vesting (not yet claimed)
+func (v VestingPlan) GetRemainingVesting() math.Int {
+	return v.Amount.Sub(v.Claimed)
 }
 
 // FIXME: review
@@ -77,41 +83,4 @@ func (v VestingPlan) IsVestingStarted(currTime time.Time) bool {
 func (v VestingPlan) GetVestingProgress(currTime time.Time) math.LegacyDec {
 	// TODO: Implement vesting progress calculation
 	return math.LegacyZeroDec()
-}
-
-// NewVestingPlan creates a new user vesting plan
-func NewVestingPlan(
-	amount math.Int,
-	startTime time.Time,
-	endTime time.Time,
-) VestingPlan {
-	return VestingPlan{
-		Amount:    amount,
-		Claimed:   math.ZeroInt(),
-		StartTime: startTime,
-		EndTime:   endTime,
-	}
-}
-
-// ClaimTokens updates the vesting plan after a successful claim
-func (v *VestingPlan) ClaimTokens(amount math.Int) {
-	v.Claimed = v.Claimed.Add(amount)
-}
-
-// GetRemainingVesting returns the amount still vesting (not yet claimed)
-func (v VestingPlan) GetRemainingVesting() math.Int {
-	return v.Amount.Sub(v.Claimed)
-}
-
-// ValidateBasic performs basic validation on the user vesting plan
-func (v VestingPlan) ValidateBasic() error {
-	if v.VestingDuration <= 0 {
-		return errors.New("vesting duration must be positive")
-	}
-
-	if v.StartTime < 0 {
-		return errors.New("start time cannot be negative")
-	}
-
-	return nil
 }

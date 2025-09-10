@@ -3,7 +3,9 @@ package types
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type AuctionStatus string
@@ -65,11 +67,11 @@ func (a Auction) ValidateBasic() error {
 	}
 
 	if a.VestingParams.VestingPeriod <= 0 {
-		return ErrVestingParam
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting duration must be positive")
 	}
 
-	if a.VestingParams.VestingStartAfterAuctionEnd <= 0 {
-		return ErrVestingParam
+	if a.VestingParams.VestingStartAfterAuctionEnd < 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting start time cannot be negative")
 	}
 
 	return nil

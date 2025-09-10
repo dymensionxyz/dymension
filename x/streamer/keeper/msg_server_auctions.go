@@ -65,8 +65,10 @@ func (s msgServer) TerminateAuction(goCtx context.Context, msg *types.MsgTermina
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	// FIXME: Terminate the auction
-	_ = ctx
+	err := s.Keeper.otck.EndAuction(ctx, msg.AuctionId, "auction_terminated")
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.MsgTerminateAuctionResponse{}, nil
 }

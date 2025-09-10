@@ -96,4 +96,5 @@ type OtcbuybackKeeper interface {
 		maxDiscount math.LegacyDec,
 		vestingPlan otctypes.Auction_VestingParams,
 	) (uint64, error)
+	EndAuction(ctx sdk.Context, auctionID uint64, reason string) error
 }

@@ -70,15 +70,8 @@ message EventAuctionCompleted {
   repeated cosmos.base.v1beta1.Coin total_raised = 3
       [ (gogoproto.nullable) = false ];
 
-  // Final sale price per token
-  string final_price = 4 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false
-  ];
-
   // Reason for completion (sold_out, time_expired, etc.)
-  string completion_reason = 5;
+  string completion_reason = 4;
 }
 
 // EventTokensClaimed is emitted when a user claims vested tokens

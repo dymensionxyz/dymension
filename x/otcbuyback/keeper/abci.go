@@ -27,6 +27,7 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 				"allocation", auction.Allocation)
 
 			// Process the completed auction
+			// FIXME: wrap in cacheCtx
 			err := k.EndAuction(ctx, auction.Id, "auction_completed")
 			if err != nil {
 				// Log error but don't halt the chain

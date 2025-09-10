@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -78,59 +79,55 @@ func (k Keeper) CreateAuction(
 
 // EndAuction marks an auction as completed and processes the proceeds
 func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) error {
+	auction, found := k.GetAuction(ctx, auctionID)
+	if !found {
+		return types.ErrAuctionNotFound
+	}
 
-	// FIXME: do we want to update the vesting start and end times?
+	// Check if auction is not already completed
+	if auction.IsCompleted() {
+		return types.ErrAuctionCompleted
+	}
 
-	// FIXME: what to do with remaining unsold funds?
-
-	/* FIXME: Implement */
-	/*
-		auction, found := k.GetAuction(ctx, auctionID)
-		if !found {
-			return types.ErrAuctionNotFound
-		}
-
-		if auction.IsCompleted(ctx.BlockTime()) || auction.IsCancelled() {
-			return types.ErrAuctionCompleted
-		}
-
-		// Update auction status
-		auction.Status = types.AUCTION_STATUS_COMPLETED
-		k.SetAuction(ctx, auction)
-
-		// Process proceeds - convert raised funds to DYM and send to treasury
-		err := k.processAuctionProceeds(ctx, auction)
+	// Process any remaining allocation - return to treasury
+	remainingAllocation := auction.GetRemainingAllocation()
+	if remainingAllocation.IsPositive() {
+		err := k.bankKeeper.SendCoinsFromModuleToModule(
+			ctx,
+			types.ModuleName,
+			streamertypes.ModuleName,
+			sdk.NewCoins(sdk.NewCoin(k.baseDenom, remainingAllocation)),
+		)
 		if err != nil {
-			return errorsmod.Wrap(types.ErrTreasuryOperation, err.Error())
+			return errorsmod.Wrap(err, "failed to send remaining allocation to treasury")
 		}
+	}
 
-		// Set up vesting for all purchases
-		err = k.setupVestingForAuction(ctx, auction)
-		if err != nil {
-			return errorsmod.Wrap(err, "failed to setup vesting")
-		}
+	// Set the auction as completed
+	auction.Completed = true
 
-		// Calculate final price
-		var finalPrice math.LegacyDec
-		if auction.SoldAmount.IsPositive() {
-			// Get the average price from all purchases
-			finalPrice = k.calculateAveragePurchasePrice(ctx, auctionID)
-		}
+	err := k.SetAuction(ctx, auction)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to set auction")
+	}
 
-		// Emit completion event
-		err = uevent.EmitTypedEvent(ctx, &types.EventAuctionCompleted{
-			AuctionId:        auctionID,
-			TotalSold:        auction.SoldAmount,
-			TotalRaised:      auction.RaisedAmount,
-			FinalPrice:       finalPrice,
-			CompletionReason: reason,
-		})
-		if err != nil {
-			return errorsmod.Wrap(err, "failed to emit auction completed event")
-		}
+	// If ended prematurely, we need to update the vesting start and end times
+	if ctx.BlockTime().Before(auction.GetEndTime()) {
+		// FIXME: IMPLEMENT. can we iterate over the collection and update inplace?
+	}
 
-		k.Logger().Info("auction ended", "auction_id", auctionID, "reason", reason, "total_sold", auction.SoldAmount)
+	// FIXME: create pump streams
 
-	*/
+	// Emit completion event
+	err = uevent.EmitTypedEvent(ctx, &types.EventAuctionCompleted{
+		AuctionId:        auctionID,
+		TotalSold:        auction.SoldAmount,
+		TotalRaised:      auction.RaisedAmount,
+		CompletionReason: reason,
+	})
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to emit auction completed event")
+	}
+
 	return nil
 }
