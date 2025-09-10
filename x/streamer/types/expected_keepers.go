@@ -62,7 +62,21 @@ type MintParamsGetter interface {
 
 type IROKeeper interface {
 	GetPlanByRollapp(ctx sdk.Context, rollappId string) (irotypes.Plan, bool)
-	BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) (math.Int, error)
+	MustGetPlan(ctx sdk.Context, planId string) irotypes.Plan
+	GetParams(ctx sdk.Context) (params irotypes.Params)
+	ApplyTakerFee(amount math.Int, takerFee math.LegacyDec, isAdd bool) (totalAmt, takerFeeAmt math.Int, err error)
+	BuyExactSpend(
+		ctx sdk.Context,
+		planId string,
+		buyer sdk.AccAddress,
+		amountToSpend, minTokensAmt math.Int,
+	) (tokenOut math.Int, err error)
+	Buy(
+		ctx sdk.Context,
+		planId string,
+		buyer sdk.AccAddress,
+		amountTokensToBuy, maxCostAmt math.Int,
+	) (tokenIn math.Int, err error)
 }
 
 type PoolManagerKeeper interface {

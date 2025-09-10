@@ -41,7 +41,7 @@ func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyRes
 		return nil, err
 	}
 
-	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
+	_, err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
 	if err != nil {
 		return nil, err
 	}
