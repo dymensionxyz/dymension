@@ -20,7 +20,7 @@ func NewAuction(
 	allocation math.Int,
 	startTime, endTime time.Time,
 	initialDiscount, maxDiscount math.LegacyDec,
-	vestingPlan Auction_VestingPlan,
+	vestingPlan Auction_VestingParams,
 ) Auction {
 
 	return Auction{
@@ -31,7 +31,7 @@ func NewAuction(
 		InitialDiscount: initialDiscount,
 		MaxDiscount:     maxDiscount,
 		SoldAmount:      math.ZeroInt(),
-		VestingPlan: Auction_VestingPlan{
+		VestingParams: Auction_VestingParams{
 			VestingPeriod:               vestingPlan.VestingPeriod,
 			VestingStartAfterAuctionEnd: vestingPlan.VestingStartAfterAuctionEnd,
 		},
@@ -64,11 +64,11 @@ func (a Auction) ValidateBasic() error {
 		return ErrInvalidDiscount
 	}
 
-	if a.VestingPlan.VestingPeriod <= 0 {
+	if a.VestingParams.VestingPeriod <= 0 {
 		return ErrVestingParam
 	}
 
-	if a.VestingPlan.VestingStartAfterAuctionEnd <= 0 {
+	if a.VestingParams.VestingStartAfterAuctionEnd <= 0 {
 		return ErrVestingParam
 	}
 
@@ -117,12 +117,12 @@ func (a Auction) GetRemainingAllocation() math.Int {
 
 // GetVestingStartTime returns the start time of the vesting period
 func (a Auction) GetVestingStartTime() time.Time {
-	return a.EndTime.Add(a.VestingPlan.VestingStartAfterAuctionEnd)
+	return a.EndTime.Add(a.VestingParams.VestingStartAfterAuctionEnd)
 }
 
 // GetVestingEndTime returns the end time of the vesting period
 func (a Auction) GetVestingEndTime() time.Time {
-	return a.GetVestingStartTime().Add(a.VestingPlan.VestingPeriod)
+	return a.GetVestingStartTime().Add(a.VestingParams.VestingPeriod)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -131,14 +131,13 @@ func (a Auction) GetVestingEndTime() time.Time {
 
 // GetStatus returns the current status of the auction based on time and state
 func (a Auction) GetStatus(currentTime time.Time) AuctionStatus {
+	if a.Completed {
+		return AUCTION_STATUS_COMPLETED
+	}
+
 	// Check if auction hasn't started yet
 	if currentTime.Before(a.StartTime) {
 		return AUCTION_STATUS_UPCOMING
-	}
-
-	// Check if auction has ended due to time
-	if currentTime.After(a.EndTime) || a.SoldAmount.GTE(a.Allocation) {
-		return AUCTION_STATUS_COMPLETED
 	}
 
 	// Auction is currently active
@@ -151,8 +150,8 @@ func (a Auction) IsActive(currentTime time.Time) bool {
 }
 
 // IsCompleted returns true if the auction has completed
-func (a Auction) IsCompleted(currentTime time.Time) bool {
-	return a.GetStatus(currentTime) == AUCTION_STATUS_COMPLETED
+func (a Auction) IsCompleted() bool {
+	return a.Completed
 }
 
 // IsUpcoming returns true if the auction hasn't started yet

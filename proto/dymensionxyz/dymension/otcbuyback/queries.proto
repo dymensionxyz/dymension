@@ -1,0 +1,16 @@
+syntax = "proto3";
+package dymensionxyz.dymension.otcbuyback;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
+
+// message UserVestingPlan {
+//   string buyer = 1;
+//   UserVestingPlan purchase = 2 [ (gogoproto.nullable) = false ];
+// }
+

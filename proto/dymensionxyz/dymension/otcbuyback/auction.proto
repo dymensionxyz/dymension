@@ -14,37 +14,39 @@ message Auction {
   // Unique identifier for the auction
   uint64 id = 1;
 
+  bool completed = 2;
+
   // Total adym allocation for the auction
-  string allocation = 2 [
+  string allocation = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // Start time of the auction
-  google.protobuf.Timestamp start_time = 3
+  google.protobuf.Timestamp start_time = 4
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // End time of the auction
-  google.protobuf.Timestamp end_time = 4
+  google.protobuf.Timestamp end_time = 5
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // Initial discount percentage (e.g., "0.05" for 5%)
-  string initial_discount = 7 [
+  string initial_discount = 6 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 
   // Maximum discount percentage (e.g., "0.50" for 50%)
-  string max_discount = 8 [
+  string max_discount = 7 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 
   // Total amount of tokens sold
-  string sold_amount = 9 [
+  string sold_amount = 8 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

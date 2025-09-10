@@ -6,14 +6,12 @@ import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
-
 // Params defines the parameters for the Otcbuyback module
 message Params {
-    repeated AcceptedToken accepted_tokens = 1 [(gogoproto.nullable) = false];
+  repeated AcceptedToken accepted_tokens = 1 [ (gogoproto.nullable) = false ];
 }
 
-
 message AcceptedToken {
-    string token = 1;
-    uint64 pool_id = 2;
+  string token = 1;
+  uint64 pool_id = 2;
 }
