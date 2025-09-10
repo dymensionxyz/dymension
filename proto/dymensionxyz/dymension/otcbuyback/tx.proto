@@ -7,6 +7,8 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 import "dymensionxyz/dymension/otcbuyback/auction.proto";
 import "dymensionxyz/dymension/otcbuyback/params.proto";
 
@@ -19,6 +21,12 @@ service Msg {
 
   // SetAcceptedTokens allows authority to set/update accepted tokens for auctions
   rpc SetAcceptedTokens(MsgSetAcceptedTokens) returns (MsgSetAcceptedTokensResponse);
+
+  // CreateAuction creates a OTC buyback auction
+  rpc CreateAuction(MsgCreateAuction) returns (MsgCreateAuctionResponse);
+
+  // TerminateAuction terminates an existing OTC buyback auction
+  rpc TerminateAuction(MsgTerminateAuction) returns (MsgTerminateAuctionResponse);
 
   // Buy allows users to purchase specific amount of tokens in an auction
   rpc Buy(MsgBuy) returns (MsgBuyResponse);
@@ -118,3 +126,76 @@ message MsgClaimTokensResponse {
     (gogoproto.nullable) = false
   ];
 }
+
+
+
+/* ---------------------------- authorized auction txs --------------------------- */
+
+// MsgCreateAuction creates a new Dutch auction
+message MsgCreateAuction {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // Total token allocation for the auction (e.g., "1000000DYM")
+  cosmos.base.v1beta1.Coin allocation = 2 [(gogoproto.nullable) = false];
+
+  // Start time of the auction
+  google.protobuf.Timestamp start_time = 3 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  // End time of the auction
+  google.protobuf.Timestamp end_time = 4 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  // Initial discount percentage (e.g., "0.05" for 5%)
+  string initial_discount = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+
+  // Maximum discount percentage (e.g., "0.50" for 50%)
+  string max_discount = 7 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+
+  // Vesting period for purchased tokens (e.g., "3 months")
+  google.protobuf.Duration vesting_period = 8 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  // Delay before vesting starts after auction ends (e.g., "7 days")
+  google.protobuf.Duration vesting_start_after_auction_end = 9 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.nullable) = false
+  ];
+
+}
+
+
+message MsgCreateAuctionResponse {
+  uint64 auction_id = 1;
+}
+
+
+// MsgTerminateAuction terminates an existing auction
+message MsgTerminateAuction {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // AuctionId is the ID of the auction to terminate
+  uint64 auction_id = 2;
+}
+
+message MsgTerminateAuctionResponse {}

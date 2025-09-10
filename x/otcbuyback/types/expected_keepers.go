@@ -46,5 +46,6 @@ type AMMKeeper interface {
 
 // StreamerKeeper defines the expected interface for the Streamer module.
 type StreamerKeeper interface {
+	GetModuleToDistributeCoins(ctx sdk.Context) sdk.Coins
 	CreatePumpStream(ctx sdk.Context, coins sdk.Coins, poolId uint64, startTime time.Time, epochIdentifier string, numEpochsPaidOver, numOfPumps uint64) (uint64, error)
 }
