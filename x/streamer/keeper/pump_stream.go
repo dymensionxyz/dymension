@@ -404,6 +404,11 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			continue
 		}
 
+		switch t := stream.PumpParams.Target.(type) {
+		case *types.PumpParams_Pool:
+		case *types.PumpParams_Rollapps:
+		}
+
 		// Get top N rollapps by cast voting power
 		pressure := k.TopRollapps(ctx, sponsorshipDistr.Gauges, pumpAmt, &stream.PumpParams.NumTopRollapps)
 
@@ -449,14 +454,74 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		}
 	}
 
-	if toBurn.Len() != 0 {
-		err = k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
+	return nil
+}
+
+func (k Keeper) DistributeRollapps(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	gauges sponsorshiptypes.Gauges,
+	rollapps types.TargetTopRollapps,
+) (distributed sdk.Coins, err error) {
+	// Get top N rollapps by cast voting power
+	pressure := k.TopRollapps(ctx, gauges, pumpAmt, &rollapps.NumTopRollapps)
+
+	totalPumped := sdk.NewCoins()
+	events := make([]types.EventPumped_Pump, 0)
+
+	// Distribute pump amount proportionally to each rollapp
+	for _, p := range pressure {
+		if p.Pressure.IsZero() {
+			continue
+		}
+		pumpCoin := sdk.NewCoin(pumpDenom, p.Pressure)
+
+		tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
 		if err != nil {
-			return fmt.Errorf("failed to burn coins: %w", err)
+			k.Logger(ctx).Error("failed to execute pump", "streamID", stream.Id, "rollappID", p.RollappId, "error", err)
+			// Continue with other rollapps even if one fails
+			continue
+		}
+
+		totalPumped = totalPumped.Add(pumpCoin)
+		events = append(events, types.EventPumped_Pump{
+			RollappId: p.RollappId,
+			PumpAmt:   p.Pressure,
+			TokenOut:  tokenOut,
+		})
+	}
+
+	// TODO: move?
+	if len(events) > 0 {
+		err := uevent.EmitTypedEvent(ctx, &types.EventPumped{StreamId: stream.Id, Pumps: events})
+		if err != nil {
+			return sdk.Coins{}, fmt.Errorf("emit EventPumped: %w", err)
 		}
 	}
 
-	return nil
+	return totalPumped, nil
+}
+
+func (k Keeper) DistributePool(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	pool types.TargetPool,
+) error {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        pool.PoolId,
+			TokenOutDenom: pool.TokenOut,
+		}},
+		sdk.NewCoin(plan.LiquidityDenom, amountToSpend),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+	}
 }
 
 // Number of milliseconds in the year.

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"cosmossdk.io/collections"
@@ -32,6 +33,7 @@ type Keeper struct {
 	poolManagerKeeper types.PoolManagerKeeper
 	rollappKeeper     types.RollappKeeper
 	txFeesKeeper      types.TxFeesKeeper
+	gammKeeper        types.GAMMKeeper
 
 	authority string
 
@@ -53,6 +55,7 @@ func NewKeeper(
 	poolManagerKeeper types.PoolManagerKeeper,
 	rollappKeeper types.RollappKeeper,
 	txFeesKeeper types.TxFeesKeeper,
+	gammKeeper types.GAMMKeeper,
 	authority string,
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
@@ -70,6 +73,7 @@ func NewKeeper(
 		poolManagerKeeper: poolManagerKeeper,
 		rollappKeeper:     rollappKeeper,
 		txFeesKeeper:      txFeesKeeper,
+		gammKeeper:        gammKeeper,
 		authority:         authority,
 		epochPointers: collections.NewMap(
 			sb,
@@ -95,40 +99,14 @@ func (k Keeper) CreateStream(
 	epochIdentifier string,
 	numEpochsPaidOver uint64,
 	sponsored bool,
-	pumpParams *types.MsgCreateStream_PumpParams,
 ) (uint64, error) {
-	if !coins.IsAllPositive() {
-		return 0, fmt.Errorf("all coins %s must be positive", coins)
+	err := k.ValidateStreamParams(ctx, coins, epochIdentifier, numEpochsPaidOver)
+	if err != nil {
+		return 0, fmt.Errorf("invalid stream params: %w", err)
 	}
 
 	var distrInfo types.DistrInfo
 	switch {
-	case pumpParams != nil && sponsored:
-		// Invalid Stream
-		return 0, fmt.Errorf("pump stream cannot be set for sponsored")
-
-	case pumpParams != nil:
-		// Pump Stream
-		if len(records) != 0 {
-			return 0, fmt.Errorf("pump stream cannot have distr records")
-		}
-		if pumpParams.PumpDistr == types.PumpDistr_PUMP_DISTR_UNSPECIFIED {
-			return 0, fmt.Errorf("pump distribution must be set")
-		}
-		if pumpParams.NumPumps == 0 {
-			return 0, fmt.Errorf("num pumps must be greater than 0")
-		}
-		if pumpParams.NumTopRollapps == 0 {
-			return 0, fmt.Errorf("num top rollapps must be greater than 0")
-		}
-		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
-		if err != nil {
-			return 0, fmt.Errorf("get base denom: %w", err)
-		}
-		if coins.Len() != 1 || coins[0].Denom != baseDenom {
-			return 0, fmt.Errorf("pump stream must have one coin with base denom: base denom: %s, coins: %s", baseDenom, coins)
-		}
-
 	case sponsored:
 		// Sponsored Stream
 		distr, err := k.sk.GetDistribution(ctx)
@@ -146,21 +124,6 @@ func (k Keeper) CreateStream(
 		distrInfo = distr
 	}
 
-	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
-	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
-
-	if !coins.IsAllLTE(moduleBalance.Sub(alreadyAllocatedCoins...)) {
-		return 0, fmt.Errorf("insufficient module balance to distribute coins")
-	}
-
-	if (k.ek.GetEpochInfo(ctx, epochIdentifier) == epochstypes.EpochInfo{}) {
-		return 0, fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
-	}
-
-	if numEpochsPaidOver <= 0 {
-		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
-	}
-
 	if startTime.Before(ctx.BlockTime()) {
 		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
 		startTime = ctx.BlockTime()
@@ -174,10 +137,10 @@ func (k Keeper) CreateStream(
 		epochIdentifier,
 		numEpochsPaidOver,
 		sponsored,
-		pumpParams,
+		nil,
 	)
 
-	err := k.SetStream(ctx, &stream)
+	err = k.SetStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}
@@ -197,6 +160,122 @@ func (k Keeper) CreateStream(
 	})
 
 	return stream.Id, nil
+}
+
+func (k Keeper) CreatePumpSteam(
+	ctx sdk.Context,
+	coins sdk.Coins,
+	startTime time.Time,
+	epochIdentifier string,
+	numEpochsPaidOver uint64,
+	pumpParams types.PumpParams,
+) (uint64, error) {
+	err := k.ValidateStreamParams(ctx, coins, epochIdentifier, numEpochsPaidOver)
+	if err != nil {
+		return 0, fmt.Errorf("invalid stream params: %w", err)
+	}
+
+	err = pumpParams.ValidateBasic()
+	if err != nil {
+		return 0, fmt.Errorf("invalid pump params: %w", err)
+	}
+
+	if coins.Len() != 1 {
+		return 0, fmt.Errorf("pump stream must have one coin")
+	}
+
+	// Stateful validation
+	switch t := pumpParams.Target.(type) {
+	case *types.PumpParams_Pool:
+		tokenIn := coins[0].Denom
+		tokenOut := t.Pool.TokenOut
+
+		if tokenIn == tokenOut {
+			return 0, fmt.Errorf("token out must not be the same as the stream coin: stream coin: %s, token out: %s", tokenIn, tokenOut)
+		}
+		denoms, err := k.gammKeeper.GetPoolDenoms(ctx, t.Pool.PoolId)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get pool denoms: %w", err)
+		}
+		if !slices.Contains(denoms, tokenOut) {
+			return 0, fmt.Errorf("token out must be in pool denoms: pool ID: %d, pool denoms: %s, token out: %s", t.Pool.PoolId, denoms, tokenOut)
+		}
+		if !slices.Contains(denoms, tokenIn) {
+			return 0, fmt.Errorf("stream coin must be in pool denoms: pool ID: %d, pool denoms: %s, stream coin: %s", t.Pool.PoolId, denoms, tokenIn)
+		}
+	case *types.PumpParams_Rollapps:
+		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("get base denom: %w", err)
+		}
+		if coins[0].Denom != baseDenom {
+			return 0, fmt.Errorf("pump stream must have one coin with base denom: base denom: %s, coins: %s", baseDenom, coins)
+		}
+	}
+
+	if startTime.Before(ctx.BlockTime()) {
+		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
+		startTime = ctx.BlockTime()
+	}
+
+	stream := types.NewStream(
+		k.GetLastStreamID(ctx)+1,
+		types.DistrInfo{},
+		coins,
+		startTime,
+		epochIdentifier,
+		numEpochsPaidOver,
+		false,
+		pumpParams,
+	)
+
+	err = k.SetStream(ctx, &stream)
+	if err != nil {
+		return 0, err
+	}
+	k.SetLastStreamID(ctx, stream.Id)
+
+	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
+	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys)
+	if err != nil {
+		return 0, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeEvtCreateStream,
+			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
+		),
+	})
+
+	return stream.Id, nil
+}
+
+func (k Keeper) ValidateStreamParams(
+	ctx sdk.Context,
+	coins sdk.Coins,
+	epochIdentifier string,
+	numEpochsPaidOver uint64,
+) error {
+	if !coins.IsAllPositive() {
+		return fmt.Errorf("all coins %s must be positive", coins)
+	}
+
+	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
+	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
+	if !coins.IsAllLTE(moduleBalance.Sub(alreadyAllocatedCoins...)) {
+		return fmt.Errorf("insufficient module balance to distribute coins")
+	}
+
+	if (k.ek.GetEpochInfo(ctx, epochIdentifier) == epochstypes.EpochInfo{}) {
+		return fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
+	}
+
+	if numEpochsPaidOver <= 0 {
+		return fmt.Errorf("numEpochsPaidOver must be greater than 0")
+	}
+
+	return nil
 }
 
 // TerminateStream cancels a stream.

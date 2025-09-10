@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	time "time"
 
 	"cosmossdk.io/math"
@@ -81,4 +82,26 @@ func DefaultPumpParams() *MsgCreateStream_PumpParams {
 		NumPumps:       1,
 		PumpDistr:      PumpDistr_PUMP_DISTR_UNIFORM,
 	}
+}
+
+func (p PumpParams) ValidateBasic() error {
+	if p.PumpDistr == PumpDistr_PUMP_DISTR_UNSPECIFIED {
+		return fmt.Errorf("pump distribution must be set")
+	}
+	if p.NumPumps == 0 {
+		return fmt.Errorf("num pumps must be greater than 0")
+	}
+	switch t := p.Target.(type) {
+	case *PumpParams_Pool:
+		if err := sdk.ValidateDenom(t.Pool.TokenOut); err != nil {
+			return fmt.Errorf("invalid token out: %w", err)
+		}
+	case *PumpParams_Rollapps:
+		if t.Rollapps.NumTopRollapps == 0 {
+			return fmt.Errorf("num top rollapps must be greater than 0")
+		}
+	default:
+		return fmt.Errorf("invalid target type: %T", t)
+	}
+	return nil
 }

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,6 +31,23 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
+	if msg.PumpParams != nil {
+		streamID, err := s.Keeper.CreatePumpSteam(
+			ctx,
+			msg.Coins,
+			msg.StartTime,
+			msg.DistrEpochIdentifier,
+			msg.NumEpochsPaidOver,
+			msg.PumpParams,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create pump stream: %w", err)
+		}
+		return &types.MsgCreateStreamResponse{
+			StreamId: streamID,
+		}, nil
+	}
+
 	streamID, err := s.Keeper.CreateStream(
 		ctx,
 		msg.Coins,
@@ -38,7 +56,6 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 		msg.DistrEpochIdentifier,
 		msg.NumEpochsPaidOver,
 		msg.Sponsored,
-		msg.PumpParams,
 	)
 	if err != nil {
 		return nil, err
