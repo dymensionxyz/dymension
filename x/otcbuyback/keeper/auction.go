@@ -129,11 +129,6 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 		return errorsmod.Wrap(err, "failed to set auction")
 	}
 
-	// If ended prematurely, we need to update the vesting start and end times
-	if ctx.BlockTime().Before(auction.GetEndTime()) {
-		// FIXME: IMPLEMENT. can we iterate over the collection and update inplace?
-	}
-
 	// create pump streams
 	pumpStreams, err := k.CreatePumpStreams(ctx, auction)
 	if err != nil {

@@ -69,7 +69,6 @@ func (k Keeper) UpdateTWAPs(ctx sdk.Context) {
 		})
 		if err != nil {
 			k.Logger(ctx).Error("failed to update TWAPs", "error", err)
-			// FIXME: maybe we should halt the the auction in this case??
 		}
 	}
 }
