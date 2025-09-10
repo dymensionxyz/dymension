@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // BeginBlock iterates over auctions and checks for finished ones
@@ -27,10 +28,10 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 				"allocation", auction.Allocation)
 
 			// Process the completed auction
-			// FIXME: wrap in cacheCtx
-			err := k.EndAuction(ctx, auction.Id, "auction_completed")
+			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return k.EndAuction(ctx, auction.Id, "auction_completed")
+			})
 			if err != nil {
-				// Log error but don't halt the chain
 				k.Logger(ctx).Error("failed to end auction",
 					"auction_id", auction.Id,
 					"error", err)
