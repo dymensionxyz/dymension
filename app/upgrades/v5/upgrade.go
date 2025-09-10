@@ -37,6 +37,7 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	otcbuybackkeeper "github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -102,6 +103,9 @@ func CreateUpgradeHandler(
 
 		// update txfees params
 		updateTxfeesParams(ctx, keepers.TxfeesKeeper)
+
+		// update otcbuyback params
+		updateOTCBuybackParams(ctx, keepers.OTCBuybackKeeper)
 
 		// update params to fast block speed
 		updateParamsToFastBlockSpeed(ctx, keepers)
@@ -215,6 +219,10 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountOut{}),
 	}
 	k.SetParams(ctx, params)
+}
+
+func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper) {
+	// FIXME: set accpetedTokens
 }
 
 // addAuthorizedCircuitBreaker

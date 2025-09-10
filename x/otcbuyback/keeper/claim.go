@@ -66,7 +66,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 		return math.ZeroInt(), errorsmod.Wrap(err, "failed to emit claim event")
 	}
 
-	k.Logger().Info("tokens claimed",
+	k.Logger(ctx).Info("tokens claimed",
 		"auction_id", auctionID,
 		"claimer", claimer,
 		"amount", claimableAmount)

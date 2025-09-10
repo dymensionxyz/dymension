@@ -18,12 +18,10 @@ type (
 	Keeper struct {
 		cdc      codec.BinaryCodec
 		storeKey storetypes.StoreKey
-		logger   log.Logger
 
 		baseDenom string
 
 		authority string
-		treasury  string
 
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
@@ -43,8 +41,7 @@ type (
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	logger log.Logger,
-	authority, treasury string,
+	authority string,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	ammKeeper types.AMMKeeper,
@@ -55,9 +52,7 @@ func NewKeeper(
 	return Keeper{
 		cdc:       cdc,
 		storeKey:  storeKey,
-		logger:    logger,
 		authority: authority,
-		treasury:  treasury,
 
 		baseDenom: params.BaseDenom, // set "adym" as the base denom
 
@@ -109,8 +104,8 @@ func (k Keeper) GetModuleAccountAddress() sdk.AccAddress {
 	return k.accountKeeper.GetModuleAddress(types.ModuleName)
 }
 
-func (k Keeper) Logger() log.Logger {
-	return k.logger.With("module", fmt.Sprintf("x/%s", types.ModuleName))
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 // SetAuction stores an auction using collections

@@ -42,6 +42,7 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lightcliendmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -143,6 +144,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 
 	// osmosis keys
 	lockuptypes.StoreKey,
+	otcbuybacktypes.StoreKey,
 	epochstypes.StoreKey,
 	gammtypes.StoreKey,
 	poolmanagertypes.StoreKey,

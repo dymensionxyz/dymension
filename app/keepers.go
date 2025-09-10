@@ -101,6 +101,8 @@ import (
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	otcbuybackkeeper "github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -172,6 +174,7 @@ type AppKeepers struct {
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
 	LightClientKeeper lightclientmodulekeeper.Keeper
+	OTCBuybackKeeper  otcbuybackkeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -435,6 +438,16 @@ func (a *AppKeepers) InitKeepers(
 		a.TxFeesKeeper,
 	)
 
+	// Initialize OTC buyback keeper before streamer keeper as streamer depends on it
+	a.OTCBuybackKeeper = otcbuybackkeeper.NewKeeper(
+		appCodec,
+		a.keys[otcbuybacktypes.StoreKey],
+		govModuleAddress,
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.GAMMKeeper, // AMM keeper
+	)
+
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[streamermoduletypes.StoreKey],
@@ -443,6 +456,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
+		&a.OTCBuybackKeeper,
 		a.MintKeeper.Params,
 		a.IROKeeper,
 		a.PoolManagerKeeper,

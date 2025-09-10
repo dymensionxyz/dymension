@@ -459,6 +459,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				EIBCKeeper:         &app.EIBCKeeper,
 				DymNSKeeper:        &app.DymNSKeeper,
 				StreamerKeeper:     &app.StreamerKeeper,
+				OTCBuybackKeeper:   &app.OTCBuybackKeeper,
 				SequencerKeeper:    app.SequencerKeeper,
 				MintKeeper:         &app.MintKeeper,
 				SlashingKeeper:     &app.SlashingKeeper,

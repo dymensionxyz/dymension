@@ -72,7 +72,7 @@ func (k Keeper) CreateAuction(
 		return 0, errorsmod.Wrap(err, "failed to emit auction created event")
 	}
 
-	k.Logger().Info("auction created", "auction_id", auctionID, "allocation", allocation)
+	k.Logger(ctx).Info("auction created", "auction_id", auctionID, "allocation", allocation)
 
 	return auctionID, nil
 }

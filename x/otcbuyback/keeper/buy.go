@@ -109,7 +109,7 @@ func (k Keeper) Buy(
 		return sdk.Coin{}, errorsmod.Wrap(err, "failed to emit purchase event")
 	}
 
-	k.Logger().Info("tokens purchased",
+	k.Logger(ctx).Info("tokens purchased",
 		"auction_id", auctionID,
 		"buyer", buyer,
 		"tokens", amountToBuy,
