@@ -94,6 +94,6 @@ type OtcbuybackKeeper interface {
 		endTime time.Time,
 		initialDiscount math.LegacyDec,
 		maxDiscount math.LegacyDec,
-		vestingPlan otctypes.Auction_VestingPlan,
+		vestingPlan otctypes.Auction_VestingParams,
 	) (uint64, error)
 }

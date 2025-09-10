@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	hatypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -18,7 +20,20 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	// FIXME: move funds from the module account to the auction account
+	k := s.Keeper
+
+	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
+	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
+
+	if !sdk.NewCoins(msg.Allocation).IsAllLTE(moduleBalance.Sub(alreadyAllocatedCoins...)) {
+		return nil, fmt.Errorf("insufficient module balance to distribute coins")
+	}
+
+	// move funds from the streamer account to the auction account
+	err := k.bk.SendCoinsFromModuleToModule(ctx, types.ModuleName, hatypes.ModuleName, sdk.NewCoins(msg.Allocation))
+	if err != nil {
+		return nil, err
+	}
 
 	// Create the auction and stream
 	auctionID, err := s.Keeper.otck.CreateAuction(
@@ -28,7 +43,7 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		msg.EndTime,
 		msg.InitialDiscount,
 		msg.MaxDiscount,
-		hatypes.Auction_VestingPlan{
+		hatypes.Auction_VestingParams{
 			VestingPeriod:               msg.VestingPeriod,
 			VestingStartAfterAuctionEnd: msg.VestingStartAfterAuctionEnd,
 		},
