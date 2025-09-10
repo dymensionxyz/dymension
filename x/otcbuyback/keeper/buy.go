@@ -118,9 +118,10 @@ func (k Keeper) Buy(
 
 	// Check if auction should end (sold out)
 	if auction.SoldAmount.GTE(auction.Allocation) {
-		auction.EndTime = ctx.BlockTime()
-
-		// FIXME: call end auction
+		err = k.EndAuction(ctx, auctionID, "auction_sold_out")
+		if err != nil {
+			return sdk.Coin{}, errorsmod.Wrap(err, "failed to end auction")
+		}
 	}
 
 	return paymentCoin, nil
