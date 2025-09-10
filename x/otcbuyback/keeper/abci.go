@@ -12,7 +12,7 @@ import (
 // BeginBlock iterates over auctions and checks for finished ones
 func (k Keeper) BeginBlock(ctx sdk.Context) error {
 	// Get all auctions from the store
-	auctions, err := k.GetAllAuctions(ctx)
+	auctions, err := k.GetAllAuctions(ctx, false)
 	if err != nil {
 		return fmt.Errorf("failed to get all auctions: %w", err)
 	}

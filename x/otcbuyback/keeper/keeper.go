@@ -125,9 +125,12 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID uint64) (types.Auction, bo
 }
 
 // GetAllAuctions retrieves all auctions from the store using collections
-func (k Keeper) GetAllAuctions(ctx sdk.Context) ([]types.Auction, error) {
+func (k Keeper) GetAllAuctions(ctx sdk.Context, excludeCompleted bool) ([]types.Auction, error) {
 	var auctions []types.Auction
 	err := k.auctions.Walk(ctx, nil, func(key uint64, auction types.Auction) (bool, error) {
+		if excludeCompleted && auction.Completed {
+			return false, nil
+		}
 		auctions = append(auctions, auction)
 		return false, nil
 	})
