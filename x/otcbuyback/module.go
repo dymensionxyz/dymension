@@ -13,7 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 )
@@ -127,6 +129,16 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// FIXME: invariants
 	// keeper.RegisterInvariants(ir, am.keeper)
+}
+
+// GetTxCmd returns the transaction commands for this module
+func (am AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
+}
+
+// GetQueryCmd returns the cli query commands for this module
+func (am AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 // InitGenesis performs the otcbuyback module's genesis initialization
