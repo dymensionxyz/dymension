@@ -170,7 +170,7 @@ dymd q forward create-memo --src=eibc --dst=ibc \
 	addTokenFlags(cmd)
 	addHyperlaneFlags(cmd)
 	addIBCFlags(cmd)
-	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee (required for EIBC src)")
+	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee amount for fast finality (required for EIBC source, paid to order fulfiller)")
 
 	return cmd
 }
@@ -262,16 +262,26 @@ func CmdCosmosAddrToHLAddr() *cobra.Command {
 
 func CmdEstimateFees() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "estimate-fees",
-		Short:   "Estimate fees for EIBC to HL transfers",
-		Example: `dymd q forward estimate-fees --hl-amount=125000000000000 --hl-gas=200000 --eibc-fee=2000 --bridge-fee-mul=0.01`,
-		RunE:    runEstimateFees,
+		Use:   "estimate-fees",
+		Short: "Estimate fees for EIBC to HL transfers",
+		Long: `Calculate the total IBC transfer amount needed when sending tokens from RollApp through EIBC to Hyperlane.
+		
+The bridge fee multiplier is a percentage fee taken by the bridge operator (e.g., 0.01 = 1% fee).
+This fee is applied to the sum of the Hyperlane amount and gas to calculate the total transfer amount.
+
+Formula: transfer_amount = (hl_amount + hl_gas) * (1 + bridge_fee_mul) + eibc_fee`,
+		Example: `# Calculate fees with 1% bridge fee (0.01), 2000 EIBC fee
+dymd q forward estimate-fees --hl-amount=125000000000000 --hl-gas=200000 --eibc-fee=2000 --bridge-fee-mul=0.01
+
+# With 0.5% bridge fee
+dymd q forward estimate-fees --hl-amount=1000000 --hl-gas=50000 --eibc-fee=100 --bridge-fee-mul=0.005`,
+		RunE: runEstimateFees,
 	}
 
-	cmd.Flags().String(FlagHLAmount, "", "Amount to receive on Hyperlane")
-	cmd.Flags().String(FlagHLGas, "", "Max gas for Hyperlane")
-	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee")
-	cmd.Flags().String(FlagBridgeFeeMul, "", "Bridge fee multiplier")
+	cmd.Flags().String(FlagHLAmount, "", "Amount to receive on Hyperlane destination chain")
+	cmd.Flags().String(FlagHLGas, "", "Maximum gas fee for Hyperlane execution")
+	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee for fast finality (paid to fulfiller)")
+	cmd.Flags().String(FlagBridgeFeeMul, "", "Bridge fee multiplier as decimal (e.g., 0.01 for 1% fee)")
 	_ = cmd.MarkFlagRequired(FlagHLAmount)
 	_ = cmd.MarkFlagRequired(FlagHLGas)
 	_ = cmd.MarkFlagRequired(FlagEIBCFee)
@@ -290,31 +300,31 @@ func addCommonFlags(cmd *cobra.Command) {
 }
 
 func addTokenFlags(cmd *cobra.Command) {
-	cmd.Flags().String(FlagTokenID, "", "Token ID (hex)")
-	cmd.Flags().String(FlagAmount, "", "Token amount")
-	cmd.Flags().String(FlagMaxFee, "", "Maximum fee (e.g., 20foo)")
+	cmd.Flags().String(FlagTokenID, "", "Token ID in hex format (32 bytes, e.g., 0x726f757465725f61707000000000000000000000000000010000000000000005)")
+	cmd.Flags().String(FlagAmount, "", "Token amount to transfer (in smallest unit)")
+	cmd.Flags().String(FlagMaxFee, "", "Maximum fee for Hyperlane execution including denom (e.g., 20ibc/ABC123...)")
 }
 
 func addHyperlaneFlags(cmd *cobra.Command) {
-	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce")
-	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID")
-	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source domain ID")
-	cmd.Flags().Uint32(FlagDstDomain, 0, "Destination domain ID")
-	cmd.Flags().String(FlagSrcContract, "", "Source contract (hex)")
-	cmd.Flags().String(FlagDstTokenID, "", "Destination token ID (hex)")
-	cmd.Flags().String(FlagRecipientDst, "", "Final recipient address on destination chain")
-	cmd.Flags().String(FlagDstAmount, "", "Destination amount")
+	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce for ordering/uniqueness")
+	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID (deprecated, use --dst-domain)")
+	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source chain domain ID (e.g., 1260813472 for Dymension Hub)")
+	cmd.Flags().Uint32(FlagDstDomain, 0, "Destination chain domain ID (e.g., 11155111 for Ethereum Sepolia)")
+	cmd.Flags().String(FlagSrcContract, "", "Source contract address in hex format")
+	cmd.Flags().String(FlagDstTokenID, "", "Destination token ID in hex format")
+	cmd.Flags().String(FlagRecipientDst, "", "Final recipient address on destination chain (pad to 32 bytes for Ethereum: 0x000...)")
+	cmd.Flags().String(FlagDstAmount, "", "Amount to be received on destination after fees")
 }
 
 func addIBCFlags(cmd *cobra.Command) {
-	cmd.Flags().String(FlagChannel, "", "IBC channel")
-	cmd.Flags().String(FlagTimeout, "5m", "IBC timeout duration")
+	cmd.Flags().String(FlagChannel, "", "IBC channel ID (e.g., channel-0)")
+	cmd.Flags().String(FlagTimeout, "5m", "IBC packet timeout duration (e.g., 5m, 1h, 30s)")
 }
 
 func addKaspaFlags(cmd *cobra.Command) {
-	cmd.Flags().String(FlagKasToken, "", "Kaspa token placeholder (hex)")
-	cmd.Flags().Uint32(FlagKasDomain, 0, "Kaspa domain ID")
-	cmd.Flags().Uint32(FlagHubDomain, 0, "Hub domain ID")
+	cmd.Flags().String(FlagKasToken, "", "Kaspa token placeholder in hex format")
+	cmd.Flags().Uint32(FlagKasDomain, 0, "Kaspa network domain ID (e.g., 80808082)")
+	cmd.Flags().Uint32(FlagHubDomain, 0, "Dymension Hub domain ID (e.g., 1260813472)")
 	cmd.Flags().String(FlagRecipientHub, "", "Hub recipient address (final recipient for Kaspa->Hub, or intermediary/recovery address for Kaspa->IBC/HL)")
 }
 
@@ -331,6 +341,10 @@ func parseCommonFlags(cmd *cobra.Command) (*CommonParams, error) {
 }
 
 func parseTokenFlags(cmd *cobra.Command) (*TokenParams, error) {
+	return parseTokenFlagsWithContext(cmd, false)
+}
+
+func parseTokenFlagsWithContext(cmd *cobra.Command, skipRecipient bool) (*TokenParams, error) {
 	tokenIDS, _ := cmd.Flags().GetString(FlagTokenID)
 	amountS, _ := cmd.Flags().GetString(FlagAmount)
 	recipientS, _ := cmd.Flags().GetString(FlagRecipientDst)
@@ -353,7 +367,9 @@ func parseTokenFlags(cmd *cobra.Command) (*TokenParams, error) {
 		}
 	}
 
-	if recipientS != "" {
+	// Skip recipient parsing when it will be handled by parseHyperlaneFlags
+	// This occurs when forwarding from IBC/EIBC to Hyperlane destinations
+	if recipientS != "" && !skipRecipient {
 		params.Recipient, err = sdk.AccAddressFromBech32(recipientS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient: %w", err)
@@ -485,7 +501,8 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			return err
 		}
 
-		tokenParams, err := parseTokenFlags(cmd)
+		// Skip recipient parsing since it's handled by parseHyperlaneFlags
+		tokenParams, err := parseTokenFlagsWithContext(cmd, true)
 		if err != nil {
 			return err
 		}
@@ -501,8 +518,16 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			"",
 		)
 
+		// Validate the created hook to ensure all required fields are populated
+		if err := validateHookForwardToHL(hook); err != nil {
+			return fmt.Errorf("invalid Hyperlane forward hook: %w", err)
+		}
+
 		if common.Src == SrcEIBC {
 			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			if eibcFeeS == "" {
+				return fmt.Errorf("EIBC fee is required when forwarding from EIBC to Hyperlane")
+			}
 			memo, err = types.MakeRolForwardToHLMemoString(eibcFeeS, hook)
 		} else {
 			memo, err = types.MakeIBCForwardToHLMemoString(hook)
@@ -524,8 +549,16 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 		)
 
+		// Validate the created hook to ensure all required fields are populated
+		if err := validateHookForwardToIBC(hook); err != nil {
+			return fmt.Errorf("invalid IBC forward hook: %w", err)
+		}
+
 		if common.Src == SrcEIBC {
 			eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
+			if eibcFeeS == "" {
+				return fmt.Errorf("EIBC fee is required when forwarding from EIBC to IBC")
+			}
 			memo, err = types.MakeRolForwardToIBCMemoString(eibcFeeS, hook)
 		} else {
 			memo, err = types.MakeIBCForwardToIBCMemoString(hook)
@@ -557,6 +590,11 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
 		)
 
+		// Validate the created hook to ensure all required fields are populated
+		if err := validateHookForwardToIBC(hook); err != nil {
+			return fmt.Errorf("invalid IBC forward hook: %w", err)
+		}
+
 		if common.Readable {
 			fmt.Printf("hyperlane message: %+v\n", hook)
 		} else {
@@ -580,7 +618,8 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			return err
 		}
 
-		tokenParams, err := parseTokenFlags(cmd)
+		// Skip recipient parsing since it's handled by parseHyperlaneFlags
+		tokenParams, err := parseTokenFlagsWithContext(cmd, true)
 		if err != nil {
 			return err
 		}
@@ -932,22 +971,37 @@ func runEstimateFees(cmd *cobra.Command, args []string) error {
 
 	hlReceiveAmt, ok := math.NewIntFromString(hlAmountS)
 	if !ok {
-		return fmt.Errorf("invalid hl amount")
+		return fmt.Errorf("invalid hl amount: %s", hlAmountS)
+	}
+	if hlReceiveAmt.IsNegative() {
+		return fmt.Errorf("hl amount cannot be negative")
 	}
 
 	hlMaxGas, ok := math.NewIntFromString(hlGasS)
 	if !ok {
-		return fmt.Errorf("invalid hl gas")
+		return fmt.Errorf("invalid hl gas: %s", hlGasS)
+	}
+	if hlMaxGas.IsNegative() {
+		return fmt.Errorf("hl gas cannot be negative")
 	}
 
 	eibcFee, ok := math.NewIntFromString(eibcFeeS)
 	if !ok {
-		return fmt.Errorf("invalid eibc fee")
+		return fmt.Errorf("invalid eibc fee: %s", eibcFeeS)
+	}
+	if eibcFee.IsNegative() {
+		return fmt.Errorf("eibc fee cannot be negative")
 	}
 
 	bridgeFeeMul, err := math.LegacyNewDecFromStr(bridgeFeeMulS)
 	if err != nil {
 		return fmt.Errorf("invalid bridge fee multiplier: %w", err)
+	}
+	if bridgeFeeMul.IsNegative() {
+		return fmt.Errorf("bridge fee multiplier cannot be negative")
+	}
+	if bridgeFeeMul.GTE(math.LegacyNewDec(1)) {
+		return fmt.Errorf("bridge fee multiplier must be less than 1 (100%%), got %s", bridgeFeeMulS)
 	}
 
 	needForHl := hlReceiveAmt.Add(hlMaxGas)
@@ -1146,4 +1200,87 @@ func PrintHyperlaneMessage(msg util.HyperlaneMessage) {
 	fmt.Printf("Destination: %d\n", msg.Destination)
 	fmt.Printf("Recipient: %s\n", msg.Recipient)
 	fmt.Printf("Body: %x\n", msg.Body)
+}
+
+// validateHookForwardToIBC validates that all required fields for IBC forwarding are populated
+func validateHookForwardToIBC(hook *types.HookForwardToIBC) error {
+	if hook == nil {
+		return fmt.Errorf("hook is nil")
+	}
+
+	// The hook's ValidateBasic will check if Transfer is nil and call Transfer.ValidateBasic()
+	// which validates channel format, receiver format, etc.
+	// We only need to check for empty values that ValidateBasic doesn't catch
+
+	if hook.Transfer != nil {
+		// MsgTransfer.ValidateBasic checks channel format but allows empty strings
+		if hook.Transfer.SourceChannel == "" {
+			return fmt.Errorf("channel is required for IBC forwarding")
+		}
+
+		// MsgTransfer.ValidateBasic checks receiver is not empty (strings.TrimSpace(msg.Receiver) == "")
+		// so we don't need to duplicate that check
+
+		if hook.Transfer.TimeoutTimestamp == 0 {
+			return fmt.Errorf("timeout is required for IBC forwarding")
+		}
+	}
+
+	// Run the built-in validation which handles most checks
+	if err := hook.ValidateBasic(); err != nil {
+		return fmt.Errorf("hook validation failed: %w", err)
+	}
+
+	return nil
+}
+
+// validateHookForwardToHL validates that all required fields for Hyperlane forwarding are populated
+func validateHookForwardToHL(hook *types.HookForwardToHL) error {
+	if hook == nil {
+		return fmt.Errorf("hook is nil")
+	}
+
+	// The hook's ValidateBasic only checks if HyperlaneTransfer is nil
+	// MsgRemoteTransfer doesn't have a ValidateBasic, so we need to check all fields ourselves
+
+	if hook.HyperlaneTransfer != nil {
+		// TokenId is a fixed-size array, so check if all bytes are zero
+		if isZeroHexAddress(hook.HyperlaneTransfer.TokenId) {
+			return fmt.Errorf("token ID is required for Hyperlane forwarding")
+		}
+
+		if hook.HyperlaneTransfer.DestinationDomain == 0 {
+			return fmt.Errorf("destination domain is required for Hyperlane forwarding")
+		}
+
+		// Recipient is also a fixed-size array, check if all bytes are zero
+		if isZeroHexAddress(hook.HyperlaneTransfer.Recipient) {
+			return fmt.Errorf("recipient address is required for Hyperlane forwarding")
+		}
+
+		if hook.HyperlaneTransfer.Amount.IsNil() || hook.HyperlaneTransfer.Amount.IsZero() {
+			return fmt.Errorf("amount must be greater than zero for Hyperlane forwarding")
+		}
+
+		if hook.HyperlaneTransfer.MaxFee.IsNil() || hook.HyperlaneTransfer.MaxFee.IsZero() {
+			return fmt.Errorf("max fee must be greater than zero for Hyperlane forwarding")
+		}
+	}
+
+	// Run the built-in validation (only checks HyperlaneTransfer != nil)
+	if err := hook.ValidateBasic(); err != nil {
+		return fmt.Errorf("hook validation failed: %w", err)
+	}
+
+	return nil
+}
+
+// isZeroHexAddress checks if a HexAddress (32-byte array) is all zeros
+func isZeroHexAddress(addr util.HexAddress) bool {
+	for _, b := range addr {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
 }
