@@ -225,9 +225,7 @@ message MsgFastFinalizeWithTEE {
   TEENonce nonce = 5 [(gogoproto.nullable) = false];
 
   // what should be finalized immediately
-  uint64 curr_state_index = 6;
-  // an index which is already finalized that the TEE node ran from 
-  uint64 finalized_state_index = 7;
+  uint64 state_index = 6;
 }
 
 // what the verifying full node inside the tee actually attests over
@@ -236,13 +234,9 @@ message TEENonce {
  
   // height TEE recently validated
   uint64 curr_height = 1;
-  // state_root TEE recently validated (corresponds to height)
-  bytes curr_state_root = 3;
 
   // height TEE started from (which must be finalized)
   uint64 finalized_height = 4;
-  // state_root TEE started from (which must be finalized, corresponds to height)
-  bytes finalized_state_root = 5;
 }
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE

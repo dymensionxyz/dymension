@@ -27,11 +27,9 @@ func (s *RollappTestSuite) TestValidateAttestation() {
 	// TODO: use proper data and test
 	token := "token"
 	nonce := types.TEENonce{
-		RollappId:          "rollapp_id",
-		CurrHeight:         1,
-		CurrStateRoot:      []byte("state_root"),
-		FinalizedHeight:    1,
-		FinalizedStateRoot: []byte("finalized_state_root"),
+		RollappId:       "rollapp_id",
+		CurrHeight:      1,
+		FinalizedHeight: 1,
 	}
 	err := s.k().ValidateAttestation(s.Ctx, nonce.Hash(), token)
 	s.Require().NoError(err)

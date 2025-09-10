@@ -17,12 +17,10 @@ func (n TEENonce) Hash() string {
 	bzIx := make([]byte, 8)
 	binary.BigEndian.PutUint64(bzIx, n.FinalizedHeight)
 	bz = append(bz, bzIx...)
-	bz = append(bz, n.FinalizedStateRoot...)
 
 	bzIx = make([]byte, 8)
 	binary.BigEndian.PutUint64(bzIx, n.CurrHeight)
 	bz = append(bz, bzIx...)
-	bz = append(bz, n.CurrStateRoot...)
 
 	hash := sha256.Sum256(bz)
 	return hex.EncodeToString(hash[:])
@@ -32,14 +30,8 @@ func (n TEENonce) Validate() error {
 	if n.FinalizedHeight == 0 {
 		return gerrc.ErrInvalidArgument.Wrap("finalized height is required")
 	}
-	if len(n.FinalizedStateRoot) != 32 {
-		return gerrc.ErrInvalidArgument.Wrap("finalized state root is required")
-	}
 	if n.CurrHeight == 0 {
 		return gerrc.ErrInvalidArgument.Wrap("current height is required")
-	}
-	if len(n.CurrStateRoot) != 32 {
-		return gerrc.ErrInvalidArgument.Wrap("current state root is required")
 	}
 	if n.RollappId == "" {
 		return gerrc.ErrInvalidArgument.Wrap("rollapp id is required")

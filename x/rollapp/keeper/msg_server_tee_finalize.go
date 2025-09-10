@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -49,33 +48,19 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	// TEE node must have started from a finalized state
 	///////////
 
-	if !k.IsFinalizedIndex(ctx, rollapp, msg.FinalizedStateIndex) {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("finalized state index is not finalized")
-	}
-
-	info, found := k.GetStateInfo(ctx, rollapp, msg.FinalizedStateIndex)
-	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
-	}
-
-	bd, ok := info.GetBlockDescriptor(msg.Nonce.FinalizedHeight)
-	if !ok {
-		return nil, gerrc.ErrNotFound.Wrapf("block descriptor for height: %d", msg.Nonce.FinalizedHeight)
-	}
-
-	if !bytes.Equal(bd.StateRoot, msg.Nonce.FinalizedStateRoot) {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("finalized state root mismatch")
+	if !k.IsHeightFinalized(ctx, rollapp, msg.Nonce.FinalizedHeight) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("claimed finalized height is not finalized")
 	}
 
 	///////////
 	// TEE node must genuinely have reached the proposed new latest finalized state
 	///////////
 
-	if k.IsFinalizedIndex(ctx, rollapp, msg.CurrStateIndex) {
+	if k.IsFinalizedIndex(ctx, rollapp, msg.StateIndex) {
 		return nil, gerrc.ErrOutOfRange.Wrapf("state index is already finalized")
 	}
 
-	info, found = k.GetStateInfo(ctx, rollapp, msg.CurrStateIndex)
+	info, found := k.GetStateInfo(ctx, rollapp, msg.StateIndex)
 	if !found {
 		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
 	}
@@ -84,18 +69,12 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
 	}
 
-	bd, _ = info.LastBlockDescriptor()
-
-	if !bytes.Equal(bd.StateRoot, msg.Nonce.CurrStateRoot) {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("state root mismatch")
-	}
-
 	err := k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "validate attestation")
 	}
 
-	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, msg.CurrStateIndex)
+	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, msg.StateIndex)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "fast finalize states")
 	}
@@ -104,7 +83,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		sdk.NewEvent(
 			types.EventTypeTEEFastFinalization,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
-			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", msg.CurrStateIndex)),
+			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", msg.StateIndex)),
 		),
 	)
 
