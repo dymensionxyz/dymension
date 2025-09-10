@@ -155,13 +155,14 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	s.Require().NoError(err)
 
 	// Pump amount on step (12)
-	pumpAmtIter1, err := keeper.ShouldPump(ctx, types.PumpParams{
-		NumTopRollapps:  numTopRollapps,
-		EpochBudget:     epochBudget,
-		EpochBudgetLeft: epochBudgetLeft,
-		NumPumps:        pumpNum,
-		PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-	}, b)
+	pumpAmtIter1, err := keeper.ShouldPump(
+		ctx,
+		epochBudget,
+		epochBudgetLeft,
+		pumpNum,
+		types.PumpDistr_PUMP_DISTR_UNIFORM,
+		b,
+	)
 	s.Require().NoError(err)
 	s.Require().True(!pumpAmtIter1.IsZero())
 
@@ -183,13 +184,14 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	)
 
 	// Pump amount on step (19)
-	pumpAmtIter2, err := keeper.ShouldPump(ctx, types.PumpParams{
-		NumTopRollapps:  numTopRollapps,
-		EpochBudget:     epochBudgetAfterPump,
-		EpochBudgetLeft: epochBudgetLeftAfterPump,
-		NumPumps:        pumpNum,
-		PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-	}, b)
+	pumpAmtIter2, err := keeper.ShouldPump(
+		ctx,
+		epochBudgetAfterPump,
+		epochBudgetLeftAfterPump,
+		pumpNum,
+		types.PumpDistr_PUMP_DISTR_UNIFORM,
+		b,
+	)
 	s.Require().NoError(err)
 	s.Require().True(!pumpAmtIter2.IsZero())
 	ra1Share = pumpAmtIter2.MulRaw(3).QuoRaw(8) // 37.5%
@@ -198,9 +200,11 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 
 	return pumpTestCase{
 		pumpParams: &types.MsgCreateStream_PumpParams{
-			NumTopRollapps: numTopRollapps,
-			NumPumps:       pumpNum,
-			PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			Target: &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{
+				NumTopRollapps: numTopRollapps,
+			}},
+			NumPumps:  pumpNum,
+			PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 		},
 		numEpochsPaidOver:     numEpochsPaidOver,
 		epochIdentifier:       epochID,
@@ -540,13 +544,10 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		ctx := hashPump(s.Ctx)
 		pumpAmt, err := keeper.ShouldPump(
 			ctx,
-			types.PumpParams{
-				NumTopRollapps:  0,
-				EpochBudget:     commontypes.DYM.MulRaw(10),
-				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
-				NumPumps:        pumpNum,
-				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
+			commontypes.DYM.MulRaw(10),
+			commontypes.DYM.MulRaw(10),
+			pumpNum,
+			types.PumpDistr_PUMP_DISTR_UNIFORM,
 			b,
 		)
 		s.Require().NoError(err)
@@ -556,13 +557,10 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		ctx = hashNoPump(s.Ctx)
 		pumpAmt, err = keeper.ShouldPump(
 			ctx,
-			types.PumpParams{
-				NumTopRollapps:  0,
-				EpochBudget:     commontypes.DYM.MulRaw(10),
-				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
-				NumPumps:        pumpNum,
-				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
+			commontypes.DYM.MulRaw(10),
+			commontypes.DYM.MulRaw(10),
+			pumpNum,
+			types.PumpDistr_PUMP_DISTR_UNIFORM,
 			b,
 		)
 		s.Require().NoError(err)
@@ -591,13 +589,14 @@ func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
 		headerInfo.Hash = newHash[:]
 		ctx = ctx.WithHeaderInfo(headerInfo)
 
-		pumpAmt, err := keeper.PumpAmt(ctx, types.PumpParams{
-			NumTopRollapps:  0,
-			EpochBudget:     epochBudget,
-			EpochBudgetLeft: epochBudgetLeft,
-			NumPumps:        uint64(pumpNum),
-			PumpDistr:       pumpFunc,
-		})
+		pumpAmt, err := keeper.PumpAmt(
+			ctx,
+			epochBudget,
+			epochBudgetLeft,
+			math.NewInt(pumpNum),
+			pumpFunc,
+		)
+
 		s.Require().NoError(err)
 
 		epochBudgetLeft = epochBudgetLeft.Sub(pumpAmt)

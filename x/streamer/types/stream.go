@@ -17,19 +17,8 @@ func NewStream(
 	epochIdentifier string,
 	numEpochsPaidOver uint64,
 	sponsored bool,
-	pumpParams *MsgCreateStream_PumpParams,
+	pumpParams *PumpParams,
 ) Stream {
-	epochCoins := coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver))
-	var pump *PumpParams
-	if pumpParams != nil {
-		pump = &PumpParams{
-			NumTopRollapps:  pumpParams.NumTopRollapps,
-			EpochBudget:     epochCoins[0].Amount,
-			EpochBudgetLeft: epochCoins[0].Amount,
-			NumPumps:        pumpParams.NumPumps,
-			PumpDistr:       pumpParams.PumpDistr,
-		}
-	}
 	return Stream{
 		Id:                   id,
 		DistributeTo:         distrTo,
@@ -41,7 +30,7 @@ func NewStream(
 		DistributedCoins:     sdk.Coins{},
 		Sponsored:            sponsored,
 		EpochCoins:           coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
-		PumpParams:           pump,
+		PumpParams:           pumpParams,
 	}
 }
 
@@ -78,13 +67,13 @@ func (stream Stream) IsPumpStream() bool {
 
 func DefaultPumpParams() *MsgCreateStream_PumpParams {
 	return &MsgCreateStream_PumpParams{
-		NumTopRollapps: 1,
-		NumPumps:       1,
-		PumpDistr:      PumpDistr_PUMP_DISTR_UNIFORM,
+		Target:    nil, // TODO: fill correctly
+		NumPumps:  1,
+		PumpDistr: PumpDistr_PUMP_DISTR_UNIFORM,
 	}
 }
 
-func (p PumpParams) ValidateBasic() error {
+func (p MsgCreateStream_PumpParams) ValidateBasic() error {
 	if p.PumpDistr == PumpDistr_PUMP_DISTR_UNSPECIFIED {
 		return fmt.Errorf("pump distribution must be set")
 	}
@@ -92,13 +81,19 @@ func (p PumpParams) ValidateBasic() error {
 		return fmt.Errorf("num pumps must be greater than 0")
 	}
 	switch t := p.Target.(type) {
-	case *PumpParams_Pool:
+	case *MsgCreateStream_PumpParams_Pool:
 		if err := sdk.ValidateDenom(t.Pool.TokenOut); err != nil {
 			return fmt.Errorf("invalid token out: %w", err)
 		}
-	case *PumpParams_Rollapps:
+		if t == nil || t.Pool == nil {
+			return fmt.Errorf("pool target must not be null")
+		}
+	case *MsgCreateStream_PumpParams_Rollapps:
 		if t.Rollapps.NumTopRollapps == 0 {
 			return fmt.Errorf("num top rollapps must be greater than 0")
+		}
+		if t == nil || t.Rollapps == nil {
+			return fmt.Errorf("rollapps target must not be null")
 		}
 	default:
 		return fmt.Errorf("invalid target type: %T", t)

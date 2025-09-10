@@ -7,6 +7,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -168,7 +169,7 @@ func (k Keeper) CreatePumpSteam(
 	startTime time.Time,
 	epochIdentifier string,
 	numEpochsPaidOver uint64,
-	pumpParams types.PumpParams,
+	pumpParams types.MsgCreateStream_PumpParams,
 ) (uint64, error) {
 	err := k.ValidateStreamParams(ctx, coins, epochIdentifier, numEpochsPaidOver)
 	if err != nil {
@@ -184,9 +185,16 @@ func (k Keeper) CreatePumpSteam(
 		return 0, fmt.Errorf("pump stream must have one coin")
 	}
 
+	params := types.PumpParams{
+		Target:         nil, // filled below
+		EpochCoinsLeft: coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
+		NumPumps:       pumpParams.NumPumps,
+		PumpDistr:      pumpParams.PumpDistr,
+	}
+
 	// Stateful validation
 	switch t := pumpParams.Target.(type) {
-	case *types.PumpParams_Pool:
+	case *types.MsgCreateStream_PumpParams_Pool:
 		tokenIn := coins[0].Denom
 		tokenOut := t.Pool.TokenOut
 
@@ -203,7 +211,9 @@ func (k Keeper) CreatePumpSteam(
 		if !slices.Contains(denoms, tokenIn) {
 			return 0, fmt.Errorf("stream coin must be in pool denoms: pool ID: %d, pool denoms: %s, stream coin: %s", t.Pool.PoolId, denoms, tokenIn)
 		}
-	case *types.PumpParams_Rollapps:
+		params.Target = &types.PumpParams_Pool{Pool: t.Pool}
+
+	case *types.MsgCreateStream_PumpParams_Rollapps:
 		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
 		if err != nil {
 			return 0, fmt.Errorf("get base denom: %w", err)
@@ -211,6 +221,7 @@ func (k Keeper) CreatePumpSteam(
 		if coins[0].Denom != baseDenom {
 			return 0, fmt.Errorf("pump stream must have one coin with base denom: base denom: %s, coins: %s", baseDenom, coins)
 		}
+		params.Target = &types.PumpParams_Rollapps{Rollapps: t.Rollapps}
 	}
 
 	if startTime.Before(ctx.BlockTime()) {
@@ -226,7 +237,7 @@ func (k Keeper) CreatePumpSteam(
 		epochIdentifier,
 		numEpochsPaidOver,
 		false,
-		pumpParams,
+		&params,
 	)
 
 	err = k.SetStream(ctx, &stream)

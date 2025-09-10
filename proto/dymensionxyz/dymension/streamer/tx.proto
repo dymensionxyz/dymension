@@ -84,14 +84,15 @@ message MsgCreateStream {
   bool clear_all_votes = 8;
 
   message PumpParams {
-    // NumTopRollapps is a number of rollapps, top N by the voting power,
-    // that will be pumped on every pump iteration.
-    uint32 num_top_rollapps = 1;
+    oneof target {
+      TargetTopRollapps rollapps = 1;
+      TargetPool pool = 2;
+    }
     // NumPumps is a target number of pumps that expected to happen
     // in the epoch (probabilistically)
-    uint64 num_pumps = 2;
+    uint64 num_pumps = 3;
     // PumpDistr is a distribution used to determine pump amount
-    PumpDistr pump_distr = 3;
+    PumpDistr pump_distr = 4;
   }
 
   // PumpParams is an *optional* field indicating if the stream
