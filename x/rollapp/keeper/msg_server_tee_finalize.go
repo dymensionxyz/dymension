@@ -48,7 +48,10 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	// TEE node must have started from a finalized state
 	///////////
 
-	if !k.IsHeightFinalized(ctx, rollapp, msg.Nonce.FinalizedHeight) {
+	fromGenesis := msg.Nonce.FinalizedHeight == 0
+	fullNodeTrustedHeightOk := fromGenesis || k.IsHeightFinalized(ctx, rollapp, msg.Nonce.FinalizedHeight)
+
+	if !fullNodeTrustedHeightOk {
 		return nil, gerrc.ErrInvalidArgument.Wrapf("claimed finalized height is not finalized")
 	}
 
@@ -56,25 +59,23 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	// TEE node must genuinely have reached the proposed new latest finalized state
 	///////////
 
-	if k.IsFinalizedIndex(ctx, rollapp, msg.StateIndex) {
-		return nil, gerrc.ErrOutOfRange.Wrapf("state index is already finalized")
-	}
-
-	info, found := k.GetStateInfo(ctx, rollapp, msg.StateIndex)
-	if !found {
+	info, err := k.FindStateInfoByHeight(ctx, rollapp, msg.Nonce.CurrHeight)
+	if err != nil {
 		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
 	}
 
+	indexToFinalize := info.GetIndex().Index
 	if info.GetLatestHeight() != msg.Nonce.CurrHeight {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("height index mismatch")
+		// its not the last block so we cant finalize everything in the state info yet
+		indexToFinalize--
 	}
 
-	err := k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
+	err = k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "validate attestation")
 	}
 
-	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, msg.StateIndex)
+	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, indexToFinalize)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "fast finalize states")
 	}
@@ -83,7 +84,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		sdk.NewEvent(
 			types.EventTypeTEEFastFinalization,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollapp),
-			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", msg.StateIndex)),
+			sdk.NewAttribute(types.AttributeKeyStateIndex, fmt.Sprintf("%d", indexToFinalize)),
 		),
 	)
 

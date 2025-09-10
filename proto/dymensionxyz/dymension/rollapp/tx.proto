@@ -223,9 +223,6 @@ message MsgFastFinalizeWithTEE {
 
   // nonce contains the data that was signed by TEE
   TEENonce nonce = 5 [(gogoproto.nullable) = false];
-
-  // what should be finalized immediately
-  uint64 state_index = 6;
 }
 
 // what the verifying full node inside the tee actually attests over
