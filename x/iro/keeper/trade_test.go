@@ -21,17 +21,19 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	incentives := types.DefaultIncentivePlanParams()
 
 	startTime := time.Now()
+	planDuration := time.Hour
 	maxAmt := math.NewInt(1_000_000_000).MulRaw(1e18)
 	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, planDuration, startTime, false, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	plan := k.MustGetPlan(s.Ctx, planId)
 	s.Assert().False(plan.TradingEnabled)
 	s.Assert().True(plan.StartTime.IsZero())
 	s.Assert().True(plan.PreLaunchTime.IsZero())
+	s.Assert().Equal(plan.IroPlanDuration, planDuration)
 
 	// Verify rollapp is not launchable (pre-launch time is far in the future)
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
@@ -71,12 +73,11 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	plan = k.MustGetPlan(s.Ctx, planId)
 	s.Assert().True(plan.TradingEnabled)
 	s.Assert().Equal(enableTime, plan.StartTime)
-	s.Assert().Equal(enableTime.Add(plan.IroPlanDuration), plan.PreLaunchTime)
 
 	// Verify rollapp pre-launch time is updated
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
 	s.Require().NotNil(rollapp.PreLaunchTime)
-	s.Assert().Equal(plan.PreLaunchTime, *rollapp.PreLaunchTime)
+	s.Assert().Equal(enableTime.Add(plan.IroPlanDuration), *rollapp.PreLaunchTime)
 
 	// Buy should now succeed
 	err = k.Buy(s.Ctx.WithBlockTime(enableTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)
@@ -94,7 +95,7 @@ func (s *KeeperTestSuite) TestBuy() {
 	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	initialOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))
 
@@ -170,7 +171,7 @@ func (s *KeeperTestSuite) TestTradeAfterSettled() {
 	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	buyer := sample.Acc()
@@ -212,7 +213,7 @@ func (s *KeeperTestSuite) TestTakerFee() {
 	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
 
@@ -249,7 +250,7 @@ func (s *KeeperTestSuite) TestSell() {
 	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	initialOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
@@ -358,7 +359,7 @@ func (s *KeeperTestSuite) TestBuyWithUSDC() {
 	// Create plan with USDC as liquidity denom instead of DYM
 	// Fund owner with USDC (6 decimals) for creation fee
 	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100_000).MulRaw(1e6)))) // 100K USDC)
-	planId, err := k.CreatePlan(s.Ctx, "usdc", totalAllocation, time.Hour, startTime, true, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "usdc", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	initialOwnerBalance := s.App.BankKeeper.GetAllBalances(s.Ctx, s.App.RollappKeeper.MustGetRollappOwner(s.Ctx, rollappId))

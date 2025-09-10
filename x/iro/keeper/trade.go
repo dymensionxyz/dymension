@@ -44,7 +44,20 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 	plan.EnableTradingWithStartTime(ctx.BlockTime())
 	k.SetPlan(ctx, plan)
 
-	k.rk.SetPreLaunchTime(ctx, &rollapp, plan.PreLaunchTime)
+	// non standard launched plans need to set the pre launch time
+	// standard launched plans will allow launch once graduated
+	if !plan.StandardLaunch {
+		k.rk.SetPreLaunchTime(ctx, &rollapp, plan.StartTime.Add(plan.IroPlanDuration))
+	}
+
+	err := uevent.EmitTypedEvent(ctx, &types.EventTradingEnabled{
+		PlanId:    planId,
+		RollappId: plan.RollappId,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -109,6 +122,23 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	})
 	if err != nil {
 		return err
+	}
+
+	// if all tokens are sold, we need to graduate the plan
+	if plan.SoldAmt.Equal(plan.MaxAmountToSell) {
+		poolID, _, err := k.GraduatePlan(ctx, planId)
+		if err != nil {
+			return err
+		}
+
+		err = uevent.EmitTypedEvent(ctx, &types.EventGraduation{
+			PlanId:    planId,
+			RollappId: plan.RollappId,
+			PoolId:    poolID,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -253,7 +283,7 @@ func (k Keeper) Sell(ctx sdk.Context, planId string, seller sdk.AccAddress, amou
 
 // GetTradeableIRO returns the tradeable IRO plan
 // - plan must exist
-// - plan must not be settled
+// - plan must not be graduated or settled
 // - plan must have started (unless the trader is the owner)
 func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAddress) (*types.Plan, error) {
 	plan, found := k.GetPlan(ctx, planId)
@@ -261,17 +291,16 @@ func (k Keeper) GetTradeableIRO(ctx sdk.Context, planId string, trader sdk.AccAd
 		return nil, types.ErrPlanNotFound
 	}
 
-	if plan.IsSettled() {
-		return nil, errorsmod.Wrapf(types.ErrPlanSettled, "planId: %d", plan.Id)
+	if !plan.PreGraduation() {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "planId: %d, status: %s", plan.Id, plan.GetGraduationStatus())
 	}
 
-	// Validate start time started (unless the trader is the owner)
+	// Validate trading enabled and start time started (unless the trader is the owner)
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	if owner.Equals(trader) {
 		return &plan, nil
 	}
 
-	// validate trading enabled
 	if !plan.TradingEnabled {
 		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "trading disabled")
 	}

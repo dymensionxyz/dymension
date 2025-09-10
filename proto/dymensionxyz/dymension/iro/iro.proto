@@ -62,8 +62,9 @@ message Plan {
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The time before which the rollapp cannot be started.
-  google.protobuf.Timestamp pre_launch_time = 8
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // Deprecated: use iro_plan_duration instead.
+  google.protobuf.Timestamp pre_launch_time = 8 
+      [ deprecated = true , (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
   // The amount of tokens sold so far.
   string sold_amt = 9 [
@@ -104,12 +105,18 @@ message Plan {
   // Whether trading is enabled for the plan. default to true
   // can be set to false initially, to require EnableTrading tx for this IRO
   bool trading_enabled = 15;
-  // The duration of the plan.
+  // The duration of the plan (minimal time from start time to pre-launch time)
   google.protobuf.Duration iro_plan_duration = 16
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
   // the denom used for raising liquidity
   string liquidity_denom = 17;
+
+  // Whether the plan was created as a standard launch
+  bool standard_launch = 18;
+
+  // graduated pool ID
+  uint64 graduated_pool_id = 19;
 }
 
 message IncentivePlanParams {

@@ -20,6 +20,7 @@ message EventNewIROPlan {
   string creator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string plan_id = 2;
   string rollapp_id = 3;
+  bool standard_launch = 4;
 }
 
 message EventBuy {
@@ -82,4 +83,13 @@ message EventSettle {
   ];
 }
 
-// TODO: add events for enable trading
+message EventTradingEnabled {
+  string plan_id = 1;
+  string rollapp_id = 2;
+}
+
+message EventGraduation {
+  string plan_id = 1;
+  string rollapp_id = 2;
+  uint64 pool_id = 3;
+}
