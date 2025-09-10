@@ -28,8 +28,26 @@ func (k Keeper) CreateAuction(
 		return 0, errorsmod.Wrap(gerrc.ErrInvalidArgument, "allocation must be in base denom")
 	}
 
-	// FIXME: validate the funds available in the module account
-	// FIXME: need to mark them as allocated
+	var expectedBalance math.Int
+	err := k.auctions.Walk(ctx, nil, func(key uint64, auction types.Auction) (bool, error) {
+		if auction.IsCompleted() {
+			return false, nil
+		}
+		expectedBalance = expectedBalance.Add(auction.GetRemainingAllocation())
+		return false, nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// add the new allocation to the already allocated
+	expectedBalance = expectedBalance.Add(allocation.Amount)
+
+	// check if the module account has enough funds
+	bankBalance := k.bankKeeper.GetBalance(ctx, k.accountKeeper.GetModuleAddress(types.ModuleName), k.baseDenom)
+	if bankBalance.Amount.LT(expectedBalance) {
+		return 0, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "insufficient funds")
+	}
 
 	// Get next auction ID
 	auctionID, err := k.IncrementNextAuctionID(ctx)
