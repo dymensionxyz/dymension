@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,4 +42,9 @@ type BankKeeper interface {
 type AMMKeeper interface {
 	GetPoolDenoms(ctx sdk.Context, poolId uint64) ([]string, error)
 	CalculateSpotPrice(ctx sdk.Context, poolID uint64, quoteAssetDenom, baseAssetDenom string) (spotPrice math.LegacyDec, err error)
+}
+
+// StreamerKeeper defines the expected interface for the Streamer module.
+type StreamerKeeper interface {
+	CreatePumpStream(ctx sdk.Context, coins sdk.Coins, poolId uint64, startTime time.Time, epochIdentifier string, numEpochsPaidOver, numOfPumps uint64) (uint64, error)
 }

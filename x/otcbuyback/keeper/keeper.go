@@ -23,9 +23,10 @@ type (
 
 		authority string
 
-		accountKeeper types.AccountKeeper
-		bankKeeper    types.BankKeeper
-		ammKeeper     types.AMMKeeper
+		accountKeeper  types.AccountKeeper
+		bankKeeper     types.BankKeeper
+		ammKeeper      types.AMMKeeper
+		streamerKeeper types.StreamerKeeper
 
 		// Collections for storing auction data
 		nextAuctionID collections.Sequence

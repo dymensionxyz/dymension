@@ -134,13 +134,18 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 		// FIXME: IMPLEMENT. can we iterate over the collection and update inplace?
 	}
 
-	// FIXME: create pump streams
+	// create pump streams
+	pumpStreams, err := k.CreatePumpStreams(ctx, auction)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to create pump streams")
+	}
 
 	// Emit completion event
 	err = uevent.EmitTypedEvent(ctx, &types.EventAuctionCompleted{
 		AuctionId:        auctionID,
 		TotalSold:        auction.SoldAmount,
 		TotalRaised:      auction.RaisedAmount,
+		PumpStreams:      pumpStreams,
 		CompletionReason: reason,
 	})
 	if err != nil {
@@ -148,4 +153,38 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 	}
 
 	return nil
+}
+
+// CreateStream creates a pump stream struct given the required params.
+func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uint64, error) {
+	var streamIDs []uint64
+
+	coins := auction.RaisedAmount
+
+	// FIXME: send coins to streamer module
+
+	pp := auction.PumpParams
+
+	// for each coin
+	for _, coin := range coins {
+		poolID, err := k.GetAcceptedTokenPoolID(ctx, coin.Denom)
+		if err != nil {
+			return nil, err
+		}
+
+		streamID, err := k.streamerKeeper.CreatePumpStream(ctx,
+			sdk.NewCoins(coin),
+			poolID,
+			ctx.BlockTime().Add(pp.StartTimeAfterAuctionEnd),
+			pp.EpochIdentifier,
+			pp.NumEpochsPaidOver,
+			pp.NumOfPumpsPerEpoch,
+		)
+		if err != nil {
+			return nil, err
+		}
+		streamIDs = append(streamIDs, streamID)
+	}
+
+	return streamIDs, nil
 }

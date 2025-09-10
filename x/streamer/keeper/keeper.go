@@ -90,6 +90,19 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+// FIXME: this should work eventually
+// CreatePumpStream creates a pump stream and sends coins to the stream.
+func (k Keeper) CreatePumpStream(ctx sdk.Context, coins sdk.Coins, poolId uint64, startTime time.Time, epochIdentifier string, numEpochsPaidOver, numOfPumps uint64) (uint64, error) {
+	// FIXME: validate the coins and poolId are correlated
+
+	return k.CreateStream(ctx, coins,
+		[]types.DistrRecord{},
+		startTime, epochIdentifier, numEpochsPaidOver, false, &types.MsgCreateStream_PumpParams{
+			NumPumps:  numOfPumps,
+			PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
+		})
+}
+
 // CreateStream creates a stream and sends coins to the stream.
 func (k Keeper) CreateStream(
 	ctx sdk.Context,
