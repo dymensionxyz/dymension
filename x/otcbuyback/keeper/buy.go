@@ -44,7 +44,7 @@ func (k Keeper) Buy(
 	}
 
 	// Get current price
-	currentPrice, err := k.GetCurrentPrice(ctx, auctionID, denomToPay, ctx.BlockTime())
+	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime())
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -136,7 +136,7 @@ func (k Keeper) BuyExactSpend(
 	paymentCoin sdk.Coin,
 ) (math.Int, error) {
 	// Get current price
-	currentPrice, err := k.GetCurrentPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime())
+	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime())
 	if err != nil {
 		return math.ZeroInt(), err
 	}
@@ -156,8 +156,8 @@ func (k Keeper) BuyExactSpend(
 	return tokensToPurchase, nil
 }
 
-// GetCurrentPrice returns the current price for an active auction
-func (k Keeper) GetCurrentPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time) (math.LegacyDec, error) {
+// GetDiscountedPrice returns the current price for an active auction
+func (k Keeper) GetDiscountedPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time) (math.LegacyDec, error) {
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
 		return math.LegacyZeroDec(), types.ErrAuctionNotFound
