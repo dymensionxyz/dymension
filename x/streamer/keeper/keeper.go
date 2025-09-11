@@ -27,8 +27,6 @@ type Keeper struct {
 	ik       types.IncentivesKeeper
 	sk       types.SponsorshipKeeper
 
-	otck types.OtcbuybackKeeper
-
 	mintParams        types.MintParamsGetter
 	iroKeeper         types.IROKeeper
 	poolManagerKeeper types.PoolManagerKeeper
@@ -50,7 +48,6 @@ func NewKeeper(
 	ak types.AccountKeeper,
 	ik types.IncentivesKeeper,
 	sk types.SponsorshipKeeper,
-	otck types.OtcbuybackKeeper,
 	mintParams types.MintParamsGetter,
 	iroKeeper types.IROKeeper,
 	poolManagerKeeper types.PoolManagerKeeper,
@@ -68,7 +65,6 @@ func NewKeeper(
 		ak:                ak,
 		ik:                ik,
 		sk:                sk,
-		otck:              otck,
 		mintParams:        mintParams,
 		iroKeeper:         iroKeeper,
 		poolManagerKeeper: poolManagerKeeper,

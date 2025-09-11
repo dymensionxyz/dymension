@@ -47,6 +47,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	ammKeeper types.AMMKeeper,
+	streamerKeeper types.StreamerKeeper,
 ) *Keeper {
 
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
@@ -58,9 +59,10 @@ func NewKeeper(
 
 		baseDenom: params.BaseDenom, // set "adym" as the base denom
 
-		accountKeeper: accountKeeper,
-		bankKeeper:    bankKeeper,
-		ammKeeper:     ammKeeper,
+		accountKeeper:  accountKeeper,
+		bankKeeper:     bankKeeper,
+		ammKeeper:      ammKeeper,
+		streamerKeeper: streamerKeeper,
 
 		nextAuctionID: collections.NewSequence(
 			sb,

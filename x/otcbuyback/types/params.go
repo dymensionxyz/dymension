@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -21,4 +23,16 @@ func (p Params) ValidateBasic() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "moving average smoothing factor must be between 0 and 1")
 	}
 	return nil
+}
+
+var DefaultVestingParams = Auction_VestingParams{
+	VestingPeriod:               3 * 30 * 24 * time.Hour,
+	VestingStartAfterAuctionEnd: 0,
+}
+
+var DefaultPumpParams = Auction_PumpParams{
+	StartTimeAfterAuctionEnd: time.Hour,
+	EpochIdentifier:          "month",
+	NumEpochsPaidOver:        2,
+	NumOfPumpsPerEpoch:       25,
 }

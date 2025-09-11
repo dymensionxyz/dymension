@@ -29,7 +29,7 @@ func (k Keeper) CreateAuction(
 		return 0, errorsmod.Wrap(gerrc.ErrInvalidArgument, "allocation must be in base denom")
 	}
 
-	var expectedBalance math.Int
+	expectedBalance := math.ZeroInt()
 	err := k.auctions.Walk(ctx, nil, func(key uint64, auction types.Auction) (bool, error) {
 		if auction.IsCompleted() {
 			return false, nil
