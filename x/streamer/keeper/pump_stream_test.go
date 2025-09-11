@@ -719,6 +719,20 @@ func (s *KeeperTestSuite) TestExecutePump() {
 	}
 }
 
+// Scenario:
+//  1. Create a pool with "foo" and "stake" tokens (1:1 ratio)
+//  2. Create a pump stream that pumps "foo" tokens to buyback "stake" tokens
+//  3. Set hash to ensure pump execution will happen
+//  4. Estimate the pump amount that would be used
+//  5. Begin the epoch to activate the stream
+//  6. Execute pump distribution via BeginBlock
+//  7. Validate exact state changes:
+//     - DistributedCoins increased by exactly pumpAmt
+//     - EpochCoinsLeft decreased by exactly pumpAmt
+//     - x/streamer balance of "foo" decreased by exactly pumpAmt
+//     - x/streamer balance of "stake" increased (received from swap)
+//     - Pool liquidity for "foo" increased by exactly pumpAmt
+//     - Pool liquidity for "stake" decreased (swapped out)
 func (s *KeeperTestSuite) TestPumpStreamPool() {
 	// 1. Create a pool
 	poolCoins := sdk.NewCoins(
