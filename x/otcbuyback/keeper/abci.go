@@ -41,14 +41,14 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 		}
 	}
 
-	// Update the TWAPs for all accepted tokens
-	k.UpdateTWAPs(ctx)
+	// Update the moving average prices for all accepted tokens
+	k.UpdateAveragePrices(ctx)
 
 	return nil
 }
 
-// UpdateTWAPs updates the TWAPs for all accepted tokens
-func (k Keeper) UpdateTWAPs(ctx sdk.Context) {
+// UpdateAveragePrices updates the moving average prices for all accepted tokens
+func (k Keeper) UpdateAveragePrices(ctx sdk.Context) {
 	var denoms []string
 
 	// Collect keys first
@@ -63,15 +63,15 @@ func (k Keeper) UpdateTWAPs(ctx sdk.Context) {
 
 	for _, denom := range denoms {
 		err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-			return k.UpdateTWAP(ctx, denom)
+			return k.UpdateMovingAveragePrice(ctx, denom)
 		})
 		if err != nil {
-			k.Logger(ctx).Error("failed to update TWAPs", "error", err)
+			k.Logger(ctx).Error("failed to update moving average price", "denom", denom, "error", err)
 		}
 	}
 }
 
-func (k Keeper) UpdateTWAP(ctx sdk.Context, denom string) error {
+func (k Keeper) UpdateMovingAveragePrice(ctx sdk.Context, denom string) error {
 	tokenData, err := k.GetAcceptedTokenData(ctx, denom)
 	if err != nil {
 		return err

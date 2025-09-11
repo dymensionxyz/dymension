@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -69,12 +68,16 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 			return nil, fmt.Errorf("pool must have the token denom and the base denom, got %s and %s", denoms[0], denoms[1])
 		}
 
+		price, err := ms.Keeper.ammKeeper.CalculateSpotPrice(ctx, token.PoolId, token.Denom, ms.Keeper.baseDenom)
+		if err != nil {
+			return nil, err
+		}
+
 		acceptedTokens = append(acceptedTokens, types.AcceptedToken{
 			Denom: token.Denom,
 			TokenData: types.TokenData{
-				PoolId: token.PoolId,
-				// FIXME: need to take existing price from the pool
-				LastAveragePrice: math.LegacyZeroDec(),
+				PoolId:           token.PoolId,
+				LastAveragePrice: price,
 			},
 		})
 	}

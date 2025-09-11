@@ -218,8 +218,8 @@ func (k Keeper) ClearAcceptedTokens(ctx sdk.Context) error {
 	return k.acceptedTokens.Clear(ctx, nil)
 }
 
-// GetTWAPPrice
-func (k Keeper) GetTWAPPrice(ctx sdk.Context, denom string) (math.LegacyDec, error) {
+// GetMovingAveragePrice
+func (k Keeper) GetMovingAveragePrice(ctx sdk.Context, denom string) (math.LegacyDec, error) {
 	tokenData, err := k.GetAcceptedTokenData(ctx, denom)
 	if err != nil {
 		return math.LegacyZeroDec(), err

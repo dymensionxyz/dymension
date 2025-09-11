@@ -174,11 +174,11 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, auctionID uint64, quoteDenom st
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
-	twap_price, err := k.GetTWAPPrice(ctx, quoteDenom)
+	avg_price, err := k.GetMovingAveragePrice(ctx, quoteDenom)
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
-	base_price := math.LegacyMaxDec(curr_price, twap_price)
+	base_price := math.LegacyMaxDec(curr_price, avg_price)
 
 	discount := auction.GetCurrentDiscount(currentTime)
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
