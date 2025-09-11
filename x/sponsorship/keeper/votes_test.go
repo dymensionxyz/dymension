@@ -320,7 +320,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 			s.SetupTest()
 
 			// Create expected num of gauges
-			s.CreateGauges(tc.numGauges)
+			s.CreateRollappGauges(tc.numGauges)
 
 			// Create a validator
 			val := s.CreateValidator()
@@ -461,10 +461,8 @@ func (s *KeeperTestSuite) TestMsgRevokeVote() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.SetupTest()
-
 			// Create expected num of gauges
-			s.CreateGauges(tc.numGauges)
+			s.CreateRollappGauges(tc.numGauges)
 
 			// Delegate to the validator
 			val := s.CreateValidator()
@@ -512,7 +510,7 @@ func (s *KeeperTestSuite) TestClearAllVotes() {
 	const rollappGaugeID = 1 // Rollapp gauge is always created with ID 1
 
 	// Setup: Create additional gauges for non-rollapp votes
-	s.CreateGauges(2) // Creates gauges 2 and 3
+	s.CreateRollappGauges(2) // Creates gauges 2 and 3
 
 	// Setup: Create validator and delegate
 	val := s.CreateValidator()
@@ -629,4 +627,27 @@ func (s *KeeperTestSuite) TestClearAllVotes() {
 	claimableAfterClear, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, firstVoterAddr, rollappID)
 	s.Require().NoError(err)
 	s.Require().Equal(claimableBeforeClear, claimableAfterClear, "Claimable rewards should be the same before and after clearing votes")
+}
+
+func (s *KeeperTestSuite) TestVotingNonRollapp() {
+	s.CreateAssetGauge()
+
+	val := s.CreateValidator()
+	valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+	s.Require().NoError(err)
+
+	del := s.CreateDelegator(valAddr, sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000)))
+
+	err = s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, types.NewDistribution())
+	s.Require().NoError(err)
+
+	voteResp, err := s.msgServer.Vote(s.Ctx, &types.MsgVote{
+		Voter: del.GetDelegatorAddr(),
+		Weights: []types.GaugeWeight{
+			{GaugeId: 1, Weight: types.DYM.MulRaw(50)},
+		},
+	})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "voting is only allowed for rollapp gauges")
+	s.Require().Nil(voteResp)
 }

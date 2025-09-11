@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdQueryParams())
+	cmd.AddCommand(CmdGetDemandOrderById())
 	cmd.AddCommand(CmdListDemandOrdersByStatus())
 	cmd.AddCommand(CmdQueryOnDemandLPs())
 	cmd.AddCommand(CmdQueryOnDemandLPsAddr())

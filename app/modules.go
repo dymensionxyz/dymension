@@ -1,6 +1,8 @@
 package app
 
 import (
+	"slices"
+
 	"cosmossdk.io/x/circuit"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	"cosmossdk.io/x/evidence"
@@ -356,4 +358,16 @@ var InitGenesis = []string{
 	circuittypes.ModuleName,
 	kastypes.ModuleName,
 	ratelimittypes.ModuleName,
+}
+
+// We have custom migration order to make sure we run txfees first (we need it for iro migrations)
+func CustomMigrationOrder(modules []string) []string {
+	defaultOrder := module.DefaultMigrationsOrder(modules)
+
+	// run txfees first (we need it for iro migrations)
+	txfeesIndex := slices.Index(defaultOrder, txfeestypes.ModuleName)
+	defaultOrder = append(defaultOrder[:txfeesIndex], defaultOrder[txfeesIndex+1:]...)
+	defaultOrder = append([]string{txfeestypes.ModuleName}, defaultOrder...)
+
+	return defaultOrder
 }
