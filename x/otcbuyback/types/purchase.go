@@ -6,13 +6,12 @@ import (
 	"cosmossdk.io/math"
 )
 
-// NewVestingPlan creates a new user vesting plan
-func NewVestingPlan(
+// NewPurchase creates a new user vesting plan
+func NewPurchase(
 	amount math.Int,
-	startTime time.Time,
-	endTime time.Time,
-) VestingPlan {
-	return VestingPlan{
+	startTime, endTime time.Time,
+) Purchase {
+	return Purchase{
 		Amount:    amount,
 		Claimed:   math.ZeroInt(),
 		StartTime: startTime,
@@ -20,19 +19,18 @@ func NewVestingPlan(
 	}
 }
 
-// ClaimTokens updates the vesting plan after a successful claim
-func (v *VestingPlan) ClaimTokens(amount math.Int) {
+// ClaimTokens updates the purchase data after a successful claim
+func (v *Purchase) ClaimTokens(amount math.Int) {
 	v.Claimed = v.Claimed.Add(amount)
 }
 
 // GetRemainingVesting returns the amount still vesting (not yet claimed)
-func (v VestingPlan) GetRemainingVesting() math.Int {
+func (v Purchase) GetRemainingVesting() math.Int {
 	return v.Amount.Sub(v.Claimed)
 }
 
 // VestedAmount calculates the amount of tokens that have vested and are claimable
-// This uses the same linear vesting calculation as the IRO module
-func (v VestingPlan) VestedAmount(currTime time.Time) math.Int {
+func (v Purchase) VestedAmount(currTime time.Time) math.Int {
 	unclaimed := v.GetRemainingVesting()
 
 	// no tokens to claim

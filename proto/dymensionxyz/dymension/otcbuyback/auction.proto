@@ -11,6 +11,27 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
 // Auction represents a Dutch auction with decreasing prices over time
 message Auction {
+
+  message VestingParams {
+    // Vesting period for purchased tokens (e.g., "3 months")
+    google.protobuf.Duration vesting_period = 1
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+    // Delay before vesting starts after auction ends (e.g., "7 days")
+    google.protobuf.Duration vesting_start_after_auction_end = 2
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+  }
+
+  // Pump Params defines parameters for the pump streams created after auction
+  // completion
+  message PumpParams {
+    string epoch_identifier = 1;
+    uint64 num_epochs_paid_over = 2;
+    uint64 num_of_pumps_per_epoch = 3;
+    google.protobuf.Duration start_time_after_auction_end = 4
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+  }
+
   // Unique identifier for the auction
   uint64 id = 1;
 
@@ -45,88 +66,22 @@ message Auction {
     (gogoproto.nullable) = false
   ];
 
-  // Total amount of tokens sold
+  // Total amount of tokens already sold
   string sold_amount = 8 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
-  message VestingParams {
-    // Vesting period for purchased tokens (e.g., "3 months")
-    google.protobuf.Duration vesting_period = 1
-        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
-
-    // Delay before vesting starts after auction ends (e.g., "7 days")
-    google.protobuf.Duration vesting_start_after_auction_end = 2
-        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
-  }
-
-  VestingParams vesting_params = 10 [ (gogoproto.nullable) = false ];
-
   // Total raised amount in all accepted tokens
-  repeated cosmos.base.v1beta1.Coin raised_amount = 11 [
+  repeated cosmos.base.v1beta1.Coin raised_amount = 9 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
+  // The vesting params for purchased tokens in the auction
+  VestingParams vesting_params = 10 [ (gogoproto.nullable) = false ];
+
   // Pump params to be used for pump streams after auction completion
-  PumpParams pump_params = 12 [ (gogoproto.nullable) = false ];
+  PumpParams pump_params = 11 [ (gogoproto.nullable) = false ];
 }
-
-
-// VestingPlan defines vesting parameters for purchased tokens
-message VestingPlan {
-  // Amount of tokens purchased
-  string amount = 1 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-
-  // Amount already claimed
-  string claimed = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-
-  // Start time of the auction
-  google.protobuf.Timestamp start_time = 3
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
-
-  // End time of the auction
-  google.protobuf.Timestamp end_time = 4
-      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
-}
-
-// Pump Params defines parameters for pump streams
-message PumpParams {
-  string epoch_identifier = 1;
-  uint64 num_epochs_paid_over = 2;
-  uint64 num_of_pumps_per_epoch = 3;
-  google.protobuf.Duration start_time_after_auction_end = 4
-      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
-}
-
-// TokenData defines data for an accepted token
-message TokenData {
-  uint64 pool_id = 1;
-  string last_average_price = 2 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false
-  ];
-}
-
-// AcceptedToken defines an accepted token for auctions
-message AcceptedToken {
-    string denom = 1;
-    TokenData token_data = 2 [ (gogoproto.nullable) = false ];
-  }
-
-  message UserVesting{
-    string buyer = 1;
-    VestingPlan purchase = 2 [ (gogoproto.nullable) = false ];
-  }
-  

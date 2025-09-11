@@ -23,6 +23,7 @@ func NewAuction(
 	startTime, endTime time.Time,
 	initialDiscount, maxDiscount math.LegacyDec,
 	vestingPlan Auction_VestingParams,
+	pumpParams Auction_PumpParams,
 ) Auction {
 
 	return Auction{
@@ -33,10 +34,8 @@ func NewAuction(
 		InitialDiscount: initialDiscount,
 		MaxDiscount:     maxDiscount,
 		SoldAmount:      math.ZeroInt(),
-		VestingParams: Auction_VestingParams{
-			VestingPeriod:               vestingPlan.VestingPeriod,
-			VestingStartAfterAuctionEnd: vestingPlan.VestingStartAfterAuctionEnd,
-		},
+		VestingParams:   vestingPlan,
+		PumpParams:      pumpParams,
 	}
 }
 
@@ -73,6 +72,8 @@ func (a Auction) ValidateBasic() error {
 	if a.VestingParams.VestingStartAfterAuctionEnd < 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting start time cannot be negative")
 	}
+
+	// FIXME: validate pump params
 
 	return nil
 }
@@ -117,12 +118,12 @@ func (a Auction) GetRemainingAllocation() math.Int {
 	return a.Allocation.Sub(a.SoldAmount)
 }
 
-// GetVestingStartTime returns the start time of the vesting period
+// GetVestingStartTime returns the start time of the vesting period for purchases
 func (a Auction) GetVestingStartTime() time.Time {
 	return a.EndTime.Add(a.VestingParams.VestingStartAfterAuctionEnd)
 }
 
-// GetVestingEndTime returns the end time of the vesting period
+// GetVestingEndTime returns the end time of the vesting period for purchases
 func (a Auction) GetVestingEndTime() time.Time {
 	return a.GetVestingStartTime().Add(a.VestingParams.VestingPeriod)
 }

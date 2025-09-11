@@ -111,10 +111,8 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		msg.EndTime,
 		msg.InitialDiscount,
 		msg.MaxDiscount,
-		types.Auction_VestingParams{
-			VestingPeriod:               msg.VestingPeriod,
-			VestingStartAfterAuctionEnd: msg.VestingStartAfterAuctionEnd,
-		},
+		msg.VestingParams,
+		msg.PumpParams,
 	)
 	if err != nil {
 		return nil, err

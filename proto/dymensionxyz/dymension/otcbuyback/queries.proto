@@ -8,6 +8,8 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/otcbuyback/auction.proto";
+import "dymensionxyz/dymension/otcbuyback/purchase.proto";
+import "dymensionxyz/dymension/otcbuyback/tokens.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
@@ -15,40 +17,50 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 service Query {
   // AllAuctions queries all auctions with optional filtering
   rpc AllAuctions(QueryAllAuctionsRequest) returns (QueryAllAuctionsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/otcbuyback/auctions";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/otcbuyback/auctions";
   }
 
   // Auction queries a specific auction by ID
   rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/otcbuyback/auction/{id}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/otcbuyback/auction/{id}";
   }
 
   // UserPurchase queries user's vesting plan for a specific auction
-  rpc UserPurchase(QueryUserPurchaseRequest) returns (QueryUserPurchaseResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/otcbuyback/vesting/{auction_id}/{user}";
+  rpc UserPurchase(QueryUserPurchaseRequest)
+      returns (QueryUserPurchaseResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/otcbuyback/vesting/{auction_id}/{user}";
   }
 
   // AcceptedTokens queries all accepted tokens with their current prices
-  rpc AcceptedTokens(QueryAcceptedTokensRequest) returns (QueryAcceptedTokensResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/otcbuyback/accepted_tokens";
+  rpc AcceptedTokens(QueryAcceptedTokensRequest)
+      returns (QueryAcceptedTokensResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/otcbuyback/accepted_tokens";
   }
 
   // AcceptedToken queries specific token data and price by denom
-  rpc AcceptedToken(QueryAcceptedTokenRequest) returns (QueryAcceptedTokenResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/otcbuyback/accepted_token/{denom}";
+  rpc AcceptedToken(QueryAcceptedTokenRequest)
+      returns (QueryAcceptedTokenResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/otcbuyback/accepted_token/{denom}";
   }
 }
 
-// QueryAllAuctionsRequest is the request type for the Query/AllAuctions RPC method.
+// QueryAllAuctionsRequest is the request type for the Query/AllAuctions RPC
+// method.
 message QueryAllAuctionsRequest {
   // exclude_completed filters out completed auctions when set to true
   bool exclude_completed = 1;
 }
 
-// QueryAllAuctionsResponse is the response type for the Query/AllAuctions RPC method.
+// QueryAllAuctionsResponse is the response type for the Query/AllAuctions RPC
+// method.
 message QueryAllAuctionsResponse {
   // auctions is the list of all auctions
-  repeated Auction auctions = 1 [(gogoproto.nullable) = false];
+  repeated Auction auctions = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryAuctionRequest is the request type for the Query/Auction RPC method.
@@ -60,8 +72,8 @@ message QueryAuctionRequest {
 // QueryAuctionResponse is the response type for the Query/Auction RPC method.
 message QueryAuctionResponse {
   // auction is the queried auction
-  Auction auction = 1 [(gogoproto.nullable) = false];
-  
+  Auction auction = 1 [ (gogoproto.nullable) = false ];
+
   // current_discount is the current discount percentage at the time of query
   string current_discount = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
@@ -70,20 +82,22 @@ message QueryAuctionResponse {
   ];
 }
 
-// QueryUserPurchaseRequest is the request type for the Query/UserPurchase RPC method.
+// QueryUserPurchaseRequest is the request type for the Query/UserPurchase RPC
+// method.
 message QueryUserPurchaseRequest {
   // auction_id is the ID of the auction
   uint64 auction_id = 1;
-  
+
   // user is the address of the user
   string user = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
-// QueryUserPurchaseResponse is the response type for the Query/UserPurchase RPC method.
+// QueryUserPurchaseResponse is the response type for the Query/UserPurchase RPC
+// method.
 message QueryUserPurchaseResponse {
-  // vesting_plan is the user's vesting plan for the specified auction
-  VestingPlan vesting_plan = 1 [(gogoproto.nullable) = false];
-  
+  // purchase is the user's purchase for the specified auction
+  Purchase purchase = 1 [ (gogoproto.nullable) = false ];
+
   // claimable_amount is the amount that can be claimed now
   string claimable_amount = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
@@ -92,25 +106,29 @@ message QueryUserPurchaseResponse {
   ];
 }
 
-// QueryAcceptedTokensRequest is the request type for the Query/AcceptedTokens RPC method.
+// QueryAcceptedTokensRequest is the request type for the Query/AcceptedTokens
+// RPC method.
 message QueryAcceptedTokensRequest {}
 
-// QueryAcceptedTokensResponse is the response type for the Query/AcceptedTokens RPC method.
+// QueryAcceptedTokensResponse is the response type for the Query/AcceptedTokens
+// RPC method.
 message QueryAcceptedTokensResponse {
   // accepted_tokens is the list of all accepted tokens with their data
-  repeated AcceptedToken accepted_tokens = 1 [(gogoproto.nullable) = false];
+  repeated AcceptedToken accepted_tokens = 1 [ (gogoproto.nullable) = false ];
 }
 
-// QueryAcceptedTokenRequest is the request type for the Query/AcceptedToken RPC method.
+// QueryAcceptedTokenRequest is the request type for the Query/AcceptedToken RPC
+// method.
 message QueryAcceptedTokenRequest {
   // denom is the denomination of the token to query
   string denom = 1;
 }
 
-// QueryAcceptedTokenResponse is the response type for the Query/AcceptedToken RPC method.
+// QueryAcceptedTokenResponse is the response type for the Query/AcceptedToken
+// RPC method.
 message QueryAcceptedTokenResponse {
   // accepted_token is the queried token data
-  AcceptedToken accepted_token = 1 [(gogoproto.nullable) = false];
+  AcceptedToken accepted_token = 1 [ (gogoproto.nullable) = false ];
 
   string spot_price = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",

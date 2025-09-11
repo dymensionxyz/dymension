@@ -22,6 +22,7 @@ func (k Keeper) CreateAuction(
 	initialDiscount math.LegacyDec,
 	maxDiscount math.LegacyDec,
 	vestingParams types.Auction_VestingParams,
+	pumpParams types.Auction_PumpParams,
 ) (uint64, error) {
 
 	if allocation.Denom != k.baseDenom {
@@ -64,6 +65,7 @@ func (k Keeper) CreateAuction(
 		initialDiscount,
 		maxDiscount,
 		vestingParams,
+		pumpParams,
 	)
 
 	// Validate auction

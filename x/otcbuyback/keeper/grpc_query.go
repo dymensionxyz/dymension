@@ -61,7 +61,7 @@ func (q queryServer) Auction(goCtx context.Context, req *types.QueryAuctionReque
 	}, nil
 }
 
-// UserPurchase queries user's vesting plan for a specific auction
+// UserPurchase queries user's purchase for a specific auction
 func (q queryServer) UserPurchase(goCtx context.Context, req *types.QueryUserPurchaseRequest) (*types.QueryUserPurchaseResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -69,16 +69,16 @@ func (q queryServer) UserPurchase(goCtx context.Context, req *types.QueryUserPur
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	vestingPlan, found := q.GetPurchase(ctx, req.AuctionId, req.User)
+	purchase, found := q.GetPurchase(ctx, req.AuctionId, req.User)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "no purchase found for user %s in auction %d", req.User, req.AuctionId)
 	}
 
 	// Calculate claimable amount
-	claimableAmount := vestingPlan.VestedAmount(ctx.BlockTime())
+	claimableAmount := purchase.VestedAmount(ctx.BlockTime())
 
 	return &types.QueryUserPurchaseResponse{
-		VestingPlan:     vestingPlan,
+		Purchase:        purchase,
 		ClaimableAmount: claimableAmount,
 	}, nil
 }

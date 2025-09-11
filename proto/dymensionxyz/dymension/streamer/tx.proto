@@ -165,4 +165,3 @@ message MsgUpdateStream {
 }
 
 message MsgUpdateStreamResponse {}
-

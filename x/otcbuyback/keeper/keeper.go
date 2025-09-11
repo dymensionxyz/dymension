@@ -32,7 +32,7 @@ type (
 		// Collections for storing auction data
 		nextAuctionID collections.Sequence
 		auctions      collections.Map[uint64, types.Auction]
-		purchases     collections.Map[collections.Pair[uint64, string], types.VestingPlan] // [auctionID, buyer] -> VestingPlan
+		purchases     collections.Map[collections.Pair[uint64, string], types.Purchase] // [auctionID, buyer] -> Purchase
 		params        collections.Item[types.Params]
 
 		// acceptedTokens stores accepted tokens and their pool IDs
@@ -79,7 +79,7 @@ func NewKeeper(
 			types.PurchaseKeyPrefix,
 			"purchases",
 			collections.PairKeyCodec(collections.Uint64Key, collections.StringKey),
-			collcompat.ProtoValue[types.VestingPlan](cdc),
+			collcompat.ProtoValue[types.Purchase](cdc),
 		),
 		params: collections.NewItem(
 			sb,
@@ -137,28 +137,23 @@ func (k Keeper) GetAllAuctions(ctx sdk.Context, excludeCompleted bool) ([]types.
 	return auctions, err
 }
 
-// DeleteAuction removes an auction from the store using collections
-func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) error {
-	return k.auctions.Remove(ctx, auctionID)
-}
-
 // IncrementNextAuctionID increments and returns the next auction ID using collections
 func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) (uint64, error) {
 	return k.nextAuctionID.Next(ctx)
 }
 
 // SetPurchase stores a purchase using collections
-func (k Keeper) SetPurchase(ctx sdk.Context, auctionID uint64, buyer string, purchase types.VestingPlan) error {
+func (k Keeper) SetPurchase(ctx sdk.Context, auctionID uint64, buyer string, purchase types.Purchase) error {
 	key := collections.Join(auctionID, buyer)
 	return k.purchases.Set(ctx, key, purchase)
 }
 
 // GetPurchase retrieves a purchase by auction ID and buyer using collections
-func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer string) (types.VestingPlan, bool) {
+func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer string) (types.Purchase, bool) {
 	key := collections.Join(auctionID, buyer)
 	purchase, err := k.purchases.Get(ctx, key)
 	if err != nil {
-		return types.VestingPlan{}, false
+		return types.Purchase{}, false
 	}
 	return purchase, true
 }

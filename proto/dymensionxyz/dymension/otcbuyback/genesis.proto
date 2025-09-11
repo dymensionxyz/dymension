@@ -4,6 +4,7 @@ package dymensionxyz.dymension.otcbuyback;
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/otcbuyback/params.proto";
 import "dymensionxyz/dymension/otcbuyback/auction.proto";
+import "dymensionxyz/dymension/otcbuyback/tokens.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
