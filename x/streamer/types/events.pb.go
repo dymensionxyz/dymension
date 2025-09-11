@@ -4,7 +4,6 @@
 package types
 
 import (
-	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
@@ -186,8 +185,9 @@ func (m *EventEpochStart) GetActiveStreamsNum() uint64 {
 }
 
 type EventPumped struct {
-	StreamId uint64             `protobuf:"varint,1,opt,name=stream_id,json=streamId,proto3" json:"stream_id,omitempty"`
-	Pumps    []EventPumped_Pump `protobuf:"bytes,2,rep,name=pumps,proto3" json:"pumps"`
+	StreamId uint64                `protobuf:"varint,1,opt,name=stream_id,json=streamId,proto3" json:"stream_id,omitempty"`
+	Rollapps []EventPumped_Rollapp `protobuf:"bytes,2,rep,name=rollapps,proto3" json:"rollapps"`
+	Pool     *EventPumped_Pool     `protobuf:"bytes,3,opt,name=pool,proto3" json:"pool,omitempty"`
 }
 
 func (m *EventPumped) Reset()         { *m = EventPumped{} }
@@ -230,31 +230,38 @@ func (m *EventPumped) GetStreamId() uint64 {
 	return 0
 }
 
-func (m *EventPumped) GetPumps() []EventPumped_Pump {
+func (m *EventPumped) GetRollapps() []EventPumped_Rollapp {
 	if m != nil {
-		return m.Pumps
+		return m.Rollapps
 	}
 	return nil
 }
 
-type EventPumped_Pump struct {
-	RollappId string                `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	PumpAmt   cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=pumpAmt,proto3,customtype=cosmossdk.io/math.Int" json:"pumpAmt"`
-	TokenOut  types.Coin            `protobuf:"bytes,3,opt,name=tokenOut,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coin" json:"tokenOut"`
+func (m *EventPumped) GetPool() *EventPumped_Pool {
+	if m != nil {
+		return m.Pool
+	}
+	return nil
 }
 
-func (m *EventPumped_Pump) Reset()         { *m = EventPumped_Pump{} }
-func (m *EventPumped_Pump) String() string { return proto.CompactTextString(m) }
-func (*EventPumped_Pump) ProtoMessage()    {}
-func (*EventPumped_Pump) Descriptor() ([]byte, []int) {
+type EventPumped_Rollapp struct {
+	RollappId string     `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	PumpCoin  types.Coin `protobuf:"bytes,2,opt,name=pumpCoin,proto3" json:"pumpCoin"`
+	TokenOut  types.Coin `protobuf:"bytes,3,opt,name=tokenOut,proto3" json:"tokenOut"`
+}
+
+func (m *EventPumped_Rollapp) Reset()         { *m = EventPumped_Rollapp{} }
+func (m *EventPumped_Rollapp) String() string { return proto.CompactTextString(m) }
+func (*EventPumped_Rollapp) ProtoMessage()    {}
+func (*EventPumped_Rollapp) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4840a29c1bf68fa5, []int{3, 0}
 }
-func (m *EventPumped_Pump) XXX_Unmarshal(b []byte) error {
+func (m *EventPumped_Rollapp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EventPumped_Pump) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventPumped_Rollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EventPumped_Pump.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventPumped_Rollapp.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -264,26 +271,93 @@ func (m *EventPumped_Pump) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *EventPumped_Pump) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventPumped_Pump.Merge(m, src)
+func (m *EventPumped_Rollapp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventPumped_Rollapp.Merge(m, src)
 }
-func (m *EventPumped_Pump) XXX_Size() int {
+func (m *EventPumped_Rollapp) XXX_Size() int {
 	return m.Size()
 }
-func (m *EventPumped_Pump) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventPumped_Pump.DiscardUnknown(m)
+func (m *EventPumped_Rollapp) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventPumped_Rollapp.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EventPumped_Pump proto.InternalMessageInfo
+var xxx_messageInfo_EventPumped_Rollapp proto.InternalMessageInfo
 
-func (m *EventPumped_Pump) GetRollappId() string {
+func (m *EventPumped_Rollapp) GetRollappId() string {
 	if m != nil {
 		return m.RollappId
 	}
 	return ""
 }
 
-func (m *EventPumped_Pump) GetTokenOut() types.Coin {
+func (m *EventPumped_Rollapp) GetPumpCoin() types.Coin {
+	if m != nil {
+		return m.PumpCoin
+	}
+	return types.Coin{}
+}
+
+func (m *EventPumped_Rollapp) GetTokenOut() types.Coin {
+	if m != nil {
+		return m.TokenOut
+	}
+	return types.Coin{}
+}
+
+type EventPumped_Pool struct {
+	PoolId   uint64     `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
+	PumpCoin types.Coin `protobuf:"bytes,2,opt,name=pumpCoin,proto3" json:"pumpCoin"`
+	TokenOut types.Coin `protobuf:"bytes,3,opt,name=tokenOut,proto3" json:"tokenOut"`
+}
+
+func (m *EventPumped_Pool) Reset()         { *m = EventPumped_Pool{} }
+func (m *EventPumped_Pool) String() string { return proto.CompactTextString(m) }
+func (*EventPumped_Pool) ProtoMessage()    {}
+func (*EventPumped_Pool) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4840a29c1bf68fa5, []int{3, 1}
+}
+func (m *EventPumped_Pool) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventPumped_Pool) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventPumped_Pool.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventPumped_Pool) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventPumped_Pool.Merge(m, src)
+}
+func (m *EventPumped_Pool) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventPumped_Pool) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventPumped_Pool.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventPumped_Pool proto.InternalMessageInfo
+
+func (m *EventPumped_Pool) GetPoolId() uint64 {
+	if m != nil {
+		return m.PoolId
+	}
+	return 0
+}
+
+func (m *EventPumped_Pool) GetPumpCoin() types.Coin {
+	if m != nil {
+		return m.PumpCoin
+	}
+	return types.Coin{}
+}
+
+func (m *EventPumped_Pool) GetTokenOut() types.Coin {
 	if m != nil {
 		return m.TokenOut
 	}
@@ -295,7 +369,8 @@ func init() {
 	proto.RegisterType((*EventEpochEnd)(nil), "dymensionxyz.dymension.streamer.EventEpochEnd")
 	proto.RegisterType((*EventEpochStart)(nil), "dymensionxyz.dymension.streamer.EventEpochStart")
 	proto.RegisterType((*EventPumped)(nil), "dymensionxyz.dymension.streamer.EventPumped")
-	proto.RegisterType((*EventPumped_Pump)(nil), "dymensionxyz.dymension.streamer.EventPumped.Pump")
+	proto.RegisterType((*EventPumped_Rollapp)(nil), "dymensionxyz.dymension.streamer.EventPumped.Rollapp")
+	proto.RegisterType((*EventPumped_Pool)(nil), "dymensionxyz.dymension.streamer.EventPumped.Pool")
 }
 
 func init() {
@@ -303,40 +378,40 @@ func init() {
 }
 
 var fileDescriptor_4840a29c1bf68fa5 = []byte{
-	// 514 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x53, 0x41, 0x8f, 0x12, 0x31,
-	0x14, 0x66, 0x16, 0xd4, 0xa5, 0x64, 0xd5, 0x34, 0x9a, 0xb0, 0x18, 0x07, 0x42, 0x62, 0x24, 0x71,
-	0xb7, 0x15, 0x37, 0x9e, 0x8d, 0x18, 0x0e, 0x1c, 0x74, 0xcd, 0xec, 0xcd, 0x0b, 0xe9, 0x4c, 0x2b,
-	0x34, 0xd0, 0x76, 0x32, 0xed, 0x10, 0xf0, 0x57, 0xf8, 0x0b, 0xfc, 0x01, 0x9e, 0xfd, 0x0b, 0x26,
-	0x7b, 0x24, 0xc6, 0x83, 0xf1, 0xb0, 0x1a, 0xf8, 0x23, 0x66, 0xa6, 0x05, 0x26, 0x26, 0x8a, 0x17,
-	0x4f, 0xd3, 0xf7, 0xde, 0xf7, 0xbe, 0xf9, 0xbe, 0xbe, 0x3e, 0x70, 0x42, 0x17, 0x82, 0x49, 0xcd,
-	0x95, 0x9c, 0x2f, 0xde, 0xe1, 0x6d, 0x80, 0xb5, 0x49, 0x18, 0x11, 0x2c, 0xc1, 0x6c, 0xc6, 0xa4,
-	0xd1, 0x28, 0x4e, 0x94, 0x51, 0xb0, 0x59, 0x44, 0xa3, 0x6d, 0x80, 0x36, 0xe8, 0xc6, 0x9d, 0x91,
-	0x1a, 0xa9, 0x1c, 0x8b, 0xb3, 0x93, 0x6d, 0x6b, 0x1c, 0x47, 0x4a, 0x0b, 0xa5, 0x87, 0xb6, 0x60,
-	0x03, 0x57, 0xf2, 0x6d, 0x84, 0x43, 0xa2, 0x19, 0x9e, 0x75, 0x43, 0x66, 0x48, 0x17, 0x47, 0x8a,
-	0x4b, 0x57, 0x47, 0xfb, 0xf4, 0x6d, 0x0e, 0x16, 0xdf, 0xfe, 0xec, 0x81, 0xa3, 0x7e, 0x26, 0xb9,
-	0x2f, 0x69, 0x6f, 0xaa, 0xa2, 0x09, 0xf4, 0x01, 0xe0, 0x86, 0x25, 0xc4, 0x70, 0x25, 0x75, 0xdd,
-	0x6b, 0x79, 0x9d, 0x4a, 0x50, 0xc8, 0xc0, 0x07, 0xe0, 0xa6, 0x20, 0xf3, 0x61, 0x01, 0x73, 0x90,
-	0x63, 0x8e, 0x04, 0x99, 0x0f, 0x76, 0x30, 0x01, 0x6a, 0x94, 0x6b, 0x93, 0xf0, 0x30, 0x35, 0x8c,
-	0xd6, 0xcb, 0xad, 0x72, 0xa7, 0xf6, 0xe4, 0x18, 0x39, 0x33, 0x99, 0x7c, 0xe4, 0xe4, 0xa3, 0x17,
-	0x8a, 0xcb, 0xde, 0xe3, 0xcb, 0xab, 0x66, 0xe9, 0xe3, 0x8f, 0x66, 0x67, 0xc4, 0xcd, 0x38, 0x0d,
-	0x51, 0xa4, 0x84, 0x73, 0xee, 0x3e, 0xa7, 0x9a, 0x4e, 0xb0, 0x59, 0xc4, 0x4c, 0xe7, 0x0d, 0x3a,
-	0x28, 0xf2, 0xb7, 0x3f, 0x6c, 0x7d, 0xc4, 0x2a, 0x1a, 0xf7, 0x25, 0xdd, 0xeb, 0xe3, 0x37, 0x81,
-	0x07, 0xff, 0x59, 0xe0, 0x33, 0x70, 0x6b, 0xa7, 0xef, 0xc2, 0x90, 0xc4, 0xc0, 0x13, 0x00, 0x49,
-	0x64, 0xf8, 0x8c, 0x0d, 0xed, 0x50, 0xf4, 0x50, 0xa6, 0xc2, 0x29, 0xbd, 0x6d, 0x2b, 0x17, 0xb6,
-	0xf0, 0x2a, 0x15, 0xed, 0xe5, 0x01, 0xa8, 0xe5, 0x0c, 0xaf, 0x53, 0x11, 0x33, 0x0a, 0xef, 0x81,
-	0xaa, 0x6d, 0x1b, 0x72, 0xea, 0x9a, 0x0e, 0x6d, 0x62, 0x40, 0xe1, 0x4b, 0x70, 0x2d, 0x4e, 0x45,
-	0xac, 0x9d, 0xad, 0x2e, 0xda, 0xf3, 0x10, 0x51, 0x81, 0x19, 0x65, 0x9f, 0x5e, 0x25, 0xb3, 0x1b,
-	0x58, 0x96, 0xc6, 0x57, 0x0f, 0x54, 0xb2, 0x2c, 0xbc, 0x0f, 0x40, 0xa2, 0xa6, 0x53, 0x12, 0xc7,
-	0x9b, 0xbf, 0x56, 0x83, 0xaa, 0xcb, 0x0c, 0x28, 0xec, 0x83, 0x1b, 0x59, 0xc3, 0x73, 0x61, 0xf2,
-	0x47, 0x51, 0xed, 0x3d, 0xca, 0x58, 0xbe, 0x5f, 0x35, 0xef, 0xda, 0x2b, 0xd2, 0x74, 0x82, 0xb8,
-	0xc2, 0x82, 0x98, 0x31, 0x1a, 0x48, 0xf3, 0xe5, 0xd3, 0x29, 0x70, 0xf7, 0x3d, 0x90, 0x26, 0xd8,
-	0xf4, 0xc2, 0xb7, 0xe0, 0xd0, 0xa8, 0x09, 0x93, 0xe7, 0xa9, 0xa9, 0x97, 0x5b, 0xde, 0xdf, 0xe7,
-	0x82, 0xdd, 0x5c, 0x1e, 0xfe, 0xe3, 0x5c, 0x82, 0x2d, 0x77, 0xef, 0xfc, 0x72, 0xe5, 0x7b, 0xcb,
-	0x95, 0xef, 0xfd, 0x5c, 0xf9, 0xde, 0xfb, 0xb5, 0x5f, 0x5a, 0xae, 0xfd, 0xd2, 0xb7, 0xb5, 0x5f,
-	0x7a, 0xf3, 0xb4, 0x40, 0xf6, 0x87, 0x8d, 0x9a, 0x9d, 0xe1, 0xf9, 0x6e, 0xad, 0x72, 0xfe, 0xf0,
-	0x7a, 0xbe, 0x54, 0x67, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0xf3, 0x0a, 0xdb, 0x08, 0x26, 0x04,
-	0x00, 0x00,
+	// 523 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x94, 0x31, 0x8f, 0xd3, 0x30,
+	0x14, 0xc7, 0x9b, 0x6b, 0x74, 0xd7, 0xba, 0x3a, 0x40, 0x16, 0x12, 0xbd, 0x22, 0xd2, 0xaa, 0x12,
+	0x52, 0x87, 0xc3, 0xa1, 0x77, 0x30, 0x31, 0x20, 0x15, 0x75, 0xe8, 0xc2, 0x9d, 0x72, 0x12, 0x03,
+	0x4b, 0x94, 0xc4, 0x56, 0xcf, 0x6a, 0x6c, 0x47, 0xb1, 0x53, 0xb5, 0x7c, 0x04, 0x26, 0x56, 0x16,
+	0x06, 0x46, 0xbe, 0x07, 0xd2, 0x8d, 0x1d, 0x99, 0x00, 0xb5, 0x5f, 0x04, 0x25, 0x76, 0xda, 0x08,
+	0x09, 0x2a, 0x06, 0x74, 0x53, 0xfc, 0xfc, 0xde, 0xff, 0xe5, 0xf7, 0xb7, 0x9f, 0x0c, 0x4e, 0xf1,
+	0x92, 0x11, 0x2e, 0xa9, 0xe0, 0x8b, 0xe5, 0x3b, 0x77, 0x1b, 0xb8, 0x52, 0xa5, 0x24, 0x60, 0x24,
+	0x75, 0xc9, 0x9c, 0x70, 0x25, 0x51, 0x92, 0x0a, 0x25, 0x60, 0xb7, 0x5a, 0x8d, 0xb6, 0x01, 0x2a,
+	0xab, 0x3b, 0xf7, 0xa7, 0x62, 0x2a, 0x8a, 0x5a, 0x37, 0x5f, 0x69, 0x59, 0xe7, 0x24, 0x12, 0x92,
+	0x09, 0xe9, 0xeb, 0x84, 0x0e, 0x4c, 0xca, 0xd1, 0x91, 0x1b, 0x06, 0x92, 0xb8, 0xf3, 0x61, 0x48,
+	0x54, 0x30, 0x74, 0x23, 0x41, 0xb9, 0xc9, 0xa3, 0x7d, 0x7c, 0xe5, 0x42, 0xd7, 0xf7, 0xbf, 0x5a,
+	0xe0, 0x78, 0x9c, 0x23, 0x8f, 0x39, 0x1e, 0xc5, 0x22, 0x9a, 0x41, 0x07, 0x00, 0xaa, 0x48, 0x1a,
+	0x28, 0x2a, 0xb8, 0x6c, 0x5b, 0x3d, 0x6b, 0x60, 0x7b, 0x95, 0x1d, 0xf8, 0x18, 0xdc, 0x61, 0xc1,
+	0xc2, 0xaf, 0xd4, 0x1c, 0x14, 0x35, 0xc7, 0x2c, 0x58, 0x4c, 0x76, 0x65, 0x0c, 0xb4, 0x30, 0x95,
+	0x2a, 0xa5, 0x61, 0xa6, 0x08, 0x6e, 0xd7, 0x7b, 0xf5, 0x41, 0xeb, 0xec, 0x04, 0x19, 0x33, 0x39,
+	0x3e, 0x32, 0xf8, 0xe8, 0x95, 0xa0, 0x7c, 0xf4, 0xf4, 0xe6, 0x7b, 0xb7, 0xf6, 0xe5, 0x47, 0x77,
+	0x30, 0xa5, 0xea, 0x3a, 0x0b, 0x51, 0x24, 0x98, 0x71, 0x6e, 0x3e, 0x4f, 0x24, 0x9e, 0xb9, 0x6a,
+	0x99, 0x10, 0x59, 0x08, 0xa4, 0x57, 0xed, 0xdf, 0xff, 0xb4, 0xf5, 0x91, 0x88, 0xe8, 0x7a, 0xcc,
+	0xf1, 0x5e, 0x1f, 0xbf, 0x01, 0x1e, 0xfc, 0x67, 0xc0, 0x97, 0xe0, 0xee, 0x8e, 0xef, 0x4a, 0x05,
+	0xa9, 0x82, 0xa7, 0x00, 0x06, 0x91, 0xa2, 0x73, 0xe2, 0xeb, 0x4b, 0x91, 0x3e, 0xcf, 0x98, 0x21,
+	0xbd, 0xa7, 0x33, 0x57, 0x3a, 0xf1, 0x3a, 0x63, 0xfd, 0xf7, 0x36, 0x68, 0x15, 0x1d, 0x2e, 0x33,
+	0x96, 0x10, 0x0c, 0x1f, 0x82, 0xa6, 0x96, 0xf9, 0x14, 0x1b, 0x51, 0x43, 0x6f, 0x4c, 0x30, 0x7c,
+	0x03, 0x1a, 0xa9, 0x88, 0xe3, 0x20, 0x49, 0xa4, 0x71, 0xf6, 0x0c, 0xed, 0x99, 0x45, 0x54, 0x69,
+	0x8e, 0x3c, 0x2d, 0x1e, 0xd9, 0xb9, 0x69, 0x6f, 0xdb, 0x0b, 0x8e, 0x81, 0x9d, 0x08, 0x11, 0xb7,
+	0xeb, 0x3d, 0x6b, 0xd0, 0x3a, 0x1b, 0xfe, 0x53, 0xcf, 0x4b, 0x21, 0x62, 0xaf, 0x90, 0x77, 0x3e,
+	0x5b, 0xe0, 0xc8, 0xfc, 0x02, 0x3e, 0x02, 0xc0, 0xb4, 0x2f, 0x8d, 0x34, 0xbd, 0xa6, 0xd9, 0x99,
+	0x60, 0xf8, 0x02, 0x34, 0x92, 0x8c, 0x25, 0xf9, 0x89, 0x16, 0x83, 0xf6, 0xd7, 0x3b, 0x32, 0xb8,
+	0xa5, 0x20, 0x17, 0x2b, 0x31, 0x23, 0xfc, 0x22, 0x53, 0x06, 0x79, 0xbf, 0xb8, 0x14, 0x74, 0x3e,
+	0x5a, 0xc0, 0xce, 0x99, 0xe1, 0x03, 0x70, 0x94, 0x53, 0xef, 0xce, 0xf9, 0x30, 0x0f, 0x6f, 0x93,
+	0x6d, 0x74, 0x71, 0xb3, 0x76, 0xac, 0xd5, 0xda, 0xb1, 0x7e, 0xae, 0x1d, 0xeb, 0xc3, 0xc6, 0xa9,
+	0xad, 0x36, 0x4e, 0xed, 0xdb, 0xc6, 0xa9, 0xbd, 0x7d, 0x5e, 0x19, 0xcf, 0x3f, 0xbc, 0x05, 0xf3,
+	0x73, 0x77, 0xb1, 0x7b, 0x10, 0x8a, 0x89, 0x0d, 0x0f, 0x8b, 0xe7, 0xe0, 0xfc, 0x57, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0xf7, 0xfa, 0xae, 0xa8, 0xe0, 0x04, 0x00, 0x00,
 }
 
 func (m *EventEndBlock) Marshal() (dAtA []byte, err error) {
@@ -476,10 +551,22 @@ func (m *EventPumped) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Pumps) > 0 {
-		for iNdEx := len(m.Pumps) - 1; iNdEx >= 0; iNdEx-- {
+	if m.Pool != nil {
+		{
+			size, err := m.Pool.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintEvents(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Rollapps) > 0 {
+		for iNdEx := len(m.Rollapps) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Pumps[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Rollapps[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -498,7 +585,7 @@ func (m *EventPumped) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *EventPumped_Pump) Marshal() (dAtA []byte, err error) {
+func (m *EventPumped_Rollapp) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -508,12 +595,12 @@ func (m *EventPumped_Pump) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EventPumped_Pump) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventPumped_Rollapp) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EventPumped_Pump) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventPumped_Rollapp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -529,11 +616,11 @@ func (m *EventPumped_Pump) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x1a
 	{
-		size := m.PumpAmt.Size()
-		i -= size
-		if _, err := m.PumpAmt.MarshalTo(dAtA[i:]); err != nil {
+		size, err := m.PumpCoin.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
 			return 0, err
 		}
+		i -= size
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
@@ -544,6 +631,54 @@ func (m *EventPumped_Pump) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.RollappId)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventPumped_Pool) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventPumped_Pool) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventPumped_Pool) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.TokenOut.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	{
+		size, err := m.PumpCoin.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if m.PoolId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.PoolId))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -619,16 +754,20 @@ func (m *EventPumped) Size() (n int) {
 	if m.StreamId != 0 {
 		n += 1 + sovEvents(uint64(m.StreamId))
 	}
-	if len(m.Pumps) > 0 {
-		for _, e := range m.Pumps {
+	if len(m.Rollapps) > 0 {
+		for _, e := range m.Rollapps {
 			l = e.Size()
 			n += 1 + l + sovEvents(uint64(l))
 		}
 	}
+	if m.Pool != nil {
+		l = m.Pool.Size()
+		n += 1 + l + sovEvents(uint64(l))
+	}
 	return n
 }
 
-func (m *EventPumped_Pump) Size() (n int) {
+func (m *EventPumped_Rollapp) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -638,7 +777,23 @@ func (m *EventPumped_Pump) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = m.PumpAmt.Size()
+	l = m.PumpCoin.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = m.TokenOut.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	return n
+}
+
+func (m *EventPumped_Pool) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.PoolId != 0 {
+		n += 1 + sovEvents(uint64(m.PoolId))
+	}
+	l = m.PumpCoin.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	l = m.TokenOut.Size()
 	n += 1 + l + sovEvents(uint64(l))
@@ -995,7 +1150,7 @@ func (m *EventPumped) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pumps", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Rollapps", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1022,8 +1177,44 @@ func (m *EventPumped) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Pumps = append(m.Pumps, EventPumped_Pump{})
-			if err := m.Pumps[len(m.Pumps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Rollapps = append(m.Rollapps, EventPumped_Rollapp{})
+			if err := m.Rollapps[len(m.Rollapps)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pool", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pool == nil {
+				m.Pool = &EventPumped_Pool{}
+			}
+			if err := m.Pool.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1048,7 +1239,7 @@ func (m *EventPumped) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EventPumped_Pump) Unmarshal(dAtA []byte) error {
+func (m *EventPumped_Rollapp) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1071,10 +1262,10 @@ func (m *EventPumped_Pump) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Pump: wiretype end group for non-group")
+			return fmt.Errorf("proto: Rollapp: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Pump: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Rollapp: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1111,9 +1302,9 @@ func (m *EventPumped_Pump) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PumpAmt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PumpCoin", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -1123,23 +1314,157 @@ func (m *EventPumped_Pump) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthEvents
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvents
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.PumpAmt.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PumpCoin.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TokenOut", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TokenOut.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventPumped_Pool) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Pool: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Pool: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolId", wireType)
+			}
+			m.PoolId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PoolId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PumpCoin", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.PumpCoin.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

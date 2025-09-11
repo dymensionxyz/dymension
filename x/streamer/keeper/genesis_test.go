@@ -48,7 +48,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 			Weight:  math.NewInt(50),
 		},
 	}
-	streamID, err := app.StreamerKeeper.CreateStream(ctx, coins, distr, startTime, "day", 30, NonSponsored, nil)
+	streamID, err := app.StreamerKeeper.CreateStream(ctx, coins, distr, startTime, "day", 30, NonSponsored)
 	require.NoError(t, err)
 
 	// export genesis using default configurations

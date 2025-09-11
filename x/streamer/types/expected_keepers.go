@@ -97,3 +97,7 @@ type TxFeesKeeper interface {
 	GetFeeToken(ctx sdk.Context, denom string) (txfeestypes.FeeToken, error)
 	GetBaseDenom(ctx sdk.Context) (string, error)
 }
+
+type GAMMKeeper interface {
+	GetPoolDenoms(ctx sdk.Context, poolId uint64) ([]string, error)
+}
