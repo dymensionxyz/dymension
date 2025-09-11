@@ -409,17 +409,67 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         true,
 		},
+		{
+			name:              "happy flow - pool target",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000)},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 10,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            &types.MsgCreatePumpStream_Pool{Pool: &types.TargetPool{PoolId: 1, TokenOut: "stake"}},
+			expectErr:         false,
+		},
+		{
+			name:              "pool target with invalid token out denom",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000)},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 10,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetPool(1, "invalid-denom!"),
+			expectErr:         true,
+		},
+		{
+			name:              "pool target with same token in/out",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000)},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 10,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetPool(1, "udym"),
+			expectErr:         true,
+		},
+		{
+			name:              "pool target with non-existent pool",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000)},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 10,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            &types.MsgCreatePumpStream_Pool{Pool: &types.TargetPool{PoolId: 999999, TokenOut: "stake"}},
+			expectErr:         true,
+		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+
+			// Create a pool for all tests (as requested)
+			poolCoins := sdk.NewCoins(
+				sdk.NewCoin("udym", math.NewInt(1000000)),
+				sdk.NewCoin("stake", math.NewInt(1000000)),
+			)
+			suite.PreparePoolWithCoins(poolCoins)
+
+			// Pool ID is always 1 (first pool created)
+
 			sID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, types.CreateStreamGeneric{
-			Coins:             tc.coins,
-			StartTime:         time.Time{},
-			EpochIdentifier:   tc.epochIdentifier,
-			NumEpochsPaidOver: tc.numEpochsPaidOver,
-		}, tc.numPumps, tc.pumpDistr, tc.target)
+				Coins:             tc.coins,
+				StartTime:         time.Time{},
+				EpochIdentifier:   tc.epochIdentifier,
+				NumEpochsPaidOver: tc.numEpochsPaidOver,
+			}, tc.numPumps, tc.pumpDistr, tc.target)
 
 			if tc.expectErr {
 				suite.Require().Error(err, tc.name)
@@ -450,6 +500,9 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 					suite.IsType(&types.PumpParams_Pool{}, stream.PumpParams.Target)
 					actual := stream.PumpParams.Target.(*types.PumpParams_Pool)
 					suite.Require().Equal(t.Pool.TokenOut, actual.Pool.TokenOut)
+					if t.Pool.PoolId != 0 {
+						suite.Require().Equal(t.Pool.PoolId, actual.Pool.PoolId)
+					}
 				}
 
 				// Verify epoch budget is correctly calculated

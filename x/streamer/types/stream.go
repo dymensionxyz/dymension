@@ -73,9 +73,12 @@ func PumpTargetRollapps(numTopRollapps uint32) PumpTarget {
 	}
 }
 
-func PumpTargetPool(tokenOut string) PumpTarget {
+func PumpTargetPool(poolId uint64, tokenOut string) PumpTarget {
 	return &MsgCreatePumpStream_Pool{
-		Pool: &TargetPool{TokenOut: tokenOut},
+		Pool: &TargetPool{
+			PoolId:   poolId,
+			TokenOut: tokenOut,
+		},
 	}
 }
 
