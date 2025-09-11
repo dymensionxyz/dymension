@@ -311,3 +311,9 @@ func (s *KeeperTestSuite) SettleIRO(rollappID string, reserveAmt math.Int) {
 	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
 	s.Require().NoError(err)
 }
+
+func (s *KeeperTestSuite) StartEpoch(epochIdentifier string) {
+	info := s.App.EpochsKeeper.GetEpochInfo(s.Ctx, epochIdentifier)
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(info.Duration).Add(time.Second))
+	s.App.EpochsKeeper.BeginBlocker(s.Ctx)
+}

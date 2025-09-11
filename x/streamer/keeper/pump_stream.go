@@ -230,6 +230,8 @@ func (k Keeper) ExecutePump(
 }
 
 // swapPumpAmtToLiquidityDenom swaps pump tokens to the plan's liquidity denomination if needed
+// CONTRACT: pumpDenom is the base denom. Therefore, we can always swap
+// liquidityDenom to pumpDenom using a fee token route.
 func (k Keeper) swapPumpAmtToLiquidityDenom(
 	ctx sdk.Context,
 	pumpAmt math.Int,
@@ -377,12 +379,6 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		return fmt.Errorf("failed to get sponsorship distribution: %w", err)
 	}
 
-	// Always use base denom for budget
-	baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
-	if err != nil {
-		return fmt.Errorf("get base denom: %w", err)
-	}
-
 	for _, stream := range pumpStreams {
 		if !stream.IsPumpStream() {
 			// Skip non-pump streams
@@ -420,7 +416,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			totalPumped, e, err = k.DistributePool(
 				ctx,
 				pumpAmt,
-				baseDenom,
+				stream.Coins[0].Denom,
 				*t.Pool,
 			)
 			if err != nil {
@@ -433,7 +429,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			totalPumped, e, err = k.DistributeRollapps(
 				ctx,
 				pumpAmt,
-				baseDenom,
+				stream.Coins[0].Denom, // this denom is always the base denom when pumping rollapps
 				sponsorshipDistr.Gauges,
 				*t.Rollapps,
 			)
