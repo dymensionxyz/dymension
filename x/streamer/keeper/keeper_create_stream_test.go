@@ -314,7 +314,9 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 		coins             sdk.Coins
 		epochIdentifier   string
 		numEpochsPaidOver uint64
-		pumpParams        types.MsgCreateStream_PumpParams
+		numPumps          uint64
+		pumpDistr         types.PumpDistr
+		target            types.PumpTarget
 		expectErr         bool
 	}{
 		{
@@ -322,115 +324,102 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: false,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         false,
 		},
 		{
 			name:              "pump stream with multiple coins should work",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)}, // Only DYM allowed for pump streams
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 5,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 3}},
-				NumPumps:  500,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: false,
+			numPumps:          500,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(3),
+			expectErr:         false,
 		},
 		{
 			name:              "pump stream with zero NumTopRollapps should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 0}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(0),
+			expectErr:         true,
 		},
 		{
 			name:              "pump stream with zero NumPumps should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  0,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
+			numPumps:          0,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         true,
 		},
 		{
 			name:              "pump stream with UNSPECIFIED PumpDistr should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNSPECIFIED,
-			},
-			expectErr: true,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNSPECIFIED,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         true,
 		},
 		{
 			name:              "non-udym denom should fail for pump stream",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         true,
 		},
 		{
 			name:              "multiple coins with pump params should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         true,
 		},
 		{
 			name:              "bad epoch identifier with pump params",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "invalid_epoch",
 			numEpochsPaidOver: 10,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         true,
 		},
 		{
 			name:              "bad num of epochs with pump params",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 0,
-			pumpParams: types.MsgCreateStream_PumpParams{
-				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
-				NumPumps:  1000,
-				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         true,
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			sID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, tc.coins, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, tc.pumpParams)
+			sID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, types.CreateStreamGeneric{
+			Coins:             tc.coins,
+			StartTime:         time.Time{},
+			EpochIdentifier:   tc.epochIdentifier,
+			NumEpochsPaidOver: tc.numEpochsPaidOver,
+		}, tc.numPumps, tc.pumpDistr, tc.target)
 
 			if tc.expectErr {
 				suite.Require().Error(err, tc.name)
@@ -450,17 +439,16 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 
 				// Verify pump params are set correctly
 				suite.Require().NotNil(stream.PumpParams)
-				suite.Require().Equal(tc.pumpParams.NumPumps, stream.PumpParams.NumPumps)
-				suite.Require().Equal(tc.pumpParams.PumpDistr, stream.PumpParams.PumpDistr)
-				switch t := tc.pumpParams.Target.(type) {
-				case *types.MsgCreateStream_PumpParams_Rollapps:
+				suite.Require().Equal(tc.numPumps, stream.PumpParams.NumPumps)
+				suite.Require().Equal(tc.pumpDistr, stream.PumpParams.PumpDistr)
+				switch t := tc.target.(type) {
+				case *types.MsgCreatePumpStream_Rollapps:
 					suite.IsType(&types.PumpParams_Rollapps{}, stream.PumpParams.Target)
 					actual := stream.PumpParams.Target.(*types.PumpParams_Rollapps)
 					suite.Require().Equal(t.Rollapps.NumTopRollapps, actual.Rollapps.NumTopRollapps)
-				case *types.MsgCreateStream_PumpParams_Pool:
+				case *types.MsgCreatePumpStream_Pool:
 					suite.IsType(&types.PumpParams_Pool{}, stream.PumpParams.Target)
 					actual := stream.PumpParams.Target.(*types.PumpParams_Pool)
-					suite.Require().Equal(t.Pool.PoolId, actual.Pool.PoolId)
 					suite.Require().Equal(t.Pool.TokenOut, actual.Pool.TokenOut)
 				}
 

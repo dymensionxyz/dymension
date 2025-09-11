@@ -18,7 +18,9 @@ import (
 )
 
 type pumpTestCase struct {
-	pumpParams            types.MsgCreateStream_PumpParams
+	numPumps              uint64
+	pumpDistr             types.PumpDistr
+	target                types.PumpTarget
 	numEpochsPaidOver     uint64
 	epochIdentifier       string
 	streamCoins           sdk.Coins
@@ -91,7 +93,12 @@ func (s *KeeperTestSuite) TestPumpStream() {
 
 	// Step 5: Create Pump Stream
 	startTime := time.Now().Add(-time.Minute)
-	streamID, _ := s.CreatePumpStream(tc.streamCoins, startTime, tc.epochIdentifier, tc.numEpochsPaidOver, tc.pumpParams)
+	streamID, _ := s.CreatePumpStream(types.CreateStreamGeneric{
+		Coins:             tc.streamCoins,
+		StartTime:         startTime,
+		EpochIdentifier:   tc.epochIdentifier,
+		NumEpochsPaidOver: tc.numEpochsPaidOver,
+	}, tc.numPumps, tc.pumpDistr, tc.target)
 
 	// Step 6: Validate initial pump stream state
 	s.validateInitialPumpStream(streamID, tc.streamCoins.QuoInt(math.NewIntFromUint64(tc.numEpochsPaidOver)))
@@ -199,11 +206,9 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	changeIter2 := ra1Share.Add(ra2Share)
 
 	return pumpTestCase{
-		pumpParams: types.MsgCreateStream_PumpParams{
-			Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: numTopRollapps}},
-			NumPumps:  pumpNum,
-			PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
-		},
+		numPumps:              pumpNum,
+		pumpDistr:             types.PumpDistr_PUMP_DISTR_UNIFORM,
+		target:                types.PumpTargetRollapps(numTopRollapps),
 		numEpochsPaidOver:     numEpochsPaidOver,
 		epochIdentifier:       epochID,
 		streamCoins:           sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, streamCoinsAmtInitial)),
