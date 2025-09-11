@@ -438,15 +438,6 @@ func (a *AppKeepers) InitKeepers(
 		a.TxFeesKeeper,
 	)
 
-	a.OTCBuybackKeeper = otcbuybackkeeper.NewKeeper(
-		appCodec,
-		a.keys[otcbuybacktypes.StoreKey],
-		govModuleAddress,
-		a.AccountKeeper,
-		a.BankKeeper,
-		a.GAMMKeeper,
-	)
-
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[streamermoduletypes.StoreKey],
@@ -455,13 +446,22 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
-		a.OTCBuybackKeeper,
 		a.MintKeeper.Params,
 		a.IROKeeper,
 		a.PoolManagerKeeper,
 		a.RollappKeeper,
 		a.TxFeesKeeper,
 		govModuleAddress,
+	)
+
+	a.OTCBuybackKeeper = otcbuybackkeeper.NewKeeper(
+		appCodec,
+		a.keys[otcbuybacktypes.StoreKey],
+		govModuleAddress,
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.GAMMKeeper,
+		a.StreamerKeeper,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
