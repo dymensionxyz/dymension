@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,23 +30,6 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	if msg.PumpParams != nil {
-		streamID, err := s.Keeper.CreatePumpStream(
-			ctx,
-			msg.Coins,
-			msg.StartTime,
-			msg.DistrEpochIdentifier,
-			msg.NumEpochsPaidOver,
-			*msg.PumpParams,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("create pump stream: %w", err)
-		}
-		return &types.MsgCreateStreamResponse{
-			StreamId: streamID,
-		}, nil
-	}
-
 	streamID, err := s.Keeper.CreateStream(
 		ctx,
 		msg.Coins,
@@ -69,6 +51,29 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 	}
 
 	return &types.MsgCreateStreamResponse{
+		StreamId: streamID,
+	}, nil
+}
+
+func (s msgServer) CreatePumpStream(goCtx context.Context, msg *types.MsgCreatePumpStream) (*types.MsgCreatePumpStreamResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.Authority != s.authority {
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
+	}
+
+	streamID, err := s.Keeper.CreatePumpStream(
+		ctx,
+		msg.Stream,
+		msg.NumPumps,
+		msg.PumpDistr,
+		msg.Target,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCreatePumpStreamResponse{
 		StreamId: streamID,
 	}, nil
 }

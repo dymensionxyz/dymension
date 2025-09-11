@@ -44,6 +44,29 @@ message MsgUpdateParams {
 
 message MsgUpdateParamsResponse {}
 
+message CreateStreamGeneric {
+  // Coins are coin(s) to be distributed by the stream
+  repeated cosmos.base.v1beta1.Coin coins = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+
+  // StartTime is the distribution start time
+  google.protobuf.Timestamp start_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"timestamp\""
+  ];
+
+  // EpochIdentifier is the epoch identifier for distribution
+  string epoch_identifier = 3
+  [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+
+  // NumEpochsPaidOver is the number of epochs distribution will be completed
+  // over
+  uint64 num_epochs_paid_over = 4;
+}
+
 // MsgCreateStream creates a new stream
 message MsgCreateStream {
   option (cosmos.msg.v1.signer) = "authority";
@@ -82,23 +105,6 @@ message MsgCreateStream {
   // ClearAllVotes indicates if the stream should clear all votes (only for
   // sponsored streams)
   bool clear_all_votes = 8;
-
-  message PumpParams {
-    oneof target {
-      TargetTopRollapps rollapps = 1;
-      TargetPool pool = 2;
-    }
-    // NumPumps is a target number of pumps that expected to happen
-    // in the epoch (probabilistically)
-    uint64 num_pumps = 3;
-    // PumpDistr is a distribution used to determine pump amount
-    PumpDistr pump_distr = 4;
-  }
-
-  // PumpParams is an *optional* field indicating if the stream
-  // is pumping or distributing. If non-null, it contains pumping params.
-  // For now, every pump stream should be sponsored.
-  PumpParams pump_params = 9;
 }
 
 message MsgCreateStreamResponse { uint64 stream_id = 1; }
@@ -107,57 +113,19 @@ message MsgCreateStreamResponse { uint64 stream_id = 1; }
 message MsgCreatePumpStream {
   option (cosmos.msg.v1.signer) = "authority";
 
-  // Authority is the address that controls the module.
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  CreateStreamGeneric stream = 2 [ (gogoproto.nullable) = false ];
 
-  // DistributeToRecords defines the distribution records
-  repeated DistrRecord distribute_to_records = 2
-  [ (gogoproto.nullable) = false ];
-
-  // Coins are coin(s) to be distributed by the stream
-  repeated cosmos.base.v1beta1.Coin coins = 3 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-
-  // StartTime is the distribution start time
-  google.protobuf.Timestamp start_time = 4 [
-    (gogoproto.stdtime) = true,
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"timestamp\""
-  ];
-
-  // DistrEpochIdentifier is the epoch identifier for distribution
-  string distr_epoch_identifier = 5
-  [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
-
-  // NumEpochsPaidOver is the number of epochs distribution will be completed
-  // over
-  uint64 num_epochs_paid_over = 6;
-
-  // Sponsored indicates if the stream is based on the sponsorship distribution
-  bool sponsored = 7;
-
-  // ClearAllVotes indicates if the stream should clear all votes (only for
-  // sponsored streams)
-  bool clear_all_votes = 8;
-
-  message PumpParams {
-    oneof target {
-      TargetTopRollapps rollapps = 1;
-      TargetPool pool = 2;
-    }
-    // NumPumps is a target number of pumps that expected to happen
-    // in the epoch (probabilistically)
-    uint64 num_pumps = 3;
-    // PumpDistr is a distribution used to determine pump amount
-    PumpDistr pump_distr = 4;
+  // NumPumps is a target number of pumps that expected to happen
+  // in the epoch (probabilistically)
+  uint64 num_pumps = 3;
+  // PumpDistr is a distribution used to determine pump amount
+  PumpDistr pump_distr = 4;
+  // Target is that is going to be pumped
+  oneof target {
+    TargetTopRollapps rollapps = 5;
+    TargetPool pool = 6;
   }
-
-  // PumpParams is an *optional* field indicating if the stream
-  // is pumping or distributing. If non-null, it contains pumping params.
-  // For now, every pump stream should be sponsored.
-  PumpParams pump_params = 9;
 }
 
 message MsgCreatePumpStreamResponse { uint64 stream_id = 1; }

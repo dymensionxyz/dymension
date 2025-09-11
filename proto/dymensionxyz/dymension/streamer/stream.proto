@@ -74,21 +74,21 @@ enum PumpDistr {
 }
 
 message PumpParams {
-  // Target is that is going to be pumped
-  oneof target {
-    TargetTopRollapps rollapps = 1;
-    TargetPool pool = 2;
-  }
   // EpochBudgetLeft is coins that is left for pumping in the epoch.
-  repeated cosmos.base.v1beta1.Coin epoch_coins_left = 3 [
+  repeated cosmos.base.v1beta1.Coin epoch_coins_left = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
   // NumPumps is a target number of pumps that expected to happen
   // in the epoch (probabilistically)
-  uint64 num_pumps = 4;
+  uint64 num_pumps = 2;
   // PumpDistr is a distribution used to determine pump amount
-  PumpDistr pump_distr = 5;
+  PumpDistr pump_distr = 3;
+  // Target is that is going to be pumped
+  oneof target {
+    TargetTopRollapps rollapps = 4;
+    TargetPool pool = 5;
+  }
 }
 
 // Pump top N rollapps based on their sponsorship weight

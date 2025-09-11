@@ -65,38 +65,39 @@ func (stream Stream) IsPumpStream() bool {
 	return stream.PumpParams != nil
 }
 
-func DefaultRollappsPumpParams() MsgCreateStream_PumpParams {
-	return MsgCreateStream_PumpParams{
-		Target:    &MsgCreateStream_PumpParams_Rollapps{Rollapps: &TargetTopRollapps{NumTopRollapps: 1}},
-		NumPumps:  1,
-		PumpDistr: PumpDistr_PUMP_DISTR_UNIFORM,
+type PumpTarget isMsgCreatePumpStream_Target
+
+func PumpTargetRollapps(numTopRollapps uint32) PumpTarget {
+	return &MsgCreatePumpStream_Rollapps{
+		Rollapps: &TargetTopRollapps{NumTopRollapps: numTopRollapps},
 	}
 }
 
-func DefaultPoolPumpParams() MsgCreateStream_PumpParams {
-	return MsgCreateStream_PumpParams{
-		Target:    &MsgCreateStream_PumpParams_Pool{Pool: &TargetPool{TokenOut: sdk.DefaultBondDenom}},
-		NumPumps:  1,
-		PumpDistr: PumpDistr_PUMP_DISTR_UNIFORM,
+func PumpTargetPool(tokenOut string) PumpTarget {
+	return &MsgCreatePumpStream_Pool{
+		Pool: &TargetPool{TokenOut: tokenOut},
 	}
 }
 
-func (p MsgCreateStream_PumpParams) ValidateBasic() error {
-	if p.PumpDistr == PumpDistr_PUMP_DISTR_UNSPECIFIED {
+func ValidatePumpStreamParams(coins sdk.Coins, numPumps uint64, pumpDistr PumpDistr, target PumpTarget) error {
+	if coins.Len() != 1 {
+		return fmt.Errorf("pump stream must have one coin")
+	}
+	if pumpDistr == PumpDistr_PUMP_DISTR_UNSPECIFIED {
 		return fmt.Errorf("pump distribution must be set")
 	}
-	if p.NumPumps == 0 {
+	if numPumps == 0 {
 		return fmt.Errorf("num pumps must be greater than 0")
 	}
-	switch t := p.Target.(type) {
-	case *MsgCreateStream_PumpParams_Pool:
+	switch t := target.(type) {
+	case *MsgCreatePumpStream_Pool:
 		if err := sdk.ValidateDenom(t.Pool.TokenOut); err != nil {
 			return fmt.Errorf("invalid token out: %w", err)
 		}
 		if t == nil || t.Pool == nil {
 			return fmt.Errorf("pool target must not be null")
 		}
-	case *MsgCreateStream_PumpParams_Rollapps:
+	case *MsgCreatePumpStream_Rollapps:
 		if t.Rollapps.NumTopRollapps == 0 {
 			return fmt.Errorf("num top rollapps must be greater than 0")
 		}

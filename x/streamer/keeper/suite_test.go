@@ -108,8 +108,8 @@ func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord,
 }
 
 // CreateStream creates a pump stream struct given the required params.
-func (suite *KeeperTestSuite) CreatePumpStream(coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64, pumpParams types.MsgCreateStream_PumpParams) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, coins, startTime, epochIdentifier, numEpoch, pumpParams)
+func (suite *KeeperTestSuite) CreatePumpStream(s types.CreateStreamGeneric, numPumps uint64, pumpDistr types.PumpDistr, pumpTarget types.PumpTarget) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, s, numPumps, pumpDistr, pumpTarget)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)

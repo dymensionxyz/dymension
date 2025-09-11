@@ -125,13 +125,8 @@ func (k Keeper) CreateStream(
 		distrInfo = distr
 	}
 
-	if startTime.Before(ctx.BlockTime()) {
-		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
-		startTime = ctx.BlockTime()
-	}
-
-	stream := types.NewStream(
-		k.GetLastStreamID(ctx)+1,
+	return k.newStream(
+		ctx,
 		distrInfo,
 		coins.Sort(),
 		startTime,
@@ -140,8 +135,103 @@ func (k Keeper) CreateStream(
 		sponsored,
 		nil,
 	)
+}
 
-	err = k.SetStream(ctx, &stream)
+func (k Keeper) CreatePumpStream(
+	ctx sdk.Context,
+	stream types.CreateStreamGeneric,
+	numPumps uint64,
+	pumpDistr types.PumpDistr,
+	pumpTarget types.PumpTarget,
+) (uint64, error) {
+	err := k.ValidateGenericStream(ctx, stream)
+	if err != nil {
+		return 0, fmt.Errorf("validate stream: %w", err)
+	}
+
+	err = types.ValidatePumpStreamParams(stream.Coins, numPumps, pumpDistr, pumpTarget)
+	if err != nil {
+		return 0, fmt.Errorf("validate pump stream: %w", err)
+	}
+
+	params := types.PumpParams{
+		Target:         nil, // filled below
+		EpochCoinsLeft: stream.Coins.QuoInt(math.NewIntFromUint64(stream.NumEpochsPaidOver)),
+		NumPumps:       numPumps,
+		PumpDistr:      pumpDistr,
+	}
+
+	// Stateful validation
+	switch t := pumpTarget.(type) {
+	case *types.MsgCreatePumpStream_Pool:
+		tokenIn := stream.Coins[0].Denom
+		tokenOut := t.Pool.TokenOut
+
+		if tokenIn == tokenOut {
+			return 0, fmt.Errorf("token out must not be the same as the stream coin: stream coin: %s, token out: %s", tokenIn, tokenOut)
+		}
+		denoms, err := k.gammKeeper.GetPoolDenoms(ctx, t.Pool.PoolId)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get pool denoms: %w", err)
+		}
+		if !slices.Contains(denoms, tokenOut) {
+			return 0, fmt.Errorf("token out must be in pool denoms: pool ID: %d, pool denoms: %s, token out: %s", t.Pool.PoolId, denoms, tokenOut)
+		}
+		if !slices.Contains(denoms, tokenIn) {
+			return 0, fmt.Errorf("stream coin must be in pool denoms: pool ID: %d, pool denoms: %s, stream coin: %s", t.Pool.PoolId, denoms, tokenIn)
+		}
+		params.Target = &types.PumpParams_Pool{Pool: t.Pool}
+
+	case *types.MsgCreatePumpStream_Rollapps:
+		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("get base denom: %w", err)
+		}
+		if stream.Coins[0].Denom != baseDenom {
+			return 0, fmt.Errorf("pump stream must have one coin with base denom: base denom: %s, stream coin: %s", baseDenom, stream.Coins[0].Denom)
+		}
+		params.Target = &types.PumpParams_Rollapps{Rollapps: t.Rollapps}
+	}
+
+	return k.newStream(
+		ctx,
+		types.DistrInfo{},
+		stream.Coins,
+		stream.StartTime,
+		stream.EpochIdentifier,
+		stream.NumEpochsPaidOver,
+		false,
+		&params,
+	)
+}
+
+func (k Keeper) newStream(
+	ctx sdk.Context,
+	distrTo types.DistrInfo,
+	coins sdk.Coins,
+	startTime time.Time,
+	epochIdentifier string,
+	numEpochsPaidOver uint64,
+	sponsored bool,
+	pumpParams *types.PumpParams,
+) (uint64, error) {
+	if startTime.Before(ctx.BlockTime()) {
+		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
+		startTime = ctx.BlockTime()
+	}
+
+	stream := types.NewStream(
+		k.GetLastStreamID(ctx)+1,
+		distrTo,
+		coins,
+		startTime,
+		epochIdentifier,
+		numEpochsPaidOver,
+		sponsored,
+		pumpParams,
+	)
+
+	err := k.SetStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}
@@ -163,103 +253,8 @@ func (k Keeper) CreateStream(
 	return stream.Id, nil
 }
 
-func (k Keeper) CreatePumpStream(
-	ctx sdk.Context,
-	coins sdk.Coins,
-	startTime time.Time,
-	epochIdentifier string,
-	numEpochsPaidOver uint64,
-	pumpParams types.MsgCreateStream_PumpParams,
-) (uint64, error) {
-	err := k.ValidateStreamParams(ctx, coins, epochIdentifier, numEpochsPaidOver)
-	if err != nil {
-		return 0, fmt.Errorf("invalid stream params: %w", err)
-	}
-
-	err = pumpParams.ValidateBasic()
-	if err != nil {
-		return 0, fmt.Errorf("invalid pump params: %w", err)
-	}
-
-	if coins.Len() != 1 {
-		return 0, fmt.Errorf("pump stream must have one coin")
-	}
-
-	params := types.PumpParams{
-		Target:         nil, // filled below
-		EpochCoinsLeft: coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
-		NumPumps:       pumpParams.NumPumps,
-		PumpDistr:      pumpParams.PumpDistr,
-	}
-
-	// Stateful validation
-	switch t := pumpParams.Target.(type) {
-	case *types.MsgCreateStream_PumpParams_Pool:
-		tokenIn := coins[0].Denom
-		tokenOut := t.Pool.TokenOut
-
-		if tokenIn == tokenOut {
-			return 0, fmt.Errorf("token out must not be the same as the stream coin: stream coin: %s, token out: %s", tokenIn, tokenOut)
-		}
-		denoms, err := k.gammKeeper.GetPoolDenoms(ctx, t.Pool.PoolId)
-		if err != nil {
-			return 0, fmt.Errorf("failed to get pool denoms: %w", err)
-		}
-		if !slices.Contains(denoms, tokenOut) {
-			return 0, fmt.Errorf("token out must be in pool denoms: pool ID: %d, pool denoms: %s, token out: %s", t.Pool.PoolId, denoms, tokenOut)
-		}
-		if !slices.Contains(denoms, tokenIn) {
-			return 0, fmt.Errorf("stream coin must be in pool denoms: pool ID: %d, pool denoms: %s, stream coin: %s", t.Pool.PoolId, denoms, tokenIn)
-		}
-		params.Target = &types.PumpParams_Pool{Pool: t.Pool}
-
-	case *types.MsgCreateStream_PumpParams_Rollapps:
-		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
-		if err != nil {
-			return 0, fmt.Errorf("get base denom: %w", err)
-		}
-		if coins[0].Denom != baseDenom {
-			return 0, fmt.Errorf("pump stream must have one coin with base denom: base denom: %s, coins: %s", baseDenom, coins)
-		}
-		params.Target = &types.PumpParams_Rollapps{Rollapps: t.Rollapps}
-	}
-
-	if startTime.Before(ctx.BlockTime()) {
-		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
-		startTime = ctx.BlockTime()
-	}
-
-	stream := types.NewStream(
-		k.GetLastStreamID(ctx)+1,
-		types.DistrInfo{},
-		coins,
-		startTime,
-		epochIdentifier,
-		numEpochsPaidOver,
-		false,
-		&params,
-	)
-
-	err = k.SetStream(ctx, &stream)
-	if err != nil {
-		return 0, err
-	}
-	k.SetLastStreamID(ctx, stream.Id)
-
-	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
-	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys)
-	if err != nil {
-		return 0, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.TypeEvtCreateStream,
-			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
-		),
-	})
-
-	return stream.Id, nil
+func (k Keeper) ValidateGenericStream(ctx sdk.Context, stream types.CreateStreamGeneric) error {
+	return k.ValidateStreamParams(ctx, stream.Coins, stream.EpochIdentifier, stream.NumEpochsPaidOver)
 }
 
 func (k Keeper) ValidateStreamParams(

@@ -76,7 +76,12 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, coins2, time.Now().Add(10*time.Minute), "day", 30, types.DefaultRollappsPumpParams())
+	_, err = suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, types.CreateStreamGeneric{
+		Coins:             coins2,
+		StartTime:         time.Now().Add(10 * time.Minute),
+		EpochIdentifier:   "day",
+		NumEpochsPaidOver: 30,
+	}, 1, 1, types.PumpTargetRollapps(1))
 	suite.Require().NoError(err)
 
 	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins3, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, Sponsored)
