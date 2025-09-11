@@ -33,6 +33,11 @@ func (ms msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdatePara
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.GetAuthority(), req.Authority)
 	}
 
+	err := req.Params.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err := ms.SetParams(ctx, req.Params); err != nil {
 		return nil, err
@@ -67,7 +72,8 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 		acceptedTokens = append(acceptedTokens, types.AcceptedToken{
 			Denom: token.Denom,
 			TokenData: types.TokenData{
-				PoolId:           token.PoolId,
+				PoolId: token.PoolId,
+				// FIXME: need to take existing price from the pool
 				LastAveragePrice: math.LegacyZeroDec(),
 			},
 		})
@@ -88,23 +94,21 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	k := s.Keeper
-
 	// validate streamer module has enough tokens to fund the auction
-	moduleBalance := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(streamertypes.ModuleName))
-	alreadyAllocatedCoins := k.streamerKeeper.GetModuleToDistributeCoins(ctx)
+	moduleBalance := s.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(streamertypes.ModuleName))
+	alreadyAllocatedCoins := s.streamerKeeper.GetModuleToDistributeCoins(ctx)
 	if !sdk.NewCoins(msg.Allocation).IsAllLTE(moduleBalance.Sub(alreadyAllocatedCoins...)) {
 		return nil, fmt.Errorf("insufficient module balance to distribute coins")
 	}
 
 	// move funds from the streamer account to the auction account
-	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, streamertypes.ModuleName, types.ModuleName, sdk.NewCoins(msg.Allocation))
+	err := s.bankKeeper.SendCoinsFromModuleToModule(ctx, streamertypes.ModuleName, types.ModuleName, sdk.NewCoins(msg.Allocation))
 	if err != nil {
 		return nil, err
 	}
 
 	// Create the auction and stream
-	auctionID, err := k.CreateAuction(
+	auctionID, err := s.Keeper.CreateAuction(
 		ctx,
 		msg.Allocation,
 		msg.StartTime,

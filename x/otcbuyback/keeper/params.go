@@ -1,9 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
@@ -29,15 +26,5 @@ func (k Keeper) GetParams(ctx sdk.Context) (types.Params, error) {
 
 // SetParams set the params
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
-	if params.MovingAverageSmoothingFactor.IsNil() ||
-		params.MovingAverageSmoothingFactor.IsNegative() ||
-		params.MovingAverageSmoothingFactor.GTE(math.LegacyOneDec()) {
-		return fmt.Errorf("moving average smoothing factor must be between 0 and 1")
-	}
-
-	err := k.params.Set(ctx, params)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.params.Set(ctx, params)
 }

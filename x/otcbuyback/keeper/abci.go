@@ -21,7 +21,6 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 	for _, auction := range auctions {
 		// Check if auction is completed (either due to time or being fully sold)
 		if !auction.Completed && auction.EndTime.Before(ctx.BlockTime()) {
-
 			k.Logger(ctx).Info("processing completed auction",
 				"auction_id", auction.Id,
 				"end_time", auction.EndTime,
@@ -63,7 +62,6 @@ func (k Keeper) UpdateTWAPs(ctx sdk.Context) {
 	}
 
 	for _, denom := range denoms {
-		//ApplyFuncIfNoError
 		err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 			return k.UpdateTWAP(ctx, denom)
 		})
