@@ -19,7 +19,7 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 
 	var validCreateAuctionMsg = &types.MsgCreateAuction{
 		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		Allocation:      common.DymUint64(33), // streamer funded with 100 DYM on setup
+		Allocation:      common.DymUint64(100),
 		StartTime:       time.Now().Add(time.Hour),
 		EndTime:         time.Now().Add(25 * time.Hour),   // 24 hour auction
 		InitialDiscount: math.LegacyNewDecWithPrec(5, 2),  // 5%
@@ -89,6 +89,9 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // Reset state for each test
+
+			// fund streamer module
+			suite.FundModuleAcc(streamertypes.ModuleName, sdk.NewCoins(common.DymUint64(100)))
 
 			tcMsg = *validCreateAuctionMsg
 

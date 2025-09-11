@@ -101,11 +101,3 @@ func (suite *KeeperTestSuite) CreateAuctionWithParams(vestingParams types.Auctio
 func (suite *KeeperTestSuite) CreateRandomAccount() sdk.AccAddress {
 	return sample.Acc()
 }
-
-// BuySomeTokens is a helper function that executes a buy transaction and returns the payment coin
-func (suite *KeeperTestSuite) BuySomeTokens(auctionID uint64, buyer sdk.AccAddress, amountToBuy math.Int, denomToPay string) sdk.Coin {
-	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, denomToPay)
-	suite.Require().NoError(err, "Buy operation should succeed")
-	suite.Require().True(paymentCoin.IsPositive(), "Payment coin should be positive")
-	return paymentCoin
-}

@@ -51,7 +51,7 @@ func (k Keeper) Buy(
 
 	// Calculate tokens that can be purchased
 	paymentAmt := math.LegacyNewDecFromInt(amountToBuy).Mul(currentPrice).TruncateInt()
-	if paymentAmt.IsZero() {
+	if !paymentAmt.IsPositive() {
 		return sdk.Coin{}, errorsmod.Wrap(types.ErrInvalidPurchaseAmount,
 			"payment amount too small to purchase any tokens")
 	}
