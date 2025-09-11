@@ -494,11 +494,13 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 				switch t := tc.target.(type) {
 				case *types.MsgCreatePumpStream_Rollapps:
 					suite.IsType(&types.PumpParams_Rollapps{}, stream.PumpParams.Target)
-					actual := stream.PumpParams.Target.(*types.PumpParams_Rollapps)
+					actual, ok := stream.PumpParams.Target.(*types.PumpParams_Rollapps)
+					suite.Require().True(ok)
 					suite.Require().Equal(t.Rollapps.NumTopRollapps, actual.Rollapps.NumTopRollapps)
 				case *types.MsgCreatePumpStream_Pool:
 					suite.IsType(&types.PumpParams_Pool{}, stream.PumpParams.Target)
-					actual := stream.PumpParams.Target.(*types.PumpParams_Pool)
+					actual, ok := stream.PumpParams.Target.(*types.PumpParams_Pool)
+					suite.Require().True(ok)
 					suite.Require().Equal(t.Pool.TokenOut, actual.Pool.TokenOut)
 					if t.Pool.PoolId != 0 {
 						suite.Require().Equal(t.Pool.PoolId, actual.Pool.PoolId)
