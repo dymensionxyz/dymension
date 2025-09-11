@@ -65,9 +65,17 @@ func (stream Stream) IsPumpStream() bool {
 	return stream.PumpParams != nil
 }
 
-func DefaultPumpParams() *MsgCreateStream_PumpParams {
-	return &MsgCreateStream_PumpParams{
-		Target:    nil, // TODO: fill correctly
+func DefaultRollappsPumpParams() MsgCreateStream_PumpParams {
+	return MsgCreateStream_PumpParams{
+		Target:    &MsgCreateStream_PumpParams_Rollapps{Rollapps: &TargetTopRollapps{NumTopRollapps: 1}},
+		NumPumps:  1,
+		PumpDistr: PumpDistr_PUMP_DISTR_UNIFORM,
+	}
+}
+
+func DefaultPoolPumpParams() MsgCreateStream_PumpParams {
+	return MsgCreateStream_PumpParams{
+		Target:    &MsgCreateStream_PumpParams_Pool{Pool: &TargetPool{TokenOut: sdk.DefaultBondDenom}},
 		NumPumps:  1,
 		PumpDistr: PumpDistr_PUMP_DISTR_UNIFORM,
 	}

@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 
 // CreateStream creates a non-sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored, nil)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -100,7 +100,7 @@ func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sd
 
 // CreateSponsoredStream creates a sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored, nil)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -108,8 +108,8 @@ func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord,
 }
 
 // CreateStream creates a pump stream struct given the required params.
-func (suite *KeeperTestSuite) CreatePumpStream(coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64, pumpParams *types.MsgCreateStream_PumpParams) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, []types.DistrRecord{}, startTime, epochIdentifier, numEpoch, NonSponsored, pumpParams)
+func (suite *KeeperTestSuite) CreatePumpStream(coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64, pumpParams types.MsgCreateStream_PumpParams) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, coins, startTime, epochIdentifier, numEpoch, pumpParams)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)

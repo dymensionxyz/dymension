@@ -296,7 +296,7 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 
 	// Create a stream and activate it
 	coins := sdk.NewCoins(common.DymUint64(30))
-	_, stream := s.CreatePumpStream(coins, time.Now(), "day", 30, types.DefaultPumpParams())
+	_, stream := s.CreatePumpStream(coins, time.Now(), "day", 30, types.DefaultRollappsPumpParams())
 	s.Ctx = s.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream)
 	s.Require().NoError(err)

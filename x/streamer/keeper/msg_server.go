@@ -32,13 +32,13 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 	}
 
 	if msg.PumpParams != nil {
-		streamID, err := s.Keeper.CreatePumpSteam(
+		streamID, err := s.Keeper.CreatePumpStream(
 			ctx,
 			msg.Coins,
 			msg.StartTime,
 			msg.DistrEpochIdentifier,
 			msg.NumEpochsPaidOver,
-			msg.PumpParams,
+			*msg.PumpParams,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("create pump stream: %w", err)

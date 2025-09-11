@@ -163,7 +163,7 @@ func (k Keeper) CreateStream(
 	return stream.Id, nil
 }
 
-func (k Keeper) CreatePumpSteam(
+func (k Keeper) CreatePumpStream(
 	ctx sdk.Context,
 	coins sdk.Coins,
 	startTime time.Time,

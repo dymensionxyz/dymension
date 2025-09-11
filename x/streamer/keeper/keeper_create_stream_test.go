@@ -73,20 +73,20 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	coins2 := sdk.NewCoins(currModuleBalance[1])
 	coins3 := sdk.NewCoins(currModuleBalance[2])
 
-	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins1, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, nil, time.Now().Add(10*time.Minute), "day", 30, NonSponsored, types.DefaultPumpParams())
+	_, err = suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, coins2, time.Now().Add(10*time.Minute), "day", 30, types.DefaultRollappsPumpParams())
 	suite.Require().NoError(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins3, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, Sponsored, nil)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins3, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, Sponsored)
 	suite.Require().NoError(err)
 
 	// Check that all tokens are alloceted for distribution
 	toDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(currModuleBalance, toDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().Error(err)
 
 	// mint more tokens to the streamer account
@@ -96,10 +96,10 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	newToDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(toDistribute, newToDistribute)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, mintCoins.Add(mintCoins...), defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().Error(err)
 
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored, nil)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30, NonSponsored)
 	suite.Require().NoError(err)
 }
 
@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	}
 
 	for _, tc := range tests {
-		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored, nil)
+		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, NonSponsored)
 		if tc.expectErr {
 			suite.Require().Error(err, tc.name)
 		} else {
@@ -222,7 +222,6 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 		initialVote       sponsorshiptypes.MsgVote // the vote that forms the initial distribution
 		numEpochsPaidOver uint64
 		sponsored         bool
-		pumpParams        *types.MsgCreateStream_PumpParams
 		expectErr         bool
 	}{
 		{
@@ -233,7 +232,6 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 			initialVote:       sponsorshiptypes.MsgVote{},
 			numEpochsPaidOver: 30,
 			sponsored:         true,
-			pumpParams:        nil,
 			expectErr:         false,
 		},
 		{
@@ -250,7 +248,6 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 			},
 			numEpochsPaidOver: 30,
 			sponsored:         true,
-			pumpParams:        nil,
 			expectErr:         false,
 		},
 		{
@@ -277,43 +274,32 @@ func (suite *KeeperTestSuite) TestCreateSponsoredStream() {
 			},
 			numEpochsPaidOver: 30,
 			sponsored:         true,
-			pumpParams:        nil,
 			expectErr:         false,
-		},
-		{
-			name:              "pump params with non-sponsored stream should fail",
-			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
-			distrTo:           defaultDistrInfo,
-			epochIdentifier:   "day",
-			initialVote:       sponsorshiptypes.MsgVote{},
-			numEpochsPaidOver: 30,
-			sponsored:         true,
-			pumpParams:        &types.MsgCreateStream_PumpParams{},
-			expectErr:         true,
 		},
 	}
 
 	for _, tc := range tests {
-		suite.SetupTest()
-		sID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, tc.sponsored, tc.pumpParams)
+		suite.Run(tc.name, func() {
+			sID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, tc.sponsored)
 
-		if tc.expectErr {
-			suite.Require().Error(err)
+			if tc.expectErr {
+				suite.Require().Error(err)
 
-			// Verify no stream was actually created by checking that GetStreamByID fails
-			streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
-			suite.Require().Empty(streams)
-		} else {
-			suite.Require().NoError(err)
+				// Verify no stream was actually created by checking that GetStreamByID fails
+				streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
+				suite.Require().Empty(streams)
+			} else {
+				suite.Require().NoError(err)
 
-			// Check that the stream distr matches the current sponsorship distr
-			actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
-			suite.Require().NoError(err)
-			initialDistr := suite.Distribution()
-			initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
-			suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
-			suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
-		}
+				// Check that the stream distr matches the current sponsorship distr
+				actualDistr, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, sID)
+				suite.Require().NoError(err)
+				initialDistr := suite.Distribution()
+				initialDistrInfo := types.DistrInfoFromDistribution(initialDistr)
+				suite.Require().Equal(initialDistrInfo.TotalWeight, actualDistr.DistributeTo.TotalWeight)
+				suite.Require().ElementsMatch(initialDistrInfo.Records, actualDistr.DistributeTo.Records)
+			}
+		})
 	}
 }
 
@@ -321,164 +307,116 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 	tests := []struct {
 		name              string
 		coins             sdk.Coins
-		distrTo           []types.DistrRecord
 		epochIdentifier   string
 		numEpochsPaidOver uint64
-		sponsored         bool
-		pumpParams        *types.MsgCreateStream_PumpParams
+		pumpParams        types.MsgCreateStream_PumpParams
 		expectErr         bool
 	}{
 		{
 			name:              "happy flow - basic pump stream",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: false,
 		},
 		{
 			name:              "pump stream with multiple coins should work",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)}, // Only DYM allowed for pump streams
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 5,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 3,
-				NumPumps:       500,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 3}},
+				NumPumps:  500,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: false,
 		},
 		{
 			name:              "pump stream with zero NumTopRollapps should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 0,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 0}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: true,
 		},
 		{
 			name:              "pump stream with zero NumPumps should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       0,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  0,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: true,
 		},
 		{
 			name:              "pump stream with UNSPECIFIED PumpDistr should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNSPECIFIED,
-			},
-			expectErr: true,
-		},
-		{
-			name:              "sponsored pump stream should fail",
-			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
-			epochIdentifier:   "day",
-			numEpochsPaidOver: 10,
-			sponsored:         true,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNSPECIFIED,
 			},
 			expectErr: true,
 		},
 		{
 			name:              "non-udym denom should fail for pump stream",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: true,
 		},
 		{
 			name:              "multiple coins with pump params should fail",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: true,
 		},
 		{
 			name:              "bad epoch identifier with pump params",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "invalid_epoch",
 			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: true,
 		},
 		{
 			name:              "bad num of epochs with pump params",
 			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           nil,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 0,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
-			expectErr: true,
-		},
-		{
-			name:              "distribution info shouldn't be used in pump streams",
-			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
-			distrTo:           defaultDistrInfo,
-			epochIdentifier:   "day",
-			numEpochsPaidOver: 10,
-			sponsored:         false,
-			pumpParams: &types.MsgCreateStream_PumpParams{
-				NumTopRollapps: 2,
-				NumPumps:       1000,
-				PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
+			pumpParams: types.MsgCreateStream_PumpParams{
+				Target:    &types.MsgCreateStream_PumpParams_Rollapps{Rollapps: &types.TargetTopRollapps{NumTopRollapps: 2}},
+				NumPumps:  1000,
+				PumpDistr: types.PumpDistr_PUMP_DISTR_UNIFORM,
 			},
 			expectErr: true,
 		},
@@ -487,7 +425,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			sID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, tc.distrTo, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, tc.sponsored, tc.pumpParams)
+			sID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, tc.coins, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver, tc.pumpParams)
 
 			if tc.expectErr {
 				suite.Require().Error(err, tc.name)
@@ -507,14 +445,24 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 
 				// Verify pump params are set correctly
 				suite.Require().NotNil(stream.PumpParams)
-				suite.Require().Equal(tc.pumpParams.NumTopRollapps, stream.PumpParams.NumTopRollapps)
 				suite.Require().Equal(tc.pumpParams.NumPumps, stream.PumpParams.NumPumps)
 				suite.Require().Equal(tc.pumpParams.PumpDistr, stream.PumpParams.PumpDistr)
+				switch t := tc.pumpParams.Target.(type) {
+				case *types.MsgCreateStream_PumpParams_Rollapps:
+					suite.IsType(&types.PumpParams_Rollapps{}, stream.PumpParams.Target)
+					actual := stream.PumpParams.Target.(*types.PumpParams_Rollapps)
+					suite.Require().Equal(t.Rollapps.NumTopRollapps, actual.Rollapps.NumTopRollapps)
+				case *types.MsgCreateStream_PumpParams_Pool:
+					suite.IsType(&types.PumpParams_Pool{}, stream.PumpParams.Target)
+					actual := stream.PumpParams.Target.(*types.PumpParams_Pool)
+					suite.Require().Equal(t.Pool.PoolId, actual.Pool.PoolId)
+					suite.Require().Equal(t.Pool.TokenOut, actual.Pool.TokenOut)
+				}
 
 				// Verify epoch budget is correctly calculated
-				expectedEpochBudget := tc.coins[0].Amount.Quo(math.NewIntFromUint64(tc.numEpochsPaidOver))
-				suite.Require().Equal(expectedEpochBudget, stream.PumpParams.EpochBudget)
-				suite.Require().Equal(expectedEpochBudget, stream.PumpParams.EpochBudgetLeft)
+				expectedEpochBudget := tc.coins.QuoInt(math.NewIntFromUint64(tc.numEpochsPaidOver))
+				suite.Require().Equal(expectedEpochBudget, stream.EpochCoins)
+				suite.Require().Equal(expectedEpochBudget, stream.PumpParams.EpochCoinsLeft)
 
 				// Verify stream is not sponsored
 				suite.Require().False(stream.Sponsored)
