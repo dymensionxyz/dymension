@@ -223,6 +223,7 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 
 func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper) {
 	// FIXME: set accpetedTokens
+	// FIXME: set default params
 }
 
 // addAuthorizedCircuitBreaker

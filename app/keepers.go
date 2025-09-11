@@ -174,7 +174,7 @@ type AppKeepers struct {
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
 	LightClientKeeper lightclientmodulekeeper.Keeper
-	OTCBuybackKeeper  otcbuybackkeeper.Keeper
+	OTCBuybackKeeper  *otcbuybackkeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -438,14 +438,13 @@ func (a *AppKeepers) InitKeepers(
 		a.TxFeesKeeper,
 	)
 
-	// Initialize OTC buyback keeper before streamer keeper as streamer depends on it
 	a.OTCBuybackKeeper = otcbuybackkeeper.NewKeeper(
 		appCodec,
 		a.keys[otcbuybacktypes.StoreKey],
 		govModuleAddress,
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.GAMMKeeper, // AMM keeper
+		a.GAMMKeeper,
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -456,7 +455,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
-		&a.OTCBuybackKeeper,
+		a.OTCBuybackKeeper,
 		a.MintKeeper.Params,
 		a.IROKeeper,
 		a.PoolManagerKeeper,

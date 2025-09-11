@@ -158,7 +158,7 @@ func (app *App) SetupModules(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		txfees.NewAppModule(*app.TxFeesKeeper),
-		otcbuyback.NewAppModule(appCodec, app.OTCBuybackKeeper),
+		otcbuyback.NewAppModule(appCodec, *app.OTCBuybackKeeper),
 
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
@@ -341,9 +341,9 @@ var InitGenesis = []string{
 	epochstypes.ModuleName,
 	streamermoduletypes.ModuleName, // must be after x/epochs to fill epoch pointers
 	lockuptypes.ModuleName,
-	otcbuybacktypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
+	otcbuybacktypes.ModuleName, // must be after x/gamm to set accepted tokens
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,

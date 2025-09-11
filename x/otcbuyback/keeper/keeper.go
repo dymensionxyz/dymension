@@ -47,11 +47,11 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	ammKeeper types.AMMKeeper,
-) Keeper {
+) *Keeper {
 
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
-	return Keeper{
+	return &Keeper{
 		cdc:       cdc,
 		storeKey:  storeKey,
 		authority: authority,
