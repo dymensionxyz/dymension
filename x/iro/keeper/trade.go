@@ -62,27 +62,32 @@ func (k Keeper) EnableTrading(ctx sdk.Context, planId string, submitter sdk.AccA
 }
 
 // Buy buys fixed amount of allocation with price according to the price curve
-func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountTokensToBuy, maxCostAmt math.Int) error {
+func (k Keeper) Buy(
+	ctx sdk.Context,
+	planId string,
+	buyer sdk.AccAddress,
+	amountTokensToBuy, maxCostAmt math.Int,
+) (tokensInAmt math.Int, err error) {
 	plan, err := k.GetTradeableIRO(ctx, planId, buyer)
 	if err != nil {
-		return err
+		return math.ZeroInt(), err
 	}
 
 	// validate the IRO have enough tokens to sell
 	if plan.SoldAmt.Add(amountTokensToBuy).GT(plan.MaxAmountToSell) {
-		return types.ErrInsufficientTokens
+		return math.ZeroInt(), types.ErrInsufficientTokens
 	}
 
 	// Calculate costAmt for buying amountTokensToBuy over the price curve
 	costAmt := plan.BondingCurve.Cost(plan.SoldAmt, plan.SoldAmt.Add(amountTokensToBuy))
 	costPlusTakerFeeAmt, takerFeeAmt, err := k.ApplyTakerFee(costAmt, k.GetParams(ctx).TakerFee, true)
 	if err != nil {
-		return err
+		return math.ZeroInt(), err
 	}
 
 	// Validate expected out amount
 	if costPlusTakerFeeAmt.GT(maxCostAmt) {
-		return errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s, fee: %s", maxCostAmt.String(), costAmt.String(), takerFeeAmt.String())
+		return math.ZeroInt(), errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s, fee: %s", maxCostAmt.String(), costAmt.String(), takerFeeAmt.String())
 	}
 
 	// Charge taker fee
@@ -90,20 +95,20 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 	owner := k.rk.MustGetRollappOwner(ctx, plan.RollappId)
 	err = k.chargeTakerFee(ctx, takerFee, buyer, &owner)
 	if err != nil {
-		return err
+		return math.ZeroInt(), err
 	}
 
 	// Send liquidity token from buyer to the plan. The liquidity token sent directly to the plan's module account
 	cost := sdk.NewCoin(plan.LiquidityDenom, costAmt)
 	err = k.BK.SendCoins(ctx, buyer, plan.GetAddress(), sdk.NewCoins(cost))
 	if err != nil {
-		return err
+		return math.ZeroInt(), err
 	}
 
 	// send allocated tokens from the plan to the buyer
 	err = k.BK.SendCoinsFromModuleToAccount(ctx, types.ModuleName, buyer, sdk.NewCoins(sdk.NewCoin(plan.TotalAllocation.Denom, amountTokensToBuy)))
 	if err != nil {
-		return err
+		return math.ZeroInt(), err
 	}
 
 	// Update plan
@@ -121,14 +126,14 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 		ClosingPrice: plan.SpotPrice(),
 	})
 	if err != nil {
-		return err
+		return math.ZeroInt(), err
 	}
 
 	// if all tokens are sold, we need to graduate the plan
 	if plan.SoldAmt.Equal(plan.MaxAmountToSell) {
 		poolID, _, err := k.GraduatePlan(ctx, planId)
 		if err != nil {
-			return err
+			return math.ZeroInt(), err
 		}
 
 		err = uevent.EmitTypedEvent(ctx, &types.EventGraduation{
@@ -137,11 +142,11 @@ func (k Keeper) Buy(ctx sdk.Context, planId string, buyer sdk.AccAddress, amount
 			PoolId:    poolID,
 		})
 		if err != nil {
-			return err
+			return math.ZeroInt(), err
 		}
 	}
 
-	return nil
+	return costPlusTakerFeeAmt, nil
 }
 
 // BuyExactSpend uses exact amount of liquidity to buy tokens on the curve

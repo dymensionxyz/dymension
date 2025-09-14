@@ -74,26 +74,34 @@ enum PumpDistr {
 }
 
 message PumpParams {
-  // NumTopRollapps is a number of rollapps, top N by the voting power,
-  // that will be pumped on every pump iteration.
-  uint32 num_top_rollapps = 1;
-  // EpochBudget is how many DYM are dedicated for pumping
-  // in this Epoch.
-  string epoch_budget = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-  // EpochBudgetLeft is DYM that is left for pumping in the epoch.
-  // epoch_budget_left <= epoch_budget.
-  string epoch_budget_left = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
+  // EpochBudgetLeft is coins that is left for pumping in the epoch.
+  repeated cosmos.base.v1beta1.Coin epoch_coins_left = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
   // NumPumps is a target number of pumps that expected to happen
   // in the epoch (probabilistically)
-  uint64 num_pumps = 4;
+  uint64 num_pumps = 2;
   // PumpDistr is a distribution used to determine pump amount
-  PumpDistr pump_distr = 5;
+  PumpDistr pump_distr = 3;
+  // Target is that is going to be pumped
+  oneof target {
+    TargetTopRollapps rollapps = 4;
+    TargetPool pool = 5;
+  }
+}
+
+// Pump top N rollapps based on their sponsorship weight
+message TargetTopRollapps {
+  // NumTopRollapps is a number of rollapps, top N by the voting power,
+  // that will be pumped on every pump iteration.
+  uint32 num_top_rollapps = 1;
+}
+
+// Pump the pool
+message TargetPool {
+  // PoolId is a pool that's used to buy DYM given provided coins
+  uint64 pool_id = 1;
+  // TokenOut is a token that will be pumped (bought)
+  string token_out = 2;
 }

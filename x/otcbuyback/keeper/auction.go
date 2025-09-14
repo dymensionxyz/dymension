@@ -170,12 +170,15 @@ func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uin
 		}
 
 		streamID, err := k.streamerKeeper.CreatePumpStream(ctx,
-			sdk.NewCoins(coin),
-			poolID,
-			ctx.BlockTime().Add(pp.StartTimeAfterAuctionEnd),
-			pp.EpochIdentifier,
-			pp.NumEpochsPaidOver,
+			streamertypes.CreateStreamGeneric{
+				Coins:             sdk.NewCoins(coin),
+				StartTime:         ctx.BlockTime().Add(pp.StartTimeAfterAuctionEnd),
+				EpochIdentifier:   pp.EpochIdentifier,
+				NumEpochsPaidOver: pp.NumEpochsPaidOver,
+			},
 			pp.NumOfPumpsPerEpoch,
+			streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			streamertypes.PumpTargetPool(poolID, k.baseDenom),
 		)
 		if err != nil {
 			return nil, err

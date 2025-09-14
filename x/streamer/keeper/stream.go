@@ -18,14 +18,12 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
 	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
 
+	// Add coins to distribute during the next epoch
+	stream.EpochCoins = epochCoins
+
 	if stream.IsPumpStream() {
 		// Pump streams should always have one coin with base denom
-		stream.PumpParams.EpochBudget = epochCoins[0].Amount
-		stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudget
-
-		// Don't need to update EpochCoins for pump stream as it uses its own
-		// parameter – EpochBudget
-		return stream, nil
+		stream.PumpParams.EpochCoinsLeft = stream.EpochCoins
 	}
 
 	// If the stream uses a sponsorship plan, query it and update stream distr info. The distribution
@@ -38,9 +36,6 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 		// Update stream distr info
 		stream.DistributeTo = types.DistrInfoFromDistribution(distr)
 	}
-
-	// Add coins to distribute during the next epoch
-	stream.EpochCoins = epochCoins
 
 	return stream, nil
 }

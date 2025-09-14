@@ -14,7 +14,6 @@ import (
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
-	otctypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -63,7 +62,21 @@ type MintParamsGetter interface {
 
 type IROKeeper interface {
 	GetPlanByRollapp(ctx sdk.Context, rollappId string) (irotypes.Plan, bool)
-	BuyExactSpend(ctx sdk.Context, planId string, buyer sdk.AccAddress, amountToSpend, minTokensAmt math.Int) (math.Int, error)
+	MustGetPlan(ctx sdk.Context, planId string) irotypes.Plan
+	GetParams(ctx sdk.Context) (params irotypes.Params)
+	ApplyTakerFee(amount math.Int, takerFee math.LegacyDec, isAdd bool) (totalAmt, takerFeeAmt math.Int, err error)
+	BuyExactSpend(
+		ctx sdk.Context,
+		planId string,
+		buyer sdk.AccAddress,
+		amountToSpend, minTokensAmt math.Int,
+	) (tokenOut math.Int, err error)
+	Buy(
+		ctx sdk.Context,
+		planId string,
+		buyer sdk.AccAddress,
+		amountTokensToBuy, maxCostAmt math.Int,
+	) (tokenIn math.Int, err error)
 }
 
 type PoolManagerKeeper interface {
@@ -85,17 +98,6 @@ type TxFeesKeeper interface {
 	GetBaseDenom(ctx sdk.Context) (string, error)
 }
 
-// OtcbuybackKeeper defines the expected interface for the Otcbuyback module.
-type OtcbuybackKeeper interface {
-	CreateAuction(
-		ctx sdk.Context,
-		allocation sdk.Coin,
-		startTime time.Time,
-		endTime time.Time,
-		initialDiscount math.LegacyDec,
-		maxDiscount math.LegacyDec,
-		vestingPlan otctypes.Auction_VestingParams,
-		pumpParams otctypes.Auction_PumpParams,
-	) (uint64, error)
-	EndAuction(ctx sdk.Context, auctionID uint64, reason string) error
+type GAMMKeeper interface {
+	GetPoolDenoms(ctx sdk.Context, poolId uint64) ([]string, error)
 }

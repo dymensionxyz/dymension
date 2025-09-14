@@ -2,10 +2,10 @@ package types
 
 import (
 	"context"
-	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // AccountKeeper defines the expected interface for the Account module.
@@ -42,5 +42,11 @@ type AMMKeeper interface {
 // StreamerKeeper defines the expected interface for the Streamer module.
 type StreamerKeeper interface {
 	GetModuleToDistributeCoins(ctx sdk.Context) sdk.Coins
-	CreatePumpStream(ctx sdk.Context, coins sdk.Coins, poolId uint64, startTime time.Time, epochIdentifier string, numEpochsPaidOver, numOfPumps uint64) (uint64, error)
+	CreatePumpStream(
+		ctx sdk.Context,
+		stream streamertypes.CreateStreamGeneric,
+		numPumps uint64,
+		pumpDistr streamertypes.PumpDistr,
+		pumpTarget streamertypes.PumpTarget,
+	) (uint64, error)
 }

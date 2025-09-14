@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -89,7 +91,7 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 
 // CreateStream creates a non-sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored, nil)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -98,7 +100,7 @@ func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sd
 
 // CreateSponsoredStream creates a sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored, nil)
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -106,8 +108,8 @@ func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord,
 }
 
 // CreateStream creates a pump stream struct given the required params.
-func (suite *KeeperTestSuite) CreatePumpStream(coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64, pumpParams *types.MsgCreateStream_PumpParams) (uint64, *types.Stream) {
-	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, []types.DistrRecord{}, startTime, epochIdentifier, numEpoch, NonSponsored, pumpParams)
+func (suite *KeeperTestSuite) CreatePumpStream(s types.CreateStreamGeneric, numPumps uint64, pumpDistr types.PumpDistr, pumpTarget types.PumpTarget) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, s, numPumps, pumpDistr, pumpTarget)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -272,4 +274,46 @@ func (suite *KeeperTestSuite) LockTokens(addr sdk.AccAddress, coins sdk.Coins) {
 	suite.FundAcc(addr, coins)
 	_, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr, coins, time.Hour)
 	suite.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) CreateDefaultPlan(rollappID string) string {
+	allocation := math.NewInt(100).MulRaw(1e18)
+	return s.CreatePlan(rollappID, allocation, false)
+}
+
+func (s *KeeperTestSuite) CreatePlan(rollappID string, allocation math.Int, standardLaunch bool) string {
+	k := s.App.IROKeeper
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
+	curve := irotypes.DefaultBondingCurve()
+	incentives := irotypes.DefaultIncentivePlanParams()
+	liquidityPart := irotypes.DefaultParams().MinLiquidityPart
+
+	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now().Add(-time.Minute), true, standardLaunch, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+	return planID
+}
+
+func (s *KeeperTestSuite) SettleIRO(rollappID string, reserveAmt math.Int) {
+	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
+	s.Require().True(found)
+
+	// Fund module with insufficient funds for settlement
+	// Sold amount
+	iroDenom := plan.TotalAllocation.Denom
+	amt := plan.SoldAmt.Sub(reserveAmt)
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(iroDenom, amt)))
+
+	// Settlement token
+	rollappDenom := fmt.Sprintf("hui/%s", rollappID)
+	amt = plan.TotalAllocation.Amount
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+
+	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) StartEpoch(epochIdentifier string) {
+	info := s.App.EpochsKeeper.GetEpochInfo(s.Ctx, epochIdentifier)
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(info.Duration).Add(time.Second))
+	s.App.EpochsKeeper.BeginBlocker(s.Ctx)
 }

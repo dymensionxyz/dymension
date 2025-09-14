@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils/rand"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -98,10 +99,13 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 // 890 ≥ 25, so no pump this block
 func ShouldPump(
 	ctx sdk.Context,
-	pumpParams types.PumpParams,
+	budget math.Int,
+	left math.Int,
+	numPumps uint64,
+	pumpDistr types.PumpDistr,
 	epochBlocks math.Int,
 ) (math.Int, error) {
-	if pumpParams.NumPumps == 0 {
+	if numPumps == 0 {
 		// Should not pump at all
 		return math.ZeroInt(), nil
 	}
@@ -120,18 +124,22 @@ func ShouldPump(
 
 	// Check if the random value falls within the pump probability:
 	// success if random value < pumpNum
-	if randomInRange < pumpParams.NumPumps {
-		return PumpAmt(ctx, pumpParams)
+	if randomInRange < numPumps {
+		return PumpAmt(ctx, budget, left, math.NewIntFromUint64(numPumps), pumpDistr)
 	}
 
 	return math.ZeroInt(), nil
 }
 
 // PumpAmt computes the random pump amount.
-func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
-	numPumps := math.NewIntFromUint64(pumpParams.NumPumps)
-
-	if pumpParams.EpochBudget.LT(numPumps) {
+func PumpAmt(
+	ctx sdk.Context,
+	budget math.Int,
+	left math.Int,
+	numPumps math.Int,
+	pumpDistr types.PumpDistr,
+) (math.Int, error) {
+	if budget.LT(numPumps) {
 		// The budget is too small to use it for pumping. It might happen
 		// close to the stream end if the epoch budget is too low, but it's
 		// not probable since EpochBudget ≈ 10^20, numPumps ≈ 10^5.
@@ -140,31 +148,31 @@ func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
 
 	randBig := new(big.Int)
 
-	switch pumpParams.PumpDistr {
+	switch pumpDistr {
 	case types.PumpDistr_PUMP_DISTR_UNIFORM:
 		// Draw a Uniform(0; 2*B/N) value
 		// Mean is B/N
-		modulo := pumpParams.EpochBudget.MulRaw(2).Quo(numPumps)
+		modulo := budget.MulRaw(2).Quo(numPumps)
 		randBig = rand.GenerateUniformRandomMod(ctx, modulo.BigIntMut())
 
 	case types.PumpDistr_PUMP_DISTR_EXPONENTIAL:
 		// Draw an Exp(N/B) value
 		// Mean is B/N
-		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt())
+		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), budget.BigInt())
 
 	case types.PumpDistr_PUMP_DISTR_UNSPECIFIED:
 		return math.ZeroInt(), fmt.Errorf("pump distribution not specified")
 	}
 
 	r := math.NewIntFromBigIntMut(randBig)
-	return math.MinInt(r, pumpParams.EpochBudgetLeft), nil
+	return math.MinInt(r, left), nil
 }
 
 // ExecutePump performs the pump operation by buying tokens for a specific rollapp.
-// CONTRACT: pumpAmt is always in base denom.
 func (k Keeper) ExecutePump(
 	ctx sdk.Context,
-	pumpCoin sdk.Coin,
+	pumpAmt math.Int,
+	pumpDenom string,
 	rollappID string,
 ) (tokenOut sdk.Coin, err error) {
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, rollappID)
@@ -177,97 +185,198 @@ func (k Keeper) ExecutePump(
 		return sdk.Coin{}, fmt.Errorf("IRO plan not found for rollapp: %s", rollappID)
 	}
 
-	buyer := k.ak.GetModuleAddress(types.ModuleName)
-
 	err = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-		if plan.IsSettled() {
-			// IRO is settled -> use AMM:
-			//   1. RA token exists
-			//   2. Every RA token has an AMM route to DYM
-			//   3. Do an AMM swap: PumpDenom -> SettledDenom
-			//   4. Return Coin(SettledDenom; AMM token out)
-			tokenOutDenom := plan.SettledDenom
-			feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, tokenOutDenom)
-			if err != nil {
-				return fmt.Errorf("get fee token for denom %s: %w", tokenOutDenom, err)
-			}
-
-			reverseRoute := reverseInRoute(feeToken.Route, tokenOutDenom)
-			tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
-				ctx,
-				buyer,
-				reverseRoute,
-				pumpCoin,       // token in
-				math.ZeroInt(), // no slippage
-			)
-			if err != nil {
-				return fmt.Errorf("route exact amount in: target denom: %s, error: %w", tokenOutDenom, err)
-			}
-
-			tokenOut = sdk.NewCoin(tokenOutDenom, tokenOutAmt)
-			return nil
-		} else {
-			// IRO is not settled:
-			//   1. Need to buy IRO using LiquidityDenom
-			//   2. if (PumpDenom != LiquidityDenom), do an AMM swap: PumpDenom -> LiquidityDenom
-			//   3. Buy IRO: LiquidityDenom -> IRO denom
-			//   4. Return Coin(IRO denom; IRO token out)
-			pumpAmt := pumpCoin.Amount
-			if pumpCoin.Denom != plan.LiquidityDenom {
-				feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, plan.LiquidityDenom)
-				if err != nil {
-					return fmt.Errorf("get fee token for denom %s: %w", plan.LiquidityDenom, err)
-				}
-
-				reverseRoute := reverseInRoute(feeToken.Route, plan.LiquidityDenom)
-				pumpAmt, err = k.poolManagerKeeper.RouteExactAmountIn(
-					ctx,
-					buyer,
-					reverseRoute,
-					pumpCoin,       // token in
-					math.ZeroInt(), // no slippage
-				)
-				if err != nil {
-					return fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
-				}
-			}
-
-			tokenOutAmt, err := k.iroKeeper.BuyExactSpend(
-				ctx,
-				fmt.Sprintf("%d", plan.Id),
-				buyer,
-				pumpAmt,        // amountToSpend
-				math.ZeroInt(), // no slippage
-			)
-			if err != nil {
-				return fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
-			}
-
-			tokenOut = sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt)
-			return nil
+		liquidityAmt, err := k.swapPumpAmtToLiquidityDenom(ctx, pumpAmt, pumpDenom, plan.LiquidityDenom)
+		if err != nil {
+			return err
 		}
+
+		switch plan.GetGraduationStatus() {
+		case irotypes.GraduationStatus_PRE_GRADUATION:
+			// IRO is not graduated:
+			//   - How many IRO tokens can buy with pumpAmt considering taker fee?
+			//   - If tokenOut is greater than plan's MaxAmountToSell buy only the remaining part: MaxAmountToSell - SoldAmt
+			//   - If the plan graduates and there's any leftover, spend it in the respective AMM pool
+			//   - Return Coin(IRO denom; IRO token out)
+			tokenOut, err = k.executePumpPreGraduation(ctx, liquidityAmt, plan)
+			if err != nil {
+				return fmt.Errorf("execute pump pre-graduation: %w", err)
+			}
+		case irotypes.GraduationStatus_GRADUATED:
+			// IRO is graduated:
+			//   - Buy IRO tokens from AMM using GraduatedPoolId
+			//   - Return Coin(IRO denom; IRO token out)
+			tokenOut, err = k.executePumpGraduated(ctx, liquidityAmt, plan)
+			if err != nil {
+				return fmt.Errorf("execute pump graduated: %w", err)
+			}
+		case irotypes.GraduationStatus_SETTLED:
+			// IRO is settled:
+			//   - Buy RA tokens from AMM using GraduatedPoolId
+			//   - Return Coin(settled denom; RA token out)
+			tokenOut, err = k.executePumpSettled(ctx, liquidityAmt, plan)
+			if err != nil {
+				return fmt.Errorf("execute pump settled: %w", err)
+			}
+		default:
+			// Should never happen
+			return fmt.Errorf("unknown graduation status: %v", plan.GetGraduationStatus())
+		}
+
+		return nil
 	})
-	if err != nil {
-		return sdk.Coin{}, err
+
+	return tokenOut, err
+}
+
+// swapPumpAmtToLiquidityDenom swaps pump tokens to the plan's liquidity denomination if needed
+// CONTRACT: pumpDenom is the base denom. Therefore, we can always swap
+// liquidityDenom to pumpDenom using a fee token route.
+func (k Keeper) swapPumpAmtToLiquidityDenom(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	liquidityDenom string,
+) (math.Int, error) {
+	if pumpDenom == liquidityDenom {
+		return pumpAmt, nil
 	}
 
-	return tokenOut, nil
+	feeToken, err := k.txFeesKeeper.GetFeeToken(ctx, liquidityDenom)
+	if err != nil {
+		return math.ZeroInt(), fmt.Errorf("get fee token for denom %s: %w", liquidityDenom, err)
+	}
+
+	reverseRoute := reverseInRoute(feeToken.Route, liquidityDenom)
+	liquidityAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		reverseRoute,
+		sdk.NewCoin(pumpDenom, pumpAmt),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return math.ZeroInt(), fmt.Errorf("route exact amount in: target denom: %s, error: %w", liquidityDenom, err)
+	}
+
+	return liquidityAmt, nil
+}
+
+// CONTRACT: plan is pre-graduated
+func (k Keeper) executePumpPreGraduation(
+	ctx sdk.Context,
+	amountToSpend math.Int,
+	plan irotypes.Plan,
+) (sdk.Coin, error) {
+	// Find how many tokens we can buy with pumpAmt
+	// Subtract taker fee -> get net amount to spend
+	toSpendMinusTakerFeeAmt, _, err := k.iroKeeper.ApplyTakerFee(amountToSpend, k.iroKeeper.GetParams(ctx).TakerFee, false)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("apply taker fee: %w", err)
+	}
+
+	tokenOutAmt, err := plan.BondingCurve.TokensForExactInAmount(plan.SoldAmt, toSpendMinusTakerFeeAmt)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("tokens for exact in amount: %w", err)
+	}
+
+	remaining := plan.MaxAmountToSell.Sub(plan.SoldAmt)
+
+	if tokenOutAmt.LT(remaining) {
+		// IRO has enough tokens to sell, use `BuyExactSpend` for accuracy
+		boughtAmt, err := k.iroKeeper.BuyExactSpend(
+			ctx,
+			plan.GetID(),
+			k.ak.GetModuleAddress(types.ModuleName),
+			amountToSpend,
+			math.ZeroInt(), // no min tokens
+		)
+		if err != nil {
+			return sdk.Coin{}, fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
+		}
+		return sdk.NewCoin(plan.GetIRODenom(), boughtAmt), nil
+	} else {
+		// If too many tokens, buy only the remaining and trigger graduation (use `Buy`).
+		//
+		// amountToSpend covers costs for tokenOutAmt and tokenOutAmt >= remaining,
+		// thus amountToSpend covers costs for the remaining, and actuallySpent < amountToSpend.
+		actuallySpent, err := k.iroKeeper.Buy(
+			ctx,
+			plan.GetID(),
+			k.ak.GetModuleAddress(types.ModuleName),
+			remaining,
+			amountToSpend,
+		)
+		if err != nil {
+			return sdk.Coin{}, fmt.Errorf("buy from IRO %d: %w", plan.Id, err)
+		}
+
+		tokenOut := sdk.NewCoin(plan.GetIRODenom(), remaining)
+
+		// We bought the max number of IRO tokens, and the plan should be graduated now.
+		// In that case, we want to buy the leftover from the AMM pool (if any).
+		leftover := amountToSpend.Sub(actuallySpent)
+		if !leftover.IsZero() {
+			plan = k.iroKeeper.MustGetPlan(ctx, plan.GetID())
+			if !plan.IsGraduated() {
+				// Sanity check. Should never happen.
+				return sdk.Coin{}, fmt.Errorf("plan is not graduated after buying max number of IRO tokens")
+			}
+
+			graduatedTokenOut, err := k.executePumpGraduated(ctx, leftover, plan)
+			if err != nil {
+				return sdk.Coin{}, fmt.Errorf("execute pump graduated: %w", err)
+			}
+			tokenOut = tokenOut.Add(graduatedTokenOut)
+		}
+
+		return tokenOut, nil
+	}
+}
+
+// CONTRACT: plan is graduated
+func (k Keeper) executePumpGraduated(ctx sdk.Context, amountToSpend math.Int, plan irotypes.Plan) (sdk.Coin, error) {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        plan.GraduatedPoolId,
+			TokenOutDenom: plan.GetIRODenom(),
+		}},
+		sdk.NewCoin(plan.LiquidityDenom, amountToSpend),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+	}
+
+	return sdk.NewCoin(plan.GetIRODenom(), tokenOutAmt), nil
+}
+
+// CONTRACT: plan is settled
+func (k Keeper) executePumpSettled(ctx sdk.Context, amountToSpend math.Int, plan irotypes.Plan) (sdk.Coin, error) {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        plan.GraduatedPoolId,
+			TokenOutDenom: plan.SettledDenom,
+		}},
+		sdk.NewCoin(plan.LiquidityDenom, amountToSpend),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return sdk.Coin{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", plan.LiquidityDenom, err)
+	}
+
+	return sdk.NewCoin(plan.SettledDenom, tokenOutAmt), nil
 }
 
 // DistributePumpStreams processes all pump streams and executes pumps if conditions are met
 func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Stream) error {
-	// All bought tokens should be burned
-	toBurn := make(sdk.Coins, 0)
-
 	sponsorshipDistr, err := k.sk.GetDistribution(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get sponsorship distribution: %w", err)
-	}
-
-	// Always use base denom for budget
-	baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
-	if err != nil {
-		return fmt.Errorf("get base denom: %w", err)
 	}
 
 	for _, stream := range pumpStreams {
@@ -283,7 +392,10 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 
 		pumpAmt, err := ShouldPump(
 			ctx,
-			*stream.PumpParams,
+			stream.EpochCoins[0].Amount,
+			stream.PumpParams.EpochCoinsLeft[0].Amount,
+			stream.PumpParams.NumPumps,
+			stream.PumpParams.PumpDistr,
 			epochBlocks,
 		)
 		if err != nil {
@@ -295,38 +407,41 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			continue
 		}
 
-		// Get top N rollapps by cast voting power
-		pressure := k.TopRollapps(ctx, sponsorshipDistr.Gauges, pumpAmt, &stream.PumpParams.NumTopRollapps)
+		var totalPumped sdk.Coins
+		event := types.EventPumped{StreamId: stream.Id}
 
-		totalPumped := sdk.NewCoins()
-		events := make([]types.EventPumped_Pump, 0)
-
-		// Distribute pump amount proportionally to each rollapp
-		for _, p := range pressure {
-			if p.Pressure.IsZero() {
-				continue
-			}
-			pumpCoin := sdk.NewCoin(baseDenom, p.Pressure)
-
-			tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
+		switch t := stream.PumpParams.Target.(type) {
+		case *types.PumpParams_Pool:
+			var e types.EventPumped_Pool
+			totalPumped, e, err = k.DistributePool(
+				ctx,
+				pumpAmt,
+				stream.Coins[0].Denom,
+				*t.Pool,
+			)
 			if err != nil {
-				k.Logger(ctx).Error("failed to execute pump", "streamID", stream.Id, "rollappID", p.RollappId, "error", err)
-				// Continue with other rollapps even if one fails
-				continue
+				return fmt.Errorf("failed to distribute pool: %w", err)
 			}
+			event.Pool = &e
 
-			totalPumped = totalPumped.Add(pumpCoin)
-			toBurn = toBurn.Add(tokenOut)
-			events = append(events, types.EventPumped_Pump{
-				RollappId: p.RollappId,
-				PumpAmt:   p.Pressure,
-				TokenOut:  tokenOut,
-			})
+		case *types.PumpParams_Rollapps:
+			var e []types.EventPumped_Rollapp
+			totalPumped, e, err = k.DistributeRollapps(
+				ctx,
+				pumpAmt,
+				stream.Coins[0].Denom, // this denom is always the base denom when pumping rollapps
+				sponsorshipDistr.Gauges,
+				*t.Rollapps,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to distribute rollapps: %w", err)
+			}
+			event.Rollapps = e
 		}
 
 		// Update the stream if needed
 		if !totalPumped.IsZero() {
-			stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudgetLeft.Sub(totalPumped.AmountOfNoDenomValidation(baseDenom))
+			stream.PumpParams.EpochCoinsLeft = stream.PumpParams.EpochCoinsLeft.Sub(totalPumped...)
 			stream.AddDistributedCoins(totalPumped)
 
 			err = k.SetStream(ctx, &stream)
@@ -334,21 +449,77 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 				return fmt.Errorf("failed to update stream after pump: %w", err)
 			}
 
-			err = uevent.EmitTypedEvent(ctx, &types.EventPumped{StreamId: stream.Id, Pumps: events})
+			err = uevent.EmitTypedEvent(ctx, &event)
 			if err != nil {
 				return fmt.Errorf("emit EventPumped: %w", err)
 			}
 		}
 	}
 
-	if toBurn.Len() != 0 {
-		err = k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
-		if err != nil {
-			return fmt.Errorf("failed to burn coins: %w", err)
+	return nil
+}
+
+func (k Keeper) DistributeRollapps(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	gauges sponsorshiptypes.Gauges,
+	rollapps types.TargetTopRollapps,
+) (distributed sdk.Coins, events []types.EventPumped_Rollapp, err error) {
+	// Get top N rollapps by cast voting power
+	pressure := k.TopRollapps(ctx, gauges, pumpAmt, &rollapps.NumTopRollapps)
+
+	// Distribute pump amount proportionally to each rollapp
+	for _, p := range pressure {
+		if p.Pressure.IsZero() {
+			continue
 		}
+
+		tokenOut, err := k.ExecutePump(ctx, p.Pressure, pumpDenom, p.RollappId)
+		if err != nil {
+			k.Logger(ctx).Error("failed to execute pump", "rollappID", p.RollappId, "error", err)
+			// Continue with other rollapps even if one fails
+			continue
+		}
+
+		pumpCoin := sdk.NewCoin(pumpDenom, p.Pressure)
+		distributed = distributed.Add(pumpCoin)
+		events = append(events, types.EventPumped_Rollapp{
+			RollappId: p.RollappId,
+			PumpCoin:  pumpCoin,
+			TokenOut:  tokenOut,
+		})
 	}
 
-	return nil
+	return distributed, events, nil
+}
+
+func (k Keeper) DistributePool(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	pool types.TargetPool,
+) (distributed sdk.Coins, event types.EventPumped_Pool, err error) {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        pool.PoolId,
+			TokenOutDenom: pool.TokenOut,
+		}},
+		sdk.NewCoin(pumpDenom, pumpAmt),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return nil, types.EventPumped_Pool{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", pool.TokenOut, err)
+	}
+	pumpCoin := sdk.NewCoin(pumpDenom, pumpAmt)
+	event = types.EventPumped_Pool{
+		PoolId:   pool.PoolId,
+		PumpCoin: pumpCoin,
+		TokenOut: sdk.NewCoin(pool.TokenOut, tokenOutAmt),
+	}
+	return sdk.NewCoins(pumpCoin), event, nil
 }
 
 // Number of milliseconds in the year.
