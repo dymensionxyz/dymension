@@ -8,9 +8,9 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testutil "github.com/dymensionxyz/dymension/v3/testutil/math"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 )
-
-// FIXME: BuyExactSpend
 
 func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 	suite.Run("simple buy and claim flow without dynamic pricing", func() {
@@ -40,6 +40,110 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		suite.Require().NoError(err, "Should have spent 22.5 usdc")
 		suite.Require().Equal("usdc", paymentCoin.Denom)
 	})
+
+	suite.Run("BuyExactSpend - spend exact amount and get calculated tokens", func() {
+		suite.SetupTest()
+
+		// Create a buyer account with USDC balance
+		buyer := suite.CreateRandomAccount()
+		buyerFunds := sdk.NewCoins(
+			sdk.NewCoin("usdc", math.NewInt(10_000).MulRaw(1e6)),
+		)
+		suite.FundAcc(buyer, buyerFunds)
+
+		// Create an auction
+		auctionID := suite.CreateDefaultAuction()
+		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		suite.Require().True(found)
+
+		discount := auction.GetCurrentDiscount(suite.Ctx.BlockTime())
+		suite.Require().Equal(discount, auction.InitialDiscount) // 10% default
+
+		// Spend exactly 11.25 USDC to buy ~50 DYM tokens (within auction allocation limit)
+		exactPayment := sdk.NewCoin("usdc", math.NewInt(1125).MulRaw(1e4)) // 11.25 USDC
+		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment)
+		suite.Require().NoError(err)
+
+		// At pool price 1:4 (0.25 USDC per DYM) with 10% discount = 0.225 USDC per DYM
+		// 11.25 USDC / 0.225 = 50 DYM tokens exactly
+		expectedTokens := math.NewInt(50).MulRaw(1e18)
+		suite.Require().True(tokensPurchased.Equal(expectedTokens), "Should have purchased 50 DYM tokens, got: %s", tokensPurchased)
+
+		// Verify buyer balance was debited exactly 11.25 USDC
+		buyerBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, buyer, "usdc")
+		expectedBalance := buyerFunds[0].Amount.Sub(exactPayment.Amount)
+		suite.Require().Equal(expectedBalance, buyerBalance.Amount)
+
+		// Verify the buyer has a purchase record
+		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+		suite.Require().True(found)
+		suite.Require().Equal(tokensPurchased, purchase.Amount)
+	})
+
+	suite.Run("BuyExactSpend - payment too small", func() {
+		suite.SetupTest()
+
+		buyer := suite.CreateRandomAccount()
+		buyerFunds := sdk.NewCoins(
+			sdk.NewCoin("usdc", math.NewInt(1_000).MulRaw(1e6)),
+		)
+		suite.FundAcc(buyer, buyerFunds)
+
+		auctionID := suite.CreateDefaultAuction()
+
+		// Try to spend a very small amount that won't buy any tokens
+		tinyPayment := sdk.NewCoin("usdc", math.NewInt(1)) // 0.000001 USDC
+		_, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, tinyPayment)
+		suite.Require().Error(err)
+		suite.Require().Contains(err.Error(), "payment amount too small to purchase any tokens")
+	})
+
+	suite.Run("BuyExactSpend - different discount levels", func() {
+		suite.SetupTest()
+
+		buyer := suite.CreateRandomAccount()
+		buyerFunds := sdk.NewCoins(
+			sdk.NewCoin("usdc", math.NewInt(10_000).MulRaw(1e6)),
+		)
+		suite.FundAcc(buyer, buyerFunds)
+
+		// Fund the module account
+		suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(1000)))
+
+		// Create auction with higher initial discount (20%)
+		vestingParams := types.Auction_VestingParams{
+			VestingPeriod:               24 * time.Hour,
+			VestingStartAfterAuctionEnd: 0,
+		}
+		pumpParams := types.Auction_PumpParams{
+			StartTimeAfterAuctionEnd: time.Hour,
+			EpochIdentifier:          "day",
+			NumEpochsPaidOver:        30,
+			NumOfPumpsPerEpoch:       1,
+		}
+
+		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(suite.Ctx,
+			common.DymUint64(1000),                  // allocation
+			suite.Ctx.BlockTime(),                   // start time
+			suite.Ctx.BlockTime().Add(24*time.Hour), // end time
+			math.LegacyNewDecWithPrec(2, 1),         // 0.2 = 20% initial discount
+			math.LegacyNewDecWithPrec(5, 1),         // 0.5 = 50% max discount
+			vestingParams,
+			pumpParams,
+		)
+		suite.Require().NoError(err)
+
+		// Spend exactly 25 USDC with 20% discount
+		exactPayment := sdk.NewCoin("usdc", math.NewInt(25).MulRaw(1e6))
+		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment)
+		suite.Require().NoError(err)
+
+		// At pool price 1:4 (0.25 USDC per DYM) with 20% discount = 0.2 USDC per DYM
+		// 25 USDC / 0.2 = 125 DYM tokens
+		expectedTokens := math.NewInt(125).MulRaw(1e18)
+		suite.Require().True(tokensPurchased.Equal(expectedTokens), "Should have purchased 125 DYM tokens with 20%% discount, got: %s", tokensPurchased)
+	})
+
 }
 
 func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
