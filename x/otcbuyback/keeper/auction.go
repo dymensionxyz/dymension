@@ -157,10 +157,17 @@ func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uin
 	var streamIDs []uint64
 
 	coins := auction.RaisedAmount
-
-	// FIXME: send coins to streamer module
-
 	pp := auction.PumpParams
+
+	err := k.bankKeeper.SendCoinsFromModuleToModule(
+		ctx,
+		types.ModuleName,
+		streamertypes.ModuleName,
+		coins,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	// for each coin
 	for _, coin := range coins {

@@ -73,7 +73,16 @@ func (a Auction) ValidateBasic() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting start time cannot be negative")
 	}
 
-	// FIXME: validate pump params
+	if a.PumpParams.NumEpochsPaidOver <= 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "numEpochsPaidOver must be greater than 0")
+	}
+
+	if a.PumpParams.NumOfPumpsPerEpoch <= 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "numOfPumpsPerEpoch must be greater than 0")
+	}
+	if a.PumpParams.StartTimeAfterAuctionEnd < 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "startTimeAfterAuctionEnd cannot be negative")
+	}
 
 	return nil
 }
