@@ -110,11 +110,16 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		return nil, err
 	}
 
+	startTime := msg.StartTime
+	if startTime.Before(ctx.BlockTime()) {
+		startTime = ctx.BlockTime()
+	}
+
 	// Create the auction and stream
 	auctionID, err := s.Keeper.CreateAuction(
 		ctx,
 		msg.Allocation,
-		msg.StartTime,
+		startTime,
 		msg.EndTime,
 		msg.InitialDiscount,
 		msg.MaxDiscount,
