@@ -70,9 +70,11 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		indexToFinalize--
 	}
 
-	err = k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "validate attestation")
+	if teeConfig.Verify {
+		err = k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "validate attestation")
+		}
 	}
 
 	err = k.FastFinalizeRollappStatesUntilStateIndex(ctx, rollapp, indexToFinalize)

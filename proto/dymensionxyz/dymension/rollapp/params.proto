@@ -46,6 +46,8 @@ message Params {
 message TEEConfig {
   // enabled controls whether TEE fast finalization is enabled
   bool enabled = 1;
+  // if false, do NOT verify attestation (useful for testing)
+  bool verify = 6;
 
   // see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
   string policy_values = 2 [(gogoproto.moretags) = "yaml:\"policy_json_values\""];
