@@ -26,6 +26,14 @@ const (
 	DefaultLivenessSlashInterval = uint64(600)  // 1 hour worth of blocks at 1 block per 6 seconds
 )
 
+var DefaultTeeConfig = TEEConfig{
+	Enabled:         true,
+	Verify:          false, // testing only
+	PolicyValues:    "",
+	PolicyQuery:     "",
+	PolicyStructure: "",
+}
+
 // NewParams creates a new Params instance
 func NewParams(
 	disputePeriodInBlocks uint64,
@@ -33,6 +41,7 @@ func NewParams(
 	livenessSlashInterval uint64,
 	appRegistrationFee sdk.Coin,
 	minSequencerBondGlobal sdk.Coin,
+	teeConfig TEEConfig,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks:  disputePeriodInBlocks,
@@ -40,6 +49,7 @@ func NewParams(
 		LivenessSlashInterval:  livenessSlashInterval,
 		AppRegistrationFee:     appRegistrationFee,
 		MinSequencerBondGlobal: minSequencerBondGlobal,
+		TeeConfig:              teeConfig,
 	}
 }
 
@@ -51,6 +61,7 @@ func DefaultParams() Params {
 		DefaultLivenessSlashInterval,
 		DefaultAppRegistrationFee,
 		DefaultMinSequencerBondGlobalCoin,
+		DefaultTeeConfig,
 	)
 }
 
