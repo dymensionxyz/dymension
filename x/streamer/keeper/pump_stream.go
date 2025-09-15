@@ -105,7 +105,7 @@ func ShouldPump(
 	pumpDistr types.PumpDistr,
 	epochBlocks math.Int,
 ) (math.Int, error) {
-	if numPumps == 0 {
+	if numPumps <= 0 {
 		// Should not pump at all
 		return math.ZeroInt(), nil
 	}
@@ -469,22 +469,22 @@ func (k Keeper) DistributeRollapps(
 			continue
 		}
 
-			pumpCoin := sdk.NewCoin(pumpDenom, p.Pressure)
+		pumpCoin := sdk.NewCoin(pumpDenom, p.Pressure)
 
-			tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
-			if err != nil {
-				k.Logger(ctx).Error("failed to execute pump", "rollappID", p.RollappId, "error", err)
-				// Continue with other rollapps even if one fails
-				continue
-			}
-
-			distributed = distributed.Add(pumpCoin)
-			events = append(events, types.EventPumped_Rollapp{
-				RollappId: p.RollappId,
-				PumpCoin:  pumpCoin,
-				TokenOut:  tokenOut,
-			})
+		tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
+		if err != nil {
+			k.Logger(ctx).Error("failed to execute pump", "rollappID", p.RollappId, "error", err)
+			// Continue with other rollapps even if one fails
+			continue
 		}
+
+		distributed = distributed.Add(pumpCoin)
+		events = append(events, types.EventPumped_Rollapp{
+			RollappId: p.RollappId,
+			PumpCoin:  pumpCoin,
+			TokenOut:  tokenOut,
+		})
+	}
 
 	return distributed, events, nil
 }

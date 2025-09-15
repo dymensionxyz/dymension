@@ -94,18 +94,18 @@ func ValidatePumpStreamParams(coins sdk.Coins, numPumps uint64, pumpDistr PumpDi
 	}
 	switch t := target.(type) {
 	case *MsgCreatePumpStream_Pool:
-		if err := sdk.ValidateDenom(t.Pool.TokenOut); err != nil {
-			return fmt.Errorf("invalid token out: %w", err)
-		}
 		if t == nil || t.Pool == nil {
 			return fmt.Errorf("pool target must not be null")
 		}
-	case *MsgCreatePumpStream_Rollapps:
-		if t.Rollapps.NumTopRollapps == 0 {
-			return fmt.Errorf("num top rollapps must be greater than 0")
+		if err := sdk.ValidateDenom(t.Pool.TokenOut); err != nil {
+			return fmt.Errorf("invalid token out: %w", err)
 		}
+	case *MsgCreatePumpStream_Rollapps:
 		if t == nil || t.Rollapps == nil {
 			return fmt.Errorf("rollapps target must not be null")
+		}
+		if t.Rollapps.NumTopRollapps == 0 {
+			return fmt.Errorf("num top rollapps must be greater than 0")
 		}
 	default:
 		return fmt.Errorf("invalid target type: %T", t)

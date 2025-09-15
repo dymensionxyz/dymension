@@ -74,7 +74,7 @@ enum PumpDistr {
 }
 
 message PumpParams {
-  // EpochBudgetLeft is coins that is left for pumping in the epoch.
+  // EpochCoinsLeft is coins that is left for pumping in the epoch.
   repeated cosmos.base.v1beta1.Coin epoch_coins_left = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
