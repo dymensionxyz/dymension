@@ -699,8 +699,7 @@ func (s *KeeperTestSuite) TestExecutePump() {
 
 			tokenOut, err := s.App.StreamerKeeper.ExecutePump(
 				s.Ctx,
-				tc.pumpAmt,
-				sdk.DefaultBondDenom,
+				sdk.NewCoin(sdk.DefaultBondDenom, tc.pumpAmt),
 				rollappID,
 			)
 			s.Require().NoError(err)
