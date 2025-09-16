@@ -120,9 +120,115 @@ func (m *MsgCreateBridgingFeeHookResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateBridgingFeeHookResponse proto.InternalMessageInfo
 
+type MsgSetBridgingFeeHook struct {
+	Owner             string       `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	Fees              []HLAssetFee `protobuf:"bytes,2,rep,name=fees,proto3" json:"fees"`
+	NewOwner          string       `protobuf:"bytes,3,opt,name=new_owner,json=newOwner,proto3" json:"new_owner,omitempty"`
+	RenounceOwnership bool         `protobuf:"varint,4,opt,name=renounce_ownership,json=renounceOwnership,proto3" json:"renounce_ownership,omitempty"`
+}
+
+func (m *MsgSetBridgingFeeHook) Reset()         { *m = MsgSetBridgingFeeHook{} }
+func (m *MsgSetBridgingFeeHook) String() string { return proto.CompactTextString(m) }
+func (*MsgSetBridgingFeeHook) ProtoMessage()    {}
+func (*MsgSetBridgingFeeHook) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0703b4d207ddb651, []int{2}
+}
+func (m *MsgSetBridgingFeeHook) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetBridgingFeeHook) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetBridgingFeeHook.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetBridgingFeeHook) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetBridgingFeeHook.Merge(m, src)
+}
+func (m *MsgSetBridgingFeeHook) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetBridgingFeeHook) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetBridgingFeeHook.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetBridgingFeeHook proto.InternalMessageInfo
+
+func (m *MsgSetBridgingFeeHook) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
+func (m *MsgSetBridgingFeeHook) GetFees() []HLAssetFee {
+	if m != nil {
+		return m.Fees
+	}
+	return nil
+}
+
+func (m *MsgSetBridgingFeeHook) GetNewOwner() string {
+	if m != nil {
+		return m.NewOwner
+	}
+	return ""
+}
+
+func (m *MsgSetBridgingFeeHook) GetRenounceOwnership() bool {
+	if m != nil {
+		return m.RenounceOwnership
+	}
+	return false
+}
+
+type MsgSetBridgingFeeHookResponse struct {
+}
+
+func (m *MsgSetBridgingFeeHookResponse) Reset()         { *m = MsgSetBridgingFeeHookResponse{} }
+func (m *MsgSetBridgingFeeHookResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSetBridgingFeeHookResponse) ProtoMessage()    {}
+func (*MsgSetBridgingFeeHookResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0703b4d207ddb651, []int{3}
+}
+func (m *MsgSetBridgingFeeHookResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetBridgingFeeHookResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetBridgingFeeHookResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetBridgingFeeHookResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetBridgingFeeHookResponse.Merge(m, src)
+}
+func (m *MsgSetBridgingFeeHookResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetBridgingFeeHookResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetBridgingFeeHookResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetBridgingFeeHookResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateBridgingFeeHook)(nil), "dymensionxyz.dymension.bridgingfee.MsgCreateBridgingFeeHook")
 	proto.RegisterType((*MsgCreateBridgingFeeHookResponse)(nil), "dymensionxyz.dymension.bridgingfee.MsgCreateBridgingFeeHookResponse")
+	proto.RegisterType((*MsgSetBridgingFeeHook)(nil), "dymensionxyz.dymension.bridgingfee.MsgSetBridgingFeeHook")
+	proto.RegisterType((*MsgSetBridgingFeeHookResponse)(nil), "dymensionxyz.dymension.bridgingfee.MsgSetBridgingFeeHookResponse")
 }
 
 func init() {
@@ -130,32 +236,38 @@ func init() {
 }
 
 var fileDescriptor_0703b4d207ddb651 = []byte{
-	// 398 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x52, 0x31, 0x8f, 0x12, 0x41,
-	0x18, 0xdd, 0xe1, 0xee, 0x4c, 0x1c, 0xbb, 0xcd, 0x19, 0xd7, 0x2d, 0xf6, 0x08, 0xd5, 0xe5, 0x0c,
-	0x33, 0xf1, 0x68, 0x8c, 0xda, 0xb0, 0x18, 0xb2, 0x85, 0x34, 0x4b, 0x67, 0x63, 0x58, 0xf6, 0x63,
-	0x98, 0xc8, 0xce, 0x6c, 0x76, 0x06, 0xd8, 0xb5, 0x32, 0xfe, 0x02, 0x7b, 0x1b, 0x6b, 0x2b, 0x0a,
-	0x7f, 0x04, 0x25, 0xb1, 0x32, 0x16, 0xc4, 0x40, 0xc1, 0xdf, 0x30, 0xb0, 0x23, 0x21, 0x51, 0x22,
-	0xc9, 0x55, 0x33, 0x2f, 0xdf, 0xfb, 0x5e, 0xde, 0xfb, 0xf2, 0xf0, 0x93, 0xb8, 0x48, 0x40, 0x28,
-	0x2e, 0x45, 0x5e, 0xbc, 0xa7, 0x7b, 0x40, 0xa3, 0x8c, 0xc7, 0x8c, 0x0b, 0x36, 0x00, 0xa0, 0x3a,
-	0x27, 0x69, 0x26, 0xb5, 0xb4, 0x6b, 0x87, 0x64, 0xb2, 0x07, 0xe4, 0x80, 0xec, 0x5e, 0x32, 0xc9,
-	0xe4, 0x8e, 0x4e, 0xb7, 0xbf, 0x72, 0xd3, 0x7d, 0xdc, 0x97, 0x2a, 0x91, 0xea, 0x6d, 0x39, 0x28,
-	0x81, 0x19, 0x3d, 0x2a, 0x11, 0x4d, 0x14, 0xa3, 0x93, 0xa7, 0xdb, 0xc7, 0x0c, 0xc8, 0x29, 0xd6,
-	0x8a, 0x14, 0x8c, 0x50, 0xed, 0x0b, 0xc2, 0x4e, 0x47, 0xb1, 0x56, 0x06, 0x3d, 0x0d, 0xbe, 0x21,
-	0xb5, 0x01, 0x02, 0x29, 0xdf, 0xd9, 0x04, 0x5f, 0xc8, 0xa9, 0x80, 0xcc, 0x41, 0x55, 0x74, 0x7d,
-	0xdf, 0x77, 0xbe, 0x7f, 0xab, 0x5f, 0x1a, 0x1b, 0xcd, 0x38, 0xce, 0x40, 0xa9, 0xae, 0xce, 0xb8,
-	0x60, 0x61, 0x49, 0xb3, 0x03, 0x7c, 0x3e, 0x00, 0x50, 0x4e, 0xa5, 0x7a, 0x76, 0xfd, 0xe0, 0x96,
-	0x90, 0xff, 0x27, 0x27, 0xc1, 0xeb, 0xa6, 0x52, 0xa0, 0xdb, 0x00, 0xfe, 0xf9, 0x7c, 0x79, 0x65,
-	0x85, 0x3b, 0x85, 0xe7, 0xf8, 0xe3, 0x66, 0x76, 0x53, 0xaa, 0xd6, 0xa6, 0xb8, 0x7a, 0xcc, 0x61,
-	0x08, 0x2a, 0x95, 0x42, 0x81, 0xdd, 0xc5, 0x15, 0x1e, 0x1b, 0x9b, 0xad, 0xad, 0xce, 0xcf, 0xe5,
-	0xd5, 0x0b, 0xc6, 0xf5, 0x70, 0x1c, 0x91, 0xbe, 0x4c, 0x68, 0xd4, 0x4f, 0xeb, 0x5c, 0x08, 0x39,
-	0xe9, 0x69, 0x2e, 0x85, 0xa2, 0xc3, 0x22, 0x85, 0x6c, 0xd4, 0x13, 0x50, 0x37, 0x87, 0x1c, 0x6b,
-	0x3e, 0x22, 0x01, 0xe4, 0x26, 0x57, 0x58, 0xe1, 0xf1, 0xed, 0x57, 0x84, 0xcf, 0x3a, 0x8a, 0xd9,
-	0x9f, 0x11, 0x7e, 0xf8, 0xef, 0x03, 0xbd, 0x3c, 0x25, 0xe2, 0x31, 0xf3, 0xee, 0xab, 0xbb, 0x6c,
-	0xff, 0x89, 0xee, 0x5e, 0x7c, 0xd8, 0xcc, 0x6e, 0x90, 0x1f, 0xce, 0x57, 0x1e, 0x5a, 0xac, 0x3c,
-	0xf4, 0x6b, 0xe5, 0xa1, 0x4f, 0x6b, 0xcf, 0x5a, 0xac, 0x3d, 0xeb, 0xc7, 0xda, 0xb3, 0xde, 0x3c,
-	0x3b, 0xb8, 0xc3, 0x91, 0x76, 0x4c, 0x1a, 0x34, 0xff, 0xbb, 0x22, 0xd1, 0xbd, 0x5d, 0x47, 0x1a,
-	0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xc6, 0xbb, 0xd0, 0xda, 0xf0, 0x02, 0x00, 0x00,
+	// 488 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x53, 0x3d, 0x6f, 0x13, 0x41,
+	0x10, 0xf5, 0x9e, 0x1d, 0x94, 0x2c, 0x15, 0xa7, 0x44, 0x1c, 0x27, 0x71, 0xb6, 0x5c, 0x59, 0x41,
+	0xde, 0x15, 0x89, 0x90, 0xf8, 0x6a, 0xec, 0xa0, 0xc8, 0x05, 0x56, 0xa4, 0x73, 0x47, 0x13, 0xd9,
+	0xbe, 0xc9, 0x7a, 0x45, 0xbc, 0x7b, 0xba, 0x59, 0x7f, 0x51, 0x21, 0xf8, 0x03, 0x88, 0x96, 0x86,
+	0x9f, 0x90, 0x82, 0x9e, 0x36, 0x65, 0x44, 0x85, 0x28, 0x22, 0x64, 0x17, 0xf9, 0x1b, 0xc8, 0xbe,
+	0x3b, 0xcb, 0x28, 0xb6, 0x62, 0x41, 0x93, 0xea, 0x6e, 0x34, 0xef, 0xbd, 0x7d, 0xfb, 0x76, 0x86,
+	0x3e, 0x0a, 0x46, 0x5d, 0x50, 0x28, 0xb5, 0x1a, 0x8e, 0xde, 0xf1, 0x79, 0xc1, 0x5b, 0x91, 0x0c,
+	0x84, 0x54, 0xe2, 0x04, 0x80, 0x9b, 0x21, 0x0b, 0x23, 0x6d, 0xb4, 0x5d, 0x5c, 0x04, 0xb3, 0x79,
+	0xc1, 0x16, 0xc0, 0xee, 0xb6, 0xd0, 0x42, 0xcf, 0xe0, 0x7c, 0xfa, 0x17, 0x33, 0xdd, 0x07, 0x6d,
+	0x8d, 0x5d, 0x8d, 0xc7, 0x71, 0x23, 0x2e, 0x92, 0xd6, 0xfd, 0xb8, 0xe2, 0x5d, 0x14, 0xbc, 0xff,
+	0x78, 0xfa, 0x49, 0x1a, 0x6c, 0x1d, 0x6b, 0xa3, 0x10, 0x12, 0xa1, 0xe2, 0x57, 0x42, 0x9d, 0x3a,
+	0x8a, 0x83, 0x08, 0x9a, 0x06, 0xaa, 0x09, 0xe8, 0x10, 0xa0, 0xa6, 0xf5, 0x5b, 0x9b, 0xd1, 0x0d,
+	0x3d, 0x50, 0x10, 0x39, 0xa4, 0x40, 0x4a, 0x5b, 0x55, 0xe7, 0xc7, 0xb7, 0xf2, 0x76, 0x62, 0xa3,
+	0x12, 0x04, 0x11, 0x20, 0x36, 0x4c, 0x24, 0x95, 0xf0, 0x63, 0x98, 0x5d, 0xa3, 0xb9, 0x13, 0x00,
+	0x74, 0xac, 0x42, 0xb6, 0x74, 0x77, 0x8f, 0xb1, 0x9b, 0x6f, 0xce, 0x6a, 0xaf, 0x2b, 0x88, 0x60,
+	0x0e, 0x01, 0xaa, 0xb9, 0xf3, 0xcb, 0x7c, 0xc6, 0x9f, 0x29, 0x3c, 0xa7, 0x1f, 0xae, 0xce, 0x76,
+	0x63, 0xd5, 0xe2, 0x80, 0x16, 0x56, 0x39, 0xf4, 0x01, 0x43, 0xad, 0x10, 0xec, 0x06, 0xb5, 0x64,
+	0x90, 0xd8, 0x3c, 0x98, 0xea, 0xfc, 0xba, 0xcc, 0xbf, 0x10, 0xd2, 0x74, 0x7a, 0x2d, 0xd6, 0xd6,
+	0x5d, 0xde, 0x6a, 0x87, 0x65, 0xa9, 0x94, 0xee, 0x37, 0x8d, 0xd4, 0x0a, 0x79, 0x67, 0x14, 0x42,
+	0x74, 0xda, 0x54, 0x50, 0x4e, 0x82, 0xec, 0x19, 0x79, 0xca, 0x6a, 0x30, 0x4c, 0xee, 0xe5, 0x5b,
+	0x32, 0x28, 0x7e, 0xb4, 0xe8, 0x4e, 0x1d, 0x45, 0x03, 0xcc, 0xad, 0x09, 0xc6, 0x7e, 0x42, 0xb7,
+	0x14, 0x0c, 0x8e, 0xe3, 0xd3, 0xb3, 0x37, 0x9c, 0xbe, 0xa9, 0x60, 0x70, 0x34, 0x33, 0x50, 0xa6,
+	0x76, 0x04, 0x4a, 0xf7, 0x54, 0x1b, 0x62, 0x2e, 0x76, 0x64, 0xe8, 0xe4, 0x0a, 0xa4, 0xb4, 0xe9,
+	0xdf, 0x4b, 0x3b, 0x47, 0x69, 0xe3, 0xaf, 0xf8, 0xf3, 0xf4, 0xe1, 0xd2, 0x10, 0xd2, 0xec, 0xf7,
+	0xbe, 0x5b, 0x34, 0x5b, 0x47, 0x61, 0x7f, 0x21, 0x74, 0x67, 0xf9, 0x1c, 0xbd, 0x5c, 0xe7, 0xc2,
+	0xab, 0xde, 0xd8, 0x7d, 0xf5, 0x3f, 0xec, 0xf9, 0x84, 0x7c, 0x26, 0xd4, 0x5e, 0xf2, 0x92, 0xcf,
+	0xd6, 0x14, 0xbf, 0x4e, 0x75, 0x2b, 0xff, 0x4c, 0x4d, 0x4d, 0xb9, 0x1b, 0xef, 0xaf, 0xce, 0x76,
+	0x49, 0xd5, 0x3f, 0x1f, 0x7b, 0xe4, 0x62, 0xec, 0x91, 0xdf, 0x63, 0x8f, 0x7c, 0x9a, 0x78, 0x99,
+	0x8b, 0x89, 0x97, 0xf9, 0x39, 0xf1, 0x32, 0x6f, 0x9e, 0x2e, 0xcc, 0xf0, 0x8a, 0xcd, 0xee, 0xef,
+	0xf3, 0xe1, 0xf5, 0xf5, 0x6e, 0xdd, 0x99, 0xed, 0xf7, 0xfe, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x99, 0xb1, 0x1a, 0xd2, 0xac, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -171,6 +283,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	CreateBridgingFeeHook(ctx context.Context, in *MsgCreateBridgingFeeHook, opts ...grpc.CallOption) (*MsgCreateBridgingFeeHookResponse, error)
+	SetBridgingFeeHook(ctx context.Context, in *MsgSetBridgingFeeHook, opts ...grpc.CallOption) (*MsgSetBridgingFeeHookResponse, error)
 }
 
 type msgClient struct {
@@ -190,9 +303,19 @@ func (c *msgClient) CreateBridgingFeeHook(ctx context.Context, in *MsgCreateBrid
 	return out, nil
 }
 
+func (c *msgClient) SetBridgingFeeHook(ctx context.Context, in *MsgSetBridgingFeeHook, opts ...grpc.CallOption) (*MsgSetBridgingFeeHookResponse, error) {
+	out := new(MsgSetBridgingFeeHookResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.bridgingfee.Msg/SetBridgingFeeHook", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateBridgingFeeHook(context.Context, *MsgCreateBridgingFeeHook) (*MsgCreateBridgingFeeHookResponse, error)
+	SetBridgingFeeHook(context.Context, *MsgSetBridgingFeeHook) (*MsgSetBridgingFeeHookResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -201,6 +324,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) CreateBridgingFeeHook(ctx context.Context, req *MsgCreateBridgingFeeHook) (*MsgCreateBridgingFeeHookResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBridgingFeeHook not implemented")
+}
+func (*UnimplementedMsgServer) SetBridgingFeeHook(ctx context.Context, req *MsgSetBridgingFeeHook) (*MsgSetBridgingFeeHookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetBridgingFeeHook not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -225,6 +351,24 @@ func _Msg_CreateBridgingFeeHook_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_SetBridgingFeeHook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSetBridgingFeeHook)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SetBridgingFeeHook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.bridgingfee.Msg/SetBridgingFeeHook",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SetBridgingFeeHook(ctx, req.(*MsgSetBridgingFeeHook))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.bridgingfee.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -232,6 +376,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateBridgingFeeHook",
 			Handler:    _Msg_CreateBridgingFeeHook_Handler,
+		},
+		{
+			MethodName: "SetBridgingFeeHook",
+			Handler:    _Msg_SetBridgingFeeHook_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -315,6 +463,90 @@ func (m *MsgCreateBridgingFeeHookResponse) MarshalToSizedBuffer(dAtA []byte) (in
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgSetBridgingFeeHook) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetBridgingFeeHook) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetBridgingFeeHook) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.RenounceOwnership {
+		i--
+		if m.RenounceOwnership {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.NewOwner) > 0 {
+		i -= len(m.NewOwner)
+		copy(dAtA[i:], m.NewOwner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.NewOwner)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Fees) > 0 {
+		for iNdEx := len(m.Fees) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Fees[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSetBridgingFeeHookResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetBridgingFeeHookResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetBridgingFeeHookResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -353,6 +585,41 @@ func (m *MsgCreateBridgingFeeHookResponse) Size() (n int) {
 	_ = l
 	l = m.Id.Size()
 	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgSetBridgingFeeHook) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Fees) > 0 {
+		for _, e := range m.Fees {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = len(m.NewOwner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.RenounceOwnership {
+		n += 2
+	}
+	return n
+}
+
+func (m *MsgSetBridgingFeeHookResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -541,6 +808,224 @@ func (m *MsgCreateBridgingFeeHookResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetBridgingFeeHook) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetBridgingFeeHook: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetBridgingFeeHook: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Fees", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Fees = append(m.Fees, HLAssetFee{})
+			if err := m.Fees[len(m.Fees)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewOwner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NewOwner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RenounceOwnership", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.RenounceOwnership = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetBridgingFeeHookResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetBridgingFeeHookResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetBridgingFeeHookResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

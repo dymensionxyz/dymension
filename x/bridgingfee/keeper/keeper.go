@@ -6,5 +6,6 @@ import (
 )
 
 type Keeper struct {
-	params collections.Item[types.Params]
+	feeHooks         collections.Map[uint64, types.HLFeeHook]
+	aggregationHooks collections.Map[uint64, types.AggregationHook]
 }
