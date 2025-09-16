@@ -4,15 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 // FeeHookHandler implements the fee collection post-dispatch hook
@@ -56,7 +54,7 @@ func (f FeeHookHandler) PostDispatch(ctx context.Context, _, hookId hyputil.HexA
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	feeCoins := sdk.NewCoins(fee)
 	if err := f.k.bankKeeper.SendCoinsFromAccountToModule(sdkCtx, metadata.Address, types.ModuleName, feeCoins); err != nil {
-		return nil, errorsmod.Wrap(err, "collect fees")
+		return nil, fmt.Errorf("collect fees: %w", err)
 	}
 
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventHLBridgingFee{
@@ -86,7 +84,7 @@ func (f FeeHookHandler) quoteFee(ctx context.Context, hookId hyputil.HexAddress,
 	// Get the fee hook configuration
 	hook, err := f.k.feeHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrap(err, "get fee hook")
+		return sdk.Coin{}, fmt.Errorf("get fee hook: %w", err)
 	}
 
 	// Check if we have a fee configuration for this token (sender is the token ID)
@@ -106,13 +104,13 @@ func (f FeeHookHandler) quoteFee(ctx context.Context, hookId hyputil.HexAddress,
 	// Get token information from warp keeper
 	tokenResp, err := f.k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: sender.String()})
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrap(err, "get token from warp keeper")
+		return sdk.Coin{}, fmt.Errorf("get token from warp keeper: %w", err)
 	}
 
 	// Parse warp payload to get transfer amount
 	payload, err := warptypes.ParseWarpPayload(body)
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrap(err, "parse warp payload")
+		return sdk.Coin{}, fmt.Errorf("parse warp payload: %w", err)
 	}
 
 	// Calculate fee: payload.Amount * outboundFee

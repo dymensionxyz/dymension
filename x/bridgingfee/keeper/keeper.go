@@ -2,21 +2,20 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
 	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 type Keeper struct {
@@ -87,7 +86,7 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 	// Get next hook ID
 	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE)
 	if err != nil {
-		return hyputil.HexAddress{}, errorsmod.Wrap(err, "get next hook id")
+		return hyputil.HexAddress{}, fmt.Errorf("get next hook id: %w", err)
 	}
 
 	// Create and save the fee hook
@@ -98,18 +97,17 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 	}
 
 	if err := k.feeHooks.Set(ctx, hexAddr.GetInternalId(), hook); err != nil {
-		return hyputil.HexAddress{}, errorsmod.Wrap(err, "save fee hook")
+		return hyputil.HexAddress{}, fmt.Errorf("save fee hook: %w", err)
 	}
 
 	// Emit event
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			"bridging_fee_hook_created",
-			sdk.NewAttribute("hook_id", hexAddr.String()),
-			sdk.NewAttribute("owner", msg.Owner),
-		),
-	)
+	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventFeeHookCreated{
+		HookId: hexAddr.String(),
+		Owner:  msg.Owner,
+	})
+	if err != nil {
+		return hyputil.HexAddress{}, fmt.Errorf("emit event: %w", err)
+	}
 
 	return hexAddr, nil
 }
@@ -120,7 +118,7 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 	hookId := msg.Id.GetInternalId()
 	hook, err := k.feeHooks.Get(ctx, hookId)
 	if err != nil {
-		return errorsmod.Wrap(err, "get fee hook")
+		return fmt.Errorf("get fee hook: %w", err)
 	}
 
 	// Check ownership
@@ -139,18 +137,17 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 	}
 
 	if err := k.feeHooks.Set(ctx, hookId, hook); err != nil {
-		return errorsmod.Wrap(err, "save fee hook")
+		return fmt.Errorf("save fee hook: %w", err)
 	}
 
 	// Emit event
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			"bridging_fee_hook_updated",
-			sdk.NewAttribute("hook_id", msg.Id.String()),
-			sdk.NewAttribute("owner", hook.Owner),
-		),
-	)
+	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventFeeHookUpdated{
+		HookId: msg.Id.String(),
+		Owner:  hook.Owner,
+	})
+	if err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
 
 	return nil
 }
@@ -160,7 +157,7 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 	// Get next hook ID
 	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION)
 	if err != nil {
-		return hyputil.HexAddress{}, errorsmod.Wrap(err, "get next hook id")
+		return hyputil.HexAddress{}, fmt.Errorf("get next hook id: %w", err)
 	}
 
 	// Create and save the aggregation hook
@@ -171,18 +168,17 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 	}
 
 	if err := k.aggregationHooks.Set(ctx, hexAddr.GetInternalId(), hook); err != nil {
-		return hyputil.HexAddress{}, errorsmod.Wrap(err, "save aggregation hook")
+		return hyputil.HexAddress{}, fmt.Errorf("save aggregation hook: %w", err)
 	}
 
 	// Emit event
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			"aggregation_hook_created",
-			sdk.NewAttribute("hook_id", hexAddr.String()),
-			sdk.NewAttribute("owner", msg.Owner),
-		),
-	)
+	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventAggregationHookCreated{
+		HookId: hexAddr.String(),
+		Owner:  msg.Owner,
+	})
+	if err != nil {
+		return hyputil.HexAddress{}, fmt.Errorf("emit event: %w", err)
+	}
 
 	return hexAddr, nil
 }
@@ -193,7 +189,7 @@ func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggr
 	hookId := msg.Id.GetInternalId()
 	hook, err := k.aggregationHooks.Get(ctx, hookId)
 	if err != nil {
-		return errorsmod.Wrap(err, "get aggregation hook")
+		return fmt.Errorf("get aggregation hook: %w", err)
 	}
 
 	// Check ownership
@@ -212,18 +208,17 @@ func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggr
 	}
 
 	if err := k.aggregationHooks.Set(ctx, hookId, hook); err != nil {
-		return errorsmod.Wrap(err, "save aggregation hook")
+		return fmt.Errorf("save aggregation hook: %w", err)
 	}
 
 	// Emit event
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			"aggregation_hook_updated",
-			sdk.NewAttribute("hook_id", msg.Id.String()),
-			sdk.NewAttribute("owner", hook.Owner),
-		),
-	)
+	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventAggregationHookUpdated{
+		HookId: msg.Id.String(),
+		Owner:  hook.Owner,
+	})
+	if err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
 
 	return nil
 }

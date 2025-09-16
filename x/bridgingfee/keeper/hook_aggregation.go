@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AggregationHookHandler implements the aggregation post-dispatch hook
@@ -34,7 +32,7 @@ func (a AggregationHookHandler) HookType() uint8 {
 func (a AggregationHookHandler) PostDispatch(ctx context.Context, mailboxId, hookId hyputil.HexAddress, metadata hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage, maxFee sdk.Coins) (sdk.Coins, error) {
 	hook, err := a.k.aggregationHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "get aggregation hook")
+		return nil, fmt.Errorf("get aggregation hook: %w", err)
 	}
 
 	totalCharged := sdk.NewCoins()
@@ -48,7 +46,7 @@ func (a AggregationHookHandler) PostDispatch(ctx context.Context, mailboxId, hoo
 		}
 		chargedFee, err := (*pdModule).PostDispatch(ctx, mailboxId, subHookId, metadata, message, remaining)
 		if err != nil {
-			return nil, errorsmod.Wrapf(err, "execute sub-hook %s", subHookId.String())
+			return nil, fmt.Errorf("execute sub-hook %s: %w", subHookId.String(), err)
 		}
 
 		totalCharged = totalCharged.Add(chargedFee...)
@@ -66,7 +64,7 @@ func (a AggregationHookHandler) PostDispatch(ctx context.Context, mailboxId, hoo
 func (a AggregationHookHandler) QuoteDispatch(ctx context.Context, mailboxId, hookId hyputil.HexAddress, metadata hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage) (sdk.Coins, error) {
 	hook, err := a.k.aggregationHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "get aggregation hook")
+		return nil, fmt.Errorf("get aggregation hook: %w", err)
 	}
 
 	totalQuote := sdk.NewCoins()
@@ -80,7 +78,7 @@ func (a AggregationHookHandler) QuoteDispatch(ctx context.Context, mailboxId, ho
 
 		quote, err := (*pdModule).QuoteDispatch(ctx, mailboxId, subHookId, metadata, message)
 		if err != nil {
-			return nil, errorsmod.Wrapf(err, "quote sub-hook %s", subHookId.String())
+			return nil, fmt.Errorf("quote sub-hook %s: %w", subHookId.String(), err)
 		}
 
 		totalQuote = totalQuote.Add(quote...)

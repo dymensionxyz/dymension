@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,7 +29,7 @@ func (k queryServer) FeeHook(ctx context.Context, req *types.QueryFeeHookRequest
 
 	hook, err := k.feeHooks.Get(ctx, req.Id.GetInternalId())
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "get fee hook")
+		return nil, fmt.Errorf("get fee hook: %w", err)
 	}
 
 	return &types.QueryFeeHookResponse{FeeHook: hook}, nil
@@ -47,7 +47,7 @@ func (k queryServer) FeeHooks(ctx context.Context, req *types.QueryFeeHooksReque
 		return false, nil
 	})
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "walk fee hooks")
+		return nil, fmt.Errorf("walk fee hooks: %w", err)
 	}
 
 	return &types.QueryFeeHooksResponse{FeeHooks: hooks}, nil
@@ -61,7 +61,7 @@ func (k queryServer) AggregationHook(ctx context.Context, req *types.QueryAggreg
 
 	hook, err := k.aggregationHooks.Get(ctx, req.Id.GetInternalId())
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "get aggregation hook")
+		return nil, fmt.Errorf("get aggregation hook: %w", err)
 	}
 
 	return &types.QueryAggregationHookResponse{AggregationHook: hook}, nil
@@ -79,7 +79,7 @@ func (k queryServer) AggregationHooks(ctx context.Context, req *types.QueryAggre
 		return false, nil
 	})
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "walk aggregation hooks")
+		return nil, fmt.Errorf("walk aggregation hooks: %w", err)
 	}
 
 	return &types.QueryAggregationHooksResponse{AggregationHooks: hooks}, nil
