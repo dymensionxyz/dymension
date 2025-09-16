@@ -43,8 +43,6 @@ func (m *MsgFastFinalizeWithTEE) ValidateBasic() error {
 	if err := m.Nonce.Validate(); err != nil {
 		return errorsmod.Wrap(err, "nonce validation")
 	}
-	if m.AttestationToken == "" {
-		return gerrc.ErrInvalidArgument.Wrap("attestation token is required")
-	}
+	// we dont validate token because it will only be needed if verification is enabled
 	return nil
 }
