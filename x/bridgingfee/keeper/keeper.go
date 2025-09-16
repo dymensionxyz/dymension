@@ -1,11 +1,229 @@
 package keeper
 
 import (
+	"context"
+
 	"cosmossdk.io/collections"
+	"cosmossdk.io/core/store"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
+	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type Keeper struct {
 	feeHooks         collections.Map[uint64, types.HLFeeHook]
 	aggregationHooks collections.Map[uint64, types.AggregationHook]
+
+	coreKeeper types.CoreKeeper
+	bankKeeper types.BankKeeper
+	warpQuery  types.WarpQuery
+
+	schema collections.Schema
+}
+
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService store.KVStoreService,
+	warpQuery types.WarpQuery,
+	bankKeeper types.BankKeeper,
+) *Keeper {
+	sb := collections.NewSchemaBuilder(storeService)
+
+	k := &Keeper{
+		feeHooks: collections.NewMap(
+			sb,
+			types.KeyFeeHooks,
+			"fee_hooks",
+			collections.Uint64Key,
+			collcompat.ProtoValue[types.HLFeeHook](cdc),
+		),
+		aggregationHooks: collections.NewMap(
+			sb,
+			types.KeyAggregationHooks,
+			"aggregation_hooks",
+			collections.Uint64Key,
+			collcompat.ProtoValue[types.AggregationHook](cdc),
+		),
+		warpQuery:  warpQuery,
+		bankKeeper: bankKeeper,
+	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.schema = schema
+
+	return k
+}
+
+func (k *Keeper) SetCoreKeeper(coreKeeper *hypercorekeeper.Keeper) {
+	if k.coreKeeper != nil {
+		panic("core keeper already set")
+	}
+
+	k.coreKeeper = coreKeeper
+
+	router := coreKeeper.PostDispatchRouter()
+	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE, FeeHookHandler{*k})
+	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION, AggregationHookHandler{*k})
+}
+
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
+}
+
+// CreateFeeHook creates a new fee hook (business logic)
+func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingFeeHook) (hyputil.HexAddress, error) {
+	// Get next hook ID
+	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE)
+	if err != nil {
+		return hyputil.HexAddress{}, errorsmod.Wrap(err, "get next hook id")
+	}
+
+	// Create and save the fee hook
+	hook := types.HLFeeHook{
+		Id:    hexAddr,
+		Owner: msg.Owner,
+		Fees:  msg.Fees,
+	}
+
+	if err := k.feeHooks.Set(ctx, hexAddr.GetInternalId(), hook); err != nil {
+		return hyputil.HexAddress{}, errorsmod.Wrap(err, "save fee hook")
+	}
+
+	// Emit event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"bridging_fee_hook_created",
+			sdk.NewAttribute("hook_id", hexAddr.String()),
+			sdk.NewAttribute("owner", msg.Owner),
+		),
+	)
+
+	return hexAddr, nil
+}
+
+// UpdateFeeHook updates an existing fee hook (business logic)
+func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeHook) error {
+	// Get existing hook
+	hookId := msg.Id.GetInternalId()
+	hook, err := k.feeHooks.Get(ctx, hookId)
+	if err != nil {
+		return errorsmod.Wrap(err, "get fee hook")
+	}
+
+	// Check ownership
+	if hook.Owner != msg.Owner {
+		return gerrc.ErrPermissionDenied.Wrap("not the owner of the hook")
+	}
+
+	// Update hook
+	hook.Fees = msg.Fees
+
+	// Handle ownership transfer
+	if msg.RenounceOwnership {
+		hook.Owner = ""
+	} else if msg.NewOwner != "" {
+		hook.Owner = msg.NewOwner
+	}
+
+	if err := k.feeHooks.Set(ctx, hookId, hook); err != nil {
+		return errorsmod.Wrap(err, "save fee hook")
+	}
+
+	// Emit event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"bridging_fee_hook_updated",
+			sdk.NewAttribute("hook_id", msg.Id.String()),
+			sdk.NewAttribute("owner", hook.Owner),
+		),
+	)
+
+	return nil
+}
+
+// CreateAggregationHook creates a new aggregation hook (business logic)
+func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateAggregationHook) (hyputil.HexAddress, error) {
+	// Get next hook ID
+	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION)
+	if err != nil {
+		return hyputil.HexAddress{}, errorsmod.Wrap(err, "get next hook id")
+	}
+
+	// Create and save the aggregation hook
+	hook := types.AggregationHook{
+		Id:      hexAddr,
+		Owner:   msg.Owner,
+		HookIds: msg.HookIds,
+	}
+
+	if err := k.aggregationHooks.Set(ctx, hexAddr.GetInternalId(), hook); err != nil {
+		return hyputil.HexAddress{}, errorsmod.Wrap(err, "save aggregation hook")
+	}
+
+	// Emit event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"aggregation_hook_created",
+			sdk.NewAttribute("hook_id", hexAddr.String()),
+			sdk.NewAttribute("owner", msg.Owner),
+		),
+	)
+
+	return hexAddr, nil
+}
+
+// UpdateAggregationHook updates an existing aggregation hook (business logic)
+func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggregationHook) error {
+	// Get existing hook
+	hookId := msg.Id.GetInternalId()
+	hook, err := k.aggregationHooks.Get(ctx, hookId)
+	if err != nil {
+		return errorsmod.Wrap(err, "get aggregation hook")
+	}
+
+	// Check ownership
+	if hook.Owner != msg.Owner {
+		return gerrc.ErrPermissionDenied.Wrap("not the owner of the hook")
+	}
+
+	// Update hook
+	hook.HookIds = msg.HookIds
+
+	// Handle ownership transfer
+	if msg.RenounceOwnership {
+		hook.Owner = ""
+	} else if msg.NewOwner != "" {
+		hook.Owner = msg.NewOwner
+	}
+
+	if err := k.aggregationHooks.Set(ctx, hookId, hook); err != nil {
+		return errorsmod.Wrap(err, "save aggregation hook")
+	}
+
+	// Emit event
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"aggregation_hook_updated",
+			sdk.NewAttribute("hook_id", msg.Id.String()),
+			sdk.NewAttribute("owner", hook.Owner),
+		),
+	)
+
+	return nil
 }
