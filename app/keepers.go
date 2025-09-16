@@ -547,6 +547,8 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 	)
 
+	a.HyperCoreKeeper.PostDispatchRouter().RegisterModule()
+
 	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
 		appCodec,
 		a.AccountKeeper.AddressCodec(),

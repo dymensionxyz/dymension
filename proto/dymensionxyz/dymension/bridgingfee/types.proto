@@ -1,0 +1,29 @@
+syntax = "proto3";
+package dymensionxyz.dymension.bridgingfee;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
+
+message HLAssetFee {
+  // Hyperlane token ID
+  // https://docs.hyperlane.xyz/docs/alt-vm-implementations/cosmos-sdk#x%2Fwarp
+  string tokenID = 1;
+  // A fee for bridging the token to the Hub
+  string inbound_fee = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  // A fee for bridging the token from the Hub
+  string outbound_fee = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message Params {
+  repeated HLAssetFee fees = 1 [ (gogoproto.nullable) = false ];
+}

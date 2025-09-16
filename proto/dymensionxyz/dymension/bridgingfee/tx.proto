@@ -1,0 +1,32 @@
+syntax = "proto3";
+package dymensionxyz.dymension.bridgingfee;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/bridgingfee/types.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
+
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc CreateBridgingFeeHook(MsgCreateBridgingFeeHook) returns (MsgCreateBridgingFeeHookResponse);
+
+  // TODO: update hook msg
+}
+
+message MsgCreateBridgingFeeHook {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  repeated HLAssetFee fees = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgCreateBridgingFeeHookResponse {
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
