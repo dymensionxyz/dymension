@@ -1,0 +1,82 @@
+syntax = "proto3";
+package dymensionxyz.dymension.bridgingfee;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/api/annotations.proto";
+import "cosmos/query/v1/query.proto";
+import "dymensionxyz/dymension/bridgingfee/types.proto";
+import "dymensionxyz/dymension/bridgingfee/genesis.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
+
+// Query defines the gRPC querier service for bridgingfee module
+service Query {
+  // FeeHook queries a fee hook by ID
+  rpc FeeHook(QueryFeeHookRequest) returns (QueryFeeHookResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/fee_hook/{id}";
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+
+  // FeeHooks queries all fee hooks
+  rpc FeeHooks(QueryFeeHooksRequest) returns (QueryFeeHooksResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/fee_hooks";
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+
+  // AggregationHook queries an aggregation hook by ID
+  rpc AggregationHook(QueryAggregationHookRequest) returns (QueryAggregationHookResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/aggregation_hook/{id}";
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+
+  // AggregationHooks queries all aggregation hooks
+  rpc AggregationHooks(QueryAggregationHooksRequest) returns (QueryAggregationHooksResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/aggregation_hooks";
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+}
+
+// QueryFeeHookRequest is the request type for the Query/FeeHook RPC method.
+message QueryFeeHookRequest {
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryFeeHookResponse is the response type for the Query/FeeHook RPC method.
+message QueryFeeHookResponse {
+  HLFeeHook fee_hook = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryFeeHooksRequest is the request type for the Query/FeeHooks RPC method.
+message QueryFeeHooksRequest {}
+
+// QueryFeeHooksResponse is the response type for the Query/FeeHooks RPC method.
+message QueryFeeHooksResponse {
+  repeated HLFeeHook fee_hooks = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryAggregationHookRequest is the request type for the Query/AggregationHook RPC method.
+message QueryAggregationHookRequest {
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryAggregationHookResponse is the response type for the Query/AggregationHook RPC method.
+message QueryAggregationHookResponse {
+  AggregationHook aggregation_hook = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryAggregationHooksRequest is the request type for the Query/AggregationHooks RPC method.
+message QueryAggregationHooksRequest {}
+
+// QueryAggregationHooksResponse is the response type for the Query/AggregationHooks RPC method.
+message QueryAggregationHooksResponse {
+  repeated AggregationHook aggregation_hooks = 1 [ (gogoproto.nullable) = false ];
+}
