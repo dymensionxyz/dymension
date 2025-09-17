@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "cosmos/query/v1/query.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/bridgingfee/types.proto";
 import "dymensionxyz/dymension/bridgingfee/genesis.proto";
 
@@ -39,6 +40,14 @@ service Query {
       returns (QueryAggregationHooksResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/bridgingfee/aggregation_hooks";
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+
+  // QuoteFeePayment quotes the fee payment required for a transfer
+  rpc QuoteFeePayment(QueryQuoteFeePaymentRequest)
+      returns (QueryQuoteFeePaymentResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/bridgingfee/quote_fee_payment/{hook_id}/{sender}/{transfer_amount}";
     option (cosmos.query.v1.module_query_safe) = true;
   }
 }
@@ -90,4 +99,35 @@ message QueryAggregationHooksRequest {}
 message QueryAggregationHooksResponse {
   repeated AggregationHook aggregation_hooks = 1
       [ (gogoproto.nullable) = false ];
+}
+
+// QueryQuoteFeePaymentRequest is the request type for the Query/QuoteFeePayment RPC method.
+message QueryQuoteFeePaymentRequest {
+  // Hook ID to use for fee calculation
+  string hook_id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+  // Token sender address (used as token ID)
+  string sender = 2 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+  // Transfer amount to calculate fee for
+  string transfer_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryQuoteFeePaymentResponse is the response type for the Query/QuoteFeePayment RPC method.
+message QueryQuoteFeePaymentResponse {
+  // Fee required in base denomination
+  repeated cosmos.base.v1beta1.Coin fee_coins = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

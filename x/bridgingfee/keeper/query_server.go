@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -83,4 +84,27 @@ func (k queryServer) AggregationHooks(ctx context.Context, req *types.QueryAggre
 	}
 
 	return &types.QueryAggregationHooksResponse{AggregationHooks: hooks}, nil
+}
+
+// QuoteFeePayment quotes the fee payment required for a transfer
+func (k queryServer) QuoteFeePayment(ctx context.Context, req *types.QueryQuoteFeePaymentRequest) (*types.QueryQuoteFeePaymentResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	// Create FeeHookHandler to access QuoteFeeInBase method
+	feeHandler := FeeHookHandler{k: k.Keeper}
+
+	// Convert context to SDK context
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// Calculate fee using existing QuoteFeeInBase method
+	feeCoin, err := feeHandler.QuoteFeeInBase(sdkCtx, req.HookId, req.Sender, req.TransferAmount)
+	if err != nil {
+		return nil, fmt.Errorf("quote fee in base: %w", err)
+	}
+
+	return &types.QueryQuoteFeePaymentResponse{
+		FeeCoins: sdk.NewCoins(feeCoin),
+	}, nil
 }
