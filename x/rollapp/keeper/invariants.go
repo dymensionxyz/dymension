@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,33 +54,33 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 
 		rollapps := k.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
 			rollappID, err := types.NewChainID(rollapp.RollappId)
 			if err != nil {
-				msg += fmt.Sprintf("rollapp (%s) have invalid rollappId\n", rollapp.RollappId)
+				msg.WriteString(fmt.Sprintf("rollapp (%s) have invalid rollappId\n", rollapp.RollappId))
 				broken = true
 				continue
 			}
 
 			got, found := k.GetRollappByEIP155(ctx, rollappID.GetEIP155ID())
 			if !found {
-				msg += fmt.Sprintf("rollapp (%s) have no eip155 key\n", rollapp.RollappId)
+				msg.WriteString(fmt.Sprintf("rollapp (%s) have no eip155 key\n", rollapp.RollappId))
 				broken = true
 				continue
 			}
 			if got.RollappId != rollapp.RollappId {
-				msg += fmt.Sprintf("rollapp (%s) have different rollappId\n", rollapp.RollappId)
+				msg.WriteString(fmt.Sprintf("rollapp (%s) have different rollappId\n", rollapp.RollappId))
 				broken = true
 			}
 		}
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "rollapp-by-eip155-key",
-			msg,
+			msg.String(),
 		), broken
 	}
 }
@@ -89,7 +90,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 
 		for _, rollapp := range k.GetAllRollapps(ctx) {
@@ -103,15 +104,15 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 			latestFinalizedStateIdx, okLatestFinalized := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 
 			if !okLatest && okLatestFinalized {
-				msg += fmt.Sprintf("rollapp (%s) has latest finalized ix but not latest ix\n", rollapp.RollappId)
+				msg.WriteString(fmt.Sprintf("rollapp (%s) has latest finalized ix but not latest ix\n", rollapp.RollappId))
 				broken = true
 				continue
 			}
 
 			if okLatest && okLatestFinalized {
 				if latestStateIdx.Index < latestFinalizedStateIdx.Index {
-					msg += fmt.Sprintf("rollapp has latest ix < latest finalized ix: latest: %d: latest finalized: %d: rollapp: %s\n",
-						latestStateIdx.Index, latestFinalizedStateIdx.Index, rollapp.RollappId)
+					msg.WriteString(fmt.Sprintf("rollapp has latest ix < latest finalized ix: latest: %d: latest finalized: %d: rollapp: %s\n",
+						latestStateIdx.Index, latestFinalizedStateIdx.Index, rollapp.RollappId))
 					broken = true
 					continue
 				}
@@ -124,7 +125,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 			for i := firstUnfinalizedStateIdx; i <= latestStateIdx.Index; i++ {
 				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
 				if !found {
-					msg += fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i)
+					msg.WriteString(fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i))
 					broken = true
 					continue
 				}
@@ -132,7 +133,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 				creationHeight := stateInfo.CreationHeight
 				val, found := k.GetFinalizationQueue(ctx, creationHeight, rollapp.RollappId)
 				if !found {
-					msg += fmt.Sprintf("finalizationQueue (%d) have no block height\n", creationHeight)
+					msg.WriteString(fmt.Sprintf("finalizationQueue (%d) have no block height\n", creationHeight))
 					broken = true
 					continue
 				}
@@ -142,7 +143,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					return idx.Index == i
 				})
 				if !found {
-					msg += fmt.Sprintf("rollapp (%s) have stateInfo at index %d not in the queue\n", rollapp.RollappId, i)
+					msg.WriteString(fmt.Sprintf("rollapp (%s) have stateInfo at index %d not in the queue\n", rollapp.RollappId, i))
 					broken = true
 				}
 
@@ -151,7 +152,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					return idx.RollappId != rollapp.RollappId
 				})
 				if found {
-					msg += fmt.Sprintf("rollapp (%s) has stateInfo that doesn't not correspond to it\n", rollapp.RollappId)
+					msg.WriteString(fmt.Sprintf("rollapp (%s) has stateInfo that doesn't not correspond to it\n", rollapp.RollappId))
 					broken = true
 				}
 			}
@@ -166,8 +167,8 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					}
 					for _, idx := range value.FinalizationQueue {
 						if idx.Index <= latestFinalizedStateIdx.Index {
-							msg += fmt.Sprintf(`rollapp has index in queue which is already finalized:
-latest ix: %d,  latest finalized index : %d, queue ix: %d, rollapp: %s`, latestStateIdx.Index, latestFinalizedStateIdx.Index, idx.Index, rollapp.RollappId)
+							msg.WriteString(fmt.Sprintf(`rollapp has index in queue which is already finalized:
+latest ix: %d,  latest finalized index : %d, queue ix: %d, rollapp: %s`, latestStateIdx.Index, latestFinalizedStateIdx.Index, idx.Index, rollapp.RollappId))
 
 							broken = true
 						}
@@ -175,14 +176,14 @@ latest ix: %d,  latest finalized index : %d, queue ix: %d, rollapp: %s`, latestS
 					return false, nil
 				})
 			if err != nil {
-				msg += fmt.Sprintf("error walking finalization queue: %s\n", err)
+				msg.WriteString(fmt.Sprintf("error walking finalization queue: %s\n", err))
 				broken = true
 			}
 		}
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "block-height-to-finalization-queue",
-			msg,
+			msg.String(),
 		), broken
 	}
 }
@@ -228,7 +229,7 @@ func RollappFinalizedStateInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 
 		rollapps := k.GetAllRollapps(ctx)
@@ -247,12 +248,12 @@ func RollappFinalizedStateInvariant(k Keeper) sdk.Invariant {
 			for i := uint64(1); i <= latestFinalizedStateIdx.Index; i++ {
 				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
 				if !found {
-					msg += fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i)
+					msg.WriteString(fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i))
 					broken = true
 				}
 
 				if stateInfo.Status != commontypes.Status_FINALIZED {
-					msg += fmt.Sprintf("rollapp (%s) have stateInfo at index %d not finalized\n", rollapp.RollappId, i)
+					msg.WriteString(fmt.Sprintf("rollapp (%s) have stateInfo at index %d not finalized\n", rollapp.RollappId, i))
 					broken = true
 				}
 			}
@@ -260,7 +261,7 @@ func RollappFinalizedStateInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "rollapp-finalized-state",
-			msg,
+			msg.String(),
 		), broken
 	}
 }
@@ -272,7 +273,7 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 		rollapps := k.GetAllRollapps(ctx)
 		for _, ra := range rollapps {
@@ -288,7 +289,7 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 			}
 			if cnt != 1 {
 				broken = true
-				msg += fmt.Sprintf("| rollapp stored event but wrong number found in queue: rollapp: %s: event height: %d: found: %d", ra.RollappId, ra.LivenessEventHeight, cnt)
+				msg.WriteString(fmt.Sprintf("| rollapp stored event but wrong number found in queue: rollapp: %s: event height: %d: found: %d", ra.RollappId, ra.LivenessEventHeight, cnt))
 			}
 		}
 		evts := k.GetLivenessEvents(ctx, nil)
@@ -296,31 +297,31 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 		for i, e := range evts {
 			if 0 < i && e.HubHeight < evts[i-1].HubHeight {
 				broken = true
-				msg += fmt.Sprintf("| events not sorted by height: event: %v\n", e)
+				msg.WriteString(fmt.Sprintf("| events not sorted by height: event: %v\n", e))
 			}
 			if _, ok := seen[e.RollappId]; ok {
 				broken = true
-				msg += fmt.Sprintf("| more than one rollapp event: %v\n", e)
+				msg.WriteString(fmt.Sprintf("| more than one rollapp event: %v\n", e))
 			}
 			seen[e.RollappId] = struct{}{}
 			ra, ok := k.GetRollapp(ctx, e.RollappId)
 			if !ok {
 				broken = true
-				msg += fmt.Sprintf("| event stored but rollapp not found: rollapp id: %s\n", e.RollappId)
+				msg.WriteString(fmt.Sprintf("| event stored but rollapp not found: rollapp id: %s\n", e.RollappId))
 				continue
 			}
 			if ra.LivenessEventHeight != e.HubHeight {
 				broken = true
-				msg += fmt.Sprintf("| event stored but rollapp has a different liveness event height: rollapp: %s"+
+				msg.WriteString(fmt.Sprintf("| event stored but rollapp has a different liveness event height: rollapp: %s"+
 					", height stored on rollapp: %d: height on event: %d\n", e.RollappId, ra.LivenessEventHeight, e.HubHeight,
-				)
+				))
 			}
 
 		}
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "liveness-event",
-			msg,
+			msg.String(),
 		), broken
 	}
 }
