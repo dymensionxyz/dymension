@@ -229,8 +229,6 @@ func (k Keeper) ExecutePump(
 }
 
 // swapPumpCoinToLiquidityDenom swaps pump tokens to the plan's liquidity denomination if needed
-// CONTRACT: pumpDenom is the base denom. Therefore, we can always swap
-// liquidityDenom to pumpDenom using a fee token route.
 func (k Keeper) swapPumpCoinToLiquidityDenom(
 	ctx sdk.Context,
 	pumpCoin sdk.Coin,
