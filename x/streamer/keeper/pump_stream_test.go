@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"slices"
 	"time"
 
@@ -18,13 +19,15 @@ import (
 )
 
 type pumpTestCase struct {
-	pumpParams            *types.MsgCreateStream_PumpParams
+	numPumps              uint64
+	pumpDistr             types.PumpDistr
+	target                types.PumpTarget
 	numEpochsPaidOver     uint64
 	epochIdentifier       string
 	streamCoins           sdk.Coins
-	balanceChangeIter1    math.Int
-	balanceChangeIter2    math.Int
-	epochBudgetAfterIter1 math.Int
+	balanceChangeIter1    sdk.Coin
+	balanceChangeIter2    sdk.Coin
+	epochBudgetAfterIter1 sdk.Coin
 }
 
 // Scenario (numbers are just for reference, real numbers are pre-calculated in the test):
@@ -91,13 +94,18 @@ func (s *KeeperTestSuite) TestPumpStream() {
 
 	// Step 5: Create Pump Stream
 	startTime := time.Now().Add(-time.Minute)
-	streamID, _ := s.CreatePumpStream(tc.streamCoins, startTime, tc.epochIdentifier, tc.numEpochsPaidOver, tc.pumpParams)
+	streamID, _ := s.CreatePumpStream(types.CreateStreamGeneric{
+		Coins:             tc.streamCoins,
+		StartTime:         startTime,
+		EpochIdentifier:   tc.epochIdentifier,
+		NumEpochsPaidOver: tc.numEpochsPaidOver,
+	}, tc.numPumps, tc.pumpDistr, true, tc.target)
 
 	// Step 6: Validate initial pump stream state
-	s.validateInitialPumpStream(streamID)
+	s.validateInitialPumpStream(streamID, tc.streamCoins.QuoInt(math.NewIntFromUint64(tc.numEpochsPaidOver)))
 
 	// Step 7: Simulate epoch start
-	s.simulateEpochStart(tc.epochIdentifier)
+	s.StartEpoch(tc.epochIdentifier)
 
 	// Step 8: Validate pump stream after epoch start
 	s.validatePumpStreamAfterEpochStart(streamID, tc)
@@ -115,7 +123,7 @@ func (s *KeeperTestSuite) TestPumpStream() {
 	s.simulateBlockAndVerifyPump(s.Ctx, streamID, planIDs, tc.balanceChangeIter1)
 
 	// Step 13: Simulate next epoch start
-	s.simulateEpochStart(tc.epochIdentifier)
+	s.StartEpoch(tc.epochIdentifier)
 
 	// Step 14: Validate pump stream after second epoch
 	s.validatePumpStreamAfterSecondEpoch(streamID, tc.epochBudgetAfterIter1)
@@ -155,13 +163,14 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	s.Require().NoError(err)
 
 	// Pump amount on step (12)
-	pumpAmtIter1, err := keeper.ShouldPump(ctx, types.PumpParams{
-		NumTopRollapps:  numTopRollapps,
-		EpochBudget:     epochBudget,
-		EpochBudgetLeft: epochBudgetLeft,
-		NumPumps:        pumpNum,
-		PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-	}, b)
+	pumpAmtIter1, err := keeper.ShouldPump(
+		ctx,
+		epochBudget,
+		epochBudgetLeft,
+		pumpNum,
+		types.PumpDistr_PUMP_DISTR_UNIFORM,
+		b,
+	)
 	s.Require().NoError(err)
 	s.Require().True(!pumpAmtIter1.IsZero())
 
@@ -183,13 +192,14 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	)
 
 	// Pump amount on step (19)
-	pumpAmtIter2, err := keeper.ShouldPump(ctx, types.PumpParams{
-		NumTopRollapps:  numTopRollapps,
-		EpochBudget:     epochBudgetAfterPump,
-		EpochBudgetLeft: epochBudgetLeftAfterPump,
-		NumPumps:        pumpNum,
-		PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-	}, b)
+	pumpAmtIter2, err := keeper.ShouldPump(
+		ctx,
+		epochBudgetAfterPump,
+		epochBudgetLeftAfterPump,
+		pumpNum,
+		types.PumpDistr_PUMP_DISTR_UNIFORM,
+		b,
+	)
 	s.Require().NoError(err)
 	s.Require().True(!pumpAmtIter2.IsZero())
 	ra1Share = pumpAmtIter2.MulRaw(3).QuoRaw(8) // 37.5%
@@ -197,17 +207,15 @@ func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
 	changeIter2 := ra1Share.Add(ra2Share)
 
 	return pumpTestCase{
-		pumpParams: &types.MsgCreateStream_PumpParams{
-			NumTopRollapps: numTopRollapps,
-			NumPumps:       pumpNum,
-			PumpDistr:      types.PumpDistr_PUMP_DISTR_UNIFORM,
-		},
+		numPumps:              pumpNum,
+		pumpDistr:             types.PumpDistr_PUMP_DISTR_UNIFORM,
+		target:                types.PumpTargetRollapps(numTopRollapps),
 		numEpochsPaidOver:     numEpochsPaidOver,
 		epochIdentifier:       epochID,
 		streamCoins:           sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, streamCoinsAmtInitial)),
-		balanceChangeIter1:    changeIter1,
-		balanceChangeIter2:    changeIter2,
-		epochBudgetAfterIter1: epochBudgetLeftAfterPump,
+		balanceChangeIter1:    sdk.NewCoin(sdk.DefaultBondDenom, changeIter1),
+		balanceChangeIter2:    sdk.NewCoin(sdk.DefaultBondDenom, changeIter2),
+		epochBudgetAfterIter1: sdk.NewCoin(sdk.DefaultBondDenom, epochBudgetLeftAfterPump),
 	}
 }
 
@@ -259,7 +267,7 @@ func (s *KeeperTestSuite) voteOnRollapps(delegators []sdk.AccAddress) {
 	s.Vote(vote2)
 }
 
-func (s *KeeperTestSuite) validateInitialPumpStream(streamID uint64) {
+func (s *KeeperTestSuite) validateInitialPumpStream(streamID uint64, initialEpochCoins sdk.Coins) {
 	stream, err := s.App.StreamerKeeper.GetStreamByID(s.Ctx, streamID)
 	s.Require().NoError(err)
 	s.Require().True(stream.IsPumpStream())
@@ -269,17 +277,11 @@ func (s *KeeperTestSuite) validateInitialPumpStream(streamID uint64) {
 	s.Require().Equal(sdk.DefaultBondDenom, stream.Coins[0].Denom)
 
 	// EpochBudget and EpochBudgetLeft should be 0 initially
-	s.Require().True(stream.PumpParams.EpochBudget.Equal(commontypes.DYM.MulRaw(10)))
-	s.Require().True(stream.PumpParams.EpochBudgetLeft.Equal(commontypes.DYM.MulRaw(10)))
+	s.Require().True(stream.EpochCoins.Equal(initialEpochCoins), "expected %s, got %s", initialEpochCoins, stream.EpochCoins)
+	s.Require().True(stream.PumpParams.EpochCoinsLeft.Equal(initialEpochCoins), "expected %s, got %s", initialEpochCoins, stream.PumpParams.EpochCoinsLeft)
 
 	// Stream should not be active yet in epoch terms
 	s.Require().Equal(uint64(0), stream.FilledEpochs)
-}
-
-func (s *KeeperTestSuite) simulateEpochStart(epochIdentifier string) {
-	info := s.App.EpochsKeeper.GetEpochInfo(s.Ctx, epochIdentifier)
-	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(info.Duration).Add(time.Second))
-	s.App.EpochsKeeper.BeginBlocker(s.Ctx)
 }
 
 func (s *KeeperTestSuite) validatePumpStreamAfterEpochStart(streamID uint64, tc pumpTestCase) {
@@ -287,9 +289,9 @@ func (s *KeeperTestSuite) validatePumpStreamAfterEpochStart(streamID uint64, tc 
 	s.Require().NoError(err)
 
 	// EpochBudget and EpochBudgetLeft should be calculated based on NumEpochsPaidOver
-	expectedBudget := stream.Coins[0].Amount.Quo(math.NewIntFromUint64(tc.numEpochsPaidOver))
-	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudget)
-	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
+	expectedBudget := stream.Coins.QuoInt(math.NewIntFromUint64(tc.numEpochsPaidOver))
+	s.Require().Equal(expectedBudget, stream.EpochCoins)
+	s.Require().Equal(expectedBudget, stream.PumpParams.EpochCoinsLeft)
 }
 
 func hashNoPump(ctx sdk.Context) sdk.Context {
@@ -318,7 +320,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID
 	s.Require().NoError(err)
 
 	initialDistributedCoins := initialStream.DistributedCoins
-	initialEpochBudgetLeft := initialStream.PumpParams.EpochBudgetLeft
+	initialEpochBudgetLeft := initialStream.PumpParams.EpochCoinsLeft
 
 	// Get initial IRO sold amounts
 	initialSoldAmts := make([]math.Int, len(planIDs))
@@ -346,8 +348,8 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID
 	finalStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
 
-	s.Require().True(finalStream.DistributedCoins.Equal(initialDistributedCoins))
-	s.Require().Equal(initialEpochBudgetLeft, finalStream.PumpParams.EpochBudgetLeft)
+	s.Require().Equal(finalStream.DistributedCoins, initialDistributedCoins)
+	s.Require().Equal(initialEpochBudgetLeft, finalStream.PumpParams.EpochCoinsLeft)
 
 	// Verify IRO sold amounts unchanged
 	for i, planID := range planIDs {
@@ -362,7 +364,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPump(ctx sdk.Context, streamID
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 0)
 }
 
-func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID uint64, planIDs []string, expectedChange math.Int) {
+func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID uint64, planIDs []string, expectedChange sdk.Coin) {
 	// Get initial state
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
@@ -377,16 +379,7 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 	initialStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
 
 	// Simulate pump distribution call
-	pumpStreams := s.App.StreamerKeeper.GetActiveStreams(ctx)
-	var pumpStreamsList []types.Stream
-	for _, stream := range pumpStreams {
-		if stream.IsPumpStream() {
-			pumpStreamsList = append(pumpStreamsList, stream)
-		}
-	}
-
-	// Execute pump distribution with pump context
-	err = s.App.StreamerKeeper.DistributePumpStreams(ctx, pumpStreamsList)
+	err = s.App.StreamerKeeper.BeginBlock(ctx)
 	s.Require().NoError(err)
 
 	// Verify changes occurred
@@ -394,18 +387,18 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 	s.Require().NoError(err)
 
 	// DistributedCoins should have increased
-	distributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
-	s.Require().True(distributed.Equal(expectedChange), "expected %s, got %s", expectedChange, distributed)
+	distributed := finalStream.DistributedCoins
+	s.Require().Equal(sdk.NewCoins(expectedChange), distributed, "expected %s, got %s", expectedChange, distributed)
 
 	// EpochBudgetLeft should have decreased
-	left := finalStream.PumpParams.EpochBudgetLeft
-	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(expectedChange)
+	left := finalStream.PumpParams.EpochCoinsLeft
+	expectedLeft := initialStream.PumpParams.EpochCoinsLeft.Sub(expectedChange)
 	s.Require().True(left.Equal(expectedLeft), "expected %s, got %s", expectedLeft, left)
 
 	// EpochBudget should be the same
-	budget := finalStream.PumpParams.EpochBudget
-	expectedBudget := initialStream.PumpParams.EpochBudget
-	s.Require().True(budget.Equal(expectedBudget), "expected %s, got %s", expectedBudget, budget)
+	budget := finalStream.EpochCoins
+	expectedBudget := initialStream.EpochCoins
+	s.Require().Equal(budget, expectedBudget, "expected %s, got %s", expectedBudget, budget)
 
 	// IRO plan SoldAmt should have changed (increased)
 	for i, planID := range planIDs {
@@ -415,14 +408,14 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPump(ctx sdk.Context, streamID u
 
 	// x/streamer balance should have decreased
 	finalStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(expectedChange)
-	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance.Amount, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance.Amount)
+	expectedStreamerBalance := initialStreamerBalance.Sub(expectedChange)
+	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance)
 
 	// Verify EventPumped and EventBurn events were emitted
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 1)
 }
 
-func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64, expectedBudget math.Int) {
+func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64, expectedBudget sdk.Coin) {
 	stream, err := s.App.StreamerKeeper.GetStreamByID(s.Ctx, streamID)
 	s.Require().NoError(err)
 
@@ -430,8 +423,8 @@ func (s *KeeperTestSuite) validatePumpStreamAfterSecondEpoch(streamID uint64, ex
 	s.Require().Equal(uint64(1), stream.FilledEpochs)
 
 	// EpochBudget and EpochBudgetLeft should be recalculated
-	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudget)
-	s.Require().Equal(expectedBudget, stream.PumpParams.EpochBudgetLeft)
+	s.Require().Equal(sdk.NewCoins(expectedBudget), stream.EpochCoins)
+	s.Require().Equal(sdk.NewCoins(expectedBudget), stream.PumpParams.EpochCoinsLeft)
 }
 
 func (s *KeeperTestSuite) simulateBlockAndVerifyNoPumpPostSettlement(ctx sdk.Context, streamID uint64) {
@@ -456,13 +449,13 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyNoPumpPostSettlement(ctx sdk.Con
 	s.Require().NoError(err)
 
 	s.Require().True(finalStream.DistributedCoins.Equal(initialStream.DistributedCoins))
-	s.Require().Equal(initialStream.PumpParams.EpochBudgetLeft, finalStream.PumpParams.EpochBudgetLeft)
+	s.Require().Equal(initialStream.PumpParams.EpochCoinsLeft, finalStream.PumpParams.EpochCoinsLeft)
 
 	// Verify no events
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 0)
 }
 
-func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, streamID uint64, expectedChange math.Int) {
+func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, streamID uint64, expectedChange sdk.Coin) {
 	// Similar to simulateBlockAndVerifyPump but expects AMM swap events post-settlement
 	initialStream, err := s.App.StreamerKeeper.GetStreamByID(ctx, streamID)
 	s.Require().NoError(err)
@@ -470,16 +463,8 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 	// Get initial streamer balance
 	initialStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
 
-	// Execute pump distribution
-	pumpStreams := s.App.StreamerKeeper.GetActiveStreams(ctx)
-	var pumpStreamsList []types.Stream
-	for _, stream := range pumpStreams {
-		if stream.IsPumpStream() {
-			pumpStreamsList = append(pumpStreamsList, stream)
-		}
-	}
-
-	err = s.App.StreamerKeeper.DistributePumpStreams(ctx, pumpStreamsList)
+	// Simulate pump distribution call
+	err = s.App.StreamerKeeper.BeginBlock(ctx)
 	s.Require().NoError(err)
 
 	// Verify changes
@@ -487,24 +472,24 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 	s.Require().NoError(err)
 
 	// DistributedCoins should have increased
-	finalDistributed := finalStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom)
-	expectedDistr := initialStream.DistributedCoins.AmountOf(sdk.DefaultBondDenom).Add(expectedChange)
-	s.Require().True(finalDistributed.Equal(expectedDistr), "expected %s, got %s", expectedDistr, finalDistributed)
+	finalDistributed := finalStream.DistributedCoins
+	expectedDistr := initialStream.DistributedCoins.Add(expectedChange)
+	s.Require().Equal(finalDistributed, expectedDistr, "expected %s, got %s", expectedDistr, finalDistributed)
 
 	// EpochBudgetLeft should have decreased
-	left := finalStream.PumpParams.EpochBudgetLeft
-	expectedLeft := initialStream.PumpParams.EpochBudgetLeft.Sub(expectedChange)
-	s.Require().True(left.Equal(expectedLeft), "expected %s, got %s", expectedLeft, left)
+	left := finalStream.PumpParams.EpochCoinsLeft
+	expectedLeft := initialStream.PumpParams.EpochCoinsLeft.Sub(expectedChange)
+	s.Require().Equal(left, expectedLeft, "expected %s, got %s", expectedLeft, left)
 
 	// EpochBudget should be the same
-	budget := finalStream.PumpParams.EpochBudget
-	expectedBudget := initialStream.PumpParams.EpochBudget
-	s.Require().True(budget.Equal(expectedBudget), "expected %s, got %s", expectedBudget, budget)
+	budget := finalStream.EpochCoins
+	expectedBudget := initialStream.EpochCoins
+	s.Require().Equal(budget, expectedBudget, "expected %s, got %s", expectedBudget, budget)
 
 	// x/streamer balance should have decreased by expected amount
 	finalStreamerBalance := s.App.BankKeeper.GetBalance(ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
-	expectedStreamerBalance := initialStreamerBalance.Amount.Sub(expectedChange)
-	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance.Amount, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance.Amount)
+	expectedStreamerBalance := initialStreamerBalance.Sub(expectedChange)
+	s.Require().Equal(expectedStreamerBalance, finalStreamerBalance, "expected %s, got %s", expectedStreamerBalance, finalStreamerBalance)
 
 	// Verify pump events, burn events and swap events
 	s.AssertEventEmitted(ctx, "dymensionxyz.dymension.streamer.EventPumped", 1)
@@ -540,13 +525,10 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		ctx := hashPump(s.Ctx)
 		pumpAmt, err := keeper.ShouldPump(
 			ctx,
-			types.PumpParams{
-				NumTopRollapps:  0,
-				EpochBudget:     commontypes.DYM.MulRaw(10),
-				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
-				NumPumps:        pumpNum,
-				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
+			commontypes.DYM.MulRaw(10),
+			commontypes.DYM.MulRaw(10),
+			pumpNum,
+			types.PumpDistr_PUMP_DISTR_UNIFORM,
 			b,
 		)
 		s.Require().NoError(err)
@@ -556,13 +538,10 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		ctx = hashNoPump(s.Ctx)
 		pumpAmt, err = keeper.ShouldPump(
 			ctx,
-			types.PumpParams{
-				NumTopRollapps:  0,
-				EpochBudget:     commontypes.DYM.MulRaw(10),
-				EpochBudgetLeft: commontypes.DYM.MulRaw(10),
-				NumPumps:        pumpNum,
-				PumpDistr:       types.PumpDistr_PUMP_DISTR_UNIFORM,
-			},
+			commontypes.DYM.MulRaw(10),
+			commontypes.DYM.MulRaw(10),
+			pumpNum,
+			types.PumpDistr_PUMP_DISTR_UNIFORM,
 			b,
 		)
 		s.Require().NoError(err)
@@ -591,13 +570,14 @@ func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {
 		headerInfo.Hash = newHash[:]
 		ctx = ctx.WithHeaderInfo(headerInfo)
 
-		pumpAmt, err := keeper.PumpAmt(ctx, types.PumpParams{
-			NumTopRollapps:  0,
-			EpochBudget:     epochBudget,
-			EpochBudgetLeft: epochBudgetLeft,
-			NumPumps:        uint64(pumpNum),
-			PumpDistr:       pumpFunc,
-		})
+		pumpAmt, err := keeper.PumpAmt(
+			ctx,
+			epochBudget,
+			epochBudgetLeft,
+			math.NewInt(pumpNum),
+			pumpFunc,
+		)
+
 		s.Require().NoError(err)
 
 		epochBudgetLeft = epochBudgetLeft.Sub(pumpAmt)
@@ -735,6 +715,150 @@ func (s *KeeperTestSuite) TestExecutePump() {
 				s.AssertEventEmitted(s.Ctx, gammtypes.TypeEvtTokenSwapped, 1)
 				s.AssertEventNotEmitted(s.Ctx, proto.MessageName(new(irotypes.EventGraduation)))
 			}
+		})
+	}
+}
+
+// Scenario:
+//  1. Create a pool with "foo" and "stake" tokens (1:1 ratio)
+//  2. Create a pump stream that pumps "foo" tokens to buyback "stake" tokens
+//  3. Set hash to ensure pump execution will happen
+//  4. Estimate the pump amount that would be used
+//  5. Begin the epoch to activate the stream
+//  6. Execute pump distribution via BeginBlock
+//  7. Validate exact state changes:
+//     - DistributedCoins increased by exactly pumpAmt
+//     - EpochCoinsLeft decreased by exactly pumpAmt
+//     - x/streamer balance of "foo" decreased by exactly pumpAmt
+//     * x/streamer balance of "stake" increased if burnPumped = false (received from swap) or
+//     * x/streamer balance of "stake" stood the same if burnPumped = true (received from swap & burned)
+//     - Pool liquidity for "foo" increased by exactly pumpAmt
+//     - Pool liquidity for "stake" decreased (swapped out)
+func (s *KeeperTestSuite) TestPumpStreamPool() {
+	for _, burnPumped := range []bool{false, true} {
+		s.Run(fmt.Sprintf("pump stream, pool, burnPumped = %v", burnPumped), func() {
+			s.SetupTest()
+
+			// 1. Create a pool
+			poolCoins := sdk.NewCoins(
+				sdk.NewCoin("foo", math.NewInt(1000000)),
+				sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000)),
+			)
+			poolID := s.PreparePoolWithCoins(poolCoins)
+			s.Require().Equal(uint64(1), poolID)
+
+			// 2. Create a pump stream
+			streamCoins := sdk.NewCoins(sdk.NewCoin("foo", math.NewInt(100_000_000)))
+			// Fund the streamer module with the stream coins
+			s.FundModuleAcc(types.ModuleName, streamCoins)
+			startTime := time.Now().Add(-time.Minute)
+			streamID, _ := s.CreatePumpStream(types.CreateStreamGeneric{
+				Coins:             streamCoins,
+				StartTime:         startTime,
+				EpochIdentifier:   "day",
+				NumEpochsPaidOver: 10,
+			}, 7000, types.PumpDistr_PUMP_DISTR_UNIFORM, burnPumped, types.PumpTargetPool(1, sdk.DefaultBondDenom))
+
+			// 3. Set hash to pump hash
+			s.Ctx = hashPump(s.Ctx)
+
+			// 4. Estimate how much the pumpAmt would be
+			b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
+			s.Require().NoError(err)
+
+			epochBudget := streamCoins[0].Amount.Quo(math.NewIntFromUint64(10))
+			epochBudgetLeft := epochBudget
+
+			pumpAmt, err := keeper.ShouldPump(
+				s.Ctx,
+				epochBudget,
+				epochBudgetLeft,
+				7000,
+				types.PumpDistr_PUMP_DISTR_UNIFORM,
+				b,
+			)
+			s.Require().NoError(err)
+			s.Require().True(!pumpAmt.IsZero())
+
+			// 5. Begin the epoch
+			s.StartEpoch("day")
+
+			// Get initial state before distribution
+			initialStream, err := s.App.StreamerKeeper.GetStreamByID(s.Ctx, streamID)
+			s.Require().NoError(err)
+			initialDistributedCoins := initialStream.DistributedCoins
+			initialEpochCoinsLeft := initialStream.PumpParams.EpochCoinsLeft
+
+			initialStreamerFooBalance := s.App.BankKeeper.GetBalance(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), "foo")
+			initialStreamerBalance := s.App.BankKeeper.GetBalance(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
+
+			// Get initial pool liquidity
+			initialPool, err := s.App.GAMMKeeper.GetPoolAndPoke(s.Ctx, poolID)
+			s.Require().NoError(err)
+			initialPoolLiquidity := initialPool.GetTotalPoolLiquidity(s.Ctx)
+
+			// 6. Simulate the distribution – DistributePumpStreams
+			err = s.App.StreamerKeeper.BeginBlock(s.Ctx)
+			s.Require().NoError(err)
+
+			// 7. Validate that:
+			// Get final state after distribution
+			finalStream, err := s.App.StreamerKeeper.GetStreamByID(s.Ctx, streamID)
+			s.Require().NoError(err)
+
+			// * DistributedCoins increased by exactly pumpAmt
+			finalDistributedCoins := finalStream.DistributedCoins
+			expectedDistributedCoins := initialDistributedCoins.Add(sdk.NewCoin("foo", pumpAmt))
+			s.Require().True(finalDistributedCoins.Equal(expectedDistributedCoins),
+				"DistributedCoins should equal initial + pumpAmt: expected %s, got %s",
+				expectedDistributedCoins, finalDistributedCoins)
+
+			// * EpochCoinsLeft decreased by exactly pumpAmt
+			finalEpochCoinsLeft := finalStream.PumpParams.EpochCoinsLeft
+			expectedEpochCoinsLeft := initialEpochCoinsLeft.Sub(sdk.NewCoin("foo", pumpAmt))
+			s.Require().True(finalEpochCoinsLeft.Equal(expectedEpochCoinsLeft),
+				"EpochCoinsLeft should equal initial - pumpAmt: expected %s, got %s",
+				expectedEpochCoinsLeft, finalEpochCoinsLeft)
+
+			// * x/streamer balance decrease with pumpAmt of pump coin and:
+			// increase with some amount of token out (burnPumped = false)
+			// stay the same in token out denom (burnPumped = true)
+			finalStreamerFooBalance := s.App.BankKeeper.GetBalance(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), "foo")
+			finalStreamerBalance := s.App.BankKeeper.GetBalance(s.Ctx, s.App.AccountKeeper.GetModuleAddress(types.ModuleName), sdk.DefaultBondDenom)
+
+			// foo balance (pump coin) should have decreased by exactly pumpAmt
+			expectedFooBalance := initialStreamerFooBalance.Sub(sdk.NewCoin("foo", pumpAmt))
+			s.Require().Equal(expectedFooBalance, finalStreamerFooBalance,
+				"Streamer foo balance should have decreased by pumpAmt: expected %s, got %s",
+				expectedFooBalance, finalStreamerFooBalance)
+
+			if burnPumped {
+				// stake balance (token out) should be the same (received from swap and then burned)
+				s.Require().True(finalStreamerBalance.Amount.Equal(initialStreamerBalance.Amount),
+					"Streamer balance should be the same: initial %s, final %s",
+					initialStreamerBalance, finalStreamerBalance)
+			} else {
+				// stake balance (token out) should have increased (received from swap)
+				s.Require().True(finalStreamerBalance.Amount.GT(initialStreamerBalance.Amount),
+					"Streamer balance should have increased: initial %s, final %s",
+					initialStreamerBalance, finalStreamerBalance)
+			}
+
+			// * Check that pool liquidity changed
+			finalPool, err := s.App.GAMMKeeper.GetPoolAndPoke(s.Ctx, poolID)
+			s.Require().NoError(err)
+			finalPoolLiquidity := finalPool.GetTotalPoolLiquidity(s.Ctx)
+
+			// Pool liquidity for pump coin (foo) should have increased by pumpAmt
+			expectedFooInPool := initialPoolLiquidity.AmountOf("foo").Add(pumpAmt)
+			s.Require().Equal(expectedFooInPool, finalPoolLiquidity.AmountOf("foo"),
+				"Pool foo liquidity should have increased by pumpAmt: expected %s, got %s",
+				expectedFooInPool, finalPoolLiquidity.AmountOf("foo"))
+
+			// Pool liquidity for token out (stake) should have decreased
+			s.Require().True(finalPoolLiquidity.AmountOf("stake").LT(initialPoolLiquidity.AmountOf("stake")),
+				"Pool stake liquidity should have decreased: initial %s, final %s",
+				initialPoolLiquidity.AmountOf("stake"), finalPoolLiquidity.AmountOf("stake"))
 		})
 	}
 }
