@@ -33,7 +33,7 @@ type rollappHooks struct {
 
 var _ rollapptypes.RollappHooks = rollappHooks{}
 
-func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
+func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress, feeDenom string) error {
 	if alias == "" {
 		return nil
 	}
@@ -51,15 +51,18 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
 	}
 
+	// Get the alias cost in the price denom
 	priceParams := h.PriceParams(ctx)
+	aliasCostInBaseDenom := sdk.NewCoin(priceParams.PriceDenom, priceParams.GetAliasPrice(alias))
 
-	aliasCost := sdk.NewCoins(
-		sdk.NewCoin(
-			priceParams.PriceDenom, priceParams.GetAliasPrice(alias),
-		),
-	)
+	// Convert the cost to the requested fee denom using txfees, if needed
+	convertedCost, err := h.txFeesKeeper.CalcBaseInCoin(ctx, aliasCostInBaseDenom, feeDenom)
+	if err != nil {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert alias cost to fee denom %s: %v", feeDenom, err)
+	}
+	aliasCost := sdk.NewCoins(convertedCost)
 
-	err := h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
+	err = h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "register alias for RollApp")
 	}

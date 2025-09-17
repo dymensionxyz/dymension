@@ -131,6 +131,7 @@ func (s *KeeperTestSuite) SetupTest() {
 			keys[dymnstypes.StoreKey],
 			bk,
 			rk,
+			nil, // TxFeesKeeper not needed in tests, pass nil
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
 
