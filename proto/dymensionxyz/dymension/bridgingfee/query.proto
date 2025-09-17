@@ -47,18 +47,14 @@ service Query {
   rpc QuoteFeePayment(QueryQuoteFeePaymentRequest)
       returns (QueryQuoteFeePaymentResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/bridgingfee/quote_fee_payment/{hook_id}/{sender}/{transfer_amount}";
+        "/dymensionxyz/dymension/bridgingfee/quote_fee_payment/{hook_id}/{token_id}/{transfer_amount}";
     option (cosmos.query.v1.module_query_safe) = true;
   }
 }
 
 // QueryFeeHookRequest is the request type for the Query/FeeHook RPC method.
 message QueryFeeHookRequest {
-  string id = 1 [
-    (gogoproto.customtype) =
-        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
-    (gogoproto.nullable) = false
-  ];
+  string id = 1;
 }
 
 // QueryFeeHookResponse is the response type for the Query/FeeHook RPC method.
@@ -77,11 +73,7 @@ message QueryFeeHooksResponse {
 // QueryAggregationHookRequest is the request type for the Query/AggregationHook
 // RPC method.
 message QueryAggregationHookRequest {
-  string id = 1 [
-    (gogoproto.customtype) =
-        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
-    (gogoproto.nullable) = false
-  ];
+  string id = 1;
 }
 
 // QueryAggregationHookResponse is the response type for the
@@ -103,29 +95,13 @@ message QueryAggregationHooksResponse {
 
 // QueryQuoteFeePaymentRequest is the request type for the Query/QuoteFeePayment RPC method.
 message QueryQuoteFeePaymentRequest {
-  // Hook ID to use for fee calculation
-  string hook_id = 1 [
-    (gogoproto.customtype) =
-        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
-    (gogoproto.nullable) = false
-  ];
-  // Token sender address (used as token ID)
-  string sender = 2 [
-    (gogoproto.customtype) =
-        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
-    (gogoproto.nullable) = false
-  ];
-  // Transfer amount to calculate fee for
-  string transfer_amount = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
+  string hook_id = 1;
+  string token_id = 2;
+  string transfer_amount = 3;
 }
 
 // QueryQuoteFeePaymentResponse is the response type for the Query/QuoteFeePayment RPC method.
 message QueryQuoteFeePaymentResponse {
-  // Fee required in base denomination
   repeated cosmos.base.v1beta1.Coin fee_coins = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"

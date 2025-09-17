@@ -15,7 +15,7 @@ message EventHLBridgingFee {
 
   string payer = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
-  uint32 token_id = 3 [
+  string token_id = 3 [
     (gogoproto.customtype) =
         "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
     (gogoproto.nullable) = false

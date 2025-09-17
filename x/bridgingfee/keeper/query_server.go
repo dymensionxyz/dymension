@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"cosmossdk.io/math"
+	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"google.golang.org/grpc/codes"
@@ -28,7 +31,12 @@ func (k queryServer) FeeHook(ctx context.Context, req *types.QueryFeeHookRequest
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	hook, err := k.feeHooks.Get(ctx, req.Id.GetInternalId())
+	hookId, err := util.DecodeHexAddress(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	hook, err := k.feeHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
 		return nil, fmt.Errorf("get fee hook: %w", err)
 	}
@@ -60,7 +68,12 @@ func (k queryServer) AggregationHook(ctx context.Context, req *types.QueryAggreg
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	hook, err := k.aggregationHooks.Get(ctx, req.Id.GetInternalId())
+	hookId, err := util.DecodeHexAddress(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	hook, err := k.aggregationHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
 		return nil, fmt.Errorf("get aggregation hook: %w", err)
 	}
@@ -92,14 +105,26 @@ func (k queryServer) QuoteFeePayment(ctx context.Context, req *types.QueryQuoteF
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	// Create FeeHookHandler to access QuoteFeeInBase method
+	hookId, err := util.DecodeHexAddress(req.HookId)
+	if err != nil {
+		return nil, fmt.Errorf("decode hook_id: %w", err)
+	}
+
+	tokenId, err := util.DecodeHexAddress(req.TokenId)
+	if err != nil {
+		return nil, fmt.Errorf("decode token_id: %w", err)
+	}
+
+	transferAmt, ok := math.NewIntFromString(req.TransferAmount)
+	if !ok {
+		return nil, errors.New("failed to convert transfer_amount to math.Int")
+	}
+
 	feeHandler := FeeHookHandler{k: k.Keeper}
 
-	// Convert context to SDK context
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// Calculate fee using existing QuoteFeeInBase method
-	feeCoin, err := feeHandler.QuoteFeeInBase(sdkCtx, req.HookId, req.Sender, req.TransferAmount)
+	feeCoin, err := feeHandler.QuoteFeeInBase(sdkCtx, hookId, tokenId, transferAmt)
 	if err != nil {
 		return nil, fmt.Errorf("quote fee in base: %w", err)
 	}

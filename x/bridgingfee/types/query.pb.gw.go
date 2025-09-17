@@ -199,15 +199,15 @@ func request_Query_QuoteFeePayment_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "hook_id", err)
 	}
 
-	val, ok = pathParams["sender"]
+	val, ok = pathParams["token_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sender")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "token_id")
 	}
 
-	protoReq.Sender, err = runtime.String(val)
+	protoReq.TokenId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sender", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "token_id", err)
 	}
 
 	val, ok = pathParams["transfer_amount"]
@@ -248,15 +248,15 @@ func local_request_Query_QuoteFeePayment_0(ctx context.Context, marshaler runtim
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "hook_id", err)
 	}
 
-	val, ok = pathParams["sender"]
+	val, ok = pathParams["token_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "sender")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "token_id")
 	}
 
-	protoReq.Sender, err = runtime.String(val)
+	protoReq.TokenId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sender", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "token_id", err)
 	}
 
 	val, ok = pathParams["transfer_amount"]
@@ -549,7 +549,7 @@ var (
 
 	pattern_Query_AggregationHooks_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "bridgingfee", "aggregation_hooks"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QuoteFeePayment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 1, 0, 4, 1, 5, 6}, []string{"dymensionxyz", "dymension", "bridgingfee", "quote_fee_payment", "hook_id", "sender", "transfer_amount"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_QuoteFeePayment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 1, 0, 4, 1, 5, 6}, []string{"dymensionxyz", "dymension", "bridgingfee", "quote_fee_payment", "hook_id", "token_id", "transfer_amount"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

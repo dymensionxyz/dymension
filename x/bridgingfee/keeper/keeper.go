@@ -97,7 +97,6 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 		return hyputil.HexAddress{}, fmt.Errorf("save fee hook: %w", err)
 	}
 
-	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventFeeHookCreated{
 		HookId: hexAddr,
 		Owner:  msg.Owner,
@@ -137,7 +136,6 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 		return fmt.Errorf("save fee hook: %w", err)
 	}
 
-	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventFeeHookUpdated{
 		HookId: msg.Id,
 		Owner:  hook.Owner,
@@ -168,7 +166,6 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 		return hyputil.HexAddress{}, fmt.Errorf("save aggregation hook: %w", err)
 	}
 
-	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventAggregationHookCreated{
 		HookId: hexAddr,
 		Owner:  msg.Owner,
@@ -182,7 +179,6 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 
 // UpdateAggregationHook updates an existing aggregation hook (business logic)
 func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggregationHook) error {
-	// Get existing hook
 	hookId := msg.Id.GetInternalId()
 	hook, err := k.aggregationHooks.Get(ctx, hookId)
 	if err != nil {
@@ -208,7 +204,6 @@ func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggr
 		return fmt.Errorf("save aggregation hook: %w", err)
 	}
 
-	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventAggregationHookUpdated{
 		HookId: msg.Id,
 		Owner:  hook.Owner,
