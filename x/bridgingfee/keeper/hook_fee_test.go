@@ -172,7 +172,7 @@ func (s *KeeperTestSuite) TestFeeHookPostDispatch() {
 
 		// Create AMM pool between adym and stake (1:2 ratio)
 		poolCoins := sdk.NewCoins(
-			sdk.NewCoin("adym", math.NewInt(1_000_000)), // 1M adym
+			sdk.NewCoin("adym", math.NewInt(1_000_000)),  // 1M adym
 			sdk.NewCoin("stake", math.NewInt(2_000_000)), // 2M stake (base denom)
 		)
 		s.PreparePoolWithCoins(poolCoins)

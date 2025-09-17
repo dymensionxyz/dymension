@@ -34,9 +34,7 @@ var (
 // ----------------------------------------------------------------------------
 
 // AppModuleBasic implements the AppModuleBasic interface for the capability module.
-type AppModuleBasic struct {
-	cdc codec.BinaryCodec
-}
+type AppModuleBasic struct{}
 
 // NewAppModuleBasic creates a new AppModuleBasic struct.
 func NewAppModuleBasic() AppModuleBasic {

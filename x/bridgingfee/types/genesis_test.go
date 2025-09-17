@@ -31,10 +31,10 @@ func TestGenesisState_Validate(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		genesis  GenesisState
-		wantErr  bool
-		errMsg   string
+		name    string
+		genesis GenesisState
+		wantErr bool
+		errMsg  string
 	}{
 		{
 			name: "valid empty genesis",

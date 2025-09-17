@@ -351,9 +351,9 @@ func TestMsgSetAggregationHook_ValidateBasic(t *testing.T) {
 		{
 			name: "duplicate hooks - allowed for same hook",
 			msg: MsgSetAggregationHook{
-				Id:      validHookId,
-				Owner:   validOwner,
-				HookIds: []hyputil.HexAddress{validHookId1, validHookId1},
+				Id:                validHookId,
+				Owner:             validOwner,
+				HookIds:           []hyputil.HexAddress{validHookId1, validHookId1},
 				NewOwner:          validNewOwner,
 				RenounceOwnership: false,
 			},

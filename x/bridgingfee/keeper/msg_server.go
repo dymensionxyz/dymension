@@ -20,19 +20,17 @@ var _ types.MsgServer = msgServer{}
 
 // CreateBridgingFeeHook creates a new bridging fee hook
 func (k msgServer) CreateBridgingFeeHook(goCtx context.Context, msg *types.MsgCreateBridgingFeeHook) (*types.MsgCreateBridgingFeeHookResponse, error) {
-	hookId, err := k.Keeper.CreateFeeHook(goCtx, msg)
+	hookId, err := k.CreateFeeHook(goCtx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgCreateBridgingFeeHookResponse{
-		Id: hookId,
-	}, nil
+	return &types.MsgCreateBridgingFeeHookResponse{Id: hookId}, nil
 }
 
 // SetBridgingFeeHook updates an existing bridging fee hook
 func (k msgServer) SetBridgingFeeHook(goCtx context.Context, msg *types.MsgSetBridgingFeeHook) (*types.MsgSetBridgingFeeHookResponse, error) {
-	err := k.Keeper.UpdateFeeHook(goCtx, msg)
+	err := k.UpdateFeeHook(goCtx, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -47,14 +45,12 @@ func (k msgServer) CreateAggregationHook(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	return &types.MsgCreateAggregationHookResponse{
-		Id: hookId,
-	}, nil
+	return &types.MsgCreateAggregationHookResponse{Id: hookId}, nil
 }
 
 // SetAggregationHook updates an existing aggregation hook
 func (k msgServer) SetAggregationHook(goCtx context.Context, msg *types.MsgSetAggregationHook) (*types.MsgSetAggregationHookResponse, error) {
-	err := k.Keeper.UpdateAggregationHook(goCtx, msg)
+	err := k.UpdateAggregationHook(goCtx, msg)
 	if err != nil {
 		return nil, err
 	}

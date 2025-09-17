@@ -1,5 +1,7 @@
 package types
 
+import "fmt"
+
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
@@ -15,7 +17,7 @@ func (gs GenesisState) Validate() error {
 	for _, hook := range gs.FeeHooks {
 		id := hook.Id.GetInternalId()
 		if seenIds[id] {
-			return ErrDuplicateHookId
+			return fmt.Errorf("duplicate id: %d", id)
 		}
 		seenIds[id] = true
 
@@ -28,7 +30,7 @@ func (gs GenesisState) Validate() error {
 	for _, hook := range gs.AggregationHooks {
 		id := hook.Id.GetInternalId()
 		if seenIds[id] {
-			return ErrDuplicateHookId
+			return fmt.Errorf("duplicate id: %d", id)
 		}
 		seenIds[id] = true
 
