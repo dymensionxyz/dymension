@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -272,4 +274,40 @@ func (suite *KeeperTestSuite) LockTokens(addr sdk.AccAddress, coins sdk.Coins) {
 	suite.FundAcc(addr, coins)
 	_, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr, coins, time.Hour)
 	suite.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) CreateDefaultPlan(rollappID string) string {
+	allocation := math.NewInt(100).MulRaw(1e18)
+	return s.CreatePlan(rollappID, allocation, false)
+}
+
+func (s *KeeperTestSuite) CreatePlan(rollappID string, allocation math.Int, standardLaunch bool) string {
+	k := s.App.IROKeeper
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
+	curve := irotypes.DefaultBondingCurve()
+	incentives := irotypes.DefaultIncentivePlanParams()
+	liquidityPart := irotypes.DefaultParams().MinLiquidityPart
+
+	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now().Add(-time.Minute), true, standardLaunch, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+	return planID
+}
+
+func (s *KeeperTestSuite) SettleIRO(rollappID string, reserveAmt math.Int) {
+	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
+	s.Require().True(found)
+
+	// Fund module with insufficient funds for settlement
+	// Sold amount
+	iroDenom := plan.TotalAllocation.Denom
+	amt := plan.SoldAmt.Sub(reserveAmt)
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(iroDenom, amt)))
+
+	// Settlement token
+	rollappDenom := fmt.Sprintf("hui/%s", rollappID)
+	amt = plan.TotalAllocation.Amount
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+
+	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
+	s.Require().NoError(err)
 }
