@@ -22,6 +22,9 @@ service Msg {
   // CreateStream creates a new stream
   rpc CreateStream(MsgCreateStream) returns (MsgCreateStreamResponse);
 
+  // CreatePumpStream creates a new pump stream
+  rpc CreatePumpStream(MsgCreatePumpStream) returns (MsgCreatePumpStreamResponse);
+
   // TerminateStream terminates an existing stream
   rpc TerminateStream(MsgTerminateStream) returns (MsgTerminateStreamResponse);
 
@@ -121,10 +124,14 @@ message MsgCreatePumpStream {
   uint64 num_pumps = 3;
   // PumpDistr is a distribution used to determine pump amount
   PumpDistr pump_distr = 4;
+  // ClearAllVotes indicates if the stream should clear all votes
+  bool clear_all_votes = 5;
+  // BurnPumped indicates whether to burn tokens purchased during the pump
+  bool burn_pumped = 6;
   // Target is that is going to be pumped
   oneof target {
-    TargetTopRollapps rollapps = 5;
-    TargetPool pool = 6;
+    TargetTopRollapps rollapps = 7;
+    TargetPool pool = 8;
   }
 }
 

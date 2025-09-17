@@ -142,6 +142,7 @@ func (k Keeper) CreatePumpStream(
 	stream types.CreateStreamGeneric,
 	numPumps uint64,
 	pumpDistr types.PumpDistr,
+	burnPumped bool,
 	pumpTarget types.PumpTarget,
 ) (uint64, error) {
 	err := k.ValidateStreamParams(ctx, stream.Coins, stream.EpochIdentifier, stream.NumEpochsPaidOver)
@@ -155,10 +156,11 @@ func (k Keeper) CreatePumpStream(
 	}
 
 	params := types.PumpParams{
-		Target:         nil, // filled below
 		EpochCoinsLeft: stream.Coins.QuoInt(math.NewIntFromUint64(stream.NumEpochsPaidOver)),
 		NumPumps:       numPumps,
 		PumpDistr:      pumpDistr,
+		BurnPumped:     burnPumped,
+		Target:         nil, // filled below
 	}
 
 	// Stateful validation

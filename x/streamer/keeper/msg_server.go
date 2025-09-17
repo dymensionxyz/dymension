@@ -67,10 +67,18 @@ func (s msgServer) CreatePumpStream(goCtx context.Context, msg *types.MsgCreateP
 		msg.Stream,
 		msg.NumPumps,
 		msg.PumpDistr,
+		msg.BurnPumped,
 		msg.Target,
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if msg.ClearAllVotes {
+		err = s.sk.ClearAllVotes(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &types.MsgCreatePumpStreamResponse{

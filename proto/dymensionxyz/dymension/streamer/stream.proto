@@ -84,10 +84,12 @@ message PumpParams {
   uint64 num_pumps = 2;
   // PumpDistr is a distribution used to determine pump amount
   PumpDistr pump_distr = 3;
+  // BurnPumped indicates whether to burn tokens purchased during the pump
+  bool burn_pumped = 4;
   // Target is that is going to be pumped
   oneof target {
-    TargetTopRollapps rollapps = 4;
-    TargetPool pool = 5;
+    TargetTopRollapps rollapps = 5;
+    TargetPool pool = 6;
   }
 }
 
