@@ -80,6 +80,11 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // CreateFeeHook creates a new fee hook (business logic)
 func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingFeeHook) (hyputil.HexAddress, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return hyputil.HexAddress{}, fmt.Errorf("invalid msg: %w", err)
+	}
+
 	// Get next hook ID
 	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE)
 	if err != nil {
@@ -110,6 +115,11 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 
 // UpdateFeeHook updates an existing fee hook (business logic)
 func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeHook) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return fmt.Errorf("invalid msg: %w", err)
+	}
+
 	// Get existing hook
 	hookId := msg.Id.GetInternalId()
 	hook, err := k.feeHooks.Get(ctx, hookId)
@@ -149,6 +159,11 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 
 // CreateAggregationHook creates a new aggregation hook (business logic)
 func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateAggregationHook) (hyputil.HexAddress, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return hyputil.HexAddress{}, fmt.Errorf("invalid msg: %w", err)
+	}
+
 	// Get next hook ID
 	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION)
 	if err != nil {
@@ -179,6 +194,11 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 
 // UpdateAggregationHook updates an existing aggregation hook (business logic)
 func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggregationHook) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return fmt.Errorf("invalid msg: %w", err)
+	}
+
 	hookId := msg.Id.GetInternalId()
 	hook, err := k.aggregationHooks.Get(ctx, hookId)
 	if err != nil {
