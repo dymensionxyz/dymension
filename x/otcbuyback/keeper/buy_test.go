@@ -143,7 +143,6 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		expectedTokens := math.NewInt(125).MulRaw(1e18)
 		suite.Require().True(tokensPurchased.Equal(expectedTokens), "Should have purchased 125 DYM tokens with 20%% discount, got: %s", tokensPurchased)
 	})
-
 }
 
 func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
@@ -171,8 +170,8 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 
 		// Execute purchases from all buyers
 		var (
-			totalPurchased    math.Int  = math.ZeroInt()
-			totalRaisedAmount sdk.Coins = sdk.NewCoins()
+			totalPurchased    = math.ZeroInt()
+			totalRaisedAmount = sdk.NewCoins()
 		)
 		for buyerIdx, buyer := range buyers {
 			paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountsToBuy[buyerIdx], usdcDenom)
@@ -203,7 +202,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.GetVestingEndTime())
 
 		// All buyers claim tokens
-		var totalClaimed math.Int = math.ZeroInt()
+		totalClaimed := math.ZeroInt()
 		for buyerIdx, buyer := range buyers {
 			claimedAmount, err := suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
 			suite.Require().NoError(err)

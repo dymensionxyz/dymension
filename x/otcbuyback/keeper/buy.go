@@ -19,7 +19,6 @@ func (k Keeper) Buy(
 	amountToBuy math.Int,
 	denomToPay string,
 ) (sdk.Coin, error) {
-
 	// Get and validate auction
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
@@ -125,7 +124,6 @@ func (k Keeper) Buy(
 	}
 
 	return paymentCoin, nil
-
 }
 
 // BuyExactSpend allows a user to purchase tokens in an active auction

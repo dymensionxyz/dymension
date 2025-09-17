@@ -119,7 +119,7 @@ func (q queryServer) AcceptedToken(goCtx context.Context, req *types.QueryAccept
 		TokenData: tokenData,
 	}
 	// Get current spot price (AMM)
-	spotPrice, err := q.Keeper.ammKeeper.CalculateSpotPrice(ctx, tokenData.PoolId, req.Denom, q.Keeper.baseDenom)
+	spotPrice, err := q.ammKeeper.CalculateSpotPrice(ctx, tokenData.PoolId, req.Denom, q.baseDenom)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get spot price for token %s: %v", req.Denom, err)
 	}

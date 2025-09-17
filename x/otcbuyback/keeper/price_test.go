@@ -52,7 +52,8 @@ func (suite *KeeperTestSuite) TestMovingAverageUpdates() {
 	params := types.Params{
 		MovingAverageSmoothingFactor: math.LegacyMustNewDecFromStr("0.2"),
 	}
-	suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+	err = suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+	suite.Require().NoError(err)
 	err = suite.App.OTCBuybackKeeper.UpdateMovingAveragePrice(suite.Ctx, "usdc")
 	suite.Require().NoError(err)
 	newPrice, err = suite.App.OTCBuybackKeeper.GetMovingAveragePrice(suite.Ctx, "usdc")

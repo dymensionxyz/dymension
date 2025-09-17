@@ -25,7 +25,6 @@ func NewAuction(
 	vestingPlan Auction_VestingParams,
 	pumpParams Auction_PumpParams,
 ) Auction {
-
 	return Auction{
 		Id:              id,
 		Allocation:      allocation,

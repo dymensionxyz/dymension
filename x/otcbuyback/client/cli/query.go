@@ -87,7 +87,7 @@ func CmdQueryAuction() *cobra.Command {
 
 			auctionId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid auction ID: %v", err)
+				return fmt.Errorf("invalid auction ID: %w", err)
 			}
 
 			req := &types.QueryAuctionRequest{
@@ -124,7 +124,7 @@ func CmdQueryUserPurchase() *cobra.Command {
 
 			auctionId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid auction ID: %v", err)
+				return fmt.Errorf("invalid auction ID: %w", err)
 			}
 
 			userAddress := args[1]

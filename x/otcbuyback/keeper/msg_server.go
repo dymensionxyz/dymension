@@ -55,7 +55,7 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 
 	var acceptedTokens []types.AcceptedToken
 	for _, token := range req.AcceptedTokens {
-		denoms, err := ms.Keeper.ammKeeper.GetPoolDenoms(ctx, token.PoolId)
+		denoms, err := ms.ammKeeper.GetPoolDenoms(ctx, token.PoolId)
 		if err != nil {
 			return nil, err
 		}
@@ -63,12 +63,12 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 		if len(denoms) != 2 {
 			return nil, fmt.Errorf("pool must have two denoms")
 		}
-		if (denoms[0] != ms.Keeper.baseDenom && denoms[1] != token.Denom) ||
-			(denoms[1] != ms.Keeper.baseDenom && denoms[0] != token.Denom) {
+		if (denoms[0] != ms.baseDenom && denoms[1] != token.Denom) ||
+			(denoms[1] != ms.baseDenom && denoms[0] != token.Denom) {
 			return nil, fmt.Errorf("pool must have the token denom and the base denom, got %s and %s", denoms[0], denoms[1])
 		}
 
-		price, err := ms.Keeper.ammKeeper.CalculateSpotPrice(ctx, token.PoolId, token.Denom, ms.Keeper.baseDenom)
+		price, err := ms.ammKeeper.CalculateSpotPrice(ctx, token.PoolId, token.Denom, ms.baseDenom)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (s msgServer) TerminateAuction(goCtx context.Context, msg *types.MsgTermina
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
-	err := s.Keeper.EndAuction(ctx, msg.AuctionId, "auction_terminated")
+	err := s.EndAuction(ctx, msg.AuctionId, "auction_terminated")
 	if err != nil {
 		return nil, err
 	}

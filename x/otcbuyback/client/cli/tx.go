@@ -58,7 +58,7 @@ $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --from mykey
 
 			auctionId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid auction ID: %v", err)
+				return fmt.Errorf("invalid auction ID: %w", err)
 			}
 
 			amountToBuy, ok := math.NewIntFromString(args[1])
@@ -106,12 +106,12 @@ $ %s tx otcbuyback buy-exact-spend 1 100uusdc --from mykey
 
 			auctionId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid auction ID: %v", err)
+				return fmt.Errorf("invalid auction ID: %w", err)
 			}
 
 			paymentCoin, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
-				return fmt.Errorf("invalid payment coin: %v", err)
+				return fmt.Errorf("invalid payment coin: %w", err)
 			}
 
 			msg := types.MsgBuyExactSpend{
@@ -152,7 +152,7 @@ $ %s tx otcbuyback claim 1 --from mykey
 
 			auctionId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid auction ID: %v", err)
+				return fmt.Errorf("invalid auction ID: %w", err)
 			}
 
 			msg := types.MsgClaimTokens{

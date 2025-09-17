@@ -49,7 +49,6 @@ func NewKeeper(
 	ammKeeper types.AMMKeeper,
 	streamerKeeper types.StreamerKeeper,
 ) *Keeper {
-
 	sb := collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey))
 
 	return &Keeper{

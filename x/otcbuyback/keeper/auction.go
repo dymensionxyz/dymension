@@ -24,7 +24,6 @@ func (k Keeper) CreateAuction(
 	vestingParams types.Auction_VestingParams,
 	pumpParams types.Auction_PumpParams,
 ) (uint64, error) {
-
 	if allocation.Denom != k.baseDenom {
 		return 0, errorsmod.Wrap(gerrc.ErrInvalidArgument, "allocation must be in base denom")
 	}

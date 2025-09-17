@@ -86,7 +86,6 @@ func (suite *KeeperTestSuite) TestAuctionLifecycle() {
 	// assert no pump streams were created
 	streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
 	suite.Require().Equal(0, len(streams))
-
 }
 
 // TestAuctionLifecycleWithPurchases tests the complete auction lifecycle including purchases

@@ -17,7 +17,7 @@ import (
 func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 	var tcMsg types.MsgCreateAuction
 
-	var validCreateAuctionMsg = &types.MsgCreateAuction{
+	validCreateAuctionMsg := &types.MsgCreateAuction{
 		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		Allocation:      common.DymUint64(100),
 		StartTime:       time.Now().Add(time.Hour),
