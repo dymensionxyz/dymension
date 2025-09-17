@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-14)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-17)
 
 
 ### Bug Fixes
@@ -92,6 +92,7 @@
 * **sponsorship:** only allow voting on rollapp gauges ([#1990](https://github.com/dymensionxyz/dymension/issues/1990)) ([59be658](https://github.com/dymensionxyz/dymension/commit/59be65817b605da17ff60f94560a0723e62bf8fd))
 * **sponsorship:** queries to get endorsement and estimate rewards ([#1932](https://github.com/dymensionxyz/dymension/issues/1932)) ([5da9107](https://github.com/dymensionxyz/dymension/commit/5da9107ccb907e2c44b32ac1991b3ea0fcde219d))
 * **streamer:** pump stream ([#1981](https://github.com/dymensionxyz/dymension/issues/1981)) ([caf84a4](https://github.com/dymensionxyz/dymension/commit/caf84a474c050317fdedbaaf8753719a32ec1232)), closes [#1988](https://github.com/dymensionxyz/dymension/issues/1988)
+* **streamer:** support graduation in pump streams ([#2001](https://github.com/dymensionxyz/dymension/issues/2001)) ([48ea09b](https://github.com/dymensionxyz/dymension/commit/48ea09b9ab3e32be0164653dbf0fdd4caa052b4a))
 * **upgrade:** added authorized circuit breaker accounts ([#1907](https://github.com/dymensionxyz/dymension/issues/1907)) ([8a7b6f7](https://github.com/dymensionxyz/dymension/commit/8a7b6f74817d0c9dda88143385f9c9dd156fa4c2))
 * **upgrade:** upgrade handler to initialize endorsements for existing rollapps ([#1821](https://github.com/dymensionxyz/dymension/issues/1821)) ([43d5686](https://github.com/dymensionxyz/dymension/commit/43d5686ca949dd282fb2e5910f050e49b3243f41))
 * **upgrade:** wired gas free whitelisted txs ([#1906](https://github.com/dymensionxyz/dymension/issues/1906)) ([191680b](https://github.com/dymensionxyz/dymension/commit/191680b799b525602d464cdd09158e1eddb1281b))
