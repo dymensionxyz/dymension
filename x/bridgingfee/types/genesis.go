@@ -17,7 +17,7 @@ func (gs GenesisState) Validate() error {
 	for _, hook := range gs.FeeHooks {
 		id := hook.Id.GetInternalId()
 		if seenIds[id] {
-			return fmt.Errorf("duplicate id: %d", id)
+			return fmt.Errorf("duplicate hook id: %d", id)
 		}
 		seenIds[id] = true
 
@@ -30,7 +30,7 @@ func (gs GenesisState) Validate() error {
 	for _, hook := range gs.AggregationHooks {
 		id := hook.Id.GetInternalId()
 		if seenIds[id] {
-			return fmt.Errorf("duplicate id: %d", id)
+			return fmt.Errorf("duplicate hook id: %d", id)
 		}
 		seenIds[id] = true
 
