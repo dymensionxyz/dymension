@@ -48,15 +48,15 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 
 	// buy before plan start - should fail
-	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, buyer, buyAmt, maxAmt)
 	s.Require().Error(err)
 
 	// Plan is not yet enabled - should fail
-	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(time.Minute)), planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(time.Minute)), planId, buyer, buyAmt, maxAmt)
 	s.Require().Error(err)
 
 	// owner can still buy
-	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, owner, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, owner, buyAmt, maxAmt)
 	s.Require().NoError(err)
 
 	// Enable trading not as owner - should fail
@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) TestTradeDisabled() {
 	s.Assert().Equal(enableTime.Add(plan.IroPlanDuration), *rollapp.PreLaunchTime)
 
 	// Buy should now succeed
-	err = k.Buy(s.Ctx.WithBlockTime(enableTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx.WithBlockTime(enableTime.Add(2*time.Minute)), planId, buyer, buyAmt, maxAmt)
 	s.Require().NoError(err)
 }
 
@@ -112,19 +112,19 @@ func (s *KeeperTestSuite) TestBuy() {
 	expectedCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(buyAmt))
 
 	// buy before plan start - should fail
-	err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx.WithBlockTime(startTime.Add(-time.Minute)), planId, buyer, buyAmt, maxAmt)
 	s.Require().Error(err)
 
 	// cost is higher than maxCost specified - should fail
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, expectedCost.SubRaw(1))
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, expectedCost.SubRaw(1))
 	s.Require().Error(err)
 
 	// buy more than user's balance - should fail
-	err = k.Buy(s.Ctx, planId, buyer, math.NewInt(100_000).MulRaw(1e18), maxAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, math.NewInt(100_000).MulRaw(1e18), maxAmt)
 	s.Require().Error(err)
 
 	// buy very small amount - should fail (as cost ~= 0)
-	err = k.Buy(s.Ctx, planId, buyer, math.NewInt(100), maxAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, math.NewInt(100), maxAmt)
 	s.Require().Error(err)
 
 	// assert nothing sold
@@ -134,7 +134,7 @@ func (s *KeeperTestSuite) TestBuy() {
 	s.Assert().Equal(buyersFunds.AmountOf("adym"), buyerBalance)
 
 	// successful buy
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
 	s.Require().NoError(err)
 	plan, _ = k.GetPlan(s.Ctx, planId)
 	s.Assert().True(plan.SoldAmt.Sub(reservedTokens).Equal(buyAmt))
@@ -182,7 +182,7 @@ func (s *KeeperTestSuite) TestTradeAfterSettled() {
 
 	// Buy before settlement
 	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
 	s.Require().NoError(err)
 
 	// settle
@@ -192,7 +192,7 @@ func (s *KeeperTestSuite) TestTradeAfterSettled() {
 	s.Require().NoError(err)
 
 	// Attempt to buy after settlement - should fail
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
 	s.Require().Error(err)
 }
 
@@ -224,12 +224,12 @@ func (s *KeeperTestSuite) TestTakerFee() {
 	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 
 	// Attempt to buy while ignoring taker fee - should fail
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, buyAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, buyAmt)
 	s.Require().Error(err)
 
 	// Successful buy
 	expectedTakerFee := s.App.IROKeeper.GetParams(s.Ctx).TakerFee.MulInt(buyAmt).TruncateInt()
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, buyAmt.Add(expectedTakerFee))
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, buyAmt.Add(expectedTakerFee))
 	s.Require().NoError(err)
 
 	// Extract taker fee from buy event
@@ -262,7 +262,7 @@ func (s *KeeperTestSuite) TestSell() {
 	buyAmt := math.NewInt(1_000).MulRaw(1e18)
 
 	// Buy tokens first
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxAmt)
 	s.Require().NoError(err)
 
 	// Extract taker fee from buy event
@@ -378,7 +378,7 @@ func (s *KeeperTestSuite) TestBuyWithUSDC() {
 	maxCost := expectedCost.Add(expectedTakerFee)
 
 	// Successful buy
-	err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxCost)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, maxCost)
 	s.Require().NoError(err)
 
 	// Extract taker fee from buy event

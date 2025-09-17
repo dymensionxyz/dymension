@@ -20,6 +20,12 @@ func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected
 	s.Require().Equal(numEventsExpected, len(actualEvents))
 }
 
+// AssertEventNotEmitted asserts that ctx's event manager has not emitted aby event
+// of the given type.
+func (s *KeeperTestHelper) AssertEventNotEmitted(ctx sdk.Context, eventTypeExpected string) {
+	s.AssertEventEmitted(ctx, eventTypeExpected, 0)
+}
+
 func (s *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Event {
 	index := slices.IndexFunc(events, func(e sdk.Event) bool { return e.Type == name })
 	if index == -1 {
