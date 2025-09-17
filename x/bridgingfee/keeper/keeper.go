@@ -21,9 +21,10 @@ type Keeper struct {
 	feeHooks         collections.Map[uint64, types.HLFeeHook]
 	aggregationHooks collections.Map[uint64, types.AggregationHook]
 
-	coreKeeper types.CoreKeeper
-	bankKeeper types.BankKeeper
-	warpQuery  types.WarpQuery
+	coreKeeper   types.CoreKeeper
+	bankKeeper   types.BankKeeper
+	txFeesKeeper types.TxFeesKeeper
+	warpQuery    types.WarpQuery
 
 	schema collections.Schema
 }
@@ -32,8 +33,9 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService store.KVStoreService,
 	coreKeeper types.CoreKeeper,
-	warpQuery types.WarpQuery,
 	bankKeeper types.BankKeeper,
+	txFeesKeeper types.TxFeesKeeper,
+	warpQuery types.WarpQuery,
 ) Keeper {
 	sb := collections.NewSchemaBuilder(storeService)
 
@@ -52,11 +54,11 @@ func NewKeeper(
 			collections.Uint64Key,
 			collcompat.ProtoValue[types.AggregationHook](cdc),
 		),
-		bankKeeper: bankKeeper,
-		warpQuery:  warpQuery,
+		coreKeeper:   coreKeeper,
+		bankKeeper:   bankKeeper,
+		txFeesKeeper: txFeesKeeper,
+		warpQuery:    warpQuery,
 	}
-
-	k.SetCoreKeeper(coreKeeper)
 
 	schema, err := sb.Build()
 	if err != nil {
@@ -64,19 +66,12 @@ func NewKeeper(
 	}
 	k.schema = schema
 
-	return k
-}
-
-func (k *Keeper) SetCoreKeeper(coreKeeper types.CoreKeeper) {
-	if k.coreKeeper != nil {
-		panic("core keeper already set")
-	}
-
-	k.coreKeeper = coreKeeper
-
+	// Register HL post-dispatch hooks in x/core
 	router := coreKeeper.PostDispatchRouter()
-	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE, FeeHookHandler{*k})
-	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION, AggregationHookHandler{*k})
+	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE, FeeHookHandler{k})
+	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION, AggregationHookHandler{k})
+
+	return k
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

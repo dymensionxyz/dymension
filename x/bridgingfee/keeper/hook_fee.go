@@ -33,31 +33,36 @@ func (f FeeHookHandler) HookType() uint8 {
 }
 
 // PostDispatch collects fees from the sender for bridging tokens
-func (f FeeHookHandler) PostDispatch(ctx context.Context, _, hookId hyputil.HexAddress, metadata hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage, _ sdk.Coins) (sdk.Coins, error) {
-	fee, err := f.quoteFee(ctx, hookId, message.Sender, message.Body)
+func (f FeeHookHandler) PostDispatch(goCtx context.Context, _, hookId hyputil.HexAddress, metadata hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage, maxFee sdk.Coins) (sdk.Coins, error) {
+	// Parse warp payload to get transfer amount
+	payload, err := warptypes.ParseWarpPayload(message.Body)
+	if err != nil {
+		return nil, fmt.Errorf("parse warp payload: %w", err)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fee, err := f.QuoteFeeInBase(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
 	if err != nil {
 		return nil, err
 	}
-
 	if fee.IsZero() {
+		// Nothing to charge
 		return sdk.NewCoins(), nil
 	}
-
-	// TODO: think what to do with maxFee denom and fee denom
-	// maxFee in MsgRemoteTransfer is Coin (singular) and most likely is in DYM
-	// fee is in token.OriginDenom, eg in KAS
-
-	// For now, we don't check maxFee since denominations may differ
-	// In production, proper validation should be implemented
-
-	// Collect fee from sender to module account
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	feeCoins := sdk.NewCoins(fee)
-	if err := f.k.bankKeeper.SendCoinsFromAccountToModule(sdkCtx, metadata.Address, types.ModuleName, feeCoins); err != nil {
-		return nil, fmt.Errorf("collect fees: %w", err)
+
+	if !maxFee.IsAllGTE(feeCoins) {
+		return sdk.NewCoins(), fmt.Errorf("required fee payment exceeds max fee: %v", maxFee)
 	}
 
-	err = uevent.EmitTypedEvent(sdkCtx, &types.EventHLBridgingFee{
+	// Accumulate fees on the x/bridgingfee account
+	err = f.k.bankKeeper.SendCoinsFromAccountToModule(ctx, metadata.Address, types.ModuleName, feeCoins)
+	if err != nil {
+		return nil, fmt.Errorf("send fee from sender to x/bridgingfee: %w", err)
+	}
+
+	err = uevent.EmitTypedEvent(ctx, &types.EventHLBridgingFee{
 		HookId:    hookId,
 		Payer:     metadata.Address.String(),
 		TokenId:   message.Sender,
@@ -72,16 +77,25 @@ func (f FeeHookHandler) PostDispatch(ctx context.Context, _, hookId hyputil.HexA
 }
 
 // QuoteDispatch returns the required fees for dispatching a message
-func (f FeeHookHandler) QuoteDispatch(ctx context.Context, _, hookId hyputil.HexAddress, _ hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage) (sdk.Coins, error) {
-	fee, err := f.quoteFee(ctx, hookId, message.Sender, message.Body)
+func (f FeeHookHandler) QuoteDispatch(goCtx context.Context, _, hookId hyputil.HexAddress, _ hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage) (sdk.Coins, error) {
+	// Parse warp payload to get transfer amount
+	payload, err := warptypes.ParseWarpPayload(message.Body)
+	if err != nil {
+		return nil, fmt.Errorf("parse warp payload: %w", err)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fee, err := f.QuoteFeeInBase(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
 	if err != nil {
 		return nil, err
 	}
+
 	return sdk.NewCoins(fee), nil
 }
 
-// quoteFee calculates the fee required for a specific token transfer
-func (f FeeHookHandler) quoteFee(ctx context.Context, hookId hyputil.HexAddress, sender hyputil.HexAddress, body []byte) (sdk.Coin, error) {
+// QuoteFeeInBase calculates the fee in base denom required for a specific token transfer
+func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddress, sender hyputil.HexAddress, transferAmt math.Int) (sdk.Coin, error) {
 	// Get the fee hook configuration
 	hook, err := f.k.feeHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
@@ -102,22 +116,21 @@ func (f FeeHookHandler) quoteFee(ctx context.Context, hookId hyputil.HexAddress,
 		return sdk.Coin{}, nil
 	}
 
-	// Get token information from warp keeper
+	// Get original denom of the token
 	tokenResp, err := f.k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: sender.String()})
 	if err != nil {
 		return sdk.Coin{}, fmt.Errorf("get token from warp keeper: %w", err)
 	}
 
-	// Parse warp payload to get transfer amount
-	payload, err := warptypes.ParseWarpPayload(body)
+	// fee = transferAmt * outboundFee
+	fee := assetFee.OutboundFee.MulInt(transferAmt).TruncateInt()
+
+	feeCoin := sdk.NewCoin(tokenResp.Token.OriginDenom, fee)
+
+	feeBase, err := f.k.txFeesKeeper.CalcCoinInBaseDenom(ctx, feeCoin)
 	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("parse warp payload: %w", err)
+		return sdk.Coin{}, fmt.Errorf("calc fee in base denom: %w", err)
 	}
 
-	// Calculate fee: payload.Amount * outboundFee
-	// outboundFee is a LegacyDec, so we need to multiply and truncate to get integer
-	transferAmount := math.NewIntFromBigInt(payload.Amount())
-	feeAmount := assetFee.OutboundFee.MulInt(transferAmount).TruncateInt()
-
-	return sdk.NewCoin(tokenResp.Token.OriginDenom, feeAmount), nil
+	return feeBase, nil
 }
