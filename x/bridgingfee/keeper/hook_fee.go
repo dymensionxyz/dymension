@@ -57,11 +57,12 @@ func (f FeeHookHandler) PostDispatch(ctx context.Context, _, hookId hyputil.HexA
 		return nil, fmt.Errorf("collect fees: %w", err)
 	}
 
-	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventHLBridgingFee{
-		HookId:  hookId.String(),
-		Sender:  metadata.Address.String(),
-		Fee:     fee.String(),
-		TokenId: message.Sender.String(),
+	err = uevent.EmitTypedEvent(sdkCtx, &types.EventHLBridgingFee{
+		HookId:    hookId,
+		Payer:     metadata.Address.String(),
+		TokenId:   message.Sender,
+		Fee:       fee.String(),
+		MessageId: message.Id(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)

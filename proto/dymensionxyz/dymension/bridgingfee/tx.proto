@@ -11,13 +11,17 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
-  rpc CreateBridgingFeeHook(MsgCreateBridgingFeeHook) returns (MsgCreateBridgingFeeHookResponse);
+  rpc CreateBridgingFeeHook(MsgCreateBridgingFeeHook)
+      returns (MsgCreateBridgingFeeHookResponse);
 
-  rpc SetBridgingFeeHook(MsgSetBridgingFeeHook) returns (MsgSetBridgingFeeHookResponse);
+  rpc SetBridgingFeeHook(MsgSetBridgingFeeHook)
+      returns (MsgSetBridgingFeeHookResponse);
 
-  rpc CreateAggregationHook(MsgCreateAggregationHook) returns (MsgCreateAggregationHookResponse);
+  rpc CreateAggregationHook(MsgCreateAggregationHook)
+      returns (MsgCreateAggregationHookResponse);
 
-  rpc SetAggregationHook(MsgSetAggregationHook) returns (MsgSetAggregationHookResponse);
+  rpc SetAggregationHook(MsgSetAggregationHook)
+      returns (MsgSetAggregationHookResponse);
 }
 
 message MsgCreateBridgingFeeHook {

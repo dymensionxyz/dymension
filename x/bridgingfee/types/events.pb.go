@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	github_com_bcp_innovations_hyperlane_cosmos_util "github.com/bcp-innovations/hyperlane-cosmos/util"
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -25,14 +26,11 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type EventHLBridgingFee struct {
-	// ID of the hook that collected the fee
-	HookId string `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3" json:"hook_id,omitempty"`
-	// Address of the sender who paid the fee
-	Sender string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	// Fee amount and denomination that was collected
-	Fee string `protobuf:"bytes,3,opt,name=fee,proto3" json:"fee,omitempty"`
-	// Token ID that triggered the fee collection
-	TokenId string `protobuf:"bytes,4,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
+	HookId    github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"hook_id"`
+	Payer     string                                                      `protobuf:"bytes,2,opt,name=payer,proto3" json:"payer,omitempty"`
+	TokenId   github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"varint,3,opt,name=token_id,json=tokenId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"token_id"`
+	Fee       string                                                      `protobuf:"bytes,4,opt,name=fee,proto3" json:"fee,omitempty"`
+	MessageId github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,5,opt,name=message_id,json=messageId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"message_id"`
 }
 
 func (m *EventHLBridgingFee) Reset()         { *m = EventHLBridgingFee{} }
@@ -68,16 +66,9 @@ func (m *EventHLBridgingFee) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventHLBridgingFee proto.InternalMessageInfo
 
-func (m *EventHLBridgingFee) GetHookId() string {
+func (m *EventHLBridgingFee) GetPayer() string {
 	if m != nil {
-		return m.HookId
-	}
-	return ""
-}
-
-func (m *EventHLBridgingFee) GetSender() string {
-	if m != nil {
-		return m.Sender
+		return m.Payer
 	}
 	return ""
 }
@@ -89,16 +80,9 @@ func (m *EventHLBridgingFee) GetFee() string {
 	return ""
 }
 
-func (m *EventHLBridgingFee) GetTokenId() string {
-	if m != nil {
-		return m.TokenId
-	}
-	return ""
-}
-
 type EventFeeHookCreated struct {
-	HookId string `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3" json:"hook_id,omitempty"`
-	Owner  string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	HookId github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"hook_id"`
+	Owner  string                                                      `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 }
 
 func (m *EventFeeHookCreated) Reset()         { *m = EventFeeHookCreated{} }
@@ -134,13 +118,6 @@ func (m *EventFeeHookCreated) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventFeeHookCreated proto.InternalMessageInfo
 
-func (m *EventFeeHookCreated) GetHookId() string {
-	if m != nil {
-		return m.HookId
-	}
-	return ""
-}
-
 func (m *EventFeeHookCreated) GetOwner() string {
 	if m != nil {
 		return m.Owner
@@ -149,8 +126,10 @@ func (m *EventFeeHookCreated) GetOwner() string {
 }
 
 type EventFeeHookUpdated struct {
-	HookId string `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3" json:"hook_id,omitempty"`
-	Owner  string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	HookId            github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"hook_id"`
+	Owner             string                                                      `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	NewOwner          string                                                      `protobuf:"bytes,3,opt,name=new_owner,json=newOwner,proto3" json:"new_owner,omitempty"`
+	RenounceOwnership bool                                                        `protobuf:"varint,4,opt,name=renounce_ownership,json=renounceOwnership,proto3" json:"renounce_ownership,omitempty"`
 }
 
 func (m *EventFeeHookUpdated) Reset()         { *m = EventFeeHookUpdated{} }
@@ -186,13 +165,6 @@ func (m *EventFeeHookUpdated) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventFeeHookUpdated proto.InternalMessageInfo
 
-func (m *EventFeeHookUpdated) GetHookId() string {
-	if m != nil {
-		return m.HookId
-	}
-	return ""
-}
-
 func (m *EventFeeHookUpdated) GetOwner() string {
 	if m != nil {
 		return m.Owner
@@ -200,9 +172,23 @@ func (m *EventFeeHookUpdated) GetOwner() string {
 	return ""
 }
 
+func (m *EventFeeHookUpdated) GetNewOwner() string {
+	if m != nil {
+		return m.NewOwner
+	}
+	return ""
+}
+
+func (m *EventFeeHookUpdated) GetRenounceOwnership() bool {
+	if m != nil {
+		return m.RenounceOwnership
+	}
+	return false
+}
+
 type EventAggregationHookCreated struct {
-	HookId string `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3" json:"hook_id,omitempty"`
-	Owner  string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	HookId github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"hook_id"`
+	Owner  string                                                      `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 }
 
 func (m *EventAggregationHookCreated) Reset()         { *m = EventAggregationHookCreated{} }
@@ -238,13 +224,6 @@ func (m *EventAggregationHookCreated) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventAggregationHookCreated proto.InternalMessageInfo
 
-func (m *EventAggregationHookCreated) GetHookId() string {
-	if m != nil {
-		return m.HookId
-	}
-	return ""
-}
-
 func (m *EventAggregationHookCreated) GetOwner() string {
 	if m != nil {
 		return m.Owner
@@ -253,8 +232,10 @@ func (m *EventAggregationHookCreated) GetOwner() string {
 }
 
 type EventAggregationHookUpdated struct {
-	HookId string `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3" json:"hook_id,omitempty"`
-	Owner  string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	HookId            github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"hook_id"`
+	Owner             string                                                      `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	NewOwner          string                                                      `protobuf:"bytes,3,opt,name=new_owner,json=newOwner,proto3" json:"new_owner,omitempty"`
+	RenounceOwnership bool                                                        `protobuf:"varint,4,opt,name=renounce_ownership,json=renounceOwnership,proto3" json:"renounce_ownership,omitempty"`
 }
 
 func (m *EventAggregationHookUpdated) Reset()         { *m = EventAggregationHookUpdated{} }
@@ -290,18 +271,25 @@ func (m *EventAggregationHookUpdated) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventAggregationHookUpdated proto.InternalMessageInfo
 
-func (m *EventAggregationHookUpdated) GetHookId() string {
-	if m != nil {
-		return m.HookId
-	}
-	return ""
-}
-
 func (m *EventAggregationHookUpdated) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
+}
+
+func (m *EventAggregationHookUpdated) GetNewOwner() string {
+	if m != nil {
+		return m.NewOwner
+	}
+	return ""
+}
+
+func (m *EventAggregationHookUpdated) GetRenounceOwnership() bool {
+	if m != nil {
+		return m.RenounceOwnership
+	}
+	return false
 }
 
 func init() {
@@ -317,28 +305,36 @@ func init() {
 }
 
 var fileDescriptor_d41adcfb5c2796ce = []byte{
-	// 331 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x92, 0x41, 0x4b, 0x42, 0x41,
-	0x10, 0xc7, 0x7d, 0x59, 0x5a, 0x7b, 0x8a, 0x4d, 0xe8, 0x69, 0xb0, 0x84, 0xa7, 0x2e, 0xbd, 0x17,
-	0x78, 0xe9, 0xaa, 0x91, 0x28, 0x74, 0x32, 0xba, 0x74, 0x48, 0xd4, 0x1d, 0xd7, 0x45, 0xdc, 0x91,
-	0xdd, 0xcd, 0xb4, 0xcf, 0xd0, 0xa1, 0x0f, 0xd3, 0x87, 0xe8, 0x28, 0x9d, 0x3a, 0x86, 0x7e, 0x91,
-	0xd8, 0x7d, 0x52, 0x16, 0x3c, 0xe8, 0x60, 0xb7, 0xf9, 0xff, 0x99, 0xff, 0x6f, 0x66, 0x60, 0x48,
-	0xcc, 0x67, 0x23, 0x50, 0x46, 0xa2, 0x9a, 0xce, 0x1e, 0xbf, 0x45, 0xdc, 0xd5, 0x92, 0x0b, 0xa9,
-	0x44, 0x1f, 0x20, 0x86, 0x09, 0x28, 0x6b, 0xa2, 0xb1, 0x46, 0x8b, 0xb4, 0xbc, 0x1e, 0x88, 0xbe,
-	0x44, 0xb4, 0x16, 0x28, 0x15, 0x7b, 0x68, 0x46, 0x68, 0xda, 0x3e, 0x11, 0x27, 0x22, 0x89, 0x97,
-	0x0a, 0x02, 0x05, 0x26, 0xbe, 0xab, 0x12, 0xb7, 0xfc, 0x14, 0x10, 0x7a, 0xe9, 0xa6, 0x34, 0xae,
-	0x6a, 0x2b, 0x4e, 0x1d, 0x80, 0x1e, 0x92, 0xfc, 0x00, 0x71, 0xd8, 0x96, 0x3c, 0x0c, 0x8e, 0x83,
-	0x93, 0xbd, 0x56, 0xce, 0xc9, 0x26, 0xa7, 0x67, 0x24, 0x67, 0x40, 0x71, 0xd0, 0xe1, 0x96, 0xf3,
-	0x6b, 0xe1, 0xdb, 0xcb, 0x69, 0x61, 0x35, 0xa7, 0xca, 0xb9, 0x06, 0x63, 0xae, 0xad, 0x96, 0x4a,
-	0xb4, 0x56, 0x7d, 0x74, 0x9f, 0x64, 0xfb, 0x00, 0x61, 0xd6, 0x63, 0x5c, 0x49, 0x8b, 0x64, 0xd7,
-	0xe2, 0x10, 0x94, 0xa3, 0x6f, 0x7b, 0x3b, 0xef, 0x75, 0x93, 0x97, 0xef, 0xc8, 0x81, 0xdf, 0xa6,
-	0x0e, 0xd0, 0x40, 0x1c, 0x5e, 0x68, 0xe8, 0x58, 0xe0, 0xe9, 0xeb, 0x44, 0x64, 0x07, 0x1f, 0xd4,
-	0x1f, 0xb6, 0x49, 0xda, 0x7e, 0xf3, 0x6f, 0xc6, 0x7c, 0xb3, 0xfc, 0x3e, 0x39, 0xf2, 0xfc, 0xaa,
-	0x10, 0x1a, 0x44, 0xc7, 0x4a, 0x54, 0xff, 0x72, 0x47, 0xca, 0x9c, 0x4d, 0xdf, 0x53, 0x6b, 0xbd,
-	0x2e, 0x58, 0x30, 0x5f, 0xb0, 0xe0, 0x63, 0xc1, 0x82, 0xe7, 0x25, 0xcb, 0xcc, 0x97, 0x2c, 0xf3,
-	0xbe, 0x64, 0x99, 0xdb, 0x73, 0x21, 0xed, 0xe0, 0xbe, 0x1b, 0xf5, 0x70, 0x94, 0xf6, 0xc9, 0x93,
-	0x4a, 0x3c, 0xfd, 0xf1, 0xce, 0x76, 0x36, 0x06, 0xd3, 0xcd, 0xf9, 0xcf, 0xab, 0x7c, 0x06, 0x00,
-	0x00, 0xff, 0xff, 0x17, 0x99, 0x6e, 0x4a, 0x01, 0x03, 0x00, 0x00,
+	// 461 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x54, 0x4f, 0x6b, 0x13, 0x41,
+	0x14, 0xcf, 0x26, 0xb6, 0x4d, 0x06, 0x04, 0x1d, 0x7b, 0x88, 0x15, 0xb6, 0x65, 0x4f, 0xbd, 0x64,
+	0xe7, 0x50, 0x04, 0xc1, 0x53, 0x53, 0x2c, 0x09, 0x08, 0x85, 0x15, 0x2f, 0x22, 0x86, 0xdd, 0xcc,
+	0xeb, 0x64, 0x48, 0x33, 0x6f, 0x99, 0x99, 0xfc, 0x59, 0xbf, 0x81, 0x37, 0xfd, 0x0c, 0x1e, 0xbd,
+	0xfa, 0x21, 0x7a, 0x2c, 0x9e, 0xc4, 0x43, 0x91, 0xe4, 0x4b, 0x78, 0x94, 0x9d, 0x49, 0x35, 0x05,
+	0x45, 0x0f, 0x15, 0x02, 0xde, 0xe6, 0xcd, 0xbc, 0xdf, 0xef, 0xfd, 0xde, 0xef, 0x0d, 0x8f, 0x30,
+	0x5e, 0x8c, 0x40, 0x19, 0x89, 0x6a, 0x56, 0xbc, 0xfe, 0x19, 0xb0, 0x4c, 0x4b, 0x2e, 0xa4, 0x12,
+	0xa7, 0x00, 0x0c, 0x26, 0xa0, 0xac, 0x89, 0x73, 0x8d, 0x16, 0x69, 0xb4, 0x0a, 0x88, 0x7f, 0x04,
+	0xf1, 0x0a, 0x60, 0xe7, 0x7e, 0x1f, 0xcd, 0x08, 0x4d, 0xcf, 0x21, 0x98, 0x0f, 0x3c, 0x7c, 0x67,
+	0x5b, 0xa0, 0x40, 0x7f, 0x5f, 0x9e, 0xfc, 0x6d, 0xf4, 0xad, 0x4a, 0xe8, 0x93, 0xb2, 0x4a, 0xe7,
+	0x69, 0x7b, 0xc9, 0x73, 0x0c, 0x40, 0x5f, 0x92, 0xad, 0x01, 0xe2, 0xb0, 0x27, 0x79, 0x33, 0xd8,
+	0x0b, 0xf6, 0x1b, 0xed, 0xa3, 0xf3, 0xcb, 0xdd, 0xca, 0x97, 0xcb, 0xdd, 0xc7, 0x42, 0xda, 0xc1,
+	0x38, 0x8b, 0xfb, 0x38, 0x62, 0x59, 0x3f, 0x6f, 0x49, 0xa5, 0x70, 0x92, 0x5a, 0x89, 0xca, 0xb0,
+	0x41, 0x91, 0x83, 0x3e, 0x4b, 0x15, 0xb4, 0x7c, 0x61, 0x36, 0xb6, 0xf2, 0x2c, 0xee, 0xc0, 0xec,
+	0x90, 0x73, 0x0d, 0xc6, 0x24, 0x9b, 0x25, 0x67, 0x97, 0xd3, 0x98, 0x6c, 0xe4, 0x69, 0x01, 0xba,
+	0x59, 0x75, 0xdc, 0xcd, 0x4f, 0x1f, 0x5b, 0xdb, 0x4b, 0xad, 0xcb, 0xd4, 0x67, 0x56, 0x4b, 0x25,
+	0x12, 0x9f, 0x46, 0x5f, 0x91, 0xba, 0xc5, 0x21, 0xa8, 0x52, 0x4e, 0x6d, 0x2f, 0xd8, 0xbf, 0x7d,
+	0x33, 0x72, 0xb6, 0x1c, 0x69, 0x97, 0xd3, 0x3b, 0xa4, 0x76, 0x0a, 0xd0, 0xbc, 0x55, 0xaa, 0x49,
+	0xca, 0x23, 0xcd, 0x08, 0x19, 0x81, 0x31, 0xa9, 0x80, 0xb2, 0xe6, 0xc6, 0xcd, 0x59, 0xd0, 0x58,
+	0xd2, 0x76, 0x79, 0xf4, 0x3e, 0x20, 0xf7, 0x9c, 0xf5, 0xc7, 0x00, 0x1d, 0xc4, 0xe1, 0x91, 0x86,
+	0xd4, 0x02, 0xff, 0xf7, 0xde, 0xe3, 0x54, 0xfd, 0x8d, 0xf7, 0x2e, 0x2d, 0x7a, 0x53, 0xbd, 0xae,
+	0xf2, 0x79, 0xce, 0xd7, 0x4f, 0x25, 0x7d, 0x48, 0x1a, 0x0a, 0xa6, 0x3d, 0x8f, 0xa9, 0xfd, 0x01,
+	0x53, 0x57, 0x30, 0x3d, 0x71, 0xb0, 0x16, 0xa1, 0x1a, 0x14, 0x8e, 0x55, 0x1f, 0x3c, 0xd6, 0x0c,
+	0x64, 0xee, 0xfe, 0x41, 0x3d, 0xb9, 0x7b, 0xf5, 0x72, 0x72, 0xf5, 0x10, 0x7d, 0x08, 0xc8, 0x03,
+	0xe7, 0xc5, 0xa1, 0x10, 0x1a, 0x84, 0x6b, 0x6a, 0x7d, 0x27, 0xf7, 0xae, 0xfa, 0x6b, 0xb5, 0xff,
+	0xf1, 0x04, 0xdb, 0xc9, 0xf9, 0x3c, 0x0c, 0x2e, 0xe6, 0x61, 0xf0, 0x75, 0x1e, 0x06, 0x6f, 0x17,
+	0x61, 0xe5, 0x62, 0x11, 0x56, 0x3e, 0x2f, 0xc2, 0xca, 0x8b, 0x47, 0x2b, 0x4d, 0xff, 0x66, 0x33,
+	0x4f, 0x0e, 0xd8, 0xec, 0xda, 0x7a, 0xb6, 0x45, 0x0e, 0x26, 0xdb, 0x74, 0x9b, 0xf4, 0xe0, 0x7b,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0x36, 0xef, 0xeb, 0x8f, 0xd1, 0x05, 0x00, 0x00,
 }
 
 func (m *EventHLBridgingFee) Marshal() (dAtA []byte, err error) {
@@ -361,34 +357,45 @@ func (m *EventHLBridgingFee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.TokenId) > 0 {
-		i -= len(m.TokenId)
-		copy(dAtA[i:], m.TokenId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.TokenId)))
-		i--
-		dAtA[i] = 0x22
+	{
+		size := m.MessageId.Size()
+		i -= size
+		if _, err := m.MessageId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x2a
 	if len(m.Fee) > 0 {
 		i -= len(m.Fee)
 		copy(dAtA[i:], m.Fee)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.Fee)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.Sender)))
+	if m.TokenId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.TokenId))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Payer) > 0 {
+		i -= len(m.Payer)
+		copy(dAtA[i:], m.Payer)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Payer)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.HookId) > 0 {
-		i -= len(m.HookId)
-		copy(dAtA[i:], m.HookId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.HookId)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.HookId.Size()
+		i -= size
+		if _, err := m.HookId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -419,13 +426,16 @@ func (m *EventFeeHookCreated) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.HookId) > 0 {
-		i -= len(m.HookId)
-		copy(dAtA[i:], m.HookId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.HookId)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.HookId.Size()
+		i -= size
+		if _, err := m.HookId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -449,6 +459,23 @@ func (m *EventFeeHookUpdated) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.RenounceOwnership {
+		i--
+		if m.RenounceOwnership {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.NewOwner) > 0 {
+		i -= len(m.NewOwner)
+		copy(dAtA[i:], m.NewOwner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.NewOwner)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.Owner) > 0 {
 		i -= len(m.Owner)
 		copy(dAtA[i:], m.Owner)
@@ -456,13 +483,16 @@ func (m *EventFeeHookUpdated) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.HookId) > 0 {
-		i -= len(m.HookId)
-		copy(dAtA[i:], m.HookId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.HookId)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.HookId.Size()
+		i -= size
+		if _, err := m.HookId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -493,13 +523,16 @@ func (m *EventAggregationHookCreated) MarshalToSizedBuffer(dAtA []byte) (int, er
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.HookId) > 0 {
-		i -= len(m.HookId)
-		copy(dAtA[i:], m.HookId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.HookId)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.HookId.Size()
+		i -= size
+		if _, err := m.HookId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -523,6 +556,23 @@ func (m *EventAggregationHookUpdated) MarshalToSizedBuffer(dAtA []byte) (int, er
 	_ = i
 	var l int
 	_ = l
+	if m.RenounceOwnership {
+		i--
+		if m.RenounceOwnership {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.NewOwner) > 0 {
+		i -= len(m.NewOwner)
+		copy(dAtA[i:], m.NewOwner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.NewOwner)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.Owner) > 0 {
 		i -= len(m.Owner)
 		copy(dAtA[i:], m.Owner)
@@ -530,13 +580,16 @@ func (m *EventAggregationHookUpdated) MarshalToSizedBuffer(dAtA []byte) (int, er
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.HookId) > 0 {
-		i -= len(m.HookId)
-		copy(dAtA[i:], m.HookId)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.HookId)))
-		i--
-		dAtA[i] = 0xa
+	{
+		size := m.HookId.Size()
+		i -= size
+		if _, err := m.HookId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -557,22 +610,21 @@ func (m *EventHLBridgingFee) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.HookId)
+	l = m.HookId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = len(m.Payer)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
+	if m.TokenId != 0 {
+		n += 1 + sovEvents(uint64(m.TokenId))
 	}
 	l = len(m.Fee)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.TokenId)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
+	l = m.MessageId.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
@@ -582,10 +634,8 @@ func (m *EventFeeHookCreated) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.HookId)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
+	l = m.HookId.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -599,13 +649,18 @@ func (m *EventFeeHookUpdated) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.HookId)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
+	l = m.HookId.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.NewOwner)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.RenounceOwnership {
+		n += 2
 	}
 	return n
 }
@@ -616,10 +671,8 @@ func (m *EventAggregationHookCreated) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.HookId)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
+	l = m.HookId.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -633,13 +686,18 @@ func (m *EventAggregationHookUpdated) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.HookId)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
+	l = m.HookId.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.NewOwner)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.RenounceOwnership {
+		n += 2
 	}
 	return n
 }
@@ -709,11 +767,13 @@ func (m *EventHLBridgingFee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HookId = string(dAtA[iNdEx:postIndex])
+			if err := m.HookId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Payer", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -741,9 +801,28 @@ func (m *EventHLBridgingFee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
+			m.Payer = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TokenId", wireType)
+			}
+			m.TokenId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TokenId |= github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Fee", wireType)
 			}
@@ -775,9 +854,9 @@ func (m *EventHLBridgingFee) Unmarshal(dAtA []byte) error {
 			}
 			m.Fee = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TokenId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MessageId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -805,7 +884,9 @@ func (m *EventHLBridgingFee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.TokenId = string(dAtA[iNdEx:postIndex])
+			if err := m.MessageId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -887,7 +968,9 @@ func (m *EventFeeHookCreated) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HookId = string(dAtA[iNdEx:postIndex])
+			if err := m.HookId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1001,7 +1084,9 @@ func (m *EventFeeHookUpdated) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HookId = string(dAtA[iNdEx:postIndex])
+			if err := m.HookId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1035,6 +1120,58 @@ func (m *EventFeeHookUpdated) Unmarshal(dAtA []byte) error {
 			}
 			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewOwner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NewOwner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RenounceOwnership", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.RenounceOwnership = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -1115,7 +1252,9 @@ func (m *EventAggregationHookCreated) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HookId = string(dAtA[iNdEx:postIndex])
+			if err := m.HookId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1229,7 +1368,9 @@ func (m *EventAggregationHookUpdated) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HookId = string(dAtA[iNdEx:postIndex])
+			if err := m.HookId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1263,6 +1404,58 @@ func (m *EventAggregationHookUpdated) Unmarshal(dAtA []byte) error {
 			}
 			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewOwner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NewOwner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RenounceOwnership", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.RenounceOwnership = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])

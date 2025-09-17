@@ -197,7 +197,8 @@ func (m *QueryFeeHooksResponse) GetFeeHooks() []HLFeeHook {
 	return nil
 }
 
-// QueryAggregationHookRequest is the request type for the Query/AggregationHook RPC method.
+// QueryAggregationHookRequest is the request type for the Query/AggregationHook
+// RPC method.
 type QueryAggregationHookRequest struct {
 	Id github_com_bcp_innovations_hyperlane_cosmos_util.HexAddress `protobuf:"bytes,1,opt,name=id,proto3,customtype=github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress" json:"id"`
 }
@@ -235,7 +236,8 @@ func (m *QueryAggregationHookRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAggregationHookRequest proto.InternalMessageInfo
 
-// QueryAggregationHookResponse is the response type for the Query/AggregationHook RPC method.
+// QueryAggregationHookResponse is the response type for the
+// Query/AggregationHook RPC method.
 type QueryAggregationHookResponse struct {
 	AggregationHook AggregationHook `protobuf:"bytes,1,opt,name=aggregation_hook,json=aggregationHook,proto3" json:"aggregation_hook"`
 }
@@ -280,7 +282,8 @@ func (m *QueryAggregationHookResponse) GetAggregationHook() AggregationHook {
 	return AggregationHook{}
 }
 
-// QueryAggregationHooksRequest is the request type for the Query/AggregationHooks RPC method.
+// QueryAggregationHooksRequest is the request type for the
+// Query/AggregationHooks RPC method.
 type QueryAggregationHooksRequest struct {
 }
 
@@ -317,7 +320,8 @@ func (m *QueryAggregationHooksRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAggregationHooksRequest proto.InternalMessageInfo
 
-// QueryAggregationHooksResponse is the response type for the Query/AggregationHooks RPC method.
+// QueryAggregationHooksResponse is the response type for the
+// Query/AggregationHooks RPC method.
 type QueryAggregationHooksResponse struct {
 	AggregationHooks []AggregationHook `protobuf:"bytes,1,rep,name=aggregation_hooks,json=aggregationHooks,proto3" json:"aggregation_hooks"`
 }

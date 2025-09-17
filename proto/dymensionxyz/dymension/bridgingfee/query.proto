@@ -14,25 +14,31 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
 service Query {
   // FeeHook queries a fee hook by ID
   rpc FeeHook(QueryFeeHookRequest) returns (QueryFeeHookResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/fee_hook/{id}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/bridgingfee/fee_hook/{id}";
     option (cosmos.query.v1.module_query_safe) = true;
   }
 
   // FeeHooks queries all fee hooks
   rpc FeeHooks(QueryFeeHooksRequest) returns (QueryFeeHooksResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/fee_hooks";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/bridgingfee/fee_hooks";
     option (cosmos.query.v1.module_query_safe) = true;
   }
 
   // AggregationHook queries an aggregation hook by ID
-  rpc AggregationHook(QueryAggregationHookRequest) returns (QueryAggregationHookResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/aggregation_hook/{id}";
+  rpc AggregationHook(QueryAggregationHookRequest)
+      returns (QueryAggregationHookResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/bridgingfee/aggregation_hook/{id}";
     option (cosmos.query.v1.module_query_safe) = true;
   }
 
   // AggregationHooks queries all aggregation hooks
-  rpc AggregationHooks(QueryAggregationHooksRequest) returns (QueryAggregationHooksResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/bridgingfee/aggregation_hooks";
+  rpc AggregationHooks(QueryAggregationHooksRequest)
+      returns (QueryAggregationHooksResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/bridgingfee/aggregation_hooks";
     option (cosmos.query.v1.module_query_safe) = true;
   }
 }
@@ -59,7 +65,8 @@ message QueryFeeHooksResponse {
   repeated HLFeeHook fee_hooks = 1 [ (gogoproto.nullable) = false ];
 }
 
-// QueryAggregationHookRequest is the request type for the Query/AggregationHook RPC method.
+// QueryAggregationHookRequest is the request type for the Query/AggregationHook
+// RPC method.
 message QueryAggregationHookRequest {
   string id = 1 [
     (gogoproto.customtype) =
@@ -68,15 +75,19 @@ message QueryAggregationHookRequest {
   ];
 }
 
-// QueryAggregationHookResponse is the response type for the Query/AggregationHook RPC method.
+// QueryAggregationHookResponse is the response type for the
+// Query/AggregationHook RPC method.
 message QueryAggregationHookResponse {
   AggregationHook aggregation_hook = 1 [ (gogoproto.nullable) = false ];
 }
 
-// QueryAggregationHooksRequest is the request type for the Query/AggregationHooks RPC method.
+// QueryAggregationHooksRequest is the request type for the
+// Query/AggregationHooks RPC method.
 message QueryAggregationHooksRequest {}
 
-// QueryAggregationHooksResponse is the response type for the Query/AggregationHooks RPC method.
+// QueryAggregationHooksResponse is the response type for the
+// Query/AggregationHooks RPC method.
 message QueryAggregationHooksResponse {
-  repeated AggregationHook aggregation_hooks = 1 [ (gogoproto.nullable) = false ];
+  repeated AggregationHook aggregation_hooks = 1
+      [ (gogoproto.nullable) = false ];
 }

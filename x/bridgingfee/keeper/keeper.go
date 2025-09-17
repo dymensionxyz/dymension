@@ -9,7 +9,6 @@ import (
 	"cosmossdk.io/log"
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
-	hypercorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
@@ -32,12 +31,13 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService store.KVStoreService,
+	coreKeeper types.CoreKeeper,
 	warpQuery types.WarpQuery,
 	bankKeeper types.BankKeeper,
-) *Keeper {
+) Keeper {
 	sb := collections.NewSchemaBuilder(storeService)
 
-	k := &Keeper{
+	k := Keeper{
 		feeHooks: collections.NewMap(
 			sb,
 			types.KeyFeeHooks,
@@ -52,9 +52,11 @@ func NewKeeper(
 			collections.Uint64Key,
 			collcompat.ProtoValue[types.AggregationHook](cdc),
 		),
-		warpQuery:  warpQuery,
 		bankKeeper: bankKeeper,
+		warpQuery:  warpQuery,
 	}
+
+	k.SetCoreKeeper(coreKeeper)
 
 	schema, err := sb.Build()
 	if err != nil {
@@ -65,7 +67,7 @@ func NewKeeper(
 	return k
 }
 
-func (k *Keeper) SetCoreKeeper(coreKeeper *hypercorekeeper.Keeper) {
+func (k *Keeper) SetCoreKeeper(coreKeeper types.CoreKeeper) {
 	if k.coreKeeper != nil {
 		panic("core keeper already set")
 	}
@@ -102,7 +104,7 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 
 	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventFeeHookCreated{
-		HookId: hexAddr.String(),
+		HookId: hexAddr,
 		Owner:  msg.Owner,
 	})
 	if err != nil {
@@ -142,7 +144,7 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 
 	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventFeeHookUpdated{
-		HookId: msg.Id.String(),
+		HookId: msg.Id,
 		Owner:  hook.Owner,
 	})
 	if err != nil {
@@ -173,7 +175,7 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 
 	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventAggregationHookCreated{
-		HookId: hexAddr.String(),
+		HookId: hexAddr,
 		Owner:  msg.Owner,
 	})
 	if err != nil {
@@ -213,7 +215,7 @@ func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggr
 
 	// Emit event
 	err = uevent.EmitTypedEvent(sdk.UnwrapSDKContext(ctx), &types.EventAggregationHookUpdated{
-		HookId: msg.Id.String(),
+		HookId: msg.Id,
 		Owner:  hook.Owner,
 	})
 	if err != nil {
