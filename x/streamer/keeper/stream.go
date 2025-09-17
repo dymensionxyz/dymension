@@ -22,7 +22,6 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 	stream.EpochCoins = epochCoins
 
 	if stream.IsPumpStream() {
-		// Pump streams should always have one coin with base denom
 		stream.PumpParams.EpochCoinsLeft = stream.EpochCoins
 	}
 

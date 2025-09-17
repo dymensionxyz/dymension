@@ -206,7 +206,7 @@ func (m *Stream) GetPumpParams() *PumpParams {
 }
 
 type PumpParams struct {
-	// EpochBudgetLeft is coins that is left for pumping in the epoch.
+	// EpochCoinsLeft is coins that is left for pumping in the epoch.
 	EpochCoinsLeft github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=epoch_coins_left,json=epochCoinsLeft,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"epoch_coins_left"`
 	// NumPumps is a target number of pumps that expected to happen
 	// in the epoch (probabilistically)

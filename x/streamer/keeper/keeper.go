@@ -144,7 +144,7 @@ func (k Keeper) CreatePumpStream(
 	pumpDistr types.PumpDistr,
 	pumpTarget types.PumpTarget,
 ) (uint64, error) {
-	err := k.ValidateGenericStream(ctx, stream)
+	err := k.ValidateStreamParams(ctx, stream.Coins, stream.EpochIdentifier, stream.NumEpochsPaidOver)
 	if err != nil {
 		return 0, fmt.Errorf("validate stream: %w", err)
 	}
