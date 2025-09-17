@@ -35,7 +35,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	creator := sdk.MustAccAddressFromBech32(msg.Creator)
 
-	if err := k.hooks.RollappCreated(ctx, msg.RollappId, msg.Alias, creator); err != nil {
+	if err := k.hooks.RollappCreated(ctx, msg.RollappId, msg.Alias, creator, msg.FeeDenom); err != nil {
 		return nil, fmt.Errorf("rollapp created hook: %w", err)
 	}
 

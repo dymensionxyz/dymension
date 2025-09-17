@@ -1,7 +1,9 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ sdk.Msg = &MsgCreateRollapp{}
@@ -15,6 +17,7 @@ func NewMsgCreateRollapp(
 	vmType Rollapp_VMType,
 	metadata *RollappMetadata,
 	genesisInfo *GenesisInfo,
+	feeDenom string,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:          creator,
@@ -25,6 +28,7 @@ func NewMsgCreateRollapp(
 		VmType:           vmType,
 		Metadata:         metadata,
 		GenesisInfo:      genesisInfo,
+		FeeDenom:         feeDenom,
 	}
 }
 
@@ -51,6 +55,10 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 func (msg *MsgCreateRollapp) ValidateBasic() error {
 	if len(msg.Alias) == 0 {
 		return ErrInvalidAlias
+	}
+
+	if sdk.ValidateDenom(msg.FeeDenom) != nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fee denom")
 	}
 
 	rollapp := msg.GetRollapp()
