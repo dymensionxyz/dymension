@@ -24,22 +24,20 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 
 // ExportGenesis returns the capability module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	// Export fee hooks
-	var feeHooks []types.HLFeeHook
-	err := k.feeHooks.Walk(ctx, nil, func(key uint64, value types.HLFeeHook) (stop bool, err error) {
-		feeHooks = append(feeHooks, value)
-		return false, nil
-	})
+	iter, err := k.feeHooks.Iterate(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	feeHooks, err := iter.Values()
 	if err != nil {
 		panic(err)
 	}
 
-	// Export aggregation hooks
-	var aggregationHooks []types.AggregationHook
-	err = k.aggregationHooks.Walk(ctx, nil, func(key uint64, value types.AggregationHook) (stop bool, err error) {
-		aggregationHooks = append(aggregationHooks, value)
-		return false, nil
-	})
+	iter1, err := k.aggregationHooks.Iterate(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	aggregationHooks, err := iter1.Values()
 	if err != nil {
 		panic(err)
 	}

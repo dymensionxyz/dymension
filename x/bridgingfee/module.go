@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -24,6 +23,10 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasGenesis     = AppModule{}
+	_ module.HasServices    = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -35,8 +38,9 @@ type AppModuleBasic struct {
 	cdc codec.BinaryCodec
 }
 
-func NewAppModuleBasic(cdc codec.BinaryCodec) AppModuleBasic {
-	return AppModuleBasic{cdc: cdc}
+// NewAppModuleBasic creates a new AppModuleBasic struct.
+func NewAppModuleBasic() AppModuleBasic {
+	return AppModuleBasic{}
 }
 
 // Name returns the capability module's name.
@@ -44,7 +48,10 @@ func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-func (AppModuleBasic) RegisterCodec(cdc *codec.LegacyAmino) {}
+// RegisterLegacyAminoCodec registers the module's types on the LegacyAmino codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterCodec(cdc)
+}
 
 // RegisterInterfaces registers the module's interface types
 func (a AppModuleBasic) RegisterInterfaces(reg codectypes.InterfaceRegistry) {
@@ -67,7 +74,9 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		return
+	}
 }
 
 // GetTxCmd returns the capability module's root tx command.
@@ -77,7 +86,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns the capability module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd(types.StoreKey)
+	return cli.GetQueryCmd()
 }
 
 // ----------------------------------------------------------------------------
@@ -91,15 +100,18 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
-func NewAppModule(
-	cdc codec.Codec,
-	keeper keeper.Keeper,
-) AppModule {
+func NewAppModule(keeper keeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: NewAppModuleBasic(cdc),
+		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
 	}
 }
+
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
 
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
@@ -118,14 +130,12 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	// Initialize global index to index in genesis state
 	cdc.MustUnmarshalJSON(gs, &genState)
 
 	am.keeper.InitGenesis(ctx, genState)
-
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
@@ -136,12 +146,3 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
-
-// BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {}
-
-// EndBlock executes all ABCI EndBlock logic respective to the capability module. It
-// returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}

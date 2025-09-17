@@ -13,7 +13,6 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
-// FeeHookHandler implements the fee collection post-dispatch hook
 type FeeHookHandler struct {
 	k Keeper
 }

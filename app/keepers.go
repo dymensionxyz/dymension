@@ -83,6 +83,8 @@ import (
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	circuittypes "cosmossdk.io/x/circuit/types"
+	bridgingfeekeeper "github.com/dymensionxyz/dymension/v3/x/bridgingfee/keeper"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -178,11 +180,11 @@ type AppKeepers struct {
 
 	DymNSKeeper dymnskeeper.Keeper
 
-	HyperCoreKeeper hypercorekeeper.Keeper
-	HyperWarpKeeper hyperwarpkeeper.Keeper
-	KasKeeper       *kaskeeper.Keeper
-
-	Forward *forward.Forward
+	HyperCoreKeeper   hypercorekeeper.Keeper
+	HyperWarpKeeper   hyperwarpkeeper.Keeper
+	KasKeeper         *kaskeeper.Keeper
+	BridgingFeeKeeper bridgingfeekeeper.Keeper
+	Forward           *forward.Forward
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -547,8 +549,6 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 	)
 
-	a.HyperCoreKeeper.PostDispatchRouter().RegisterModule()
-
 	a.HyperWarpKeeper = hyperwarpkeeper.NewKeeper(
 		appCodec,
 		a.AccountKeeper.AddressCodec(),
@@ -571,6 +571,15 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
 		govModuleAddress,
 		&a.HyperCoreKeeper,
+	)
+
+	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[bridgingfeetypes.ModuleName]),
+		a.HyperCoreKeeper,
+		a.BankKeeper,
+		a.TxFeesKeeper,
+		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 	)
 
 	a.HyperWarpKeeper.SetHook(a.Forward)

@@ -25,6 +25,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
@@ -136,6 +137,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	hypercoretypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 
 	// ethermint keys
 	evmtypes.StoreKey,

@@ -8,6 +8,7 @@ import "cosmos/query/v1/query.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/bridgingfee/types.proto";
 import "dymensionxyz/dymension/bridgingfee/genesis.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
 
@@ -63,11 +64,14 @@ message QueryFeeHookResponse {
 }
 
 // QueryFeeHooksRequest is the request type for the Query/FeeHooks RPC method.
-message QueryFeeHooksRequest {}
+message QueryFeeHooksRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
 
 // QueryFeeHooksResponse is the response type for the Query/FeeHooks RPC method.
 message QueryFeeHooksResponse {
   repeated HLFeeHook fee_hooks = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryAggregationHookRequest is the request type for the Query/AggregationHook
@@ -84,13 +88,16 @@ message QueryAggregationHookResponse {
 
 // QueryAggregationHooksRequest is the request type for the
 // Query/AggregationHooks RPC method.
-message QueryAggregationHooksRequest {}
+message QueryAggregationHooksRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
 
 // QueryAggregationHooksResponse is the response type for the
 // Query/AggregationHooks RPC method.
 message QueryAggregationHooksResponse {
   repeated AggregationHook aggregation_hooks = 1
       [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryQuoteFeePaymentRequest is the request type for the Query/QuoteFeePayment RPC method.

@@ -50,16 +50,15 @@ func (k queryServer) FeeHooks(ctx context.Context, req *types.QueryFeeHooksReque
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var hooks []types.HLFeeHook
-	err := k.feeHooks.Walk(ctx, nil, func(key uint64, value types.HLFeeHook) (stop bool, err error) {
-		hooks = append(hooks, value)
-		return false, nil
-	})
+	values, pagination, err := util.GetPaginatedFromMap(ctx, k.feeHooks, req.Pagination)
 	if err != nil {
-		return nil, fmt.Errorf("walk fee hooks: %w", err)
+		return nil, err
 	}
 
-	return &types.QueryFeeHooksResponse{FeeHooks: hooks}, nil
+	return &types.QueryFeeHooksResponse{
+		FeeHooks:   values,
+		Pagination: pagination,
+	}, nil
 }
 
 // AggregationHook returns an aggregation hook by ID
@@ -87,16 +86,15 @@ func (k queryServer) AggregationHooks(ctx context.Context, req *types.QueryAggre
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var hooks []types.AggregationHook
-	err := k.aggregationHooks.Walk(ctx, nil, func(key uint64, value types.AggregationHook) (stop bool, err error) {
-		hooks = append(hooks, value)
-		return false, nil
-	})
+	values, pagination, err := util.GetPaginatedFromMap(ctx, k.aggregationHooks, req.Pagination)
 	if err != nil {
-		return nil, fmt.Errorf("walk aggregation hooks: %w", err)
+		return nil, err
 	}
 
-	return &types.QueryAggregationHooksResponse{AggregationHooks: hooks}, nil
+	return &types.QueryAggregationHooksResponse{
+		AggregationHooks: values,
+		Pagination:       pagination,
+	}, nil
 }
 
 // QuoteFeePayment quotes the fee payment required for a transfer

@@ -9,6 +9,7 @@ import (
 	"cosmossdk.io/log"
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
@@ -85,6 +86,14 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 		return hyputil.HexAddress{}, fmt.Errorf("invalid msg: %w", err)
 	}
 
+	// Verify all tokenIDs exist
+	for _, fee := range msg.Fees {
+		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID})
+		if err != nil {
+			return hyputil.HexAddress{}, fmt.Errorf("token %s does not exist: %w", fee.TokenID, err)
+		}
+	}
+
 	// Get next hook ID
 	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE)
 	if err != nil {
@@ -118,6 +127,14 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 	err := msg.ValidateBasic()
 	if err != nil {
 		return fmt.Errorf("invalid msg: %w", err)
+	}
+
+	// Verify all tokenIDs exist
+	for _, fee := range msg.Fees {
+		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID})
+		if err != nil {
+			return fmt.Errorf("token %s does not exist: %w", fee.TokenID, err)
+		}
 	}
 
 	// Get existing hook
@@ -164,6 +181,14 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 		return hyputil.HexAddress{}, fmt.Errorf("invalid msg: %w", err)
 	}
 
+	// Verify all referenced hooks exist
+	for _, hookId := range msg.HookIds {
+		_, err := k.coreKeeper.PostDispatchRouter().GetModule(hookId)
+		if err != nil {
+			return hyputil.HexAddress{}, fmt.Errorf("get hook with id: %s: %w", hookId, err)
+		}
+	}
+
 	// Get next hook ID
 	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION)
 	if err != nil {
@@ -197,6 +222,14 @@ func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggr
 	err := msg.ValidateBasic()
 	if err != nil {
 		return fmt.Errorf("invalid msg: %w", err)
+	}
+
+	// Verify all referenced hooks exist
+	for _, hookId := range msg.HookIds {
+		_, err := k.coreKeeper.PostDispatchRouter().GetModule(hookId)
+		if err != nil {
+			return fmt.Errorf("get hook with id: %s: %w", hookId, err)
+		}
 	}
 
 	hookId := msg.Id.GetInternalId()

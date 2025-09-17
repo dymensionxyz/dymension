@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// AggregationHookHandler implements the aggregation post-dispatch hook
 type AggregationHookHandler struct {
 	k Keeper
 }

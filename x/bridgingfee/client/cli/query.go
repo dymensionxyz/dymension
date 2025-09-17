@@ -8,12 +8,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
@@ -45,14 +44,7 @@ func CmdQueryFeeHook() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			hookId, err := hyputil.HexAddressFromString(args[0])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.FeeHook(cmd.Context(), &types.QueryFeeHookRequest{
-				Id: hookId,
-			})
+			res, err := queryClient.FeeHook(cmd.Context(), &types.QueryFeeHookRequest{Id: args[0]})
 			if err != nil {
 				return err
 			}
@@ -104,14 +96,7 @@ func CmdQueryAggregationHook() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			hookId, err := hyputil.HexAddressFromString(args[0])
-			if err != nil {
-				return err
-			}
-
-			res, err := queryClient.AggregationHook(cmd.Context(), &types.QueryAggregationHookRequest{
-				Id: hookId,
-			})
+			res, err := queryClient.AggregationHook(cmd.Context(), &types.QueryAggregationHookRequest{Id: args[0]})
 			if err != nil {
 				return err
 			}

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -10,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 
-	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"cosmossdk.io/math"
+	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 )
 
@@ -86,7 +85,7 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 				return err
 			}
 
-			hookId, err := hyputil.HexAddressFromString(args[0])
+			hookId, err := hyputil.DecodeHexAddress(args[0])
 			if err != nil {
 				return err
 			}
@@ -141,7 +140,7 @@ func CmdCreateAggregationHook() *cobra.Command {
 
 			hookIds := make([]hyputil.HexAddress, len(args))
 			for i, idStr := range args {
-				hookId, err := hyputil.HexAddressFromString(idStr)
+				hookId, err := hyputil.DecodeHexAddress(idStr)
 				if err != nil {
 					return err
 				}
@@ -172,14 +171,14 @@ func CmdSetAggregationHook() *cobra.Command {
 				return err
 			}
 
-			hookId, err := hyputil.HexAddressFromString(args[0])
+			hookId, err := hyputil.DecodeHexAddress(args[0])
 			if err != nil {
 				return err
 			}
 
 			childHookIds := make([]hyputil.HexAddress, len(args)-1)
 			for i, idStr := range args[1:] {
-				childHookId, err := hyputil.HexAddressFromString(idStr)
+				childHookId, err := hyputil.DecodeHexAddress(idStr)
 				if err != nil {
 					return err
 				}
