@@ -448,6 +448,7 @@ func (a *AppKeepers) InitKeepers(
 		a.PoolManagerKeeper,
 		a.RollappKeeper,
 		a.TxFeesKeeper,
+		a.GAMMKeeper,
 		govModuleAddress,
 	)
 

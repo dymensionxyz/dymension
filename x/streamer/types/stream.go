@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	time "time"
 
 	"cosmossdk.io/math"
@@ -16,19 +17,8 @@ func NewStream(
 	epochIdentifier string,
 	numEpochsPaidOver uint64,
 	sponsored bool,
-	pumpParams *MsgCreateStream_PumpParams,
+	pumpParams *PumpParams,
 ) Stream {
-	epochCoins := coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver))
-	var pump *PumpParams
-	if pumpParams != nil {
-		pump = &PumpParams{
-			NumTopRollapps:  pumpParams.NumTopRollapps,
-			EpochBudget:     epochCoins[0].Amount,
-			EpochBudgetLeft: epochCoins[0].Amount,
-			NumPumps:        pumpParams.NumPumps,
-			PumpDistr:       pumpParams.PumpDistr,
-		}
-	}
 	return Stream{
 		Id:                   id,
 		DistributeTo:         distrTo,
@@ -40,7 +30,7 @@ func NewStream(
 		DistributedCoins:     sdk.Coins{},
 		Sponsored:            sponsored,
 		EpochCoins:           coins.QuoInt(math.NewIntFromUint64(numEpochsPaidOver)),
-		PumpParams:           pump,
+		PumpParams:           pumpParams,
 	}
 }
 
@@ -75,10 +65,50 @@ func (stream Stream) IsPumpStream() bool {
 	return stream.PumpParams != nil
 }
 
-func DefaultPumpParams() *MsgCreateStream_PumpParams {
-	return &MsgCreateStream_PumpParams{
-		NumTopRollapps: 1,
-		NumPumps:       1,
-		PumpDistr:      PumpDistr_PUMP_DISTR_UNIFORM,
+type PumpTarget isMsgCreatePumpStream_Target
+
+func PumpTargetRollapps(numTopRollapps uint32) PumpTarget {
+	return &MsgCreatePumpStream_Rollapps{
+		Rollapps: &TargetTopRollapps{NumTopRollapps: numTopRollapps},
 	}
+}
+
+func PumpTargetPool(poolId uint64, tokenOut string) PumpTarget {
+	return &MsgCreatePumpStream_Pool{
+		Pool: &TargetPool{
+			PoolId:   poolId,
+			TokenOut: tokenOut,
+		},
+	}
+}
+
+func ValidatePumpStreamParams(coins sdk.Coins, numPumps uint64, pumpDistr PumpDistr, target PumpTarget) error {
+	if coins.Len() != 1 {
+		return fmt.Errorf("pump stream must have one coin")
+	}
+	if pumpDistr == PumpDistr_PUMP_DISTR_UNSPECIFIED {
+		return fmt.Errorf("pump distribution must be set")
+	}
+	if numPumps == 0 {
+		return fmt.Errorf("num pumps must be greater than 0")
+	}
+	switch t := target.(type) {
+	case *MsgCreatePumpStream_Pool:
+		if t == nil || t.Pool == nil {
+			return fmt.Errorf("pool target must not be null")
+		}
+		if err := sdk.ValidateDenom(t.Pool.TokenOut); err != nil {
+			return fmt.Errorf("invalid token out: %w", err)
+		}
+	case *MsgCreatePumpStream_Rollapps:
+		if t == nil || t.Rollapps == nil {
+			return fmt.Errorf("rollapps target must not be null")
+		}
+		if t.Rollapps.NumTopRollapps == 0 {
+			return fmt.Errorf("num top rollapps must be greater than 0")
+		}
+	default:
+		return fmt.Errorf("invalid target type: %T", t)
+	}
+	return nil
 }

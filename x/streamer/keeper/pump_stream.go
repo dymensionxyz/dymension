@@ -99,10 +99,13 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 // 890 ≥ 25, so no pump this block
 func ShouldPump(
 	ctx sdk.Context,
-	pumpParams types.PumpParams,
+	budget math.Int,
+	left math.Int,
+	numPumps uint64,
+	pumpDistr types.PumpDistr,
 	epochBlocks math.Int,
 ) (math.Int, error) {
-	if pumpParams.NumPumps == 0 {
+	if numPumps <= 0 {
 		// Should not pump at all
 		return math.ZeroInt(), nil
 	}
@@ -121,18 +124,22 @@ func ShouldPump(
 
 	// Check if the random value falls within the pump probability:
 	// success if random value < pumpNum
-	if randomInRange < pumpParams.NumPumps {
-		return PumpAmt(ctx, pumpParams)
+	if randomInRange < numPumps {
+		return PumpAmt(ctx, budget, left, math.NewIntFromUint64(numPumps), pumpDistr)
 	}
 
 	return math.ZeroInt(), nil
 }
 
 // PumpAmt computes the random pump amount.
-func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
-	numPumps := math.NewIntFromUint64(pumpParams.NumPumps)
-
-	if pumpParams.EpochBudget.LT(numPumps) {
+func PumpAmt(
+	ctx sdk.Context,
+	budget math.Int,
+	left math.Int,
+	numPumps math.Int,
+	pumpDistr types.PumpDistr,
+) (math.Int, error) {
+	if budget.LT(numPumps) {
 		// The budget is too small to use it for pumping. It might happen
 		// close to the stream end if the epoch budget is too low, but it's
 		// not probable since EpochBudget ≈ 10^20, numPumps ≈ 10^5.
@@ -141,24 +148,24 @@ func PumpAmt(ctx sdk.Context, pumpParams types.PumpParams) (math.Int, error) {
 
 	randBig := new(big.Int)
 
-	switch pumpParams.PumpDistr {
+	switch pumpDistr {
 	case types.PumpDistr_PUMP_DISTR_UNIFORM:
 		// Draw a Uniform(0; 2*B/N) value
 		// Mean is B/N
-		modulo := pumpParams.EpochBudget.MulRaw(2).Quo(numPumps)
+		modulo := budget.MulRaw(2).Quo(numPumps)
 		randBig = rand.GenerateUniformRandomMod(ctx, modulo.BigIntMut())
 
 	case types.PumpDistr_PUMP_DISTR_EXPONENTIAL:
 		// Draw an Exp(N/B) value
 		// Mean is B/N
-		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), pumpParams.EpochBudget.BigInt())
+		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), budget.BigInt())
 
 	case types.PumpDistr_PUMP_DISTR_UNSPECIFIED:
 		return math.ZeroInt(), fmt.Errorf("pump distribution not specified")
 	}
 
 	r := math.NewIntFromBigIntMut(randBig)
-	return math.MinInt(r, pumpParams.EpochBudgetLeft), nil
+	return math.MinInt(r, left), nil
 }
 
 // ExecutePump performs the pump operation by buying tokens for a specific rollapp.
@@ -359,19 +366,12 @@ func (k Keeper) executePumpAmm(
 
 // DistributePumpStreams processes all pump streams and executes pumps if conditions are met
 func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Stream) error {
-	// All bought tokens should be burned
-	toBurn := make(sdk.Coins, 0)
-
 	sponsorshipDistr, err := k.sk.GetDistribution(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get sponsorship distribution: %w", err)
+		return fmt.Errorf("sponsorship distribution: %w", err)
 	}
 
-	// Always use base denom for budget
-	baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
-	if err != nil {
-		return fmt.Errorf("get base denom: %w", err)
-	}
+	toBurn := make(sdk.Coins, 0)
 
 	for _, stream := range pumpStreams {
 		if !stream.IsPumpStream() {
@@ -381,16 +381,19 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 
 		epochBlocks, err := k.EpochBlocks(ctx, stream.DistrEpochIdentifier)
 		if err != nil {
-			return fmt.Errorf("failed to get epoch blocks: %w", err)
+			return fmt.Errorf("get epoch blocks: %w", err)
 		}
 
 		pumpAmt, err := ShouldPump(
 			ctx,
-			*stream.PumpParams,
+			stream.EpochCoins[0].Amount,
+			stream.PumpParams.EpochCoinsLeft[0].Amount,
+			stream.PumpParams.NumPumps,
+			stream.PumpParams.PumpDistr,
 			epochBlocks,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to calculate pump amount: %w", err)
+			return fmt.Errorf("calculate pump amount: %w", err)
 		}
 
 		if pumpAmt.IsZero() {
@@ -398,61 +401,149 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			continue
 		}
 
-		// Get top N rollapps by cast voting power
-		pressure := k.TopRollapps(ctx, sponsorshipDistr.Gauges, pumpAmt, &stream.PumpParams.NumTopRollapps)
+		var (
+			totalPumped   = sdk.NewCoins()
+			totalTokenOut = sdk.NewCoins()
+			event         = types.EventPumped{StreamId: stream.Id}
+		)
 
-		totalPumped := sdk.NewCoins()
-		events := make([]types.EventPumped_Pump, 0)
-
-		// Distribute pump amount proportionally to each rollapp
-		for _, p := range pressure {
-			if p.Pressure.IsZero() {
-				continue
-			}
-
-			pumpCoin := sdk.NewCoin(baseDenom, p.Pressure)
-
-			tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
+		switch t := stream.PumpParams.Target.(type) {
+		case *types.PumpParams_Pool:
+			var e types.EventPumped_Pool
+			totalPumped, totalTokenOut, e, err = k.PumpPool(
+				ctx,
+				pumpAmt,
+				stream.Coins[0].Denom,
+				*t.Pool,
+			)
 			if err != nil {
-				k.Logger(ctx).Error("failed to execute pump", "streamID", stream.Id, "rollappID", p.RollappId, "error", err)
-				// Continue with other rollapps even if one fails
-				continue
+				return fmt.Errorf("pump pool: %w", err)
 			}
+			event.Pool = &e
 
-			totalPumped = totalPumped.Add(pumpCoin)
-			toBurn = toBurn.Add(tokenOut)
-			events = append(events, types.EventPumped_Pump{
-				RollappId: p.RollappId,
-				PumpAmt:   p.Pressure,
-				TokenOut:  tokenOut,
-			})
+		case *types.PumpParams_Rollapps:
+			var e []types.EventPumped_Rollapp
+			totalPumped, totalTokenOut, e, err = k.PumpRollapps(
+				ctx,
+				pumpAmt,
+				stream.Coins[0].Denom, // this denom is always the base denom when pumping rollapps
+				sponsorshipDistr.Gauges,
+				*t.Rollapps,
+			)
+			if err != nil {
+				return fmt.Errorf("pump rollapps: %w", err)
+			}
+			event.Rollapps = e
 		}
 
 		// Update the stream if needed
 		if !totalPumped.IsZero() {
-			stream.PumpParams.EpochBudgetLeft = stream.PumpParams.EpochBudgetLeft.Sub(totalPumped.AmountOfNoDenomValidation(baseDenom))
+			stream.PumpParams.EpochCoinsLeft = stream.PumpParams.EpochCoinsLeft.Sub(totalPumped...)
 			stream.AddDistributedCoins(totalPumped)
 
 			err = k.SetStream(ctx, &stream)
 			if err != nil {
-				return fmt.Errorf("failed to update stream after pump: %w", err)
+				return fmt.Errorf("update stream after pump: %w", err)
 			}
 
-			err = uevent.EmitTypedEvent(ctx, &types.EventPumped{StreamId: stream.Id, Pumps: events})
+			err = uevent.EmitTypedEvent(ctx, &event)
 			if err != nil {
 				return fmt.Errorf("emit EventPumped: %w", err)
 			}
 		}
+
+		if stream.PumpParams.BurnPumped && !totalTokenOut.IsZero() {
+			toBurn = toBurn.Add(totalTokenOut...)
+		}
 	}
 
-	if toBurn.Len() != 0 {
+	if !toBurn.IsZero() {
 		err = k.bk.BurnCoins(ctx, types.ModuleName, toBurn)
 		if err != nil {
-			return fmt.Errorf("failed to burn coins: %w", err)
+			return fmt.Errorf("burn coins: %w", err)
 		}
 	}
 
 	return nil
+}
+
+func (k Keeper) PumpRollapps(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	gauges sponsorshiptypes.Gauges,
+	rollapps types.TargetTopRollapps,
+) (
+	pumped, tokenOut sdk.Coins,
+	events []types.EventPumped_Rollapp,
+	err error,
+) {
+	var (
+		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, &rollapps.NumTopRollapps)
+		totalPumped   = sdk.NewCoins()
+		totalTokenOut = sdk.NewCoins()
+	)
+
+	// Distribute pump amount proportionally to each rollapp
+	for _, p := range pressure {
+		if p.Pressure.IsZero() {
+			continue
+		}
+
+		pumpCoin := sdk.NewCoin(pumpDenom, p.Pressure)
+
+		tokenOut, err := k.ExecutePump(ctx, pumpCoin, p.RollappId)
+		if err != nil {
+			k.Logger(ctx).Error("failed to execute pump", "rollappID", p.RollappId, "error", err)
+			// Continue with other rollapps even if one fails
+			continue
+		}
+
+		totalPumped = totalPumped.Add(pumpCoin)
+		totalTokenOut = totalTokenOut.Add(tokenOut)
+		events = append(events, types.EventPumped_Rollapp{
+			RollappId: p.RollappId,
+			PumpCoin:  pumpCoin,
+			TokenOut:  tokenOut,
+		})
+	}
+
+	return totalPumped, totalTokenOut, events, nil
+}
+
+func (k Keeper) PumpPool(
+	ctx sdk.Context,
+	pumpAmt math.Int,
+	pumpDenom string,
+	pool types.TargetPool,
+) (
+	pumped, tokenOut sdk.Coins,
+	event types.EventPumped_Pool,
+	err error,
+) {
+	tokenOutAmt, err := k.poolManagerKeeper.RouteExactAmountIn(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		[]poolmanagertypes.SwapAmountInRoute{{
+			PoolId:        pool.PoolId,
+			TokenOutDenom: pool.TokenOut,
+		}},
+		sdk.NewCoin(pumpDenom, pumpAmt),
+		math.ZeroInt(),
+	)
+	if err != nil {
+		return nil, nil, types.EventPumped_Pool{}, fmt.Errorf("route exact amount in: target denom: %s, error: %w", pool.TokenOut, err)
+	}
+
+	pumpCoin := sdk.NewCoin(pumpDenom, pumpAmt)
+	tokenOutCoin := sdk.NewCoin(pool.TokenOut, tokenOutAmt)
+
+	event = types.EventPumped_Pool{
+		PoolId:   pool.PoolId,
+		PumpCoin: pumpCoin,
+		TokenOut: tokenOutCoin,
+	}
+	return sdk.NewCoins(pumpCoin), sdk.NewCoins(tokenOutCoin), event, nil
 }
 
 // Number of milliseconds in the year.
