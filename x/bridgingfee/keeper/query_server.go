@@ -118,16 +118,16 @@ func (k queryServer) QuoteFeePayment(ctx context.Context, req *types.QueryQuoteF
 		return nil, errors.New("failed to convert transfer_amount to math.Int")
 	}
 
-	feeHandler := FeeHookHandler{k: k.Keeper}
+	feeHandler := NewFeeHookHandler(k.Keeper)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	feeCoin, err := feeHandler.QuoteFeeInBase(sdkCtx, hookId, tokenId, transferAmt)
+	fee, err := feeHandler.QuoteFeeInBase(sdkCtx, hookId, tokenId, transferAmt)
 	if err != nil {
 		return nil, fmt.Errorf("quote fee in base: %w", err)
 	}
 
 	return &types.QueryQuoteFeePaymentResponse{
-		FeeCoins: sdk.NewCoins(feeCoin),
+		FeeCoins: fee,
 	}, nil
 }

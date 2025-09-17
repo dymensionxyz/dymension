@@ -13,6 +13,10 @@ type AggregationHookHandler struct {
 	k Keeper
 }
 
+func NewAggregationHookHandler(k Keeper) AggregationHookHandler {
+	return AggregationHookHandler{k: k}
+}
+
 var _ hyputil.PostDispatchModule = AggregationHookHandler{}
 
 func (a AggregationHookHandler) Exists(ctx context.Context, hookId hyputil.HexAddress) (bool, error) {

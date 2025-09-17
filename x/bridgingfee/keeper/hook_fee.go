@@ -17,6 +17,11 @@ type FeeHookHandler struct {
 	k Keeper
 }
 
+// NewFeeHookHandler creates a new FeeHookHandler
+func NewFeeHookHandler(k Keeper) FeeHookHandler {
+	return FeeHookHandler{k: k}
+}
+
 var _ hyputil.PostDispatchModule = FeeHookHandler{}
 
 func (f FeeHookHandler) Exists(ctx context.Context, hookId hyputil.HexAddress) (bool, error) {
@@ -49,14 +54,13 @@ func (f FeeHookHandler) PostDispatch(goCtx context.Context, _, hookId hyputil.He
 		// Nothing to charge
 		return sdk.NewCoins(), nil
 	}
-	feeCoins := sdk.NewCoins(fee)
 
-	if !maxFee.IsAllGTE(feeCoins) {
+	if !maxFee.IsAllGTE(fee) {
 		return sdk.NewCoins(), fmt.Errorf("required fee payment exceeds max fee: %v", maxFee)
 	}
 
 	// Accumulate fees on the x/bridgingfee account
-	err = f.k.bankKeeper.SendCoinsFromAccountToModule(ctx, metadata.Address, types.ModuleName, feeCoins)
+	err = f.k.bankKeeper.SendCoinsFromAccountToModule(ctx, metadata.Address, types.ModuleName, fee)
 	if err != nil {
 		return nil, fmt.Errorf("send fee from sender to x/bridgingfee: %w", err)
 	}
@@ -72,7 +76,7 @@ func (f FeeHookHandler) PostDispatch(goCtx context.Context, _, hookId hyputil.He
 		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
-	return feeCoins, nil
+	return fee, nil
 }
 
 // QuoteDispatch returns the required fees for dispatching a message
@@ -90,15 +94,15 @@ func (f FeeHookHandler) QuoteDispatch(goCtx context.Context, _, hookId hyputil.H
 		return nil, err
 	}
 
-	return sdk.NewCoins(fee), nil
+	return fee, nil
 }
 
 // QuoteFeeInBase calculates the fee in base denom required for a specific token transfer
-func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddress, sender hyputil.HexAddress, transferAmt math.Int) (sdk.Coin, error) {
+func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddress, sender hyputil.HexAddress, transferAmt math.Int) (sdk.Coins, error) {
 	// Get the fee hook configuration
 	hook, err := f.k.feeHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("get fee hook: %w", err)
+		return nil, fmt.Errorf("get fee hook: %w", err)
 	}
 
 	// Check if we have a fee configuration for this token (sender is the token ID)
@@ -112,13 +116,13 @@ func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddres
 
 	// If no fee configured for this token, return zero fee
 	if assetFee == nil {
-		return sdk.Coin{}, nil
+		return nil, nil
 	}
 
 	// Get original denom of the token
 	tokenResp, err := f.k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: sender.String()})
 	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("get token from warp keeper: %w", err)
+		return nil, fmt.Errorf("get token from warp keeper: %w", err)
 	}
 
 	// fee = transferAmt * outboundFee
@@ -128,8 +132,8 @@ func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddres
 
 	feeBase, err := f.k.txFeesKeeper.CalcCoinInBaseDenom(ctx, feeCoin)
 	if err != nil {
-		return sdk.Coin{}, fmt.Errorf("calc fee in base denom: %w", err)
+		return nil, fmt.Errorf("calc fee in base denom: %w", err)
 	}
 
-	return feeBase, nil
+	return sdk.NewCoins(feeBase), nil
 }

@@ -69,8 +69,8 @@ func NewKeeper(
 
 	// Register HL post-dispatch hooks in x/core
 	router := coreKeeper.PostDispatchRouter()
-	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE, FeeHookHandler{k})
-	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION, AggregationHookHandler{k})
+	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE, NewFeeHookHandler(k))
+	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION, NewAggregationHookHandler(k))
 
 	return k
 }
