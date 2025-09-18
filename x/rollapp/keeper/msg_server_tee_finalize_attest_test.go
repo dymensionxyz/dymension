@@ -10,15 +10,16 @@ import (
 )
 
 var (
-	//go:embed testdata/tee/policy_values.json
-	policyValues string
-	//go:embed testdata/tee/query.rego
-	policyQuery string
-	//go:embed testdata/tee/policy.rego
-	policyStructure string
 	//go:embed testdata/tee/confidential_space_root.pem
 	gcpRootCertificate []byte
-	//go:embed testdata/tee/example_response.json
+
+	//go:embed testdata/tee/insecure_policy_values.json
+	policyValues string
+	//go:embed testdata/tee/insecure_query.rego
+	policyQuery string
+	//go:embed testdata/tee/insecure_policy.rego
+	policyStructure string
+	//go:embed testdata/tee/insecure_example_response.json
 	exampleResponse string
 )
 
