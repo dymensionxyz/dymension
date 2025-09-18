@@ -1,0 +1,33 @@
+{
+  "messages": [
+    {
+      "@type": "/dymensionxyz.dymension.rollapp.MsgUpdateParams",
+      "authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+      "params": {
+        "dispute_period_in_blocks": "1000",
+        "liveness_slash_blocks": "7200",
+        "liveness_slash_interval": "600",
+        "app_registration_fee": {
+          "denom": "adym",
+          "amount": "1000000000000000000"
+        },
+        "min_sequencer_bond_global": {
+          "denom": "adym",
+          "amount": "1000000000000000000"
+        },
+        "tee_config": {
+          "enabled": true,
+          "verify": false,
+          "policy_values": "",
+          "policy_query": "",
+          "policy_structure": "",
+          "gcp_root_cert_pem": ""
+        }
+      }
+    }
+  ],
+  "deposit": "10000000000adym",
+  "metadata": "Enable TEE for testing without verification",
+  "title": "Update RollApp Parameters - Enable TEE",
+  "summary": "This proposal updates the RollApp module parameters to enable TEE without verification for testing"
+}
