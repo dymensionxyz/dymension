@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"cosmossdk.io/math"
@@ -1904,16 +1905,16 @@ func (g gaugeCoins) String() string {
 type gaugeCoinsSlice []gaugeCoins
 
 func (s gaugeCoinsSlice) String() string {
-	var result string
-	result += "["
+	var result strings.Builder
+	result.WriteString("[")
 	for i, v := range s {
-		result += v.String()
+		result.WriteString(v.String())
 		if i < len(s)-1 {
-			result += ", "
+			result.WriteString(", ")
 		}
 	}
-	result += "]"
-	return result
+	result.WriteString("]")
+	return result.String()
 }
 
 type distributedCoins struct {
@@ -1928,16 +1929,16 @@ func (d distributedCoins) String() string {
 type distributedCoinsSlice []distributedCoins
 
 func (s distributedCoinsSlice) String() string {
-	var result string
-	result += "["
+	var result strings.Builder
+	result.WriteString("[")
 	for i, v := range s {
-		result += v.String()
+		result.WriteString(v.String())
 		if i < len(s)-1 {
-			result += ", "
+			result.WriteString(", ")
 		}
 	}
-	result += "]"
-	return result
+	result.WriteString("]")
+	return result.String()
 }
 
 type lockup struct {

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -72,22 +73,22 @@ func UnderlyingPacketExistInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 		allDemandOrders, err := k.ListAllDemandOrders(ctx)
 		if err != nil {
-			msg += fmt.Sprintf("list all demand orders failed: %v\n", err)
+			msg.WriteString(fmt.Sprintf("list all demand orders failed: %v\n", err))
 			broken = true
 		}
 		for _, demandOrder := range allDemandOrders {
 			// Get the underlying packet for the demand order
 			_, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 			if err != nil {
-				msg += fmt.Sprintf("underlying packet for demand order %s not found: %v\n", demandOrder.Id, err)
+				msg.WriteString(fmt.Sprintf("underlying packet for demand order %s not found: %v\n", demandOrder.Id, err))
 				broken = true
 			}
 		}
-		return sdk.FormatInvariant(types.ModuleName, "underlying-packet-exist", msg), broken
+		return sdk.FormatInvariant(types.ModuleName, "underlying-packet-exist", msg.String()), broken
 	}
 }
 
@@ -96,11 +97,11 @@ func CoinsInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 		allDemandOrders, err := k.ListAllDemandOrders(ctx)
 		if err != nil {
-			msg += fmt.Sprintf("list all demand orders failed: %v\n", err)
+			msg.WriteString(fmt.Sprintf("list all demand orders failed: %v\n", err))
 			broken = true
 		}
 		for _, do := range allDemandOrders {
@@ -110,16 +111,16 @@ func CoinsInvariant(k Keeper) sdk.Invariant {
 					continue
 				}
 				if len(coins) > 1 {
-					msg += fmt.Sprintf("multiple coins: %s\n", coins)
+					msg.WriteString(fmt.Sprintf("multiple coins: %s\n", coins))
 					broken = true
 					continue
 				}
 				if coins[0].IsNegative() {
-					msg += fmt.Sprintf("negative coins: %s\n", coins)
+					msg.WriteString(fmt.Sprintf("negative coins: %s\n", coins))
 					broken = true
 				}
 			}
 		}
-		return sdk.FormatInvariant(types.ModuleName, "coins", msg), broken
+		return sdk.FormatInvariant(types.ModuleName, "coins", msg.String()), broken
 	}
 }
