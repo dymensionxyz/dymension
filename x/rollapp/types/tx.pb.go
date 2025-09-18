@@ -142,7 +142,7 @@ type MsgCreateRollapp struct {
 	GenesisInfo *GenesisInfo `protobuf:"bytes,14,opt,name=genesis_info,json=genesisInfo,proto3" json:"genesis_info,omitempty"`
 	// vm_type is the type of rollapp machine: EVM or WASM
 	VmType Rollapp_VMType `protobuf:"varint,15,opt,name=vm_type,json=vmType,proto3,enum=dymensionxyz.dymension.rollapp.Rollapp_VMType" json:"vm_type,omitempty"`
-	// fee_denom is the denom used for paying rollapp registration fees
+	// fee_denom is OPTIONAL denom used for paying rollapp registration fees. If not provided, the default fee denom will be used.
 	FeeDenom string `protobuf:"bytes,17,opt,name=fee_denom,json=feeDenom,proto3" json:"fee_denom,omitempty"`
 }
 

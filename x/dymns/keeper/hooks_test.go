@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -500,7 +501,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 				tt.preRunSetup(s)
 			}
 
-			err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, tt.rollAppId, tt.alias, creatorAccAddr)
+			err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, tt.rollAppId, tt.alias, creatorAccAddr, params.BaseDenom)
 
 			defer func() {
 				if s.T().Failed() {
@@ -556,7 +557,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 	s.Run("if alias is empty, do nothing", func() {
 		originalTxGas := s.ctx.GasMeter().GasConsumed()
 
-		err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, "rollapp_1-1", "", creatorAccAddr)
+		err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, "rollapp_1-1", "", creatorAccAddr, params.BaseDenom)
 		s.Require().NoError(err)
 
 		s.Equal(originalTxGas, s.ctx.GasMeter().GasConsumed(), "should not consume gas")

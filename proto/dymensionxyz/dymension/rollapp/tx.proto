@@ -70,7 +70,7 @@ message MsgCreateRollapp {
   GenesisInfo genesis_info = 14 [ (gogoproto.nullable) = true ];
   // vm_type is the type of rollapp machine: EVM or WASM
   Rollapp.VMType vm_type = 15;
-  // fee_denom is the denom used for paying rollapp registration fees
+  // fee_denom is OPTIONAL denom used for paying rollapp registration fees. If not provided, the default fee denom will be used.
   string fee_denom = 17;
 }
 

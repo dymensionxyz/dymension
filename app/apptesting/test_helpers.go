@@ -33,6 +33,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 var TestChainID = "dymension_100-1"
@@ -74,6 +75,13 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	encCdc.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
 	evmGenesisState.Params.EnableCreate = false
 	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
+
+	// set base denom to adym
+	txfeesGenesisStateJson := defaultGenesisState[txfeestypes.ModuleName]
+	var txfeesGenesisState txfeestypes.GenesisState
+	encCdc.MustUnmarshalJSON(txfeesGenesisStateJson, &txfeesGenesisState)
+	txfeesGenesisState.Basedenom = params.BaseDenom
+	defaultGenesisState[txfeestypes.ModuleName] = encCdc.MustMarshalJSON(&txfeesGenesisState)
 
 	return newApp, defaultGenesisState
 }
@@ -258,9 +266,11 @@ func FundForAliasRegistration(app *app.App, ctx sdk.Context, alias, creator stri
 		return
 	}
 
+	feeDenom := app.TxFeesKeeper.MustGetBaseDenom(ctx)
+
 	dymNsParams := dymnstypes.DefaultPriceParams()
 	aliasRegistrationCost := sdk.NewCoins(sdk.NewCoin(
-		params.BaseDenom, dymNsParams.GetAliasPrice(alias),
+		feeDenom, dymNsParams.GetAliasPrice(alias),
 	))
 	FundAccount(
 		app, ctx, sdk.MustAccAddressFromBech32(creator), aliasRegistrationCost,

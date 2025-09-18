@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"slices"
 	"sort"
 	"testing"
@@ -33,6 +34,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 func init() {
@@ -78,7 +80,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	var keys map[string]*storetypes.KVStoreKey
 
 	{
-		keys = storetypes.NewKVStoreKeys(dymnstypes.StoreKey, authtypes.StoreKey, banktypes.StoreKey, rollapptypes.StoreKey)
+		keys = storetypes.NewKVStoreKeys(dymnstypes.StoreKey, authtypes.StoreKey, banktypes.StoreKey, rollapptypes.StoreKey, txfeestypes.StoreKey)
 
 		logger := log.NewNopLogger()
 		stateStore := integration.CreateMultiStore(keys, logger)
@@ -127,11 +129,15 @@ func (s *KeeperTestSuite) SetupTest() {
 			nil,
 		)
 
+		txfeesk := &txfeesMock{
+			baseDenom: params.BaseDenom,
+		}
+
 		dk = dymnskeeper.NewKeeper(cdc,
 			keys[dymnstypes.StoreKey],
 			bk,
 			rk,
-			nil, // TxFeesKeeper not needed in tests, pass nil
+			txfeesk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
 
@@ -763,4 +769,23 @@ func (m reqDymNameS) ownerIs(expectedOwner string) reqDymNameS {
 	m.s.Require().NotNil(dymName)
 	m.s.Require().Equal(expectedOwner, dymName.Owner)
 	return m
+}
+
+// txfees mock
+
+var _ dymnstypes.TxFeesKeeper = &txfeesMock{}
+
+type txfeesMock struct {
+	baseDenom string
+}
+
+func (m *txfeesMock) GetBaseDenom(ctx sdk.Context) (string, error) {
+	return m.baseDenom, nil
+}
+
+func (m *txfeesMock) CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error) {
+	if denom != m.baseDenom || inputCoin.Denom != denom {
+		return sdk.Coin{}, fmt.Errorf("base denom does not match the input denom")
+	}
+	return inputCoin, nil
 }

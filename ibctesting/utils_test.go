@@ -143,7 +143,7 @@ func (s *ibcTestingSuite) createRollapp(transfersEnabled bool, channelID *string
 			},
 			InitialSupply: math.NewInt(1_000_000_000).MulRaw(1e18),
 		},
-		sdk.DefaultBondDenom,
+		"",
 	)
 
 	apptesting.FundForAliasRegistration(

@@ -68,11 +68,6 @@ func CmdCreateRollapp() *cobra.Command {
 				return err
 			}
 
-			feeDenom, err := cmd.Flags().GetString(FlagFeeDenom)
-			if err != nil {
-				return err
-			}
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -87,7 +82,7 @@ func CmdCreateRollapp() *cobra.Command {
 				types.Rollapp_VMType(vmType),
 				metadata,
 				genesisInfo,
-				feeDenom,
+				"",
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
