@@ -34,7 +34,6 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 func init() {
@@ -80,7 +79,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	var keys map[string]*storetypes.KVStoreKey
 
 	{
-		keys = storetypes.NewKVStoreKeys(dymnstypes.StoreKey, authtypes.StoreKey, banktypes.StoreKey, rollapptypes.StoreKey, txfeestypes.StoreKey)
+		keys = storetypes.NewKVStoreKeys(dymnstypes.StoreKey, authtypes.StoreKey, banktypes.StoreKey, rollapptypes.StoreKey)
 
 		logger := log.NewNopLogger()
 		stateStore := integration.CreateMultiStore(keys, logger)

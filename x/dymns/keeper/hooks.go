@@ -62,7 +62,7 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 	// Convert the cost to the requested fee denom using txfees, if needed
 	convertedCost, err := h.txFeesKeeper.CalcBaseInCoin(ctx, aliasCostInBaseDenom, feeDenom)
 	if err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert alias cost to fee denom %s: %v", feeDenom, err)
+		return errorsmod.Wrapf(err, "failed to convert alias cost to fee denom %s", feeDenom)
 	}
 	aliasCost := sdk.NewCoins(convertedCost)
 

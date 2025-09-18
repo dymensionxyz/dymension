@@ -58,7 +58,7 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 	}
 
 	if msg.FeeDenom != "" && sdk.ValidateDenom(msg.FeeDenom) != nil {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fee denom")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid fee denom")
 	}
 
 	rollapp := msg.GetRollapp()

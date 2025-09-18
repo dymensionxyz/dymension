@@ -76,7 +76,7 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	evmGenesisState.Params.EnableCreate = false
 	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
 
-	// set base denom to adym
+	// set txfees base denom to adym
 	txfeesGenesisStateJson := defaultGenesisState[txfeestypes.ModuleName]
 	var txfeesGenesisState txfeestypes.GenesisState
 	encCdc.MustUnmarshalJSON(txfeesGenesisStateJson, &txfeesGenesisState)

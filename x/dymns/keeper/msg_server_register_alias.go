@@ -79,6 +79,9 @@ func (k Keeper) registerAliasForRollApp(
 	alias string,
 	registrationFee sdk.Coins,
 ) error {
+	if len(registrationFee) != 1 {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee must be exactly one coin")
+	}
 
 	err := k.txFeesKeeper.ChargeFeesFromPayer(ctx, owner, registrationFee[0], nil)
 	if err != nil {
