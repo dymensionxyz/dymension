@@ -273,6 +273,9 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 	}
 
 	verifiedJWT, err := jwt.Parse(attestationToken, keyFunc, jwt.WithTimeFunc(func() time.Time { return ctx.BlockTime() }))
+	if err != nil {
+		return jwt.Token{}, errorsmod.Wrap(err, "jwt lib parse validate verify")
+	}
 	return *verifiedJWT, err
 }
 
