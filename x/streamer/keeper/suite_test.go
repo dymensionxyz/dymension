@@ -55,6 +55,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 
+	// uses sdk.DefaultBondDenom as the base denom
+	err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, sdk.DefaultBondDenom)
+	suite.Require().NoError(err)
+	dymnsParams := suite.App.DymNSKeeper.GetParams(suite.Ctx)
+	dymnsParams.Price.PriceDenom = sdk.DefaultBondDenom
+	err = suite.App.DymNSKeeper.SetParams(suite.Ctx, dymnsParams)
+	suite.Require().NoError(err)
+
 	// Disable any distribution threshold for tests
 	ip := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
 	bd, err := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)

@@ -468,6 +468,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[dymnstypes.StoreKey],
 		a.BankKeeper,
 		a.RollappKeeper,
+		a.TxFeesKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

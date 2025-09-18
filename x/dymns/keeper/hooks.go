@@ -3,8 +3,6 @@ package keeper
 import (
 	"errors"
 
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -13,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -33,7 +32,7 @@ type rollappHooks struct {
 
 var _ rollapptypes.RollappHooks = rollappHooks{}
 
-func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
+func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress, feeDenom string) error {
 	if alias == "" {
 		return nil
 	}
@@ -51,15 +50,23 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
 	}
 
+	// Get the alias cost in the price denom
 	priceParams := h.PriceParams(ctx)
+	aliasCostInBaseDenom := sdk.NewCoin(priceParams.PriceDenom, priceParams.GetAliasPrice(alias))
 
-	aliasCost := sdk.NewCoins(
-		sdk.NewCoin(
-			priceParams.PriceDenom, priceParams.GetAliasPrice(alias),
-		),
-	)
+	// If fee denom is not provided, use the price denom
+	if feeDenom == "" {
+		feeDenom = priceParams.PriceDenom
+	}
 
-	err := h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
+	// Convert the cost to the requested fee denom using txfees, if needed
+	convertedCost, err := h.txFeesKeeper.CalcBaseInCoin(ctx, aliasCostInBaseDenom, feeDenom)
+	if err != nil {
+		return errorsmod.Wrapf(err, "failed to convert alias cost to fee denom %s", feeDenom)
+	}
+	aliasCost := sdk.NewCoins(convertedCost)
+
+	err = h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "register alias for RollApp")
 	}

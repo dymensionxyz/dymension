@@ -14,7 +14,7 @@ type RollappHooks interface {
 	BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error // Must be called when a rollapp's state changes
 	AfterUpdateState(ctx sdk.Context, stateInfo *StateInfoMeta) error                                    // Must be called when a rollapp's state changes
 	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error                   // Must be called when a rollapp's state changes
-	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress) error
+	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress, feeDenom string) error
 	AfterTransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error
 
 	OnHardFork(ctx sdk.Context, rollappID string, height uint64) error
@@ -71,9 +71,9 @@ func (h MultiRollappHooks) OnHardFork(ctx sdk.Context, rollappID string, lastVal
 }
 
 // RollappCreated implements RollappHooks.
-func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
+func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress, feeDenom string) error {
 	for i := range h {
-		err := h[i].RollappCreated(ctx, rollappID, alias, creatorAddr)
+		err := h[i].RollappCreated(ctx, rollappID, alias, creatorAddr, feeDenom)
 		if err != nil {
 			return err
 		}
@@ -95,7 +95,7 @@ var _ RollappHooks = &StubRollappCreatedHooks{}
 
 type StubRollappCreatedHooks struct{}
 
-func (StubRollappCreatedHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress) error {
+func (StubRollappCreatedHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress, string) error {
 	return nil
 }
 
