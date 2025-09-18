@@ -1,6 +1,8 @@
 package types
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 
@@ -8,7 +10,11 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
+	opastorage "github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -104,6 +110,9 @@ func (p Params) ValidateBasic() error {
 	if err := uparam.ValidateCoin(p.MinSequencerBondGlobal); err != nil {
 		return errorsmod.Wrap(err, "min sequencer bond")
 	}
+	if err := validateTeeConfig(p.TeeConfig); err != nil {
+		return errorsmod.Wrap(err, "tee config")
+	}
 	return nil
 }
 
@@ -140,5 +149,34 @@ func validateAppRegistrationFee(v sdk.Coin) error {
 		return fmt.Errorf("invalid app creation cost: %s", v)
 	}
 
+	return nil
+}
+
+func (v TEEConfig) PemCert() (*x509.Certificate, error) {
+	block, _ := pem.Decode([]byte(v.GcpRootCertPem))
+	if block == nil {
+		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
+	}
+	return x509.ParseCertificate(block.Bytes)
+}
+
+func (v TEEConfig) PolicyValuesStore() (opastorage.Store, error) {
+	var json map[string]any
+	err := util.UnmarshalJSON([]byte(v.PolicyValues), &json)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unmarshal json")
+	}
+	return inmem.NewFromObject(json), nil
+}
+
+func validateTeeConfig(v TEEConfig) error {
+	if v.Verify {
+		if _, err := v.PemCert(); err != nil {
+			return errorsmod.Wrap(err, "pem cert")
+		}
+		if _, err := v.PolicyValuesStore(); err != nil {
+			return errorsmod.Wrap(err, "policy values store")
+		}
+	}
 	return nil
 }

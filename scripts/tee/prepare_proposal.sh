@@ -19,4 +19,4 @@ jq --arg pv "$POLICY_VALUES" \
     .messages[0].params.tee_config.policy_structure = $ps |
     .messages[0].params.tee_config.policy_query = $pq |
     .messages[0].params.tee_config.gcp_root_cert_pem = $gc' \
-   "${PROPOSAL_PATH}" > "${PROPOSAL_PATH}.populated"
+   "${PROPOSAL_PATH}" > "${PROPOSAL_PATH}.populated.json"
