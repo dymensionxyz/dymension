@@ -95,8 +95,8 @@ func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, cfg types
 // It also checks that all certificate lifetimes are valid.
 func verifyCertificateChain(certificates CertificateChain, now time.Time) error {
 	// Additional check: Verify that all certificates in the cert chain are valid.
-	// Note: The *x509.Certificate Verify method in golang already validates this but for other coding
-	// languages it is important to make sure the certificate lifetimes are checked.
+	// Note: The *x509.Certificate Verify method in golang already validates this
+	// DYMENSION: we keep this extra check to stay in line with GCP code example
 	if !isCertificateLifetimeValid(certificates.LeafCert, now) {
 		return gerrc.ErrInvalidArgument.Wrap("leaf certificate lifetime not valid")
 	}

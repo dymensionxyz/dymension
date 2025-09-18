@@ -71,7 +71,7 @@ func (m IBCModule) logger(
 	)
 }
 
-// for non-rollapp packets only, process any completion hooks
+// For non rollapp packets, or rollapp packets which arrived after proof height was finalized (and didnt route through delayedack)
 func (m IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
