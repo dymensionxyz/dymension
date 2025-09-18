@@ -55,7 +55,7 @@ func (k Keeper) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, n
 		return errorsmod.Wrap(err, "evaluate opa policy")
 	}
 	if !authorized {
-		return gerrc.ErrFailedPrecondition.Wrap("tee policy not authorized")
+		return gerrc.ErrFailedPrecondition.Wrap("tee policy OPA validation returned not authorised")
 	}
 	return nil
 }

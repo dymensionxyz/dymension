@@ -16,6 +16,8 @@ var (
 	policyQuery string
 	//go:embed testdata/tee/policy.rego
 	policyStructure string
+	//go:embed testdata/tee/confidential_space_root.pem
+	gcpRootCertificate []byte
 	//go:embed testdata/tee/example_response.json
 	exampleResponse string
 )
@@ -31,12 +33,12 @@ type ExampleResponse struct {
 }
 
 func (s *RollappTestSuite) TestValidateAttestation() {
-	// s.T().Skip()
 	s.SetupTest()
 	s.k().SetParams(s.Ctx, types.DefaultParams().WithTeeConfig(types.TEEConfig{
 		PolicyValues:    policyValues,
 		PolicyQuery:     policyQuery,
 		PolicyStructure: policyStructure,
+		GcpRootCertPem:  gcpRootCertificate,
 	}))
 
 	var res ExampleResponse
@@ -49,7 +51,6 @@ func (s *RollappTestSuite) TestValidateAttestation() {
 	currHeight, err := strconv.ParseUint(res.Result.Nonce.CurrHeight, 10, 64)
 	s.Require().NoError(err)
 
-	// TODO: use proper data and test
 	nonce := types.TEENonce{
 		RollappId:       rollappId,
 		CurrHeight:      currHeight,
@@ -57,7 +58,6 @@ func (s *RollappTestSuite) TestValidateAttestation() {
 	}
 
 	s.Ctx = s.Ctx.WithBlockTime(time.Date(2025, 9, 18, 9, 46, 0, 0, time.UTC))
-	// s.Ctx = s.Ctx.WithBlockTime(time.Now())
 	err = s.k().ValidateAttestation(s.Ctx, nonce.Hash(), token)
 	s.Require().NoError(err)
 }
