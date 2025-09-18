@@ -38,7 +38,7 @@ func (k Keeper) ValidateAttestation(ctx sdk.Context, nonce, token string) error 
 }
 
 func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
-	block, _ := pem.Decode(k.GetParams(ctx).TeeConfig.GcpRootCertPem)
+	block, _ := pem.Decode([]byte(k.GetParams(ctx).TeeConfig.GcpRootCertPem))
 	if block == nil {
 		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
 	}
@@ -272,7 +272,7 @@ func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToke
 		return certificates.LeafCert.PublicKey, nil
 	}
 
-	verifiedJWT, err := jwt.Parse(attestationToken, keyFunc)
+	verifiedJWT, err := jwt.Parse(attestationToken, keyFunc, jwt.WithTimeFunc(func() time.Time { return ctx.BlockTime() }))
 	return *verifiedJWT, err
 }
 

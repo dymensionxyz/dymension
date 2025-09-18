@@ -11,7 +11,7 @@ import (
 
 var (
 	//go:embed testdata/tee/confidential_space_root.pem
-	gcpRootCertificate []byte
+	gcpRootCertificate string
 
 	//go:embed testdata/tee/insecure_policy_values.json
 	policyValues string
