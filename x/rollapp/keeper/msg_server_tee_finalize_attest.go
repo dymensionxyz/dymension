@@ -5,17 +5,15 @@ import (
 	"crypto/x509"
 	_ "embed"
 	"encoding/base64"
-	"encoding/pem"
 	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/open-policy-agent/opa/v1/rego"
-	"github.com/open-policy-agent/opa/v1/storage/inmem"
-	"github.com/open-policy-agent/opa/v1/util"
 )
 
 /*
@@ -38,19 +36,12 @@ func (k Keeper) ValidateAttestation(ctx sdk.Context, nonce, token string) error 
 }
 
 func (k Keeper) pemCert(ctx sdk.Context) (*x509.Certificate, error) {
-	block, _ := pem.Decode([]byte(k.GetParams(ctx).TeeConfig.GcpRootCertPem))
-	if block == nil {
-		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
-	}
-	return x509.ParseCertificate(block.Bytes)
+	cfg := k.GetParams(ctx).TeeConfig
+	return cfg.PemCert()
 }
 
 func (k Keeper) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, nonce string) error {
-	policyData := k.GetParams(ctx).TeeConfig.PolicyValues
-	policyQuery := k.GetParams(ctx).TeeConfig.PolicyQuery
-	policyStructure := k.GetParams(ctx).TeeConfig.PolicyStructure
-
-	authorized, err := evaluateOPAPolicy(ctx, token, nonce, policyData, policyQuery, policyStructure)
+	authorized, err := evaluateOPAPolicy(ctx, token, nonce, k.GetParams(ctx).TeeConfig)
 	if err != nil {
 		return errorsmod.Wrap(err, "evaluate opa policy")
 	}
@@ -61,26 +52,24 @@ func (k Keeper) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, n
 }
 
 // evaluateOPAPolicy returns boolean indicating if OPA policy is satisfied or not, or error if occurred
-func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, policyData string, policyQuery string, policyStructure string) (bool, error) {
+func evaluateOPAPolicy(ctx sdk.Context, token jwt.Token, nonce string, cfg types.TEEConfig) (bool, error) {
 	var claims jwt.MapClaims
 	var ok bool
 	if claims, ok = token.Claims.(jwt.MapClaims); !ok {
 		return false, gerrc.ErrInvalidArgument.Wrap("get claims from jwt")
 	}
 
-	module := fmt.Sprintf(policyStructure, nonce)
+	module := fmt.Sprintf(cfg.PolicyStructure, nonce)
 
-	var json map[string]any
-	err := util.UnmarshalJSON([]byte(policyData), &json)
+	store, err := cfg.PolicyValuesStore()
 	if err != nil {
-		return false, errorsmod.Wrap(err, "unmarshal json")
+		return false, errorsmod.Wrap(err, "policy values store")
 	}
-	store := inmem.NewFromObject(json)
 
 	// Bind 'allow' to the value of the policy decision
 	// Bind 'hw_verified', 'image_verified', 'audience_verified, 'nonce_verified' to their respective policy evaluations
 	query, err := rego.New(
-		rego.Query(policyQuery),                        // Argument 1 (Query string)
+		rego.Query(cfg.PolicyQuery),                    // Argument 1 (Query string)
 		rego.Store(store),                              // Argument 2 (Data store)
 		rego.Module("confidential_space.rego", module), // Argument 3 (Policy module)
 	).PrepareForEval(ctx)

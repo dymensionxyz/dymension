@@ -177,6 +177,12 @@ func validateTeeConfig(v TEEConfig) error {
 		if _, err := v.PolicyValuesStore(); err != nil {
 			return errorsmod.Wrap(err, "policy values store")
 		}
+		if v.PolicyQuery == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "policy query empty")
+		}
+		if v.PolicyStructure == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "policy structure empty")
+		}
 	}
 	return nil
 }

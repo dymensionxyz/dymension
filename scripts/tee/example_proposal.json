@@ -17,7 +17,7 @@
         },
         "tee_config": {
           "enabled": true,
-          "verify": false,
+          "verify": true,
           "policy_values": "",
           "policy_query": "",
           "policy_structure": "",
