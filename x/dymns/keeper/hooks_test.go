@@ -48,6 +48,7 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 		originalModuleBalance   int64
 		rollAppId               string
 		alias                   string
+		feeDenom                string // custom fee denom, if empty will use params.BaseDenom
 		wantErr                 bool
 		wantErrContains         string
 		wantSuccess             bool
@@ -475,6 +476,37 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 				s.Equal("sub.my-name@alias", outputs[0].String())
 			},
 		},
+		{
+			name:                    "pass - fee deducted from creator when fee_denom is not empty",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  0, // No balance in price denom since we're paying with custom denom
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "alias",
+			feeDenom:                "usdc",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 0, // Should remain 0 in price denom
+			preRunSetup: func(s *KeeperTestSuite) {
+				// Add some balance in the fee denom to the creator
+				// We'll use "usdc" as our custom fee denom
+				customFeeCoin := sdk.NewCoin("usdc", math.NewInt(price5L).Mul(priceMultiplier))
+
+				err := s.bankKeeper.MintCoins(s.ctx, dymnstypes.ModuleName, sdk.NewCoins(customFeeCoin))
+				s.Require().NoError(err)
+
+				err = s.bankKeeper.SendCoinsFromModuleToAccount(s.ctx,
+					dymnstypes.ModuleName,
+					creatorAccAddr,
+					sdk.NewCoins(customFeeCoin))
+				s.Require().NoError(err)
+			},
+			postTest: func(s *KeeperTestSuite) {
+				// Check that the fee was deducted from the creator's balance in the custom denom
+				balanceAfter := s.bankKeeper.GetBalance(s.ctx, creatorAccAddr, "usdc")
+				s.True(balanceAfter.IsZero(), "Fee should have been completely deducted from creator's usdc balance")
+			},
+		},
 	}
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
@@ -501,7 +533,12 @@ func (s *KeeperTestSuite) Test_rollappHooks_RollappCreated() {
 				tt.preRunSetup(s)
 			}
 
-			err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, tt.rollAppId, tt.alias, creatorAccAddr, params.BaseDenom)
+			feeDenom := params.BaseDenom
+			if tt.feeDenom != "" {
+				feeDenom = tt.feeDenom
+			}
+
+			err := s.dymNsKeeper.GetRollAppHooks().RollappCreated(s.ctx, tt.rollAppId, tt.alias, creatorAccAddr, feeDenom)
 
 			defer func() {
 				if s.T().Failed() {

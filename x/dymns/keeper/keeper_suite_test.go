@@ -786,10 +786,21 @@ func (m *txfeesMock) GetBaseDenom(ctx sdk.Context) (string, error) {
 }
 
 func (m *txfeesMock) CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error) {
-	if denom != m.baseDenom || inputCoin.Denom != denom {
+	// If input coin is already in the requested denom, return as-is
+	if inputCoin.Denom == denom {
+		return inputCoin, nil
+	}
+
+	// If input is in base denom and we want to convert to another denom
+	if inputCoin.Denom != m.baseDenom {
 		return sdk.Coin{}, fmt.Errorf("base denom does not match the input denom")
 	}
-	return inputCoin, nil
+	// For testing purposes, support simple 1:1 conversion to usdc
+	if denom == "usdc" {
+		return sdk.NewCoin(denom, inputCoin.Amount), nil
+	}
+	// For other conversions not supported in test mock
+	return sdk.Coin{}, fmt.Errorf("base denom does not match the input denom")
 }
 
 func (m *txfeesMock) ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error {
