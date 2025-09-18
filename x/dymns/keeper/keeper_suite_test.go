@@ -130,7 +130,8 @@ func (s *KeeperTestSuite) SetupTest() {
 		)
 
 		txfeesk := &txfeesMock{
-			baseDenom: params.BaseDenom,
+			baseDenom:  params.BaseDenom,
+			bankKeeper: bk,
 		}
 
 		dk = dymnskeeper.NewKeeper(cdc,
@@ -776,7 +777,8 @@ func (m reqDymNameS) ownerIs(expectedOwner string) reqDymNameS {
 var _ dymnstypes.TxFeesKeeper = &txfeesMock{}
 
 type txfeesMock struct {
-	baseDenom string
+	baseDenom  string
+	bankKeeper dymnstypes.BankKeeper
 }
 
 func (m *txfeesMock) GetBaseDenom(ctx sdk.Context) (string, error) {
@@ -788,4 +790,20 @@ func (m *txfeesMock) CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom s
 		return sdk.Coin{}, fmt.Errorf("base denom does not match the input denom")
 	}
 	return inputCoin, nil
+}
+
+func (m *txfeesMock) ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error {
+	if err := m.bankKeeper.SendCoinsFromAccountToModule(ctx,
+		payer,
+		dymnstypes.ModuleName,
+		sdk.Coins{takerFeeCoin},
+	); err != nil {
+		return err
+	}
+
+	if err := m.bankKeeper.BurnCoins(ctx, dymnstypes.ModuleName, sdk.Coins{takerFeeCoin}); err != nil {
+		return err
+	}
+
+	return nil
 }

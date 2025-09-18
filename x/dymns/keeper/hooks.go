@@ -3,8 +3,6 @@ package keeper
 import (
 	"errors"
 
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -13,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -38,13 +37,11 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 		return nil
 	}
 
-	// FIXMEL: redundent
 	// ensure RollApp record is set
 	if !h.IsRollAppId(ctx, rollappID) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)
 	}
 
-	// FIXMEL: redundent
 	if !dymnsutils.IsValidAlias(alias) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid alias format: %s", alias)
 	}
@@ -54,23 +51,22 @@ func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, c
 	}
 
 	// Get the alias cost in the price denom
-	var aliasCost sdk.Coins
 	priceParams := h.PriceParams(ctx)
 	aliasCostInBaseDenom := sdk.NewCoin(priceParams.PriceDenom, priceParams.GetAliasPrice(alias))
 
-	if feeDenom != "" {
-		// Convert the cost to the requested fee denom using txfees, if needed
-		convertedCost, err := h.txFeesKeeper.CalcBaseInCoin(ctx, aliasCostInBaseDenom, feeDenom)
-		if err != nil {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert alias cost to fee denom %s: %v", feeDenom, err)
-		}
-		aliasCost = sdk.NewCoins(convertedCost)
-	} else {
-		aliasCost = sdk.NewCoins(aliasCostInBaseDenom)
+	// If fee denom is not provided, use the price denom
+	if feeDenom == "" {
+		feeDenom = priceParams.PriceDenom
 	}
 
-	// FIxME: currently, its' burned. do we want to change this?
-	err := h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
+	// Convert the cost to the requested fee denom using txfees, if needed
+	convertedCost, err := h.txFeesKeeper.CalcBaseInCoin(ctx, aliasCostInBaseDenom, feeDenom)
+	if err != nil {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert alias cost to fee denom %s: %v", feeDenom, err)
+	}
+	aliasCost := sdk.NewCoins(convertedCost)
+
+	err = h.registerAliasForRollApp(ctx, rollappID, creatorAddr, alias, aliasCost)
 	if err != nil {
 		return errorsmod.Wrap(errors.Join(gerrc.ErrUnknown, err), "register alias for RollApp")
 	}
