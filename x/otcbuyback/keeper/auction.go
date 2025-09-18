@@ -184,6 +184,7 @@ func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uin
 			},
 			pp.NumOfPumpsPerEpoch,
 			streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			true,
 			streamertypes.PumpTargetPool(poolID, k.baseDenom),
 		)
 		if err != nil {

@@ -47,6 +47,7 @@ type StreamerKeeper interface {
 		stream streamertypes.CreateStreamGeneric,
 		numPumps uint64,
 		pumpDistr streamertypes.PumpDistr,
+		burnPumped bool,
 		pumpTarget streamertypes.PumpTarget,
 	) (uint64, error)
 }
