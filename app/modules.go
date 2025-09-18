@@ -53,6 +53,8 @@ import (
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"github.com/evmos/ethermint/x/evm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
@@ -163,6 +165,7 @@ func (app *App) SetupModules(
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
 		kas.NewAppModule(appCodec, app.KasKeeper),
+		bridgingfee.NewAppModule(app.BridgingFeeKeeper),
 	}
 }
 
@@ -207,6 +210,7 @@ var maccPerms = map[string][]string{
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 	kastypes.ModuleName:                                nil,
+	bridgingfeetypes.ModuleName:                        nil,
 	ratelimittypes.ModuleName:                          nil,
 }
 
@@ -257,6 +261,7 @@ var BeginBlockers = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 
@@ -303,6 +308,7 @@ var EndBlockers = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 
@@ -350,6 +356,7 @@ var InitGenesis = []string{
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 

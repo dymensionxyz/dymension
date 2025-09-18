@@ -10,16 +10,13 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	denomutils "github.com/dymensionxyz/dymension/v3/utils/denom"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-)
-
-const (
-	ModuleName = "bridging_fee"
 )
 
 // IBCModule is responsible for charging a bridging fee on transfers coming from rollapps
@@ -56,7 +53,7 @@ func (w IBCModule) logger(
 	method string,
 ) log.Logger {
 	return ctx.Logger().With(
-		"module", ModuleName,
+		"module", types.ModuleName,
 		"packet_source_port", packet.SourcePort,
 		"packet_destination_port", packet.DestinationPort,
 		"packet_sequence", packet.Sequence,
@@ -75,7 +72,7 @@ func (w IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, rel
 	transfer, err := w.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
-		err = errorsmod.Wrapf(err, "%s: get valid transfer", ModuleName)
+		err = errorsmod.Wrapf(err, "%s: get valid transfer", types.ModuleName)
 		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
