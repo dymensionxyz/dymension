@@ -1,0 +1,26 @@
+syntax = "proto3";
+package dymensionxyz.dymension.otcbuyback;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
+
+// AcceptedToken defines an accepted token for purchases
+message AcceptedToken {
+  string denom = 1;
+  TokenData token_data = 2 [ (gogoproto.nullable) = false ];
+}
+
+// TokenData defines data for an accepted token
+message TokenData {
+  uint64 pool_id = 1;
+  string last_average_price = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+}

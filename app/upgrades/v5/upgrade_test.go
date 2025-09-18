@@ -18,7 +18,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 	dymnsmigration "github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/dymns"
@@ -35,9 +34,7 @@ import (
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
 type UpgradeTestSuite struct {
-	suite.Suite
-	Ctx sdk.Context
-	App *app.App
+	apptesting.KeeperTestHelper
 }
 
 // SetupTestCustom initializes the necessary items for each test
@@ -83,6 +80,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			preUpgrade: func() error {
 				s.setLockupParams()
 				s.setIROParams()
+				s.populateAMMPool()
 				s.setGAMMParams()
 				s.setDymNSParams()
 				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
@@ -298,4 +296,15 @@ func (s *UpgradeTestSuite) validateConsensusParamsMigration() {
 	consensusParams, err := s.App.ConsensusParamsKeeper.Params(s.Ctx, nil)
 	s.Require().NoError(err)
 	s.Require().Equal(expectedEvidenceMaxAgeNumBlocks, consensusParams.Params.Evidence.MaxAgeNumBlocks)
+}
+
+func (s *UpgradeTestSuite) populateAMMPool() {
+	for {
+		poolID := s.PreparePoolWithCoins(sdk.NewCoins(
+			sdk.NewCoin(v5.NobleUSDCDenom, math.NewInt(100_000).MulRaw(1e6)),
+			sdk.NewCoin("adym", math.NewInt(1_000_000).MulRaw(1e18))))
+		if poolID == 2 {
+			break
+		}
+	}
 }

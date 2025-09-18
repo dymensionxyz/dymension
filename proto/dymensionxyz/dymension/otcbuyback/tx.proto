@@ -1,0 +1,189 @@
+syntax = "proto3";
+package dymensionxyz.dymension.otcbuyback;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "dymensionxyz/dymension/otcbuyback/auction.proto";
+import "dymensionxyz/dymension/otcbuyback/params.proto";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // UpdateParams is used for updating module params.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // SetAcceptedTokens allows authority to set/update accepted tokens for
+  // auctions
+  rpc SetAcceptedTokens(MsgSetAcceptedTokens)
+      returns (MsgSetAcceptedTokensResponse);
+
+  // CreateAuction creates a OTC buyback auction
+  rpc CreateAuction(MsgCreateAuction) returns (MsgCreateAuctionResponse);
+
+  // TerminateAuction terminates an existing OTC buyback auction
+  rpc TerminateAuction(MsgTerminateAuction)
+      returns (MsgTerminateAuctionResponse);
+
+  // Buy allows users to purchase specific amount of tokens in an auction
+  rpc Buy(MsgBuy) returns (MsgBuyResponse);
+
+  // BuyExactSpend allows users to purchase tokens in an auction with exact
+  // amount of tokens
+  rpc BuyExactSpend(MsgBuyExactSpend) returns (MsgBuyResponse);
+
+  // ClaimTokens allows users to claim their vested tokens
+  rpc ClaimTokens(MsgClaimTokens) returns (MsgClaimTokensResponse);
+}
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // NewParams should be fully populated.
+  Params params = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgUpdateParamsResponse {}
+
+// MsgSetAcceptedTokens allows authority to set/update accepted tokens
+message MsgSetAcceptedTokens {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // List of accepted tokens with their pool IDs
+  message Token {
+    string denom = 1;
+    uint64 pool_id = 2;
+  }
+  repeated Token accepted_tokens = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgSetAcceptedTokensResponse {}
+
+message MsgBuy {
+  option (cosmos.msg.v1.signer) = "buyer";
+
+  string buyer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  uint64 auction_id = 2;
+  string amount_to_buy = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string denom_to_pay = 4;
+}
+
+// MsgBuy represents a purchase request in an auction
+message MsgBuyExactSpend {
+  option (cosmos.msg.v1.signer) = "buyer";
+
+  // Buyer address
+  string buyer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // Auction ID to buy from
+  uint64 auction_id = 2;
+
+  // Amount to pay (in one of the accepted tokens)
+  cosmos.base.v1beta1.Coin payment_coin = 3 [ (gogoproto.nullable) = false ];
+}
+
+message MsgBuyResponse {
+  // Amount of tokens purchased
+  string tokens_purchased = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Payment coin
+  cosmos.base.v1beta1.Coin payment_coin = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgClaimTokens allows users to claim their vested tokens
+message MsgClaimTokens {
+  option (cosmos.msg.v1.signer) = "claimer";
+
+  // Claimer address
+  string claimer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // Auction ID to claim from
+  uint64 auction_id = 2;
+}
+
+message MsgClaimTokensResponse {
+  // Amount of tokens claimed
+  string claimed_amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+/* ---------------------------- authorized auction txs
+ * --------------------------- */
+
+// MsgCreateAuction creates a new Dutch auction
+message MsgCreateAuction {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // Total token allocation for the auction (e.g., "1000000DYM")
+  cosmos.base.v1beta1.Coin allocation = 2 [ (gogoproto.nullable) = false ];
+
+  // Start time of the auction
+  google.protobuf.Timestamp start_time = 3
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // End time of the auction
+  google.protobuf.Timestamp end_time = 4
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // Initial discount percentage (e.g., "0.05" for 5%)
+  string initial_discount = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+
+  // Maximum discount percentage (e.g., "0.50" for 50%)
+  string max_discount = 7 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+
+  // Vesting params for purchased tokens
+  Auction.VestingParams vesting_params = 8 [ (gogoproto.nullable) = false ];
+
+  // Pump Params defines parameters for the pump streams created after auction
+  // completion
+  Auction.PumpParams pump_params = 10 [ (gogoproto.nullable) = false ];
+}
+
+message MsgCreateAuctionResponse { uint64 auction_id = 1; }
+
+// MsgTerminateAuction terminates an existing auction
+message MsgTerminateAuction {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // AuctionId is the ID of the auction to terminate
+  uint64 auction_id = 2;
+}
+
+message MsgTerminateAuctionResponse {}

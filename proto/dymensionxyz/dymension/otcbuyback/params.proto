@@ -1,0 +1,19 @@
+syntax = "proto3";
+package dymensionxyz.dymension.otcbuyback;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
+
+// Params defines the parameters for the Otcbuyback module
+// Currently empty, reserved for future use cases
+message Params {
+  // smoothing factor for moving average (e.g., 0.1 = 10% weight to new price,
+  // 90% to old average)
+  string moving_average_smoothing_factor = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+}
