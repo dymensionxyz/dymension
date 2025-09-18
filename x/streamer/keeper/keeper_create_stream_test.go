@@ -81,7 +81,7 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 		StartTime:         time.Now().Add(10 * time.Minute),
 		EpochIdentifier:   "day",
 		NumEpochsPaidOver: 30,
-	}, 1, 1, types.PumpTargetRollapps(1))
+	}, 1, 1, false, types.PumpTargetRollapps(1))
 	suite.Require().NoError(err)
 
 	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins3, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30, Sponsored)
@@ -316,6 +316,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 		numEpochsPaidOver uint64
 		numPumps          uint64
 		pumpDistr         types.PumpDistr
+		burnPumped        bool
 		target            types.PumpTarget
 		expectErr         bool
 	}{
@@ -326,6 +327,18 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
+			target:            types.PumpTargetRollapps(2),
+			expectErr:         false,
+		},
+		{
+			name:              "happy flow - basic pump stream with burnPumped = true",
+			coins:             sdk.Coins{sdk.NewInt64Coin("stake", 100000)},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 10,
+			numPumps:          1000,
+			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        true,
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         false,
 		},
@@ -336,6 +349,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 5,
 			numPumps:          500,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(3),
 			expectErr:         false,
 		},
@@ -346,6 +360,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(0),
 			expectErr:         true,
 		},
@@ -366,6 +381,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNSPECIFIED,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         true,
 		},
@@ -376,6 +392,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         true,
 		},
@@ -386,6 +403,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         true,
 		},
@@ -396,6 +414,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         true,
 		},
@@ -406,6 +425,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 0,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetRollapps(2),
 			expectErr:         true,
 		},
@@ -416,6 +436,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            &types.MsgCreatePumpStream_Pool{Pool: &types.TargetPool{PoolId: 1, TokenOut: "stake"}},
 			expectErr:         false,
 		},
@@ -426,6 +447,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetPool(1, "invalid-denom!"),
 			expectErr:         true,
 		},
@@ -436,6 +458,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            types.PumpTargetPool(1, "udym"),
 			expectErr:         true,
 		},
@@ -446,6 +469,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 			numEpochsPaidOver: 10,
 			numPumps:          1000,
 			pumpDistr:         types.PumpDistr_PUMP_DISTR_UNIFORM,
+			burnPumped:        false,
 			target:            &types.MsgCreatePumpStream_Pool{Pool: &types.TargetPool{PoolId: 999999, TokenOut: "stake"}},
 			expectErr:         true,
 		},
@@ -469,7 +493,7 @@ func (suite *KeeperTestSuite) TestCreatePumpStream() {
 				StartTime:         time.Time{},
 				EpochIdentifier:   tc.epochIdentifier,
 				NumEpochsPaidOver: tc.numEpochsPaidOver,
-			}, tc.numPumps, tc.pumpDistr, tc.target)
+			}, tc.numPumps, tc.pumpDistr, tc.burnPumped, tc.target)
 
 			if tc.expectErr {
 				suite.Require().Error(err, tc.name)
