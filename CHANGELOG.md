@@ -77,6 +77,7 @@
 * **iro:** add option for vesting for owner funds ([#1768](https://github.com/dymensionxyz/dymension/issues/1768)) ([a4b33b0](https://github.com/dymensionxyz/dymension/commit/a4b33b0bb79720bd785a38ecc123b24bb91b8e70))
 * **iro:** founder can trade before start time ([#1753](https://github.com/dymensionxyz/dymension/issues/1753)) ([e7cf378](https://github.com/dymensionxyz/dymension/commit/e7cf378e9c35e428b30d8c5d03ae31497c616a15))
 * **IRO:** graduate completed IROs into amm pool ([#1986](https://github.com/dymensionxyz/dymension/issues/1986)) ([e7afe40](https://github.com/dymensionxyz/dymension/commit/e7afe40c14f438e6b8bb76d399791f32e362c69f))
+* **IRO:** migrate iro plans that pass the eq point ([#2011](https://github.com/dymensionxyz/dymension/issues/2011)) ([10a392f](https://github.com/dymensionxyz/dymension/commit/10a392fc86a9e0facd78f0a06a9a20d4bf842cb5))
 * **IRO:** refactor IRO buy/sell events to return `Coin` instead of `Int` ([#1893](https://github.com/dymensionxyz/dymension/issues/1893)) ([4f5b33a](https://github.com/dymensionxyz/dymension/commit/4f5b33ac24d2602781d1a7c777cc35a9a9c91ff8))
 * **iro:** setting equilibrium point where the raised dym goes to the liquidity pool ([#1750](https://github.com/dymensionxyz/dymension/issues/1750)) ([9ce13d9](https://github.com/dymensionxyz/dymension/commit/9ce13d919d168938180f0e58e02f4f695830d0e1))
 * kas bridge ([#1883](https://github.com/dymensionxyz/dymension/issues/1883)) ([1d2176c](https://github.com/dymensionxyz/dymension/commit/1d2176cce5db7ce6d51c0625e0b28198533cb634))
