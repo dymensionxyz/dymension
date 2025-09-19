@@ -1,6 +1,8 @@
 package types
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 
@@ -8,7 +10,11 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
+	opastorage "github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -26,6 +32,14 @@ const (
 	DefaultLivenessSlashInterval = uint64(600)  // 1 hour worth of blocks at 1 block per 6 seconds
 )
 
+var DefaultTeeConfig = TEEConfig{
+	Enabled:         true,
+	Verify:          false, // testing only
+	PolicyValues:    "",
+	PolicyQuery:     "",
+	PolicyStructure: "",
+}
+
 // NewParams creates a new Params instance
 func NewParams(
 	disputePeriodInBlocks uint64,
@@ -33,6 +47,7 @@ func NewParams(
 	livenessSlashInterval uint64,
 	appRegistrationFee sdk.Coin,
 	minSequencerBondGlobal sdk.Coin,
+	teeConfig TEEConfig,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks:  disputePeriodInBlocks,
@@ -40,6 +55,7 @@ func NewParams(
 		LivenessSlashInterval:  livenessSlashInterval,
 		AppRegistrationFee:     appRegistrationFee,
 		MinSequencerBondGlobal: minSequencerBondGlobal,
+		TeeConfig:              teeConfig,
 	}
 }
 
@@ -51,6 +67,7 @@ func DefaultParams() Params {
 		DefaultLivenessSlashInterval,
 		DefaultAppRegistrationFee,
 		DefaultMinSequencerBondGlobalCoin,
+		DefaultTeeConfig,
 	)
 }
 
@@ -66,6 +83,11 @@ func (p Params) WithLivenessSlashBlocks(x uint64) Params {
 
 func (p Params) WithLivenessSlashInterval(x uint64) Params {
 	p.LivenessSlashInterval = x
+	return p
+}
+
+func (p Params) WithTeeConfig(x TEEConfig) Params {
+	p.TeeConfig = x
 	return p
 }
 
@@ -87,6 +109,9 @@ func (p Params) ValidateBasic() error {
 	}
 	if err := uparam.ValidateCoin(p.MinSequencerBondGlobal); err != nil {
 		return errorsmod.Wrap(err, "min sequencer bond")
+	}
+	if err := validateTeeConfig(p.TeeConfig); err != nil {
+		return errorsmod.Wrap(err, "tee config")
 	}
 	return nil
 }
@@ -124,5 +149,40 @@ func validateAppRegistrationFee(v sdk.Coin) error {
 		return fmt.Errorf("invalid app creation cost: %s", v)
 	}
 
+	return nil
+}
+
+func (v TEEConfig) PemCert() (*x509.Certificate, error) {
+	block, _ := pem.Decode([]byte(v.GcpRootCertPem))
+	if block == nil {
+		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
+	}
+	return x509.ParseCertificate(block.Bytes)
+}
+
+func (v TEEConfig) PolicyValuesStore() (opastorage.Store, error) {
+	var json map[string]any
+	err := util.UnmarshalJSON([]byte(v.PolicyValues), &json)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unmarshal json")
+	}
+	return inmem.NewFromObject(json), nil
+}
+
+func validateTeeConfig(v TEEConfig) error {
+	if v.Verify {
+		if _, err := v.PemCert(); err != nil {
+			return errorsmod.Wrap(err, "pem cert")
+		}
+		if _, err := v.PolicyValuesStore(); err != nil {
+			return errorsmod.Wrap(err, "policy values store")
+		}
+		if v.PolicyQuery == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "policy query empty")
+		}
+		if v.PolicyStructure == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "policy structure empty")
+		}
+	}
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // LatestFinalizedStateIndex defines the rollapps' current (latest) index of the latest StateInfo that was finalized
@@ -62,4 +63,21 @@ func (k Keeper) GetAllLatestFinalizedStateIndex(ctx sdk.Context) (list []types.S
 	}
 
 	return
+}
+
+func (k Keeper) GetLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
+	latestIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !found {
+		return 0, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	}
+	stateInfo := k.MustGetStateInfo(ctx, rollappID, latestIndex.Index)
+	return stateInfo.GetLatestHeight(), nil
+}
+
+func (k Keeper) IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool {
+	latestFinalizedHeight, err := k.GetLatestFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return false
+	}
+	return height <= latestFinalizedHeight
 }

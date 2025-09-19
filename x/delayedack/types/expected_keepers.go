@@ -18,7 +18,8 @@ type ChannelKeeper interface {
 
 type RollappKeeper interface {
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) types.StateInfo
-	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
+	GetLatestFinalizedHeight(ctx sdk.Context, rollappId string) (uint64, error)
+	IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
 	GetValidTransfer(
 		ctx sdk.Context,

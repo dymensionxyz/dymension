@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowRollapp())
 	cmd.AddCommand(CmdShowStateInfo())
 	cmd.AddCommand(CmdShowLatestHeight())
+	cmd.AddCommand(CmdShowLatestFinalizedHeight())
 	cmd.AddCommand(CmdShowLatestStateIndex())
 	cmd.AddCommand(CmdQueryRegisteredDenoms())
 
