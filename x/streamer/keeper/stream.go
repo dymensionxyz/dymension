@@ -18,6 +18,13 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
 	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
 
+	// Add coins to distribute during the next epoch
+	stream.EpochCoins = epochCoins
+
+	if stream.IsPumpStream() {
+		stream.PumpParams.EpochCoinsLeft = stream.EpochCoins
+	}
+
 	// If the stream uses a sponsorship plan, query it and update stream distr info. The distribution
 	// might be empty and this is a valid scenario. In that case, we'll just skip without filling the epoch.
 	if stream.Sponsored {
@@ -29,9 +36,6 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 		stream.DistributeTo = types.DistrInfoFromDistribution(distr)
 	}
 
-	// Add coins to distribute during the next epoch
-	stream.EpochCoins = epochCoins
-
 	return stream, nil
 }
 
@@ -39,7 +43,8 @@ func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (
 // and makes the stream finished if needed.
 func (k Keeper) UpdateStreamAtEpochEnd(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
 	// Don't fill streams in which there's nothing to fill. This might happen when using sponsored streams.
-	if !stream.DistributeTo.TotalWeight.IsZero() {
+	// Pump streams don't use DistributeTo, so ignore this condition for them.
+	if stream.IsPumpStream() || !stream.DistributeTo.TotalWeight.IsZero() {
 		stream.FilledEpochs += 1
 	}
 

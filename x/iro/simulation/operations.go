@@ -53,10 +53,12 @@ func SimulateTestBondingCurve(k keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-		plans := k.GetAllPlans(ctx, true)
+		plans := k.GetAllPlans(ctx)
 		if len(plans) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, "TestBondingCurve", ""), nil, errors.New("no plans found")
 		}
+
+		// TODO: filter out plans that are not tradable
 
 		// Randomly select a plan
 		plan := plans[r.Intn(len(plans))]

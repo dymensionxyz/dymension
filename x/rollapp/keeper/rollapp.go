@@ -119,7 +119,7 @@ func (k Keeper) SetRollappAsLaunched(ctx sdk.Context, rollapp *types.Rollapp) er
 // SetIROPlanToRollapp modifies the rollapp object due to IRO creation
 // This methods:
 // - seals the rollapp genesis info
-// - set the pre launch time according to the iro plan end time
+// - set the pre launch time to the future (rollapp is unlaunchable until IRO's requirement achieved)
 // Validations:
 // - rollapp must not be launched
 // - genesis info must be set
@@ -140,14 +140,10 @@ func (k Keeper) SetIROPlanToRollapp(ctx sdk.Context, rollapp *types.Rollapp, pla
 	// seal genesis info
 	rollapp.GenesisInfo.Sealed = true
 
-	// set pre launch time
-	// if not enabled yet, set preLaunchTime to the future
-	preLaunchTime := plan.PreLaunchTime
-	if !plan.TradingEnabled {
-		preLaunchTime = ctx.BlockTime().Add(time.Hour * 24 * 365 * 10) // 10 years
-	}
-
+	// set rollapp as unlaunchable until IRO's requirement achieved
+	preLaunchTime := ctx.BlockTime().Add(time.Hour * 24 * 365 * 10) // 10 years
 	rollapp.PreLaunchTime = &preLaunchTime
+
 	k.SetRollapp(ctx, *rollapp)
 	return nil
 }

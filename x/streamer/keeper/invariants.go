@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -67,26 +68,26 @@ func StreamsInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 
 		streams := k.GetNotFinishedStreams(ctx)
 		for _, stream := range streams {
 			if stream.FilledEpochs > stream.NumEpochsPaidOver {
-				msg += fmt.Sprintf("filled epochs > num epochs paid over on stream %d", stream.Id)
+				msg.WriteString(fmt.Sprintf("filled epochs > num epochs paid over on stream %d", stream.Id))
 				broken = true
 			}
 
 			overflow := !stream.DistributedCoins.IsAllLTE(stream.Coins)
 			if overflow {
-				msg += fmt.Sprintf("distributed coins > coins on stream %d", stream.Id)
+				msg.WriteString(fmt.Sprintf("distributed coins > coins on stream %d", stream.Id))
 				broken = true
 			}
 		}
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "streams",
-			msg,
+			msg.String(),
 		), broken
 	}
 }

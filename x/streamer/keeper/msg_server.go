@@ -55,6 +55,37 @@ func (s msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStrea
 	}, nil
 }
 
+func (s msgServer) CreatePumpStream(goCtx context.Context, msg *types.MsgCreatePumpStream) (*types.MsgCreatePumpStreamResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.Authority != s.authority {
+		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
+	}
+
+	streamID, err := s.Keeper.CreatePumpStream(
+		ctx,
+		msg.Stream,
+		msg.NumPumps,
+		msg.PumpDistr,
+		msg.BurnPumped,
+		msg.Target,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if msg.ClearAllVotes {
+		err = s.sk.ClearAllVotes(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &types.MsgCreatePumpStreamResponse{
+		StreamId: streamID,
+	}, nil
+}
+
 // TerminateStream implements the MsgServer interface
 func (s msgServer) TerminateStream(goCtx context.Context, msg *types.MsgTerminateStream) (*types.MsgTerminateStreamResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)

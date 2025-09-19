@@ -443,6 +443,12 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
+		a.MintKeeper.Params,
+		a.IROKeeper,
+		a.PoolManagerKeeper,
+		a.RollappKeeper,
+		a.TxFeesKeeper,
+		a.GAMMKeeper,
 		govModuleAddress,
 	)
 

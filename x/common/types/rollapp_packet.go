@@ -19,7 +19,7 @@ func (r RollappPacket) ValidateBasic() error {
 		return fmt.Errorf("rollapp id cannot be empty")
 	}
 	if len(r.Relayer) == 0 {
-		return fmt.Errorf("status cannot be empty")
+		return fmt.Errorf("relayer cannot be empty")
 	}
 	if r.OriginalTransferTarget != "" {
 		if _, err := sdk.AccAddressFromBech32(r.OriginalTransferTarget); err != nil {

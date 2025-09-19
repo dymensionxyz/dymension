@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.streamer;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "dymensionxyz/dymension/streamer/streamer.proto";
 
@@ -27,3 +28,21 @@ message EventEpochEnd {
 }
 
 message EventEpochStart { uint64 active_streams_num = 1; }
+
+message EventPumped {
+  message Rollapp {
+    string rollapp_id = 1;
+    cosmos.base.v1beta1.Coin pumpCoin = 2 [ (gogoproto.nullable) = false ];
+    cosmos.base.v1beta1.Coin tokenOut = 3 [ (gogoproto.nullable) = false ];
+  }
+
+  message Pool {
+    uint64 pool_id = 1;
+    cosmos.base.v1beta1.Coin pumpCoin = 2 [ (gogoproto.nullable) = false ];
+    cosmos.base.v1beta1.Coin tokenOut = 3 [ (gogoproto.nullable) = false ];
+  }
+
+  uint64 stream_id = 1;
+  repeated Rollapp rollapps = 2 [ (gogoproto.nullable) = false ];
+  Pool pool = 3;
+}

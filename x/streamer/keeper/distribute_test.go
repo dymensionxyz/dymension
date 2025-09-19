@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	sponsorshiptypes "github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -113,19 +114,19 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 		// is the epoch filled as a side effect
 		fillEpochs bool
 	}{
-		// {
-		// 	name: "single-coin stream, no initial nor intermediate distributions",
-		// 	stream: stream{
-		// 		coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
-		// 		numOfEpochs: 30,
-		// 		distrInfo:   defaultDistrInfo,
-		// 	},
-		// 	hasInitialDistr:      false,
-		// 	initialVote:          sponsorshiptypes.MsgVote{},
-		// 	hasIntermediateDistr: false,
-		// 	intermediateVote:     sponsorshiptypes.MsgVote{},
-		// 	fillEpochs:           false,
-		// },
+		{
+			name: "single-coin stream, no initial nor intermediate distributions",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr:      false,
+			initialVote:          sponsorshiptypes.MsgVote{},
+			hasIntermediateDistr: false,
+			intermediateVote:     sponsorshiptypes.MsgVote{},
+			fillEpochs:           false,
+		},
 		{
 			name: "single-coin stream, initial distribution",
 			stream: stream{
@@ -137,97 +138,106 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			initialVote: sponsorshiptypes.MsgVote{
 				Voter: addrs[0].String(),
 				Weights: []sponsorshiptypes.GaugeWeight{
-					{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(50)},
-					{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(30)},
+					{GaugeId: 3, Weight: sponsorshiptypes.DYM.MulRaw(50)},
+					{GaugeId: 4, Weight: sponsorshiptypes.DYM.MulRaw(30)},
 				},
 			},
 			hasIntermediateDistr: false,
 			intermediateVote:     sponsorshiptypes.MsgVote{},
 			fillEpochs:           true,
 		},
-		// {
-		// 	name: "single-coin stream, intermediate distribution",
-		// 	stream: stream{
-		// 		coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
-		// 		numOfEpochs: 30,
-		// 		distrInfo:   defaultDistrInfo,
-		// 	},
-		// 	hasInitialDistr:      false,
-		// 	initialVote:          sponsorshiptypes.MsgVote{},
-		// 	hasIntermediateDistr: true,
-		// 	intermediateVote: sponsorshiptypes.MsgVote{
-		// 		Voter: addrs[1].String(),
-		// 		Weights: []sponsorshiptypes.GaugeWeight{
-		// 			{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(10)},
-		// 			{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(90)},
-		// 		},
-		// 	},
-		// 	fillEpochs: true,
-		// },
-		// {
-		// 	name: "single-coin stream, initial and intermediate distributions",
-		// 	stream: stream{
-		// 		coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
-		// 		numOfEpochs: 30,
-		// 		distrInfo:   defaultDistrInfo,
-		// 	},
-		// 	hasInitialDistr: true,
-		// 	initialVote: sponsorshiptypes.MsgVote{
-		// 		Voter: addrs[0].String(),
-		// 		Weights: []sponsorshiptypes.GaugeWeight{
-		// 			{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(70)},
-		// 			{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(30)},
-		// 		},
-		// 	},
-		// 	hasIntermediateDistr: true,
-		// 	intermediateVote: sponsorshiptypes.MsgVote{
-		// 		Voter: addrs[1].String(),
-		// 		Weights: []sponsorshiptypes.GaugeWeight{
-		// 			{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(10)},
-		// 			{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(90)},
-		// 		},
-		// 	},
-		// 	fillEpochs: true,
-		// },
-		// {
-		// 	name: "stream distr info doesn't play any role",
-		// 	stream: stream{
-		// 		coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
-		// 		numOfEpochs: 30,
-		// 		// Random unrealistic values
-		// 		distrInfo: []types.DistrRecord{
-		// 			{
-		// 				GaugeId: 121424,
-		// 				Weight:  math.NewInt(502351235),
-		// 			},
-		// 			{
-		// 				GaugeId: 223525,
-		// 				Weight:  math.NewInt(53454350),
-		// 			},
-		// 		},
-		// 	},
-		// 	hasInitialDistr: true,
-		// 	initialVote: sponsorshiptypes.MsgVote{
-		// 		Voter: addrs[0].String(),
-		// 		Weights: []sponsorshiptypes.GaugeWeight{
-		// 			{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(70)},
-		// 			{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(30)},
-		// 		},
-		// 	},
-		// 	hasIntermediateDistr: true,
-		// 	intermediateVote: sponsorshiptypes.MsgVote{
-		// 		Voter: addrs[1].String(),
-		// 		Weights: []sponsorshiptypes.GaugeWeight{
-		// 			{GaugeId: 1, Weight: sponsorshiptypes.DYM.MulRaw(10)},
-		// 			{GaugeId: 2, Weight: sponsorshiptypes.DYM.MulRaw(90)},
-		// 		},
-		// 	},
-		// 	fillEpochs: true,
-		// },
+		{
+			name: "single-coin stream, intermediate distribution",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr:      false,
+			initialVote:          sponsorshiptypes.MsgVote{},
+			hasIntermediateDistr: true,
+			intermediateVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[1].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 3, Weight: sponsorshiptypes.DYM.MulRaw(10)},
+					{GaugeId: 4, Weight: sponsorshiptypes.DYM.MulRaw(90)},
+				},
+			},
+			fillEpochs: true,
+		},
+		{
+			name: "single-coin stream, initial and intermediate distributions",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				distrInfo:   defaultDistrInfo,
+			},
+			hasInitialDistr: true,
+			initialVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[0].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 3, Weight: sponsorshiptypes.DYM.MulRaw(70)},
+					{GaugeId: 4, Weight: sponsorshiptypes.DYM.MulRaw(30)},
+				},
+			},
+			hasIntermediateDistr: true,
+			intermediateVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[1].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 3, Weight: sponsorshiptypes.DYM.MulRaw(10)},
+					{GaugeId: 4, Weight: sponsorshiptypes.DYM.MulRaw(90)},
+				},
+			},
+			fillEpochs: true,
+		},
+		{
+			name: "stream distr info doesn't play any role",
+			stream: stream{
+				coins:       sdk.Coins{sdk.NewInt64Coin("stake", 100)},
+				numOfEpochs: 30,
+				// Random unrealistic values
+				distrInfo: []types.DistrRecord{
+					{
+						GaugeId: 121424,
+						Weight:  math.NewInt(502351235),
+					},
+					{
+						GaugeId: 223525,
+						Weight:  math.NewInt(53454350),
+					},
+				},
+			},
+			hasInitialDistr: true,
+			initialVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[0].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 3, Weight: sponsorshiptypes.DYM.MulRaw(70)},
+					{GaugeId: 4, Weight: sponsorshiptypes.DYM.MulRaw(30)},
+				},
+			},
+			hasIntermediateDistr: true,
+			intermediateVote: sponsorshiptypes.MsgVote{
+				Voter: addrs[1].String(),
+				Weights: []sponsorshiptypes.GaugeWeight{
+					{GaugeId: 3, Weight: sponsorshiptypes.DYM.MulRaw(10)},
+					{GaugeId: 4, Weight: sponsorshiptypes.DYM.MulRaw(90)},
+				},
+			},
+			fillEpochs: true,
+		},
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+
+			// Create default rollapps to vote on (gauge ID 3 and 4)
+			suite.CreateDefaultRollapp()
+			suite.CreateDefaultRollapp()
+
+			// Update x/incentives params to allow distributing to non-active rollapps
+			p := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
+			p.RollappGaugesMode = incentivestypes.Params_AllRollapps
+			suite.App.IncentivesKeeper.SetParams(suite.Ctx, p)
 
 			// We must create at least one lock, otherwise distribution won't work
 			lockOwner := apptesting.CreateRandomAccounts(1)[0]
@@ -235,7 +245,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// Cast an initial vote
 			if tc.hasInitialDistr {
-				suite.Vote(tc.initialVote, sponsorshiptypes.DYM)
+				suite.CreateValVote(tc.initialVote, sponsorshiptypes.DYM)
 			}
 
 			// Create a stream
@@ -252,7 +262,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 
 			// Cast an intermediate vote
 			if tc.hasIntermediateDistr {
-				suite.Vote(tc.intermediateVote, sponsorshiptypes.DYM)
+				suite.CreateValVote(tc.intermediateVote, sponsorshiptypes.DYM)
 			}
 
 			// Distribute
@@ -297,7 +307,7 @@ func (suite *KeeperTestSuite) TestSponsoredDistribute() {
 			// Check expected rewards against actual rewards received
 			gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
 			for _, gauge := range gauges {
-				suite.Require().ElementsMatch(gaugesExpectedRewards[gauge.Id], gauge.Coins)
+				suite.Require().ElementsMatch(gaugesExpectedRewards[gauge.Id], gauge.Coins, "expected: %v, actual: %v", gaugesExpectedRewards[gauge.Id], gauge.Coins)
 			}
 		})
 	}

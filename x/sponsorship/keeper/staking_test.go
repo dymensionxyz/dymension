@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
@@ -62,7 +61,7 @@ func (s *KeeperTestSuite) TestSponsorshipStakingPower() {
 	s.Require().True(resp.DelegationResponse.Balance.Amount.Equal(expectedAmt))
 
 	// Now compare the values with the sponsorship module
-	s.CreateGauges(1)
+	s.CreateRollappGauges(1)
 	s.Vote(types.MsgVote{
 		Voter: del.GetDelegatorAddr(),
 		Weights: []types.GaugeWeight{

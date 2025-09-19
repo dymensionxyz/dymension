@@ -5,6 +5,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/streamer/params.proto";
+import "dymensionxyz/dymension/streamer/stream.proto";
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -20,6 +21,9 @@ service Msg {
 
   // CreateStream creates a new stream
   rpc CreateStream(MsgCreateStream) returns (MsgCreateStreamResponse);
+
+  // CreatePumpStream creates a new pump stream
+  rpc CreatePumpStream(MsgCreatePumpStream) returns (MsgCreatePumpStreamResponse);
 
   // TerminateStream terminates an existing stream
   rpc TerminateStream(MsgTerminateStream) returns (MsgTerminateStreamResponse);
@@ -42,6 +46,29 @@ message MsgUpdateParams {
 }
 
 message MsgUpdateParamsResponse {}
+
+message CreateStreamGeneric {
+  // Coins are coin(s) to be distributed by the stream
+  repeated cosmos.base.v1beta1.Coin coins = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+
+  // StartTime is the distribution start time
+  google.protobuf.Timestamp start_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"timestamp\""
+  ];
+
+  // EpochIdentifier is the epoch identifier for distribution
+  string epoch_identifier = 3
+  [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+
+  // NumEpochsPaidOver is the number of epochs distribution will be completed
+  // over
+  uint64 num_epochs_paid_over = 4;
+}
 
 // MsgCreateStream creates a new stream
 message MsgCreateStream {
@@ -78,11 +105,37 @@ message MsgCreateStream {
   // Sponsored indicates if the stream is based on the sponsorship distribution
   bool sponsored = 7;
 
-  // ClearAllVotes indicates if the stream should clear all votes (only for sponsored streams)
+  // ClearAllVotes indicates if the stream should clear all votes (only for
+  // sponsored streams)
   bool clear_all_votes = 8;
 }
 
 message MsgCreateStreamResponse { uint64 stream_id = 1; }
+
+// MsgCreateStream creates a new stream
+message MsgCreatePumpStream {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  CreateStreamGeneric stream = 2 [ (gogoproto.nullable) = false ];
+
+  // NumPumps is a target number of pumps that expected to happen
+  // in the epoch (probabilistically)
+  uint64 num_pumps = 3;
+  // PumpDistr is a distribution used to determine pump amount
+  PumpDistr pump_distr = 4;
+  // ClearAllVotes indicates if the stream should clear all votes
+  bool clear_all_votes = 5;
+  // BurnPumped indicates whether to burn tokens purchased during the pump
+  bool burn_pumped = 6;
+  // Target is that is going to be pumped
+  oneof target {
+    TargetTopRollapps rollapps = 7;
+    TargetPool pool = 8;
+  }
+}
+
+message MsgCreatePumpStreamResponse { uint64 stream_id = 1; }
 
 // MsgTerminateStream terminates an existing stream
 message MsgTerminateStream {

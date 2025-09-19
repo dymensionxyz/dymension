@@ -1,6 +1,8 @@
 package app
 
 import (
+	"slices"
+
 	"cosmossdk.io/x/circuit"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	"cosmossdk.io/x/evidence"
@@ -192,7 +194,7 @@ var maccPerms = map[string][]string{
 	sequencertypes.ModuleName:                          {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {authtypes.Burner},
 	sponsorshiptypes.ModuleName:                        nil,
-	streamermoduletypes.ModuleName:                     nil,
+	streamermoduletypes.ModuleName:                     {authtypes.Burner},
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
 	grouptypes.ModuleName:                              nil,
@@ -349,4 +351,16 @@ var InitGenesis = []string{
 	circuittypes.ModuleName,
 	kastypes.ModuleName,
 	ratelimittypes.ModuleName,
+}
+
+// We have custom migration order to make sure we run txfees first (we need it for iro migrations)
+func CustomMigrationOrder(modules []string) []string {
+	defaultOrder := module.DefaultMigrationsOrder(modules)
+
+	// run txfees first (we need it for iro migrations)
+	txfeesIndex := slices.Index(defaultOrder, txfeestypes.ModuleName)
+	defaultOrder = append(defaultOrder[:txfeesIndex], defaultOrder[txfeesIndex+1:]...)
+	defaultOrder = append([]string{txfeestypes.ModuleName}, defaultOrder...)
+
+	return defaultOrder
 }

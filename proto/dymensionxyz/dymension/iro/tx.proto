@@ -22,6 +22,9 @@ service Msg {
   // CreatePlan is used to create a new plan.
   rpc CreatePlan(MsgCreatePlan) returns (MsgCreatePlanResponse);
 
+  rpc CreateStandardLaunchPlan(MsgCreateStandardLaunchPlan)
+      returns (MsgCreatePlanResponse);
+
   rpc EnableTrading(MsgEnableTrading) returns (MsgEnableTradingResponse);
 
   // Buy is used to buy allocation.
@@ -109,6 +112,15 @@ message MsgCreatePlan {
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"vesting_start_time_after_settlement\""
   ];
+}
+
+message MsgCreateStandardLaunchPlan {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string rollapp_id = 2;
+  bool trading_enabled = 3;
+  string liquidity_denom = 4;
 }
 
 message MsgCreatePlanResponse {
