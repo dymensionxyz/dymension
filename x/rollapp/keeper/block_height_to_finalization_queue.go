@@ -155,12 +155,8 @@ func (k Keeper) FastFinalizeRollappStatesUntilStateIndex(ctx sdk.Context, rollap
 	for _, q := range queues {
 		for j, stateInfoIdx := range q.FinalizationQueue {
 			if stateInfoIdx.Index > stateIndex {
-				suffix := q.FinalizationQueue[j:]
-				k.MustSetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
-					CreationHeight:    q.CreationHeight,
-					RollappId:         rollappID,
-					FinalizationQueue: suffix,
-				})
+				q.FinalizationQueue = q.FinalizationQueue[j:]
+				k.MustSetFinalizationQueue(ctx, q)
 				// Since the queue of queues is sorted, we can break early
 				return nil
 			}
