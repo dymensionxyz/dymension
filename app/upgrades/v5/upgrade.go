@@ -453,9 +453,8 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 	migrateAndUpdateLockupParams(ctx, keepers)
 }
 
-// TODO: use proper values
 var newTeeConfig = rollappmoduletypes.TEEConfig{
-	Enabled:         true,
+	Enabled:         false, // will require gov prop to enable, and set the policy info
 	Verify:          false,
 	PolicyValues:    "",
 	PolicyQuery:     "",
