@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-18)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-21)
 
 
 ### Bug Fixes
@@ -59,6 +59,7 @@
 * **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
 * **denommetadata:** Add CLI tx for HL denom meta reg ([#1943](https://github.com/dymensionxyz/dymension/issues/1943)) ([96889d2](https://github.com/dymensionxyz/dymension/commit/96889d21b303c83f19e7d6d2627e5264fae552d0))
 * **deps:** bump ethermint to 07f1611f6247 ([#1909](https://github.com/dymensionxyz/dymension/issues/1909)) ([8786dd2](https://github.com/dymensionxyz/dymension/commit/8786dd2fa0f5827724f7930ded293ea2f204d205))
+* **dymns:** allow alias registration fee in foreign token ([#2017](https://github.com/dymensionxyz/dymension/issues/2017)) ([6e60b1d](https://github.com/dymensionxyz/dymension/commit/6e60b1d4841e992cd1902f21686456d5043ef609))
 * **eibc:** add ability to find fulfiller on demand ([#1745](https://github.com/dymensionxyz/dymension/issues/1745)) ([5722855](https://github.com/dymensionxyz/dymension/commit/57228557e9f9a2cb58ac411e48bbe90254e540ab)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
 * **eibc:** optimistic eibc min fee is now percent ([#1868](https://github.com/dymensionxyz/dymension/issues/1868)) ([cf94c1a](https://github.com/dymensionxyz/dymension/commit/cf94c1a8a9f48131a449b0072509e4ba32cef5d1))
 * **eip712:**  improvements with eip712 support ([#1970](https://github.com/dymensionxyz/dymension/issues/1970)) ([7b13504](https://github.com/dymensionxyz/dymension/commit/7b1350447d92ffc4fe6f37230b4c8f2370cc27b8))
