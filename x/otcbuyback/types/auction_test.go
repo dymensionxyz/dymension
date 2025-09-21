@@ -125,3 +125,33 @@ func TestAuction_GetCurrentDiscount_ZeroDiscountRange(t *testing.T) {
 			discount.String(), actualDiscount.String(), testTime.String())
 	}
 }
+
+func TestAuction_GetCurrentDiscount_ZeroDuration(t *testing.T) {
+	// Test edge case where start time equals end time (zero duration)
+	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
+	startTime := baseTime
+	endTime := baseTime                                 // Same as start time - zero duration
+	initialDiscount := math.LegacyNewDecWithPrec(10, 2) // 0.10 = 10%
+	maxDiscount := math.LegacyNewDecWithPrec(50, 2)     // 0.50 = 50%
+
+	auction := NewAuction(
+		1,
+		math.NewInt(1000000),
+		startTime,
+		endTime, // Same as startTime
+		initialDiscount,
+		maxDiscount,
+		Auction_VestingParams{
+			VestingPeriod:               time.Hour * 24,
+			VestingStartAfterAuctionEnd: time.Hour,
+		},
+		Auction_PumpParams{},
+	)
+
+	// Test at the exact time when start equals end
+	// Should return max discount immediately since there's no time for progression
+	actualDiscount := auction.GetCurrentDiscount(startTime)
+	require.True(t, maxDiscount.Equal(actualDiscount),
+		"Expected max discount %s for zero-duration auction, got %s",
+		maxDiscount.String(), actualDiscount.String())
+}

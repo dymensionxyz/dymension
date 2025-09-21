@@ -49,7 +49,8 @@ func (a Auction) ValidateBasic() error {
 		return ErrInvalidAllocation
 	}
 
-	if a.EndTime.Before(a.StartTime) {
+	// endtime must be greater than starttime
+	if a.EndTime.Compare(a.StartTime) <= 0 {
 		return ErrInvalidEndTime
 	}
 
@@ -106,17 +107,14 @@ func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
 	timeElapsed := currentTime.Sub(a.StartTime)
 	totalDuration := a.EndTime.Sub(a.StartTime)
 
+	// defensively handle edge case where auction has zero duration
+	if totalDuration == 0 {
+		return a.MaxDiscount
+	}
+
 	// Calculate progress as a decimal (0 to 1)
 	progress := math.LegacyNewDec(timeElapsed.Nanoseconds()).
 		Quo(math.LegacyNewDec(totalDuration.Nanoseconds()))
-
-	// Ensure progress is between 0 and 1
-	if progress.GT(math.LegacyOneDec()) {
-		progress = math.LegacyOneDec()
-	}
-	if progress.LT(math.LegacyZeroDec()) {
-		progress = math.LegacyZeroDec()
-	}
 
 	// Calculate current discount: initial + (max - initial) * progress
 	discountRange := a.MaxDiscount.Sub(a.InitialDiscount)
