@@ -1,0 +1,39 @@
+syntax = "proto3";
+package dymensionxyz.dymension.otcbuyback;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
+
+message Purchase {
+  // Amount of tokens purchased
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Amount already claimed
+  string claimed = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Start time of the claim option
+  google.protobuf.Timestamp start_time = 3
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+
+  // End time of the claim option
+  google.protobuf.Timestamp end_time = 4
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+}
+
+message UserPurchase {
+  string buyer = 1;
+  Purchase purchase = 2 [ (gogoproto.nullable) = false ];
+}
