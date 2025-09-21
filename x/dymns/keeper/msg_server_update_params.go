@@ -24,6 +24,15 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *dymnstypes.MsgUpdate
 	moduleParams := k.GetParams(ctx)
 
 	if msg.NewPriceParams != nil {
+		// price denom must be the same as txfees base denom
+		baseDenom, err := k.txFeesKeeper.GetBaseDenom(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if msg.NewPriceParams.PriceDenom != baseDenom {
+			return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "price denom must be the same as txfees base denom")
+		}
+
 		moduleParams.Price = *msg.NewPriceParams
 	}
 

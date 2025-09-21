@@ -82,6 +82,7 @@ func CmdCreateRollapp() *cobra.Command {
 				types.Rollapp_VMType(vmType),
 				metadata,
 				genesisInfo,
+				"",
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

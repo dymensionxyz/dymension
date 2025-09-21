@@ -159,7 +159,7 @@ func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId u
 // AfterStateFinalized implements types.RollappHooks.
 
 // RollappCreated implements types.RollappHooks.
-func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAddress) error {
+func (h Hooks) RollappCreated(ctx sdk.Context, rollappID, _ string, _ sdk.AccAddress, _ string) error {
 	rollappGaugeId, err := h.k.ik.CreateRollappGauge(ctx, rollappID)
 	if err != nil {
 		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)
