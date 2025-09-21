@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -63,7 +64,8 @@ func (suite *KeeperTestSuite) CreateDefaultAuction() uint64 {
 	pumpParams := types.Auction_PumpParams{
 		StartTimeAfterAuctionEnd: time.Hour,
 		EpochIdentifier:          "day",
-		NumEpochsPaidOver:        30,
+		NumEpochs:                30,
+		PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
 		NumOfPumpsPerEpoch:       1,
 	}
 

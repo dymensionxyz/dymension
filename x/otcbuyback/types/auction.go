@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -72,7 +73,7 @@ func (a Auction) ValidateBasic() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting start time cannot be negative")
 	}
 
-	if a.PumpParams.NumEpochsPaidOver <= 0 {
+	if a.PumpParams.NumEpochs <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "numEpochsPaidOver must be greater than 0")
 	}
 
@@ -81,6 +82,9 @@ func (a Auction) ValidateBasic() error {
 	}
 	if a.PumpParams.StartTimeAfterAuctionEnd < 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "startTimeAfterAuctionEnd cannot be negative")
+	}
+	if a.PumpParams.PumpDistr == streamertypes.PumpDistr_PUMP_DISTR_UNSPECIFIED {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "pumpDistr must be specified")
 	}
 
 	return nil

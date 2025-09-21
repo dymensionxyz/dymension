@@ -6,6 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "dymensionxyz/dymension/streamer/stream.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
@@ -26,9 +27,10 @@ message Auction {
   // completion
   message PumpParams {
     string epoch_identifier = 1;
-    uint64 num_epochs_paid_over = 2;
+    uint64 num_epochs = 2;
     uint64 num_of_pumps_per_epoch = 3;
-    google.protobuf.Duration start_time_after_auction_end = 4
+    dymensionxyz.dymension.streamer.PumpDistr pump_distr = 4;
+    google.protobuf.Duration start_time_after_auction_end = 5
         [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   }
 

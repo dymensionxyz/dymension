@@ -31,7 +31,8 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 		PumpParams: types.Auction_PumpParams{
 			StartTimeAfterAuctionEnd: time.Hour,
 			EpochIdentifier:          "day",
-			NumEpochsPaidOver:        30,
+			NumEpochs:                30,
+			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
 			NumOfPumpsPerEpoch:       1,
 		},
 	}

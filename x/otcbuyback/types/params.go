@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -33,6 +34,7 @@ var DefaultVestingParams = Auction_VestingParams{
 var DefaultPumpParams = Auction_PumpParams{
 	StartTimeAfterAuctionEnd: time.Hour,
 	EpochIdentifier:          "month",
-	NumEpochsPaidOver:        2,
+	NumEpochs:                2,
 	NumOfPumpsPerEpoch:       25,
+	PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
 }

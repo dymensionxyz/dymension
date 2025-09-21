@@ -137,7 +137,7 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 	suite.Require().Equal(sdk.NewCoins(sdk.NewCoin("usdc", raisedAmount)), stream.Coins)
 
 	streamPumpParams := *stream.PumpParams
-	expectedCoins := sdk.NewCoins(sdk.NewCoin("usdc", raisedAmount)).QuoInt(math.NewIntFromUint64(auction.PumpParams.NumEpochsPaidOver))
+	expectedCoins := sdk.NewCoins(sdk.NewCoin("usdc", raisedAmount)).QuoInt(math.NewIntFromUint64(auction.PumpParams.NumEpochs))
 	suite.Require().Equal(expectedCoins, streamPumpParams.EpochCoinsLeft)
 	suite.Require().Equal(auction.PumpParams.NumOfPumpsPerEpoch, streamPumpParams.NumPumps)
 	suite.Require().Equal(streamertypes.PumpDistr_PUMP_DISTR_UNIFORM, streamPumpParams.PumpDistr)

@@ -10,6 +10,7 @@ import (
 	testutil "github.com/dymensionxyz/dymension/v3/testutil/math"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
@@ -118,7 +119,8 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		pumpParams := types.Auction_PumpParams{
 			StartTimeAfterAuctionEnd: time.Hour,
 			EpochIdentifier:          "day",
-			NumEpochsPaidOver:        30,
+			NumEpochs:                30,
+			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
 			NumOfPumpsPerEpoch:       1,
 		}
 

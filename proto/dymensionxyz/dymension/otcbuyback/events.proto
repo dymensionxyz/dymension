@@ -98,26 +98,3 @@ message EventTokensClaimed {
     (gogoproto.nullable) = false
   ];
 }
-
-/* FIXME
-// EventProceedsProcessed is emitted when auction proceeds are processed
-message EventProceedsProcessed {
-  // Auction ID
-  uint64 auction_id = 1;
-
-  // Amount used to buy DYM tokens
-  repeated cosmos.base.v1beta1.Coin amount_to_buy_dym = 2 [(gogoproto.nullable)
-= false];
-
-  // Amount of DYM tokens purchased
-  string dym_purchased = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
-
-  // Treasury address where DYM was sent
-  string treasury_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-}
-
-*/
