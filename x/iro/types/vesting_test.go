@@ -57,6 +57,14 @@ func TestGetVestedCoinsContVestingAcc(t *testing.T) {
 			},
 			amount.QuoRaw(2).SubRaw(500),
 		},
+		{
+			"zero duration vesting - all immediately vested",
+			startTime, // same as both start and end time
+			func() {
+				v.EndTime = v.StartTime // zero duration
+			},
+			amount, // should return full unclaimed amount
+		},
 	}
 
 	for _, tc := range cases {
