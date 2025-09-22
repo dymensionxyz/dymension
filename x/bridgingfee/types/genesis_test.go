@@ -25,7 +25,7 @@ func TestGenesisState_Validate(t *testing.T) {
 	validHookId2 := mustHexFromString("0x080ef1c2cd394de78363ecb0a466c934b57de4abb5604a0684e571990eb7b073")
 	validOwner := CreateRandomAccount().String()
 	validFee := HLAssetFee{
-		TokenID:     hyputil.CreateMockHexAddress("test", 1),
+		TokenId:     hyputil.CreateMockHexAddress("test", 1),
 		InboundFee:  math.LegacyMustNewDecFromStr("0.01"),
 		OutboundFee: math.LegacyMustNewDecFromStr("0.02"),
 	}
@@ -205,7 +205,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						Owner: validOwner,
 						Fees: []HLAssetFee{
 							{
-								TokenID:     hyputil.HexAddress{}, // invalid empty token ID
+								TokenId:     hyputil.HexAddress{}, // invalid empty token ID
 								InboundFee:  math.LegacyMustNewDecFromStr("0.01"),
 								OutboundFee: math.LegacyMustNewDecFromStr("0.02"),
 							},

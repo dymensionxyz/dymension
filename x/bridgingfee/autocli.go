@@ -58,13 +58,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{
 					RpcMethod: "CreateBridgingFeeHook",
-					Use:       "create-fee-hook",
+					Use:       "create-fee-hook [fees...]",
 					Short:     "Create a new bridging fee hook",
-					Long:      "Create a new fee hook that charges fees for token transfers across bridges.",
-					FlagOptions: map[string]*autocliv1.FlagOptions{
-						"fees": {
-							Name: "hook-fees",
-						},
+					Long:      "Create a new fee hook that charges fees for token transfers across bridges. Fees should be provided as JSON objects.",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "fees", Varargs: true},
 					},
 				},
 				{
@@ -77,13 +75,16 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					},
 					FlagOptions: map[string]*autocliv1.FlagOptions{
 						"fees": {
-							Name: "hook-fees",
+							Name:  "update-fees",
+							Usage: "Fee configuration for each token (JSON format: {\"tokenId\":\"0x...\",\"inboundFee\":\"0.01\",\"outboundFee\":\"0.02\"}). Can be repeated for multiple tokens.",
 						},
 						"new_owner": {
-							Name: "new-owner",
+							Name:  "new-owner",
+							Usage: "Transfer ownership to this address",
 						},
 						"renounce_ownership": {
-							Name: "renounce-ownership",
+							Name:  "renounce-ownership",
+							Usage: "Renounce ownership of the hook",
 						},
 					},
 				},
@@ -93,7 +94,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Create a new aggregation hook",
 					Long:      "Create a new aggregation hook that combines multiple sub-hooks to execute them sequentially.",
 					FlagOptions: map[string]*autocliv1.FlagOptions{
-						"hookIds": {
+						"hook_ids": {
 							Name: "hook-ids",
 						},
 					},
@@ -107,7 +108,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 						{ProtoField: "id"},
 					},
 					FlagOptions: map[string]*autocliv1.FlagOptions{
-						"hookIds": {
+						"hook_ids": {
 							Name: "hook-ids",
 						},
 						"new_owner": {

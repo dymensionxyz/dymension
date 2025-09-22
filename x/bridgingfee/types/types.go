@@ -23,7 +23,7 @@ func (h HLFeeHook) Validate() error {
 
 // Validate validates the asset fee
 func (f HLAssetFee) Validate() error {
-	if f.TokenID.IsZeroAddress() {
+	if f.TokenId.IsZeroAddress() {
 		return fmt.Errorf("token id cannot be empty")
 	}
 	if f.InboundFee.IsNegative() {

@@ -108,7 +108,7 @@ func (f FeeHookHandler) QuoteFee(ctx sdk.Context, hookId hyputil.HexAddress, sen
 	// Check if we have a fee configuration for this token (sender is the token ID)
 	var assetFee *types.HLAssetFee
 	for _, fee := range hook.Fees {
-		if fee.TokenID.Equal(sender) {
+		if fee.TokenId.Equal(sender) {
 			assetFee = &fee
 			break
 		}

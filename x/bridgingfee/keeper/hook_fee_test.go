@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestFeeHookPostDispatch() {
 		Owner: creator.String(),
 		Fees: []types.HLAssetFee{
 			{
-				TokenID:     tokenId,
+				TokenId:     tokenId,
 				InboundFee:  math.LegacyMustNewDecFromStr("0.01"), // 1%
 				OutboundFee: math.LegacyMustNewDecFromStr("0.02"), // 2%
 			},

@@ -85,9 +85,9 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 
 	// Verify all tokenIDs exist
 	for _, fee := range msg.Fees {
-		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID.String()})
+		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenId.String()})
 		if err != nil {
-			return hyputil.HexAddress{}, fmt.Errorf("token %s does not exist: %w", fee.TokenID, err)
+			return hyputil.HexAddress{}, fmt.Errorf("token %s does not exist: %w", fee.TokenId, err)
 		}
 	}
 
@@ -128,9 +128,9 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 
 	// Verify all tokenIDs exist
 	for _, fee := range msg.Fees {
-		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID.String()})
+		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenId.String()})
 		if err != nil {
-			return fmt.Errorf("token %s does not exist: %w", fee.TokenID, err)
+			return fmt.Errorf("token %s does not exist: %w", fee.TokenId, err)
 		}
 	}
 
