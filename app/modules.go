@@ -77,6 +77,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/incentives"
 	"github.com/dymensionxyz/dymension/v3/x/lockup"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
@@ -91,6 +92,7 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lightclientmodule "github.com/dymensionxyz/dymension/v3/x/lightclient"
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -158,6 +160,7 @@ func (app *App) SetupModules(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		txfees.NewAppModule(*app.TxFeesKeeper),
+		otcbuyback.NewAppModule(appCodec, *app.OTCBuybackKeeper),
 
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
@@ -202,6 +205,7 @@ var maccPerms = map[string][]string{
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
+	otcbuybacktypes.ModuleName:                         {},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              nil,
@@ -246,6 +250,7 @@ var BeginBlockers = []string{
 	eibcmoduletypes.ModuleName,
 	dymnstypes.ModuleName,
 	lockuptypes.ModuleName,
+	otcbuybacktypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
@@ -291,6 +296,7 @@ var EndBlockers = []string{
 	dymnstypes.ModuleName,
 	epochstypes.ModuleName,
 	lockuptypes.ModuleName,
+	otcbuybacktypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
@@ -339,6 +345,7 @@ var InitGenesis = []string{
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
+	otcbuybacktypes.ModuleName, // must be after x/gamm to set accepted tokens
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
