@@ -1191,7 +1191,7 @@ type TEENonce struct {
 	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 	// height TEE recently validated
 	CurrHeight uint64 `protobuf:"varint,1,opt,name=curr_height,json=currHeight,proto3" json:"curr_height,omitempty"`
-	// height TEE started from (which must be finalized)
+	// height TEE started from (which must be finalized (hub will check this))
 	FinalizedHeight uint64 `protobuf:"varint,4,opt,name=finalized_height,json=finalizedHeight,proto3" json:"finalized_height,omitempty"`
 }
 
