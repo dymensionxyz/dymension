@@ -33,7 +33,7 @@ func (s *KeeperTestSuite) TestAggregationHookPostDispatch() {
 		Owner: creator.String(),
 		Fees: []types.HLAssetFee{
 			{
-				TokenID:     tokenId.String(),
+				TokenID:     tokenId,
 				InboundFee:  math.LegacyMustNewDecFromStr("0.01"), // 1%
 				OutboundFee: math.LegacyMustNewDecFromStr("0.02"), // 2%
 			},
@@ -44,7 +44,7 @@ func (s *KeeperTestSuite) TestAggregationHookPostDispatch() {
 		Owner: creator.String(),
 		Fees: []types.HLAssetFee{
 			{
-				TokenID:     tokenId.String(),
+				TokenID:     tokenId,
 				InboundFee:  math.LegacyMustNewDecFromStr("0.01"), // 1%
 				OutboundFee: math.LegacyMustNewDecFromStr("0.03"), // 3%
 			},

@@ -19,7 +19,3 @@ type WarpQuery interface {
 type CoreKeeper interface {
 	PostDispatchRouter() *util.Router[util.PostDispatchModule]
 }
-
-type TxFeesKeeper interface {
-	CalcCoinInBaseDenom(ctx sdk.Context, inputFee sdk.Coin) (sdk.Coin, error)
-}

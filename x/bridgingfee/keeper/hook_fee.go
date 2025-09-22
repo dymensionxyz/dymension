@@ -46,17 +46,17 @@ func (f FeeHookHandler) PostDispatch(goCtx context.Context, _, hookId hyputil.He
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fee, err := f.QuoteFeeInBase(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
+	fee, err := f.QuoteFee(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
 	if err != nil {
 		return nil, err
 	}
 	if fee.IsZero() {
 		// Nothing to charge
-		return sdk.NewCoins(), nil
+		return nil, nil
 	}
 
 	if !maxFee.IsAllGTE(fee) {
-		return sdk.NewCoins(), fmt.Errorf("required fee payment exceeds max fee: %v", maxFee)
+		return nil, fmt.Errorf("required fee payment exceeds max fee: required %v, max %v", fee, maxFee)
 	}
 
 	// Accumulate fees on the x/bridgingfee account
@@ -89,16 +89,16 @@ func (f FeeHookHandler) QuoteDispatch(goCtx context.Context, _, hookId hyputil.H
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fee, err := f.QuoteFeeInBase(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
+	fee, err := f.QuoteFee(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("quote fee in base: %w", err)
 	}
 
 	return fee, nil
 }
 
-// QuoteFeeInBase calculates the fee in base denom required for a specific token transfer
-func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddress, sender hyputil.HexAddress, transferAmt math.Int) (sdk.Coins, error) {
+// QuoteFee calculates the fee for a specific token transfer. `transferAmt` is in `sender.OriginalDenom`.
+func (f FeeHookHandler) QuoteFee(ctx sdk.Context, hookId hyputil.HexAddress, sender hyputil.HexAddress, transferAmt math.Int) (sdk.Coins, error) {
 	// Get the fee hook configuration
 	hook, err := f.k.feeHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
@@ -108,7 +108,7 @@ func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddres
 	// Check if we have a fee configuration for this token (sender is the token ID)
 	var assetFee *types.HLAssetFee
 	for _, fee := range hook.Fees {
-		if fee.TokenID == sender.String() {
+		if fee.TokenID.Equal(sender) {
 			assetFee = &fee
 			break
 		}
@@ -127,13 +127,5 @@ func (f FeeHookHandler) QuoteFeeInBase(ctx sdk.Context, hookId hyputil.HexAddres
 
 	// fee = transferAmt * outboundFee
 	fee := assetFee.OutboundFee.MulInt(transferAmt).TruncateInt()
-
-	feeCoin := sdk.NewCoin(tokenResp.Token.OriginDenom, fee)
-
-	feeBase, err := f.k.txFeesKeeper.CalcCoinInBaseDenom(ctx, feeCoin)
-	if err != nil {
-		return nil, fmt.Errorf("calc fee in base denom: %w", err)
-	}
-
-	return sdk.NewCoins(feeBase), nil
+	return sdk.NewCoins(sdk.NewCoin(tokenResp.Token.OriginDenom, fee)), nil
 }

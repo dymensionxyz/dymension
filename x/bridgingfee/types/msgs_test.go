@@ -22,7 +22,7 @@ func mustHexFromString(s string) hyputil.HexAddress {
 func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 	validOwner := CreateRandomAccount().String()
 	validFee := HLAssetFee{
-		TokenID:     "0x0000000000000000000000007fa9385be102ac3eac297483dd6233d62b3e1496",
+		TokenID:     hyputil.CreateMockHexAddress("test", 1),
 		InboundFee:  math.LegacyMustNewDecFromStr("0.01"),
 		OutboundFee: math.LegacyMustNewDecFromStr("0.02"),
 	}
@@ -83,7 +83,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBridgingFeeHook{
 				Owner: validOwner,
 				Fees: []HLAssetFee{{
-					TokenID:     "",
+					TokenID:     hyputil.HexAddress{},
 					InboundFee:  math.LegacyMustNewDecFromStr("0.01"),
 					OutboundFee: math.LegacyMustNewDecFromStr("0.02"),
 				}},
@@ -96,7 +96,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBridgingFeeHook{
 				Owner: validOwner,
 				Fees: []HLAssetFee{{
-					TokenID:     "0x0000000000000000000000007fa9385be102ac3eac297483dd6233d62b3e1496",
+					TokenID:     validFee.TokenID,
 					InboundFee:  math.LegacyMustNewDecFromStr("-0.01"),
 					OutboundFee: math.LegacyMustNewDecFromStr("0.02"),
 				}},
@@ -109,7 +109,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBridgingFeeHook{
 				Owner: validOwner,
 				Fees: []HLAssetFee{{
-					TokenID:     "0x0000000000000000000000007fa9385be102ac3eac297483dd6233d62b3e1496",
+					TokenID:     validFee.TokenID,
 					InboundFee:  math.LegacyMustNewDecFromStr("0.01"),
 					OutboundFee: math.LegacyMustNewDecFromStr("-0.02"),
 				}},
@@ -137,7 +137,7 @@ func TestMsgSetBridgingFeeHook_ValidateBasic(t *testing.T) {
 	validNewOwner := CreateRandomAccount().String()
 	validHookId := mustHexFromString("0x0000000000000000000000007fa9385be102ac3eac297483dd6233d62b3e1496")
 	validFee := HLAssetFee{
-		TokenID:     "0x0000000000000000000000007fa9385be102ac3eac297483dd6233d62b3e1496",
+		TokenID:     hyputil.CreateMockHexAddress("test", 1),
 		InboundFee:  math.LegacyMustNewDecFromStr("0.01"),
 		OutboundFee: math.LegacyMustNewDecFromStr("0.02"),
 	}

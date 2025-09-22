@@ -45,7 +45,10 @@ func CmdCreateBridgingFeeHook() *cobra.Command {
 				return err
 			}
 
-			tokenId := args[0]
+			tokenId, err := hyputil.DecodeHexAddress(args[0])
+			if err != nil {
+				return err
+			}
 			inboundFee, err := math.LegacyNewDecFromStr(args[1])
 			if err != nil {
 				return err
@@ -90,7 +93,10 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 				return err
 			}
 
-			tokenId := args[1]
+			tokenId, err := hyputil.DecodeHexAddress(args[1])
+			if err != nil {
+				return err
+			}
 			inboundFee, err := math.LegacyNewDecFromStr(args[2])
 			if err != nil {
 				return err

@@ -58,10 +58,11 @@ func (a AggregationHookHandler) PostDispatch(goCtx context.Context, mailboxId, h
 				return fmt.Errorf("execute sub-hook %s: %w", subHookId.String(), err)
 			}
 
+			var negative bool
+			remaining, negative = remaining.SafeSub(chargedFee...)
 			totalCharged = totalCharged.Add(chargedFee...)
-			remaining = remaining.Sub(chargedFee...)
 
-			if remaining.IsAnyNegative() {
+			if negative {
 				return fmt.Errorf("fee collection exceeded max fee")
 			}
 		}

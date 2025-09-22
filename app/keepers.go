@@ -593,7 +593,6 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[bridgingfeetypes.ModuleName]),
 		a.HyperCoreKeeper,
 		a.BankKeeper,
-		a.TxFeesKeeper,
 		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 	)
 

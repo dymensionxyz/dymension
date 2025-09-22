@@ -9,7 +9,11 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
 message HLAssetFee {
   // Hyperlane token ID
   // https://docs.hyperlane.xyz/docs/alt-vm-implementations/cosmos-sdk#x%2Fwarp
-  string tokenID = 1;
+  string tokenID = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
 
   // A fee for bridging the token to the Hub
   string inbound_fee = 2 [

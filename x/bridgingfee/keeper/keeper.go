@@ -22,10 +22,9 @@ type Keeper struct {
 	feeHooks         collections.Map[uint64, types.HLFeeHook]
 	aggregationHooks collections.Map[uint64, types.AggregationHook]
 
-	coreKeeper   types.CoreKeeper
-	bankKeeper   types.BankKeeper
-	txFeesKeeper types.TxFeesKeeper
-	warpQuery    types.WarpQuery
+	coreKeeper types.CoreKeeper
+	bankKeeper types.BankKeeper
+	warpQuery  types.WarpQuery
 
 	schema collections.Schema
 }
@@ -35,7 +34,6 @@ func NewKeeper(
 	storeService store.KVStoreService,
 	coreKeeper types.CoreKeeper,
 	bankKeeper types.BankKeeper,
-	txFeesKeeper types.TxFeesKeeper,
 	warpQuery types.WarpQuery,
 ) Keeper {
 	sb := collections.NewSchemaBuilder(storeService)
@@ -55,10 +53,9 @@ func NewKeeper(
 			collections.Uint64Key,
 			collcompat.ProtoValue[types.AggregationHook](cdc),
 		),
-		coreKeeper:   coreKeeper,
-		bankKeeper:   bankKeeper,
-		txFeesKeeper: txFeesKeeper,
-		warpQuery:    warpQuery,
+		coreKeeper: coreKeeper,
+		bankKeeper: bankKeeper,
+		warpQuery:  warpQuery,
 	}
 
 	schema, err := sb.Build()
@@ -88,7 +85,7 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 
 	// Verify all tokenIDs exist
 	for _, fee := range msg.Fees {
-		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID})
+		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID.String()})
 		if err != nil {
 			return hyputil.HexAddress{}, fmt.Errorf("token %s does not exist: %w", fee.TokenID, err)
 		}
@@ -131,7 +128,7 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 
 	// Verify all tokenIDs exist
 	for _, fee := range msg.Fees {
-		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID})
+		_, err := k.warpQuery.Token(ctx, &warptypes.QueryTokenRequest{Id: fee.TokenID.String()})
 		if err != nil {
 			return fmt.Errorf("token %s does not exist: %w", fee.TokenID, err)
 		}

@@ -122,7 +122,7 @@ func (k queryServer) QuoteFeePayment(ctx context.Context, req *types.QueryQuoteF
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	fee, err := feeHandler.QuoteFeeInBase(sdkCtx, hookId, tokenId, transferAmt)
+	fee, err := feeHandler.QuoteFee(sdkCtx, hookId, tokenId, transferAmt)
 	if err != nil {
 		return nil, fmt.Errorf("quote fee in base: %w", err)
 	}
