@@ -37,13 +37,6 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		return nil, gerrc.ErrNotFound.Wrapf("rollapp: %s", rollapp)
 	}
 
-	proposer := k.SequencerK.GetProposer(ctx, rollapp)
-
-	if proposer.Address != msg.Creator {
-		return nil, gerrc.ErrPermissionDenied.Wrapf("only active sequencer can submit TEE attestation: expected %s, got %s",
-			proposer.Address, msg.Creator)
-	}
-
 	///////////
 	// TEE node must have started from a finalized state
 	///////////
