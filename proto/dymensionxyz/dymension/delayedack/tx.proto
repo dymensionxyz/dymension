@@ -16,7 +16,7 @@ service Msg {
   // UpdateParams is used for updating module params.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
-  // FinalizePacket finalizes a singe packet.
+  // FinalizePacket finalizes a single packet.
   rpc FinalizePacket(MsgFinalizePacket) returns (MsgFinalizePacketResponse);
 
   rpc FinalizePacketByPacketKey(MsgFinalizePacketByPacketKey)

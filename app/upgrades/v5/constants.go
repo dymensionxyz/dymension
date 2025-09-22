@@ -10,6 +10,7 @@ import (
 	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 )
 
 const (
@@ -26,6 +27,7 @@ var Upgrade = upgrades.Upgrade{
 			kastypes.ModuleName,
 			circuittypes.ModuleName,
 			ratelimittypes.ModuleName,
+			otcbuybacktypes.ModuleName,
 			bridgingfeetypes.ModuleName,
 		},
 	},

@@ -37,6 +37,8 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	otcbuybackkeeper "github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -102,6 +104,9 @@ func CreateUpgradeHandler(
 
 		// update txfees params
 		updateTxfeesParams(ctx, keepers.TxfeesKeeper)
+
+		// update otcbuyback params
+		updateOTCBuybackParams(ctx, keepers.OTCBuybackKeeper, keepers.GAMMKeeper)
 
 		// update params to fast block speed
 		updateParamsToFastBlockSpeed(ctx, keepers)
@@ -215,6 +220,32 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountOut{}),
 	}
 	k.SetParams(ctx, params)
+}
+
+func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper, ammKeeper *gammkeeper.Keeper) {
+	// Set default params with 0.05 smoothing factor
+	params := otcbuybacktypes.Params{
+		MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(5, 2), // 0.05
+	}
+	err := k.SetParams(ctx, params)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set USDC as accepted token
+	poolID := uint64(2)
+	spotPrice, err := ammKeeper.CalculateSpotPrice(ctx, poolID, NobleUSDCDenom, "adym")
+	if err != nil {
+		panic(err)
+	}
+	// Set USDC as accepted token
+	err = k.SetAcceptedToken(ctx, NobleUSDCDenom, otcbuybacktypes.TokenData{
+		PoolId:           poolID,
+		LastAveragePrice: spotPrice,
+	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 // addAuthorizedCircuitBreaker

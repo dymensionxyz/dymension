@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"slices"
 	"sort"
 	"testing"
@@ -127,10 +128,16 @@ func (s *KeeperTestSuite) SetupTest() {
 			nil,
 		)
 
+		txfeesk := &txfeesMock{
+			baseDenom:  params.BaseDenom,
+			bankKeeper: bk,
+		}
+
 		dk = dymnskeeper.NewKeeper(cdc,
 			keys[dymnstypes.StoreKey],
 			bk,
 			rk,
+			txfeesk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
 
@@ -762,4 +769,51 @@ func (m reqDymNameS) ownerIs(expectedOwner string) reqDymNameS {
 	m.s.Require().NotNil(dymName)
 	m.s.Require().Equal(expectedOwner, dymName.Owner)
 	return m
+}
+
+// txfees mock
+
+var _ dymnstypes.TxFeesKeeper = &txfeesMock{}
+
+type txfeesMock struct {
+	baseDenom  string
+	bankKeeper dymnstypes.BankKeeper
+}
+
+func (m *txfeesMock) GetBaseDenom(ctx sdk.Context) (string, error) {
+	return m.baseDenom, nil
+}
+
+func (m *txfeesMock) CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error) {
+	// If input coin is already in the requested denom, return as-is
+	if inputCoin.Denom == denom {
+		return inputCoin, nil
+	}
+
+	// If input is in base denom and we want to convert to another denom
+	if inputCoin.Denom != m.baseDenom {
+		return sdk.Coin{}, fmt.Errorf("base denom does not match the input denom")
+	}
+	// For testing purposes, support simple 1:1 conversion to usdc
+	if denom == "usdc" {
+		return sdk.NewCoin(denom, inputCoin.Amount), nil
+	}
+	// For other conversions not supported in test mock
+	return sdk.Coin{}, fmt.Errorf("base denom does not match the input denom")
+}
+
+func (m *txfeesMock) ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error {
+	if err := m.bankKeeper.SendCoinsFromAccountToModule(ctx,
+		payer,
+		dymnstypes.ModuleName,
+		sdk.Coins{takerFeeCoin},
+	); err != nil {
+		return err
+	}
+
+	if err := m.bankKeeper.BurnCoins(ctx, dymnstypes.ModuleName, sdk.Coins{takerFeeCoin}); err != nil {
+		return err
+	}
+
+	return nil
 }

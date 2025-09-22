@@ -21,3 +21,10 @@ type RollAppKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
 }
+
+// TxFeesKeeper defines the expected interface needed to managing transaction fees.
+type TxFeesKeeper interface {
+	GetBaseDenom(ctx sdk.Context) (denom string, err error)
+	CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error)
+	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
+}
