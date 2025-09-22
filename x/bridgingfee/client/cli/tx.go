@@ -124,6 +124,8 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 		Short: "Update an existing bridging fee hook",
 		Long: `Update the configuration of an existing fee hook, including fees, ownership, or other settings.
 
+Note that old values will be overwritten by new values. All fee objects must be supplied otherwise they will be removed.
+
 Examples:
 # Update fees
 dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}' --from mykey
@@ -234,6 +236,8 @@ func CmdCreateAggregationHook() *cobra.Command {
 		Short: "Create a new aggregation hook",
 		Args:  cobra.MinimumNArgs(1),
 		Long: `Create a new aggregation hook that combines multiple sub-hooks to execute them sequentially.
+
+Note that old values will be overwritten by new values. All hook IDs must be supplied otherwise they will be removed.
 
 Hook IDs should be provided as positional arguments (comma-separated or space-separated).
 
