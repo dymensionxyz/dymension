@@ -53,9 +53,10 @@ const (
 
 	FlagEIBCFee = "eibc-fee"
 
-	FlagHLAmount     = "hl-amount"
-	FlagHLGas        = "hl-gas"
-	FlagBridgeFeeMul = "bridge-fee-mul"
+	FlagHLAmount       = "hl-amount"
+	FlagHLGas          = "hl-gas"
+	FlagBridgeFeeMul   = "bridge-fee-mul"
+	FlagProtocolFeeMul = "protocol-fee-mul"
 
 	FlagNonce       = "nonce"
 	FlagSrcContract = "src-contract"
@@ -266,14 +267,17 @@ func CmdEstimateFees() *cobra.Command {
 		Short: "Estimate fees for EIBC to HL transfers",
 		Long: `Calculate the total IBC transfer amount needed when sending tokens from RollApp through EIBC to Hyperlane.
 		
+The protocol fee multiplier is a percentage fee taken by the protocol (e.g., 0.01 = 1% fee).
+This fee is applied to the Hyperlane amount solely. It is optional and set to 0 if not provided.
+
 The bridge fee multiplier is a percentage fee taken by the bridge operator (e.g., 0.01 = 1% fee).
 This fee is applied to the sum of the Hyperlane amount and gas to calculate the total transfer amount.
 
-Formula: transfer_amount = (hl_amount + hl_gas) * (1 + bridge_fee_mul) + eibc_fee`,
+Formula: transfer_amount = (hl_amount * (1 + protocol_fee) + hl_gas) * (1 + bridge_fee_mul) + eibc_fee`,
 		Example: `# Calculate fees with 1% bridge fee (0.01), 2000 EIBC fee
-dymd q forward estimate-fees --hl-amount=125000000000000 --hl-gas=200000 --eibc-fee=2000 --bridge-fee-mul=0.01
+dymd q forward estimate-fees --hl-amount=125000000000000 --hl-gas=200000 --eibc-fee=2000 --bridge-fee-mul=0.01 --protocol-fee-mul=0.01
 
-# With 0.5% bridge fee
+# With 0.5% bridge fee and 0% protocol fee
 dymd q forward estimate-fees --hl-amount=1000000 --hl-gas=50000 --eibc-fee=100 --bridge-fee-mul=0.005`,
 		RunE: runEstimateFees,
 	}
@@ -282,6 +286,7 @@ dymd q forward estimate-fees --hl-amount=1000000 --hl-gas=50000 --eibc-fee=100 -
 	cmd.Flags().String(FlagHLGas, "", "Maximum gas fee for Hyperlane execution")
 	cmd.Flags().String(FlagEIBCFee, "", "EIBC fee for fast finality (paid to fulfiller)")
 	cmd.Flags().String(FlagBridgeFeeMul, "", "Bridge fee multiplier as decimal (e.g., 0.01 for 1% fee)")
+	cmd.Flags().String(FlagProtocolFeeMul, "0", "Protocol fee multiplier as decimal (e.g., 0.01 for 1% fee)")
 	_ = cmd.MarkFlagRequired(FlagHLAmount)
 	_ = cmd.MarkFlagRequired(FlagHLGas)
 	_ = cmd.MarkFlagRequired(FlagEIBCFee)
@@ -968,6 +973,7 @@ func runEstimateFees(cmd *cobra.Command, args []string) error {
 	hlGasS, _ := cmd.Flags().GetString(FlagHLGas)
 	eibcFeeS, _ := cmd.Flags().GetString(FlagEIBCFee)
 	bridgeFeeMulS, _ := cmd.Flags().GetString(FlagBridgeFeeMul)
+	protocolFeeMulS, _ := cmd.Flags().GetString(FlagProtocolFeeMul)
 
 	hlReceiveAmt, ok := math.NewIntFromString(hlAmountS)
 	if !ok {
@@ -1004,7 +1010,19 @@ func runEstimateFees(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("bridge fee multiplier must be less than 1 (100%%), got %s", bridgeFeeMulS)
 	}
 
-	needForHl := hlReceiveAmt.Add(hlMaxGas)
+	protocolFeeMul, err := math.LegacyNewDecFromStr(protocolFeeMulS)
+	if err != nil {
+		return fmt.Errorf("invalid protocol fee multiplier: %w", err)
+	}
+	if protocolFeeMul.IsNegative() {
+		return fmt.Errorf("protocol fee multiplier cannot be negative")
+	}
+	if protocolFeeMul.GTE(math.LegacyNewDec(1)) {
+		return fmt.Errorf("protocol fee multiplier must be less than 1 (100%%), got %s", protocolFeeMulS)
+	}
+
+	hlReceivePlusProtocolFee := protocolFeeMul.Add(math.LegacyNewDec(1)).MulInt(hlReceiveAmt).TruncateInt()
+	needForHl := hlReceivePlusProtocolFee.Add(hlMaxGas)
 	transferAmt := eibctypes.CalcTargetPriceAmt(needForHl, eibcFee, bridgeFeeMul)
 
 	fmt.Print(transferAmt)
