@@ -6,13 +6,15 @@ import (
 
 	"cosmossdk.io/math"
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
+// FeeHookHandler is a Hyperlane post-dispatch hook that charges protocol fees for outbound token transfers.
+// This hook calculates and collects fees based on a specified token type and transfer amount before the HL transfer
+// is dispatched from the Hub. The hook can be configured with different fee rates for different tokens.
 type FeeHookHandler struct {
 	k Keeper
 }
@@ -33,7 +35,7 @@ func (f FeeHookHandler) Exists(ctx context.Context, hookId hyputil.HexAddress) (
 }
 
 func (f FeeHookHandler) HookType() uint8 {
-	return postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE
+	return types.PostDispatchHookDymProtocolFee
 }
 
 // PostDispatch collects fees from the sender for bridging tokens

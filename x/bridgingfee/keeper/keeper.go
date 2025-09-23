@@ -8,7 +8,6 @@ import (
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,8 +65,8 @@ func NewKeeper(
 
 	// Register HL post-dispatch hooks in x/core
 	router := coreKeeper.PostDispatchRouter()
-	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE, NewFeeHookHandler(k))
-	router.RegisterModule(postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION, NewAggregationHookHandler(k))
+	router.RegisterModule(types.PostDispatchHookDymProtocolFee, NewFeeHookHandler(k))
+	router.RegisterModule(types.PostDispatchHookDymAggregation, NewAggregationHookHandler(k))
 
 	return k
 }
@@ -76,7 +75,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-// CreateFeeHook creates a new fee hook (business logic)
+// CreateFeeHook creates a new fee hook
 func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingFeeHook) (hyputil.HexAddress, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -92,7 +91,7 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 	}
 
 	// Get next hook ID
-	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_PROTOCOL_FEE)
+	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, types.PostDispatchHookDymProtocolFee)
 	if err != nil {
 		return hyputil.HexAddress{}, fmt.Errorf("get next hook id: %w", err)
 	}
@@ -119,7 +118,7 @@ func (k Keeper) CreateFeeHook(ctx context.Context, msg *types.MsgCreateBridgingF
 	return hexAddr, nil
 }
 
-// UpdateFeeHook updates an existing fee hook (business logic)
+// UpdateFeeHook updates an existing fee hook
 func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeHook) error {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -171,7 +170,7 @@ func (k Keeper) UpdateFeeHook(ctx context.Context, msg *types.MsgSetBridgingFeeH
 	return nil
 }
 
-// CreateAggregationHook creates a new aggregation hook (business logic)
+// CreateAggregationHook creates a new aggregation hook that combines multiple sub-hooks
 func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateAggregationHook) (hyputil.HexAddress, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -187,7 +186,7 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 	}
 
 	// Get next hook ID
-	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION)
+	hexAddr, err := k.coreKeeper.PostDispatchRouter().GetNextSequence(ctx, types.PostDispatchHookDymAggregation)
 	if err != nil {
 		return hyputil.HexAddress{}, fmt.Errorf("get next hook id: %w", err)
 	}
@@ -214,7 +213,7 @@ func (k Keeper) CreateAggregationHook(ctx context.Context, msg *types.MsgCreateA
 	return hexAddr, nil
 }
 
-// UpdateAggregationHook updates an existing aggregation hook (business logic)
+// UpdateAggregationHook updates an existing aggregation hook
 func (k Keeper) UpdateAggregationHook(ctx context.Context, msg *types.MsgSetAggregationHook) error {
 	err := msg.ValidateBasic()
 	if err != nil {

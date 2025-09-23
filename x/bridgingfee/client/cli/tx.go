@@ -16,6 +16,43 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 )
 
+// parseFeeJSON parses a fee JSON string into HLAssetFee struct
+func parseFeeJSON(feeJSON string) (types.HLAssetFee, error) {
+	var feeInput struct {
+		TokenID     string `json:"token_id"`
+		InboundFee  string `json:"inbound_fee"`
+		OutboundFee string `json:"outbound_fee"`
+	}
+
+	if err := json.Unmarshal([]byte(feeJSON), &feeInput); err != nil {
+		return types.HLAssetFee{}, fmt.Errorf("failed to parse fee JSON %q: %w", feeJSON, err)
+	}
+
+	// Parse token ID as HexAddress
+	tokenID, err := hyputil.DecodeHexAddress(feeInput.TokenID)
+	if err != nil {
+		return types.HLAssetFee{}, fmt.Errorf("invalid token_id %q: %w", feeInput.TokenID, err)
+	}
+
+	// Parse inbound fee
+	inboundFee, err := math.LegacyNewDecFromStr(feeInput.InboundFee)
+	if err != nil {
+		return types.HLAssetFee{}, fmt.Errorf("invalid inbound_fee %q: %w", feeInput.InboundFee, err)
+	}
+
+	// Parse outbound fee
+	outboundFee, err := math.LegacyNewDecFromStr(feeInput.OutboundFee)
+	if err != nil {
+		return types.HLAssetFee{}, fmt.Errorf("invalid outbound_fee %q: %w", feeInput.OutboundFee, err)
+	}
+
+	return types.HLAssetFee{
+		TokenId:     tokenID,
+		InboundFee:  inboundFee,
+		OutboundFee: outboundFee,
+	}, nil
+}
+
 const (
 	FlagSetFees           = "hook-fees"
 	FlagNewOwner          = "new-owner"
@@ -54,7 +91,7 @@ func CmdCreateBridgingFeeHook() *cobra.Command {
 Fees should be provided as JSON objects as positional arguments.
 
 Example:
-dymd tx bridgingfee create-fee-hook '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}' --from mykey`,
+dymd tx bridgingfee create-fee-hook '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}'`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -63,38 +100,9 @@ dymd tx bridgingfee create-fee-hook '{"token_id":"0x1234567890abcdef1234567890ab
 
 			var fees []types.HLAssetFee
 			for _, feeJSON := range args {
-				var feeInput struct {
-					TokenID     string `json:"token_id"`
-					InboundFee  string `json:"inbound_fee"`
-					OutboundFee string `json:"outbound_fee"`
-				}
-
-				if err := json.Unmarshal([]byte(feeJSON), &feeInput); err != nil {
-					return fmt.Errorf("failed to parse fee JSON %q: %w", feeJSON, err)
-				}
-
-				// Parse token ID as HexAddress
-				tokenID, err := hyputil.DecodeHexAddress(feeInput.TokenID)
+				fee, err := parseFeeJSON(feeJSON)
 				if err != nil {
-					return fmt.Errorf("invalid token_id %q: %w", feeInput.TokenID, err)
-				}
-
-				// Parse inbound fee
-				inboundFee, err := math.LegacyNewDecFromStr(feeInput.InboundFee)
-				if err != nil {
-					return fmt.Errorf("invalid inbound_fee %q: %w", feeInput.InboundFee, err)
-				}
-
-				// Parse outbound fee
-				outboundFee, err := math.LegacyNewDecFromStr(feeInput.OutboundFee)
-				if err != nil {
-					return fmt.Errorf("invalid outbound_fee %q: %w", feeInput.OutboundFee, err)
-				}
-
-				fee := types.HLAssetFee{
-					TokenId:     tokenID,
-					InboundFee:  inboundFee,
-					OutboundFee: outboundFee,
+					return err
 				}
 				fees = append(fees, fee)
 			}
@@ -102,10 +110,6 @@ dymd tx bridgingfee create-fee-hook '{"token_id":"0x1234567890abcdef1234567890ab
 			msg := &types.MsgCreateBridgingFeeHook{
 				Owner: clientCtx.GetFromAddress().String(),
 				Fees:  fees,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -128,13 +132,13 @@ Note that old values will be overwritten by new values. All fee objects must be 
 
 Examples:
 # Update fees
-dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}' --from mykey
+dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}'
 
 # Transfer ownership
-dymd tx bridgingfee set-fee-hook 0x1234... --new-owner dym1newowner... --from mykey
+dymd tx bridgingfee set-fee-hook 0x1234... --new-owner dym1newowner...
 
 # Renounce ownership
-dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership --from mykey`,
+dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -169,38 +173,9 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership --from mykey`,
 
 			var fees []types.HLAssetFee
 			for _, feeJSON := range feesJSON {
-				var feeInput struct {
-					TokenID     string `json:"token_id"`
-					InboundFee  string `json:"inbound_fee"`
-					OutboundFee string `json:"outbound_fee"`
-				}
-
-				if err := json.Unmarshal([]byte(feeJSON), &feeInput); err != nil {
-					return fmt.Errorf("failed to parse fee JSON %q: %w", feeJSON, err)
-				}
-
-				// Parse token ID as HexAddress
-				tokenID, err := hyputil.DecodeHexAddress(feeInput.TokenID)
+				fee, err := parseFeeJSON(feeJSON)
 				if err != nil {
-					return fmt.Errorf("invalid token_id %q: %w", feeInput.TokenID, err)
-				}
-
-				// Parse inbound fee
-				inboundFee, err := math.LegacyNewDecFromStr(feeInput.InboundFee)
-				if err != nil {
-					return fmt.Errorf("invalid inbound_fee %q: %w", feeInput.InboundFee, err)
-				}
-
-				// Parse outbound fee
-				outboundFee, err := math.LegacyNewDecFromStr(feeInput.OutboundFee)
-				if err != nil {
-					return fmt.Errorf("invalid outbound_fee %q: %w", feeInput.OutboundFee, err)
-				}
-
-				fee := types.HLAssetFee{
-					TokenId:     tokenID,
-					InboundFee:  inboundFee,
-					OutboundFee: outboundFee,
+					return err
 				}
 				fees = append(fees, fee)
 			}
@@ -211,10 +186,6 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership --from mykey`,
 				Fees:              fees,
 				NewOwner:          newOwner,
 				RenounceOwnership: renounceOwnership,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -242,8 +213,7 @@ Note that old values will be overwritten by new values. All hook IDs must be sup
 Hook IDs should be provided as positional arguments (comma-separated or space-separated).
 
 Example:
-dymd tx bridgingfee create-aggregation-hook 0x1234...,0x5678... --from mykey
-dymd tx bridgingfee create-aggregation-hook 0x1234... 0x5678... --from mykey`,
+dymd tx bridgingfee create-aggregation-hook 0x1234...,0x5678...`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -272,10 +242,6 @@ dymd tx bridgingfee create-aggregation-hook 0x1234... 0x5678... --from mykey`,
 				HookIds: hookIds,
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -294,13 +260,13 @@ func CmdSetAggregationHook() *cobra.Command {
 
 Examples:
 # Update hook IDs
-dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids 0x1234...,0x5678... --from mykey
+dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids 0x1234...,0x5678...
 
 # Transfer ownership
-dymd tx bridgingfee set-aggregation-hook 0x1234... --new-owner dym1newowner... --from mykey
+dymd tx bridgingfee set-aggregation-hook 0x1234... --new-owner dym1newowner...
 
 # Renounce ownership
-dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership --from mykey`,
+dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -345,10 +311,6 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership --from m
 				HookIds:           hookIds,
 				NewOwner:          newOwner,
 				RenounceOwnership: renounceOwnership,
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

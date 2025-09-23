@@ -5,11 +5,14 @@ import (
 	"fmt"
 
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
-	postdispatchtypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/02_post_dispatch/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
+// AggregationHookHandler is a Hyperlane post-dispatch hook that combines multiple sub-hooks into a single hook.
+// This allows chaining logics (fee collection, gas payment, merkle tree) to be executed sequentially.
+// The hook will execute all sub-hooks in the order they are provided and will fail if any sub-hook fails.
 type AggregationHookHandler struct {
 	k Keeper
 }
@@ -29,10 +32,11 @@ func (a AggregationHookHandler) Exists(ctx context.Context, hookId hyputil.HexAd
 }
 
 func (a AggregationHookHandler) HookType() uint8 {
-	return postdispatchtypes.POST_DISPATCH_HOOK_TYPE_AGGREGATION
+	return types.PostDispatchHookDymAggregation
 }
 
-// PostDispatch executes multiple hooks in sequence
+// PostDispatch executes multiple hooks in sequence. The method is atomic – all sub-hooks must be executed,
+// otherwise reverted.
 func (a AggregationHookHandler) PostDispatch(goCtx context.Context, mailboxId, hookId hyputil.HexAddress, metadata hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage, maxFee sdk.Coins) (sdk.Coins, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -75,7 +79,7 @@ func (a AggregationHookHandler) PostDispatch(goCtx context.Context, mailboxId, h
 	return totalCharged, nil
 }
 
-// QuoteDispatch returns the total required fees for all sub-hooks
+// QuoteDispatch returns the total quote after applying all sub-hooks
 func (a AggregationHookHandler) QuoteDispatch(ctx context.Context, mailboxId, hookId hyputil.HexAddress, metadata hyputil.StandardHookMetadata, message hyputil.HyperlaneMessage) (sdk.Coins, error) {
 	hook, err := a.k.aggregationHooks.Get(ctx, hookId.GetInternalId())
 	if err != nil {
