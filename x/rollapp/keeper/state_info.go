@@ -97,3 +97,11 @@ func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 
 	return
 }
+
+func (k Keeper) IsFinalizedIndex(ctx sdk.Context, rollappId string, index uint64) bool {
+	info, found := k.GetLatestFinalizedStateInfo(ctx, rollappId)
+	if !found {
+		return false
+	}
+	return info.GetIndex().Index >= index
+}
