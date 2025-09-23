@@ -51,6 +51,15 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			errMsg:  "must be a valid bech32 address",
 		},
 		{
+			name: "duplicate fees",
+			msg: MsgCreateBridgingFeeHook{
+				Owner: validOwner,
+				Fees:  []HLAssetFee{validFee, validFee},
+			},
+			wantErr: true,
+			errMsg:  "duplicate fee entry",
+		},
+		{
 			name: "empty owner address",
 			msg: MsgCreateBridgingFeeHook{
 				Owner: "",
@@ -64,17 +73,6 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBridgingFeeHook{
 				Owner: validOwner,
 				Fees:  []HLAssetFee{},
-			},
-			wantErr: false,
-		},
-		{
-			name: "duplicate fees - allowed for same token",
-			msg: MsgCreateBridgingFeeHook{
-				Owner: validOwner,
-				Fees: []HLAssetFee{
-					validFee,
-					validFee, // duplicate is allowed
-				},
 			},
 			wantErr: false,
 		},

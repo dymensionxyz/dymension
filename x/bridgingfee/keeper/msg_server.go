@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 )
@@ -22,7 +23,7 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateBridgingFeeHook(goCtx context.Context, msg *types.MsgCreateBridgingFeeHook) (*types.MsgCreateBridgingFeeHookResponse, error) {
 	hookId, err := k.CreateFeeHook(goCtx, msg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create bridging fee hook: %w", err)
 	}
 
 	return &types.MsgCreateBridgingFeeHookResponse{Id: hookId}, nil
@@ -32,7 +33,7 @@ func (k msgServer) CreateBridgingFeeHook(goCtx context.Context, msg *types.MsgCr
 func (k msgServer) SetBridgingFeeHook(goCtx context.Context, msg *types.MsgSetBridgingFeeHook) (*types.MsgSetBridgingFeeHookResponse, error) {
 	err := k.UpdateFeeHook(goCtx, msg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("update briding fee hook: %w", err)
 	}
 
 	return &types.MsgSetBridgingFeeHookResponse{}, nil
@@ -42,7 +43,7 @@ func (k msgServer) SetBridgingFeeHook(goCtx context.Context, msg *types.MsgSetBr
 func (k msgServer) CreateAggregationHook(goCtx context.Context, msg *types.MsgCreateAggregationHook) (*types.MsgCreateAggregationHookResponse, error) {
 	hookId, err := k.Keeper.CreateAggregationHook(goCtx, msg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create aggregation hook: %w", err)
 	}
 
 	return &types.MsgCreateAggregationHookResponse{Id: hookId}, nil
@@ -52,7 +53,7 @@ func (k msgServer) CreateAggregationHook(goCtx context.Context, msg *types.MsgCr
 func (k msgServer) SetAggregationHook(goCtx context.Context, msg *types.MsgSetAggregationHook) (*types.MsgSetAggregationHookResponse, error) {
 	err := k.UpdateAggregationHook(goCtx, msg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("update aggregation hook: %w", err)
 	}
 
 	return &types.MsgSetAggregationHookResponse{}, nil

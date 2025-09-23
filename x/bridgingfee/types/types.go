@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -13,10 +14,17 @@ func (h HLFeeHook) Validate() error {
 			return fmt.Errorf("invalid owner: %s", h.Owner)
 		}
 	}
+
+	feeSet := make(map[util.HexAddress]struct{}, len(h.Fees))
 	for _, fee := range h.Fees {
 		if err := fee.Validate(); err != nil {
 			return err
 		}
+
+		if _, ok := feeSet[fee.TokenId]; ok {
+			return fmt.Errorf("duplicate fee entry: %s", fee.TokenId)
+		}
+		feeSet[fee.TokenId] = struct{}{}
 	}
 	return nil
 }

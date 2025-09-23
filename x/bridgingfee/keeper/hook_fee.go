@@ -93,7 +93,7 @@ func (f FeeHookHandler) QuoteDispatch(goCtx context.Context, _, hookId hyputil.H
 
 	fee, err := f.QuoteFee(ctx, hookId, message.Sender, math.NewIntFromBigIntMut(payload.Amount()))
 	if err != nil {
-		return nil, fmt.Errorf("quote fee in base: %w", err)
+		return nil, fmt.Errorf("quote fee: %w", err)
 	}
 
 	return fee, nil

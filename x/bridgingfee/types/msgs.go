@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -22,10 +25,16 @@ func (m MsgCreateBridgingFeeHook) ValidateBasic() error {
 	}
 
 	// Validate each fee configuration (empty fees are allowed to disable all fees)
+	feeSet := make(map[util.HexAddress]struct{}, len(m.Fees))
 	for i, fee := range m.Fees {
 		if err := fee.Validate(); err != nil {
 			return ErrInvalidFee.Wrapf("invalid fee at index %d: %s", i, err.Error())
 		}
+
+		if _, ok := feeSet[fee.TokenId]; ok {
+			return fmt.Errorf("duplicate fee entry: %s", fee.TokenId)
+		}
+		feeSet[fee.TokenId] = struct{}{}
 	}
 
 	return nil

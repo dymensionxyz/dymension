@@ -5,53 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-
+	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-
-	"cosmossdk.io/math"
-	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
+	"github.com/spf13/cobra"
 )
-
-// parseFeeJSON parses a fee JSON string into HLAssetFee struct
-func parseFeeJSON(feeJSON string) (types.HLAssetFee, error) {
-	var feeInput struct {
-		TokenID     string `json:"token_id"`
-		InboundFee  string `json:"inbound_fee"`
-		OutboundFee string `json:"outbound_fee"`
-	}
-
-	if err := json.Unmarshal([]byte(feeJSON), &feeInput); err != nil {
-		return types.HLAssetFee{}, fmt.Errorf("failed to parse fee JSON %q: %w", feeJSON, err)
-	}
-
-	// Parse token ID as HexAddress
-	tokenID, err := hyputil.DecodeHexAddress(feeInput.TokenID)
-	if err != nil {
-		return types.HLAssetFee{}, fmt.Errorf("invalid token_id %q: %w", feeInput.TokenID, err)
-	}
-
-	// Parse inbound fee
-	inboundFee, err := math.LegacyNewDecFromStr(feeInput.InboundFee)
-	if err != nil {
-		return types.HLAssetFee{}, fmt.Errorf("invalid inbound_fee %q: %w", feeInput.InboundFee, err)
-	}
-
-	// Parse outbound fee
-	outboundFee, err := math.LegacyNewDecFromStr(feeInput.OutboundFee)
-	if err != nil {
-		return types.HLAssetFee{}, fmt.Errorf("invalid outbound_fee %q: %w", feeInput.OutboundFee, err)
-	}
-
-	return types.HLAssetFee{
-		TokenId:     tokenID,
-		InboundFee:  inboundFee,
-		OutboundFee: outboundFee,
-	}, nil
-}
 
 const (
 	FlagSetFees           = "hook-fees"
@@ -83,15 +43,19 @@ func GetTxCmd() *cobra.Command {
 // CmdCreateBridgingFeeHook returns a CLI command for creating a bridging fee hook
 func CmdCreateBridgingFeeHook() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-fee-hook [fees-json...]",
+		Use:   "create-fee-hook [fees-json-array]",
 		Short: "Create a new bridging fee hook",
-		Args:  cobra.MinimumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Long: `Create a new fee hook that charges fees for token transfers across bridges.
 
-Fees should be provided as JSON objects as positional arguments.
+Fees should be provided as a JSON array of fee objects.
 
-Example:
-dymd tx bridgingfee create-fee-hook '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}'`,
+Examples:
+# Single fee
+dymd tx bridgingfee create-fee-hook '[{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}]'
+
+# Multiple fees
+dymd tx bridgingfee create-fee-hook '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02"},{"token_id":"0x5678...","inbound_fee":"0.05","outbound_fee":"0.03"}]'`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -99,12 +63,9 @@ dymd tx bridgingfee create-fee-hook '{"token_id":"0x1234567890abcdef1234567890ab
 			}
 
 			var fees []types.HLAssetFee
-			for _, feeJSON := range args {
-				fee, err := parseFeeJSON(feeJSON)
-				if err != nil {
-					return err
-				}
-				fees = append(fees, fee)
+
+			if err := json.Unmarshal([]byte(args[0]), &fees); err != nil {
+				return fmt.Errorf("parse fees JSON array: %w", err)
 			}
 
 			msg := &types.MsgCreateBridgingFeeHook{
@@ -131,8 +92,11 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 Note that old values will be overwritten by new values. All fee objects must be supplied otherwise they will be removed.
 
 Examples:
-# Update fees
-dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}'
+# Update fees (single fee)
+dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}]'
+
+# Update fees (multiple fees)
+dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02"},{"token_id":"0x5678...","inbound_fee":"0.05","outbound_fee":"0.03"}]'
 
 # Transfer ownership
 dymd tx bridgingfee set-fee-hook 0x1234... --new-owner dym1newowner...
@@ -156,11 +120,6 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 				return err
 			}
 
-			var feesJSON []string
-			if feesJSONStr != "" {
-				feesJSON = []string{feesJSONStr}
-			}
-
 			newOwner, err := cmd.Flags().GetString(FlagNewOwner)
 			if err != nil {
 				return err
@@ -172,12 +131,10 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 			}
 
 			var fees []types.HLAssetFee
-			for _, feeJSON := range feesJSON {
-				fee, err := parseFeeJSON(feeJSON)
-				if err != nil {
-					return err
+			if feesJSONStr != "" {
+				if err := json.Unmarshal([]byte(feesJSONStr), &fees); err != nil {
+					return fmt.Errorf("parse fees JSON array: %w", err)
 				}
-				fees = append(fees, fee)
 			}
 
 			msg := &types.MsgSetBridgingFeeHook{
@@ -192,7 +149,7 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 		},
 	}
 
-	cmd.Flags().String(FlagSetFees, "", "Fee configuration for token (JSON format: {\"token_id\":\"0x...\",\"inbound_fee\":\"0.01\",\"outbound_fee\":\"0.02\"})")
+	cmd.Flags().String(FlagSetFees, "", "Fee configuration as JSON array (format: [{\"token_id\":\"0x...\",\"inbound_fee\":\"0.01\",\"outbound_fee\":\"0.02\"}])")
 	cmd.Flags().String(FlagNewOwner, "", "Transfer ownership to this address")
 	cmd.Flags().Bool(FlagRenounceOwnership, false, "Renounce ownership of the hook")
 	flags.AddTxFlagsToCmd(cmd)
@@ -208,8 +165,6 @@ func CmdCreateAggregationHook() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Long: `Create a new aggregation hook that combines multiple sub-hooks to execute them sequentially.
 
-Note that old values will be overwritten by new values. All hook IDs must be supplied otherwise they will be removed.
-
 Hook IDs should be provided as positional arguments (comma-separated or space-separated).
 
 Example:
@@ -222,16 +177,16 @@ dymd tx bridgingfee create-aggregation-hook 0x1234...,0x5678...`,
 
 			var hookIds []hyputil.HexAddress
 			for _, arg := range args {
-				// Handle both comma-separated and space-separated hook IDs
-				hookIdStrs := strings.Split(arg, ",")
-				for _, hookIdStr := range hookIdStrs {
-					hookIdStr = strings.TrimSpace(hookIdStr)
-					if hookIdStr == "" {
+				// Split by comma first, then handle each piece
+				parts := strings.Split(arg, ",")
+				for _, part := range parts {
+					part = strings.TrimSpace(part)
+					if part == "" {
 						continue
 					}
-					hookId, err := hyputil.DecodeHexAddress(hookIdStr)
+					hookId, err := hyputil.DecodeHexAddress(part)
 					if err != nil {
-						return fmt.Errorf("invalid hook ID %q: %w", hookIdStr, err)
+						return fmt.Errorf("invalid hook ID %q: %w", part, err)
 					}
 					hookIds = append(hookIds, hookId)
 				}
@@ -259,8 +214,11 @@ func CmdSetAggregationHook() *cobra.Command {
 		Long: `Update the configuration of an existing aggregation hook, including the list of sub-hooks or ownership settings.
 
 Examples:
-# Update hook IDs
-dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids 0x1234...,0x5678...
+# Update hook IDs (multiple)
+dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids "0x1234567890abcdef1234567890abcdef12345678,0x5678901234567890abcdef1234567890abcdef56"
+
+# Update hook IDs (single)
+dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids "0x1234567890abcdef1234567890abcdef12345678"
 
 # Transfer ownership
 dymd tx bridgingfee set-aggregation-hook 0x1234... --new-owner dym1newowner...
@@ -296,10 +254,15 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 
 			var hookIds []hyputil.HexAddress
 			if hookIdsStr != "" {
-				for _, hookIdStr := range strings.Split(hookIdsStr, ",") {
-					hookId, err := hyputil.DecodeHexAddress(strings.TrimSpace(hookIdStr))
+				parts := strings.Split(hookIdsStr, ",")
+				for _, part := range parts {
+					part = strings.TrimSpace(part)
+					if part == "" {
+						continue
+					}
+					hookId, err := hyputil.DecodeHexAddress(part)
 					if err != nil {
-						return fmt.Errorf("invalid hook ID %q: %w", hookIdStr, err)
+						return fmt.Errorf("invalid hook ID %q: %w", part, err)
 					}
 					hookIds = append(hookIds, hookId)
 				}
@@ -317,7 +280,7 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 		},
 	}
 
-	cmd.Flags().String(FlagHookIds, "", "Comma-separated list of hook IDs to aggregate")
+	cmd.Flags().String(FlagHookIds, "", "Comma-separated list of hook IDs to aggregate (format: \"0x...,0x...\")")
 	cmd.Flags().String(FlagNewOwner, "", "Transfer ownership to this address")
 	cmd.Flags().Bool(FlagRenounceOwnership, false, "Renounce ownership of the hook")
 	flags.AddTxFlagsToCmd(cmd)

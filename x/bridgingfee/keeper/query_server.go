@@ -124,7 +124,7 @@ func (k queryServer) QuoteFeePayment(ctx context.Context, req *types.QueryQuoteF
 
 	fee, err := feeHandler.QuoteFee(sdkCtx, hookId, tokenId, transferAmt)
 	if err != nil {
-		return nil, fmt.Errorf("quote fee in base: %w", err)
+		return nil, fmt.Errorf("quote fee: %w", err)
 	}
 
 	return &types.QueryQuoteFeePaymentResponse{
