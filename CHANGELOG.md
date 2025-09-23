@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-21)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-23)
 
 
 ### Bug Fixes
@@ -97,6 +97,7 @@
 * **streamer:** pump stream ([#1981](https://github.com/dymensionxyz/dymension/issues/1981)) ([caf84a4](https://github.com/dymensionxyz/dymension/commit/caf84a474c050317fdedbaaf8753719a32ec1232)), closes [#1988](https://github.com/dymensionxyz/dymension/issues/1988)
 * **streamer:** support graduation in pump streams ([#2001](https://github.com/dymensionxyz/dymension/issues/2001)) ([48ea09b](https://github.com/dymensionxyz/dymension/commit/48ea09b9ab3e32be0164653dbf0fdd4caa052b4a))
 * **streamer:** use pump streams for buyback ([#2007](https://github.com/dymensionxyz/dymension/issues/2007)) ([e6057f3](https://github.com/dymensionxyz/dymension/commit/e6057f3d22b6386a4cf06d4188795106110578b6))
+* TEE based finalization ([#1993](https://github.com/dymensionxyz/dymension/issues/1993)) ([f9592ea](https://github.com/dymensionxyz/dymension/commit/f9592ea7484dc2847b911988b1c3898e40a98978)), closes [#2000](https://github.com/dymensionxyz/dymension/issues/2000) [#2005](https://github.com/dymensionxyz/dymension/issues/2005)
 * **upgrade:** added authorized circuit breaker accounts ([#1907](https://github.com/dymensionxyz/dymension/issues/1907)) ([8a7b6f7](https://github.com/dymensionxyz/dymension/commit/8a7b6f74817d0c9dda88143385f9c9dd156fa4c2))
 * **upgrade:** upgrade handler to initialize endorsements for existing rollapps ([#1821](https://github.com/dymensionxyz/dymension/issues/1821)) ([43d5686](https://github.com/dymensionxyz/dymension/commit/43d5686ca949dd282fb2e5910f050e49b3243f41))
 * **upgrade:** wired gas free whitelisted txs ([#1906](https://github.com/dymensionxyz/dymension/issues/1906)) ([191680b](https://github.com/dymensionxyz/dymension/commit/191680b799b525602d464cdd09158e1eddb1281b))
