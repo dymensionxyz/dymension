@@ -472,6 +472,7 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 		rollappParams.LivenessSlashInterval,
 		rollappParams.AppRegistrationFee,
 		rollappParams.MinSequencerBondGlobal,
+		newTeeConfig,
 	))
 
 	// Streamer module
@@ -488,6 +489,14 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 
 	// lockup module params migrations
 	migrateAndUpdateLockupParams(ctx, keepers)
+}
+
+var newTeeConfig = rollappmoduletypes.TEEConfig{
+	Enabled:         false, // will require gov prop to enable, and set the policy info
+	Verify:          false,
+	PolicyValues:    "",
+	PolicyQuery:     "",
+	PolicyStructure: "",
 }
 
 const (

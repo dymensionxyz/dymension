@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the Dymension Hub repository (`d-dymension`), which serves as the settlement layer of the Dymension protocol. It's a Cosmos SDK-based blockchain written in Go.
 
+## FACTS
+
+- Cosmos SDK code all runs in a single thread, there is no multithreading
+- Transactions rollback if there is any error, in this sense they are atomic: all or nothing. If they panic, nothing happens.
+- BeginBlocker and Endblocker functions in module should never panic, it would cause a chain halt
+- All cosmos validators must get the same result so the code should be deterministic
+
 ## Common Development Commands
 
 ### Building and Installation

@@ -95,6 +95,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	}
 
 	if !transfer.IsRollapp() || transfer.Finalized {
+		ctx = commontypes.WithWasNotDelayed(ctx)
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

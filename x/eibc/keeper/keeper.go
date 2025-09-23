@@ -157,7 +157,7 @@ func (k Keeper) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.Dem
 
 	// No error means the order is due to be finalized,
 	// in which case the order is not outstanding anymore
-	if err = k.dack.VerifyHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight); err == nil {
+	if k.rk.IsHeightFinalized(ctx, demandOrder.RollappId, packet.ProofHeight) {
 		return nil, types.ErrDemandOrderInactive
 	}
 
