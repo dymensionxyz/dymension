@@ -11,10 +11,10 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
@@ -87,11 +87,11 @@ func (s *KeeperTestSuite) CreateEndorsementGauge(rollappId string) uint64 {
 	return gaugeID
 }
 
-func (s *KeeperTestSuite) CreateGauges(num int) {
+func (s *KeeperTestSuite) CreateRollappGauges(num int) {
 	s.T().Helper()
 
 	for i := 0; i < num; i++ {
-		s.CreateAssetGauge()
+		s.CreateDefaultRollapp()
 	}
 }
 

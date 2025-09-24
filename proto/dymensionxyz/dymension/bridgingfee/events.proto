@@ -1,0 +1,75 @@
+syntax = "proto3";
+package dymensionxyz.dymension.bridgingfee;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
+
+message EventHLBridgingFee {
+  string hook_id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+
+  string payer = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  string token_id = 3 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+
+  string fee = 4;
+
+  string message_id = 5 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventFeeHookCreated {
+  string hook_id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+
+  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+message EventFeeHookUpdated {
+  string hook_id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+
+  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string new_owner = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bool renounce_ownership = 4;
+}
+
+message EventAggregationHookCreated {
+  string hook_id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+
+  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+message EventAggregationHookUpdated {
+  string hook_id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+
+  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string new_owner = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bool renounce_ownership = 4;
+}

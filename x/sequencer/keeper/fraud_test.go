@@ -73,7 +73,7 @@ func (s *SequencerTestSuite) TestPunishSequencer() {
 }
 
 // a full flow 'e2e' to make sure things are sensible
-// There are many many different scenarios that could be tested
+// There are many different scenarios that could be tested
 // Here pick one which might be typical/realistic
 // 1. Sequencer is active
 // 2. Sequencer is does notice and starts to rotate

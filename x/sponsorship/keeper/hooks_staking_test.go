@@ -25,7 +25,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(valAddr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -66,7 +66,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
 				s.Delegate(delAddr, val2addr, initial) // delegator 1 -> validator 2
 
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -105,7 +105,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
 				s.Delegate(delAddr, val2addr, initial) // delegator 1 -> validator 2
 
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -148,7 +148,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
 				s.Delegate(delAddr, val2addr, initial) // delegator 1 -> validator 2
 
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -186,7 +186,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(valAddr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -223,7 +223,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(valAddr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -258,7 +258,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(val1addr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -301,7 +301,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(val1addr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -334,7 +334,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(valAddr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -372,7 +372,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(valAddr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),
@@ -414,7 +414,7 @@ func (s *KeeperTestSuite) TestHooks() {
 				s.Require().NoError(err)
 				del := s.CreateDelegator(val1addr, initial)
 				delAddr := sdk.MustAccAddressFromBech32(del.GetDelegatorAddr())
-				s.CreateGauges(2)
+				s.CreateRollappGauges(2)
 
 				s.Vote(types.MsgVote{
 					Voter: del.GetDelegatorAddr(),

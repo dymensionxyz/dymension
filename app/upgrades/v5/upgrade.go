@@ -37,6 +37,8 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	otcbuybackkeeper "github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -102,6 +104,9 @@ func CreateUpgradeHandler(
 
 		// update txfees params
 		updateTxfeesParams(ctx, keepers.TxfeesKeeper)
+
+		// update otcbuyback params
+		updateOTCBuybackParams(ctx, keepers.OTCBuybackKeeper, keepers.GAMMKeeper)
 
 		// update params to fast block speed
 		updateParamsToFastBlockSpeed(ctx, keepers)
@@ -217,6 +222,32 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 	k.SetParams(ctx, params)
 }
 
+func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper, ammKeeper *gammkeeper.Keeper) {
+	// Set default params with 0.05 smoothing factor
+	params := otcbuybacktypes.Params{
+		MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(5, 2), // 0.05
+	}
+	err := k.SetParams(ctx, params)
+	if err != nil {
+		panic(err)
+	}
+
+	// Set USDC as accepted token
+	poolID := uint64(2)
+	spotPrice, err := ammKeeper.CalculateSpotPrice(ctx, poolID, NobleUSDCDenom, "adym")
+	if err != nil {
+		panic(err)
+	}
+	// Set USDC as accepted token
+	err = k.SetAcceptedToken(ctx, NobleUSDCDenom, otcbuybacktypes.TokenData{
+		PoolId:           poolID,
+		LastAveragePrice: spotPrice,
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
 // addAuthorizedCircuitBreaker
 func addAuthorizedCircuitBreaker(ctx sdk.Context, k *circuitkeeper.Keeper, ak *authkeeper.AccountKeeper) {
 	permissions := circuittypes.Permissions{
@@ -243,6 +274,13 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params.MinLiquidityPart = defParams.MinLiquidityPart                                     // default: at least 40% goes to the liquidity pool
 	params.MinVestingDuration = defParams.MinVestingDuration                                 // default: min 7 days
 	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement // default: no enforced minimum by default
+
+	// Fair launch params
+	params.StandardLaunch = defParams.StandardLaunch
+	// overwrite target raise to use mainnet USDC values
+	params.StandardLaunch.TargetRaise = sdk.NewCoin(
+		NobleUSDCDenom,
+		math.NewIntWithDecimal(10, 3).MulRaw(1e6)) // 10K USDC
 
 	k.SetParams(ctx, params)
 }
@@ -434,6 +472,7 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 		rollappParams.LivenessSlashInterval,
 		rollappParams.AppRegistrationFee,
 		rollappParams.MinSequencerBondGlobal,
+		newTeeConfig,
 	))
 
 	// Streamer module
@@ -450,6 +489,14 @@ func migrateDeprecatedParamsKeeperSubspaces(ctx sdk.Context, keepers *upgrades.U
 
 	// lockup module params migrations
 	migrateAndUpdateLockupParams(ctx, keepers)
+}
+
+var newTeeConfig = rollappmoduletypes.TEEConfig{
+	Enabled:         false, // will require gov prop to enable, and set the policy info
+	Verify:          false,
+	PolicyValues:    "",
+	PolicyQuery:     "",
+	PolicyStructure: "",
 }
 
 const (

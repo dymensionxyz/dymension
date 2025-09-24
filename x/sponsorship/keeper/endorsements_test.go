@@ -9,6 +9,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 	"github.com/stretchr/testify/require"
 )
@@ -84,6 +85,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().True(endorsement.TotalCoins.IsZero())
 	s.Require().True(endorsement.DistributedCoins.IsZero())
 
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
+
 	/***************************************************************/
 	/*                           Epoch 1                           */
 	/***************************************************************/
@@ -110,6 +114,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	result, err := s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
 	s.Require().True(result.IsZero(), "user1 should have 0 claimable rewards initially")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*                           Epoch 2                           */
@@ -157,6 +164,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user1Addr, rollappID)
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(dym100), "user1 should still have 100 DYM claimable")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*                           Epoch 3                           */
@@ -228,6 +238,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	unlockedCoins = endorsement.TotalCoins.Sub(endorsement.DistributedCoins...)
 	s.Require().True(unlockedCoins.Equal(dym60), "unlocked coins mismatch: expected %s, got %s", dym60, unlockedCoins)
 
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
+
 	/***************************************************************/
 	/*                           Epoch 4                           */
 	/***************************************************************/
@@ -291,6 +304,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(dym60), "user2 should have 60 DYM claimable")
 
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
+
 	/***************************************************************/
 	/*                           Epoch 5                           */
 	/***************************************************************/
@@ -316,6 +332,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(dym100.Add(dym60...)), "user2 should have 160 DYM claimable after final distribution")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*                       Staking Events                        */
@@ -346,6 +365,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(expectedAUR), "user2 should have 160 DYM claimable after staking events")
 
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
+
 	/***************************************************************/
 	/*                  User2 unstakes 100 DYM                     */
 	/***************************************************************/
@@ -372,6 +394,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(expectedAUR), "User2 claimable should be 160 DYM")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*                           Epoch 6                           */
@@ -400,6 +425,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(expectedClaimableEpoch6), "User2 claimable should be 260 DYM in Epoch 6")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*               User2 removes 100 shares (updates vote)       */
@@ -434,6 +462,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(expectedClaimableEpoch6), "User2 claimable should be 260 DYM after vote update")
 
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
+
 	/***************************************************************/
 	/*                           Epoch 7                           */
 	/***************************************************************/
@@ -461,6 +492,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	result, err = s.App.SponsorshipKeeper.EstimateClaim(s.Ctx, user2Addr, rollappID)
 	s.Require().NoError(err)
 	s.Require().True(result.Equal(expectedClaimableEpoch7), "User2 claimable should be 360 DYM in Epoch 7")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*            User2 unstakes all (vote is removed)             */
@@ -492,6 +526,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	user2Voted, err := s.App.SponsorshipKeeper.Voted(s.Ctx, user2Addr)
 	s.Require().NoError(err)
 	s.Require().False(user2Voted, "User2 should not have voted after unstake all")
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*                         User2 claims                        */
@@ -525,6 +562,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	s.Require().NoError(err)
 	unlockedCoins = endorsement.TotalCoins.Sub(endorsement.DistributedCoins...)
 	s.Require().True(unlockedCoins.Equal(dym0), "unlocked coins mismatch: expected %s, got %s after final claim", dym0, unlockedCoins)
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 
 	/***************************************************************/
 	/*     Scenario: user has share with repeating decimal       */
@@ -591,6 +631,9 @@ func (s *KeeperTestSuite) TestEndorsements() {
 	// Claimed rewards should fall in [expected - E; expected]. In this case, [100M - 50; 100M].
 	// This ensures that the number of rewards does not exceed the balance of x/incentives.
 	requireCoinsInLowerEpsilon(s.T(), result, expectedClaimableUser1Repeating, types.ADYM.MulRaw(50))
+
+	err = keeper.AllInvariantsFn(s.App.SponsorshipKeeper)(s.Ctx)
+	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) BeginEpoch(epochID string) {

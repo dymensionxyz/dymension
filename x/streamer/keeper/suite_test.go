@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -43,19 +46,41 @@ type KeeperTestSuite struct {
 // SetupTest sets streamer parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.App = apptesting.Setup(suite.T())
-	suite.Ctx = suite.App.NewContext(false)
-	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2500000)), sdk.NewCoin("udym", math.NewInt(2500000)))
+	suite.Ctx = suite.App.NewContext(false).WithBlockTime(time.Now())
+	streamerCoins := sdk.NewCoins(
+		sdk.NewCoin(sdk.DefaultBondDenom, common.DYM.MulRaw(100)),
+		sdk.NewCoin("udym", math.NewInt(2500000)),
+		common.DymUint64(100),
+	)
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 
-	err := suite.CreateGauge()
+	// uses sdk.DefaultBondDenom as the base denom
+	err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, sdk.DefaultBondDenom)
+	suite.Require().NoError(err)
+	dymnsParams := suite.App.DymNSKeeper.GetParams(suite.Ctx)
+	dymnsParams.Price.PriceDenom = sdk.DefaultBondDenom
+	err = suite.App.DymNSKeeper.SetParams(suite.Ctx, dymnsParams)
+	suite.Require().NoError(err)
+
+	// Disable any distribution threshold for tests
+	ip := suite.App.IncentivesKeeper.GetParams(suite.Ctx)
+	bd, err := suite.App.TxFeesKeeper.GetBaseDenom(suite.Ctx)
+	suite.Require().NoError(err)
+	ip.MinValueForDistribution = sdk.NewCoin(bd, math.ZeroInt())
+	suite.App.IncentivesKeeper.SetParams(suite.Ctx, ip)
+
+	// Fund alice, the default rollapp creator, so she has enough balance for IRO creation
+	funds := suite.App.IROKeeper.GetParams(suite.Ctx).CreationFee.Mul(math.NewInt(10)) // 10 times the creation fee
+	suite.FundAcc(sdk.MustAccAddressFromBech32(apptesting.Alice), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, funds)))
+
+	err = suite.CreateGauge()
 	suite.Require().NoError(err)
 	err = suite.CreateGauge()
 	suite.Require().NoError(err)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	t.Skip("FIXME: broken due to v50 upgrade") // #1739
 	suite.Run(t, new(KeeperTestSuite))
 }
 
@@ -84,6 +109,15 @@ func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sd
 // CreateSponsoredStream creates a sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch, Sponsored)
+	suite.Require().NoError(err)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
+	suite.Require().NoError(err)
+	return streamID, stream
+}
+
+// CreateStream creates a pump stream struct given the required params.
+func (suite *KeeperTestSuite) CreatePumpStream(s types.CreateStreamGeneric, numPumps uint64, pumpDistr types.PumpDistr, burnPumped bool, pumpTarget types.PumpTarget) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, s, numPumps, pumpDistr, burnPumped, pumpTarget)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
@@ -144,7 +178,7 @@ func (suite *KeeperTestSuite) Distribution() sponsorshiptypes.Distribution {
 
 // Vote creates two validators and a delegator, then delegates the stake to these validators.
 // The delegator then casts the vote to gauges through x/sponsorship.
-func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower math.Int) {
+func (suite *KeeperTestSuite) CreateValVote(vote sponsorshiptypes.MsgVote, votingPower math.Int) {
 	suite.T().Helper()
 
 	val1 := suite.CreateValidator()
@@ -166,10 +200,10 @@ func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote, votingPower ma
 	suite.Delegate(delAddr, val1Addr, delegation) // delegator 1 -> validator 1
 	suite.Delegate(delAddr, val2Addr, delegation) // delegator 1 -> validator 2
 
-	suite.vote(vote)
+	suite.Vote(vote)
 }
 
-func (suite *KeeperTestSuite) vote(vote sponsorshiptypes.MsgVote) {
+func (suite *KeeperTestSuite) Vote(vote sponsorshiptypes.MsgVote) {
 	suite.T().Helper()
 
 	msgServer := sponsorshipkeeper.NewMsgServer(suite.App.SponsorshipKeeper)
@@ -208,10 +242,11 @@ func (suite *KeeperTestSuite) CreateValidator() stakingtypes.ValidatorI {
 	return val
 }
 
-func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coin sdk.Coin) stakingtypes.DelegationI {
+func (suite *KeeperTestSuite) CreateDelegator(valAddr sdk.ValAddress, coinAmt math.Int) stakingtypes.DelegationI {
 	suite.T().Helper()
 
-	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1_000_000_000))
+	coin := sdk.NewCoin(sdk.DefaultBondDenom, coinAmt)
+	delAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, common.DYM.MulRaw(1_000))
 	delAddr := delAddrs[0]
 	return suite.Delegate(delAddr, valAddr, coin)
 }
@@ -247,4 +282,46 @@ func (suite *KeeperTestSuite) LockTokens(addr sdk.AccAddress, coins sdk.Coins) {
 	suite.FundAcc(addr, coins)
 	_, err := suite.App.LockupKeeper.CreateLock(suite.Ctx, addr, coins, time.Hour)
 	suite.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) CreateDefaultPlan(rollappID string) string {
+	allocation := math.NewInt(100).MulRaw(1e18)
+	return s.CreatePlan(rollappID, allocation, false)
+}
+
+func (s *KeeperTestSuite) CreatePlan(rollappID string, allocation math.Int, standardLaunch bool) string {
+	k := s.App.IROKeeper
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappID)
+	curve := irotypes.DefaultBondingCurve()
+	incentives := irotypes.DefaultIncentivePlanParams()
+	liquidityPart := irotypes.DefaultParams().MinLiquidityPart
+
+	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now().Add(-time.Minute), true, standardLaunch, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+	return planID
+}
+
+func (s *KeeperTestSuite) SettleIRO(rollappID string, reserveAmt math.Int) {
+	plan, found := s.App.IROKeeper.GetPlanByRollapp(s.Ctx, rollappID)
+	s.Require().True(found)
+
+	// Fund module with insufficient funds for settlement
+	// Sold amount
+	iroDenom := plan.TotalAllocation.Denom
+	amt := plan.SoldAmt.Sub(reserveAmt)
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(iroDenom, amt)))
+
+	// Settlement token
+	rollappDenom := fmt.Sprintf("hui/%s", rollappID)
+	amt = plan.TotalAllocation.Amount
+	s.FundModuleAcc(irotypes.ModuleName, sdk.NewCoins(sdk.NewCoin(rollappDenom, amt)))
+
+	err := s.App.IROKeeper.Settle(s.Ctx, rollappID, rollappDenom)
+	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) StartEpoch(epochIdentifier string) {
+	info := s.App.EpochsKeeper.GetEpochInfo(s.Ctx, epochIdentifier)
+	s.Ctx = s.Ctx.WithBlockTime(s.Ctx.BlockTime().Add(info.Duration).Add(time.Second))
+	s.App.EpochsKeeper.BeginBlocker(s.Ctx)
 }

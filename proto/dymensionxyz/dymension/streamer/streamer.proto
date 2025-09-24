@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.streamer;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
@@ -20,4 +21,14 @@ message EpochPointer {
   // have an ability to sort the EpochPointer slice.
   google.protobuf.Duration epoch_duration = 4
       [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
+}
+
+// PumpPressure is how much DYM will be used for buying RA tokens if pump occurs
+message PumpPressure {
+  string rollapp_id = 1;
+  string pressure = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }

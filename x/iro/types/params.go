@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 // Default parameter values
@@ -18,10 +19,16 @@ var (
 	DefaultMinLiquidityPart                             = "0.4"                       // default: at least 40% goes to the liquidity pool
 	DefaultMinVestingDuration                           = 7 * 24 * time.Hour          // default: min 7 days
 	DefaultMinVestingStartTimeAfterSettlement           = 0 * time.Minute             // default: no enforced minimum by default
+
+	DefaultStandardLaunch = StandardLaunch{
+		AllocationAmount: math.NewInt(1e9).MulRaw(1e18), // 1B RA tokens
+		TargetRaise:      common.DymUint64(20_000),      // 20K DYM
+		CurveExp:         math.LegacyMustNewDecFromStr("1.25"),
+	}
 )
 
 // NewParams creates a new Params object
-func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams, minVestingDuration, minVestingStartTimeAfterSettlement time.Duration) Params {
+func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, minPlanDuration time.Duration, minIncentivePlanParams IncentivePlanParams, minVestingDuration, minVestingStartTimeAfterSettlement time.Duration, standardLaunch StandardLaunch) Params {
 	return Params{
 		TakerFee:                              takerFee,
 		CreationFee:                           creationFee,
@@ -31,6 +38,7 @@ func NewParams(takerFee, liquidityPart math.LegacyDec, creationFee math.Int, min
 		MinLiquidityPart:                      liquidityPart,
 		MinVestingDuration:                    minVestingDuration,
 		MinVestingStartTimeAfterSettlement:    minVestingStartTimeAfterSettlement,
+		StandardLaunch:                        standardLaunch,
 	}
 }
 
@@ -45,6 +53,7 @@ func DefaultParams() Params {
 		MinLiquidityPart:                      math.LegacyMustNewDecFromStr(DefaultMinLiquidityPart),
 		MinVestingDuration:                    DefaultMinVestingDuration,
 		MinVestingStartTimeAfterSettlement:    DefaultMinVestingStartTimeAfterSettlement,
+		StandardLaunch:                        DefaultStandardLaunch,
 	}
 }
 
@@ -70,12 +79,20 @@ func (p Params) ValidateBasic() error {
 		return fmt.Errorf("incentive plan start time after settlement must be greater than 0: %v", p.IncentivesMinStartTimeAfterSettlement)
 	}
 
-	if !p.MinLiquidityPart.IsPositive() {
+	if !p.MinLiquidityPart.IsPositive() || p.MinLiquidityPart.GT(math.LegacyOneDec()) {
 		return fmt.Errorf("min liquidity part must be positive: %s", p.MinLiquidityPart)
 	}
 
 	if p.MinVestingDuration < 0 {
 		return fmt.Errorf("minimum vesting duration must be non-negative: %v", p.MinVestingDuration)
+	}
+
+	if !p.StandardLaunch.AllocationAmount.IsPositive() {
+		return fmt.Errorf("allocation amount must be positive: %s", p.StandardLaunch.AllocationAmount)
+	}
+
+	if !p.StandardLaunch.TargetRaise.IsValid() || !p.StandardLaunch.TargetRaise.Amount.IsPositive() {
+		return fmt.Errorf("target raise is not valid: %s", p.StandardLaunch.TargetRaise)
 	}
 
 	return nil

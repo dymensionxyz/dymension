@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -29,6 +30,35 @@ var _ = time.Kitchen
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+
+// PumpDistr is a distribution used to determine pump amount
+type PumpDistr int32
+
+const (
+	PumpDistr_PUMP_DISTR_UNSPECIFIED PumpDistr = 0
+	PumpDistr_PUMP_DISTR_UNIFORM     PumpDistr = 1
+	PumpDistr_PUMP_DISTR_EXPONENTIAL PumpDistr = 2
+)
+
+var PumpDistr_name = map[int32]string{
+	0: "PUMP_DISTR_UNSPECIFIED",
+	1: "PUMP_DISTR_UNIFORM",
+	2: "PUMP_DISTR_EXPONENTIAL",
+}
+
+var PumpDistr_value = map[string]int32{
+	"PUMP_DISTR_UNSPECIFIED": 0,
+	"PUMP_DISTR_UNIFORM":     1,
+	"PUMP_DISTR_EXPONENTIAL": 2,
+}
+
+func (x PumpDistr) String() string {
+	return proto.EnumName(PumpDistr_name, int32(x))
+}
+
+func (PumpDistr) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_19586ad841c00cd9, []int{0}
+}
 
 // Stream is an object that stores and distributes yields to recipients who
 // satisfy certain conditions. Currently streams support conditions around the
@@ -59,6 +89,10 @@ type Stream struct {
 	Sponsored bool `protobuf:"varint,9,opt,name=sponsored,proto3" json:"sponsored,omitempty"`
 	// EpochCoins are coins that need to be distributed in this epoch.
 	EpochCoins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,10,rep,name=epoch_coins,json=epochCoins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"epoch_coins"`
+	// PumpParams is an *optional* field indicating if the stream
+	// is pumping or distributing. If non-null, it contains pumping params.
+	// For now, every pump stream should be sponsored.
+	PumpParams *PumpParams `protobuf:"bytes,11,opt,name=pump_params,json=pumpParams,proto3" json:"pump_params,omitempty"`
 }
 
 func (m *Stream) Reset()         { *m = Stream{} }
@@ -164,8 +198,246 @@ func (m *Stream) GetEpochCoins() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
+func (m *Stream) GetPumpParams() *PumpParams {
+	if m != nil {
+		return m.PumpParams
+	}
+	return nil
+}
+
+type PumpParams struct {
+	// EpochCoinsLeft is coins that is left for pumping in the epoch.
+	EpochCoinsLeft github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=epoch_coins_left,json=epochCoinsLeft,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"epoch_coins_left"`
+	// NumPumps is a target number of pumps that expected to happen
+	// in the epoch (probabilistically)
+	NumPumps uint64 `protobuf:"varint,2,opt,name=num_pumps,json=numPumps,proto3" json:"num_pumps,omitempty"`
+	// PumpDistr is a distribution used to determine pump amount
+	PumpDistr PumpDistr `protobuf:"varint,3,opt,name=pump_distr,json=pumpDistr,proto3,enum=dymensionxyz.dymension.streamer.PumpDistr" json:"pump_distr,omitempty"`
+	// BurnPumped indicates whether to burn tokens purchased during the pump
+	BurnPumped bool `protobuf:"varint,4,opt,name=burn_pumped,json=burnPumped,proto3" json:"burn_pumped,omitempty"`
+	// Target is that is going to be pumped
+	//
+	// Types that are valid to be assigned to Target:
+	//
+	//	*PumpParams_Rollapps
+	//	*PumpParams_Pool
+	Target isPumpParams_Target `protobuf_oneof:"target"`
+}
+
+func (m *PumpParams) Reset()         { *m = PumpParams{} }
+func (m *PumpParams) String() string { return proto.CompactTextString(m) }
+func (*PumpParams) ProtoMessage()    {}
+func (*PumpParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_19586ad841c00cd9, []int{1}
+}
+func (m *PumpParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PumpParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PumpParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PumpParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PumpParams.Merge(m, src)
+}
+func (m *PumpParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *PumpParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_PumpParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PumpParams proto.InternalMessageInfo
+
+type isPumpParams_Target interface {
+	isPumpParams_Target()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type PumpParams_Rollapps struct {
+	Rollapps *TargetTopRollapps `protobuf:"bytes,5,opt,name=rollapps,proto3,oneof" json:"rollapps,omitempty"`
+}
+type PumpParams_Pool struct {
+	Pool *TargetPool `protobuf:"bytes,6,opt,name=pool,proto3,oneof" json:"pool,omitempty"`
+}
+
+func (*PumpParams_Rollapps) isPumpParams_Target() {}
+func (*PumpParams_Pool) isPumpParams_Target()     {}
+
+func (m *PumpParams) GetTarget() isPumpParams_Target {
+	if m != nil {
+		return m.Target
+	}
+	return nil
+}
+
+func (m *PumpParams) GetEpochCoinsLeft() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.EpochCoinsLeft
+	}
+	return nil
+}
+
+func (m *PumpParams) GetNumPumps() uint64 {
+	if m != nil {
+		return m.NumPumps
+	}
+	return 0
+}
+
+func (m *PumpParams) GetPumpDistr() PumpDistr {
+	if m != nil {
+		return m.PumpDistr
+	}
+	return PumpDistr_PUMP_DISTR_UNSPECIFIED
+}
+
+func (m *PumpParams) GetBurnPumped() bool {
+	if m != nil {
+		return m.BurnPumped
+	}
+	return false
+}
+
+func (m *PumpParams) GetRollapps() *TargetTopRollapps {
+	if x, ok := m.GetTarget().(*PumpParams_Rollapps); ok {
+		return x.Rollapps
+	}
+	return nil
+}
+
+func (m *PumpParams) GetPool() *TargetPool {
+	if x, ok := m.GetTarget().(*PumpParams_Pool); ok {
+		return x.Pool
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*PumpParams) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*PumpParams_Rollapps)(nil),
+		(*PumpParams_Pool)(nil),
+	}
+}
+
+// Pump top N rollapps based on their sponsorship weight
+type TargetTopRollapps struct {
+	// NumTopRollapps is a number of rollapps, top N by the voting power,
+	// that will be pumped on every pump iteration.
+	NumTopRollapps uint32 `protobuf:"varint,1,opt,name=num_top_rollapps,json=numTopRollapps,proto3" json:"num_top_rollapps,omitempty"`
+}
+
+func (m *TargetTopRollapps) Reset()         { *m = TargetTopRollapps{} }
+func (m *TargetTopRollapps) String() string { return proto.CompactTextString(m) }
+func (*TargetTopRollapps) ProtoMessage()    {}
+func (*TargetTopRollapps) Descriptor() ([]byte, []int) {
+	return fileDescriptor_19586ad841c00cd9, []int{2}
+}
+func (m *TargetTopRollapps) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TargetTopRollapps) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TargetTopRollapps.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TargetTopRollapps) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TargetTopRollapps.Merge(m, src)
+}
+func (m *TargetTopRollapps) XXX_Size() int {
+	return m.Size()
+}
+func (m *TargetTopRollapps) XXX_DiscardUnknown() {
+	xxx_messageInfo_TargetTopRollapps.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TargetTopRollapps proto.InternalMessageInfo
+
+func (m *TargetTopRollapps) GetNumTopRollapps() uint32 {
+	if m != nil {
+		return m.NumTopRollapps
+	}
+	return 0
+}
+
+// Pump the pool
+type TargetPool struct {
+	// PoolId is a pool that's used to buy DYM given provided coins
+	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
+	// TokenOut is a token that will be pumped (bought)
+	TokenOut string `protobuf:"bytes,2,opt,name=token_out,json=tokenOut,proto3" json:"token_out,omitempty"`
+}
+
+func (m *TargetPool) Reset()         { *m = TargetPool{} }
+func (m *TargetPool) String() string { return proto.CompactTextString(m) }
+func (*TargetPool) ProtoMessage()    {}
+func (*TargetPool) Descriptor() ([]byte, []int) {
+	return fileDescriptor_19586ad841c00cd9, []int{3}
+}
+func (m *TargetPool) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TargetPool) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TargetPool.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TargetPool) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TargetPool.Merge(m, src)
+}
+func (m *TargetPool) XXX_Size() int {
+	return m.Size()
+}
+func (m *TargetPool) XXX_DiscardUnknown() {
+	xxx_messageInfo_TargetPool.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TargetPool proto.InternalMessageInfo
+
+func (m *TargetPool) GetPoolId() uint64 {
+	if m != nil {
+		return m.PoolId
+	}
+	return 0
+}
+
+func (m *TargetPool) GetTokenOut() string {
+	if m != nil {
+		return m.TokenOut
+	}
+	return ""
+}
+
 func init() {
+	proto.RegisterEnum("dymensionxyz.dymension.streamer.PumpDistr", PumpDistr_name, PumpDistr_value)
 	proto.RegisterType((*Stream)(nil), "dymensionxyz.dymension.streamer.Stream")
+	proto.RegisterType((*PumpParams)(nil), "dymensionxyz.dymension.streamer.PumpParams")
+	proto.RegisterType((*TargetTopRollapps)(nil), "dymensionxyz.dymension.streamer.TargetTopRollapps")
+	proto.RegisterType((*TargetPool)(nil), "dymensionxyz.dymension.streamer.TargetPool")
 }
 
 func init() {
@@ -173,41 +445,60 @@ func init() {
 }
 
 var fileDescriptor_19586ad841c00cd9 = []byte{
-	// 535 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0xcb, 0x6e, 0x13, 0x31,
-	0x14, 0xcd, 0xa4, 0x49, 0x68, 0x9c, 0x16, 0x11, 0x2b, 0x42, 0x43, 0x44, 0x67, 0x42, 0xd8, 0x8c,
-	0x10, 0xd8, 0x7d, 0x88, 0x0d, 0xcb, 0x00, 0x8b, 0xae, 0x8a, 0x86, 0x22, 0x10, 0x9b, 0xd1, 0x4c,
-	0xec, 0xa4, 0x16, 0x99, 0xf1, 0xc8, 0xf6, 0x44, 0x09, 0x5f, 0xd1, 0xef, 0xe0, 0x4b, 0xba, 0xec,
-	0x92, 0x55, 0x0a, 0xc9, 0x1f, 0xf4, 0x0b, 0x90, 0xed, 0xbc, 0x84, 0x40, 0xdd, 0x74, 0x15, 0xfb,
-	0xdc, 0x73, 0xce, 0xbd, 0xf7, 0x64, 0x0c, 0x5e, 0x92, 0x69, 0x4a, 0x33, 0xc9, 0x78, 0x36, 0x99,
-	0x7e, 0xc7, 0xeb, 0x0b, 0x96, 0x4a, 0xd0, 0x38, 0xa5, 0x62, 0x79, 0x40, 0xb9, 0xe0, 0x8a, 0x43,
-	0x7f, 0x9b, 0x8d, 0xd6, 0x17, 0xb4, 0x62, 0xb7, 0x5b, 0x43, 0x3e, 0xe4, 0x86, 0x8b, 0xf5, 0xc9,
-	0xca, 0xda, 0xde, 0x90, 0xf3, 0xe1, 0x88, 0x62, 0x73, 0x4b, 0x8a, 0x01, 0x26, 0x85, 0x88, 0x95,
-	0x16, 0xda, 0xba, 0xff, 0x77, 0x5d, 0xb1, 0x94, 0x4a, 0x15, 0xa7, 0xf9, 0xca, 0xa0, 0xcf, 0x65,
-	0xca, 0x25, 0x4e, 0x62, 0x49, 0xf1, 0xf8, 0x28, 0xa1, 0x2a, 0x3e, 0xc2, 0x7d, 0xce, 0x56, 0x06,
-	0x87, 0x77, 0x6d, 0x41, 0x98, 0x54, 0x22, 0x62, 0xd9, 0x60, 0x39, 0x52, 0xf7, 0x77, 0x15, 0xd4,
-	0x3e, 0x9a, 0x2a, 0x7c, 0x08, 0xca, 0x8c, 0xb8, 0x4e, 0xc7, 0x09, 0x2a, 0x61, 0x99, 0x11, 0xf8,
-	0x09, 0xec, 0x1b, 0x3a, 0x4b, 0x0a, 0x45, 0x23, 0xc5, 0xdd, 0x72, 0xc7, 0x09, 0x1a, 0xc7, 0x2f,
-	0xd0, 0x1d, 0xcb, 0xa3, 0x77, 0x5a, 0x75, 0x9a, 0x0d, 0x78, 0xaf, 0x72, 0x35, 0xf3, 0x4b, 0xe1,
-	0xde, 0xc6, 0xe6, 0x9c, 0xc3, 0x18, 0x54, 0xf5, 0xc4, 0xd2, 0xdd, 0xe9, 0xec, 0x04, 0x8d, 0xe3,
-	0x27, 0xc8, 0xee, 0x84, 0xf4, 0x4e, 0x68, 0xb9, 0x13, 0x7a, 0xcb, 0x59, 0xd6, 0x3b, 0xd4, 0xea,
-	0x1f, 0x37, 0x7e, 0x30, 0x64, 0xea, 0xa2, 0x48, 0x50, 0x9f, 0xa7, 0x78, 0x19, 0x80, 0xfd, 0x79,
-	0x25, 0xc9, 0x37, 0xac, 0xa6, 0x39, 0x95, 0x46, 0x20, 0x43, 0xeb, 0x0c, 0xbf, 0x00, 0x20, 0x55,
-	0x2c, 0x54, 0xa4, 0xf3, 0x73, 0x2b, 0x66, 0xec, 0x36, 0xb2, 0xe1, 0xa2, 0x55, 0xb8, 0xe8, 0x7c,
-	0x15, 0x6e, 0xef, 0x40, 0x37, 0xba, 0x9d, 0xf9, 0xcd, 0x69, 0x9c, 0x8e, 0xde, 0x74, 0x37, 0xda,
-	0xee, 0xe5, 0x8d, 0xef, 0x84, 0x75, 0x03, 0x68, 0x3a, 0xfc, 0x0c, 0x1e, 0xdb, 0x08, 0x69, 0xce,
-	0xfb, 0x17, 0x11, 0x23, 0x34, 0x53, 0x6c, 0xc0, 0xa8, 0x70, 0xab, 0x1d, 0x27, 0xa8, 0xf7, 0x9e,
-	0xdd, 0xce, 0xfc, 0x03, 0xeb, 0xf2, 0x6f, 0x5e, 0x37, 0x6c, 0x99, 0xc2, 0x7b, 0x8d, 0x9f, 0xae,
-	0x61, 0x88, 0x41, 0x2b, 0x2b, 0x52, 0x4b, 0x97, 0x51, 0x1e, 0x33, 0x12, 0xf1, 0x31, 0x15, 0x6e,
-	0xcd, 0xfc, 0x1d, 0xcd, 0xac, 0x48, 0x8d, 0x42, 0x7e, 0x88, 0x19, 0x39, 0x1b, 0x53, 0x01, 0x9f,
-	0x83, 0xfd, 0x01, 0x1b, 0x8d, 0x28, 0x59, 0x6a, 0xdc, 0x07, 0x86, 0xb9, 0x67, 0x41, 0x4b, 0x86,
-	0x13, 0xd0, 0xdc, 0x64, 0x4f, 0x22, 0x9b, 0xfb, 0xee, 0xfd, 0xe7, 0xfe, 0x68, 0xab, 0x8b, 0x41,
-	0xe0, 0x53, 0x50, 0x97, 0x39, 0xcf, 0x24, 0x17, 0x94, 0xb8, 0xf5, 0x8e, 0x13, 0xec, 0x86, 0x1b,
-	0x00, 0x8e, 0x40, 0xc3, 0x06, 0x63, 0x27, 0x02, 0xf7, 0x3f, 0x11, 0x30, 0xfe, 0xe6, 0xdc, 0x3b,
-	0xbb, 0x9a, 0x7b, 0xce, 0xf5, 0xdc, 0x73, 0x7e, 0xcd, 0x3d, 0xe7, 0x72, 0xe1, 0x95, 0xae, 0x17,
-	0x5e, 0xe9, 0xe7, 0xc2, 0x2b, 0x7d, 0x7d, 0xbd, 0xe5, 0xf7, 0x9f, 0xa7, 0x33, 0x3e, 0xc1, 0x93,
-	0xcd, 0xfb, 0x31, 0x2d, 0x92, 0x9a, 0xf9, 0x86, 0x4e, 0xfe, 0x04, 0x00, 0x00, 0xff, 0xff, 0xbc,
-	0x5a, 0x10, 0x3d, 0x35, 0x04, 0x00, 0x00,
+	// 842 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcd, 0x6e, 0x1b, 0x37,
+	0x10, 0xd6, 0xda, 0x8a, 0x22, 0x8d, 0x62, 0x43, 0x26, 0x0c, 0x77, 0xe3, 0x36, 0x92, 0xaa, 0x5e,
+	0x84, 0xb4, 0xdd, 0x4d, 0x1c, 0xf4, 0x52, 0xa0, 0x87, 0x28, 0x56, 0x90, 0x05, 0x1c, 0x6b, 0x41,
+	0xcb, 0x68, 0xd0, 0x1e, 0x88, 0x95, 0x97, 0x52, 0x88, 0xec, 0x2e, 0x89, 0x25, 0xd7, 0xb0, 0xfb,
+	0x14, 0x79, 0x8e, 0xf6, 0xd0, 0xd7, 0xc8, 0x31, 0xc7, 0x9e, 0x9c, 0xc2, 0x7e, 0x83, 0x3c, 0x41,
+	0x41, 0x72, 0xf5, 0xd3, 0xb4, 0x81, 0x7d, 0xf0, 0x69, 0xc9, 0x99, 0xf9, 0x3e, 0xce, 0x7c, 0x9c,
+	0xe1, 0xc2, 0x77, 0xf1, 0x79, 0x4a, 0x33, 0xc9, 0x78, 0x76, 0x76, 0xfe, 0x9b, 0xbf, 0xd8, 0xf8,
+	0x52, 0xe5, 0x34, 0x4a, 0x69, 0x5e, 0x2e, 0x3c, 0x91, 0x73, 0xc5, 0x51, 0x67, 0x35, 0xda, 0x5b,
+	0x6c, 0xbc, 0x79, 0xf4, 0xee, 0xf6, 0x8c, 0xcf, 0xb8, 0x89, 0xf5, 0xf5, 0xca, 0xc2, 0x76, 0xef,
+	0x9f, 0x70, 0x99, 0x72, 0x49, 0xac, 0xc3, 0x6e, 0x4a, 0x57, 0x7b, 0xc6, 0xf9, 0x2c, 0xa1, 0xbe,
+	0xd9, 0x4d, 0x8a, 0xa9, 0x1f, 0x17, 0x79, 0xa4, 0x34, 0xa7, 0xf5, 0x77, 0x3e, 0xf5, 0x2b, 0x96,
+	0x52, 0xa9, 0xa2, 0x54, 0xcc, 0x09, 0x2c, 0x9d, 0x3f, 0x89, 0x24, 0xf5, 0x4f, 0x1f, 0x4f, 0xa8,
+	0x8a, 0x1e, 0xfb, 0x27, 0x9c, 0xcd, 0x09, 0x1e, 0x5d, 0x57, 0x60, 0xcc, 0xa4, 0xca, 0x09, 0xcb,
+	0xa6, 0x65, 0xb6, 0xbd, 0x3f, 0x6b, 0x50, 0x3b, 0x32, 0x5e, 0xb4, 0x09, 0x6b, 0x2c, 0x76, 0x9d,
+	0xae, 0xd3, 0xaf, 0xe2, 0x35, 0x16, 0xa3, 0x63, 0xd8, 0x30, 0xe1, 0x6c, 0x52, 0x28, 0x4a, 0x14,
+	0x77, 0xd7, 0xba, 0x4e, 0xbf, 0xb9, 0xf7, 0xd0, 0xbb, 0x46, 0x17, 0x6f, 0x5f, 0xa3, 0x82, 0x6c,
+	0xca, 0x07, 0xd5, 0x77, 0x17, 0x9d, 0x0a, 0xbe, 0xb7, 0xa4, 0x19, 0x73, 0x14, 0xc1, 0x1d, 0x9d,
+	0xb1, 0x74, 0xd7, 0xbb, 0xeb, 0xfd, 0xe6, 0xde, 0x7d, 0xaf, 0x94, 0x48, 0xd7, 0xe4, 0x95, 0x35,
+	0x79, 0xcf, 0x38, 0xcb, 0x06, 0x8f, 0x34, 0xfa, 0xf7, 0x0f, 0x9d, 0xfe, 0x8c, 0xa9, 0xd7, 0xc5,
+	0xc4, 0x3b, 0xe1, 0x69, 0xa9, 0x67, 0xf9, 0xf9, 0x5e, 0xc6, 0x6f, 0x7c, 0x75, 0x2e, 0xa8, 0x34,
+	0x00, 0x89, 0x2d, 0x33, 0x7a, 0x05, 0x20, 0x55, 0x94, 0x2b, 0xa2, 0xf5, 0x73, 0xab, 0x26, 0xed,
+	0x5d, 0xcf, 0x8a, 0xeb, 0xcd, 0xc5, 0xf5, 0xc6, 0x73, 0x71, 0x07, 0x0f, 0xf4, 0x41, 0x1f, 0x2f,
+	0x3a, 0x5b, 0xe7, 0x51, 0x9a, 0xfc, 0xd8, 0x5b, 0x62, 0x7b, 0x6f, 0x3f, 0x74, 0x1c, 0xdc, 0x30,
+	0x06, 0x1d, 0x8e, 0x7e, 0x86, 0x1d, 0x2b, 0x21, 0x15, 0xfc, 0xe4, 0x35, 0x61, 0x31, 0xcd, 0x14,
+	0x9b, 0x32, 0x9a, 0xbb, 0x77, 0xba, 0x4e, 0xbf, 0x31, 0xf8, 0xfa, 0xe3, 0x45, 0xe7, 0x81, 0x65,
+	0xf9, 0xff, 0xb8, 0x1e, 0xde, 0x36, 0x8e, 0xa1, 0xb6, 0x07, 0x0b, 0x33, 0xf2, 0x61, 0x3b, 0x2b,
+	0x52, 0x1b, 0x2e, 0x89, 0x88, 0x58, 0x4c, 0xf8, 0x29, 0xcd, 0xdd, 0x9a, 0xb9, 0x8e, 0xad, 0xac,
+	0x48, 0x0d, 0x42, 0x86, 0x11, 0x8b, 0x47, 0xa7, 0x34, 0x47, 0xdf, 0xc0, 0xc6, 0x94, 0x25, 0x09,
+	0x8d, 0x4b, 0x8c, 0x7b, 0xd7, 0x44, 0xde, 0xb3, 0x46, 0x1b, 0x8c, 0xce, 0x60, 0x6b, 0xa9, 0x7d,
+	0x4c, 0xac, 0xee, 0xf5, 0xdb, 0xd7, 0xbd, 0xb5, 0x72, 0x8a, 0xb1, 0xa0, 0xaf, 0xa0, 0x21, 0x05,
+	0xcf, 0x24, 0xcf, 0x69, 0xec, 0x36, 0xba, 0x4e, 0xbf, 0x8e, 0x97, 0x06, 0x94, 0x40, 0xd3, 0x0a,
+	0x63, 0x33, 0x82, 0xdb, 0xcf, 0x08, 0x0c, 0xbf, 0xcd, 0xe5, 0x00, 0x9a, 0xa2, 0x48, 0x05, 0x11,
+	0x51, 0x1e, 0xa5, 0xd2, 0x6d, 0x9a, 0x7e, 0xf8, 0xf6, 0xda, 0x36, 0x0e, 0x8b, 0x54, 0x84, 0x06,
+	0x82, 0x41, 0x2c, 0xd6, 0xbd, 0x3f, 0xd6, 0x01, 0x96, 0x2e, 0x54, 0x40, 0x6b, 0xa5, 0x14, 0x92,
+	0xd0, 0xa9, 0x72, 0x9d, 0xdb, 0xaf, 0x67, 0x73, 0x59, 0xcf, 0x01, 0x9d, 0x2a, 0xf4, 0x25, 0x34,
+	0x74, 0xbf, 0xe8, 0xbc, 0xa4, 0x19, 0xcc, 0x2a, 0xae, 0x67, 0x45, 0xaa, 0x13, 0x93, 0x28, 0x00,
+	0x93, 0x30, 0x31, 0xb7, 0xe2, 0xae, 0x77, 0x9d, 0xfe, 0xe6, 0x0d, 0xc6, 0x56, 0x63, 0xcd, 0xe8,
+	0xe2, 0x86, 0x98, 0x2f, 0x51, 0x07, 0x9a, 0x93, 0x22, 0xcf, 0xcc, 0x41, 0x34, 0x36, 0xb3, 0x54,
+	0xc7, 0xa0, 0x4d, 0xa1, 0xb1, 0xa0, 0x10, 0xea, 0x39, 0x4f, 0x92, 0x48, 0x08, 0x69, 0x66, 0xa0,
+	0xb9, 0xb7, 0x77, 0xed, 0x49, 0xe3, 0x28, 0x9f, 0x51, 0x35, 0xe6, 0x02, 0x97, 0xc8, 0x17, 0x15,
+	0xbc, 0x60, 0x41, 0x4f, 0xa1, 0x2a, 0x38, 0x4f, 0x4c, 0xeb, 0xdf, 0xe4, 0x9e, 0x2c, 0x5b, 0xc8,
+	0x79, 0xf2, 0xa2, 0x82, 0x0d, 0x74, 0x50, 0x87, 0x9a, 0x32, 0xd6, 0xde, 0x4f, 0xb0, 0xf5, 0x9f,
+	0xd3, 0x50, 0x1f, 0x5a, 0x5a, 0x3c, 0xc5, 0x05, 0x59, 0xe4, 0xae, 0xdf, 0xbd, 0x0d, 0xbc, 0x99,
+	0x15, 0xe9, 0x4a, 0x64, 0x6f, 0x00, 0xb0, 0xa4, 0x47, 0x5f, 0xc0, 0x5d, 0x4d, 0x4f, 0x16, 0xcf,
+	0x64, 0x4d, 0x6f, 0x83, 0x58, 0xdf, 0x86, 0xe2, 0x6f, 0x68, 0x46, 0x78, 0xa1, 0xcc, 0x6d, 0x34,
+	0x70, 0xdd, 0x18, 0x46, 0x85, 0x7a, 0xf8, 0x2b, 0x34, 0x16, 0xd2, 0xa2, 0x5d, 0xd8, 0x09, 0x8f,
+	0x5f, 0x86, 0x64, 0x3f, 0x38, 0x1a, 0x63, 0x72, 0x7c, 0x78, 0x14, 0x0e, 0x9f, 0x05, 0xcf, 0x83,
+	0xe1, 0x7e, 0xab, 0x82, 0x76, 0x00, 0xfd, 0xcb, 0x17, 0x3c, 0x1f, 0xe1, 0x97, 0x2d, 0xe7, 0x13,
+	0xcc, 0xf0, 0x55, 0x38, 0x3a, 0x1c, 0x1e, 0x8e, 0x83, 0xa7, 0x07, 0xad, 0xb5, 0xc1, 0xe8, 0xdd,
+	0x65, 0xdb, 0x79, 0x7f, 0xd9, 0x76, 0xfe, 0xbe, 0x6c, 0x3b, 0x6f, 0xaf, 0xda, 0x95, 0xf7, 0x57,
+	0xed, 0xca, 0x5f, 0x57, 0xed, 0xca, 0x2f, 0x3f, 0xac, 0xf4, 0xd6, 0x67, 0x7e, 0x0b, 0xa7, 0x4f,
+	0xfc, 0xb3, 0xe5, 0xbf, 0xc1, 0xb4, 0xdb, 0xa4, 0x66, 0xde, 0xc7, 0x27, 0xff, 0x04, 0x00, 0x00,
+	0xff, 0xff, 0x5a, 0x49, 0x46, 0x53, 0x2c, 0x07, 0x00, 0x00,
 }
 
 func (m *Stream) Marshal() (dAtA []byte, err error) {
@@ -230,6 +521,18 @@ func (m *Stream) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.PumpParams != nil {
+		{
+			size, err := m.PumpParams.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintStream(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x5a
+	}
 	if len(m.EpochCoins) > 0 {
 		for iNdEx := len(m.EpochCoins) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -285,12 +588,12 @@ func (m *Stream) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
-	n1, err1 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.StartTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.StartTime):])
-	if err1 != nil {
-		return 0, err1
+	n2, err2 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.StartTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.StartTime):])
+	if err2 != nil {
+		return 0, err2
 	}
-	i -= n1
-	i = encodeVarintStream(dAtA, i, uint64(n1))
+	i -= n2
+	i = encodeVarintStream(dAtA, i, uint64(n2))
 	i--
 	dAtA[i] = 0x22
 	if len(m.Coins) > 0 {
@@ -319,6 +622,177 @@ func (m *Stream) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	dAtA[i] = 0x12
 	if m.Id != 0 {
 		i = encodeVarintStream(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PumpParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PumpParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PumpParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Target != nil {
+		{
+			size := m.Target.Size()
+			i -= size
+			if _, err := m.Target.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if m.BurnPumped {
+		i--
+		if m.BurnPumped {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.PumpDistr != 0 {
+		i = encodeVarintStream(dAtA, i, uint64(m.PumpDistr))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.NumPumps != 0 {
+		i = encodeVarintStream(dAtA, i, uint64(m.NumPumps))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.EpochCoinsLeft) > 0 {
+		for iNdEx := len(m.EpochCoinsLeft) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.EpochCoinsLeft[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintStream(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PumpParams_Rollapps) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PumpParams_Rollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Rollapps != nil {
+		{
+			size, err := m.Rollapps.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintStream(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	return len(dAtA) - i, nil
+}
+func (m *PumpParams_Pool) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PumpParams_Pool) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Pool != nil {
+		{
+			size, err := m.Pool.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintStream(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	return len(dAtA) - i, nil
+}
+func (m *TargetTopRollapps) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TargetTopRollapps) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TargetTopRollapps) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.NumTopRollapps != 0 {
+		i = encodeVarintStream(dAtA, i, uint64(m.NumTopRollapps))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TargetPool) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TargetPool) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TargetPool) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.TokenOut) > 0 {
+		i -= len(m.TokenOut)
+		copy(dAtA[i:], m.TokenOut)
+		i = encodeVarintStream(dAtA, i, uint64(len(m.TokenOut)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.PoolId != 0 {
+		i = encodeVarintStream(dAtA, i, uint64(m.PoolId))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -379,6 +853,89 @@ func (m *Stream) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovStream(uint64(l))
 		}
+	}
+	if m.PumpParams != nil {
+		l = m.PumpParams.Size()
+		n += 1 + l + sovStream(uint64(l))
+	}
+	return n
+}
+
+func (m *PumpParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.EpochCoinsLeft) > 0 {
+		for _, e := range m.EpochCoinsLeft {
+			l = e.Size()
+			n += 1 + l + sovStream(uint64(l))
+		}
+	}
+	if m.NumPumps != 0 {
+		n += 1 + sovStream(uint64(m.NumPumps))
+	}
+	if m.PumpDistr != 0 {
+		n += 1 + sovStream(uint64(m.PumpDistr))
+	}
+	if m.BurnPumped {
+		n += 2
+	}
+	if m.Target != nil {
+		n += m.Target.Size()
+	}
+	return n
+}
+
+func (m *PumpParams_Rollapps) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Rollapps != nil {
+		l = m.Rollapps.Size()
+		n += 1 + l + sovStream(uint64(l))
+	}
+	return n
+}
+func (m *PumpParams_Pool) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pool != nil {
+		l = m.Pool.Size()
+		n += 1 + l + sovStream(uint64(l))
+	}
+	return n
+}
+func (m *TargetTopRollapps) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.NumTopRollapps != 0 {
+		n += 1 + sovStream(uint64(m.NumTopRollapps))
+	}
+	return n
+}
+
+func (m *TargetPool) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.PoolId != 0 {
+		n += 1 + sovStream(uint64(m.PoolId))
+	}
+	l = len(m.TokenOut)
+	if l > 0 {
+		n += 1 + l + sovStream(uint64(l))
 	}
 	return n
 }
@@ -694,6 +1251,424 @@ func (m *Stream) Unmarshal(dAtA []byte) error {
 			if err := m.EpochCoins[len(m.EpochCoins)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PumpParams", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStream
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStream
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PumpParams == nil {
+				m.PumpParams = &PumpParams{}
+			}
+			if err := m.PumpParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStream(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStream
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PumpParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStream
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PumpParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PumpParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EpochCoinsLeft", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStream
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStream
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EpochCoinsLeft = append(m.EpochCoinsLeft, types.Coin{})
+			if err := m.EpochCoinsLeft[len(m.EpochCoinsLeft)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NumPumps", wireType)
+			}
+			m.NumPumps = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NumPumps |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PumpDistr", wireType)
+			}
+			m.PumpDistr = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PumpDistr |= PumpDistr(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BurnPumped", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.BurnPumped = bool(v != 0)
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rollapps", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStream
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStream
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &TargetTopRollapps{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Target = &PumpParams_Rollapps{v}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pool", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStream
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStream
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &TargetPool{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Target = &PumpParams_Pool{v}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStream(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStream
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TargetTopRollapps) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStream
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TargetTopRollapps: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TargetTopRollapps: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NumTopRollapps", wireType)
+			}
+			m.NumTopRollapps = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NumTopRollapps |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStream(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStream
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TargetPool) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStream
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TargetPool: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TargetPool: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoolId", wireType)
+			}
+			m.PoolId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PoolId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TokenOut", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStream
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStream
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStream
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TokenOut = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

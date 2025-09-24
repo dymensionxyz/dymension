@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/math"
@@ -56,9 +57,34 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 
 		plan.IroPlanDuration = plan.PreLaunchTime.Sub(plan.StartTime)
 
+		// For settled plans, find and set the pool ID
+		if plan.SettledDenom != "" {
+			feeToken, err := m.k.tk.GetFeeToken(ctx, plan.SettledDenom)
+			if err != nil {
+				return fmt.Errorf("failed to get fee token for denom %s: %w", plan.SettledDenom, err)
+			}
+			if len(feeToken.Route) == 0 || feeToken.Route[0].TokenOutDenom != "adym" {
+				return fmt.Errorf("fee token for denom %s does not have a route to adym", plan.SettledDenom)
+			}
+			plan.GraduatedPoolId = feeToken.Route[0].PoolId
+		} else if plan.MaxAmountToSell.Equal(plan.SoldAmt) {
+			// Graduate plan if it's not settled and pass the eq point. handle the leftover tokens (as we passed the eq point)
+			poolID, leftoverTokens, err := m.k.createPoolForPlan(ctx, &plan, plan.GetIRODenom())
+			if err != nil {
+				return fmt.Errorf("failed to graduate plan: %w", err)
+			}
+			plan.GraduatedPoolId = poolID
+
+			_, err = m.k.addIncentivesToPool(ctx, plan.IncentivePlanParams, poolID, leftoverTokens)
+			if err != nil {
+				return errors.Join(types.ErrFailedBootstrapLiquidityPool, err)
+			}
+		}
+
 		if err := plan.ValidateBasic(); err != nil {
 			panic(fmt.Errorf("invalid plan: %w", err))
 		}
+
 		m.k.SetPlan(ctx, plan)
 	}
 

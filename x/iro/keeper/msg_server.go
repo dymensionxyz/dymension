@@ -41,7 +41,7 @@ func (m msgServer) Buy(ctx context.Context, req *types.MsgBuy) (*types.MsgBuyRes
 		return nil, err
 	}
 
-	err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
+	_, err = m.Keeper.Buy(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Amount, req.MaxCostAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (m msgServer) BuyExactSpend(ctx context.Context, req *types.MsgBuyExactSpen
 		return nil, err
 	}
 
-	err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
+	_, err = m.Keeper.BuyExactSpend(sdk.UnwrapSDKContext(ctx), req.PlanId, buyer, req.Spend, req.MinOutTokensAmount)
 	if err != nil {
 		return nil, err
 	}

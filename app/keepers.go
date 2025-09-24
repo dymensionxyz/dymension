@@ -83,6 +83,8 @@ import (
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	circuittypes "cosmossdk.io/x/circuit/types"
+	bridgingfeekeeper "github.com/dymensionxyz/dymension/v3/x/bridgingfee/keeper"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -101,6 +103,8 @@ import (
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	otcbuybackkeeper "github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -172,17 +176,18 @@ type AppKeepers struct {
 	StreamerKeeper    streamermodulekeeper.Keeper
 	EIBCKeeper        eibckeeper.Keeper
 	LightClientKeeper lightclientmodulekeeper.Keeper
+	OTCBuybackKeeper  *otcbuybackkeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 
 	DymNSKeeper dymnskeeper.Keeper
 
-	HyperCoreKeeper hypercorekeeper.Keeper
-	HyperWarpKeeper hyperwarpkeeper.Keeper
-	KasKeeper       *kaskeeper.Keeper
-
-	Forward *forward.Forward
+	HyperCoreKeeper   hypercorekeeper.Keeper
+	HyperWarpKeeper   hyperwarpkeeper.Keeper
+	KasKeeper         *kaskeeper.Keeper
+	BridgingFeeKeeper bridgingfeekeeper.Keeper
+	Forward           *forward.Forward
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -443,7 +448,23 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.IncentivesKeeper,
 		a.SponsorshipKeeper,
+		a.MintKeeper.Params,
+		a.IROKeeper,
+		a.PoolManagerKeeper,
+		a.RollappKeeper,
+		a.TxFeesKeeper,
+		a.GAMMKeeper,
 		govModuleAddress,
+	)
+
+	a.OTCBuybackKeeper = otcbuybackkeeper.NewKeeper(
+		appCodec,
+		a.keys[otcbuybacktypes.StoreKey],
+		govModuleAddress,
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.GAMMKeeper,
+		a.StreamerKeeper,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
@@ -462,6 +483,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[dymnstypes.StoreKey],
 		a.BankKeeper,
 		a.RollappKeeper,
+		a.TxFeesKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -564,6 +586,14 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
 		govModuleAddress,
 		&a.HyperCoreKeeper,
+	)
+
+	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[bridgingfeetypes.ModuleName]),
+		a.HyperCoreKeeper,
+		a.BankKeeper,
+		hyperwarpkeeper.NewQueryServerImpl(a.HyperWarpKeeper),
 	)
 
 	a.HyperWarpKeeper.SetHook(a.Forward)

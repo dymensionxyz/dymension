@@ -1,6 +1,8 @@
 package app
 
 import (
+	"slices"
+
 	"cosmossdk.io/x/circuit"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	"cosmossdk.io/x/evidence"
@@ -51,6 +53,8 @@ import (
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"github.com/evmos/ethermint/x/evm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
@@ -75,6 +79,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/incentives"
 	"github.com/dymensionxyz/dymension/v3/x/lockup"
 	lockuptypes "github.com/dymensionxyz/dymension/v3/x/lockup/types"
+	"github.com/dymensionxyz/dymension/v3/x/otcbuyback"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship"
@@ -89,6 +94,7 @@ import (
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	lightclientmodule "github.com/dymensionxyz/dymension/v3/x/lightclient"
 	lightclientmoduletypes "github.com/dymensionxyz/dymension/v3/x/lightclient/types"
+	otcbuybacktypes "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -156,11 +162,13 @@ func (app *App) SetupModules(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		txfees.NewAppModule(*app.TxFeesKeeper),
+		otcbuyback.NewAppModule(appCodec, *app.OTCBuybackKeeper),
 
 		// Hyperlane modules
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
 		kas.NewAppModule(appCodec, app.KasKeeper),
+		bridgingfee.NewAppModule(app.BridgingFeeKeeper),
 	}
 }
 
@@ -192,7 +200,7 @@ var maccPerms = map[string][]string{
 	sequencertypes.ModuleName:                          {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {authtypes.Burner},
 	sponsorshiptypes.ModuleName:                        nil,
-	streamermoduletypes.ModuleName:                     nil,
+	streamermoduletypes.ModuleName:                     {authtypes.Burner},
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
 	grouptypes.ModuleName:                              nil,
@@ -200,11 +208,13 @@ var maccPerms = map[string][]string{
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
+	otcbuybacktypes.ModuleName:                         {},
 	dymnstypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	irotypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 	kastypes.ModuleName:                                nil,
+	bridgingfeetypes.ModuleName:                        nil,
 	ratelimittypes.ModuleName:                          nil,
 }
 
@@ -244,6 +254,7 @@ var BeginBlockers = []string{
 	eibcmoduletypes.ModuleName,
 	dymnstypes.ModuleName,
 	lockuptypes.ModuleName,
+	otcbuybacktypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
@@ -255,6 +266,7 @@ var BeginBlockers = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 
@@ -289,6 +301,7 @@ var EndBlockers = []string{
 	dymnstypes.ModuleName,
 	epochstypes.ModuleName,
 	lockuptypes.ModuleName,
+	otcbuybacktypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
@@ -301,6 +314,7 @@ var EndBlockers = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
 
@@ -337,6 +351,7 @@ var InitGenesis = []string{
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
+	otcbuybacktypes.ModuleName, // must be after x/gamm to set accepted tokens
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
@@ -348,5 +363,18 @@ var InitGenesis = []string{
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
 	kastypes.ModuleName,
+	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
+}
+
+// We have custom migration order to make sure we run txfees first (we need it for iro migrations)
+func CustomMigrationOrder(modules []string) []string {
+	defaultOrder := module.DefaultMigrationsOrder(modules)
+
+	// run txfees first (we need it for iro migrations)
+	txfeesIndex := slices.Index(defaultOrder, txfeestypes.ModuleName)
+	defaultOrder = append(defaultOrder[:txfeesIndex], defaultOrder[txfeesIndex+1:]...)
+	defaultOrder = append([]string{txfeestypes.ModuleName}, defaultOrder...)
+
+	return defaultOrder
 }

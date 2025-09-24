@@ -11,6 +11,7 @@ import (
 
 var (
 	_ sdk.Msg = &MsgCreatePlan{}
+	_ sdk.Msg = &MsgCreateStandardLaunchPlan{}
 	_ sdk.Msg = &MsgBuy{}
 	_ sdk.Msg = &MsgBuyExactSpend{}
 	_ sdk.Msg = &MsgSell{}
@@ -40,7 +41,7 @@ func (m *MsgCreatePlan) ValidateBasic() error {
 	}
 
 	if m.IroPlanDuration < 0 {
-		return ErrInvalidEndTime
+		return ErrInvalidDuration
 	}
 
 	// if start time set, trading must be enabled

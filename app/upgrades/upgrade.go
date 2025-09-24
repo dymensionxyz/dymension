@@ -20,6 +20,7 @@ import (
 	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	irokeeper "github.com/dymensionxyz/dymension/v3/x/iro/keeper"
 	lockupkeeper "github.com/dymensionxyz/dymension/v3/x/lockup/keeper"
+	otcbuybackkeeper "github.com/dymensionxyz/dymension/v3/x/otcbuyback/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sponsorshipkeeper "github.com/dymensionxyz/dymension/v3/x/sponsorship/keeper"
@@ -62,6 +63,7 @@ type UpgradeKeepers struct {
 	EIBCKeeper         *eibckeeper.Keeper
 	DymNSKeeper        *dymnskeeper.Keeper
 	StreamerKeeper     *streamermodulekeeper.Keeper
+	OTCBuybackKeeper   *otcbuybackkeeper.Keeper
 	MintKeeper         *mintkeeper.Keeper
 	SlashingKeeper     *slashingkeeper.Keeper
 	ConsensusKeeper    *consensusparamkeeper.Keeper

@@ -70,7 +70,7 @@ func FilterLocksByCondition(ctx sdk.Context, locks []lockuptypes.PeriodLock, con
 	minCreationTime := ctx.BlockTime().Add(-condition.LockAge)
 
 	for _, lock := range locks {
-		if lock.Duration >= condition.Duration && lock.UpdatedAt.Before(minCreationTime) {
+		if lock.Duration >= condition.Duration && lock.UpdatedAt.Compare(minCreationTime) <= 0 {
 			filteredLocks = append(filteredLocks, lock)
 		}
 	}
