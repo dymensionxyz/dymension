@@ -1,0 +1,95 @@
+syntax = "proto3";
+package dymensionxyz.dymension.bridgingfee;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/bridgingfee/types.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
+
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc CreateBridgingFeeHook(MsgCreateBridgingFeeHook)
+      returns (MsgCreateBridgingFeeHookResponse);
+
+  rpc SetBridgingFeeHook(MsgSetBridgingFeeHook)
+      returns (MsgSetBridgingFeeHookResponse);
+
+  rpc CreateAggregationHook(MsgCreateAggregationHook)
+      returns (MsgCreateAggregationHookResponse);
+
+  rpc SetAggregationHook(MsgSetAggregationHook)
+      returns (MsgSetAggregationHookResponse);
+}
+
+message MsgCreateBridgingFeeHook {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  repeated HLAssetFee fees = 2 [ (gogoproto.nullable) = false ];
+}
+
+message MsgCreateBridgingFeeHookResponse {
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgSetBridgingFeeHook {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  repeated HLAssetFee fees = 3 [ (gogoproto.nullable) = false ];
+  string new_owner = 4 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bool renounce_ownership = 5;
+}
+
+message MsgSetBridgingFeeHookResponse {}
+
+message MsgCreateAggregationHook {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  repeated string hook_ids = 2 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgCreateAggregationHookResponse {
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgSetAggregationHook {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string id = 1 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+  string owner = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  repeated string hook_ids = 3 [
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.nullable) = false
+  ];
+  string new_owner = 4 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bool renounce_ownership = 5;
+}
+
+message MsgSetAggregationHookResponse {}

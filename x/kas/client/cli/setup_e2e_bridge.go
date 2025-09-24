@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -115,9 +115,28 @@ func CmdSetupBridge() *cobra.Command {
 				return fmt.Errorf("create mailbox: %w", err)
 			}
 
+			tokenId, err := createSyntheticToken(sCtx, mailboxId)
+			if err != nil {
+				return fmt.Errorf("create synthetic token: %w", err)
+			}
+
 			merkleHookId, err := createMerkleHook(sCtx, mailboxId)
 			if err != nil {
 				return fmt.Errorf("create merkle hook: %w", err)
+			}
+
+			feeHookId, err := createBridgingFeeHook(sCtx, []bridgingfeetypes.HLAssetFee{{
+				TokenId:     tokenId,
+				InboundFee:  math.LegacyZeroDec(),
+				OutboundFee: math.LegacyNewDecWithPrec(1, 2), // 0.01 == 1%,
+			}})
+			if err != nil {
+				return fmt.Errorf("create bridging fee hook: %w", err)
+			}
+
+			aggretaionHookId, err := createAggregationHook(sCtx, []util.HexAddress{feeHookId, merkleHookId})
+			if err != nil {
+				return fmt.Errorf("create aggregation hook: %w", err)
 			}
 
 			if err := createIgp(sCtx, gasDenom); err != nil { // TODO: use it
@@ -129,13 +148,8 @@ func CmdSetupBridge() *cobra.Command {
 				return fmt.Errorf("create noop hook: %w", err)
 			}
 
-			if err := setMailbox(sCtx, mailboxId, noopHookId, merkleHookId); err != nil {
+			if err := setMailbox(sCtx, mailboxId, noopHookId, aggretaionHookId); err != nil {
 				return fmt.Errorf("set mailbox: %w", err)
-			}
-
-			tokenId, err := createSyntheticToken(sCtx, mailboxId)
-			if err != nil {
-				return fmt.Errorf("create synthetic token: %w", err)
 			}
 
 			if err := enrollRemoteRouter(sCtx, tokenId, counterpartyDomain, remoteRouterAddr, remoteRouterGas); err != nil {
@@ -174,7 +188,7 @@ func broadcastAndWait(ctx setupCtx, msg sdk.Msg) error {
 	if err := tx.GenerateOrBroadcastTxCLI(ctx.clientCtx, ctx.cmd.Flags(), msg); err != nil {
 		return err
 	}
-	time.Sleep(4 * time.Second)
+	time.Sleep(6 * time.Second)
 	return nil
 }
 
@@ -261,6 +275,54 @@ func createMerkleHook(ctx setupCtx, mailboxId util.HexAddress) (util.HexAddress,
 		return util.HexAddress{}, fmt.Errorf("decode created hook ID '%s': %w", hook.Id, err)
 	}
 	return hookId, nil
+}
+
+func createBridgingFeeHook(ctx setupCtx, fees []bridgingfeetypes.HLAssetFee) (util.HexAddress, error) {
+	queryClient := bridgingfeetypes.NewQueryClient(ctx.clientCtx)
+
+	msg := &bridgingfeetypes.MsgCreateBridgingFeeHook{
+		Owner: ctx.clientCtx.GetFromAddress().String(),
+		Fees:  fees,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return util.HexAddress{}, fmt.Errorf("broadcast create fee hook tx: %w", err)
+	}
+
+	hooksAfter, err := queryClient.FeeHooks(context.Background(), &bridgingfeetypes.QueryFeeHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("query fee hooks after creation: %w", err)
+	}
+
+	if len(hooksAfter.FeeHooks) == 0 {
+		return util.HexAddress{}, fmt.Errorf("no briding fee hooks found")
+	}
+
+	return hooksAfter.FeeHooks[0].Id, nil
+}
+
+func createAggregationHook(ctx setupCtx, hookIds []util.HexAddress) (util.HexAddress, error) {
+	queryClient := bridgingfeetypes.NewQueryClient(ctx.clientCtx)
+
+	msg := &bridgingfeetypes.MsgCreateAggregationHook{
+		Owner:   ctx.clientCtx.GetFromAddress().String(),
+		HookIds: hookIds,
+	}
+
+	if err := broadcastAndWait(ctx, msg); err != nil {
+		return util.HexAddress{}, fmt.Errorf("broadcast create aggregation hook tx: %w", err)
+	}
+
+	hooksAfter, err := queryClient.AggregationHooks(context.Background(), &bridgingfeetypes.QueryAggregationHooksRequest{Pagination: &query.PageRequest{Limit: 1000}})
+	if err != nil {
+		return util.HexAddress{}, fmt.Errorf("query aggregation hooks after creation: %w", err)
+	}
+
+	if len(hooksAfter.AggregationHooks) == 0 {
+		return util.HexAddress{}, fmt.Errorf("no aggregation hooks found")
+	}
+
+	return hooksAfter.AggregationHooks[0].Id, nil
 }
 
 func createNoopHook(ctx setupCtx) (util.HexAddress, error) {

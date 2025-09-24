@@ -1,0 +1,18 @@
+syntax = "proto3";
+package dymensionxyz.dymension.bridgingfee;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "dymensionxyz/dymension/bridgingfee/types.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types";
+
+// GenesisState defines the bridgingfee module's genesis state.
+message GenesisState {
+  // fee_hooks are the registered fee hooks
+  repeated HLFeeHook fee_hooks = 1 [ (gogoproto.nullable) = false ];
+
+  // aggregation_hooks are the registered aggregation hooks
+  repeated AggregationHook aggregation_hooks = 2
+      [ (gogoproto.nullable) = false ];
+}

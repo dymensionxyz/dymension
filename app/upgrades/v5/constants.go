@@ -3,6 +3,7 @@ package v5
 import (
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
+	bridgingfeetypes "github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
@@ -27,6 +28,7 @@ var Upgrade = upgrades.Upgrade{
 			circuittypes.ModuleName,
 			ratelimittypes.ModuleName,
 			otcbuybacktypes.ModuleName,
+			bridgingfeetypes.ModuleName,
 		},
 	},
 }
