@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-23)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-24)
 
 
 ### Bug Fixes
@@ -57,6 +57,7 @@
 * **app:** add circuit breaker module ([#1828](https://github.com/dymensionxyz/dymension/issues/1828)) ([2c71be2](https://github.com/dymensionxyz/dymension/commit/2c71be2e8f09254e7255057fc74bb5d9f357725f))
 * **app:** Upgrading to v50 ([#1736](https://github.com/dymensionxyz/dymension/issues/1736)) ([f2359ac](https://github.com/dymensionxyz/dymension/commit/f2359acdb6d8c4d616d879b6411b0b7067c60447)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
 * **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
+* **bridgingfee:** fee for HL transfers ([#2014](https://github.com/dymensionxyz/dymension/issues/2014)) ([01e13dc](https://github.com/dymensionxyz/dymension/commit/01e13dc136ae8652902972fce889c2354e277241))
 * **denommetadata:** Add CLI tx for HL denom meta reg ([#1943](https://github.com/dymensionxyz/dymension/issues/1943)) ([96889d2](https://github.com/dymensionxyz/dymension/commit/96889d21b303c83f19e7d6d2627e5264fae552d0))
 * **deps:** bump ethermint to 07f1611f6247 ([#1909](https://github.com/dymensionxyz/dymension/issues/1909)) ([8786dd2](https://github.com/dymensionxyz/dymension/commit/8786dd2fa0f5827724f7930ded293ea2f204d205))
 * **dymns:** allow alias registration fee in foreign token ([#2017](https://github.com/dymensionxyz/dymension/issues/2017)) ([6e60b1d](https://github.com/dymensionxyz/dymension/commit/6e60b1d4841e992cd1902f21686456d5043ef609))
