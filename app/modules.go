@@ -369,12 +369,12 @@ var InitGenesis = []string{
 
 // We have custom migration order to make sure we run txfees first (we need it for iro migrations)
 func CustomMigrationOrder(modules []string) []string {
-	defaultOrder := module.DefaultMigrationsOrder(modules)
+	slices.Sort(modules)
 
 	// run txfees first (we need it for iro migrations)
-	txfeesIndex := slices.Index(defaultOrder, txfeestypes.ModuleName)
-	defaultOrder = append(defaultOrder[:txfeesIndex], defaultOrder[txfeesIndex+1:]...)
-	defaultOrder = append([]string{txfeestypes.ModuleName}, defaultOrder...)
+	txfeesIndex := slices.Index(modules, txfeestypes.ModuleName)
+	out := append(modules[:txfeesIndex], modules[txfeesIndex+1:]...)
+	out = append([]string{txfeestypes.ModuleName}, out...)
 
-	return defaultOrder
+	return out
 }
