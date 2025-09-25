@@ -282,7 +282,7 @@ replace (
 	github.com/cometbft/cometbft => github.com/dymensionxyz/cometbft v0.38.6-0.20250514160822-ef32bdee75e3
 	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.50.14-0.20250711122220-4638f278ea8d
 	github.com/cosmos/ibc-go/v8 => github.com/dymensionxyz/ibc-go-fork/v8 v8.7.1-0.20250611111041-cbcf63ccacb3
-	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250824211417-60eaa9ec9dff
+	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v1.1.0-rc01.0.20250925135754-ad2685bcc607
 	// use dymension forks
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2
