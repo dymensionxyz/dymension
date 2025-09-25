@@ -34,6 +34,7 @@
 * **lockup:** remove logic to unlock all locks at end blocker, or from tx ([#1764](https://github.com/dymensionxyz/dymension/issues/1764)) ([a8d5cbc](https://github.com/dymensionxyz/dymension/commit/a8d5cbc197d77635a2f8ad89f9c0998a7260955f))
 * **migration:** Added missing keytable initialization of ibc keeper ([#1913](https://github.com/dymensionxyz/dymension/issues/1913)) ([47395ad](https://github.com/dymensionxyz/dymension/commit/47395ad4956cc550ee617fc59965fb41b2f59a0e))
 * **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
+* **migration:** fixed migration order ([#2022](https://github.com/dymensionxyz/dymension/issues/2022)) ([d5187c9](https://github.com/dymensionxyz/dymension/commit/d5187c9232a470cc4f104caaa887dc5b30bb043e))
 * **migration:** register streamer's old proposals types ([#1923](https://github.com/dymensionxyz/dymension/issues/1923)) ([ae16632](https://github.com/dymensionxyz/dymension/commit/ae1663263435cc40bad1931d37b50f6582ac13da))
 * **migration:** reverted eibc/authz protos ([#1924](https://github.com/dymensionxyz/dymension/issues/1924)) ([ab62145](https://github.com/dymensionxyz/dymension/commit/ab6214531bc85298fbacae9a44838bd0acc8f91b))
 * **migration:** update min swap fee ([#1915](https://github.com/dymensionxyz/dymension/issues/1915)) ([6d86081](https://github.com/dymensionxyz/dymension/commit/6d860818fa62a3115908b7700a0a64df7dfce7df))
