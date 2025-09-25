@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine3.21 as go-builder
+FROM golang:1.24-alpine3.21 as go-builder
 
 ARG LINK_STATICALLY
 
