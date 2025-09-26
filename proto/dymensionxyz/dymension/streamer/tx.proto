@@ -3,6 +3,7 @@ package dymensionxyz.dymension.streamer;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/streamer/params.proto";
 import "dymensionxyz/dymension/streamer/stream.proto";
@@ -131,8 +132,8 @@ message MsgCreatePumpStream {
   bool burn_pumped = 6;
   // Target is that is going to be pumped
   oneof target {
-    TargetTopRollapps rollapps = 7;
-    TargetPool pool = 8;
+    TargetTopRollapps rollapps = 7 [ (amino.oneof_name) = "rollapps" ];
+    TargetPool pool = 8 [ (amino.oneof_name) = "pool" ];
   }
 }
 
