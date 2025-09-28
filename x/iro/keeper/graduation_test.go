@@ -214,3 +214,47 @@ func (s *KeeperTestSuite) TestGraduateStandardLaunchPlan() {
 
 	// FIXME: assert fee token is updated
 }
+
+func (s *KeeperTestSuite) TestGraduationGasFree() {
+	startTime := time.Now()
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
+	k := s.App.IROKeeper
+
+	rollappId := s.CreateDefaultRollapp()
+	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
+	s.FundAcc(sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(1_000_000_000).MulRaw(1e18))))
+
+	buyer := sample.Acc()
+	s.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(1_000_000_000).MulRaw(1e18))))
+
+	// Create IRO plan
+	allocation := math.NewInt(1_000_000).MulRaw(1e18)
+	liquidityPart := types.DefaultParams().MinLiquidityPart
+	curve := types.BondingCurve{
+		M:                      math.LegacyMustNewDecFromStr("0"),
+		N:                      math.LegacyMustNewDecFromStr("1"),
+		C:                      math.LegacyMustNewDecFromStr("0.1"),
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
+	}
+	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+
+	// check how much gas is consumed by standard buy
+	alreadySpent := s.Ctx.GasMeter().GasConsumed()
+	_, err = k.Buy(s.Ctx, planId, buyer, math.NewInt(500_000).MulRaw(1e18), math.NewInt(1_000_000_000).MulRaw(1e18))
+	s.Require().NoError(err)
+	gasCheckpoint := s.Ctx.GasMeter().GasConsumed()
+	buyGasCost := gasCheckpoint - alreadySpent
+	s.Require().Greater(buyGasCost, uint64(0))
+
+	// Buy all left tokens
+	plan := k.MustGetPlan(s.Ctx, planId)
+	buyAmt := plan.MaxAmountToSell.Sub(plan.SoldAmt)
+	_, err = k.Buy(s.Ctx, planId, buyer, buyAmt, math.NewInt(1_000_000_000).MulRaw(1e18))
+	s.Require().NoError(err)
+
+	// assert that the gas cost is the same within 5%
+	buyWithGraduationGasCost := s.Ctx.GasMeter().GasConsumed() - gasCheckpoint
+	s.Require().NoError(testutil.ApproxEqualRatio(math.NewIntFromUint64(buyGasCost), math.NewIntFromUint64(buyWithGraduationGasCost), 0.05))
+}

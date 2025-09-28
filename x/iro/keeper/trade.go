@@ -133,7 +133,8 @@ func (k Keeper) Buy(
 	// if all tokens are sold, we need to graduate the plan
 	if plan.SoldAmt.Equal(plan.MaxAmountToSell) {
 		// we make the graduation gas free, as it's not relevant to the specific user's action
-		poolID, _, err := k.GraduatePlan(ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()), planId)
+		noGasCtx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+		poolID, _, err := k.GraduatePlan(noGasCtx, planId)
 		if err != nil {
 			return math.ZeroInt(), err
 		}
