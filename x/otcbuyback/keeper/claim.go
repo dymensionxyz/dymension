@@ -30,7 +30,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	}
 
 	// Calculate claimable amount
-	claimableAmount := purchase.VestedAmount(ctx.BlockTime())
+	claimableAmount := purchase.VestedAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
 	if claimableAmount.IsZero() {
 		return math.ZeroInt(), types.ErrNoClaimableTokens
 	}

@@ -123,6 +123,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 	}
 
 	// Set the auction as completed
+	auction.EndTime = ctx.BlockTime()
 	auction.Completed = true
 
 	err := k.SetAuction(ctx, auction)

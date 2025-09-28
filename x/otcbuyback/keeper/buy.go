@@ -76,8 +76,6 @@ func (k Keeper) Buy(
 		// Create new purchase record
 		purchase = types.NewPurchase(
 			amountToBuy,
-			auction.GetVestingStartTime(),
-			auction.GetVestingEndTime(),
 		)
 	}
 

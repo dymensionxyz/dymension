@@ -25,10 +25,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "before vesting starts",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(-1 * time.Hour),
 			expectedVested: math.ZeroInt(),
@@ -37,10 +35,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "exactly at start time",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime,
 			expectedVested: math.ZeroInt(),
@@ -49,10 +45,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "25% through vesting (2.5 hours)",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(2*time.Hour + 30*time.Minute),
 			expectedVested: math.NewInt(250000), // 25% of 1,000,000
@@ -61,10 +55,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "50% through vesting (5 hours)",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(5 * time.Hour),
 			expectedVested: math.NewInt(500000), // 50% of 1,000,000
@@ -73,10 +65,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "75% through vesting (7.5 hours)",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(7*time.Hour + 30*time.Minute),
 			expectedVested: math.NewInt(750000), // 75% of 1,000,000
@@ -85,10 +75,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "exactly at end time",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    endTime,
 			expectedVested: totalAmount,
@@ -97,10 +85,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "after vesting ends",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    endTime.Add(1 * time.Hour),
 			expectedVested: totalAmount,
@@ -109,10 +95,9 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "50% through vesting with some tokens already claimed",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.NewInt(200000), // 200,000 already claimed
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.NewInt(200000), // 200,000 already claimed
+
 			},
 			currentTime:    startTime.Add(5 * time.Hour), // 50% through
 			expectedVested: math.NewInt(300000),          // 500,000 total vested - 200,000 claimed = 300,000
@@ -121,10 +106,9 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "all tokens already claimed",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   totalAmount, // All tokens claimed
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: totalAmount, // All tokens claimed
+
 			},
 			currentTime:    startTime.Add(5 * time.Hour),
 			expectedVested: math.ZeroInt(),
@@ -133,10 +117,9 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "over-claimed scenario (should return 0)",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   totalAmount.Add(math.NewInt(100000)), // More than total amount
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: totalAmount.Add(math.NewInt(100000)), // More than total amount
+
 			},
 			currentTime:    startTime.Add(5 * time.Hour),
 			expectedVested: math.ZeroInt(),
@@ -145,10 +128,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "1 nanosecond after start",
 			purchase: Purchase{
-				Amount:    totalAmount,
-				Claimed:   math.ZeroInt(),
-				StartTime: startTime,
-				EndTime:   endTime,
+				Amount:  totalAmount,
+				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(1 * time.Nanosecond),
 			expectedVested: math.ZeroInt(), // Should be extremely close to 0
@@ -158,7 +139,7 @@ func TestPurchase_VestedAmount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualVested := tt.purchase.VestedAmount(tt.currentTime)
+			actualVested := tt.purchase.VestedAmount(tt.currentTime, startTime, endTime)
 			require.True(t, tt.expectedVested.Equal(actualVested),
 				"%s: expected vested %s, got %s", tt.description, tt.expectedVested.String(), actualVested.String())
 		})

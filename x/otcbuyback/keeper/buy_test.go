@@ -327,6 +327,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		suite.Require().Contains(err.Error(), "auction must be completed")
 
 		// End the auction manually
+		suite.Ctx = suite.Ctx.WithBlockTime(auction.EndTime)
 		err = suite.App.OTCBuybackKeeper.EndAuction(suite.Ctx, auctionID, "auction_ended_time")
 		suite.Require().NoError(err)
 

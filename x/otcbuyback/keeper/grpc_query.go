@@ -73,13 +73,18 @@ func (q queryServer) UserPurchase(goCtx context.Context, req *types.QueryUserPur
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user address: %s", req.User)
 	}
 
+	auction, found := q.GetAuction(ctx, req.AuctionId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "auction with id %d not found", req.AuctionId)
+	}
+
 	purchase, found := q.GetPurchase(ctx, req.AuctionId, user)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "no purchase found for user %s in auction %d", req.User, req.AuctionId)
 	}
 
 	// Calculate claimable amount
-	claimableAmount := purchase.VestedAmount(ctx.BlockTime())
+	claimableAmount := purchase.VestedAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
 
 	return &types.QueryUserPurchaseResponse{
 		Purchase:        purchase,

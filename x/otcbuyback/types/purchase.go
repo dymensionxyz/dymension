@@ -9,13 +9,10 @@ import (
 // NewPurchase creates a new user vesting plan
 func NewPurchase(
 	amount math.Int,
-	startTime, endTime time.Time,
 ) Purchase {
 	return Purchase{
-		Amount:    amount,
-		Claimed:   math.ZeroInt(),
-		StartTime: startTime,
-		EndTime:   endTime,
+		Amount:  amount,
+		Claimed: math.ZeroInt(),
 	}
 }
 
@@ -30,7 +27,7 @@ func (v Purchase) GetRemainingVesting() math.Int {
 }
 
 // VestedAmount calculates the amount of tokens that have vested and are claimable
-func (v Purchase) VestedAmount(currTime time.Time) math.Int {
+func (v Purchase) VestedAmount(currTime time.Time, startTime, endTime time.Time) math.Int {
 	unclaimed := v.GetRemainingVesting()
 
 	// no tokens to claim
@@ -39,18 +36,18 @@ func (v Purchase) VestedAmount(currTime time.Time) math.Int {
 	}
 
 	// not started
-	if currTime.Before(v.StartTime) {
+	if currTime.Before(startTime) {
 		return math.ZeroInt()
 	}
 
 	// ended - all remaining tokens are claimable
-	if currTime.After(v.EndTime) {
+	if currTime.After(endTime) {
 		return unclaimed
 	}
 
 	// calculate the vesting scalar using linear vesting
-	x := currTime.Sub(v.StartTime)
-	y := v.EndTime.Sub(v.StartTime)
+	x := currTime.Sub(startTime)
+	y := endTime.Sub(startTime)
 
 	vestedAmt := v.Amount.MulRaw(x.Nanoseconds()).QuoRaw(y.Nanoseconds())
 	claimable := vestedAmt.Sub(v.Claimed)
