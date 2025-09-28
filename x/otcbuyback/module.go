@@ -161,5 +161,9 @@ func (AppModule) ConsensusVersion() uint64 { return 1 }
 // BeginBlock executes all ABCI BeginBlock logic respective to the otcbuyback module.
 func (am AppModule) BeginBlock(goCtx context.Context) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	return am.keeper.BeginBlock(ctx)
+	err := am.keeper.BeginBlock(ctx)
+	if err != nil {
+		am.keeper.Logger(ctx).Error("begin block", "error", err)
+	}
+	return nil
 }
