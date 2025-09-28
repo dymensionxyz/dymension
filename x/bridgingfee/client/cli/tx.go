@@ -178,8 +178,8 @@ dymd tx bridgingfee create-aggregation-hook 0x1234...,0x5678...`,
 			var hookIds []hyputil.HexAddress
 			for _, arg := range args {
 				// Split by comma first, then handle each piece
-				parts := strings.Split(arg, ",")
-				for _, part := range parts {
+				parts := strings.SplitSeq(arg, ",")
+				for part := range parts {
 					part = strings.TrimSpace(part)
 					if part == "" {
 						continue
@@ -254,8 +254,8 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 
 			var hookIds []hyputil.HexAddress
 			if hookIdsStr != "" {
-				parts := strings.Split(hookIdsStr, ",")
-				for _, part := range parts {
+				parts := strings.SplitSeq(hookIdsStr, ",")
+				for part := range parts {
 					part = strings.TrimSpace(part)
 					if part == "" {
 						continue
