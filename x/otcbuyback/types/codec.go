@@ -16,6 +16,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgBuyExactSpend{}, "otcbuyback/MsgBuyExactSpend", nil)
 	cdc.RegisterConcrete(&MsgClaimTokens{}, "otcbuyback/MsgClaimTokens", nil)
 	cdc.RegisterConcrete(&MsgUpdateParams{}, "otcbuyback/MsgUpdateParams", nil)
+	cdc.RegisterConcrete(&MsgSetAcceptedTokens{}, "otcbuyback/MsgSetAcceptedTokens", nil)
 	cdc.RegisterConcrete(Params{}, "otcbuyback/Params", nil)
 }
 
@@ -29,6 +30,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgBuyExactSpend{},
 		&MsgClaimTokens{},
 		&MsgUpdateParams{},
+		&MsgSetAcceptedTokens{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

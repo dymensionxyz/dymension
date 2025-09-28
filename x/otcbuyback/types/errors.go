@@ -19,6 +19,8 @@ var (
 	ErrNoClaimableTokens      = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no tokens available to claim")
 	ErrInvalidDiscount        = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid discount percentage")
 	ErrInvalidAllocation      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid token allocation")
+	ErrInvalidSoldAmount      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid sold amount")
+	ErrInvalidRaisedAmount    = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid raised amount")
 	ErrInvalidEndTime         = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid end time")
 	ErrInvalidAddress         = sdkerrors.ErrInvalidAddress
 )
