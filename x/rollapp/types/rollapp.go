@@ -172,9 +172,9 @@ func validateInitialSequencer(initialSequencer string) error {
 	}
 
 	seen := make(map[string]struct{})
-	addrs := strings.Split(initialSequencer, ",")
+	addrs := strings.SplitSeq(initialSequencer, ",")
 
-	for _, addr := range addrs {
+	for addr := range addrs {
 		if _, ok := seen[addr]; ok {
 			return ErrInvalidInitialSequencer
 		}
