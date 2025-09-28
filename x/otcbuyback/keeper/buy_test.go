@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		suite.Require().Equal(expectedBalance, buyerBalance.Amount)
 
 		// Verify the buyer has a purchase record
-		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().True(found)
 		suite.Require().Equal(tokensPurchased, purchase.Amount)
 	})
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 			totalRaisedAmount = totalRaisedAmount.Add(paymentCoin)
 
 			// Verify each purchase
-			purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+			purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 			suite.Require().True(found)
 			suite.Require().Equal(amountsToBuy[buyerIdx], purchase.Amount)
 			suite.Require().True(purchase.Claimed.IsZero())
@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 			totalClaimed = totalClaimed.Add(claimedAmount)
 
 			// Verify each purchase
-			purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+			purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 			suite.Require().True(found)
 			suite.Require().Equal(amountsToBuy[buyerIdx], purchase.Claimed)
 
@@ -283,7 +283,7 @@ func (suite *KeeperTestSuite) TestBuyAll() {
 		suite.Require().NoError(err)
 
 		// Verify purchase was created
-		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().True(found)
 		suite.Require().Equal(amountToBuy, purchase.Amount)
 		suite.Require().True(purchase.Claimed.IsZero())
@@ -314,7 +314,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		expectedVestingEndTime := auction.GetVestingEndTime()
 
 		// buyer should not have a purchase yet
-		_, found = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+		_, found = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().False(found)
 
 		amountToBuy := math.NewInt(10).MulRaw(1e18)
@@ -352,7 +352,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		_, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
 		suite.Require().NoError(err)
 
-		updatedPurchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer.String())
+		updatedPurchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().Equal(amountToBuy.String(), updatedPurchase.Claimed.String(), "Purchase should show tokens as claimed")
 	})
 }

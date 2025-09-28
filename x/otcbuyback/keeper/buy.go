@@ -68,7 +68,7 @@ func (k Keeper) Buy(
 	}
 
 	// Update or create purchase record
-	purchase, found := k.GetPurchase(ctx, auctionID, buyer.String())
+	purchase, found := k.GetPurchase(ctx, auctionID, buyer)
 	if found {
 		// Update existing purchase
 		purchase.Amount = purchase.Amount.Add(amountToBuy)
@@ -82,7 +82,7 @@ func (k Keeper) Buy(
 	}
 
 	// Save purchase
-	if err := k.SetPurchase(ctx, auctionID, buyer.String(), purchase); err != nil {
+	if err := k.SetPurchase(ctx, auctionID, buyer, purchase); err != nil {
 		return sdk.Coin{}, errorsmod.Wrap(err, "failed to save purchase")
 	}
 

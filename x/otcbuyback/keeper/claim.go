@@ -24,7 +24,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	}
 
 	// Get user's purchase
-	purchase, found := k.GetPurchase(ctx, auctionID, claimer.String())
+	purchase, found := k.GetPurchase(ctx, auctionID, claimer)
 	if !found {
 		return math.ZeroInt(), types.ErrNoUserPurchaseFound
 	}
@@ -39,7 +39,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	purchase.ClaimTokens(claimableAmount)
 
 	// Save updated purchase
-	if err := k.SetPurchase(ctx, auctionID, claimer.String(), purchase); err != nil {
+	if err := k.SetPurchase(ctx, auctionID, claimer, purchase); err != nil {
 		return math.ZeroInt(), errorsmod.Wrap(err, "failed to save purchase")
 	}
 
