@@ -3444,7 +3444,7 @@ func (s *KeeperTestSuite) Test_queryServer_Aliases() {
 			if len(tt.want) == 0 {
 				s.Empty(resp.AliasesByChainId)
 			} else if !s.True(reflect.DeepEqual(tt.want, resp.AliasesByChainId)) {
-				fmt.Println("Maps are not equals")
+				fmt.Println("Maps are not equal")
 				fmt.Println(" Expected:")
 				for chainId, aliases := range tt.want {
 					fmt.Printf("  %s: %v\n", chainId, aliases)
@@ -3488,7 +3488,7 @@ func Benchmark_queryServer_Aliases(b *testing.B) {
 	}
 
 	// benchmark
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		resp, err := func() (*dymnstypes.QueryAliasesResponse, error) {
 			b.StartTimer()
 			defer b.StopTimer()
