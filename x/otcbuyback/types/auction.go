@@ -112,7 +112,7 @@ func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
 		return a.MaxDiscount
 	}
 
-	// Calculate progress as a decimal (0 to 1)
+	// Calculate progress as a decimal [0 to 1]
 	progress := math.LegacyNewDec(timeElapsed.Nanoseconds()).
 		Quo(math.LegacyNewDec(totalDuration.Nanoseconds()))
 
