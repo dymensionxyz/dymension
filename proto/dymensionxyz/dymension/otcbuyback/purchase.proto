@@ -32,8 +32,3 @@ message Purchase {
   google.protobuf.Timestamp end_time = 4
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 }
-
-message UserPurchase {
-  string buyer = 1;
-  Purchase purchase = 2 [ (gogoproto.nullable) = false ];
-}

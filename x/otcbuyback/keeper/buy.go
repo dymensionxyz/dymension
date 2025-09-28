@@ -166,21 +166,21 @@ func (k Keeper) GetDiscountedPrice(ctx sdk.Context, auctionID uint64, quoteDenom
 		return math.LegacyZeroDec(), err
 	}
 
-	// Get base price (max(curr_price, average_price))
+	// Get base price (max(current_price, average_price))
 	// we take the max, to avoid double discount in case the price is peaking
-	curr_price, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
+	currPrice, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
-	avg_price, err := k.GetMovingAveragePrice(ctx, quoteDenom)
+	avgPrice, err := k.GetMovingAveragePrice(ctx, quoteDenom)
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
-	base_price := math.LegacyMaxDec(curr_price, avg_price)
+	basePrice := math.LegacyMaxDec(currPrice, avgPrice)
 
 	discount := auction.GetCurrentDiscount(currentTime)
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
 
 	// Price = AMM Price × (1 - Current Discount%)
-	return base_price.Mul(discountMultiplier), nil
+	return basePrice.Mul(discountMultiplier), nil
 }

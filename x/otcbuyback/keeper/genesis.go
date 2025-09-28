@@ -15,6 +15,11 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		panic(err)
 	}
 
+	// Set accepted tokens from genesis state
+	if err := k.SetAcceptedTokens(ctx, genState.AcceptedTokens); err != nil {
+		panic(err)
+	}
+
 	lastAuctionID := uint64(0)
 	expectedFunds := math.ZeroInt()
 	// Set auctions from genesis state
@@ -83,7 +88,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	}
 	genesis.Auctions = auctions
 
-	// FIXME: Export all purchases
+	// TODO: Export all purchases
 
 	return genesis
 }
