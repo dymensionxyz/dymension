@@ -23,6 +23,7 @@
 * **IRO:** ensure approximation converges only via under-approximation ([#1955](https://github.com/dymensionxyz/dymension/issues/1955)) ([324c437](https://github.com/dymensionxyz/dymension/commit/324c43779c2abe03ab9aa3a74e46f7d2225849ef))
 * **iro:** first sell tokens, than charge fee ([#1717](https://github.com/dymensionxyz/dymension/issues/1717)) ([9ca4a70](https://github.com/dymensionxyz/dymension/commit/9ca4a7066288bdacb629b4a3b90c4b1922f051cc))
 * **iro:** fixed TokensForExactInAmount with USDC ([#1922](https://github.com/dymensionxyz/dymension/issues/1922)) ([2b88958](https://github.com/dymensionxyz/dymension/commit/2b889585abde94ea067a7c5d1d01bdbbb51b8bcd))
+* **iro:** make graduation logic gas free ([#2030](https://github.com/dymensionxyz/dymension/issues/2030)) ([8773910](https://github.com/dymensionxyz/dymension/commit/877391089fa9379ada29e58c26d8d4068ea1310d))
 * **iro:** missing `StartTimeAfterSettlement` in IRO default params ([#1704](https://github.com/dymensionxyz/dymension/issues/1704)) ([10edf97](https://github.com/dymensionxyz/dymension/commit/10edf973bf95cd8a28d8af1cd312c3e4e9939f6e))
 * **iro:** set minimum creation fee ([#1919](https://github.com/dymensionxyz/dymension/issues/1919)) ([1ec849d](https://github.com/dymensionxyz/dymension/commit/1ec849de9eda4884f7fcb4b597116b9c15c5c760))
 * kaspa bridge progress indication sign bytes, dont use gogoproto ([#1916](https://github.com/dymensionxyz/dymension/issues/1916)) ([e61b890](https://github.com/dymensionxyz/dymension/commit/e61b890fe908049defe075554c90f46dc36717ed))
