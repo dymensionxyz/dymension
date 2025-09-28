@@ -119,7 +119,7 @@ docker-run-debug:
 ###############################################################################
 
 PACKAGE_NAME:=github.com/dymensionxyz/dymension
-GOLANG_CROSS_VERSION  = v1.22
+GOLANG_CROSS_VERSION  = v1.24
 GOPATH ?= '$(HOME)/go'
 release-dry-run:
 	docker run \
