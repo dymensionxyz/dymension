@@ -53,8 +53,8 @@ func IsValidSubDymName(subDymName string) bool {
 		return false
 	}
 
-	spl := strings.Split(subDymName, ".")
-	for _, s := range spl {
+	spl := strings.SplitSeq(subDymName, ".")
+	for s := range spl {
 		if s == "" {
 			return false
 		}
