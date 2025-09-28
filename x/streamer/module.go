@@ -30,8 +30,9 @@ var (
 	_ module.HasServices    = AppModule{}
 	_ module.HasInvariants  = AppModule{}
 
-	_ appmodule.AppModule     = AppModule{}
-	_ appmodule.HasEndBlocker = (*AppModule)(nil)
+	_ appmodule.AppModule       = AppModule{}
+	_ appmodule.HasEndBlocker   = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -160,10 +161,22 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
 }
 
+// BeginBlock executes all ABCI BeginBlock logic respective to the module.
+func (am AppModule) BeginBlock(goCtx context.Context) error {
+	err := am.keeper.BeginBlock(sdk.UnwrapSDKContext(goCtx))
+	if err != nil {
+		am.keeper.Logger(sdk.UnwrapSDKContext(goCtx)).Error("BeginBlock", "error", err)
+	}
+	return nil
+}
+
 // EndBlock executes all ABCI EndBlock logic respective to the module.
-// Returns a nil validatorUpdate struct array.
 func (am AppModule) EndBlock(goCtx context.Context) error {
-	return am.keeper.EndBlock(sdk.UnwrapSDKContext(goCtx))
+	err := am.keeper.EndBlock(sdk.UnwrapSDKContext(goCtx))
+	if err != nil {
+		am.keeper.Logger(sdk.UnwrapSDKContext(goCtx)).Error("EndBlock", "error", err)
+	}
+	return nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
