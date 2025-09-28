@@ -230,7 +230,7 @@ The incentives module contains the following parameters:
 | -------------------- | ------ | -------- |
 | DistrEpochIdentifier | string | "weekly" |
 
-Note: DistrEpochIdentifier is an epoch identifier, and module distribute
+Note: DistrEpochIdentifier is an epoch identifier, and the module distribute
 rewards at the end of epochs. As `epochs` module is handling multiple
 epochs, the identifier is required to check if distribution should be
 done at `AfterEpochEnd` hook
