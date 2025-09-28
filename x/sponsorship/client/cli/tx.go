@@ -93,9 +93,9 @@ func ParseGaugeWeights(inputWeights string) ([]types.GaugeWeight, error) {
 	}
 
 	var weights []types.GaugeWeight
-	pairs := strings.Split(inputWeights, ",")
+	pairs := strings.SplitSeq(inputWeights, ",")
 
-	for _, pair := range pairs {
+	for pair := range pairs {
 		idValue := strings.Split(pair, "=")
 		if len(idValue) != 2 {
 			return nil, fmt.Errorf("invalid gauge weight format: %s", pair)
