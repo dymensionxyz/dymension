@@ -86,6 +86,13 @@ func (k Keeper) Buy(
 		return math.ZeroInt(), err
 	}
 
+	// validate the remaining tokens have a positive cost
+	newSoldAmt := plan.SoldAmt.Add(amountTokensToBuy)
+	remainingTokens := plan.MaxAmountToSell.Sub(newSoldAmt)
+	if remainingTokens.IsPositive() && !plan.BondingCurve.Cost(newSoldAmt, plan.MaxAmountToSell).IsPositive() {
+		return math.ZeroInt(), errorsmod.Wrapf(types.ErrInvalidCost, "remaining tokens would not be buyable: remaining=%s", remainingTokens.String())
+	}
+
 	// Validate expected out amount
 	if costPlusTakerFeeAmt.GT(maxCostAmt) {
 		return math.ZeroInt(), errorsmod.Wrapf(types.ErrInvalidExpectedOutAmount, "maxCost: %s, cost: %s, fee: %s", maxCostAmt.String(), costAmt.String(), takerFeeAmt.String())
@@ -184,6 +191,13 @@ func (k Keeper) BuyExactSpend(
 	// validate the IRO have enough tokens to sell
 	if plan.SoldAmt.Add(tokensOutAmt).GT(plan.MaxAmountToSell) {
 		return math.ZeroInt(), types.ErrInsufficientTokens
+	}
+
+	// validate the remaining tokens have a positive cost
+	newSoldAmt := plan.SoldAmt.Add(tokensOutAmt)
+	remainingTokens := plan.MaxAmountToSell.Sub(newSoldAmt)
+	if remainingTokens.IsPositive() && !plan.BondingCurve.Cost(newSoldAmt, plan.MaxAmountToSell).IsPositive() {
+		return math.ZeroInt(), errorsmod.Wrapf(types.ErrInvalidCost, "remaining tokens would not be buyable: remaining=%s", remainingTokens.String())
 	}
 
 	// Charge taker fee

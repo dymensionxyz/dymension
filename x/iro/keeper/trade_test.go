@@ -413,3 +413,65 @@ func approxEqualInt(expected, actual, tolerance math.Int) error {
 
 	return nil
 }
+
+// TestLeftoverTokenValidation tests that buying tokens doesn't leave unbuyable leftover tokens
+func (s *KeeperTestSuite) TestLeftoverTokenValidation() {
+	rollappId := s.CreateDefaultRollapp()
+	k := s.App.IROKeeper
+
+	// Create a bonding curve with very low M and N values to make tokens very cheap
+	// This makes individual tokens have near-zero cost due to precision issues
+	curve := types.BondingCurve{
+		M:                      math.LegacyMustNewDecFromStr("0.000001"), // Very small multiplier
+		N:                      math.LegacyMustNewDecFromStr("0.1"),      // Very small exponent
+		C:                      math.LegacyZeroDec(),
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 18,
+	}
+	incentives := types.DefaultIncentivePlanParams()
+
+	startTime := time.Now()
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18) // 1M tokens
+
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	planId, err := k.CreatePlan(s.Ctx, "adym", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
+
+	plan := k.MustGetPlan(s.Ctx, planId)
+
+	// Fund buyer
+	buyer := sample.Acc()
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100_000).MulRaw(1e18)))
+	s.FundAcc(buyer, buyersFunds)
+
+	// Test 1: Verify that a bunch of tokens has positive cost
+	bunchOfTokens := math.NewInt(10).MulRaw(1e18) // 10 tokens
+	bunchCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(bunchOfTokens))
+	s.Require().True(bunchCost.IsPositive(), "Cost of bunch of tokens should be positive: %s", bunchCost.String())
+
+	// Test 2: Verify that a single token has zero cost (due to precision issues)
+	singleToken := math.NewInt(1) // 1 base unit (smallest possible amount)
+	singleTokenCost := curve.Cost(plan.SoldAmt, plan.SoldAmt.Add(singleToken))
+	s.Require().True(singleTokenCost.IsZero(), "Cost of single token should be zero due to precision: %s", singleTokenCost.String())
+
+	// Test 3: Try to buy tokens that would leave a single token behind - should fail
+	// Calculate how many tokens to buy to leave exactly 1 token
+	tokensToLeaveOneToken := plan.MaxAmountToSell.Sub(plan.SoldAmt).Sub(singleToken)
+	maxCost := math.NewInt(100_000).MulRaw(1e18) // High max cost
+
+	_, err = k.Buy(s.Ctx, planId, buyer, tokensToLeaveOneToken, maxCost)
+	s.Require().Error(err, "Should fail when trying to leave unbuyable leftover tokens")
+	s.Require().Contains(err.Error(), "leftover tokens would not be buyable", "Error should mention leftover tokens")
+
+	// Test 4: Try to buy tokens that would leave a bunch of tokens behind - should succeed
+	tokensToLeaveBunch := plan.MaxAmountToSell.Sub(plan.SoldAmt).Sub(bunchOfTokens)
+
+	_, err = k.Buy(s.Ctx, planId, buyer, tokensToLeaveBunch, maxCost)
+	s.Require().NoError(err, "Should succeed when leaving buyable leftover tokens")
+
+	// Test 5: Verify we can buy the remaining bunch of tokens
+	updatedPlan := k.MustGetPlan(s.Ctx, planId)
+	remainingCost := curve.Cost(updatedPlan.SoldAmt, plan.MaxAmountToSell)
+	s.Require().True(remainingCost.IsPositive(), "Remaining tokens should still be buyable: cost=%s", remainingCost.String())
+}
