@@ -97,6 +97,14 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 	return err
 }
 
+func (s *KeeperTestSuite) CreateRollappGauges(num int) {
+	s.T().Helper()
+
+	for i := 0; i < num; i++ {
+		s.CreateDefaultRollapp()
+	}
+}
+
 // CreateStream creates a non-sponsored stream struct given the required params.
 func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdentifier string, numEpoch uint64) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdentifier, numEpoch, NonSponsored)
