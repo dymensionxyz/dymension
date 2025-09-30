@@ -51,7 +51,7 @@ func (k Keeper) TopRollapps(
 	// Iterate through gauges and filter out the ones that:
 	// - Are not rollapps
 	// - Don't have IRO (e.g. DYM- or another coin-native)
-	//r
+	//
 	// Collect no more that `limit` records
 	for _, gauge := range gauges {
 		if limit != nil && len(rollappRecords) >= int(*limit) {

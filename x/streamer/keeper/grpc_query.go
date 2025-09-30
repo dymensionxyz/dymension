@@ -182,7 +182,7 @@ func (q Querier) PumpPressureByUser(goCtx context.Context, req *types.PumpPressu
 	// We need to see how the user contributes to the total distribution.
 	// Use total voting power with user's weights to get PumpPressure.
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.TopRollapps(ctx, vote.ToDistribution().Gauges, totalPressure, &totalWeight, nil)
+	pressure := q.TopRollapps(ctx, vote.ToDistribution().Gauges, totalPressure, &totalWeight, nil)
 
 	return &types.PumpPressureByUserResponse{
 		Pressure:   pressure,
@@ -220,7 +220,7 @@ func (q Querier) PumpPressureByUserByRollapp(goCtx context.Context, req *types.P
 	// We need to see how the user contributes to the total distribution.
 	// Use total voting power with user's weights to get PumpPressure.
 	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.Keeper.TopRollapps(ctx, vote.ToDistribution().Gauges, totalPressure, &totalWeight, nil)
+	pressure := q.TopRollapps(ctx, vote.ToDistribution().Gauges, totalPressure, &totalWeight, nil)
 	idx := slices.IndexFunc(pressure, func(p types.PumpPressure) bool {
 		return p.RollappId == req.RollappId
 	})
