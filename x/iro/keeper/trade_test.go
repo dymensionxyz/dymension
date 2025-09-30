@@ -462,7 +462,7 @@ func (s *KeeperTestSuite) TestLeftoverTokenValidation() {
 
 	_, err = k.Buy(s.Ctx, planId, buyer, tokensToLeaveOneToken, maxCost)
 	s.Require().Error(err, "Should fail when trying to leave unbuyable leftover tokens")
-	s.Require().Contains(err.Error(), "leftover tokens would not be buyable", "Error should mention leftover tokens")
+	s.Require().Contains(err.Error(), "remaining tokens would not be buyable", "Error should mention leftover tokens")
 
 	// Test 4: Try to buy tokens that would leave a bunch of tokens behind - should succeed
 	tokensToLeaveBunch := plan.MaxAmountToSell.Sub(plan.SoldAmt).Sub(bunchOfTokens)
