@@ -40,7 +40,6 @@ func ModuleAccountBalanceInvariant(k Keeper) sdk.Invariant {
 			unclaimedAmount := math.ZeroInt()
 			rng := collections.NewPrefixedPairRange[uint64, sdk.AccAddress](auction.Id)
 			err := k.purchases.Walk(ctx, rng, func(key collections.Pair[uint64, sdk.AccAddress], purchase types.Purchase) (bool, error) {
-
 				// Check: Claimed >= 0
 				if purchase.Claimed.IsNegative() {
 					return true, fmt.Errorf("auction %d, buyer %s: negative claimed amount %s",
