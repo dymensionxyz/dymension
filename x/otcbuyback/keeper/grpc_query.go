@@ -84,7 +84,7 @@ func (q queryServer) UserPurchase(goCtx context.Context, req *types.QueryUserPur
 	}
 
 	// Calculate claimable amount
-	claimableAmount := purchase.VestedAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
+	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
 
 	return &types.QueryUserPurchaseResponse{
 		Purchase:        purchase,

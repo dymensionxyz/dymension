@@ -164,6 +164,7 @@ func (am AppModule) BeginBlock(goCtx context.Context) error {
 	err := am.keeper.BeginBlock(ctx)
 	if err != nil {
 		am.keeper.Logger(ctx).Error("begin block", "error", err)
+		// no error return to avoid halting the chain
 	}
 	return nil
 }

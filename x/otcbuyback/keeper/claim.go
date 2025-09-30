@@ -30,7 +30,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	}
 
 	// Calculate claimable amount
-	claimableAmount := purchase.VestedAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
+	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
 	if claimableAmount.IsZero() {
 		return math.ZeroInt(), types.ErrNoClaimableTokens
 	}
@@ -60,7 +60,7 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 		AuctionId:        auctionID,
 		Claimer:          claimer.String(),
 		ClaimedAmount:    claimableAmount,
-		RemainingVesting: purchase.GetRemainingVesting(),
+		RemainingVesting: purchase.UnclaimedAmount(),
 	})
 	if err != nil {
 		return math.ZeroInt(), errorsmod.Wrap(err, "failed to emit claim event")

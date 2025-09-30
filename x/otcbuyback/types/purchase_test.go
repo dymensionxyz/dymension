@@ -139,7 +139,7 @@ func TestPurchase_VestedAmount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualVested := tt.purchase.VestedAmount(tt.currentTime, startTime, endTime)
+			actualVested := tt.purchase.ClaimableAmount(tt.currentTime, startTime, endTime)
 			require.True(t, tt.expectedVested.Equal(actualVested),
 				"%s: expected vested %s, got %s", tt.description, tt.expectedVested.String(), actualVested.String())
 		})
@@ -181,7 +181,7 @@ func TestPurchase_GetRemainingVesting(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := tt.purchase.GetRemainingVesting()
+			actual := tt.purchase.UnclaimedAmount()
 			require.True(t, tt.expected.Equal(actual),
 				"Expected %s, got %s", tt.expected.String(), actual.String())
 		})

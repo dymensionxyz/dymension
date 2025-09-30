@@ -21,14 +21,14 @@ func (v *Purchase) ClaimTokens(amount math.Int) {
 	v.Claimed = v.Claimed.Add(amount)
 }
 
-// GetRemainingVesting returns the amount still vesting (not yet claimed)
-func (v Purchase) GetRemainingVesting() math.Int {
+// UnclaimedAmount returns the amount still vesting (not yet claimed)
+func (v Purchase) UnclaimedAmount() math.Int {
 	return v.Amount.Sub(v.Claimed)
 }
 
-// VestedAmount calculates the amount of tokens that have vested and are claimable
-func (v Purchase) VestedAmount(currTime time.Time, startTime, endTime time.Time) math.Int {
-	unclaimed := v.GetRemainingVesting()
+// ClaimableAmount calculates the amount of tokens that have vested and are claimable
+func (v Purchase) ClaimableAmount(currTime time.Time, startTime, endTime time.Time) math.Int {
+	unclaimed := v.UnclaimedAmount()
 
 	// no tokens to claim
 	if !unclaimed.IsPositive() {
