@@ -28,42 +28,76 @@ import (
 //	RA1 gets 3/8 = 37.5%
 //	RA2 gets 5/8 = 62.5%
 //
-// CONTRACT: all sponsorshiptypes.Distribution gauges are rollapp gauges.
-func (k Keeper) TopRollapps(ctx sdk.Context, gauges []sponsorshiptypes.Gauge, pumpBudget math.Int, limit *uint32) []types.PumpPressure {
+// When selecting top rollapps, skip:
+// - Non-rollapp gauges
+// - Rollapps that don't have IRO
+//
+// If limit is not 0, return at most `limit` records.
+// totalWeight is a weight used to normalize the pressure. If nil,
+// the total weight is calculated from the given gauges.
+func (k Keeper) TopRollapps(
+	ctx sdk.Context,
+	gauges []sponsorshiptypes.Gauge,
+	pumpBudget math.Int,
+	totalWeight *math.Int,
+	limit *uint32,
+) []types.PumpPressure {
 	// Sort in descending order
 	slices.SortFunc(gauges, func(left, right sponsorshiptypes.Gauge) int {
 		return right.Power.BigIntMut().Cmp(left.Power.BigIntMut())
 	})
 
-	if limit != nil && int(*limit) < len(gauges) {
-		gauges = gauges[:int(*limit)]
-	}
-
-	totalWeight := math.ZeroInt()
-	for _, gauge := range gauges {
-		totalWeight = totalWeight.Add(gauge.Power)
-	}
-
-	// TODO: account for DYM-native and no IRO cases
-
-	return k.PumpPressure(ctx, gauges, pumpBudget, totalWeight)
-}
-
-func (k Keeper) PumpPressure(ctx sdk.Context, gauges []sponsorshiptypes.Gauge, pumpBudget, totalWeight math.Int) []types.PumpPressure {
 	var rollappRecords []types.PumpPressure
+	// Iterate through gauges and filter out the ones that:
+	// - Are not rollapps
+	// - Don't have IRO (e.g. DYM- or another coin-native)
+	//r
+	// Collect no more that `limit` records
 	for _, gauge := range gauges {
+		if limit != nil && len(rollappRecords) >= int(*limit) {
+			// limit reached
+			break
+		}
+
 		g, err := k.ik.GetGaugeByID(ctx, gauge.GaugeId)
 		if err != nil {
-			k.Logger(ctx).Error("failed to get gauge", "gaugeID", gauge.GaugeId, "error", err)
+			k.Logger(ctx).Error("failed to get gauge when pumping top rollapps", "gaugeID", gauge.GaugeId, "error", err)
 			continue
 		}
-		if ra := g.GetRollapp(); ra != nil {
-			rollappRecords = append(rollappRecords, types.PumpPressure{
-				RollappId: ra.RollappId,
-				// Don't pre-calculate 'pumpBudget / totalWeight' bc it loses precision
-				Pressure: gauge.Power.Mul(pumpBudget).Quo(totalWeight),
-			})
+
+		ra := g.GetRollapp()
+		if ra == nil {
+			// not rollapp gauge
+			continue
 		}
+
+		_, ok := k.iroKeeper.GetPlanByRollapp(ctx, ra.RollappId)
+		if !ok {
+			// no IRO
+			continue
+		}
+
+		rollappRecords = append(rollappRecords, types.PumpPressure{
+			RollappId: ra.RollappId,
+			// Just save the power for now without any multiplier
+			Pressure: gauge.Power,
+		})
+	}
+
+	// Find the total weight of all selected rollapps
+	total := math.ZeroInt()
+	if totalWeight == nil {
+		for _, ra := range rollappRecords {
+			total = total.Add(ra.Pressure)
+		}
+	} else {
+		total = *totalWeight
+	}
+
+	// Normalize the pressure by the total weight
+	for i := 0; i < len(rollappRecords); i++ {
+		// Don't pre-calculate 'pumpBudget / totalWeight' bc it loses precision
+		rollappRecords[i].Pressure = rollappRecords[i].Pressure.Mul(pumpBudget).Quo(total)
 	}
 
 	return rollappRecords
@@ -81,8 +115,8 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 }
 
 var (
-	shouldPumpSalt = []byte("shouldPumpSalt")
-	pumpAmtSalt    = []byte("pumpAmtSalt")
+	ShouldPumpSalt = []byte("ShouldPumpSalt")
+	PumpAmtSalt    = []byte("PumpAmtSalt")
 )
 
 // ShouldPump decides if the pump should happen in this block. It uses block
@@ -121,7 +155,7 @@ func ShouldPump(
 	}
 
 	// Draw a random value in range [0, epochBlocks)
-	randomInRangeBig := rand.GenerateUniformRandomMod(ctx, epochBlocks.BigInt(), shouldPumpSalt)
+	randomInRangeBig := rand.GenerateUniformRandomMod(ctx, epochBlocks.BigInt(), ShouldPumpSalt)
 
 	// If NumPumps >= epochBlocks => we should pump on every block
 	// If NumPumps < epochBlocks => pump is probabilistic
@@ -160,12 +194,12 @@ func PumpAmt(
 		// Draw a Uniform(0; 2*B/N) value
 		// Mean is B/N
 		modulo := budget.MulRaw(2).Quo(numPumps)
-		randBig = rand.GenerateUniformRandomMod(ctx, modulo.BigIntMut(), pumpAmtSalt)
+		randBig = rand.GenerateUniformRandomMod(ctx, modulo.BigIntMut(), PumpAmtSalt)
 
 	case types.PumpDistr_PUMP_DISTR_EXPONENTIAL:
 		// Draw an Exp(N/B) value
 		// Mean is B/N
-		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), budget.BigInt(), pumpAmtSalt)
+		randBig = rand.GenerateExpRandomLambda(ctx, numPumps.BigIntMut(), budget.BigInt(), PumpAmtSalt)
 
 	case types.PumpDistr_PUMP_DISTR_UNSPECIFIED:
 		return math.ZeroInt(), fmt.Errorf("pump distribution not specified")
@@ -411,7 +445,12 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 		var (
 			totalPumped   = sdk.NewCoins()
 			totalTokenOut = sdk.NewCoins()
-			event         = types.EventPumped{StreamId: stream.Id}
+			event         = types.EventPumped{
+				StreamId: stream.Id,
+				Rollapps: nil, // set later
+				Pool:     nil, // set later
+				Pumped:   sdk.NewCoins(sdk.NewCoin(stream.Coins[0].Denom, pumpAmt)),
+			}
 		)
 
 		switch t := stream.PumpParams.Target.(type) {
@@ -430,7 +469,7 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 
 		case *types.PumpParams_Rollapps:
 			var e []types.EventPumped_Rollapp
-			totalPumped, totalTokenOut, e, err = k.PumpRollapps(
+			totalPumped, totalTokenOut, e = k.PumpRollapps(
 				ctx,
 				pumpAmt,
 				stream.Coins[0].Denom, // this denom is always the base denom when pumping rollapps
@@ -438,9 +477,6 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 				*t.Rollapps,
 				stream.Id,
 			)
-			if err != nil {
-				return fmt.Errorf("pump rollapps: %w", err)
-			}
 			event.Rollapps = e
 		}
 
@@ -453,15 +489,15 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			if err != nil {
 				return fmt.Errorf("update stream after pump: %w", err)
 			}
-
-			err = uevent.EmitTypedEvent(ctx, &event)
-			if err != nil {
-				return fmt.Errorf("emit EventPumped: %w", err)
-			}
 		}
 
 		if stream.PumpParams.BurnPumped && !totalTokenOut.IsZero() {
 			toBurn = toBurn.Add(totalTokenOut...)
+		}
+
+		err = uevent.EmitTypedEvent(ctx, &event)
+		if err != nil {
+			return fmt.Errorf("emit EventPumped: %w", err)
 		}
 	}
 
@@ -485,10 +521,9 @@ func (k Keeper) PumpRollapps(
 ) (
 	pumped, tokenOut sdk.Coins,
 	events []types.EventPumped_Rollapp,
-	err error,
 ) {
 	var (
-		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, &rollapps.NumTopRollapps)
+		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, nil, &rollapps.NumTopRollapps)
 		totalPumped   = sdk.NewCoins()
 		totalTokenOut = sdk.NewCoins()
 	)
@@ -505,19 +540,26 @@ func (k Keeper) PumpRollapps(
 		if err != nil {
 			k.Logger(ctx).Error("failed to pump rollapp", "rollappID", p.RollappId, "streamID", streamID, "pumpCoin", pumpCoin, "error", err)
 			// Continue with other rollapps even if one fails
+			events = append(events, types.EventPumped_Rollapp{
+				RollappId:  p.RollappId,
+				PumpCoin:   pumpCoin,
+				TokenOut:   sdk.Coin{},
+				SkipReason: err.Error(),
+			})
 			continue
 		}
 
 		totalPumped = totalPumped.Add(pumpCoin)
 		totalTokenOut = totalTokenOut.Add(tokenOut)
 		events = append(events, types.EventPumped_Rollapp{
-			RollappId: p.RollappId,
-			PumpCoin:  pumpCoin,
-			TokenOut:  tokenOut,
+			RollappId:  p.RollappId,
+			PumpCoin:   pumpCoin,
+			TokenOut:   tokenOut,
+			SkipReason: "",
 		})
 	}
 
-	return totalPumped, totalTokenOut, events, nil
+	return totalPumped, totalTokenOut, events
 }
 
 func (k Keeper) PumpPool(

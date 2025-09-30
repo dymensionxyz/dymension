@@ -51,14 +51,8 @@ message EventPumped {
   Pool pool = 3;
 
   // Expected pump amount – how much the stream should've pumped
-  repeated cosmos.base.v1beta1.Coin expected_pumped = 4 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-
-  // Actual pump amount – how much the stream has pumped
-  // (accounting for skipped RAs)
-  repeated cosmos.base.v1beta1.Coin actual_pumped = 5 [
+  // (not accounting for skipped RAs)
+  repeated cosmos.base.v1beta1.Coin pumped = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];

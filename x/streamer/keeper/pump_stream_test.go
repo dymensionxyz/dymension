@@ -298,7 +298,7 @@ func hashNoPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in no pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 5
+	hash[31] = 9
 	headerInfo := ctx.HeaderInfo()
 	headerInfo.Hash = hash
 	return ctx.WithHeaderInfo(headerInfo)
@@ -308,7 +308,7 @@ func hashPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in a pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 9
+	hash[31] = 6
 	headerInfo := ctx.HeaderInfo()
 	headerInfo.Hash = hash
 	return ctx.WithHeaderInfo(headerInfo)
@@ -512,14 +512,14 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		// Pump hash
 		ctx := hashPump(s.Ctx)
 		r1 := math.NewIntFromBigIntMut(
-			rand.GenerateUniformRandomMod(ctx, b.BigIntMut(), nil),
-		) //  7639
+			rand.GenerateUniformRandomMod(ctx, b.BigIntMut(), keeper.ShouldPumpSalt),
+		) //  56935
 
 		// No pump hash
 		ctx = hashNoPump(s.Ctx)
 		r2 := math.NewIntFromBigIntMut(
-			rand.GenerateUniformRandomMod(ctx, b.BigIntMut(), nil),
-		) //  11118
+			rand.GenerateUniformRandomMod(ctx, b.BigIntMut(), keeper.ShouldPumpSalt),
+		) //  81231
 
 		middle := math.NewIntFromUint64(pumpNum)
 
@@ -528,7 +528,7 @@ func (s *KeeperTestSuite) TestShouldPump() {
 	})
 
 	s.Run("ShouldPump", func() {
-		pumpNum := uint64(7000)
+		pumpNum := uint64(70000)
 
 		// Pump hash should pump
 		ctx := hashPump(s.Ctx)
@@ -611,14 +611,14 @@ func (s *KeeperTestSuite) TestTopRollapps() {
 
 	limit := uint32(5)
 
-	top := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, &limit)
+	top := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, nil, &limit)
 	s.T().Log(top)
 
 	limit = uint32(10)
 
 	budget = s.strToInt("9301141315610998")
 
-	top1 := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, &limit)
+	top1 := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, nil, &limit)
 	s.T().Log(top1)
 }
 
