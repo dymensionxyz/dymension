@@ -20,7 +20,7 @@ func DefaultParams() Params {
 func (p Params) ValidateBasic() error {
 	if p.MovingAverageSmoothingFactor.IsNil() ||
 		p.MovingAverageSmoothingFactor.IsNegative() ||
-		p.MovingAverageSmoothingFactor.GTE(math.LegacyOneDec()) {
+		p.MovingAverageSmoothingFactor.GT(math.LegacyOneDec()) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "moving average smoothing factor must be between 0 and 1")
 	}
 	return nil

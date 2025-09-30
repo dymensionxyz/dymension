@@ -9,13 +9,10 @@ import (
 // NewPurchase creates a new user vesting plan
 func NewPurchase(
 	amount math.Int,
-	startTime, endTime time.Time,
 ) Purchase {
 	return Purchase{
-		Amount:    amount,
-		Claimed:   math.ZeroInt(),
-		StartTime: startTime,
-		EndTime:   endTime,
+		Amount:  amount,
+		Claimed: math.ZeroInt(),
 	}
 }
 
@@ -24,14 +21,14 @@ func (v *Purchase) ClaimTokens(amount math.Int) {
 	v.Claimed = v.Claimed.Add(amount)
 }
 
-// GetRemainingVesting returns the amount still vesting (not yet claimed)
-func (v Purchase) GetRemainingVesting() math.Int {
+// UnclaimedAmount returns the amount still vesting (not yet claimed)
+func (v Purchase) UnclaimedAmount() math.Int {
 	return v.Amount.Sub(v.Claimed)
 }
 
-// VestedAmount calculates the amount of tokens that have vested and are claimable
-func (v Purchase) VestedAmount(currTime time.Time) math.Int {
-	unclaimed := v.GetRemainingVesting()
+// ClaimableAmount calculates the amount of tokens that have vested and are claimable
+func (v Purchase) ClaimableAmount(currTime time.Time, startTime, endTime time.Time) math.Int {
+	unclaimed := v.UnclaimedAmount()
 
 	// no tokens to claim
 	if !unclaimed.IsPositive() {
@@ -39,18 +36,18 @@ func (v Purchase) VestedAmount(currTime time.Time) math.Int {
 	}
 
 	// not started
-	if currTime.Before(v.StartTime) {
+	if currTime.Before(startTime) {
 		return math.ZeroInt()
 	}
 
 	// ended - all remaining tokens are claimable
-	if currTime.After(v.EndTime) {
+	if currTime.After(endTime) {
 		return unclaimed
 	}
 
 	// calculate the vesting scalar using linear vesting
-	x := currTime.Sub(v.StartTime)
-	y := v.EndTime.Sub(v.StartTime)
+	x := currTime.Sub(startTime)
+	y := endTime.Sub(startTime)
 	s := math.LegacyNewDec(x.Nanoseconds()).Quo(math.LegacyNewDec(y.Nanoseconds()))
 
 	vestedAmt := s.Mul(math.LegacyNewDecFromInt(v.Amount)).TruncateInt()

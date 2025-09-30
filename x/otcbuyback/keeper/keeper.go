@@ -32,8 +32,9 @@ type (
 		// Collections for storing auction data
 		nextAuctionID collections.Sequence
 		auctions      collections.Map[uint64, types.Auction]
-		purchases     collections.Map[collections.Pair[uint64, string], types.Purchase] // [auctionID, buyer] -> Purchase
-		params        collections.Item[types.Params]
+
+		purchases collections.Map[collections.Pair[uint64, sdk.AccAddress], types.Purchase] // [auctionID, buyer] -> Purchase
+		params    collections.Item[types.Params]
 
 		// acceptedTokens stores accepted tokens and their pool IDs
 		acceptedTokens collections.Map[string, types.TokenData] // [denom] -> TokenData
@@ -79,7 +80,7 @@ func NewKeeper(
 			sb,
 			types.PurchaseKeyPrefix,
 			"purchases",
-			collections.PairKeyCodec(collections.Uint64Key, collections.StringKey),
+			collections.PairKeyCodec(collections.Uint64Key, collcompat.AccAddressKey),
 			collcompat.ProtoValue[types.Purchase](cdc),
 		),
 		params: collections.NewItem(
@@ -144,13 +145,13 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) (uint64, error) {
 }
 
 // SetPurchase stores a purchase using collections
-func (k Keeper) SetPurchase(ctx sdk.Context, auctionID uint64, buyer string, purchase types.Purchase) error {
+func (k Keeper) SetPurchase(ctx sdk.Context, auctionID uint64, buyer sdk.AccAddress, purchase types.Purchase) error {
 	key := collections.Join(auctionID, buyer)
 	return k.purchases.Set(ctx, key, purchase)
 }
 
 // GetPurchase retrieves a purchase by auction ID and buyer using collections
-func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer string) (types.Purchase, bool) {
+func (k Keeper) GetPurchase(ctx sdk.Context, auctionID uint64, buyer sdk.AccAddress) (types.Purchase, bool) {
 	key := collections.Join(auctionID, buyer)
 	purchase, err := k.purchases.Get(ctx, key)
 	if err != nil {

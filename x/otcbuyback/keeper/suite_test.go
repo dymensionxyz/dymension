@@ -16,11 +16,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 )
 
-const (
-	Sponsored    = true
-	NonSponsored = false
-)
-
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 	querier types.QueryServer
