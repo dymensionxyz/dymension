@@ -26,7 +26,6 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the Otcbuyback module
-// Currently empty, reserved for future use cases
 type Params struct {
 	// smoothing factor for moving average (e.g., 0.1 = 10% weight to new price,
 	// 90% to old average)

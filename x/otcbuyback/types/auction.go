@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -47,6 +48,14 @@ func (a Auction) ValidateBasic() error {
 
 	if !a.Allocation.IsPositive() {
 		return ErrInvalidAllocation
+	}
+
+	if a.SoldAmount.IsNegative() {
+		return ErrInvalidSoldAmount
+	}
+
+	if err := a.RaisedAmount.Validate(); err != nil {
+		return errors.Join(ErrInvalidRaisedAmount, err)
 	}
 
 	// endtime must be greater than starttime
@@ -112,7 +121,7 @@ func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
 		return a.MaxDiscount
 	}
 
-	// Calculate progress as a decimal (0 to 1)
+	// Calculate progress as a decimal [0 to 1]
 	progress := math.LegacyNewDec(timeElapsed.Nanoseconds()).
 		Quo(math.LegacyNewDec(totalDuration.Nanoseconds()))
 
