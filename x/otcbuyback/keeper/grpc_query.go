@@ -66,16 +66,25 @@ func (q queryServer) UserPurchase(goCtx context.Context, req *types.QueryUserPur
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	purchase, found := q.GetPurchase(ctx, req.AuctionId, req.User)
+	user, err := sdk.AccAddressFromBech32(req.User)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user address: %s", req.User)
+	}
+
+	auction, found := q.GetAuction(ctx, req.AuctionId)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "auction with id %d not found", req.AuctionId)
+	}
+
+	purchase, found := q.GetPurchase(ctx, req.AuctionId, user)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "no purchase found for user %s in auction %d", req.User, req.AuctionId)
 	}
 
 	// Calculate claimable amount
-	claimableAmount := purchase.VestedAmount(ctx.BlockTime())
+	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
 
 	return &types.QueryUserPurchaseResponse{
 		Purchase:        purchase,

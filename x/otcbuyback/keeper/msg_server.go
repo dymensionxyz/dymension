@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -93,7 +94,7 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuction) (*types.MsgCreateAuctionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.Authority != s.authority {
+	if msg.GetAuthority() != s.authority {
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
@@ -139,7 +140,7 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 func (s msgServer) TerminateAuction(goCtx context.Context, msg *types.MsgTerminateAuction) (*types.MsgTerminateAuctionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.Authority != s.authority {
+	if msg.GetAuthority() != s.authority {
 		return nil, errorsmod.Wrapf(gerrc.ErrUnauthenticated, "invalid authority; expected %s, got %s", s.authority, msg.Authority)
 	}
 
@@ -158,7 +159,7 @@ func (ms msgServer) Buy(goCtx context.Context, req *types.MsgBuy) (*types.MsgBuy
 	// Convert buyer address
 	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalidAddress, err.Error())
+		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
 	paymentCoin, err := ms.Keeper.Buy(ctx, buyer, req.AuctionId, req.AmountToBuy, req.DenomToPay)
@@ -178,7 +179,7 @@ func (ms msgServer) BuyExactSpend(goCtx context.Context, req *types.MsgBuyExactS
 	// Convert buyer address
 	buyer, err := sdk.AccAddressFromBech32(req.Buyer)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalidAddress, err.Error())
+		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
 	tokensPurchased, err := ms.Keeper.BuyExactSpend(ctx, buyer, req.AuctionId, req.PaymentCoin)
@@ -199,7 +200,7 @@ func (ms msgServer) ClaimTokens(goCtx context.Context, req *types.MsgClaimTokens
 	// Convert claimer address
 	claimer, err := sdk.AccAddressFromBech32(req.Claimer)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalidAddress, err.Error())
+		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
 	claimedAmount, err := ms.ClaimVestedTokens(ctx, claimer, req.AuctionId)
