@@ -48,8 +48,9 @@ func (v Purchase) ClaimableAmount(currTime time.Time, startTime, endTime time.Ti
 	// calculate the vesting scalar using linear vesting
 	x := currTime.Sub(startTime)
 	y := endTime.Sub(startTime)
+	s := math.LegacyNewDec(x.Nanoseconds()).Quo(math.LegacyNewDec(y.Nanoseconds()))
 
-	vestedAmt := v.Amount.MulRaw(x.Nanoseconds()).QuoRaw(y.Nanoseconds())
+	vestedAmt := s.Mul(math.LegacyNewDecFromInt(v.Amount)).TruncateInt()
 	claimable := vestedAmt.Sub(v.Claimed)
 
 	// Ensure claimable is not negative
