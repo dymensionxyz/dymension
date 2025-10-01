@@ -265,7 +265,10 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 
 func (s *KeeperTestSuite) TestPumpPressure() {
 	ra1 := s.CreateDefaultRollapp()
-	_ = s.CreateDefaultRollapp()
+	ra2 := s.CreateDefaultRollapp()
+
+	s.CreateDefaultPlan(ra1)
+	s.CreateDefaultPlan(ra2)
 
 	val := s.CreateValidator()
 	valAddr, _ := sdk.ValAddressFromBech32(val.GetOperator())
