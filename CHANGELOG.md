@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-09-30)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-01)
 
 
 ### Bug Fixes
@@ -100,6 +100,7 @@
 * **sponsorship:** lazy accumulator for endorsement yielding ([#1872](https://github.com/dymensionxyz/dymension/issues/1872)) ([8db3019](https://github.com/dymensionxyz/dymension/commit/8db3019c64ec81e49f363a528d52cf7b0505ce47))
 * **sponsorship:** only allow voting on rollapp gauges ([#1990](https://github.com/dymensionxyz/dymension/issues/1990)) ([59be658](https://github.com/dymensionxyz/dymension/commit/59be65817b605da17ff60f94560a0723e62bf8fd))
 * **sponsorship:** queries to get endorsement and estimate rewards ([#1932](https://github.com/dymensionxyz/dymension/issues/1932)) ([5da9107](https://github.com/dymensionxyz/dymension/commit/5da9107ccb907e2c44b32ac1991b3ea0fcde219d))
+* **streamer:** fix bad pump amounts and skip non-iro rollapps ([#2032](https://github.com/dymensionxyz/dymension/issues/2032)) ([51ea5df](https://github.com/dymensionxyz/dymension/commit/51ea5df74f18b92e127d16b0caafd639ac94887e))
 * **streamer:** pump stream ([#1981](https://github.com/dymensionxyz/dymension/issues/1981)) ([caf84a4](https://github.com/dymensionxyz/dymension/commit/caf84a474c050317fdedbaaf8753719a32ec1232)), closes [#1988](https://github.com/dymensionxyz/dymension/issues/1988)
 * **streamer:** support graduation in pump streams ([#2001](https://github.com/dymensionxyz/dymension/issues/2001)) ([48ea09b](https://github.com/dymensionxyz/dymension/commit/48ea09b9ab3e32be0164653dbf0fdd4caa052b4a))
 * **streamer:** use pump streams for buyback ([#2007](https://github.com/dymensionxyz/dymension/issues/2007)) ([e6057f3](https://github.com/dymensionxyz/dymension/commit/e6057f3d22b6386a4cf06d4188795106110578b6))
