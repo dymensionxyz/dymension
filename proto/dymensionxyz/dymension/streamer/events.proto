@@ -34,6 +34,8 @@ message EventPumped {
     string rollapp_id = 1;
     cosmos.base.v1beta1.Coin pumpCoin = 2 [ (gogoproto.nullable) = false ];
     cosmos.base.v1beta1.Coin tokenOut = 3 [ (gogoproto.nullable) = false ];
+    // Why this rollapp was skipped when pumping, ie pump error
+    string skip_reason = 4;
   }
 
   message Pool {
@@ -43,6 +45,15 @@ message EventPumped {
   }
 
   uint64 stream_id = 1;
+
   repeated Rollapp rollapps = 2 [ (gogoproto.nullable) = false ];
+
   Pool pool = 3;
+
+  // Expected pump amount – how much the stream should've pumped
+  // (not accounting for skipped RAs)
+  repeated cosmos.base.v1beta1.Coin pumped = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

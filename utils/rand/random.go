@@ -1,6 +1,7 @@
 package rand
 
 import (
+	"crypto/sha256"
 	"math"
 	"math/big"
 	"math/rand/v2"
@@ -10,20 +11,20 @@ import (
 )
 
 // GenerateUniformRandom draws a uniform random 64-bit variable
-func GenerateUniformRandom(ctx sdk.Context) *big.Int {
+func GenerateUniformRandom(ctx sdk.Context, salt []byte) *big.Int {
 	// Take block hash. Tendermint uses SHA-256.
-	seed := ctx.HeaderInfo().Hash
+	seed := sha256.Sum256(append(ctx.HeaderInfo().Hash, salt...))
 	//nolint:gosec // math/rand/v2 is used for a purpose: we need a custom seed
-	generator := rand.NewChaCha8([32]byte(seed))
+	generator := rand.NewChaCha8(seed)
 	return new(big.Int).SetUint64(generator.Uint64())
 }
 
 var BigMaxUint64 = osmomath.NewIntFromUint64(math.MaxUint64)
 
 // GenerateUniformRandomMod draws a uniform random variable in [0; modulo)
-func GenerateUniformRandomMod(ctx sdk.Context, modulo *big.Int) *big.Int {
+func GenerateUniformRandomMod(ctx sdk.Context, modulo *big.Int, salt []byte) *big.Int {
 	// Generate a uniform random variable in [0; MaxUint64]
-	u := GenerateUniformRandom(ctx)
+	u := GenerateUniformRandom(ctx, salt)
 	// Normalize it to [0; 1) = uniform / (MAX_UINT64 + 1)
 	un := osmomath.NewDecFromBigInt(u).QuoInt(BigMaxUint64.AddRaw(1))
 	// Scale it up to the modulo
@@ -32,9 +33,9 @@ func GenerateUniformRandomMod(ctx sdk.Context, modulo *big.Int) *big.Int {
 
 // GenerateExpRandomLambda draws an exp random variable in [0, +inf)
 // with lambda = numerator / denominator and mean = denominator / numerator.
-func GenerateExpRandomLambda(ctx sdk.Context, lambdaNumerator, lambdaDenominator *big.Int) *big.Int {
+func GenerateExpRandomLambda(ctx sdk.Context, lambdaNumerator, lambdaDenominator *big.Int, salt []byte) *big.Int {
 	// Generate a uniform random variable in [0; MaxUint64]
-	u := GenerateUniformRandom(ctx)
+	u := GenerateUniformRandom(ctx, salt)
 
 	// Handle u = 0 case to avoid ln(0)
 	// The variable is in (0; MaxUint64]

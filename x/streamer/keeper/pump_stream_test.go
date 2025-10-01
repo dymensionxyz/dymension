@@ -298,7 +298,7 @@ func hashNoPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in no pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 5
+	hash[31] = 9
 	headerInfo := ctx.HeaderInfo()
 	headerInfo.Hash = hash
 	return ctx.WithHeaderInfo(headerInfo)
@@ -308,7 +308,7 @@ func hashPump(ctx sdk.Context) sdk.Context {
 	// Create a header hash that will result in a pump
 	// The value is found experimentally in TestRandom()
 	hash := make([]byte, 32)
-	hash[31] = 9
+	hash[31] = 6
 	headerInfo := ctx.HeaderInfo()
 	headerInfo.Hash = hash
 	return ctx.WithHeaderInfo(headerInfo)
@@ -496,23 +496,30 @@ func (s *KeeperTestSuite) simulateBlockAndVerifyPumpWithAMM(ctx sdk.Context, str
 }
 
 func (s *KeeperTestSuite) TestShouldPump() {
+	// Set up fast blocks
+	mintParams, err := s.App.MintKeeper.Params.Get(s.Ctx)
+	s.Require().NoError(err)
+	mintParams.BlocksPerYear = 37869120
+	err = s.App.MintKeeper.Params.Set(s.Ctx, mintParams)
+	s.Require().NoError(err)
+
 	b, err := s.App.StreamerKeeper.EpochBlocks(s.Ctx, "day")
 	s.Require().NoError(err)
 
-	pumpNum := uint64(7000)
-
 	s.Run("GenerateUniformRandom", func() {
+		pumpNum := uint64(7000)
+
 		// Pump hash
 		ctx := hashPump(s.Ctx)
 		r1 := math.NewIntFromBigIntMut(
-			rand.GenerateUniformRandomMod(ctx, b.BigIntMut()),
-		) //  7639
+			rand.GenerateUniformRandomMod(ctx, b.BigIntMut(), keeper.ShouldPumpSalt),
+		) //  56935
 
 		// No pump hash
 		ctx = hashNoPump(s.Ctx)
 		r2 := math.NewIntFromBigIntMut(
-			rand.GenerateUniformRandomMod(ctx, b.BigIntMut()),
-		) //  11118
+			rand.GenerateUniformRandomMod(ctx, b.BigIntMut(), keeper.ShouldPumpSalt),
+		) //  81231
 
 		middle := math.NewIntFromUint64(pumpNum)
 
@@ -521,6 +528,8 @@ func (s *KeeperTestSuite) TestShouldPump() {
 	})
 
 	s.Run("ShouldPump", func() {
+		pumpNum := uint64(70000)
+
 		// Pump hash should pump
 		ctx := hashPump(s.Ctx)
 		pumpAmt, err := keeper.ShouldPump(
@@ -547,6 +556,76 @@ func (s *KeeperTestSuite) TestShouldPump() {
 		s.Require().NoError(err)
 		s.Require().True(pumpAmt.IsZero())
 	})
+}
+
+func (s *KeeperTestSuite) TestTopRollapps() {
+	// 2 asset gauges are created in advance, so RA gauges numbers start from 3
+	s.CreateRollappGauges(9)
+
+	// The gauges are in descending order of their power,
+	// one of the gauges is an asset
+	gauges := sponsorshiptypes.Gauges{
+		{
+			GaugeId: 3,
+			Power:   s.strToInt("695611748570021215881005"),
+		},
+		{
+			GaugeId: 4,
+			Power:   s.strToInt("338326983742068464841733"),
+		},
+		{
+			GaugeId: 5,
+			Power:   s.strToInt("306199397081960979461961"),
+		},
+		{
+			GaugeId: 6,
+			Power:   s.strToInt("277221197813447833197639"),
+		},
+		{
+			GaugeId: 7,
+			Power:   s.strToInt("275054378403813432023288"),
+		},
+		{
+			GaugeId: 1, // ASSET GAUGE!
+			Power:   s.strToInt("257426286886668150789466"),
+		},
+		{
+			GaugeId: 8,
+			Power:   s.strToInt("216290651707908447408418"),
+		},
+		{
+			GaugeId: 9,
+			Power:   s.strToInt("200116550916839674024341"),
+		},
+		{
+			GaugeId: 10,
+			Power:   s.strToInt("181137951549659905505919"),
+		},
+		{
+			GaugeId: 11,
+			Power:   s.strToInt("162435774961382117866640"),
+		},
+	}
+
+	budget := s.strToInt("183")
+
+	limit := uint32(5)
+
+	top := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, nil, &limit)
+	s.T().Log(top)
+
+	limit = uint32(10)
+
+	budget = s.strToInt("9301141315610998")
+
+	top1 := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, nil, &limit)
+	s.T().Log(top1)
+}
+
+func (s *KeeperTestSuite) strToInt(str string) math.Int {
+	i, ok := math.NewIntFromString(str)
+	s.Require().True(ok)
+	return i
 }
 
 func (s *KeeperTestSuite) TestPumpAmtSamplesUniform() {

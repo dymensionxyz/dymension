@@ -18,6 +18,10 @@ func GetQueryCmd() *cobra.Command {
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdStreamByID)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdActiveStreams)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdUpcomingStreams)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdPumpPressure)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdPumpPressureByRollapp)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdPumpPressureByUser)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdPumpPressureByUserByRollapp)
 	return cmd
 }
 
@@ -83,4 +87,40 @@ func GetCmdUpcomingStreams() (*osmocli.QueryDescriptor, *types.UpcomingStreamsRe
 		The command returns a list of upcoming streams with their details, including the start time, end time, and the coins it contains.`,
 		},
 		&types.UpcomingStreamsRequest{}
+}
+
+// GetCmdPumpPressure returns pump pressure for all rollapps.
+func GetCmdPumpPressure() (*osmocli.QueryDescriptor, *types.PumpPressureRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "pump-pressure",
+		Short: "Query pump pressure for all rollapps",
+		Long:  "Returns how much DYM will be used for buying RA tokens if pump occurs for all rollapps.",
+	}, &types.PumpPressureRequest{}
+}
+
+// GetCmdPumpPressureByRollapp returns pump pressure for a specific rollapp.
+func GetCmdPumpPressureByRollapp() (*osmocli.QueryDescriptor, *types.PumpPressureByRollappRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "pump-pressure-by-rollapp [rollapp-id]",
+		Short: "Query pump pressure for a specific rollapp",
+		Long:  "Returns how much DYM will be used for buying RA tokens if pump occurs for a specific rollapp.",
+	}, &types.PumpPressureByRollappRequest{}
+}
+
+// GetCmdPumpPressureByUser returns pump pressure by user for all rollapps.
+func GetCmdPumpPressureByUser() (*osmocli.QueryDescriptor, *types.PumpPressureByUserRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "pump-pressure-by-user [address]",
+		Short: "Query pump pressure by user for all rollapps ",
+		Long:  "Returns how much pump pressure the user puts on RAs with their cast voting power.",
+	}, &types.PumpPressureByUserRequest{}
+}
+
+// GetCmdPumpPressureByUserByRollapp returns pump pressure by user for a specific rollapp.
+func GetCmdPumpPressureByUserByRollapp() (*osmocli.QueryDescriptor, *types.PumpPressureByUserByRollappRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "pump-pressure-by-user-by-rollapp [address] [rollapp-id]",
+		Short: "Query pump pressure by user for a specific rollapp",
+		Long:  "Returns how much pump pressure the user puts on a given RA with their cast voting power.",
+	}, &types.PumpPressureByUserByRollappRequest{}
 }
