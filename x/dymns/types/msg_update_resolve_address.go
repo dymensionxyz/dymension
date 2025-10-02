@@ -22,7 +22,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 
 	_, config := m.GetDymNameConfig()
 	if err := config.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "config is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "config is invalid: %v", err.Error())
 	}
 
 	if m.ChainId == "" {
