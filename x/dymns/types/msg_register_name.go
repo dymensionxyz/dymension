@@ -34,7 +34,7 @@ func (m *MsgRegisterName) ValidateBasic() error {
 	if m.ConfirmPayment.IsNil() || m.ConfirmPayment.IsZero() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "confirm payment is not set")
 	} else if err := m.ConfirmPayment.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid confirm payment: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid confirm payment: %v", err.Error())
 	}
 
 	if len(m.Contact) > MaxDymNameContactLength {
