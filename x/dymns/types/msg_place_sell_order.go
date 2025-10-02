@@ -32,7 +32,7 @@ func (m *MsgPlaceSellOrder) ValidateBasic() error {
 	so.ExpireAt = 1
 
 	if err := so.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order: %v", err.Error())
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Owner); err != nil {

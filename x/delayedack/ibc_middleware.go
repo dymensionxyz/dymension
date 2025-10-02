@@ -133,7 +133,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	var ack channeltypes.Acknowledgement
 	if err := w.Keeper.Cdc().UnmarshalJSON(acknowledgement, &ack); err != nil {
 		l.Error("Unmarshal acknowledgement.", "err", err)
-		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err.Error())
 	}
 
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_ACK)

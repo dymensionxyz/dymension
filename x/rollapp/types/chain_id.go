@@ -55,7 +55,7 @@ func NewChainID(id string) (ChainID, error) {
 
 	revision, err := strconv.ParseUint(matches[3], 0, 64)
 	if err != nil {
-		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "parse revision number: error: %v", err)
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "parse revision number: error: %v", err.Error())
 	}
 
 	return ChainID{

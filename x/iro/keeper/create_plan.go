@@ -193,7 +193,7 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 	// This is needed because params.StandardLaunch.TargetRaise might be in a different denom
 	convertedTargetRaise, err := m.convertTargetRaiseToLiquidityDenom(ctx, params.StandardLaunch.TargetRaise, req.LiquidityDenom)
 	if err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
 	}
 
 	// Calculate M parameter for the bonding curve
@@ -218,7 +218,7 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 
 	// Validate the bonding curve
 	if err := bondingCurve.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err.Error())
 	}
 
 	// Create plan using global StandardLaunch parameters
@@ -337,13 +337,13 @@ func (m msgServer) convertTargetRaiseToLiquidityDenom(ctx sdk.Context, targetRai
 	// convert the target raise to the base denom (just in case it's not set in base denom)
 	baseTargetRaise, err := m.tk.CalcCoinInBaseDenom(ctx, targetRaise)
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to base denom: %v", err)
+		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to base denom: %v", err.Error())
 	}
 
 	// now get the target raise in the required liquidity denom
 	liquidityTargetRaise, err := m.tk.CalcBaseInCoin(ctx, baseTargetRaise, liquidityDenom)
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err)
+		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
 	}
 	return liquidityTargetRaise, nil
 }
