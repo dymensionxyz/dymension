@@ -686,7 +686,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		return err
 	}
 
-	tokenParams, err := parseTokenFlags(cmd)
+	tokenParams, err := parseTokenFlagsWithContext(cmd, true)
 	if err != nil {
 		return err
 	}
