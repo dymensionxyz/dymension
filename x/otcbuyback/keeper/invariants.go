@@ -84,7 +84,7 @@ func ModuleAccountBalanceInvariant(k Keeper) sdk.Invariant {
 		// Check module account has sufficient base tokens
 		moduleBalance := k.bankKeeper.GetAllBalances(ctx, k.GetModuleAccountAddress())
 
-		if expecetedBalance.IsAnyGT(moduleBalance) {
+		if !moduleBalance.IsAllGTE(expecetedBalance) {
 			return sdk.FormatInvariant(types.ModuleName, "module-account-balance",
 				fmt.Sprintf("insufficient module balance: have %s, need %s",
 					moduleBalance, expecetedBalance)), true
