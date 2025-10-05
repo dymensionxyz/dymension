@@ -11,11 +11,9 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ActiveAuction() {
-	// Fund module account
-	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100).MulRaw(1e18))))
-
-	// Create an active auction
+	// Create and complete an auction
 	allocation := sdk.NewCoin("adym", math.NewInt(10).MulRaw(1e18))
+	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(allocation))
 	auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
 		suite.Ctx,
 		allocation,
@@ -56,9 +54,12 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ActiveAuction() 
 	auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 	suite.Require().True(found)
 	auction.SoldAmount = math.NewInt(5).MulRaw(1e18) // 3 + 2
-	auction.RaisedAmount = sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(1000).MulRaw(1e6)))
+	raisedAmount := sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(1000).MulRaw(1e6)))
+	auction.RaisedAmount = raisedAmount
 	err = suite.App.OTCBuybackKeeper.SetAuction(suite.Ctx, auction)
 	suite.Require().NoError(err)
+
+	suite.FundModuleAcc(types.ModuleName, raisedAmount)
 
 	// Test invariant - should pass
 	invariant := keeper.ModuleAccountBalanceInvariant(*suite.App.OTCBuybackKeeper)
@@ -70,11 +71,10 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ActiveAuction() 
 }
 
 func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_CompletedAuction() {
-	// Fund module account
-	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100).MulRaw(1e18))))
-
 	// Create and complete an auction
 	allocation := sdk.NewCoin("adym", math.NewInt(10).MulRaw(1e18))
+	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(allocation))
+
 	auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
 		suite.Ctx,
 		allocation,
@@ -376,11 +376,9 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_InsufficientModu
 }
 
 func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions() {
-	// Fund module account
-	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(sdk.NewCoin("adym", math.NewInt(100).MulRaw(1e18))))
-
 	// Create two active auctions
 	allocation1 := sdk.NewCoin("adym", math.NewInt(10).MulRaw(1e18))
+	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(allocation1))
 	auctionID1, err := suite.App.OTCBuybackKeeper.CreateAuction(
 		suite.Ctx,
 		allocation1,
@@ -403,6 +401,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 	suite.Require().NoError(err)
 
 	allocation2 := sdk.NewCoin("adym", math.NewInt(5).MulRaw(1e18))
+	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(allocation2))
 	auctionID2, err := suite.App.OTCBuybackKeeper.CreateAuction(
 		suite.Ctx,
 		allocation2,
@@ -444,18 +443,21 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 	auction1, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID1)
 	suite.Require().True(found)
 	auction1.SoldAmount = math.NewInt(3).MulRaw(1e18)
-	auction1.RaisedAmount = sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(600).MulRaw(1e6)))
+	raisedAmount1 := sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(600).MulRaw(1e6)))
+	auction1.RaisedAmount = raisedAmount1
 	err = suite.App.OTCBuybackKeeper.SetAuction(suite.Ctx, auction1)
 	suite.Require().NoError(err)
 
 	auction2, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID2)
 	suite.Require().True(found)
 	auction2.SoldAmount = math.NewInt(2).MulRaw(1e18)
-	auction2.RaisedAmount = sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(400).MulRaw(1e6)))
+	raisedAmount2 := sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(400).MulRaw(1e6)))
+	auction2.RaisedAmount = raisedAmount2
 	err = suite.App.OTCBuybackKeeper.SetAuction(suite.Ctx, auction2)
 	suite.Require().NoError(err)
 
 	// Test invariant - should pass
+	suite.FundModuleAcc(types.ModuleName, raisedAmount1.Add(raisedAmount2...))
 	invariant := keeper.ModuleAccountBalanceInvariant(*suite.App.OTCBuybackKeeper)
 	msg, broken := invariant(suite.Ctx)
 	suite.Require().False(broken, "invariant should not be broken: %s", msg)
