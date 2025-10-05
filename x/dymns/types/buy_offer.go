@@ -80,14 +80,14 @@ func (m *BuyOrder) Validate() error {
 	} else if m.OfferPrice.IsNegative() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer price is negative")
 	} else if err := m.OfferPrice.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "offer price is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "offer price is invalid: %v", err.Error())
 	}
 
 	if m.HasCounterpartyOfferPrice() {
 		if m.CounterpartyOfferPrice.IsNegative() {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "counterparty offer price is negative")
 		} else if err := m.CounterpartyOfferPrice.Validate(); err != nil {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "counterparty offer price is invalid: %v", err)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "counterparty offer price is invalid: %v", err.Error())
 		}
 
 		if m.CounterpartyOfferPrice.Denom != m.OfferPrice.Denom {
