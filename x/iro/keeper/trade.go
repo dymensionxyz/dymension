@@ -146,7 +146,7 @@ func (k Keeper) Buy(
 			return math.ZeroInt(), err
 		}
 
-		err = uevent.EmitTypedEvent(ctx, &types.EventGraduation{
+		err = uevent.EmitTypedEvent(noGasCtx, &types.EventGraduation{
 			PlanId:    planId,
 			RollappId: plan.RollappId,
 			PoolId:    poolID,
