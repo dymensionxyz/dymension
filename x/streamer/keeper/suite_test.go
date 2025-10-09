@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) CreateSponsoredStream(distrTo []types.DistrRecord,
 	return streamID, stream
 }
 
-// CreateStream creates a pump stream struct given the required params.
+// CreatePumpStream creates a pump stream struct given the required params.
 func (suite *KeeperTestSuite) CreatePumpStream(s types.CreateStreamGeneric, numPumps uint64, pumpDistr types.PumpDistr, burnPumped bool, pumpTarget types.PumpTarget) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreatePumpStream(suite.Ctx, s, numPumps, pumpDistr, burnPumped, pumpTarget)
 	suite.Require().NoError(err)
