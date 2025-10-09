@@ -82,7 +82,7 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	}
 
 	// find the raTokens needed to bootstrap the pool, to fulfill last price
-	raTokens, liquidityTokens := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPrice())
+	raTokens, liquidityTokens := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPriceWithPrecision())
 	rollappLiquidityCoin := sdk.NewCoin(denom, raTokens)
 	baseLiquidityCoin := sdk.NewCoin(plan.LiquidityDenom, liquidityTokens)
 

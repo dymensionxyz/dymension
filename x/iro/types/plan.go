@@ -110,6 +110,12 @@ func (p Plan) SpotPrice() math.LegacyDec {
 	return p.BondingCurve.SpotPrice(p.SoldAmt)
 }
 
+// SpotPriceWithPrecision returns the spot price of the plan,
+// considering the precision difference between the rollapp and liquidity denoms
+func (p Plan) SpotPriceWithPrecision() math.LegacyDec {
+	return p.BondingCurve.SpotPriceWithPrecision(p.SoldAmt)
+}
+
 func (p Plan) ModuleAccName() string {
 	return ModuleName + "-" + p.RollappId
 }
