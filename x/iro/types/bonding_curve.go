@@ -111,6 +111,17 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	return lbc.spotPriceInternal(ScaleFromBase(x, lbc.SupplyDecimals()))
 }
 
+// SpotPriceWithPrecision returns the spot price at x, with precision factor for the liquidity denom
+// - x: the current supply, in the base denomination
+// - returns: the spot price at x, as price per base token, considering the precision difference between the rollapp and liquidity denoms
+func (lbc BondingCurve) SpotPriceWithPrecision(x math.Int) math.LegacyDec {
+	precDiff := lbc.RollappDenomDecimals - lbc.LiquidityDenomDecimals
+	if precDiff > 0 {
+		return lbc.SpotPrice(x).QuoInt(math.NewIntWithDecimal(1, int(precDiff))) // #nosec G115
+	}
+	return lbc.SpotPrice(x)
+}
+
 /*
 The cost to purchase tokens from supply S1 to S2 is given by the definite integral of this function from S1 to S2. Mathematically, this is expressed as:
 Cost = ∫(S1 to S2) (M * S^N + C) dS
