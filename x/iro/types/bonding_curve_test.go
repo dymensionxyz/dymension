@@ -513,3 +513,10 @@ func TestSpotPrice(t *testing.T) {
 		}
 	})
 }
+
+func TestScaleFromBase(t *testing.T) {
+	x := math.NewInt(1000)
+	precision := 3
+	got := types.ScaleFromBase(x, int64(precision))
+	fmt.Println(got)
+}
