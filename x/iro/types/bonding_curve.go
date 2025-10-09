@@ -117,7 +117,7 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 func (lbc BondingCurve) SpotPriceWithPrecision(x math.Int) math.LegacyDec {
 	precDiff := lbc.RollappDenomDecimals - lbc.LiquidityDenomDecimals
 	if precDiff > 0 {
-		return lbc.SpotPrice(x).QuoInt(math.NewIntWithDecimal(1, int(precDiff)))
+		return lbc.SpotPrice(x).QuoInt(math.NewIntWithDecimal(1, int(precDiff))) // #nosec G115
 	}
 	return lbc.SpotPrice(x)
 }
