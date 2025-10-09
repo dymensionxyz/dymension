@@ -394,7 +394,7 @@ func (k Keeper) ApplyTakerFee(amount math.Int, takerFee math.LegacyDec, isAdd bo
 		newAmt = amount.Sub(feeAmt)
 	}
 
-	if !newAmt.IsPositive() || !feeAmt.IsPositive() {
+	if !newAmt.IsPositive() {
 		return math.Int{}, math.Int{}, errorsmod.Wrapf(types.ErrInvalidCost, "taking fee resulted in negative amount: %s, fee: %s", newAmt.String(), feeAmt.String())
 	}
 
