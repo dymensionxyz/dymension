@@ -1,34 +1,28 @@
----
 name: Release Binary
-
 on:
   release:
     types: [created]
-      
 permissions: write-all
-
 # This workflow creates a release using goreleaser
 # via the 'make release' command.
-
 jobs:
   release:
     runs-on: ubuntu-latest
     environment: release
     steps:
+      - name: Free disk space
+        run: curl -fsSL https://raw.githubusercontent.com/apache/arrow/2c63d481dcf7582d7b8ab3664ff4bdf45d7dd599/ci/scripts/util_free_space.sh | bash
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
           submodules: true
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
       - name: Setup release environment
         run: |-
           echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
-
       - name: Release publish
         run: make release
