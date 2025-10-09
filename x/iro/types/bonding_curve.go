@@ -246,7 +246,6 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 }
 
 // CalculateM computes the M parameter for a bonding curve
-// It's actually not used in the codebase, but it's here for reference and for testing purposes
 // val: total value to be raised in display denom (e.g DYM, not adym)
 // t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
