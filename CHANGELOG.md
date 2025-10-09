@@ -42,6 +42,7 @@
 * **migration:** reverted eibc/authz protos ([#1924](https://github.com/dymensionxyz/dymension/issues/1924)) ([ab62145](https://github.com/dymensionxyz/dymension/commit/ab6214531bc85298fbacae9a44838bd0acc8f91b))
 * **migration:** update min swap fee ([#1915](https://github.com/dymensionxyz/dymension/issues/1915)) ([6d86081](https://github.com/dymensionxyz/dymension/commit/6d860818fa62a3115908b7700a0a64df7dfce7df))
 * **otcbuyback:**  audit fixes ([#2029](https://github.com/dymensionxyz/dymension/issues/2029)) ([d7c7425](https://github.com/dymensionxyz/dymension/commit/d7c742570ed524df242d5fb93ceb0971be480901))
+* **otcbuyback:** make end auction flow gas free ([#2042](https://github.com/dymensionxyz/dymension/issues/2042)) ([#2045](https://github.com/dymensionxyz/dymension/issues/2045)) ([b87c1f2](https://github.com/dymensionxyz/dymension/commit/b87c1f2ec6f6cc04c3acb0401e41a857bd9691ca))
 * **proto:** formatting proto files ([#1904](https://github.com/dymensionxyz/dymension/issues/1904)) ([9956d00](https://github.com/dymensionxyz/dymension/commit/9956d0060cfa268541c85229893c8f85bfa33d36))
 * rename x/sequencer after sentinel func ([#1817](https://github.com/dymensionxyz/dymension/issues/1817)) ([3c568c0](https://github.com/dymensionxyz/dymension/commit/3c568c0895de6af95262becb6d690820e0815134))
 * **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
