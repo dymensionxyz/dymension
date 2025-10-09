@@ -38,7 +38,7 @@ func (h rollToHLHook) ValidateArg(data []byte) error {
 // the ibc transfer app to the ibc transfer recipient
 func (h rollToHLHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
-	h.executeWithErrEvent(ctx, func() (bool, error) {
+	h.executeAtomicWithErrEvent(ctx, func() (bool, error) {
 		var d types.HookForwardToHL
 		err := proto.Unmarshal(hookData, &d)
 		if err != nil {
@@ -77,7 +77,7 @@ func (h rollToIBCHook) ValidateArg(data []byte) error {
 // the ibc transfer app to the ibc transfer recipient
 func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
-	h.executeWithErrEvent(ctx, func() (bool, error) {
+	h.executeAtomicWithErrEvent(ctx, func() (bool, error) {
 		var d types.HookForwardToIBC
 		err := proto.Unmarshal(hookData, &d)
 		if err != nil {

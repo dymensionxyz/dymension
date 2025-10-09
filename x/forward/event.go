@@ -7,11 +7,13 @@ import (
 )
 
 // f returns <is a forward operation, error>. Thus enabling wrapping non-forward operations (parsing and so on).
-func (k Forward) executeWithErrEvent(ctx sdk.Context, f func() (bool, error)) {
-	isForward, err := f()
+func (k Forward) executeAtomicWithErrEvent(ctx sdk.Context, f func() (bool, error)) {
+	var forwardWasIntended bool // did the user intend to forward?
+	var err error
+	forwardWasIntended, err = f()
 	evt := &types.EventForward{
 		Ok:           err == nil,
-		WasForwarded: isForward,
+		WasForwarded: forwardWasIntended,
 	}
 	if err != nil {
 		evt.Err = err.Error()

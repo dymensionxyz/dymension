@@ -18,7 +18,7 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
-	k.executeWithErrEvent(ctx, func() (bool, error) {
+	k.executeAtomicWithErrEvent(ctx, func() (bool, error) {
 		hlMetadata, err := types.UnpackHLMetadata(args.Metadata)
 		if err != nil {
 			return false, errorsmod.Wrap(err, "unpack hl metadata")
