@@ -9,7 +9,7 @@ import (
 
 // only apply F in state machine if it succeeds
 // emit an event (which has the error if there is one)
-func (k Forward) executeAtomicWithErrEvent(ctx sdk.Context, f func() (bool, error)) {
+func (k Forward) executeAtomicWithErrEvent(ctx sdk.Context, f func(sdk.Context) (bool, error)) {
 	forwardWasIntended, err := osmosF(ctx, f)
 	evt := &types.EventForward{
 		Ok:           err == nil,
@@ -24,11 +24,11 @@ func (k Forward) executeAtomicWithErrEvent(ctx sdk.Context, f func() (bool, erro
 	}
 }
 
-func osmosF(ctx sdk.Context, f func() (bool, error)) (bool, error) {
+func osmosF(ctx sdk.Context, f func(sdk.Context) (bool, error)) (bool, error) {
 	var forwardWasIntended bool // did the user intend to forward?
-	err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+	err := osmoutils.ApplyFuncIfNoError(ctx, func(c sdk.Context) error {
 		var err error
-		forwardWasIntended, err = f()
+		forwardWasIntended, err = f(c)
 		return err
 	})
 	return forwardWasIntended, err
