@@ -24,6 +24,7 @@ func (k Forward) executeAtomicWithErrEvent(ctx sdk.Context, f func(sdk.Context) 
 	}
 }
 
+// regular osmosis wrapper but with the additional return value
 func osmosF(ctx sdk.Context, f func(sdk.Context) (bool, error)) (bool, error) {
 	var forwardWasIntended bool // did the user intend to forward?
 	err := osmoutils.ApplyFuncIfNoError(ctx, func(c sdk.Context) error {
