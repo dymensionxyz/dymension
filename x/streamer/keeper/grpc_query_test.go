@@ -304,7 +304,7 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 		StartTime:         time.Now(),
 		EpochIdentifier:   "day",
 		NumEpochsPaidOver: 30,
-	}, 1, types.PumpDistr_PUMP_DISTR_UNIFORM, false, types.PumpTargetRollapps(1))
+	}, 1, types.PumpDistr_PUMP_DISTR_UNIFORM, false, types.PumpTargetRollapps(2))
 	s.Ctx = s.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream)
 	s.Require().NoError(err)

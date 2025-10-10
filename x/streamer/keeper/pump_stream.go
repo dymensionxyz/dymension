@@ -114,6 +114,29 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 	return totalBudget
 }
 
+// Pressure that all streams put on their top rollapps.
+func (k Keeper) TotalPumpPressure(ctx sdk.Context, totalWeight *math.Int) ([]types.PumpPressure, error) {
+	d, err := k.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var tops [][]types.PumpPressure
+	for _, stream := range k.GetActiveStreams(ctx) {
+		if !stream.IsPumpStream() {
+			continue
+		}
+		ra, ok := stream.PumpParams.Target.(*types.PumpParams_Rollapps)
+		if !ok {
+			continue
+		}
+		top := k.TopRollapps(ctx, d.Gauges, stream.Coins[0].Amount, totalWeight, &ra.Rollapps.NumTopRollapps)
+		tops = append(tops, top)
+	}
+
+	return types.MergeTopRollApps(tops...), nil
+}
+
 var (
 	ShouldPumpSalt = []byte("ShouldPumpSalt")
 	PumpAmtSalt    = []byte("PumpAmtSalt")

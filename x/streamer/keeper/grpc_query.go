@@ -111,13 +111,10 @@ func (q Querier) PumpPressure(goCtx context.Context, req *types.PumpPressureRequ
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	d, err := q.sk.GetDistribution(ctx)
+	pressure, err := q.TotalPumpPressure(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.TopRollapps(ctx, d.Gauges, totalPressure, nil, nil)
 
 	return &types.PumpPressureResponse{
 		Pressure:   pressure,
@@ -133,13 +130,11 @@ func (q Querier) PumpPressureByRollapp(goCtx context.Context, req *types.PumpPre
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	d, err := q.sk.GetDistribution(ctx)
+	pressure, err := q.TotalPumpPressure(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	totalPressure := q.TotalPumpBudget(ctx)
-	pressure := q.TopRollapps(ctx, d.Gauges, totalPressure, nil, nil)
 	idx := slices.IndexFunc(pressure, func(p types.PumpPressure) bool {
 		return p.RollappId == req.RollappId
 	})
