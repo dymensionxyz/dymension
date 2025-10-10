@@ -260,13 +260,16 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 // val: total value to be raised in display denom (e.g DYM, not adym)
 // t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
+// r: liquidity part (fraction of raised funds used for liquidity pool)
 //
 // First we find an amount of sold token EQ such that the raised value = the spot price value of unsold tokens
 // L(x) = ∫[0 to x] M × s^N ds = M × x^(N+1) / (N+1)
 // U(x) = (T - x) × SpotPrice(x) = (T - x) × M × x^N
-// set L(eq) = U(eq) and solve for eq
+// Additionally, we want R portion of L(eq) to equal U(eq) (liquidity pool funds match unsold value)
+// R × L(eq) = U(eq)
+// set R × L(eq) = U(eq) and solve for eq
 // ... (long derivation)
-// eq = ((N+1) * T) / (N+2) [note: M falls out]
+// eq = ((N+1) * T) / (R + N + 1) [note: M falls out]
 //
 // We also want U(eq)+L(eq) = val (=2*target raise for standard iro)
 // solving the equation for M gives:
