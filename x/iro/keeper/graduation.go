@@ -83,19 +83,19 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 
 	// find the raTokens needed to bootstrap the pool, to fulfill last price
 	raTokens, liquidityTokens := types.CalcLiquidityPoolTokens(unallocatedTokens, poolTokens, plan.SpotPriceWithPrecision())
-	rollappLiquidityCoin := sdk.NewCoin(denom, raTokens)
-	baseLiquidityCoin := sdk.NewCoin(plan.LiquidityDenom, liquidityTokens)
+	raCoin := sdk.NewCoin(denom, raTokens)
+	liquidityCoin := sdk.NewCoin(plan.LiquidityDenom, liquidityTokens)
 
 	// create pool
 	gammGlobalParams := k.gk.GetParams(ctx).GlobalFees
 	poolParams := balancer.NewPoolParams(gammGlobalParams.SwapFee, gammGlobalParams.ExitFee, nil)
 	balancerPool := balancer.NewMsgCreateBalancerPool(k.AK.GetModuleAddress(types.ModuleName), poolParams, []balancer.PoolAsset{
 		{
-			Token:  baseLiquidityCoin,
+			Token:  liquidityCoin,
 			Weight: math.OneInt(),
 		},
 		{
-			Token:  rollappLiquidityCoin,
+			Token:  raCoin,
 			Weight: math.OneInt(),
 		},
 	}, "")
@@ -107,8 +107,8 @@ func (k Keeper) bootstrapLiquidityPool(ctx sdk.Context, plan types.Plan, poolTok
 	}
 
 	leftovers := sdk.NewCoins(
-		sdk.NewCoin(baseLiquidityCoin.Denom, poolTokens.Sub(baseLiquidityCoin.Amount)),
-		sdk.NewCoin(rollappLiquidityCoin.Denom, unallocatedTokens.Sub(rollappLiquidityCoin.Amount)),
+		sdk.NewCoin(liquidityCoin.Denom, poolTokens.Sub(liquidityCoin.Amount)),
+		sdk.NewCoin(raCoin.Denom, unallocatedTokens.Sub(raCoin.Amount)),
 	)
 
 	return poolId, leftovers, nil
