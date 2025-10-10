@@ -7,8 +7,8 @@ import "cosmossdk.io/math"
 // This function calculates the required liquidity based on the settled token price and compares it with the raised liquidity.
 // It returns the amount of RA tokens and liquidity to be used for bootstrapping the liquidity pool so it fulfills the last price.
 // We expect all the raised liquidity to be used for liquidity pool, so incentives will consist of the remaining tokens.s
-func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTokenPrice math.LegacyDec) (RATokens, liquidity math.Int) {
-	requiredLiquidity := settledTokenPrice.MulInt(unsoldRATokens).TruncateInt()
+func CalcLiquidityPoolTokens(unclaimableRATokens, raisedLiquidity math.Int, settledTokenPrice math.LegacyDec) (RATokens, liquidity math.Int) {
+	requiredLiquidity := settledTokenPrice.MulInt(unclaimableRATokens).TruncateInt()
 
 	// if raisedLiquidity is less than requiredLiquidity, than liquidity is the limiting factor
 	// we use all the raisedLiquidity, and the corresponding amount of tokens
@@ -18,7 +18,7 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTo
 	} else {
 		// if raisedLiquidity is more than requiredLiquidity, than tokens are the limiting factor
 		// we use all the unsold tokens, and the corresponding amount of liquidity
-		RATokens = unsoldRATokens
+		RATokens = unclaimableRATokens
 		liquidity = requiredLiquidity
 	}
 
@@ -28,7 +28,7 @@ func CalcLiquidityPoolTokens(unsoldRATokens, raisedLiquidity math.Int, settledTo
 		liquidity = raisedLiquidity
 	}
 	if RATokens.IsZero() {
-		RATokens = unsoldRATokens
+		RATokens = unclaimableRATokens
 	}
 
 	return
