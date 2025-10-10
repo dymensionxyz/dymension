@@ -147,6 +147,11 @@ func (s *KeeperTestSuite) TestPumpStream() {
 }
 
 func (s *KeeperTestSuite) prepareTestCase() pumpTestCase {
+	// reduce iro min trade amount, so pumps won't fail
+	params := s.App.IROKeeper.GetParams(s.Ctx)
+	params.MinTradeAmount = math.NewIntWithDecimal(1, 13) // 0.00001 DYM
+	s.App.IROKeeper.SetParams(s.Ctx, params)
+
 	var (
 		epochID               = "day"
 		numEpochsPaidOver     = uint64(10)

@@ -404,6 +404,64 @@ func (s *KeeperTestSuite) TestBuyWithUSDC() {
 	s.Require().NoError(err)
 }
 
+func (s *KeeperTestSuite) TestMinTradeAmount() {
+	// Note: USDC has 6 decimals instead of 18
+	// price is 1:2 DYM/USDC
+	s.PreparePoolWithCoins(sdk.NewCoins(
+		sdk.NewCoin("usdc", math.NewInt(1_000_000).MulRaw(1e6)),
+		sdk.NewCoin("adym", math.NewInt(2_000_000).MulRaw(1e18)),
+	))
+
+	rollappId := s.CreateDefaultRollapp()
+	k := s.App.IROKeeper
+
+	// set taker fee to 0
+	params := k.GetParams(s.Ctx)
+	params.TakerFee = math.LegacyZeroDec()
+	k.SetParams(s.Ctx, params)
+
+	// Bonding curve with fixed price (1 token = 1 usdc)
+	curve := types.BondingCurve{
+		M:                      math.LegacyMustNewDecFromStr("0"),
+		N:                      math.LegacyMustNewDecFromStr("1"),
+		C:                      math.LegacyMustNewDecFromStr("1"),
+		RollappDenomDecimals:   18,
+		LiquidityDenomDecimals: 6, // USDC has 6 decimals
+	}
+	incentives := types.DefaultIncentivePlanParams()
+
+	startTime := time.Now()
+	totalAllocation := math.NewInt(1_000_000).MulRaw(1e18) // 1M tokens with 18 decimals
+
+	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
+	owner := rollapp.Owner
+	s.FundAcc(sdk.MustAccAddressFromBech32(owner), sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100_000).MulRaw(1e6)))) // 100K USDC)
+
+	// Create plan with USDC as liquidity denom instead of DYM
+	planId, err := k.CreatePlan(s.Ctx, "usdc", totalAllocation, time.Hour, startTime, true, false, rollapp, curve, incentives, types.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithBlockTime(startTime.Add(time.Minute))
+
+	// Fund buyer with USDC (6 decimals)
+	buyer := sample.Acc()
+	buyersFunds := sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100_000).MulRaw(1e6))) // 100K USDC
+	s.FundAcc(buyer, buyersFunds)
+
+	// buy small amount < less than minTradeAmount - should fail
+	minTradeAmount := s.App.IROKeeper.GetParams(s.Ctx).MinTradeAmount
+	minTradeAmountUsdc := minTradeAmount.QuoRaw(2).QuoRaw(1e12) // 1 USDC (1e6) = 2 DYM (1e18)
+
+	// buy small amount < less than minTradeAmount - should fail
+	buyAmt := minTradeAmountUsdc.Sub(math.NewInt(1))
+	_, err = k.BuyExactSpend(s.Ctx, planId, buyer, buyAmt, math.ZeroInt())
+	s.Require().Error(err)
+
+	// buy amount equal to minTradeAmountUsdc - should succeed
+	_, err = k.BuyExactSpend(s.Ctx, planId, buyer, minTradeAmountUsdc, math.ZeroInt())
+	s.Require().NoError(err, "minTradeAmount:%s, buyAmt:%s", minTradeAmount.String(), minTradeAmountUsdc.String())
+}
+
 // approxEqualInt checks if two values of different types are approximately equal
 func approxEqualInt(expected, actual, tolerance math.Int) error {
 	diff := expected.Sub(actual).Abs()
