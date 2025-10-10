@@ -261,11 +261,16 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 // t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
 //
-// we use the eq point (eq = ((N+1) * T) / (N+2)) to calculate M
-// The total value at the eq, which consists of raised liquidity and unsold tokens, should equal val
+// First we find an amount of sold token EQ such that the raised value = the spot price value of unsold tokens
+// L(x) = ∫[0 to x] M × s^N ds = M × x^(N+1) / (N+1)
+// U(x) = (T - x) × SpotPrice(x) = (T - x) × M × x^N
+// set L(eq) = U(eq) and solve for eq
+// ... (long derivation)
+// eq = ((N+1) * T) / (N+2) [note: M falls out]
+//
+// We also want U(eq)+L(eq) = val (=2*target raise for standard iro)
 // solving the equation for M gives:
 // M = (VAL * (N+1) * (R + N + 1)^(N+1)) / (2 * R * ((N+1) * T)^(N+1))
-
 func CalculateM(val, t, n, r math.LegacyDec) math.LegacyDec {
 	valBig := osmomath.BigDecFromSDKDec(val)
 	tBig := osmomath.BigDecFromSDKDec(t)
