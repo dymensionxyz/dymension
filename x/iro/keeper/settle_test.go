@@ -148,7 +148,7 @@ func (s *KeeperTestSuite) TestBootstrapLiquidityPool_OnSettle() {
 			s.Require().Equal(expectedTokensInPool.String(), poolCoins.AmountOf(rollappDenom).String(), "poolCoins: %s", poolCoins.String())
 
 			// Assert pool price
-			lastIROPrice := plan.SpotPrice()
+			lastIROPrice := plan.SpotPriceWithPrecision()
 			price, err := pool.SpotPrice(s.Ctx, "adym", rollappDenom)
 			s.Require().NoError(err)
 			s.Require().Equal(lastIROPrice, price)

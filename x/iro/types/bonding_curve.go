@@ -114,9 +114,12 @@ func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 // SpotPriceWithPrecision returns the spot price at x, with precision factor for the liquidity denom
 // - x: the current supply, in the base denomination
 // - returns: the spot price at x, as price per base token, considering the precision difference between the rollapp and liquidity denoms
+// This converts from "display price" (e.g., "0.01 DYM per token") to "base unit ratio" (e.g., "10^16 base_dym per 10^18 base_token")
 func (lbc BondingCurve) SpotPriceWithPrecision(x math.Int) math.LegacyDec {
 	precDiff := lbc.RollappDenomDecimals - lbc.LiquidityDenomDecimals
 	if precDiff > 0 {
+		// Rollapp has more decimals: divide to get base ratio
+		// Example: 18 decimals RA, 6 decimals USDC -> divide by 10^12
 		return lbc.SpotPrice(x).QuoInt(math.NewIntWithDecimal(1, int(precDiff))) // #nosec G115
 	}
 	return lbc.SpotPrice(x)

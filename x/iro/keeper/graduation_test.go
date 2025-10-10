@@ -73,7 +73,7 @@ func (s *KeeperTestSuite) TestGraduatePlan() {
 	s.Require().Equal(expectedTokensInPool.String(), poolCoins.AmountOf(plan.GetIRODenom()).String(), "poolCoins: %s", poolCoins.String())
 
 	// Assert pool price
-	lastIROPrice := plan.SpotPrice()
+	lastIROPrice := plan.SpotPriceWithPrecision()
 	price, err := pool.SpotPrice(s.Ctx, "adym", plan.GetIRODenom())
 	s.Require().NoError(err)
 	s.Require().Equal(lastIROPrice, price)
@@ -175,7 +175,7 @@ func (s *KeeperTestSuite) TestGraduateStandardLaunchPlan() {
 	s.Require().NoError(testutil.ApproxEqualRatio(plan.TotalAllocation.Amount.Sub(plan.MaxAmountToSell), rollappTokensInPool, 0.01))
 
 	// Assert pool price
-	lastIROPrice := plan.SpotPrice()
+	lastIROPrice := plan.SpotPriceWithPrecision()
 	price, err := pool.SpotPrice(s.Ctx, "adym", plan.GetIRODenom())
 	s.Require().NoError(err)
 	s.Require().Equal(lastIROPrice, price)
