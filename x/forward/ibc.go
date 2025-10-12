@@ -38,13 +38,13 @@ func (h rollToHLHook) ValidateArg(data []byte) error {
 // the ibc transfer app to the ibc transfer recipient
 func (h rollToHLHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
-	h.executeWithErrEvent(ctx, func() (bool, error) {
+	h.executeAtomicWithErrEvent(ctx, func(c sdk.Context) (bool, error) {
 		var d types.HookForwardToHL
 		err := proto.Unmarshal(hookData, &d)
 		if err != nil {
 			return true, errorsmod.Wrap(err, "unmarshal")
 		}
-		return true, h.forwardToHyperlane(ctx, fundsSource, budget, d)
+		return true, h.forwardToHyperlane(c, fundsSource, budget, d)
 	})
 	return nil
 }
@@ -77,14 +77,14 @@ func (h rollToIBCHook) ValidateArg(data []byte) error {
 // the ibc transfer app to the ibc transfer recipient
 func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
 	// if fails, the original target got the funds anyway so no need to do anything special (relying on frontend here)
-	h.executeWithErrEvent(ctx, func() (bool, error) {
+	h.executeAtomicWithErrEvent(ctx, func(c sdk.Context) (bool, error) {
 		var d types.HookForwardToIBC
 		err := proto.Unmarshal(hookData, &d)
 		if err != nil {
 			return true, errorsmod.Wrap(err, "unmarshal")
 		}
 		// funds src is the original ibc transfer recipient, which has now been credited by the eibc fulfiller
-		return true, h.forwardToIBC(ctx, d.Transfer, fundsSource, budget)
+		return true, h.forwardToIBC(c, d.Transfer, fundsSource, budget)
 	})
 	return nil
 }
