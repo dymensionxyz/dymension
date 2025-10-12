@@ -63,6 +63,12 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 		indexToFinalize--
 	}
 
+	// Avoid letting txs through which would do a 'costly'
+	// attestation while not making progress
+	if k.IsIndexFinalized(ctx, rollapp, indexToFinalize) {
+		return nil, gerrc.ErrInvalidArgument.Wrap("index is already finalized")
+	}
+
 	if teeConfig.Verify {
 		err = k.ValidateAttestation(ctx, msg.Nonce.Hash(), msg.AttestationToken)
 		if err != nil {

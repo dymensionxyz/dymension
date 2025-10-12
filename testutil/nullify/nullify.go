@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	coinType  = reflect.TypeOf(sdk.Coin{})
-	coinsType = reflect.TypeOf(sdk.Coins{})
+	coinType  = reflect.TypeFor[sdk.Coin]()
+	coinsType = reflect.TypeFor[sdk.Coins]()
 )
 
 // Fill analyzes all struct fields and slices with
