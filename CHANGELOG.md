@@ -57,6 +57,7 @@
 * **streamer:** tests after v50 ([#1983](https://github.com/dymensionxyz/dymension/issues/1983)) ([1e2563c](https://github.com/dymensionxyz/dymension/commit/1e2563c967ea4f06862a828bf9c9b342e29b305a))
 * **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([5ce245c](https://github.com/dymensionxyz/dymension/commit/5ce245c1eddcbbe150ce2db97ce6cfcde936a35e))
 * **upgrade:** params migration to support fast block time ([#1903](https://github.com/dymensionxyz/dymension/issues/1903)) ([32b9533](https://github.com/dymensionxyz/dymension/commit/32b9533bbbce810567be6d2bacf281c93a13e85b))
+* **x/forward:** avoid partial failures in ibc or HL dispatch which result in loss of funds ([#2048](https://github.com/dymensionxyz/dymension/issues/2048)) ([9659cec](https://github.com/dymensionxyz/dymension/commit/9659ceca8a09945ce0cc4e45fc1e9b63ba1771bf))
 
 
 ### Features
