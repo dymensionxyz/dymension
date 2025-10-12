@@ -271,6 +271,8 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params := k.GetParams(ctx)
 	defParams := irotypes.DefaultParams()
 
+	params.MinTradeAmount = defParams.MinTradeAmount
+
 	params.MinLiquidityPart = defParams.MinLiquidityPart                                     // default: at least 40% goes to the liquidity pool
 	params.MinVestingDuration = defParams.MinVestingDuration                                 // default: min 7 days
 	params.MinVestingStartTimeAfterSettlement = defParams.MinVestingStartTimeAfterSettlement // default: no enforced minimum by default
