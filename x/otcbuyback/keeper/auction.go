@@ -151,7 +151,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 	return nil
 }
 
-// CreateStream creates a pump stream struct given the required params.
+// CreatePumpStreams creates a pump stream struct given the required params.
 func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uint64, error) {
 	var streamIDs []uint64
 

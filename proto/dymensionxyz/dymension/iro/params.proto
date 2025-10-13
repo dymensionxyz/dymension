@@ -58,6 +58,13 @@ message Params {
   // Global parameters for standard launch IROs
   // those params are used for all standard launch IROs
   StandardLaunch standard_launch = 9 [ (gogoproto.nullable) = false ];
+
+  // Minimum trade amount in base denom. applies to both buy and sell.
+  string min_trade_amount = 10 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // StandardLaunch contains the parameters for standard launch functionality

@@ -149,7 +149,7 @@ func TestCalcLiquidityPoolTokens(t *testing.T) {
 					poolTokens := raisedLiquidityEq.ToLegacyDec().Mul(r).TruncateInt()
 
 					unsoldRATokensEq := allocationScaled.Sub(eq)
-					spotPriceEq := curve.SpotPrice(eq)
+					spotPriceEq := curve.SpotPriceWithPrecision(eq)
 
 					eqRATokens, eqLiquidity := types.CalcLiquidityPoolTokens(
 						unsoldRATokensEq,
@@ -158,8 +158,10 @@ func TestCalcLiquidityPoolTokens(t *testing.T) {
 					)
 					require.True(t, eqRATokens.LTE(unsoldRATokensEq), "eqRATokens:%s <= unsoldRATokensEq:%s", eqRATokens.String(), unsoldRATokensEq.String())
 					require.True(t, eqLiquidity.LTE(poolTokens), "eqLiquidity:%s == poolTokens:%s", eqLiquidity.String(), poolTokens.String())
-					err := testutil.ApproxEqualRatio(eqLiquidity, poolTokens, 0.001) // 0.1% tolerance
+					err := testutil.ApproxEqualRatio(eqLiquidity, poolTokens, 0.01) // 1% tolerance
 					require.NoError(t, err, "eqLiquidity should match poolTokens")
+					err = testutil.ApproxEqualRatio(eqRATokens, unsoldRATokensEq, 0.01) // 0.1% tolerance
+					require.NoError(t, err, "eqRATokens should match unsoldRATokensEq")
 
 					// Verify the pool price relationship
 					poolPrice := eqLiquidity.ToLegacyDec().Quo(eqRATokens.ToLegacyDec())

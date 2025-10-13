@@ -18,42 +18,43 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// if it fails, the original hyperlane transfer recipient got the funds anyway so no need to do anything special (relying on frontend here)
-	k.executeWithErrEvent(ctx, func() (bool, error) {
-		hlMetadata, err := types.UnpackHLMetadata(args.Metadata)
-		if err != nil {
-			return false, errorsmod.Wrap(err, "unpack hl metadata")
-		}
-		if hlMetadata == nil {
-			// Equivalent to the vanilla token standard.
+	k.executeAtomicWithErrEvent(ctx,
+		func(c sdk.Context) (bool, error) {
+			hlMetadata, err := types.UnpackHLMetadata(args.Metadata)
+			if err != nil {
+				return false, errorsmod.Wrap(err, "unpack hl metadata")
+			}
+			if hlMetadata == nil {
+				// Equivalent to the vanilla token standard.
+				return false, nil
+			}
+
+			// Check for HL-to-HL forwarding first
+			if len(hlMetadata.HookForwardToHl) > 0 {
+				d, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
+				if err != nil {
+					return true, errorsmod.Wrap(err, "unpack hl to hl forward from hyperlane")
+				}
+
+				// funds src is the hyperlane transfer recipient
+				return true, k.forwardToHyperlane(c, args.Account, args.Coin(), *d)
+			}
+
+			// Check for HL-to-IBC forwarding
+			if len(hlMetadata.HookForwardToIbc) > 0 {
+				d, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
+				if err != nil {
+					return true, errorsmod.Wrap(err, "unpack memo from hyperlane")
+				}
+
+				// funds src is the hyperlane transfer recipient, which should have same priv key as rollapp recipient
+				// so in case of async failure, the funds will get refunded back there.
+				return true, k.forwardToIBC(c, d.Transfer, args.Account, args.Coin())
+			}
+
+			// No forwarding configured
 			return false, nil
-		}
-
-		// Check for HL-to-HL forwarding first
-		if len(hlMetadata.HookForwardToHl) > 0 {
-			d, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
-			if err != nil {
-				return true, errorsmod.Wrap(err, "unpack hl to hl forward from hyperlane")
-			}
-
-			// funds src is the hyperlane transfer recipient
-			return true, k.forwardToHyperlane(ctx, args.Account, args.Coin(), *d)
-		}
-
-		// Check for HL-to-IBC forwarding
-		if len(hlMetadata.HookForwardToIbc) > 0 {
-			d, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
-			if err != nil {
-				return true, errorsmod.Wrap(err, "unpack memo from hyperlane")
-			}
-
-			// funds src is the hyperlane transfer recipient, which should have same priv key as rollapp recipient
-			// so in case of async failure, the funds will get refunded back there.
-			return true, k.forwardToIBC(ctx, d.Transfer, args.Account, args.Coin())
-		}
-
-		// No forwarding configured
-		return false, nil
-	})
+		})
 
 	return nil
 }

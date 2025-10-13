@@ -74,6 +74,14 @@ func (k Keeper) GetLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uin
 	return stateInfo.GetLatestHeight(), nil
 }
 
+func (k Keeper) IsIndexFinalized(ctx sdk.Context, rollappID string, index uint64) bool {
+	ixFinalized, ok := k.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !ok {
+		return false
+	}
+	return index <= ixFinalized.Index
+}
+
 func (k Keeper) IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool {
 	latestFinalizedHeight, err := k.GetLatestFinalizedHeight(ctx, rollappID)
 	if err != nil {

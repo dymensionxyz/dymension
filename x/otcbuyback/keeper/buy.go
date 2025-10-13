@@ -5,8 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
@@ -115,7 +115,9 @@ func (k Keeper) Buy(
 
 	// Check if auction should end (sold out)
 	if auction.SoldAmount.GTE(auction.Allocation) {
-		err = k.EndAuction(ctx, auctionID, "auction_sold_out")
+		// we make the end auction flow gas free, as it's not relevant to the specific user's action
+		noGasCtx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+		err = k.EndAuction(noGasCtx, auctionID, "auction_sold_out")
 		if err != nil {
 			return sdk.Coin{}, errorsmod.Wrap(err, "failed to end auction")
 		}
