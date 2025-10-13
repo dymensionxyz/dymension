@@ -39,7 +39,6 @@ func (k Keeper) TopRollapps(
 	ctx sdk.Context,
 	gauges []sponsorshiptypes.Gauge,
 	pumpBudget math.Int,
-	totalWeight *math.Int,
 	limit *uint32,
 ) []types.PumpPressure {
 	// Sort in descending order
@@ -52,7 +51,10 @@ func (k Keeper) TopRollapps(
 	// - Are not rollapps
 	// - Don't have IRO (e.g. DYM- or another coin-native)
 	//
-	// Collect no more that `limit` records
+	// Collect no more that `limit` records.
+	//
+	// Find the total weight of all selected rollapps
+	totalWeight := math.ZeroInt()
 	for _, gauge := range gauges {
 		if limit != nil && len(rollappRecords) >= int(*limit) {
 			// limit reached
@@ -82,22 +84,13 @@ func (k Keeper) TopRollapps(
 			// Just save the power for now without any multiplier
 			Pressure: gauge.Power,
 		})
-	}
-
-	// Find the total weight of all selected rollapps
-	total := math.ZeroInt()
-	if totalWeight == nil {
-		for _, ra := range rollappRecords {
-			total = total.Add(ra.Pressure)
-		}
-	} else {
-		total = *totalWeight
+		totalWeight = totalWeight.Add(gauge.Power)
 	}
 
 	// Normalize the pressure by the total weight
 	for i := 0; i < len(rollappRecords); i++ {
 		// Don't pre-calculate 'pumpBudget / totalWeight' bc it loses precision
-		rollappRecords[i].Pressure = rollappRecords[i].Pressure.Mul(pumpBudget).Quo(total)
+		rollappRecords[i].Pressure = rollappRecords[i].Pressure.Mul(pumpBudget).Quo(totalWeight)
 	}
 
 	return rollappRecords
@@ -115,7 +108,7 @@ func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
 }
 
 // Pressure that all streams put on their top rollapps.
-func (k Keeper) TotalPumpPressure(ctx sdk.Context, totalWeight *math.Int) ([]types.PumpPressure, error) {
+func (k Keeper) TotalPumpPressure(ctx sdk.Context) ([]types.PumpPressure, error) {
 	d, err := k.sk.GetDistribution(ctx)
 	if err != nil {
 		return nil, err
@@ -130,7 +123,7 @@ func (k Keeper) TotalPumpPressure(ctx sdk.Context, totalWeight *math.Int) ([]typ
 		if !ok {
 			continue
 		}
-		top := k.TopRollapps(ctx, d.Gauges, stream.Coins[0].Amount, totalWeight, &ra.Rollapps.NumTopRollapps)
+		top := k.TopRollapps(ctx, d.Gauges, stream.Coins[0].Amount, &ra.Rollapps.NumTopRollapps)
 		tops = append(tops, top)
 	}
 
@@ -546,7 +539,7 @@ func (k Keeper) PumpRollapps(
 	events []types.EventPumped_Rollapp,
 ) {
 	var (
-		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, nil, &rollapps.NumTopRollapps)
+		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, &rollapps.NumTopRollapps)
 		totalPumped   = sdk.NewCoins()
 		totalTokenOut = sdk.NewCoins()
 	)

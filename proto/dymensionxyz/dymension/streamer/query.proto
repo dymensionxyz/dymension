@@ -59,22 +59,13 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/streamer/"
                                    "pump_pressure_by_rollapp/{rollapp_id}";
   }
-  // PumpPressureByUser is how much pump pressure the user puts on RAs with
-  // their cast voting power. Returns pump pressure for all rollapps from all
-  // streams.
-  rpc PumpPressureByUser(PumpPressureByUserRequest)
-      returns (PumpPressureByUserResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/pump_pressure_by_user/{address}";
-  }
-  // PumpPressureByUserByRollapp is how much pump pressure the user puts on RAs
-  // with their cast voting power. Returns pump pressure for a specific rollapp
-  // from all streams.
-  rpc PumpPressureByUserByRollapp(PumpPressureByUserByRollappRequest)
-      returns (PumpPressureByUserByRollappResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/pump_pressure_by_user_by_rollapp/"
-        "{address}/{rollapp_id}";
+  // PumpPressureByStream is how much DYM will be used for buying RA tokens if
+  // pump occurs in the given stream. Returns pump pressure for a specific
+  // rollapp from a given streams.
+  rpc PumpPressureByStream(PumpPressureByStreamRequest)
+      returns (PumpPressureByStreamResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/streamer/"
+        "pump_pressure_by_stream/{stream_id}";
   }
 }
 
@@ -145,19 +136,8 @@ message PumpPressureByRollappResponse {
   PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
 }
 
-message PumpPressureByUserRequest {
-  string address = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-message PumpPressureByUserResponse {
+message PumpPressureByStreamRequest { uint64 stream_id = 1; }
+message PumpPressureByStreamResponse {
   repeated PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message PumpPressureByUserByRollappRequest {
-  string address = 1;
-  string rollapp_id = 2;
-}
-message PumpPressureByUserByRollappResponse {
-  PumpPressure pressure = 1 [ (gogoproto.nullable) = false ];
 }
