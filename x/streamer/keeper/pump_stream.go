@@ -96,17 +96,6 @@ func (k Keeper) TopRollapps(
 	return rollappRecords
 }
 
-// TotalPumpBudget is the total number of DYM that all pump streams hold.
-func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
-	totalBudget := math.ZeroInt()
-	for _, stream := range k.GetActiveStreams(ctx) {
-		if stream.IsPumpStream() {
-			totalBudget = totalBudget.Add(stream.Coins[0].Amount)
-		}
-	}
-	return totalBudget
-}
-
 // Pressure that all streams put on their top rollapps.
 func (k Keeper) TotalPumpPressure(ctx sdk.Context) ([]types.PumpPressure, error) {
 	d, err := k.sk.GetDistribution(ctx)
@@ -123,7 +112,7 @@ func (k Keeper) TotalPumpPressure(ctx sdk.Context) ([]types.PumpPressure, error)
 		if !ok {
 			continue
 		}
-		top := k.TopRollapps(ctx, d.Gauges, stream.Coins[0].Amount, &ra.Rollapps.NumTopRollapps)
+		top := k.TopRollapps(ctx, d.Gauges, stream.LeftCoins()[0].Amount, &ra.Rollapps.NumTopRollapps)
 		tops = append(tops, top)
 	}
 

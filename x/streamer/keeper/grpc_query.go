@@ -171,7 +171,7 @@ func (q Querier) PumpPressureByStream(goCtx context.Context, req *types.PumpPres
 		return nil, fmt.Errorf("get sponsorship distribution: %w", err)
 	}
 
-	top := q.TopRollapps(ctx, d.Gauges, stream.Coins[0].Amount, &ra.Rollapps.NumTopRollapps)
+	top := q.TopRollapps(ctx, d.Gauges, stream.LeftCoins()[0].Amount, &ra.Rollapps.NumTopRollapps)
 
 	return &types.PumpPressureByStreamResponse{
 		Pressure:   top,
