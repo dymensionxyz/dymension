@@ -939,8 +939,8 @@ github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250922174844-7fd657cc291b h1:J
 github.com/dymensionxyz/hyperlane-cosmos v0.0.0-20250922174844-7fd657cc291b/go.mod h1:A/rrrIGIEq8qfybJIvpcH31GdXBLdTLp5Ww5koc7PCw=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2 h1:/hXBQnPaH7gNvT37/br73OyaF55iq5TK8fcsvYcGcNg=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20250212133615-20c3718ed2f2/go.mod h1:uCJk9ysBsOONgfPmQVDCp5altrjTnFtPtPwpRP9AQeI=
-github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20250930173545-67a1281d3857 h1:t0sVLed5+3HsjI9gExmZ41Y5pMQuAPuXnJUhrqRrj3s=
-github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20250930173545-67a1281d3857/go.mod h1:xWv7wno2tzVcGo+QAscsse3tA34u9MT2KS/6C/g8va0=
+github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20251015111009-93a5f9ffd6b4 h1:VKoJQpZ60WvQLqFUerB7W6DIUuQKdhv3DKdDvYI6AoU=
+github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20251015111009-93a5f9ffd6b4/go.mod h1:xWv7wno2tzVcGo+QAscsse3tA34u9MT2KS/6C/g8va0=
 github.com/dymensionxyz/sdk-utils v0.2.13-0.20250114202609-b3e820f5b629 h1:1Wjd2z2WcA6Z6+kiSTkdv77z6hBPj07F9L3qjLfEU90=
 github.com/dymensionxyz/sdk-utils v0.2.13-0.20250114202609-b3e820f5b629/go.mod h1:RZqRdMc5MBq5Zp+dxW0gEQ9kGxNKgkz2q3xDbNGfl54=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
