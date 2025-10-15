@@ -7,3 +7,4 @@ issuer_verified = data.confidential_space.issuer_verified;
 secboot_verified = data.confidential_space.secboot_verified;
 sw_name_verified = data.confidential_space.sw_name_verified;
 dbgstat_verified = data.confidential_space.dbgstat_verified;
+restart_verified = data.confidential_space.restart_verified;

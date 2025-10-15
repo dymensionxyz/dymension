@@ -19,5 +19,8 @@
   ],
   "allowed-dbgstat": [
     "disabled-since-boot"
+  ],
+  "allowed-restart": [
+    "Never"
   ]
 }
