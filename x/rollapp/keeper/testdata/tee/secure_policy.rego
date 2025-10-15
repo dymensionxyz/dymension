@@ -10,6 +10,7 @@ default nonce_verified := false
 default issuer_verified := false
 default secboot_verified := false
 default sw_name_verified := false
+default dbgstat_verified := false
 
 allow if {
 	hw_verified
@@ -19,6 +20,7 @@ allow if {
 	issuer_verified
 	secboot_verified
 	sw_name_verified
+	dbgstat_verified
 }
 
 hw_verified if input.hwmodel in data.allowed_hwmodel
@@ -27,6 +29,8 @@ audience_verified if input.aud in data.allowed_aud
 issuer_verified if input.iss in data.allowed_issuer
 secboot_verified if input.secboot in data.allowed_secboot
 sw_name_verified if input.swname in data.allowed_sw_name
+dbgstat_verified if input.dbgstat in data.allowed-dbgstat
+
 nonce_verified if {
 	input.eat_nonce == "%s"
 }
