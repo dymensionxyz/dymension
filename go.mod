@@ -19,7 +19,7 @@ require (
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/bcp-innovations/hyperlane-cosmos v1.0.0
 	github.com/cockroachdb/errors v1.11.3
-	github.com/cometbft/cometbft v0.38.17
+	github.com/cometbft/cometbft v0.38.19
 	github.com/cometbft/cometbft-db v0.14.1
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
