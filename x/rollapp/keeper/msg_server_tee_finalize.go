@@ -42,6 +42,17 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	}
 
 	///////////
+	// TEE node must have started from a finalized state
+	///////////
+
+	fromGenesis := msg.Nonce.FinalizedHeight == 0
+	fullNodeTrustedHeightOk := fromGenesis || k.IsHeightFinalized(ctx, rollapp, msg.Nonce.FinalizedHeight)
+
+	if !fullNodeTrustedHeightOk {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("claimed finalized height is not finalized")
+	}
+
+	///////////
 	// TEE node must genuinely have reached the proposed new latest finalized state
 	///////////
 
