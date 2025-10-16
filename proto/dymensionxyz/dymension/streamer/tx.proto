@@ -25,7 +25,8 @@ service Msg {
   rpc CreateStream(MsgCreateStream) returns (MsgCreateStreamResponse);
 
   // CreatePumpStream creates a new pump stream
-  rpc CreatePumpStream(MsgCreatePumpStream) returns (MsgCreatePumpStreamResponse);
+  rpc CreatePumpStream(MsgCreatePumpStream)
+      returns (MsgCreatePumpStreamResponse);
 
   // TerminateStream terminates an existing stream
   rpc TerminateStream(MsgTerminateStream) returns (MsgTerminateStreamResponse);
@@ -65,7 +66,7 @@ message CreateStreamGeneric {
 
   // EpochIdentifier is the epoch identifier for distribution
   string epoch_identifier = 3
-  [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+      [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
 
   // NumEpochsPaidOver is the number of epochs distribution will be completed
   // over
