@@ -413,7 +413,8 @@ func (m *QueryAggregationHooksResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryQuoteFeePaymentRequest is the request type for the Query/QuoteFeePayment RPC method.
+// QueryQuoteFeePaymentRequest is the request type for the Query/QuoteFeePayment
+// RPC method.
 type QueryQuoteFeePaymentRequest struct {
 	HookId         string `protobuf:"bytes,1,opt,name=hook_id,json=hookId,proto3" json:"hook_id,omitempty"`
 	TokenId        string `protobuf:"bytes,2,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
@@ -474,7 +475,8 @@ func (m *QueryQuoteFeePaymentRequest) GetTransferAmount() string {
 	return ""
 }
 
-// QueryQuoteFeePaymentResponse is the response type for the Query/QuoteFeePayment RPC method.
+// QueryQuoteFeePaymentResponse is the response type for the
+// Query/QuoteFeePayment RPC method.
 type QueryQuoteFeePaymentResponse struct {
 	FeeCoins github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=fee_coins,json=feeCoins,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"fee_coins"`
 }

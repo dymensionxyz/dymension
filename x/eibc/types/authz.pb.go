@@ -28,7 +28,8 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // DecProto defines a Protobuf wrapper around a Dec object.
-// Deprecated: Prefer to use math.LegacyDec directly. It supports binary Marshal and Unmarshal.
+// Deprecated: Prefer to use math.LegacyDec directly. It supports binary Marshal
+// and Unmarshal.
 type DecProto struct {
 	Dec cosmossdk_io_math.LegacyDec `protobuf:"bytes,1,opt,name=dec,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"dec"`
 }
@@ -123,9 +124,11 @@ type RollappCriteria struct {
 	Denoms []string `protobuf:"bytes,2,rep,name=denoms,proto3" json:"denoms,omitempty"`
 	// max_price is the optional maximum order price acceptable to the granter
 	MaxPrice github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=max_price,json=maxPrice,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"max_price"`
-	// min_fee_percentage is the minimum gross fee earning percentage the LP is willing to get from a demand order
+	// min_fee_percentage is the minimum gross fee earning percentage the LP is
+	// willing to get from a demand order
 	MinFeePercentage DecProto `protobuf:"bytes,4,opt,name=min_fee_percentage,json=minFeePercentage,proto3" json:"min_fee_percentage"`
-	// operator_fee_share is the share of the fee earnings willing to give to the operator
+	// operator_fee_share is the share of the fee earnings willing to give to the
+	// operator
 	OperatorFeeShare DecProto `protobuf:"bytes,5,opt,name=operator_fee_share,json=operatorFeeShare,proto3" json:"operator_fee_share"`
 	// settlement_validated is the flag to only fulfill demand orders that have
 	// been settlement validated
