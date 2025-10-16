@@ -24,8 +24,7 @@ message EventRevokeVote {
   Distribution distribution = 2 [ (gogoproto.nullable) = false ];
 }
 
-message EventClearAllVotes {
-}
+message EventClearAllVotes {}
 
 message EventVotingPowerUpdate {
   string voter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];

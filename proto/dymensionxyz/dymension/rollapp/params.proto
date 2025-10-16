@@ -13,16 +13,19 @@ message Params {
   // dispute_period_in_blocks the number of blocks it takes
   // to change a status of a state from received to finalized.
   // during that period, any user could submit fraud proof
-  uint64 dispute_period_in_blocks = 1 [(gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\""];
+  uint64 dispute_period_in_blocks = 1
+      [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
   reserved 2, 3, 6;
 
   // The time (num hub blocks) a sequencer has to post a block, before he will
   // be slashed
-  uint64 liveness_slash_blocks = 4 [(gogoproto.moretags) = "yaml:\"liveness_slash_blocks\""];
+  uint64 liveness_slash_blocks = 4
+      [ (gogoproto.moretags) = "yaml:\"liveness_slash_blocks\"" ];
   // The min gap (num hub blocks) between a sequence of slashes if the sequencer
   // continues to be down
-  uint64 liveness_slash_interval = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
+  uint64 liveness_slash_interval = 5
+      [ (gogoproto.moretags) = "yaml:\"liveness_slash_interval\"" ];
   // app_registration_fee is the fee for registering an App
   cosmos.base.v1beta1.Coin app_registration_fee = 7 [
     (gogoproto.nullable) = false,
@@ -50,12 +53,16 @@ message TEEConfig {
   bool verify = 6;
 
   // see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
-  string policy_values = 2 [(gogoproto.moretags) = "yaml:\"policy_json_values\""];
-  // see dymension/x/rollapp/keeper/testdata/tee/query.rego 
-  string policy_query = 4 [(gogoproto.moretags) = "yaml:\"policy_rego_query\""];
+  string policy_values = 2
+      [ (gogoproto.moretags) = "yaml:\"policy_json_values\"" ];
+  // see dymension/x/rollapp/keeper/testdata/tee/query.rego
+  string policy_query = 4
+      [ (gogoproto.moretags) = "yaml:\"policy_rego_query\"" ];
   // see dymension/x/rollapp/keeper/testdata/tee/policy.rego
-  string policy_structure = 5 [(gogoproto.moretags) = "yaml:\"policy_rego_structure\""];
+  string policy_structure = 5
+      [ (gogoproto.moretags) = "yaml:\"policy_rego_structure\"" ];
 
   // gcp_root_cert_pem is the GCP root certificate in PEM format
-  string gcp_root_cert_pem = 3 [(gogoproto.moretags) = "yaml:\"gcp_root_cert_pem\""];
+  string gcp_root_cert_pem = 3
+      [ (gogoproto.moretags) = "yaml:\"gcp_root_cert_pem\"" ];
 }

@@ -110,9 +110,7 @@ message QueryGetLatestHeightRequest {
 
 message QueryGetLatestHeightResponse { uint64 height = 1; }
 
-message QueryGetLatestFinalizedHeightRequest {
-  string rollappId = 1;
-}
+message QueryGetLatestFinalizedHeightRequest { string rollappId = 1; }
 
 message QueryGetLatestFinalizedHeightResponse { uint64 height = 1; }
 

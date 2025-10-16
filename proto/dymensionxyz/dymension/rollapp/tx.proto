@@ -21,15 +21,19 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
-  rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
+  rpc UpdateRollappInformation(MsgUpdateRollappInformation)
+      returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-  rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
+  rpc TransferOwnership(MsgTransferOwnership)
+      returns (MsgTransferOwnershipResponse);
   rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
   rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
   rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
-  rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps) returns (MsgMarkObsoleteRollappsResponse);
+  rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps)
+      returns (MsgMarkObsoleteRollappsResponse);
 
-  rpc FastFinalizeWithTEE(MsgFastFinalizeWithTEE) returns (MsgFastFinalizeWithTEEResponse);
+  rpc FastFinalizeWithTEE(MsgFastFinalizeWithTEE)
+      returns (MsgFastFinalizeWithTEEResponse);
 }
 
 // MsgUpdateParams allows to update module params.
@@ -37,9 +41,9 @@ message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
   // Authority is the address that controls the module.
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // NewParams should be fully populated.
-  Params params = 2 [(gogoproto.nullable) = false];
+  Params params = 2 [ (gogoproto.nullable) = false ];
 }
 
 message MsgUpdateParamsResponse {}
@@ -66,10 +70,11 @@ message MsgCreateRollapp {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 13;
   // genesis_info is the genesis information
-  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = true];
+  GenesisInfo genesis_info = 14 [ (gogoproto.nullable) = true ];
   // vm_type is the type of rollapp machine: EVM or WASM
   Rollapp.VMType vm_type = 15;
-  // fee_denom is OPTIONAL denom used for paying rollapp registration fees. If not provided, the default fee denom will be used.
+  // fee_denom is OPTIONAL denom used for paying rollapp registration fees. If
+  // not provided, the default fee denom will be used.
   string fee_denom = 17;
 }
 
@@ -92,9 +97,9 @@ message MsgUpdateRollappInformation {
     (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
   ];
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 5 [(gogoproto.nullable) = true];
+  RollappMetadata metadata = 5 [ (gogoproto.nullable) = true ];
   // genesis_info is the genesis information
-  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = true];
+  GenesisInfo genesis_info = 6 [ (gogoproto.nullable) = true ];
 }
 
 message MsgUpdateRollappInformationResponse {}
@@ -119,7 +124,7 @@ message MsgUpdateState {
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to
   // startHeight+numBlocks-1
-  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+  BlockDescriptors BDs = 7 [ (gogoproto.nullable) = false ];
   // last is true if this is the last batch of the sequencer
   bool last = 8;
   // rollapp_revision is the revision of the rollapp chain. increases after hard
@@ -218,19 +223,19 @@ message MsgFastFinalizeWithTEE {
   option (cosmos.msg.v1.signer) = "creator";
 
   // creator must be the active sequencer for the rollapp
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string creator = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // attestation_token is the JWT token from GCP
   string attestation_token = 4;
 
   // nonce contains the data that was signed by TEE
-  TEENonce nonce = 5 [(gogoproto.nullable) = false];
+  TEENonce nonce = 5 [ (gogoproto.nullable) = false ];
 }
 
 // what the verifying full node inside the tee actually attests over
 message TEENonce {
   string rollapp_id = 2;
- 
+
   // height TEE recently validated
   uint64 curr_height = 1;
 
