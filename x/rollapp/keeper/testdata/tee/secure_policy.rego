@@ -32,7 +32,7 @@ audience_verified if input.aud in data.allowed_aud
 issuer_verified if input.iss in data.allowed_issuer
 secboot_verified if input.secboot in data.allowed_secboot
 sw_name_verified if input.swname in data.allowed_sw_name
-dbgstat_verified if input.dbgstat in data.allowed-dbgstat
+dbgstat_verified if input.dbgstat in data.allowed_dbgstat
 
 nonce_verified if {
 	input.eat_nonce == "%s"
