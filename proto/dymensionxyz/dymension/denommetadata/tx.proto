@@ -13,19 +13,22 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  rpc RegisterHLTokenDenomMetadata(MsgRegisterHLTokenDenomMetadata) returns (MsgRegisterHLTokenDenomMetadataResponse);
+  rpc RegisterHLTokenDenomMetadata(MsgRegisterHLTokenDenomMetadata)
+      returns (MsgRegisterHLTokenDenomMetadataResponse);
 }
 
 message MsgRegisterHLTokenDenomMetadata {
   option (cosmos.msg.v1.signer) = "hl_token_owner";
 
-  string hl_token_owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string hl_token_owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   string hl_token_id = 2 [
-    (gogoproto.customtype) = "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
+    (gogoproto.customtype) =
+        "github.com/bcp-innovations/hyperlane-cosmos/util.HexAddress",
     (gogoproto.nullable) = false
   ];
-  cosmos.bank.v1beta1.Metadata token_metadata = 3 [(gogoproto.nullable) = false];
+  cosmos.bank.v1beta1.Metadata token_metadata = 3
+      [ (gogoproto.nullable) = false ];
 }
 
 message MsgRegisterHLTokenDenomMetadataResponse {}
