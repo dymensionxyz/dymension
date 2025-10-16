@@ -31,7 +31,7 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	}
 
 	if msg.Nonce.HubChainId != ctx.ChainID() {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("hub chain id does not token nonce chain id: nonce: %s, actual; %s", msg.Nonce.HubChainId, ctx.ChainID())
+		return nil, gerrc.ErrInvalidArgument.Wrapf("hub chain id does not match token nonce chain id: nonce: %s, actual; %s", msg.Nonce.HubChainId, ctx.ChainID())
 	}
 
 	rollapp := msg.Nonce.RollappId
