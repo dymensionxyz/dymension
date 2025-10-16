@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -60,7 +61,7 @@ func (s *RollappTestSuite) TestValidateAttestation() {
 		FinalizedHeight: 0,
 	}
 
-	// s.Ctx = s.Ctx.WithBlockTime(time.Date(2025, 9, 18, 9, 47, 0, 0, time.UTC))
-	// err = s.k().ValidateAttestation(s.Ctx, nonce.Hash(), token)
-	// s.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockTime(time.Date(2025, 9, 18, 9, 47, 0, 0, time.UTC))
+	err = s.k().ValidateAttestation(s.Ctx, nonce.Hash(), token)
+	s.Require().NoError(err)
 }
