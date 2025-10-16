@@ -19,7 +19,8 @@ var (
 	policyQuery string
 	//go:embed testdata/tee/insecure_policy.rego
 	policyStructure string
-	//go:embed testdata/tee/insecure_example_response.json
+
+	// TODO: embed response and reactivate test
 	exampleResponse string
 )
 
@@ -34,7 +35,7 @@ type ExampleResponse struct {
 }
 
 func (s *RollappTestSuite) TestValidateAttestation() {
-	s.T().Skip()
+	s.T().Skip("Requires a real response from GCP: need to setup again because pr https://github.com/dymensionxyz/dymension/pull/2059 changed nonce")
 	s.SetupTest()
 	s.k().SetParams(s.Ctx, types.DefaultParams().WithTeeConfig(types.TEEConfig{
 		PolicyValues:    policyValues,
