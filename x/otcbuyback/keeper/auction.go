@@ -19,8 +19,7 @@ func (k Keeper) CreateAuction(
 	allocation sdk.Coin,
 	startTime time.Time,
 	endTime time.Time,
-	initialDiscount math.LegacyDec,
-	maxDiscount math.LegacyDec,
+	discountType types.DiscountType,
 	vestingParams types.Auction_VestingParams,
 	pumpParams types.Auction_PumpParams,
 ) (uint64, error) {
@@ -61,8 +60,7 @@ func (k Keeper) CreateAuction(
 		allocation.Amount,
 		startTime,
 		endTime,
-		initialDiscount,
-		maxDiscount,
+		discountType,
 		vestingParams,
 		pumpParams,
 	)
@@ -80,12 +78,10 @@ func (k Keeper) CreateAuction(
 
 	// Emit event
 	err = uevent.EmitTypedEvent(ctx, &types.EventAuctionCreated{
-		AuctionId:       auctionID,
-		Allocation:      allocation,
-		StartTime:       startTime.String(),
-		EndTime:         endTime.String(),
-		InitialDiscount: initialDiscount.String(),
-		MaxDiscount:     maxDiscount.String(),
+		AuctionId:  auctionID,
+		Allocation: allocation,
+		StartTime:  startTime.String(),
+		EndTime:    endTime.String(),
 	})
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "failed to emit auction created event")
@@ -151,11 +147,80 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 	return nil
 }
 
+// ProcessIntervalPumping checks if it's time to create pump streams and creates them if needed
+func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) error {
+	pp := auction.PumpParams
+	pi := auction.PumpInfo
+
+	// Determine when the next pump should occur
+	var nextPumpTime time.Time
+	if pi.LastPumpTime.IsZero() {
+		// The first pump should happen after start_time + pump_delay
+		nextPumpTime = auction.StartTime.Add(pp.PumpDelay)
+	} else {
+		// Later pumps should happen after last_pump_time + pump_interval
+		nextPumpTime = pi.LastPumpTime.Add(pp.PumpInterval)
+	}
+
+	// Check if it's time for the next pump
+	if ctx.BlockTime().Before(nextPumpTime) {
+		return nil // Not yet time for next pump
+	}
+
+	// TODO: use actual spot prices instead of sold since last pump
+	soldSinceLastPump := auction.SoldAmount.Sub(pi.LastSoldAmount)
+	// TODO: module param
+	minSoldDiff := math.NewInt(1_000_000_000)
+	if soldSinceLastPump.LT(minSoldDiff) {
+		// Nothing new to pump, but we still update the last pump time
+		// to avoid checking this auction on every block
+		pi.LastPumpTime = ctx.BlockTime()
+		return k.SetAuction(ctx, auction)
+		// TODO: emit event in case of no pump?
+	}
+
+	// Calculate tokens to pump: newToPump = raised_amount - last_raised_amount
+	newToPump := auction.RaisedAmount.Sub(pi.LastRaisedAmount...)
+	if newToPump.IsZero() {
+		// Nothing new to pump, but we still update the last pump time
+		// to avoid checking this auction on every block
+		pi.LastPumpTime = ctx.BlockTime()
+		return k.SetAuction(ctx, auction)
+	}
+
+	// Create pump streams for the new tokens
+	streamIDs, err := k.CreatePumpStreams(ctx, auction)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to create pump streams")
+	}
+
+	// Update auction state
+	pi.LastPumpTime = ctx.BlockTime()
+	pi.LastRaisedAmount = auction.RaisedAmount
+
+	err = k.SetAuction(ctx, auction)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to save auction")
+	}
+
+	// TODO: pumped event + store streamsIDs in it
+
+	// Log the pump
+	k.Logger(ctx).Info("interval pump executed",
+		"auction_id", auction.Id,
+		"pumped_coins", newToPump,
+		"stream_ids", streamIDs)
+
+	return nil
+}
+
 // CreatePumpStreams creates a pump stream struct given the required params.
+// Used both at auction completion and for interval pumping
 func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uint64, error) {
 	var streamIDs []uint64
 
-	coins := auction.RaisedAmount
+	coins := auction.RaisedAmount.Sub(auction.PumpInfo.LastRaisedAmount...)
+
 	pp := auction.PumpParams
 
 	err := k.bankKeeper.SendCoinsFromModuleToModule(
@@ -178,7 +243,7 @@ func (k Keeper) CreatePumpStreams(ctx sdk.Context, auction types.Auction) ([]uin
 		streamID, err := k.streamerKeeper.CreatePumpStream(ctx,
 			streamertypes.CreateStreamGeneric{
 				Coins:             sdk.NewCoins(coin),
-				StartTime:         ctx.BlockTime().Add(pp.StartTimeAfterAuctionEnd),
+				StartTime:         ctx.BlockTime().Add(pp.PumpDelay),
 				EpochIdentifier:   pp.EpochIdentifier,
 				NumEpochsPaidOver: pp.NumEpochs,
 			},

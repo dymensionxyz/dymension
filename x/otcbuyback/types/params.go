@@ -27,14 +27,14 @@ func (p Params) ValidateBasic() error {
 }
 
 var DefaultVestingParams = Auction_VestingParams{
-	VestingPeriod:               3 * 30 * 24 * time.Hour,
-	VestingStartAfterAuctionEnd: 0,
+	VestingDelay: 0, // No delay by default
 }
 
 var DefaultPumpParams = Auction_PumpParams{
-	StartTimeAfterAuctionEnd: time.Hour,
-	EpochIdentifier:          "month",
-	NumEpochs:                2,
-	NumOfPumpsPerEpoch:       25,
-	PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+	PumpDelay:          0, // Start pumping immediately after auction start
+	PumpInterval:       time.Hour,
+	EpochIdentifier:    "month",
+	NumEpochs:          2,
+	NumOfPumpsPerEpoch: 25,
+	PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
 }

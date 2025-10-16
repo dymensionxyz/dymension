@@ -52,12 +52,8 @@ func (q queryServer) Auction(goCtx context.Context, req *types.QueryAuctionReque
 		return nil, status.Errorf(codes.NotFound, "auction with id %d not found", req.Id)
 	}
 
-	// Calculate current discount percentage
-	currentDiscount := auction.GetCurrentDiscount(ctx.BlockTime())
-
 	return &types.QueryAuctionResponse{
-		Auction:         auction,
-		CurrentDiscount: currentDiscount,
+		Auction: auction,
 	}, nil
 }
 
@@ -73,18 +69,13 @@ func (q queryServer) UserPurchase(goCtx context.Context, req *types.QueryUserPur
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user address: %s", req.User)
 	}
 
-	auction, found := q.GetAuction(ctx, req.AuctionId)
-	if !found {
-		return nil, status.Errorf(codes.NotFound, "auction with id %d not found", req.AuctionId)
-	}
-
 	purchase, found := q.GetPurchase(ctx, req.AuctionId, user)
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "no purchase found for user %s in auction %d", req.User, req.AuctionId)
 	}
 
 	// Calculate claimable amount
-	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
+	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime())
 
 	return &types.QueryUserPurchaseResponse{
 		Purchase:        purchase,

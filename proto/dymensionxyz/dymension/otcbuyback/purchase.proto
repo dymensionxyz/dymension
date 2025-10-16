@@ -9,16 +9,38 @@ import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
-message Purchase {
-  // Amount of tokens purchased
+// PurchaseEntry represents a single purchase with its vesting schedule
+message PurchaseEntry {
+  // Amount of tokens purchased in this entry
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
-  // Amount already claimed
-  string claimed = 2 [
+  // When vesting starts for this purchase
+  google.protobuf.Timestamp vesting_start_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  // Duration of vesting for this purchase
+  google.protobuf.Duration vesting_duration = 3 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Purchase represents a user's total purchases for an auction
+// with support for overlapping vesting schedules
+message Purchase {
+  // List of purchase entries with their individual vesting schedules
+  repeated PurchaseEntry entries = 1 [
+    (gogoproto.nullable) = false
+  ];
+
+  // Total amount claimed across all entries
+  string total_claimed = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

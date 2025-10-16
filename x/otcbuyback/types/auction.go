@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -23,20 +24,19 @@ func NewAuction(
 	id uint64,
 	allocation math.Int,
 	startTime, endTime time.Time,
-	initialDiscount, maxDiscount math.LegacyDec,
-	vestingPlan Auction_VestingParams,
+	discountType DiscountType,
+	vestingParams Auction_VestingParams,
 	pumpParams Auction_PumpParams,
 ) Auction {
 	return Auction{
-		Id:              id,
-		Allocation:      allocation,
-		StartTime:       startTime,
-		EndTime:         endTime,
-		InitialDiscount: initialDiscount,
-		MaxDiscount:     maxDiscount,
-		SoldAmount:      math.ZeroInt(),
-		VestingParams:   vestingPlan,
-		PumpParams:      pumpParams,
+		Id:            id,
+		Allocation:    allocation,
+		StartTime:     startTime,
+		EndTime:       endTime,
+		DiscountType:  discountType,
+		SoldAmount:    math.ZeroInt(),
+		VestingParams: vestingParams,
+		PumpParams:    pumpParams,
 	}
 }
 
@@ -63,24 +63,13 @@ func (a Auction) ValidateBasic() error {
 		return ErrInvalidEndTime
 	}
 
-	if a.InitialDiscount.IsNegative() || a.InitialDiscount.GTE(math.LegacyOneDec()) {
-		return ErrInvalidDiscount
+	// Validate discount type
+	if err := a.DiscountType.Validate(); err != nil {
+		return errorsmod.Wrap(err, "invalid discount type")
 	}
 
-	if a.MaxDiscount.IsNegative() || a.MaxDiscount.GTE(math.LegacyOneDec()) {
-		return ErrInvalidDiscount
-	}
-
-	if a.InitialDiscount.GT(a.MaxDiscount) {
-		return ErrInvalidDiscount
-	}
-
-	if a.VestingParams.VestingPeriod <= 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting duration must be positive")
-	}
-
-	if a.VestingParams.VestingStartAfterAuctionEnd < 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting start time cannot be negative")
+	if a.VestingParams.VestingDelay < 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting delay cannot be negative")
 	}
 
 	if a.PumpParams.NumEpochs <= 0 {
@@ -90,8 +79,11 @@ func (a Auction) ValidateBasic() error {
 	if a.PumpParams.NumOfPumpsPerEpoch <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "numOfPumpsPerEpoch must be greater than 0")
 	}
-	if a.PumpParams.StartTimeAfterAuctionEnd < 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "startTimeAfterAuctionEnd cannot be negative")
+	if a.PumpParams.PumpDelay < 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "pumpDelay cannot be negative")
+	}
+	if a.PumpParams.PumpInterval <= 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "pumpInterval must be positive")
 	}
 	if a.PumpParams.PumpDistr == streamertypes.PumpDistr_PUMP_DISTR_UNSPECIFIED {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "pumpDistr must be specified")
@@ -100,25 +92,38 @@ func (a Auction) ValidateBasic() error {
 	return nil
 }
 
-// GetCurrentDiscount calculates the current discount percentage based on time elapsed
-func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
+// GetDiscount returns the discount for a given vesting period
+// For LinearDiscount: returns time-based discount (ignores vestingPeriod)
+// For FixedDiscount: returns discount for the specified vesting period (ignores currentTime)
+func (a Auction) GetDiscount(currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, error) {
+	switch a.DiscountType.Type.(type) {
+	case *DiscountType_Linear:
+		return a.DiscountType.GetLinear().GetLinearDiscount(currentTime, a.StartTime, a.EndTime), nil
+	case *DiscountType_Fixed:
+		return a.DiscountType.GetFixed().GetFixedDiscount(vestingPeriod)
+	default:
+		return math.LegacyZeroDec(), errors.New("unknown discount type")
+	}
+}
+
+// GetLinearDiscount calculates discount based on time for LinearDiscount auctions
+func (l LinearDiscount) GetLinearDiscount(currentTime, startTime, endTime time.Time) math.LegacyDec {
 	// If auction hasn't started, return initial discount
-	if currentTime.Before(a.StartTime) {
-		return a.InitialDiscount
+	if currentTime.Before(startTime) {
+		return l.InitialDiscount
 	}
 
 	// If auction has ended, return max discount
-	if currentTime.After(a.EndTime) {
-		return a.MaxDiscount
+	if currentTime.After(endTime) {
+		return l.MaxDiscount
 	}
 
 	// Calculate linear progression
-	timeElapsed := currentTime.Sub(a.StartTime)
-	totalDuration := a.EndTime.Sub(a.StartTime)
+	timeElapsed := currentTime.Sub(startTime)
+	totalDuration := endTime.Sub(startTime)
 
-	// defensively handle edge case where auction has zero duration
 	if totalDuration == 0 {
-		return a.MaxDiscount
+		return l.MaxDiscount
 	}
 
 	// Calculate progress as a decimal [0 to 1]
@@ -126,10 +131,18 @@ func (a Auction) GetCurrentDiscount(currentTime time.Time) math.LegacyDec {
 		Quo(math.LegacyNewDec(totalDuration.Nanoseconds()))
 
 	// Calculate current discount: initial + (max - initial) * progress
-	discountRange := a.MaxDiscount.Sub(a.InitialDiscount)
-	currentDiscount := a.InitialDiscount.Add(discountRange.Mul(progress))
+	discountRange := l.MaxDiscount.Sub(l.InitialDiscount)
+	return l.InitialDiscount.Add(discountRange.Mul(progress))
+}
 
-	return currentDiscount
+// GetFixedDiscount returns discount for a specific vesting period in FixedDiscount auctions
+func (f FixedDiscount) GetFixedDiscount(vestingPeriod time.Duration) (math.LegacyDec, error) {
+	for _, d := range f.Discounts {
+		if d.VestingPeriod == vestingPeriod {
+			return d.Discount, nil
+		}
+	}
+	return math.LegacyZeroDec(), fmt.Errorf("vesting period not found in auction discount options: %s", vestingPeriod)
 }
 
 // GetRemainingAllocation returns the amount of tokens still available for purchase
@@ -137,14 +150,85 @@ func (a Auction) GetRemainingAllocation() math.Int {
 	return a.Allocation.Sub(a.SoldAmount)
 }
 
-// GetVestingStartTime returns the start time of the vesting period for purchases
-func (a Auction) GetVestingStartTime() time.Time {
-	return a.EndTime.Add(a.VestingParams.VestingStartAfterAuctionEnd)
+// GetVestingStartTime returns the vesting start time for a purchase made at purchaseTime
+func (a Auction) GetVestingStartTime(purchaseTime time.Time) time.Time {
+	return purchaseTime.Add(a.VestingParams.VestingDelay)
 }
 
-// GetVestingEndTime returns the end time of the vesting period for purchases
-func (a Auction) GetVestingEndTime() time.Time {
-	return a.GetVestingStartTime().Add(a.VestingParams.VestingPeriod)
+/* -------------------------------------------------------------------------- */
+/*                              Discount Type                                  */
+/* -------------------------------------------------------------------------- */
+
+// Validate performs validation on the DiscountType
+func (dt DiscountType) Validate() error {
+	switch t := dt.Type.(type) {
+	case *DiscountType_Linear:
+		return dt.GetLinear().Validate()
+	case *DiscountType_Fixed:
+		return dt.GetFixed().Validate()
+	case nil:
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "discount type must be specified")
+	default:
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "unknown discount type: %T", t)
+	}
+}
+
+// Validate performs validation on LinearDiscount
+func (ld *LinearDiscount) Validate() error {
+	if ld == nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "linear discount cannot be nil")
+	}
+
+	if ld.InitialDiscount.IsNegative() || ld.InitialDiscount.GTE(math.LegacyOneDec()) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "initial discount must be in range [0, 1)")
+	}
+
+	if ld.MaxDiscount.IsNegative() || ld.MaxDiscount.GTE(math.LegacyOneDec()) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "max discount must be in range [0, 1)")
+	}
+
+	if ld.InitialDiscount.GT(ld.MaxDiscount) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "initial discount must be less than or equal to max discount")
+	}
+
+	if ld.VestingPeriod <= 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting period must be positive")
+	}
+
+	return nil
+}
+
+// Validate performs validation on FixedDiscount
+func (fd *FixedDiscount) Validate() error {
+	if fd == nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount cannot be nil")
+	}
+
+	if len(fd.Discounts) == 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount must have at least one discount option")
+	}
+
+	if len(fd.Discounts) > 20 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount cannot have more than 20 discount options")
+	}
+
+	seenVestingPeriods := make(map[time.Duration]bool)
+	for i, discount := range fd.Discounts {
+		if discount.Discount.IsNegative() || discount.Discount.GTE(math.LegacyOneDec()) {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "discount %d must be in range [0, 1)", i)
+		}
+
+		if discount.VestingPeriod <= 0 {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting period %d must be positive", i)
+		}
+
+		if seenVestingPeriods[discount.VestingPeriod] {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "duplicate vesting period: %s", discount.VestingPeriod)
+		}
+		seenVestingPeriods[discount.VestingPeriod] = true
+	}
+
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */

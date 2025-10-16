@@ -6,21 +6,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 )
 
 // ClaimVestedTokens allows users to claim their vested tokens
+// In Phase 2: Users can claim at any time (not just after auction completion)
 func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, auctionID uint64) (math.Int, error) {
-	// Get auction
-	auction, found := k.GetAuction(ctx, auctionID)
+	// Get auction (just to verify it exists)
+	_, found := k.GetAuction(ctx, auctionID)
 	if !found {
 		return math.ZeroInt(), types.ErrAuctionNotFound
-	}
-
-	// Only allow claiming from completed auctions
-	if !auction.IsCompleted() {
-		return math.ZeroInt(), errorsmod.Wrap(gerrc.ErrFailedPrecondition, "auction must be completed to claim tokens")
 	}
 
 	// Get user's purchase
@@ -29,13 +24,13 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 		return math.ZeroInt(), types.ErrNoUserPurchaseFound
 	}
 
-	// Calculate claimable amount
-	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime(), auction.GetVestingStartTime(), auction.GetVestingEndTime())
+	// Calculate claimable amount using the new overlapping vesting calculation
+	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime())
 	if claimableAmount.IsZero() {
 		return math.ZeroInt(), types.ErrNoClaimableTokens
 	}
 
-	// Update vesting plan
+	// Update total claimed amount
 	purchase.ClaimTokens(claimableAmount)
 
 	// Save updated purchase
@@ -69,7 +64,8 @@ func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, aucti
 	k.Logger(ctx).Info("tokens claimed",
 		"auction_id", auctionID,
 		"claimer", claimer,
-		"amount", claimableAmount)
+		"amount", claimableAmount,
+		"remaining", purchase.UnclaimedAmount())
 
 	return claimableAmount, nil
 }

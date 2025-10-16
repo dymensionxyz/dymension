@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -122,8 +123,7 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		msg.Allocation,
 		startTime,
 		msg.EndTime,
-		msg.InitialDiscount,
-		msg.MaxDiscount,
+		msg.DiscountType,
 		msg.VestingParams,
 		msg.PumpParams,
 	)
@@ -162,7 +162,12 @@ func (ms msgServer) Buy(goCtx context.Context, req *types.MsgBuy) (*types.MsgBuy
 		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
-	paymentCoin, err := ms.Keeper.Buy(ctx, buyer, req.AuctionId, req.AmountToBuy, req.DenomToPay)
+	vestingPeriod := time.Duration(0)
+	if req.VestingPeriod != nil {
+		vestingPeriod = *req.VestingPeriod
+	}
+
+	paymentCoin, err := ms.Keeper.Buy(ctx, buyer, req.AuctionId, req.AmountToBuy, req.DenomToPay, vestingPeriod)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +187,12 @@ func (ms msgServer) BuyExactSpend(goCtx context.Context, req *types.MsgBuyExactS
 		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
-	tokensPurchased, err := ms.Keeper.BuyExactSpend(ctx, buyer, req.AuctionId, req.PaymentCoin)
+	vestingPeriod := time.Duration(0)
+	if req.VestingPeriod != nil {
+		vestingPeriod = *req.VestingPeriod
+	}
+
+	tokensPurchased, err := ms.Keeper.BuyExactSpend(ctx, buyer, req.AuctionId, req.PaymentCoin, vestingPeriod)
 	if err != nil {
 		return nil, err
 	}

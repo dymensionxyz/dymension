@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -18,6 +19,7 @@ func (k Keeper) Buy(
 	auctionID uint64,
 	amountToBuy math.Int,
 	denomToPay string,
+	vestingPeriod time.Duration,
 ) (sdk.Coin, error) {
 	// Get and validate auction
 	auction, found := k.GetAuction(ctx, auctionID)
@@ -36,6 +38,10 @@ func (k Keeper) Buy(
 			"token %s not accepted for this auction", denomToPay)
 	}
 
+	if vestingPeriod == 0 && auction.DiscountType.GetFixed() != nil {
+		return sdk.Coin{}, fmt.Errorf("vesting period must be specified for fixed discount auctions")
+	}
+
 	// Check if enough tokens are available
 	remainingAllocation := auction.GetRemainingAllocation()
 	if amountToBuy.GT(remainingAllocation) {
@@ -43,7 +49,7 @@ func (k Keeper) Buy(
 	}
 
 	// Get current price
-	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime())
+	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -67,17 +73,24 @@ func (k Keeper) Buy(
 		return sdk.Coin{}, errorsmod.Wrap(err, "failed to transfer payment")
 	}
 
-	// Update or create purchase record
+	// Get or create purchase record
 	purchase, found := k.GetPurchase(ctx, auctionID, buyer)
-	if found {
-		// Update existing purchase
-		purchase.Amount = purchase.Amount.Add(amountToBuy)
-	} else {
-		// Create new purchase record
-		purchase = types.NewPurchase(
-			amountToBuy,
-		)
+	if !found {
+		purchase = types.NewPurchase()
 	}
+
+	// Enforce purchase limits (DoS protection)
+	// TODO: gov param
+	maxPurchases := 20
+	if len(purchase.Entries) >= maxPurchases {
+		return sdk.Coin{}, errorsmod.Wrap(types.ErrInvalidPurchaseAmount,
+			fmt.Sprintf("maximum %d purchases per user per auction", maxPurchases))
+	}
+
+	// Create a new purchase entry with vesting start after delay
+	vestingStartTime := auction.GetVestingStartTime(ctx.BlockTime())
+	entry := types.NewPurchaseEntry(amountToBuy, vestingStartTime, vestingPeriod)
+	purchase.AddEntry(entry)
 
 	// Save purchase
 	if err := k.SetPurchase(ctx, auctionID, buyer, purchase); err != nil {
@@ -111,7 +124,8 @@ func (k Keeper) Buy(
 		"buyer", buyer,
 		"tokens", amountToBuy,
 		"payment", paymentCoin,
-		"price", currentPrice)
+		"price", currentPrice,
+		"vesting_period", vestingPeriod)
 
 	// Check if auction should end (sold out)
 	if auction.SoldAmount.GTE(auction.Allocation) {
@@ -132,9 +146,20 @@ func (k Keeper) BuyExactSpend(
 	buyer sdk.AccAddress,
 	auctionID uint64,
 	paymentCoin sdk.Coin,
+	vestingPeriod time.Duration,
 ) (math.Int, error) {
+	// Get auction to determine vesting period
+	auction, found := k.GetAuction(ctx, auctionID)
+	if !found {
+		return math.ZeroInt(), types.ErrAuctionNotFound
+	}
+
+	if vestingPeriod == 0 && auction.DiscountType.GetFixed() != nil {
+		return math.ZeroInt(), fmt.Errorf("vesting period must be specified for fixed discount auctions")
+	}
+
 	// Get current price
-	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime())
+	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
 		return math.ZeroInt(), err
 	}
@@ -146,7 +171,7 @@ func (k Keeper) BuyExactSpend(
 			"payment amount too small to purchase any tokens")
 	}
 
-	_, err = k.Buy(ctx, buyer, auctionID, tokensToPurchase, paymentCoin.Denom)
+	_, err = k.Buy(ctx, buyer, auctionID, tokensToPurchase, paymentCoin.Denom, vestingPeriod)
 	if err != nil {
 		return math.ZeroInt(), err
 	}
@@ -155,32 +180,43 @@ func (k Keeper) BuyExactSpend(
 }
 
 // GetDiscountedPrice returns the current price for an active auction
-func (k Keeper) GetDiscountedPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time) (math.LegacyDec, error) {
+func (k Keeper) GetDiscountedPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, error) {
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
 		return math.LegacyZeroDec(), types.ErrAuctionNotFound
 	}
 
-	poolID, err := k.GetAcceptedTokenPoolID(ctx, quoteDenom)
+	basePrice, err := k.GetBasePrice(ctx, quoteDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), fmt.Errorf("get base price: %w", err)
+	}
+
+	// Get discount based on the auction type
+	discount, err := auction.GetDiscount(currentTime, vestingPeriod)
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
 
-	// Get base price (max(current_price, average_price))
-	// we take the max, to avoid double discount in case the price is peaking
-	currPrice, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
-	if err != nil {
-		return math.LegacyZeroDec(), err
-	}
-	avgPrice, err := k.GetMovingAveragePrice(ctx, quoteDenom)
-	if err != nil {
-		return math.LegacyZeroDec(), err
-	}
-	basePrice := math.LegacyMaxDec(currPrice, avgPrice)
-
-	discount := auction.GetCurrentDiscount(currentTime)
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
 
 	// Price = AMM Price × (1 - Current Discount%)
 	return basePrice.Mul(discountMultiplier), nil
+}
+
+// GetBasePrice gets base price (max(current_price, average_price))
+// we take the max, to avoid double discount in case the price is peaking
+func (k Keeper) GetBasePrice(ctx sdk.Context, quoteDenom string) (math.LegacyDec, error) {
+	poolID, err := k.GetAcceptedTokenPoolID(ctx, quoteDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), fmt.Errorf("get accepted token pool id: %w", err)
+	}
+	currPrice, err := k.ammKeeper.CalculateSpotPrice(ctx, poolID, quoteDenom, k.baseDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), fmt.Errorf("calculate spot price: %w", err)
+	}
+	avgPrice, err := k.GetMovingAveragePrice(ctx, quoteDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), fmt.Errorf("get moving average price: %w", err)
+	}
+	return math.LegacyMaxDec(currPrice, avgPrice), nil
 }

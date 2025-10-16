@@ -40,23 +40,26 @@ func ModuleAccountBalanceInvariant(k Keeper) sdk.Invariant {
 			unclaimedAmount := math.ZeroInt()
 			rng := collections.NewPrefixedPairRange[uint64, sdk.AccAddress](auction.Id)
 			err := k.purchases.Walk(ctx, rng, func(key collections.Pair[uint64, sdk.AccAddress], purchase types.Purchase) (bool, error) {
-				// Check: Claimed >= 0
-				if purchase.Claimed.IsNegative() {
+				// Calculate total amount from all entries
+				totalAmount := purchase.TotalAmount()
+
+				// Check: TotalClaimed >= 0
+				if purchase.TotalClaimed.IsNegative() {
 					return true, fmt.Errorf("auction %d, buyer %s: negative claimed amount %s",
-						auction.Id, key.K2(), purchase.Claimed)
+						auction.Id, key.K2(), purchase.TotalClaimed)
 				}
 
-				// Check: Claimed <= Amount
-				if purchase.Claimed.GT(purchase.Amount) {
+				// Check: TotalClaimed <= TotalAmount
+				if purchase.TotalClaimed.GT(totalAmount) {
 					return true, fmt.Errorf("auction %d, buyer %s: claimed %s exceeds purchased %s",
-						auction.Id, key.K2(), purchase.Claimed, purchase.Amount)
+						auction.Id, key.K2(), purchase.TotalClaimed, totalAmount)
 				}
 
 				// add unclaimed amount to unclaimed amount
 				unclaimedAmount = unclaimedAmount.Add(purchase.UnclaimedAmount())
 
 				// add to total purchased
-				totalPurchased = totalPurchased.Add(purchase.Amount)
+				totalPurchased = totalPurchased.Add(totalAmount)
 
 				return false, nil
 			})

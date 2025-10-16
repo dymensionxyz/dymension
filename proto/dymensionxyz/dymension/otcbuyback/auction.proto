@@ -68,11 +68,7 @@ message Auction {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // Tokens that have been pumped so far
-  repeated cosmos.base.v1beta1.Coin pumped_amount = 8 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
+  PumpInfo pump_info = 8 [ (gogoproto.nullable) = false ];
 
   // The vesting params for purchased tokens in the auction
   VestingParams vesting_params = 9 [ (gogoproto.nullable) = false ];
@@ -82,6 +78,25 @@ message Auction {
 
   // The discount type of the auction
   DiscountType discount_type = 11 [ (gogoproto.nullable) = false ];
+}
+
+message PumpInfo {
+  // Last time pump streams were created (for interval pumping)
+  google.protobuf.Timestamp last_pump_time = 1
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // The amount that was raised at the moment of the last pump stream
+  // (to see how much was raised after the last pump)
+  repeated cosmos.base.v1beta1.Coin last_raised_amount = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // The amount that was sold at the moment of the last pump stream
+  // (to see how much was sold after the last pump)
+  string last_sold_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // Vesting params for purchased tokens in the auction
