@@ -14,11 +14,9 @@ import (
 func (n TEENonce) Hash() string {
 	bz := []byte(n.RollappId)
 
-	bzIx := make([]byte, 8)
-	binary.BigEndian.PutUint64(bzIx, n.FinalizedHeight)
-	bz = append(bz, bzIx...)
+	bz = append(bz, []byte(n.HubChainId)...)
 
-	bzIx = make([]byte, 8)
+	bzIx := make([]byte, 8)
 	binary.BigEndian.PutUint64(bzIx, n.CurrHeight)
 	bz = append(bz, bzIx...)
 
@@ -32,6 +30,9 @@ func (n TEENonce) Validate() error {
 	}
 	if n.RollappId == "" {
 		return gerrc.ErrInvalidArgument.Wrap("rollapp id is required")
+	}
+	if n.HubChainId == "" {
+		return gerrc.ErrInvalidArgument.Wrap("hub chain id is required")
 	}
 	return nil
 }

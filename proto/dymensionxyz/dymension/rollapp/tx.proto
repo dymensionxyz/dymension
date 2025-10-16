@@ -234,8 +234,7 @@ message TEENonce {
   // height TEE recently validated
   uint64 curr_height = 1;
 
-  // height TEE started from (which must be finalized (hub will check this))
-  uint64 finalized_height = 4;
+  string hub_chain_id = 6;
 }
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE

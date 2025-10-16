@@ -17,10 +17,6 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	// TEE feature must be enabled, message from proposer etc
 	///////////
 
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrap(err, "validate basic")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	params := k.GetParams(ctx)
@@ -28,6 +24,14 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 
 	if !teeConfig.Enabled {
 		return nil, gerrc.ErrFailedPrecondition.Wrap("TEE fast finalization is not enabled")
+	}
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+
+	if msg.Nonce.HubChainId != ctx.ChainID() {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("hub chain id does not token nonce chain id: nonce: %s, actual; %s", msg.Nonce.HubChainId, ctx.ChainID())
 	}
 
 	rollapp := msg.Nonce.RollappId
