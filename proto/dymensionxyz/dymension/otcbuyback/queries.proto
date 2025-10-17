@@ -74,7 +74,8 @@ message QueryAuctionResponse {
   // auction is the queried auction
   Auction auction = 1 [ (gogoproto.nullable) = false ];
 
-  // current_discount is the current discount percentage at the time of query
+  // current_discount is the current discount percentage at the time of query.
+  // Only applicable to linear auctions.
   string current_discount = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",

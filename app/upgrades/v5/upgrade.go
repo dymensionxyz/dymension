@@ -28,6 +28,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/lockup"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/rollapp"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types/streamer"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -224,9 +225,9 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 
 func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper, ammKeeper *gammkeeper.Keeper) {
 	// Set default params with 0.05 smoothing factor
-	params := otcbuybacktypes.Params{
-		MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(5, 2), // 0.05
-	}
+	params := otcbuybacktypes.DefaultParams()
+	params.MovingAverageSmoothingFactor = math.LegacyNewDecWithPrec(5, 2) // 0.05
+	params.MinPurchaseAmount = commontypes.DYM                            // 1 DYM
 	err := k.SetParams(ctx, params)
 	if err != nil {
 		panic(err)

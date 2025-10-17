@@ -46,17 +46,18 @@ func ModuleAccountBalanceInvariant(k Keeper) sdk.Invariant {
 						auction.Id, key.K2(), purchase.Claimed)
 				}
 
-				// Check: Claimed <= Amount
-				if purchase.Claimed.GT(purchase.Amount) {
+				// Check: Claimed <= TotalAmount
+				amount := purchase.TotalAmount()
+				if purchase.Claimed.GT(amount) {
 					return true, fmt.Errorf("auction %d, buyer %s: claimed %s exceeds purchased %s",
-						auction.Id, key.K2(), purchase.Claimed, purchase.Amount)
+						auction.Id, key.K2(), purchase.Claimed, amount)
 				}
 
 				// add unclaimed amount to unclaimed amount
 				unclaimedAmount = unclaimedAmount.Add(purchase.UnclaimedAmount())
 
 				// add to total purchased
-				totalPurchased = totalPurchased.Add(purchase.Amount)
+				totalPurchased = totalPurchased.Add(amount)
 
 				return false, nil
 			})

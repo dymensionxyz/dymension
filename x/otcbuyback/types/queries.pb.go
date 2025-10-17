@@ -178,7 +178,8 @@ func (m *QueryAuctionRequest) GetId() uint64 {
 type QueryAuctionResponse struct {
 	// auction is the queried auction
 	Auction Auction `protobuf:"bytes,1,opt,name=auction,proto3" json:"auction"`
-	// current_discount is the current discount percentage at the time of query
+	// current_discount is the current discount percentage at the time of query.
+	// Only applicable to linear auctions.
 	CurrentDiscount cosmossdk_io_math.LegacyDec `protobuf:"bytes,2,opt,name=current_discount,json=currentDiscount,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"current_discount"`
 }
 

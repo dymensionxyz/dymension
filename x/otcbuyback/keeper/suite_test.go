@@ -48,45 +48,34 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 }
 
-func (suite *KeeperTestSuite) CreateDefaultAuction() uint64 {
+func (suite *KeeperTestSuite) CreateDefaultLinearAuction() uint64 {
 	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(100)))
 
 	// Create default vesting and pump params
 	vestingParams := types.Auction_VestingParams{
-		VestingPeriod:               24 * time.Hour,
-		VestingStartAfterAuctionEnd: 0,
+		VestingDelay: 0,
 	}
 	pumpParams := types.Auction_PumpParams{
-		StartTimeAfterAuctionEnd: time.Hour,
-		EpochIdentifier:          "day",
-		NumEpochs:                30,
-		PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
-		NumOfPumpsPerEpoch:       1,
+		EpochIdentifier:    "day",
+		NumEpochs:          30,
+		NumOfPumpsPerEpoch: 1,
+		PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+		PumpDelay:          time.Hour,
+		PumpInterval:       time.Hour,
 	}
+
+	discount := types.NewLinearDiscountType(
+		math.LegacyNewDecWithPrec(1, 1), // 0.1 = 10% initial discount
+		math.LegacyNewDecWithPrec(5, 1), // 0.5 = 50% max discount
+		24*time.Hour,
+	)
 
 	// Create auction
 	auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(suite.Ctx,
 		common.DymUint64(100),
 		suite.Ctx.BlockTime(),
 		suite.Ctx.BlockTime().Add(24*time.Hour),
-		math.LegacyNewDecWithPrec(10, 2), // 10%
-		math.LegacyNewDecWithPrec(50, 2), // 50%
-		vestingParams,
-		pumpParams,
-	)
-	suite.Require().NoError(err)
-	return auctionID
-}
-
-func (suite *KeeperTestSuite) CreateAuctionWithParams(vestingParams types.Auction_VestingParams, pumpParams types.Auction_PumpParams) uint64 {
-	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(100)))
-
-	auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(suite.Ctx,
-		common.DymUint64(100),
-		suite.Ctx.BlockTime(),
-		suite.Ctx.BlockTime().Add(24*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),  // 5%
-		math.LegacyNewDecWithPrec(50, 2), // 50%
+		discount,
 		vestingParams,
 		pumpParams,
 	)

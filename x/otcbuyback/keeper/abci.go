@@ -9,7 +9,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
-// BeginBlock iterates over auctions and checks for finished ones
+// BeginBlock iterates over auctions and checks for finished ones and interval pumping
 func (k Keeper) BeginBlock(ctx sdk.Context) error {
 	// Get all auctions from the store
 	auctions, err := k.GetAllAuctions(ctx, false)
@@ -17,10 +17,16 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 		return fmt.Errorf("failed to get all auctions: %w", err)
 	}
 
-	// Iterate through auctions and check for completed ones
+	// Iterate through auctions
 	for _, auction := range auctions {
+		if auction.Completed {
+			continue
+		}
+
 		// Check if auction is completed (either due to time or being fully sold)
-		if !auction.Completed && auction.EndTime.Before(ctx.BlockTime()) {
+		// If completed => end auction (it creates a final pump stream)
+		// If active => check if needs pumping
+		if auction.EndTime.Before(ctx.BlockTime()) {
 			k.Logger(ctx).Info("processing completed auction",
 				"auction_id", auction.Id,
 				"end_time", auction.EndTime,
@@ -34,6 +40,16 @@ func (k Keeper) BeginBlock(ctx sdk.Context) error {
 			})
 			if err != nil {
 				k.Logger(ctx).Error("failed to end auction",
+					"auction_id", auction.Id,
+					"error", err)
+				continue
+			}
+		} else if auction.IsActive(ctx.BlockTime()) {
+			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return k.ProcessIntervalPumping(ctx, auction)
+			})
+			if err != nil {
+				k.Logger(ctx).Error("failed to process interval pumping",
 					"auction_id", auction.Id,
 					"error", err)
 				continue
