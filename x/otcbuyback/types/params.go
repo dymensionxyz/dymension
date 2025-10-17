@@ -31,8 +31,8 @@ var DefaultVestingParams = Auction_VestingParams{
 }
 
 var DefaultPumpParams = Auction_PumpParams{
-	PumpDelay:          0, // Start pumping immediately after auction start
-	PumpInterval:       time.Hour,
+	PumpDelay:          time.Hour,           // Start a pump stream after 1 hour of creation
+	PumpInterval:       15 * 24 * time.Hour, // Create pump streams every 15 days
 	EpochIdentifier:    "month",
 	NumEpochs:          2,
 	NumOfPumpsPerEpoch: 25,

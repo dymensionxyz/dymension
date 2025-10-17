@@ -13,7 +13,8 @@ func TestPurchase_VestedAmount(t *testing.T) {
 	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 	startTime := baseTime
 	endTime := baseTime.Add(10 * time.Hour) // 10 hour vesting period
-	totalAmount := math.NewInt(1000000)     // 1,000,000 tokens
+	vestingPeriod := endTime.Sub(startTime)
+	totalAmount := math.NewInt(1000000) // 1,000,000 tokens
 
 	tests := []struct {
 		name           string
@@ -25,7 +26,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "before vesting starts",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(-1 * time.Hour),
@@ -35,7 +40,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "exactly at start time",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime,
@@ -45,7 +54,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "25% through vesting (2.5 hours)",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(2*time.Hour + 30*time.Minute),
@@ -55,7 +68,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "50% through vesting (5 hours)",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(5 * time.Hour),
@@ -65,7 +82,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "75% through vesting (7.5 hours)",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(7*time.Hour + 30*time.Minute),
@@ -75,7 +96,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "exactly at end time",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    endTime,
@@ -85,7 +110,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "after vesting ends",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    endTime.Add(1 * time.Hour),
@@ -95,7 +124,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "50% through vesting with some tokens already claimed",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.NewInt(200000), // 200,000 already claimed
 
 			},
@@ -106,7 +139,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "all tokens already claimed",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: totalAmount, // All tokens claimed
 
 			},
@@ -117,7 +154,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "over-claimed scenario (should return 0)",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: totalAmount.Add(math.NewInt(100000)), // More than total amount
 
 			},
@@ -128,7 +169,11 @@ func TestPurchase_VestedAmount(t *testing.T) {
 		{
 			name: "1 nanosecond after start",
 			purchase: Purchase{
-				Amount:  totalAmount,
+				Entries: []PurchaseEntry{{
+					Amount:           totalAmount,
+					VestingStartTime: startTime,
+					VestingDuration:  vestingPeriod,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			currentTime:    startTime.Add(1 * time.Nanosecond),
@@ -139,7 +184,7 @@ func TestPurchase_VestedAmount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualVested := tt.purchase.ClaimableAmount(tt.currentTime, startTime, endTime)
+			actualVested := tt.purchase.ClaimableAmount(tt.currentTime)
 			require.True(t, tt.expectedVested.Equal(actualVested),
 				"%s: expected vested %s, got %s", tt.description, tt.expectedVested.String(), actualVested.String())
 		})
@@ -156,7 +201,11 @@ func TestPurchase_GetRemainingVesting(t *testing.T) {
 		{
 			name: "no tokens claimed",
 			purchase: Purchase{
-				Amount:  math.NewInt(1000000),
+				Entries: []PurchaseEntry{{
+					Amount:           math.NewInt(1000000),
+					VestingStartTime: time.Time{},
+					VestingDuration:  0,
+				}},
 				Claimed: math.ZeroInt(),
 			},
 			expected: math.NewInt(1000000),
@@ -164,7 +213,11 @@ func TestPurchase_GetRemainingVesting(t *testing.T) {
 		{
 			name: "some tokens claimed",
 			purchase: Purchase{
-				Amount:  math.NewInt(1000000),
+				Entries: []PurchaseEntry{{
+					Amount:           math.NewInt(1000000),
+					VestingStartTime: time.Time{},
+					VestingDuration:  0,
+				}},
 				Claimed: math.NewInt(300000),
 			},
 			expected: math.NewInt(700000),
@@ -172,7 +225,11 @@ func TestPurchase_GetRemainingVesting(t *testing.T) {
 		{
 			name: "all tokens claimed",
 			purchase: Purchase{
-				Amount:  math.NewInt(1000000),
+				Entries: []PurchaseEntry{{
+					Amount:           math.NewInt(1000000),
+					VestingStartTime: time.Time{},
+					VestingDuration:  0,
+				}},
 				Claimed: math.NewInt(1000000),
 			},
 			expected: math.ZeroInt(),

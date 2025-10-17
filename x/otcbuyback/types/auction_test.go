@@ -8,23 +8,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuction_GetCurrentDiscount(t *testing.T) {
+func TestAuction_GetDiscount_Linear(t *testing.T) {
 	// Test setup - create base auction with known parameters
 	startTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 	endTime := startTime.Add(10 * time.Hour)            // 10 hour auction
 	initialDiscount := math.LegacyNewDecWithPrec(10, 2) // 0.10 = 10%
 	maxDiscount := math.LegacyNewDecWithPrec(50, 2)     // 0.50 = 50%
 
+	discountType := NewLinearDiscountType(
+		initialDiscount,
+		maxDiscount,
+		24*time.Hour,
+	)
+
 	auction := NewAuction(
 		1,                    // id
 		math.NewInt(1000000), // allocation
 		startTime,            // start time
 		endTime,              // end time
-		initialDiscount,      // initial discount
-		maxDiscount,          // max discount
+		discountType,
 		Auction_VestingParams{ // vesting params
-			VestingPeriod:               time.Hour * 24,
-			VestingStartAfterAuctionEnd: time.Hour,
+			VestingDelay: time.Hour,
 		},
 		Auction_PumpParams{}, // pump params
 	)
@@ -81,30 +85,35 @@ func TestAuction_GetCurrentDiscount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualDiscount := auction.GetCurrentDiscount(tt.currentTime)
+			actualDiscount, _, err := auction.GetDiscount(tt.currentTime, 0)
+			require.NoError(t, err, "unexpected error getting discount")
 			require.True(t, tt.expectedDiscount.Equal(actualDiscount),
 				"%s: expected discount %s, got %s", tt.description, tt.expectedDiscount.String(), actualDiscount.String())
 		})
 	}
 }
 
-func TestAuction_GetCurrentDiscount_ZeroDiscountRange(t *testing.T) {
+func TestAuction_GetDiscount_Linear_ZeroDiscountRange(t *testing.T) {
 	// Test edge case where initial and max discount are the same
 	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 	startTime := baseTime
 	endTime := baseTime.Add(5 * time.Hour)
 	discount := math.LegacyNewDecWithPrec(25, 2) // 0.25 = 25%
 
+	discountType := NewLinearDiscountType(
+		discount, // same initial and max discount
+		discount, // same initial and max discount
+		24*time.Hour,
+	)
+
 	auction := NewAuction(
 		1,
 		math.NewInt(1000000),
 		startTime,
 		endTime,
-		discount, // same initial and max discount
-		discount, // same initial and max discount
+		discountType,
 		Auction_VestingParams{
-			VestingPeriod:               time.Hour * 24,
-			VestingStartAfterAuctionEnd: time.Hour,
+			VestingDelay: time.Hour,
 		},
 		Auction_PumpParams{},
 	)
@@ -119,14 +128,15 @@ func TestAuction_GetCurrentDiscount_ZeroDiscountRange(t *testing.T) {
 	}
 
 	for _, testTime := range testTimes {
-		actualDiscount := auction.GetCurrentDiscount(testTime)
+		actualDiscount, _, err := auction.GetDiscount(testTime, 0)
+		require.NoError(t, err, "unexpected error getting discount")
 		require.True(t, discount.Equal(actualDiscount),
 			"Expected constant discount %s, got %s at time %s",
 			discount.String(), actualDiscount.String(), testTime.String())
 	}
 }
 
-func TestAuction_GetCurrentDiscount_ZeroDuration(t *testing.T) {
+func TestAuction_GetDiscount_Linear_ZeroDuration(t *testing.T) {
 	// Test edge case where start time equals end time (zero duration)
 	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 	startTime := baseTime
@@ -134,23 +144,28 @@ func TestAuction_GetCurrentDiscount_ZeroDuration(t *testing.T) {
 	initialDiscount := math.LegacyNewDecWithPrec(10, 2) // 0.10 = 10%
 	maxDiscount := math.LegacyNewDecWithPrec(50, 2)     // 0.50 = 50%
 
+	discountType := NewLinearDiscountType(
+		initialDiscount,
+		maxDiscount,
+		24*time.Hour,
+	)
+
 	auction := NewAuction(
 		1,
 		math.NewInt(1000000),
 		startTime,
 		endTime, // Same as startTime
-		initialDiscount,
-		maxDiscount,
+		discountType,
 		Auction_VestingParams{
-			VestingPeriod:               time.Hour * 24,
-			VestingStartAfterAuctionEnd: time.Hour,
+			VestingDelay: time.Hour,
 		},
 		Auction_PumpParams{},
 	)
 
 	// Test at the exact time when start equals end
 	// Should return max discount immediately since there's no time for progression
-	actualDiscount := auction.GetCurrentDiscount(startTime)
+	actualDiscount, _, err := auction.GetDiscount(startTime, 0)
+	require.NoError(t, err, "unexpected error getting discount")
 	require.True(t, maxDiscount.Equal(actualDiscount),
 		"Expected max discount %s for zero-duration auction, got %s",
 		maxDiscount.String(), actualDiscount.String())
