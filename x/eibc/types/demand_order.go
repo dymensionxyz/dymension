@@ -86,7 +86,7 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 	return recipientBech32
 }
 
-// GetFeeAmount returns the fee amount of the demand order.
+// PriceAmount returns the price amount of the demand order.
 func (m *DemandOrder) PriceAmount() math.Int {
 	return m.Price[0].Amount
 }
