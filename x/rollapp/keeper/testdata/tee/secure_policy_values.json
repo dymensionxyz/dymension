@@ -16,5 +16,11 @@
   ],
   "allowed_sw_name": [
     "CONFIDENTIAL_SPACE"
+  ],
+  "allowed_dbgstat": [
+    "disabled-since-boot"
+  ],
+  "allowed_restart": [
+    "Never"
   ]
 }
