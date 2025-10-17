@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -52,8 +53,15 @@ func (q queryServer) Auction(goCtx context.Context, req *types.QueryAuctionReque
 		return nil, status.Errorf(codes.NotFound, "auction with id %d not found", req.Id)
 	}
 
+	// Calculate current discount percentage if discount is linear
+	currentDiscount := math.LegacyZeroDec()
+	if l := auction.DiscountType.GetLinear(); l != nil {
+		currentDiscount = l.GetDiscount(ctx.BlockTime(), auction.StartTime, auction.EndTime)
+	}
+
 	return &types.QueryAuctionResponse{
-		Auction: auction,
+		Auction:         auction,
+		CurrentDiscount: currentDiscount,
 	}, nil
 }
 

@@ -98,16 +98,16 @@ func (a Auction) ValidateBasic() error {
 func (a Auction) GetDiscount(currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, error) {
 	switch a.DiscountType.Type.(type) {
 	case *DiscountType_Linear:
-		return a.DiscountType.GetLinear().GetLinearDiscount(currentTime, a.StartTime, a.EndTime), nil
+		return a.DiscountType.GetLinear().GetDiscount(currentTime, a.StartTime, a.EndTime), nil
 	case *DiscountType_Fixed:
-		return a.DiscountType.GetFixed().GetFixedDiscount(vestingPeriod)
+		return a.DiscountType.GetFixed().GetDiscount(vestingPeriod)
 	default:
 		return math.LegacyZeroDec(), errors.New("unknown discount type")
 	}
 }
 
-// GetLinearDiscount calculates discount based on time for LinearDiscount auctions
-func (l LinearDiscount) GetLinearDiscount(currentTime, startTime, endTime time.Time) math.LegacyDec {
+// GetDiscount calculates discount based on time for LinearDiscount auctions
+func (l LinearDiscount) GetDiscount(currentTime, startTime, endTime time.Time) math.LegacyDec {
 	// If auction hasn't started, return initial discount
 	if currentTime.Before(startTime) {
 		return l.InitialDiscount
@@ -135,8 +135,8 @@ func (l LinearDiscount) GetLinearDiscount(currentTime, startTime, endTime time.T
 	return l.InitialDiscount.Add(discountRange.Mul(progress))
 }
 
-// GetFixedDiscount returns discount for a specific vesting period in FixedDiscount auctions
-func (f FixedDiscount) GetFixedDiscount(vestingPeriod time.Duration) (math.LegacyDec, error) {
+// GetDiscount returns discount for a specific vesting period in FixedDiscount auctions
+func (f FixedDiscount) GetDiscount(vestingPeriod time.Duration) (math.LegacyDec, error) {
 	for _, d := range f.Discounts {
 		if d.VestingPeriod == vestingPeriod {
 			return d.Discount, nil
@@ -204,28 +204,24 @@ func (fd *FixedDiscount) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount cannot be nil")
 	}
 
-	if len(fd.Discounts) == 0 {
+	if len(fd.Discounts) <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount must have at least one discount option")
 	}
 
-	if len(fd.Discounts) > 20 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount cannot have more than 20 discount options")
-	}
-
-	seenVestingPeriods := make(map[time.Duration]bool)
-	for i, discount := range fd.Discounts {
-		if discount.Discount.IsNegative() || discount.Discount.GTE(math.LegacyOneDec()) {
+	seen := make(map[time.Duration]struct{})
+	for i, d := range fd.Discounts {
+		if d.Discount.IsNegative() || d.Discount.GTE(math.LegacyOneDec()) {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "discount %d must be in range [0, 1)", i)
 		}
 
-		if discount.VestingPeriod <= 0 {
+		if d.VestingPeriod <= 0 {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "vesting period %d must be positive", i)
 		}
 
-		if seenVestingPeriods[discount.VestingPeriod] {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "duplicate vesting period: %s", discount.VestingPeriod)
+		if _, ok := seen[d.VestingPeriod]; ok {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "duplicate vesting period: %s", d.VestingPeriod)
 		}
-		seenVestingPeriods[discount.VestingPeriod] = true
+		seen[d.VestingPeriod] = struct{}{}
 	}
 
 	return nil

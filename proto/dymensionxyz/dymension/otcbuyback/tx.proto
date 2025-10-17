@@ -85,7 +85,7 @@ message MsgBuy {
 
   // For FixedDiscount auctions, the vesting period chosen by the user
   // Must match one of the vesting periods in the auction's FixedDiscount options
-  // For LinearDiscount auctions, this field must be 0
+  // For LinearDiscount auctions, this field is ignored
   google.protobuf.Duration vesting_period = 5
       [ (gogoproto.stdduration) = true ];
 }
@@ -105,7 +105,7 @@ message MsgBuyExactSpend {
 
   // For FixedDiscount auctions, the vesting period chosen by the user
   // Must match one of the vesting periods in the auction's FixedDiscount options
-  // For LinearDiscount auctions, this field must be 0
+  // For LinearDiscount auctions, this field is ignored
   google.protobuf.Duration vesting_period = 4
       [ (gogoproto.stdduration) = true ];
 }

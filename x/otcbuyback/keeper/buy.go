@@ -38,10 +38,6 @@ func (k Keeper) Buy(
 			"token %s not accepted for this auction", denomToPay)
 	}
 
-	if vestingPeriod == 0 && auction.DiscountType.GetFixed() != nil {
-		return sdk.Coin{}, fmt.Errorf("vesting period must be specified for fixed discount auctions")
-	}
-
 	// Check if enough tokens are available
 	remainingAllocation := auction.GetRemainingAllocation()
 	if amountToBuy.GT(remainingAllocation) {
@@ -148,16 +144,6 @@ func (k Keeper) BuyExactSpend(
 	paymentCoin sdk.Coin,
 	vestingPeriod time.Duration,
 ) (math.Int, error) {
-	// Get auction to determine vesting period
-	auction, found := k.GetAuction(ctx, auctionID)
-	if !found {
-		return math.ZeroInt(), types.ErrAuctionNotFound
-	}
-
-	if vestingPeriod == 0 && auction.DiscountType.GetFixed() != nil {
-		return math.ZeroInt(), fmt.Errorf("vesting period must be specified for fixed discount auctions")
-	}
-
 	// Get current price
 	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
@@ -186,15 +172,15 @@ func (k Keeper) GetDiscountedPrice(ctx sdk.Context, auctionID uint64, quoteDenom
 		return math.LegacyZeroDec(), types.ErrAuctionNotFound
 	}
 
-	basePrice, err := k.GetBasePrice(ctx, quoteDenom)
-	if err != nil {
-		return math.LegacyZeroDec(), fmt.Errorf("get base price: %w", err)
-	}
-
 	// Get discount based on the auction type
 	discount, err := auction.GetDiscount(currentTime, vestingPeriod)
 	if err != nil {
 		return math.LegacyZeroDec(), err
+	}
+
+	basePrice, err := k.GetBasePrice(ctx, quoteDenom)
+	if err != nil {
+		return math.LegacyZeroDec(), fmt.Errorf("get base price: %w", err)
 	}
 
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
