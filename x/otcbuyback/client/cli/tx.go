@@ -75,13 +75,13 @@ $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --vesting-period 720h --from 
 			if err != nil {
 				return err
 			}
-			var vestingPeriod *time.Duration
+			var vestingPeriod time.Duration
 			if vestingPeriodStr != "" {
 				duration, err := time.ParseDuration(vestingPeriodStr)
 				if err != nil {
 					return fmt.Errorf("invalid vesting period: %w", err)
 				}
-				vestingPeriod = &duration
+				vestingPeriod = duration
 			}
 
 			msg := types.MsgBuy{
@@ -140,13 +140,13 @@ $ %s tx otcbuyback buy-exact-spend 1 100uusdc --vesting-period 720h --from mykey
 			if err != nil {
 				return err
 			}
-			var vestingPeriod *time.Duration
+			var vestingPeriod time.Duration
 			if vestingPeriodStr != "" {
 				duration, err := time.ParseDuration(vestingPeriodStr)
 				if err != nil {
 					return fmt.Errorf("invalid vesting period: %w", err)
 				}
-				vestingPeriod = &duration
+				vestingPeriod = duration
 			}
 
 			msg := types.MsgBuyExactSpend{

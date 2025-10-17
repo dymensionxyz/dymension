@@ -12,19 +12,13 @@ import (
 // ClaimVestedTokens allows users to claim their vested tokens
 // In Phase 2: Users can claim at any time (not just after auction completion)
 func (k Keeper) ClaimVestedTokens(ctx sdk.Context, claimer sdk.AccAddress, auctionID uint64) (math.Int, error) {
-	// Get auction (just to verify it exists)
-	_, found := k.GetAuction(ctx, auctionID)
-	if !found {
-		return math.ZeroInt(), types.ErrAuctionNotFound
-	}
-
 	// Get user's purchase
 	purchase, found := k.GetPurchase(ctx, auctionID, claimer)
 	if !found {
 		return math.ZeroInt(), types.ErrNoUserPurchaseFound
 	}
 
-	// Calculate claimable amount using the new overlapping vesting calculation
+	// Calculate claimable amount
 	claimableAmount := purchase.ClaimableAmount(ctx.BlockTime())
 	if claimableAmount.IsZero() {
 		return math.ZeroInt(), types.ErrNoClaimableTokens
