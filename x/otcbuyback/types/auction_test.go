@@ -170,3 +170,158 @@ func TestAuction_GetDiscount_Linear_ZeroDuration(t *testing.T) {
 		"Expected max discount %s for zero-duration auction, got %s",
 		maxDiscount.String(), actualDiscount.String())
 }
+
+func TestAuction_GetDiscount_Fixed(t *testing.T) {
+	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
+	startTime := baseTime
+	endTime := baseTime.Add(24 * time.Hour)
+
+	discountType := NewFixedDiscountType([]FixedDiscount_Discount{
+		{Discount: math.LegacyNewDecWithPrec(10, 2), VestingPeriod: 30 * 24 * time.Hour},  // 10%, 30d
+		{Discount: math.LegacyNewDecWithPrec(30, 2), VestingPeriod: 90 * 24 * time.Hour},  // 30%, 90d
+		{Discount: math.LegacyNewDecWithPrec(50, 2), VestingPeriod: 180 * 24 * time.Hour}, // 50%, 180d
+	})
+
+	auction := NewAuction(
+		1,
+		math.NewInt(1000000),
+		startTime,
+		endTime,
+		discountType,
+		Auction_VestingParams{VestingDelay: time.Hour},
+		Auction_PumpParams{},
+	)
+
+	tests := []struct {
+		name             string
+		vestingPeriod    time.Duration
+		expectedDiscount math.LegacyDec
+		expectError      bool
+	}{
+		{
+			name:             "30 day vesting",
+			vestingPeriod:    30 * 24 * time.Hour,
+			expectedDiscount: math.LegacyNewDecWithPrec(10, 2),
+		},
+		{
+			name:             "90 day vesting",
+			vestingPeriod:    90 * 24 * time.Hour,
+			expectedDiscount: math.LegacyNewDecWithPrec(30, 2),
+		},
+		{
+			name:             "180 day vesting",
+			vestingPeriod:    180 * 24 * time.Hour,
+			expectedDiscount: math.LegacyNewDecWithPrec(50, 2),
+		},
+		{
+			name:          "invalid vesting period",
+			vestingPeriod: 60 * 24 * time.Hour,
+			expectError:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			discount, actualVesting, err := auction.GetDiscount(startTime, tt.vestingPeriod)
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.True(t, tt.expectedDiscount.Equal(discount))
+				require.Equal(t, tt.vestingPeriod, actualVesting)
+			}
+		})
+	}
+}
+
+func TestParams_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name        string
+		params      Params
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name:        "default params valid",
+			params:      DefaultParams(),
+			expectError: false,
+		},
+		{
+			name: "valid custom params",
+			params: Params{
+				MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(2, 1),
+				MaxPurchaseNumber:            10,
+				MinPurchaseAmount:            math.NewInt(1000000),
+				MinSoldDifferenceToPump:      math.NewInt(500),
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid smoothing factor negative",
+			params: Params{
+				MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(-1, 1),
+				MaxPurchaseNumber:            20,
+				MinPurchaseAmount:            math.ZeroInt(),
+				MinSoldDifferenceToPump:      math.NewInt(1000),
+			},
+			expectError: true,
+			errorMsg:    "moving average smoothing factor must be between 0 and 1",
+		},
+		{
+			name: "invalid smoothing factor greater than 1",
+			params: Params{
+				MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(15, 1),
+				MaxPurchaseNumber:            20,
+				MinPurchaseAmount:            math.ZeroInt(),
+				MinSoldDifferenceToPump:      math.NewInt(1000),
+			},
+			expectError: true,
+			errorMsg:    "moving average smoothing factor must be between 0 and 1",
+		},
+		{
+			name: "invalid max purchase number zero",
+			params: Params{
+				MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(1, 1),
+				MaxPurchaseNumber:            0,
+				MinPurchaseAmount:            math.ZeroInt(),
+				MinSoldDifferenceToPump:      math.NewInt(1000),
+			},
+			expectError: true,
+			errorMsg:    "max purchase number must be positive",
+		},
+		{
+			name: "invalid min purchase amount negative",
+			params: Params{
+				MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(1, 1),
+				MaxPurchaseNumber:            20,
+				MinPurchaseAmount:            math.NewInt(-100),
+				MinSoldDifferenceToPump:      math.NewInt(1000),
+			},
+			expectError: true,
+			errorMsg:    "min purchase amount must be non-negative",
+		},
+		{
+			name: "invalid min sold difference negative",
+			params: Params{
+				MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(1, 1),
+				MaxPurchaseNumber:            20,
+				MinPurchaseAmount:            math.ZeroInt(),
+				MinSoldDifferenceToPump:      math.NewInt(-500),
+			},
+			expectError: true,
+			errorMsg:    "min sold difference to pump must be non-negative",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.params.ValidateBasic()
+			if tt.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errorMsg)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

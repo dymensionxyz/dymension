@@ -244,3 +244,112 @@ func TestPurchase_GetRemainingVesting(t *testing.T) {
 		})
 	}
 }
+
+func TestPurchase_OverlappingVesting(t *testing.T) {
+	baseTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name              string
+		entries           []PurchaseEntry
+		claimed           math.Int
+		testTime          time.Time
+		expectedVested    math.Int
+		expectedClaimable math.Int
+	}{
+		{
+			name: "two entries, both not started",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(1000), VestingStartTime: baseTime, VestingDuration: 10 * time.Hour},
+				{Amount: math.NewInt(2000), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.ZeroInt(),
+			testTime:          baseTime.Add(-1 * time.Hour),
+			expectedVested:    math.ZeroInt(),
+			expectedClaimable: math.ZeroInt(),
+		},
+		{
+			name: "two entries, first partially vested, second not started",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(1000), VestingStartTime: baseTime, VestingDuration: 10 * time.Hour},
+				{Amount: math.NewInt(2000), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.ZeroInt(),
+			testTime:          baseTime.Add(1 * time.Hour),
+			expectedVested:    math.NewInt(100), // 10% of 1000 + 0% of 2000
+			expectedClaimable: math.NewInt(100),
+		},
+		{
+			name: "two entries, both partially vested",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(1000), VestingStartTime: baseTime, VestingDuration: 10 * time.Hour},
+				{Amount: math.NewInt(2000), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.ZeroInt(),
+			testTime:          baseTime.Add(7 * time.Hour),
+			expectedVested:    math.NewInt(1700), // 70% of 1000 + 50% of 2000
+			expectedClaimable: math.NewInt(1700),
+		},
+		{
+			name: "two entries, first fully vested, second partially",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(1000), VestingStartTime: baseTime, VestingDuration: 10 * time.Hour},
+				{Amount: math.NewInt(2000), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.ZeroInt(),
+			testTime:          baseTime.Add(10 * time.Hour),
+			expectedVested:    math.NewInt(2600), // 100% of 1000 + 80% of 2000
+			expectedClaimable: math.NewInt(2600),
+		},
+		{
+			name: "two entries, both fully vested",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(1000), VestingStartTime: baseTime, VestingDuration: 10 * time.Hour},
+				{Amount: math.NewInt(2000), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.ZeroInt(),
+			testTime:          baseTime.Add(12 * time.Hour),
+			expectedVested:    math.NewInt(3000), // 100% of 1000 + 100% of 2000
+			expectedClaimable: math.NewInt(3000),
+		},
+		{
+			name: "three entries with different start times and durations",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(100), VestingStartTime: baseTime, VestingDuration: 4 * time.Hour},
+				{Amount: math.NewInt(200), VestingStartTime: baseTime.Add(1 * time.Hour), VestingDuration: 5 * time.Hour},
+				{Amount: math.NewInt(300), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.ZeroInt(),
+			testTime:          baseTime.Add(5 * time.Hour),
+			expectedVested:    math.NewInt(350), // 100% of 100 + 80% of 200 + 30% of 300
+			expectedClaimable: math.NewInt(350),
+		},
+		{
+			name: "overlapping with partial claims",
+			entries: []PurchaseEntry{
+				{Amount: math.NewInt(1000), VestingStartTime: baseTime, VestingDuration: 10 * time.Hour},
+				{Amount: math.NewInt(2000), VestingStartTime: baseTime.Add(2 * time.Hour), VestingDuration: 10 * time.Hour},
+			},
+			claimed:           math.NewInt(500),
+			testTime:          baseTime.Add(7 * time.Hour), // 70% of 1000 + 50% of 2000
+			expectedVested:    math.NewInt(1700),
+			expectedClaimable: math.NewInt(1200), // 1700 - 500 claimed
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			purchase := Purchase{
+				Entries: tt.entries,
+				Claimed: tt.claimed,
+			}
+
+			unlocked := purchase.UnlockedAmount(tt.testTime)
+			require.True(t, tt.expectedVested.Equal(unlocked),
+				"Expected vested %s, got %s", tt.expectedVested.String(), unlocked.String())
+
+			claimable := purchase.ClaimableAmount(tt.testTime)
+			require.True(t, tt.expectedClaimable.Equal(claimable),
+				"Expected claimable %s, got %s", tt.expectedClaimable.String(), claimable.String())
+		})
+	}
+}

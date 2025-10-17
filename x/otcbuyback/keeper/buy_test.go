@@ -370,3 +370,292 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		suite.Require().Equal(amountToBuy.String(), updatedPurchase.Claimed.String(), "Purchase should show tokens as claimed")
 	})
 }
+
+func (suite *KeeperTestSuite) TestFixedDiscountBuy() {
+	suite.Run("buy with fixed discount", func() {
+		suite.SetupTest()
+
+		suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(1000)))
+
+		discountType := types.NewFixedDiscountType([]types.FixedDiscount_Discount{
+			{Discount: math.LegacyNewDecWithPrec(10, 2), VestingPeriod: 30 * 24 * time.Hour},
+			{Discount: math.LegacyNewDecWithPrec(30, 2), VestingPeriod: 90 * 24 * time.Hour},
+		})
+
+		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
+			suite.Ctx,
+			common.DymUint64(1000),
+			suite.Ctx.BlockTime(),
+			suite.Ctx.BlockTime().Add(24*time.Hour),
+			discountType,
+			types.DefaultVestingParams,
+			types.DefaultPumpParams,
+		)
+		suite.Require().NoError(err)
+
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000).MulRaw(1e6))))
+
+		// Buy with 30-day vesting (10% discount)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 30*24*time.Hour)
+		suite.Require().NoError(err)
+
+		purchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		suite.Require().Equal(1, len(purchase.Entries))
+		suite.Require().Equal(30*24*time.Hour, purchase.Entries[0].VestingDuration)
+
+		// Buy with 90-day vesting (30% discount)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(50).MulRaw(1e18), "usdc", 90*24*time.Hour)
+		suite.Require().NoError(err)
+
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		suite.Require().Equal(2, len(purchase.Entries))
+
+		// Try invalid vesting period
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 60*24*time.Hour)
+		suite.Require().Error(err)
+		suite.Require().Contains(err.Error(), "vesting period not found")
+	})
+}
+
+func (suite *KeeperTestSuite) TestGovernanceParams() {
+	suite.Run("max purchase number enforcement", func() {
+		suite.SetupTest()
+
+		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
+		params.MaxPurchaseNumber = 3
+		suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+
+		auctionID := suite.CreateDefaultLinearAuction()
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
+
+		// Make 3 purchases (at limit)
+		for i := 0; i < 3; i++ {
+			_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0)
+			suite.Require().NoError(err)
+		}
+
+		// 4th purchase should fail
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0)
+		suite.Require().Error(err)
+		suite.Require().Contains(err.Error(), "maximum purchases")
+	})
+
+	suite.Run("min purchase amount enforcement", func() {
+		suite.SetupTest()
+
+		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
+		params.MinPurchaseAmount = math.NewInt(10).MulRaw(1e18)
+		suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+
+		auctionID := suite.CreateDefaultLinearAuction()
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000).MulRaw(1e6))))
+
+		// Try to buy less than minimum
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(5).MulRaw(1e18), "usdc", 0)
+		suite.Require().Error(err)
+		suite.Require().Contains(err.Error(), "less than minimum")
+
+		// Buy exactly minimum (should work)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 0)
+		suite.Require().NoError(err)
+	})
+
+	suite.Run("auction end when remaining below minimum", func() {
+		suite.SetupTest()
+
+		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
+		params.MinPurchaseAmount = math.NewInt(10).MulRaw(1e18)
+		suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+
+		auctionID := suite.CreateDefaultLinearAuction()
+		auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
+
+		// Buy almost all, leaving 5 DYM (below minimum)
+		amountToBuy := auction.Allocation.Sub(math.NewInt(5).MulRaw(1e18))
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		suite.Require().NoError(err)
+
+		// Verify auction ended
+		auction, _ = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		suite.Require().True(auction.IsCompleted())
+	})
+}
+
+func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
+	suite.Run("multiple purchases and overlapping vesting", func() {
+		suite.SetupTest()
+
+		// Create auction with instant vesting (VestingDelay = 0)
+		suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(1000)))
+		discountType := types.NewLinearDiscountType(
+			math.LegacyNewDecWithPrec(1, 1),
+			math.LegacyNewDecWithPrec(5, 1),
+			24*time.Hour,
+		)
+
+		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
+			suite.Ctx,
+			common.DymUint64(1000),
+			suite.Ctx.BlockTime(),
+			suite.Ctx.BlockTime().Add(24*time.Hour),
+			discountType,
+			types.Auction_VestingParams{VestingDelay: 0},
+			types.DefaultPumpParams,
+		)
+		suite.Require().NoError(err)
+
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
+
+		// First purchase
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 0)
+		suite.Require().NoError(err)
+
+		// Advance time by 6 hours and make second purchase
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(6 * time.Hour))
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(50).MulRaw(1e18), "usdc", 0)
+		suite.Require().NoError(err)
+
+		purchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		suite.Require().Equal(2, len(purchase.Entries))
+		suite.Require().Equal(math.NewInt(150).MulRaw(1e18), purchase.TotalAmount())
+
+		// Advance to 12 hours from start (first entry 50% vested, second entry 25% vested)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(6 * time.Hour))
+
+		// Claim during active auction
+		claimedAmount, err := suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
+		suite.Require().NoError(err)
+		// Should claim 50% of first entry == 50 DYM and 25% of second entry == 12.5 DYM
+		suite.Require().Equal(math.NewInt(50).MulRaw(1e18).Add(math.NewInt(125).MulRaw(1e17)), claimedAmount)
+
+		// Advance to end of all vesting
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(24 * time.Hour))
+		_, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
+		suite.Require().NoError(err)
+
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		suite.Require().Equal(purchase.TotalAmount(), purchase.Claimed)
+	})
+
+	suite.Run("fixed discount with different vesting periods", func() {
+		suite.SetupTest()
+
+		suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(1000)))
+
+		const v30 = 30 * 24 * time.Hour
+		const v90 = 90 * 24 * time.Hour
+
+		// Create fixed discount auction with 30d and 90d vesting
+		discountType := types.NewFixedDiscountType([]types.FixedDiscount_Discount{
+			{Discount: math.LegacyNewDecWithPrec(10, 2), VestingPeriod: v30}, // 10%, 30d
+			{Discount: math.LegacyNewDecWithPrec(30, 2), VestingPeriod: v90}, // 30%, 90d
+		})
+
+		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
+			suite.Ctx,
+			common.DymUint64(1000),
+			suite.Ctx.BlockTime(),
+			suite.Ctx.BlockTime().Add(24*time.Hour),
+			discountType,
+			types.Auction_VestingParams{VestingDelay: 0}, // instant vesting
+			types.DefaultPumpParams,
+		)
+		suite.Require().NoError(err)
+
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
+
+		// 1. First buy with 30-day vesting: 100 DYM
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", v30)
+		suite.Require().NoError(err)
+
+		purchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		suite.Require().Equal(1, len(purchase.Entries))
+
+		// 2. Check claiming right after first buy (vesting just started)
+		claimable := purchase.ClaimableAmount(suite.Ctx.BlockTime())
+		suite.Require().True(claimable.IsZero(), "No vesting yet at exact start time")
+
+		// 3. Advance 15 days (50% of first vesting)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(15 * 24 * time.Hour))
+
+		// 4. Second buy with 90-day vesting: 180 DYM
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(180).MulRaw(1e18), "usdc", v90)
+		suite.Require().NoError(err)
+
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		suite.Require().Equal(2, len(purchase.Entries))
+
+		// 5. Check claiming right after second buy (should only have from first)
+		claimable = purchase.ClaimableAmount(suite.Ctx.BlockTime())
+		expected := math.NewInt(50).MulRaw(1e18) // 50% of 100 DYM from first entry
+		suite.Require().Equal(expected, claimable, "Should have 50 DYM vested from first entry")
+
+		claimedAmount, err := suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
+		suite.Require().NoError(err)
+		suite.Require().Equal(expected, claimedAmount)
+
+		// 6. Advance to 30 days total (first vesting ends, 16.67% of second vesting)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(15 * 24 * time.Hour))
+
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		claimable = purchase.ClaimableAmount(suite.Ctx.BlockTime())
+		// First: 100% of 100 = 100 DYM (but 50 already claimed)
+		// Second: 15 days / 90 days = 16.67% of 180 ≈ 30 DYM (with small truncation from LegacyDec)
+		// Total unlocked: ≈ 130 DYM, minus 50 claimed ≈ 80 claimable
+		// Allow small tolerance for LegacyDec truncation (1/6 * 180 has precision loss)
+		expected = math.NewInt(80).MulRaw(1e18)
+		err = testutil.ApproxEqualRatio(expected, claimable, 0.0001)
+		suite.Require().NoError(err, "Claimable should be approximately 80 DYM, got %s", claimable)
+
+		claimedAmount, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
+		suite.Require().NoError(err)
+		// Claimable and claimed should match exactly
+		suite.Require().Equal(claimable, claimedAmount)
+
+		// 7. Advance to 60 days total (first done, 50% of second vesting)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(30 * 24 * time.Hour))
+
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		claimable = purchase.ClaimableAmount(suite.Ctx.BlockTime())
+		// First: 100% = 100 DYM
+		// Second: 45 days / 90 days = 50% of 180 = 90 DYM (exact)
+		// Total unlocked: 190 DYM, claimed so far: ≈ 130 DYM (with precision loss from checkpoint 6)
+		// Claimable: ≈ 60 DYM
+		expected = math.NewInt(60).MulRaw(1e18)
+		err = testutil.ApproxEqualRatio(expected, claimable, 0.0001)
+		suite.Require().NoError(err, "Claimable should be approximately 60 DYM, got %s", claimable)
+
+		claimedAmount, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
+		suite.Require().NoError(err)
+		suite.Require().Equal(claimable, claimedAmount)
+
+		// 8. Advance to 105 days total (both fully vested)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(45 * 24 * time.Hour))
+
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		claimable = purchase.ClaimableAmount(suite.Ctx.BlockTime())
+		// Total: 280 DYM, claimed: ≈ 190 DYM (with cumulative precision effects)
+		// Remaining: ≈ 90 DYM
+		expected = math.NewInt(90).MulRaw(1e18)
+		err = testutil.ApproxEqualRatio(expected, claimable, 0.0001)
+		suite.Require().NoError(err, "Claimable should be approximately 90 DYM, got %s", claimable)
+
+		claimedAmount, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
+		suite.Require().NoError(err)
+		suite.Require().Equal(claimable, claimedAmount)
+
+		// Verify all claimed (with tolerance for precision)
+		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+		err = testutil.ApproxEqualRatio(purchase.TotalAmount(), purchase.Claimed, 0.0001)
+		suite.Require().NoError(err, "All tokens should be claimed (within tolerance), total: %s, claimed: %s",
+			purchase.TotalAmount(), purchase.Claimed)
+	})
+}

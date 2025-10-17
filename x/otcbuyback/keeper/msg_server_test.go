@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 			expectError: true,
 		},
 		{
-			name:        "success - valid auction creation",
+			name:        "success - valid linear discount auction",
 			setup:       func() {},
 			expectError: false,
 			postCheck: func() {
@@ -89,6 +89,39 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 				suite.Require().Equal(validCreateAuctionMsg.Allocation.String(), otcBalance.String(),
 					"otcbuyback should have received allocation funds")
 			},
+		},
+		{
+			name: "success - valid fixed discount auction",
+			setup: func() {
+				tcMsg.DiscountType = types.NewFixedDiscountType([]types.FixedDiscount_Discount{
+					{Discount: math.LegacyNewDecWithPrec(10, 2), VestingPeriod: 30 * 24 * time.Hour},
+					{Discount: math.LegacyNewDecWithPrec(30, 2), VestingPeriod: 90 * 24 * time.Hour},
+					{Discount: math.LegacyNewDecWithPrec(50, 2), VestingPeriod: 180 * 24 * time.Hour},
+				})
+			},
+			expectError: false,
+			postCheck: func() {
+				auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, 1)
+				suite.Require().True(found)
+				suite.Require().NotNil(auction.DiscountType.GetFixed())
+				suite.Require().Equal(3, len(auction.DiscountType.GetFixed().Discounts))
+			},
+		},
+		{
+			name: "error - fixed discount with empty discounts",
+			setup: func() {
+				tcMsg.DiscountType = types.NewFixedDiscountType([]types.FixedDiscount_Discount{})
+			},
+			expectError: true,
+		},
+		{
+			name: "error - fixed discount with invalid discount rate",
+			setup: func() {
+				tcMsg.DiscountType = types.NewFixedDiscountType([]types.FixedDiscount_Discount{
+					{Discount: math.LegacyNewDecWithPrec(15, 1), VestingPeriod: 30 * 24 * time.Hour}, // 1.5 = 150% invalid
+				})
+			},
+			expectError: true,
 		},
 	}
 
