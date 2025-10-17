@@ -149,6 +149,11 @@ func (k Keeper) EndAuction(ctx sdk.Context, auctionID uint64, reason string) err
 
 // ProcessIntervalPumping checks if it's time to create pump streams and creates them if needed
 func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) error {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to get params")
+	}
+
 	pp := auction.PumpParams
 	pi := auction.PumpInfo
 
@@ -167,16 +172,14 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 		return nil // Not yet time for next pump
 	}
 
-	// TODO: use actual spot prices instead of sold since last pump
-	soldSinceLastPump := auction.SoldAmount.Sub(pi.LastSoldAmount)
-	// TODO: module param
-	minSoldDiff := math.NewInt(1_000_000_000)
-	if soldSinceLastPump.LT(minSoldDiff) {
-		// Nothing new to pump, but we still update the last pump time
+	// Check if enough has been sold since the last pump to warrant creating a pump stream
+	// TODO: use actual spot prices of raised liquidity vs. sold since last pump
+	soldSinceLast := auction.SoldAmount.Sub(pi.LastSoldAmount)
+	if soldSinceLast.LT(params.MinSoldDifferenceToPump) {
+		// Nothing significant to pump, but we still update the last pump time
 		// to avoid checking this auction on every block
 		pi.LastPumpTime = ctx.BlockTime()
 		return k.SetAuction(ctx, auction)
-		// TODO: emit event in case of no pump?
 	}
 
 	// Calculate tokens to pump: newToPump = raised_amount - last_raised_amount
@@ -189,6 +192,7 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 	}
 
 	// Create pump streams for the new tokens
+	raisedSinceLast := auction.RaisedAmount.Sub(auction.PumpInfo.LastRaisedAmount...)
 	streamIDs, err := k.CreatePumpStreams(ctx, auction)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to create pump streams")
@@ -197,13 +201,23 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 	// Update auction state
 	pi.LastPumpTime = ctx.BlockTime()
 	pi.LastRaisedAmount = auction.RaisedAmount
+	pi.LastSoldAmount = auction.SoldAmount
 
 	err = k.SetAuction(ctx, auction)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to save auction")
 	}
 
-	// TODO: pumped event + store streamsIDs in it
+	// Emit completion event
+	err = uevent.EmitTypedEvent(ctx, &types.EventAuctionPumped{
+		AuctionId:       auction.Id,
+		SoldSinceLast:   soldSinceLast,
+		RaisedSinceLast: raisedSinceLast,
+		PumpStreams:     streamIDs,
+	})
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to emit auction completed event")
+	}
 
 	// Log the pump
 	k.Logger(ctx).Info("interval pump executed",

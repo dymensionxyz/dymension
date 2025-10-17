@@ -38,6 +38,18 @@ func (k Keeper) Buy(
 			"token %s not accepted for this auction", denomToPay)
 	}
 
+	// Get params for validation
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return sdk.Coin{}, errorsmod.Wrap(err, "failed to get params")
+	}
+
+	// Check minimum purchase amount
+	if amountToBuy.LT(params.MinPurchaseAmount) {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidPurchaseAmount,
+			"purchase amount %s is less than minimum %s", amountToBuy, params.MinPurchaseAmount)
+	}
+
 	// Check if enough tokens are available
 	remainingAllocation := auction.GetRemainingAllocation()
 	if amountToBuy.GT(remainingAllocation) {
@@ -78,11 +90,9 @@ func (k Keeper) Buy(
 	}
 
 	// Enforce purchase limits (DoS protection)
-	// TODO: gov param
-	maxPurchases := 20
-	if len(purchase.Entries) >= maxPurchases {
+	if uint64(len(purchase.Entries)) >= params.MaxPurchaseNumber {
 		return sdk.Coin{}, errorsmod.Wrap(types.ErrInvalidPurchaseAmount,
-			fmt.Sprintf("maximum %d purchases per user per auction", maxPurchases))
+			fmt.Sprintf("maximum purchases per user per auction is %d", params.MaxPurchaseNumber))
 	}
 
 	// Create a new purchase entry with vesting start after delay
@@ -127,8 +137,10 @@ func (k Keeper) Buy(
 		"price", currentPrice,
 		"vesting_period", vestingPeriod)
 
-	// Check if auction should end (sold out)
-	if auction.SoldAmount.GTE(auction.Allocation) {
+	// Check if auction should end (sold out):
+	// 'remaining = allocation - sold < min' => no one could buy the remaining part since it's too small.
+	// If min is 0, the previous check is not performed, so we check 'allocation <= sold' instead.
+	if auction.SoldAmount.GTE(auction.Allocation) || auction.GetRemainingAllocation().LT(params.MinPurchaseAmount) {
 		// we make the end auction flow gas free, as it's not relevant to the specific user's action
 		noGasCtx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 		err = k.EndAuction(noGasCtx, auctionID, "auction_sold_out")

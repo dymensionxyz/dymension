@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -13,6 +14,9 @@ import (
 func DefaultParams() Params {
 	return Params{
 		MovingAverageSmoothingFactor: math.LegacyNewDecWithPrec(1, 1), // 0.1
+		MaxPurchaseNumber:            20,                              // Maximum 20 purchases per user per auction
+		MinPurchaseAmount:            math.ZeroInt(),                  // No minimum
+		MinSoldDifferenceToPump:      common.DYM.MulRaw(1000),         // Minimum 1000 DYM sold to trigger pump
 	}
 }
 
@@ -23,6 +27,19 @@ func (p Params) ValidateBasic() error {
 		p.MovingAverageSmoothingFactor.GT(math.LegacyOneDec()) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "moving average smoothing factor must be between 0 and 1")
 	}
+
+	if p.MaxPurchaseNumber == 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "max purchase number must be positive")
+	}
+
+	if p.MinPurchaseAmount.IsNil() || p.MinPurchaseAmount.IsNegative() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min purchase amount must be non-negative")
+	}
+
+	if p.MinSoldDifferenceToPump.IsNil() || p.MinSoldDifferenceToPump.IsNegative() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min sold difference to pump must be non-negative")
+	}
+
 	return nil
 }
 

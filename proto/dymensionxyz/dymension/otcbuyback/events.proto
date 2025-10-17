@@ -76,6 +76,25 @@ message EventAuctionCompleted {
   string completion_reason = 5;
 }
 
+message EventAuctionPumped {
+  // Auction ID
+  uint64 auction_id = 1;
+
+  // Sold tokens since the last pump
+  string sold_since_last = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Raised tokens since the last pump
+  repeated cosmos.base.v1beta1.Coin raised_since_last = 3
+  [ (gogoproto.nullable) = false ];
+
+  // Created pump streams
+  repeated uint64 pump_streams = 4;
+}
+
 // EventTokensClaimed is emitted when a user claims vested tokens
 message EventTokensClaimed {
   // Auction ID
