@@ -44,8 +44,10 @@ func (k Keeper) Buy(
 		return sdk.Coin{}, types.ErrInsufficientAllocation
 	}
 
-	// Get current price
-	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime(), vestingPeriod)
+	// Get the current price and associated vesting period
+	// For linear discount, it's hardcoded in the auction
+	// For fixed discount, it's the same as specified in the request (if valid; otherwise, error)
+	currentPrice, actualVestingPeriod, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -84,9 +86,11 @@ func (k Keeper) Buy(
 	}
 
 	// Create a new purchase entry with vesting start after delay
-	vestingStartTime := auction.GetVestingStartTime(ctx.BlockTime())
-	entry := types.NewPurchaseEntry(amountToBuy, vestingStartTime, vestingPeriod)
-	purchase.AddEntry(entry)
+	purchase.AddEntry(types.NewPurchaseEntry(
+		amountToBuy,
+		auction.GetVestingStartTime(ctx.BlockTime()),
+		actualVestingPeriod,
+	))
 
 	// Save purchase
 	if err := k.SetPurchase(ctx, auctionID, buyer, purchase); err != nil {
@@ -145,7 +149,7 @@ func (k Keeper) BuyExactSpend(
 	vestingPeriod time.Duration,
 ) (math.Int, error) {
 	// Get current price
-	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
+	currentPrice, _, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
 		return math.ZeroInt(), err
 	}
@@ -165,28 +169,34 @@ func (k Keeper) BuyExactSpend(
 	return tokensToPurchase, nil
 }
 
-// GetDiscountedPrice returns the current price for an active auction
-func (k Keeper) GetDiscountedPrice(ctx sdk.Context, auctionID uint64, quoteDenom string, currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, error) {
+// GetDiscountedPrice returns the current price for an active auction and associated vesting period
+func (k Keeper) GetDiscountedPrice(
+	ctx sdk.Context,
+	auctionID uint64,
+	quoteDenom string,
+	currentTime time.Time,
+	vestingPeriod time.Duration,
+) (math.LegacyDec, time.Duration, error) {
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
-		return math.LegacyZeroDec(), types.ErrAuctionNotFound
+		return math.LegacyZeroDec(), 0, types.ErrAuctionNotFound
 	}
 
 	// Get discount based on the auction type
-	discount, err := auction.GetDiscount(currentTime, vestingPeriod)
+	discount, actualVestingPeriod, err := auction.GetDiscount(currentTime, vestingPeriod)
 	if err != nil {
-		return math.LegacyZeroDec(), err
+		return math.LegacyZeroDec(), 0, fmt.Errorf("get discount: %w", err)
 	}
 
 	basePrice, err := k.GetBasePrice(ctx, quoteDenom)
 	if err != nil {
-		return math.LegacyZeroDec(), fmt.Errorf("get base price: %w", err)
+		return math.LegacyZeroDec(), 0, fmt.Errorf("get base price: %w", err)
 	}
 
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
 
 	// Price = AMM Price × (1 - Current Discount%)
-	return basePrice.Mul(discountMultiplier), nil
+	return basePrice.Mul(discountMultiplier), actualVestingPeriod, nil
 }
 
 // GetBasePrice gets base price (max(current_price, average_price))

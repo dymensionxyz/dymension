@@ -102,8 +102,8 @@ message PumpInfo {
 // Vesting params for purchased tokens in the auction
 message DiscountType {
   oneof type {
-    LinearDiscount linear = 1;
-    FixedDiscount fixed = 2;
+    LinearDiscount linear = 1 [ (amino.oneof_name) = "linear" ];
+    FixedDiscount fixed = 2 [ (amino.oneof_name) = "fixed" ];
   }
 }
 

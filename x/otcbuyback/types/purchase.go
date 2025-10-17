@@ -13,17 +13,17 @@ func NewPurchaseEntry(
 	vestingDuration time.Duration,
 ) PurchaseEntry {
 	return PurchaseEntry{
-		Amount:            amount,
-		VestingStartTime:  vestingStartTime,
-		VestingDuration:   vestingDuration,
+		Amount:           amount,
+		VestingStartTime: vestingStartTime,
+		VestingDuration:  vestingDuration,
 	}
 }
 
 // NewPurchase creates a new user purchase with empty entries
-func NewPurchase() Purchase {
+func NewPurchase(entries ...PurchaseEntry) Purchase {
 	return Purchase{
-		Entries:      []PurchaseEntry{},
-		TotalClaimed: math.ZeroInt(),
+		Entries: entries,
+		Claimed: math.ZeroInt(),
 	}
 }
 
@@ -34,7 +34,7 @@ func (p *Purchase) AddEntry(entry PurchaseEntry) {
 
 // ClaimTokens updates the purchase data after a successful claim
 func (p *Purchase) ClaimTokens(amount math.Int) {
-	p.TotalClaimed = p.TotalClaimed.Add(amount)
+	p.Claimed = p.Claimed.Add(amount)
 }
 
 // TotalAmount returns the total amount purchased across all entries
@@ -48,12 +48,11 @@ func (p Purchase) TotalAmount() math.Int {
 
 // UnclaimedAmount returns the amount still vesting (not yet claimed)
 func (p Purchase) UnclaimedAmount() math.Int {
-	return p.TotalAmount().Sub(p.TotalClaimed)
+	return p.TotalAmount().Sub(p.Claimed)
 }
 
-// CalculateUnlocked calculates the total unlocked amount across all purchase entries
-// using the Overlapping approach as described in the ADR
-func (p Purchase) CalculateUnlocked(currTime time.Time) math.Int {
+// UnlockedAmount calculates the total unlocked amount across all purchase entries
+func (p Purchase) UnlockedAmount(currTime time.Time) math.Int {
 	unlocked := math.ZeroInt()
 
 	for _, entry := range p.Entries {
@@ -86,10 +85,10 @@ func (p Purchase) CalculateUnlocked(currTime time.Time) math.Int {
 	return unlocked
 }
 
-// ClaimableAmount calculates the amount of tokens that have vested and are claimable
+// ClaimableAmount calculates the number of tokens that have vested and are claimable
 func (p Purchase) ClaimableAmount(currTime time.Time) math.Int {
-	unlocked := p.CalculateUnlocked(currTime)
-	claimable := unlocked.Sub(p.TotalClaimed)
+	unlocked := p.UnlockedAmount(currTime)
+	claimable := unlocked.Sub(p.Claimed)
 
 	// Ensure claimable is not negative
 	if claimable.IsNegative() {

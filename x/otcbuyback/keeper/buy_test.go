@@ -25,15 +25,16 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		suite.FundAcc(buyer, buyerFunds)
 
 		// Create an auction
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		suite.Require().True(found)
 
-		discount := auction.GetCurrentDiscount(suite.Ctx.BlockTime())
-		suite.Require().Equal(discount, auction.InitialDiscount) // 10% default
+		discount, _, err := auction.GetDiscount(suite.Ctx.BlockTime(), 0)
+		suite.Require().NoError(err)
+		suite.Require().Equal(discount, auction.DiscountType.GetLinear().InitialDiscount) // 10% default
 
 		amountToBuy := math.NewInt(100).MulRaw(1e18)
-		paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc")
+		paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 		suite.Require().NoError(err)
 
 		// should have spent ~22.5 usdc (pool price is 1:4 (25 usdc for 100 dym) + 10% discount)
@@ -53,16 +54,17 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		suite.FundAcc(buyer, buyerFunds)
 
 		// Create an auction
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		suite.Require().True(found)
 
-		discount := auction.GetCurrentDiscount(suite.Ctx.BlockTime())
-		suite.Require().Equal(discount, auction.InitialDiscount) // 10% default
+		discount, _, err := auction.GetDiscount(suite.Ctx.BlockTime(), 0)
+		suite.Require().NoError(err)
+		suite.Require().Equal(discount, auction.DiscountType.GetLinear().InitialDiscount) // 10% default
 
 		// Spend exactly 11.25 USDC to buy ~50 DYM tokens (within auction allocation limit)
 		exactPayment := sdk.NewCoin("usdc", math.NewInt(1125).MulRaw(1e4)) // 11.25 USDC
-		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment)
+		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment, 0)
 		suite.Require().NoError(err)
 
 		// At pool price 1:4 (0.25 USDC per DYM) with 10% discount = 0.225 USDC per DYM
@@ -78,7 +80,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		// Verify the buyer has a purchase record
 		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().True(found)
-		suite.Require().Equal(tokensPurchased, purchase.Amount)
+		suite.Require().Equal(tokensPurchased, purchase.TotalAmount())
 	})
 
 	suite.Run("BuyExactSpend - payment too small", func() {
@@ -90,11 +92,11 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		)
 		suite.FundAcc(buyer, buyerFunds)
 
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 
 		// Try to spend a very small amount that won't buy any tokens
 		tinyPayment := sdk.NewCoin("usdc", math.NewInt(1)) // 0.000001 USDC
-		_, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, tinyPayment)
+		_, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, tinyPayment, 0)
 		suite.Require().Error(err)
 		suite.Require().Contains(err.Error(), "payment amount too small to purchase any tokens")
 	})
@@ -113,23 +115,28 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 
 		// Create auction with higher initial discount (20%)
 		vestingParams := types.Auction_VestingParams{
-			VestingPeriod:               24 * time.Hour,
-			VestingStartAfterAuctionEnd: 0,
+			VestingDelay: 0,
 		}
 		pumpParams := types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
-			NumOfPumpsPerEpoch:       1,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		}
+
+		discount := types.NewLinearDiscountType(
+			math.LegacyNewDecWithPrec(2, 1), // 0.2 = 20% initial discount
+			math.LegacyNewDecWithPrec(5, 1), // 0.5 = 50% max discount
+			24*time.Hour,
+		)
 
 		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(suite.Ctx,
 			common.DymUint64(1000),                  // allocation
 			suite.Ctx.BlockTime(),                   // start time
 			suite.Ctx.BlockTime().Add(24*time.Hour), // end time
-			math.LegacyNewDecWithPrec(2, 1),         // 0.2 = 20% initial discount
-			math.LegacyNewDecWithPrec(5, 1),         // 0.5 = 50% max discount
+			discount,
 			vestingParams,
 			pumpParams,
 		)
@@ -137,7 +144,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 
 		// Spend exactly 25 USDC with 20% discount
 		exactPayment := sdk.NewCoin("usdc", math.NewInt(25).MulRaw(1e6))
-		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment)
+		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment, 0)
 		suite.Require().NoError(err)
 
 		// At pool price 1:4 (0.25 USDC per DYM) with 20% discount = 0.2 USDC per DYM
@@ -153,7 +160,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 
 		usdcDenom := "usdc"
 
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 
 		// Create multiple buyers
 		buyers := []sdk.AccAddress{suite.CreateRandomAccount(), suite.CreateRandomAccount(), suite.CreateRandomAccount()}
@@ -176,7 +183,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 			totalRaisedAmount = sdk.NewCoins()
 		)
 		for buyerIdx, buyer := range buyers {
-			paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountsToBuy[buyerIdx], usdcDenom)
+			paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountsToBuy[buyerIdx], usdcDenom, 0)
 			suite.Require().NoError(err)
 			totalPurchased = totalPurchased.Add(amountsToBuy[buyerIdx])
 			totalRaisedAmount = totalRaisedAmount.Add(paymentCoin)
@@ -184,7 +191,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 			// Verify each purchase
 			purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 			suite.Require().True(found)
-			suite.Require().Equal(amountsToBuy[buyerIdx], purchase.Amount)
+			suite.Require().Equal(amountsToBuy[buyerIdx], purchase.TotalAmount())
 			suite.Require().True(purchase.Claimed.IsZero())
 		}
 
@@ -200,8 +207,11 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 		suite.Require().NoError(err)
 
 		// Move to vesting end
+		// Vesting end is when the last auction purchase becomes claimable
 		auction, _ = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
-		suite.Ctx = suite.Ctx.WithBlockTime(auction.GetVestingEndTime())
+		l := auction.DiscountType.GetLinear()
+		suite.Require().NotNil(l)
+		suite.Ctx = suite.Ctx.WithBlockTime(auction.EndTime.Add(l.VestingPeriod))
 
 		// All buyers claim tokens
 		totalClaimed := math.ZeroInt()
@@ -235,31 +245,31 @@ func (suite *KeeperTestSuite) TestBuyInvalidScenarios() {
 		)
 		suite.FundAcc(buyer, buyerFunds)
 
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 		auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 
 		amountToBuy := math.NewInt(100).MulRaw(1e18)
 		// Test 1: Buy with unaccepted token
-		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "unaccepted_token")
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "unaccepted_token", 0)
 		suite.Require().Error(err)
 
 		// Test 2: Buy more than available allocation
 		tooMuch := auction.Allocation.Add(math.NewInt(1))
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, tooMuch, "usdc")
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, tooMuch, "usdc", 0)
 		suite.Require().Error(err)
 
 		// Test 3: Buy on non-active auction
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.StartTime.Add(-1 * time.Hour))
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc")
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 		suite.Require().Error(err)
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.StartTime.Add(1 * time.Hour))
 
 		// Test 4: Buy with invalid amount
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(-1).MulRaw(1e18), "usdc")
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(-1).MulRaw(1e18), "usdc", 0)
 		suite.Require().Error(err)
 
 		// Happy path
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc")
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 0)
 		suite.Require().NoError(err)
 	})
 }
@@ -268,7 +278,7 @@ func (suite *KeeperTestSuite) TestBuyAll() {
 	suite.Run("buy all", func() {
 		suite.SetupTest()
 
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		suite.Require().True(found)
 
@@ -279,13 +289,13 @@ func (suite *KeeperTestSuite) TestBuyAll() {
 		suite.FundAcc(buyer, buyerFunds)
 
 		amountToBuy := auction.Allocation
-		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc")
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 		suite.Require().NoError(err)
 
 		// Verify purchase was created
 		purchase, found := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().True(found)
-		suite.Require().Equal(amountToBuy, purchase.Amount)
+		suite.Require().Equal(amountToBuy, purchase.TotalAmount())
 		suite.Require().True(purchase.Claimed.IsZero())
 
 		// Verify auction is completed
@@ -306,25 +316,28 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		)
 		suite.FundAcc(buyer, buyerFunds)
 
-		auctionID := suite.CreateDefaultAuction()
+		auctionID := suite.CreateDefaultLinearAuction()
 		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		suite.Require().True(found)
 
-		expectedVestingStartTime := auction.GetVestingStartTime()
-		expectedVestingEndTime := auction.GetVestingEndTime()
+		expectedVestingStartTime := auction.StartTime
+		auction, _ = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		l := auction.DiscountType.GetLinear()
+		suite.Require().NotNil(l)
+		expectedVestingEndTime := auction.EndTime.Add(l.VestingPeriod)
 
 		// buyer should not have a purchase yet
 		_, found = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().False(found)
 
 		amountToBuy := math.NewInt(10).MulRaw(1e18)
-		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc")
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 		suite.Require().NoError(err)
 
-		// Test: Try to claim from non-completed auction (should fail)
+		// Test: Try to claim immediately after buy (should fail)
 		_, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "auction must be completed")
+		suite.Require().Contains(err.Error(), types.ErrNoClaimableTokens.Error())
 
 		// End the auction manually
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.EndTime)

@@ -95,15 +95,58 @@ func (a Auction) ValidateBasic() error {
 // GetDiscount returns the discount for a given vesting period
 // For LinearDiscount: returns time-based discount (ignores vestingPeriod)
 // For FixedDiscount: returns discount for the specified vesting period (ignores currentTime)
-func (a Auction) GetDiscount(currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, error) {
+// Additionally, returns the vesting period for the discount
+func (a Auction) GetDiscount(currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, time.Duration, error) {
 	switch a.DiscountType.Type.(type) {
 	case *DiscountType_Linear:
-		return a.DiscountType.GetLinear().GetDiscount(currentTime, a.StartTime, a.EndTime), nil
+		l := a.DiscountType.GetLinear()
+		return l.GetDiscount(currentTime, a.StartTime, a.EndTime), l.VestingPeriod, nil
 	case *DiscountType_Fixed:
-		return a.DiscountType.GetFixed().GetDiscount(vestingPeriod)
+		f := a.DiscountType.GetFixed()
+		discount, err := f.GetDiscount(vestingPeriod)
+		if err != nil {
+			return math.LegacyZeroDec(), 0, err
+		}
+		return discount, vestingPeriod, nil
 	default:
-		return math.LegacyZeroDec(), errors.New("unknown discount type")
+		return math.LegacyZeroDec(), 0, errors.New("unknown discount type")
 	}
+}
+
+// GetRemainingAllocation returns the amount of tokens still available for purchase
+func (a Auction) GetRemainingAllocation() math.Int {
+	return a.Allocation.Sub(a.SoldAmount)
+}
+
+// GetVestingStartTime returns the vesting start time for a purchase made at purchaseTime
+func (a Auction) GetVestingStartTime(purchaseTime time.Time) time.Time {
+	return purchaseTime.Add(a.VestingParams.VestingDelay)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Discount Type                                  */
+/* -------------------------------------------------------------------------- */
+
+// Validate performs validation on the DiscountType
+func (dt DiscountType) Validate() error {
+	switch t := dt.Type.(type) {
+	case *DiscountType_Linear:
+		return dt.GetLinear().Validate()
+	case *DiscountType_Fixed:
+		return dt.GetFixed().Validate()
+	case nil:
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "discount type must be specified")
+	default:
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "unknown discount type: %T", t)
+	}
+}
+
+func NewLinearDiscountType(initialDiscount, maxDiscount math.LegacyDec, vestingPeriod time.Duration) DiscountType {
+	return DiscountType{Type: &DiscountType_Linear{Linear: &LinearDiscount{
+		InitialDiscount: initialDiscount,
+		MaxDiscount:     maxDiscount,
+		VestingPeriod:   vestingPeriod,
+	}}}
 }
 
 // GetDiscount calculates discount based on time for LinearDiscount auctions
@@ -135,6 +178,35 @@ func (l LinearDiscount) GetDiscount(currentTime, startTime, endTime time.Time) m
 	return l.InitialDiscount.Add(discountRange.Mul(progress))
 }
 
+// Validate performs validation on LinearDiscount
+func (l *LinearDiscount) Validate() error {
+	if l == nil {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "linear discount cannot be nil")
+	}
+
+	if l.InitialDiscount.IsNegative() || l.InitialDiscount.GTE(math.LegacyOneDec()) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "initial discount must be in range [0, 1)")
+	}
+
+	if l.MaxDiscount.IsNegative() || l.MaxDiscount.GTE(math.LegacyOneDec()) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "max discount must be in range [0, 1)")
+	}
+
+	if l.InitialDiscount.GT(l.MaxDiscount) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "initial discount must be less than or equal to max discount")
+	}
+
+	if l.VestingPeriod <= 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting period must be positive")
+	}
+
+	return nil
+}
+
+func NewFixedDiscountType(discounts []FixedDiscount_Discount) DiscountType {
+	return DiscountType{Type: &DiscountType_Fixed{Fixed: &FixedDiscount{Discounts: discounts}}}
+}
+
 // GetDiscount returns discount for a specific vesting period in FixedDiscount auctions
 func (f FixedDiscount) GetDiscount(vestingPeriod time.Duration) (math.LegacyDec, error) {
 	for _, d := range f.Discounts {
@@ -142,74 +214,21 @@ func (f FixedDiscount) GetDiscount(vestingPeriod time.Duration) (math.LegacyDec,
 			return d.Discount, nil
 		}
 	}
-	return math.LegacyZeroDec(), fmt.Errorf("vesting period not found in auction discount options: %s", vestingPeriod)
-}
-
-// GetRemainingAllocation returns the amount of tokens still available for purchase
-func (a Auction) GetRemainingAllocation() math.Int {
-	return a.Allocation.Sub(a.SoldAmount)
-}
-
-// GetVestingStartTime returns the vesting start time for a purchase made at purchaseTime
-func (a Auction) GetVestingStartTime(purchaseTime time.Time) time.Time {
-	return purchaseTime.Add(a.VestingParams.VestingDelay)
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Discount Type                                  */
-/* -------------------------------------------------------------------------- */
-
-// Validate performs validation on the DiscountType
-func (dt DiscountType) Validate() error {
-	switch t := dt.Type.(type) {
-	case *DiscountType_Linear:
-		return dt.GetLinear().Validate()
-	case *DiscountType_Fixed:
-		return dt.GetFixed().Validate()
-	case nil:
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "discount type must be specified")
-	default:
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "unknown discount type: %T", t)
-	}
-}
-
-// Validate performs validation on LinearDiscount
-func (ld *LinearDiscount) Validate() error {
-	if ld == nil {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "linear discount cannot be nil")
-	}
-
-	if ld.InitialDiscount.IsNegative() || ld.InitialDiscount.GTE(math.LegacyOneDec()) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "initial discount must be in range [0, 1)")
-	}
-
-	if ld.MaxDiscount.IsNegative() || ld.MaxDiscount.GTE(math.LegacyOneDec()) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "max discount must be in range [0, 1)")
-	}
-
-	if ld.InitialDiscount.GT(ld.MaxDiscount) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "initial discount must be less than or equal to max discount")
-	}
-
-	if ld.VestingPeriod <= 0 {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting period must be positive")
-	}
-
-	return nil
+	return math.LegacyZeroDec(), fmt.Errorf("vesting period not found in discount options: %s", vestingPeriod)
 }
 
 // Validate performs validation on FixedDiscount
-func (fd *FixedDiscount) Validate() error {
-	if fd == nil {
+func (f *FixedDiscount) Validate() error {
+	if f == nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount cannot be nil")
 	}
 
-	if len(fd.Discounts) <= 0 {
+	if len(f.Discounts) <= 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fixed discount must have at least one discount option")
 	}
 
 	seen := make(map[time.Duration]struct{})
-	for i, d := range fd.Discounts {
+	for i, d := range f.Discounts {
 		if d.Discount.IsNegative() || d.Discount.GTE(math.LegacyOneDec()) {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "discount %d must be in range [0, 1)", i)
 		}

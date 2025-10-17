@@ -40,7 +40,7 @@ message Purchase {
   ];
 
   // Total amount claimed across all entries
-  string total_claimed = 2 [
+  string claimed = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

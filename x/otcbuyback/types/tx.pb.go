@@ -278,7 +278,7 @@ type MsgBuy struct {
 	DenomToPay  string                `protobuf:"bytes,4,opt,name=denom_to_pay,json=denomToPay,proto3" json:"denom_to_pay,omitempty"`
 	// For FixedDiscount auctions, the vesting period chosen by the user
 	// Must match one of the vesting periods in the auction's FixedDiscount options
-	// For LinearDiscount auctions, this field must be 0
+	// For LinearDiscount auctions, this field is ignored
 	VestingPeriod *time.Duration `protobuf:"bytes,5,opt,name=vesting_period,json=vestingPeriod,proto3,stdduration" json:"vesting_period,omitempty"`
 }
 
@@ -353,7 +353,7 @@ type MsgBuyExactSpend struct {
 	PaymentCoin types.Coin `protobuf:"bytes,3,opt,name=payment_coin,json=paymentCoin,proto3" json:"payment_coin"`
 	// For FixedDiscount auctions, the vesting period chosen by the user
 	// Must match one of the vesting periods in the auction's FixedDiscount options
-	// For LinearDiscount auctions, this field must be 0
+	// For LinearDiscount auctions, this field is ignored
 	VestingPeriod *time.Duration `protobuf:"bytes,4,opt,name=vesting_period,json=vestingPeriod,proto3,stdduration" json:"vesting_period,omitempty"`
 }
 

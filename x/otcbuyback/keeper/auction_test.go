@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestAuctionLifecycle() {
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
 	// Create auction and verify initial state
-	auctionID := suite.CreateDefaultAuction()
+	auctionID := suite.CreateDefaultLinearAuction()
 	auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 	suite.Require().True(found, "auction should be found")
 	suite.Require().False(auction.IsCompleted(), "auction should not be completed")
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
 	// Create auction and make some purchases
-	auctionID := suite.CreateDefaultAuction()
+	auctionID := suite.CreateDefaultLinearAuction()
 
 	// Create a buyer and make a purchase
 	buyer := suite.CreateRandomAccount()
@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 
 	// Make a purchase (buy 50 DYM tokens)
 	amountToBuy := math.NewInt(50).MulRaw(1e18)
-	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc")
+	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 	suite.Require().NoError(err)
 
 	auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)

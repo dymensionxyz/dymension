@@ -17,23 +17,28 @@ import (
 func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 	var tcMsg types.MsgCreateAuction
 
+	linearDiscount := types.NewLinearDiscountType(
+		math.LegacyNewDecWithPrec(2, 1), // 0.2 = 20% initial discount
+		math.LegacyNewDecWithPrec(5, 1), // 0.5 = 50% max discount
+		24*time.Hour,
+	)
+
 	validCreateAuctionMsg := &types.MsgCreateAuction{
-		Authority:       authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		Allocation:      common.DymUint64(100),
-		StartTime:       time.Now().Add(time.Hour),
-		EndTime:         time.Now().Add(25 * time.Hour),   // 24 hour auction
-		InitialDiscount: math.LegacyNewDecWithPrec(5, 2),  // 5%
-		MaxDiscount:     math.LegacyNewDecWithPrec(50, 2), // 50%
+		Authority:    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Allocation:   common.DymUint64(100),
+		StartTime:    time.Now().Add(time.Hour),
+		EndTime:      time.Now().Add(25 * time.Hour), // 24 hour auction
+		DiscountType: linearDiscount,
 		VestingParams: types.Auction_VestingParams{
-			VestingPeriod:               24 * time.Hour,
-			VestingStartAfterAuctionEnd: time.Hour,
+			VestingDelay: time.Hour,
 		},
 		PumpParams: types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
-			NumOfPumpsPerEpoch:       1,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	}
 
