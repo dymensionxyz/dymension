@@ -156,7 +156,8 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 
 		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
 		params.MinSoldDifferenceToPump = math.NewInt(100).MulRaw(1e18)
-		suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+		err := suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+		suite.Require().NoError(err)
 
 		pumpParams := types.Auction_PumpParams{
 			PumpDelay:          2 * time.Hour,
@@ -167,10 +168,15 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
 		}
 
-		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(suite.Ctx,
-			common.DymUint64(10000), suite.Ctx.BlockTime(), suite.Ctx.BlockTime().Add(24*time.Hour),
+		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
+			suite.Ctx,
+			common.DymUint64(10000),
+			suite.Ctx.BlockTime(),
+			suite.Ctx.BlockTime().Add(24*time.Hour),
 			types.NewLinearDiscountType(math.LegacyNewDecWithPrec(1, 1), math.LegacyNewDecWithPrec(5, 1), 24*time.Hour),
-			types.Auction_VestingParams{VestingDelay: 0}, pumpParams)
+			types.Auction_VestingParams{VestingDelay: 0},
+			pumpParams,
+		)
 		suite.Require().NoError(err)
 
 		buyer := suite.CreateRandomAccount()
@@ -200,5 +206,16 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 		stream := streams[0]
 		suite.Require().True(stream.IsPumpStream())
 		suite.Require().Equal(pumpParams.NumOfPumpsPerEpoch, stream.PumpParams.NumPumps)
+
+		// Test: Advance past pump_interval with NO new purchases
+		// Don't make any purchases after first pump
+		// Advance time past pump_interval (4 hours from first pump at 2h)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(4 * time.Hour))
+		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
+		suite.Require().NoError(err)
+
+		// Verify no second pump was created because sold difference is 0 (below 100 DYM threshold)
+		streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)
+		suite.Require().Equal(1, len(streams), "No pump when sold difference is below threshold")
 	})
 }
