@@ -1,6 +1,6 @@
 allow = data.confidential_space.allow;
 hw_verified = data.confidential_space.hw_verified;
-image__digest_verified = data.confidential_space.image_digest_verified;
+image_digest_verified = data.confidential_space.image_digest_verified;
 audience_verified = data.confidential_space.audience_verified;
 nonce_verified = data.confidential_space.nonce_verified;
 issuer_verified = data.confidential_space.issuer_verified;
