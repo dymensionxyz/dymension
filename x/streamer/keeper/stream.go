@@ -14,7 +14,7 @@ import (
 // UpdateStreamAtEpochStart updates the stream for a new epoch: estimates coins that streamer will
 // distribute during this epoch and updates a sponsored distribution if needed.
 func (k Keeper) UpdateStreamAtEpochStart(ctx sdk.Context, stream types.Stream) (types.Stream, error) {
-	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
+	remainCoins := stream.LeftCoins()
 	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
 	epochCoins := remainCoins.QuoInt(math.NewIntFromUint64(remainEpochs))
 
