@@ -65,6 +65,10 @@ func (stream Stream) IsPumpStream() bool {
 	return stream.PumpParams != nil
 }
 
+func (stream Stream) LeftCoins() sdk.Coins {
+	return stream.Coins.Sub(stream.DistributedCoins...)
+}
+
 type PumpTarget isMsgCreatePumpStream_Target
 
 func PumpTargetRollapps(numTopRollapps uint32) PumpTarget {
