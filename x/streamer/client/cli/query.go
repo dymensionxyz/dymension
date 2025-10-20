@@ -110,7 +110,7 @@ func GetCmdPumpPressureByRollapp() (*osmocli.QueryDescriptor, *types.PumpPressur
 func GetCmdPumpPressureByStream() (*osmocli.QueryDescriptor, *types.PumpPressureByStreamRequest) {
 	return &osmocli.QueryDescriptor{
 		Use:   "pump-pressure-by-stream [stream-id]",
-		Short: "Query pump pressure for a specific strea,",
+		Short: "Query pump pressure for a specific stream",
 		Long:  "Returns how much DYM will be used for buying RA tokens if pump occurs for a specific stream.",
 	}, &types.PumpPressureByStreamRequest{}
 }

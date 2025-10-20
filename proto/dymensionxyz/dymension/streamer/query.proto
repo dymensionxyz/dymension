@@ -61,7 +61,7 @@ service Query {
   }
   // PumpPressureByStream is how much DYM will be used for buying RA tokens if
   // pump occurs in the given stream. Returns pump pressure for a specific
-  // rollapp from a given streams.
+  // rollapp from the given streams.
   rpc PumpPressureByStream(PumpPressureByStreamRequest)
       returns (PumpPressureByStreamResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/streamer/"

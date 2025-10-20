@@ -159,6 +159,9 @@ func (q Querier) PumpPressureByStream(goCtx context.Context, req *types.PumpPres
 	if err != nil {
 		return nil, err
 	}
+	if !stream.IsPumpStream() {
+		return nil, fmt.Errorf("stream is not a pump stream")
+	}
 	if !stream.IsActiveStream(ctx.BlockTime()) {
 		return nil, fmt.Errorf("stream is not active")
 	}

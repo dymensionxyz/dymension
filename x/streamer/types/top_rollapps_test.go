@@ -33,18 +33,6 @@ func TestMergeTopRollApps(t *testing.T) {
 			},
 		},
 		{
-			name: "single slice with zero pressure",
-			tops: [][]types.PumpPressure{
-				{
-					{RollappId: "rollapp_1", Pressure: math.NewInt(0)},
-					{RollappId: "rollapp_2", Pressure: math.NewInt(200)},
-				},
-			},
-			want: []types.PumpPressure{
-				{RollappId: "rollapp_2", Pressure: math.NewInt(200)},
-			},
-		},
-		{
 			name: "both empty",
 			tops: [][]types.PumpPressure{{}, {}},
 			want: []types.PumpPressure{},

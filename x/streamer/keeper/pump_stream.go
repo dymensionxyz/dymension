@@ -35,6 +35,8 @@ import (
 // If limit is not 0, return at most `limit` records.
 // totalWeight is a weight used to normalize the pressure. If nil,
 // the total weight is calculated from the given gauges.
+//
+// Contract: all returned pump records have non-zero pressure.
 func (k Keeper) TopRollapps(
 	ctx sdk.Context,
 	gauges []sponsorshiptypes.Gauge,
@@ -91,6 +93,13 @@ func (k Keeper) TopRollapps(
 	for i := 0; i < len(rollappRecords); i++ {
 		// Don't pre-calculate 'pumpBudget / totalWeight' bc it loses precision
 		rollappRecords[i].Pressure = rollappRecords[i].Pressure.Mul(pumpBudget).Quo(totalWeight)
+
+		if rollappRecords[i].Pressure.IsZero() {
+			// If the pressure is zero, then all further records are also zero
+			// No need to continue iterating
+			rollappRecords = rollappRecords[:i]
+			break
+		}
 	}
 
 	return rollappRecords
