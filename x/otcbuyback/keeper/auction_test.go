@@ -183,7 +183,8 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(1000000).MulRaw(1e6))))
 
 		// First purchase: 200 DYM
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(200).MulRaw(1e18), "usdc", 0)
+		purchaseAmt := math.NewInt(200).MulRaw(1e18)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0)
 		suite.Require().NoError(err)
 
 		// Before the first pump_interval-no pump should occur
@@ -195,9 +196,16 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 		suite.Require().Equal(0, len(streams), "No pump before delay")
 
 		// After the first pump_interval - first pump should occur
-		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(3 * time.Hour))
+		pumpTime1 := suite.Ctx.BlockTime().Add(3 * time.Hour)
+		suite.Ctx = suite.Ctx.WithBlockTime(pumpTime1)
 		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
 		suite.Require().NoError(err)
+
+		// Check state – auction's pump info should be updated
+		auction, ok := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		suite.Require().True(ok)
+		suite.Require().Equal(pumpTime1, auction.PumpInfo.LastPumpTime)
+		suite.Require().Equal(purchaseAmt, auction.SoldAmount)
 
 		streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)
 		suite.Require().Equal(1, len(streams), "First pump after delay")
@@ -210,9 +218,16 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 		// Test: Advance past pump_interval with NO new purchases
 		// Don't make any purchases after first pump
 		// Advance time past pump_interval (5 hours from first pump => second should be already triggered)
-		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(5 * time.Hour))
+		pumpTime2 := suite.Ctx.BlockTime().Add(5 * time.Hour)
+		suite.Ctx = suite.Ctx.WithBlockTime(pumpTime2)
 		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
 		suite.Require().NoError(err)
+
+		// Check state – auction's last pump time should be updated, sold amount should not change
+		auction, ok = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		suite.Require().True(ok)
+		suite.Require().Equal(pumpTime2, auction.PumpInfo.LastPumpTime)
+		suite.Require().Equal(purchaseAmt, auction.SoldAmount)
 
 		// Verify no second pump was created because sold difference is 0 (below 100 DYM threshold)
 		streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)

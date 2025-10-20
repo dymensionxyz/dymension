@@ -178,7 +178,7 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 	if soldSinceLast.LT(params.MinSoldDifferenceToPump) {
 		// Nothing significant to pump, but we still update the last pump time
 		// to avoid checking this auction on every block
-		pi.LastPumpTime = ctx.BlockTime()
+		auction.PumpInfo.LastPumpTime = ctx.BlockTime()
 		return k.SetAuction(ctx, auction)
 	}
 
@@ -194,6 +194,7 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 	pi.LastRaisedAmount = auction.RaisedAmount
 	pi.LastSoldAmount = auction.SoldAmount
 
+	auction.PumpInfo = pi
 	err = k.SetAuction(ctx, auction)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to save auction")
