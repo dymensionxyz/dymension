@@ -30,8 +30,8 @@ service Query {
   }
 
   rpc EstimateClaim(QueryEstimateClaim) returns (QueryEstimateClaimResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/sponsorship/estimate_claim/{address}/{rollapp_id}";
+    option (google.api.http).get = "/dymensionxyz/dymension/sponsorship/"
+                                   "estimate_claim/{address}/{rollapp_id}";
   }
 
   rpc Endorsement(QueryEndorsement) returns (QueryEndorsementResponse) {
@@ -81,10 +81,8 @@ message QueryEstimateClaimResponse {
   ];
 }
 
-message QueryEndorsement {
-  string rollapp_id = 1;
-}
+message QueryEndorsement { string rollapp_id = 1; }
 
 message QueryEndorsementResponse {
-  Endorsement endorsement = 1 [(gogoproto.nullable) = false];
+  Endorsement endorsement = 1 [ (gogoproto.nullable) = false ];
 }

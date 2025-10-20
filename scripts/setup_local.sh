@@ -1,31 +1,33 @@
 #!/bin/sh
 
-if [ "$SETTLEMENT_EXECUTABLE" = "" ]; then
+# Ensure SETTLEMENT_EXECUTABLE is defined
+if [ -z "$SETTLEMENT_EXECUTABLE" ]; then
     echo 'please run `make install` and export the installed binary with'
-    echo '`export SETTLEMENT_EXECUTABLE=$(which dymd)'
+    echo '`export SETTLEMENT_EXECUTABLE=$(which dymd)`'
     echo "dymd not found in PATH. Exiting."
     exit 1
 fi
 
 # Validate dymension binary exists
-export PATH="$PATH":"$HOME"/go/bin
-if ! command -v "$SETTLEMENT_EXECUTABLE" > /dev/null; then
-  make install
+export PATH="$PATH:$HOME/go/bin"
 
-  if ! command -v "$SETTLEMENT_EXECUTABLE"; then
-    echo "dymension binary $SETTLEMENT_EXECUTABLE not found in $PATH"
+if ! command -v "$SETTLEMENT_EXECUTABLE" >/dev/null 2>&1; then
+    echo "dymension binary not found, attempting to install..."
+    make install
+fi
+
+if ! command -v "$SETTLEMENT_EXECUTABLE" >/dev/null 2>&1; then
+    echo "dymension binary $SETTLEMENT_EXECUTABLE not found in PATH after install"
     exit 1
-  fi
 fi
 
 # Common commands
 genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
-
 if [ -f "$genesis_config_cmds" ]; then
-  . "$genesis_config_cmds"
+    . "$genesis_config_cmds"
 else
-  echo "Error: header file not found" >&2
-  exit 1
+    echo "Error: header file not found" >&2
+    exit 1
 fi
 
 # Set parameters
@@ -52,16 +54,15 @@ JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000adym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24adym )
 STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% is staked (inflation goal)
 
-# Verify that a genesis file doesn't exists for the dymension chain
+# Verify that a genesis file doesn't exist for the dymension chain
 if [ -f "$GENESIS_FILE" ]; then
-  printf "\n======================================================================================================\n"
-  echo "A genesis file already exists. building the chain will delete all previous chain data. continue? (y/n)"
-  read -r answer
-  if [ "$answer" != "${answer#[Yy]}" ]; then
-    rm -rf "$DATA_DIRECTORY"
-  else
-    exit 1
-  fi
+    printf "\n======================================================================================================\n"
+    echo "A genesis file already exists. Building the chain will delete all previous chain data. Continue? (y/n)"
+    read -r answer
+    case "$answer" in
+        [Yy]*) rm -rf "$DATA_DIRECTORY" ;;
+        *) exit 1 ;;
+    esac
 fi
 
 # Create and init dymension chain
@@ -98,26 +99,28 @@ set_dymns_params
 
 echo "Enable monitoring? (Y/n) "
 read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  enable_monitoring
-fi
+case "$answer" in
+    [Nn]*) ;;
+    *) enable_monitoring ;;
+esac
 
 echo "Initialize AMM accounts? (Y/n) "
 read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  "$SETTLEMENT_EXECUTABLE" keys add pools --keyring-backend test
-  "$SETTLEMENT_EXECUTABLE" keys add user --keyring-backend test
+case "$answer" in
+    [Nn]*) ;;
+    *)
+        "$SETTLEMENT_EXECUTABLE" keys add pools --keyring-backend test
+        "$SETTLEMENT_EXECUTABLE" keys add user --keyring-backend test
 
-  # Add genesis accounts and provide coins to the accounts
-  "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account pools 1000000000000000000000000adym,10000000000uatom,500000000000uusd
-  # Give some uatom to the local-user as well
-  "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account user 1000000000000000000000000adym,10000000000uatom
-fi
+        # Add genesis accounts and provide coins to the accounts
+        "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account pools 1000000000000000000000000adym,10000000000uatom,500000000000uusd
+        # Give some uatom to the local-user as well
+        "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account user 1000000000000000000000000adym,10000000000uatom
+        ;;
+esac
 
 echo "$MNEMONIC" | "$SETTLEMENT_EXECUTABLE" keys add "$KEY_NAME" --recover --keyring-backend test
 "$SETTLEMENT_EXECUTABLE" genesis add-genesis-account "$KEY_NAME" "$TOKEN_AMOUNT" --keyring-backend test
-
 "$SETTLEMENT_EXECUTABLE" genesis gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 "$SETTLEMENT_EXECUTABLE" genesis collect-gentxs
-
 "$SETTLEMENT_EXECUTABLE" genesis validate-genesis

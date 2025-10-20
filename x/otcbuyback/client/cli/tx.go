@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -45,7 +46,9 @@ func CmdBuy() *cobra.Command {
 
 Example:
 $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --from mykey
+$ %s tx otcbuyback buy 1 1000000000000000000 uusdc --vesting-period 720h --from mykey
 `,
+				version.AppName,
 				version.AppName,
 			),
 		),
@@ -67,11 +70,26 @@ $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --from mykey
 			}
 			denomToPay := args[2]
 
+			// Parse optional vesting period
+			vestingPeriodStr, err := cmd.Flags().GetString("vesting-period")
+			if err != nil {
+				return err
+			}
+			var vestingPeriod time.Duration
+			if vestingPeriodStr != "" {
+				duration, err := time.ParseDuration(vestingPeriodStr)
+				if err != nil {
+					return fmt.Errorf("invalid vesting period: %w", err)
+				}
+				vestingPeriod = duration
+			}
+
 			msg := types.MsgBuy{
-				Buyer:       clientCtx.GetFromAddress().String(),
-				AuctionId:   auctionId,
-				AmountToBuy: amountToBuy,
-				DenomToPay:  denomToPay,
+				Buyer:         clientCtx.GetFromAddress().String(),
+				AuctionId:     auctionId,
+				AmountToBuy:   amountToBuy,
+				DenomToPay:    denomToPay,
+				VestingPeriod: vestingPeriod,
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
@@ -79,6 +97,7 @@ $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --from mykey
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String("vesting-period", "", "Optional vesting period (e.g., '720h' for 30 days). Required for fixed discount auctions, ignored for linear discount auctions")
 
 	return cmd
 }
@@ -93,7 +112,9 @@ func CmdBuyExactSpend() *cobra.Command {
 
 Example:
 $ %s tx otcbuyback buy-exact-spend 1 100uusdc --from mykey
+$ %s tx otcbuyback buy-exact-spend 1 100uusdc --vesting-period 720h --from mykey
 `,
+				version.AppName,
 				version.AppName,
 			),
 		),
@@ -114,10 +135,25 @@ $ %s tx otcbuyback buy-exact-spend 1 100uusdc --from mykey
 				return fmt.Errorf("invalid payment coin: %w", err)
 			}
 
+			// Parse optional vesting period
+			vestingPeriodStr, err := cmd.Flags().GetString("vesting-period")
+			if err != nil {
+				return err
+			}
+			var vestingPeriod time.Duration
+			if vestingPeriodStr != "" {
+				duration, err := time.ParseDuration(vestingPeriodStr)
+				if err != nil {
+					return fmt.Errorf("invalid vesting period: %w", err)
+				}
+				vestingPeriod = duration
+			}
+
 			msg := types.MsgBuyExactSpend{
-				Buyer:       clientCtx.GetFromAddress().String(),
-				AuctionId:   auctionId,
-				PaymentCoin: paymentCoin,
+				Buyer:         clientCtx.GetFromAddress().String(),
+				AuctionId:     auctionId,
+				PaymentCoin:   paymentCoin,
+				VestingPeriod: vestingPeriod,
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
@@ -125,6 +161,7 @@ $ %s tx otcbuyback buy-exact-spend 1 100uusdc --from mykey
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String("vesting-period", "", "Optional vesting period (e.g., '720h' for 30 days). Required for fixed discount auctions, ignored for linear discount auctions")
 
 	return cmd
 }

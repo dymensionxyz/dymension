@@ -35,11 +35,12 @@ import (
 // If limit is not 0, return at most `limit` records.
 // totalWeight is a weight used to normalize the pressure. If nil,
 // the total weight is calculated from the given gauges.
+//
+// Contract: all returned pump records have non-zero pressure.
 func (k Keeper) TopRollapps(
 	ctx sdk.Context,
 	gauges []sponsorshiptypes.Gauge,
 	pumpBudget math.Int,
-	totalWeight *math.Int,
 	limit *uint32,
 ) []types.PumpPressure {
 	// Sort in descending order
@@ -52,7 +53,10 @@ func (k Keeper) TopRollapps(
 	// - Are not rollapps
 	// - Don't have IRO (e.g. DYM- or another coin-native)
 	//
-	// Collect no more that `limit` records
+	// Collect no more that `limit` records.
+	//
+	// Find the total weight of all selected rollapps
+	totalWeight := math.ZeroInt()
 	for _, gauge := range gauges {
 		if limit != nil && len(rollappRecords) >= int(*limit) {
 			// limit reached
@@ -82,36 +86,46 @@ func (k Keeper) TopRollapps(
 			// Just save the power for now without any multiplier
 			Pressure: gauge.Power,
 		})
-	}
-
-	// Find the total weight of all selected rollapps
-	total := math.ZeroInt()
-	if totalWeight == nil {
-		for _, ra := range rollappRecords {
-			total = total.Add(ra.Pressure)
-		}
-	} else {
-		total = *totalWeight
+		totalWeight = totalWeight.Add(gauge.Power)
 	}
 
 	// Normalize the pressure by the total weight
 	for i := 0; i < len(rollappRecords); i++ {
 		// Don't pre-calculate 'pumpBudget / totalWeight' bc it loses precision
-		rollappRecords[i].Pressure = rollappRecords[i].Pressure.Mul(pumpBudget).Quo(total)
+		rollappRecords[i].Pressure = rollappRecords[i].Pressure.Mul(pumpBudget).Quo(totalWeight)
+
+		if rollappRecords[i].Pressure.IsZero() {
+			// If the pressure is zero, then all further records are also zero
+			// No need to continue iterating
+			rollappRecords = rollappRecords[:i]
+			break
+		}
 	}
 
 	return rollappRecords
 }
 
-// TotalPumpBudget is the total number of DYM that all pump streams hold.
-func (k Keeper) TotalPumpBudget(ctx sdk.Context) math.Int {
-	totalBudget := math.ZeroInt()
-	for _, stream := range k.GetActiveStreams(ctx) {
-		if stream.IsPumpStream() {
-			totalBudget = totalBudget.Add(stream.Coins[0].Amount)
-		}
+// Pressure that all streams put on their top rollapps.
+func (k Keeper) TotalPumpPressure(ctx sdk.Context) ([]types.PumpPressure, error) {
+	d, err := k.sk.GetDistribution(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return totalBudget
+
+	var tops [][]types.PumpPressure
+	for _, stream := range k.GetActiveStreams(ctx) {
+		if !stream.IsPumpStream() {
+			continue
+		}
+		ra, ok := stream.PumpParams.Target.(*types.PumpParams_Rollapps)
+		if !ok {
+			continue
+		}
+		top := k.TopRollapps(ctx, d.Gauges, stream.LeftCoins()[0].Amount, &ra.Rollapps.NumTopRollapps)
+		tops = append(tops, top)
+	}
+
+	return types.MergeTopRollApps(tops...), nil
 }
 
 var (
@@ -523,7 +537,7 @@ func (k Keeper) PumpRollapps(
 	events []types.EventPumped_Rollapp,
 ) {
 	var (
-		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, nil, &rollapps.NumTopRollapps)
+		pressure      = k.TopRollapps(ctx, gauges, pumpAmt, &rollapps.NumTopRollapps)
 		totalPumped   = sdk.NewCoins()
 		totalTokenOut = sdk.NewCoins()
 	)

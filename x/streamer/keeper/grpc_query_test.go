@@ -264,6 +264,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 }
 
 func (s *KeeperTestSuite) TestPumpPressure() {
+	// Setup: Create rollapps and plans
 	ra1 := s.CreateDefaultRollapp()
 	ra2 := s.CreateDefaultRollapp()
 
@@ -297,69 +298,121 @@ func (s *KeeperTestSuite) TestPumpPressure() {
 	err := s.App.TxFeesKeeper.SetBaseDenom(s.Ctx, "adym")
 	s.Require().NoError(err)
 
-	// Create a stream and activate it
-	coins := sdk.NewCoins(common.DymUint64(30))
-	_, stream := s.CreatePumpStream(types.CreateStreamGeneric{
-		Coins:             coins,
+	// Create first stream with top 2 rollapps and activate it
+	coins1 := sdk.NewCoins(common.DymUint64(30))
+	stream1ID, stream1 := s.CreatePumpStream(types.CreateStreamGeneric{
+		Coins:             coins1,
+		StartTime:         time.Now(),
+		EpochIdentifier:   "day",
+		NumEpochsPaidOver: 30,
+	}, 1, types.PumpDistr_PUMP_DISTR_UNIFORM, false, types.PumpTargetRollapps(2))
+	s.Ctx = s.Ctx.WithBlockTime(stream1.StartTime.Add(time.Second))
+	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream1)
+	s.Require().NoError(err)
+
+	// Create second stream with top 1 rollapp only and activate it
+	coins2 := sdk.NewCoins(common.DymUint64(15))
+	stream2ID, stream2 := s.CreatePumpStream(types.CreateStreamGeneric{
+		Coins:             coins2,
 		StartTime:         time.Now(),
 		EpochIdentifier:   "day",
 		NumEpochsPaidOver: 30,
 	}, 1, types.PumpDistr_PUMP_DISTR_UNIFORM, false, types.PumpTargetRollapps(1))
-	s.Ctx = s.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
-	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream)
+	s.Ctx = s.Ctx.WithBlockTime(stream2.StartTime.Add(time.Second))
+	err = s.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(s.Ctx, *stream2)
 	s.Require().NoError(err)
 
-	expectedPressureRA1 := common.DYM.MulRaw(20)
-	expectedPressureRA2 := common.DYM.MulRaw(10)
-	expectedUserPressureRA1 := common.DYM.MulRaw(12)
-	expectedUserPressureRA2 := common.DYM.MulRaw(8)
+	// Expected values:
+	//
+	// RA1 has 100/200 of power.
+	// RA2 has 50 /200 of power.
+	//
+	// 1st stream:
+	// Has 30 DYM for top 2 => choose RA1 and RA2.
+	// RA1 + RA2 have a total 150 DYM VP.
+	// Normalize RA1 and RA2 => RA1 gets 2/3, RA2 gets 1/3.
+	// RA1 gets 20 DYM, RA2 gets 10 DYM.
+	//
+	// 2nd stream:
+	// Has 15 DYM for top 1 => choose RA1.
+	// RA1 has a total 100 DYM VP.
+	// Normalize RA1 => RA1 gets 100%.
+	// RA1 gets 15 DYM.
 
-	// PumpPressure returns all rollapp pressures
-	{
-		g := s.App.IncentivesKeeper.GetGauges(s.Ctx)
-		_ = g
-		res, err := s.querier.PumpPressure(s.Ctx, &types.PumpPressureRequest{})
-		s.Require().NoError(err)
-		s.Require().NotNil(res)
-		s.Require().Len(res.Pressure, 2)
+	expectedPressureRA1 := common.DYM.MulRaw(35) // 20 + 15
+	expectedPressureRA2 := common.DYM.MulRaw(10) // 10 + 0
+	expectedPressureStream1RA1 := common.DYM.MulRaw(20)
+	expectedPressureStream1RA2 := common.DYM.MulRaw(10)
+	expectedPressureStream2RA1 := common.DYM.MulRaw(15)
 
-		s.Require().Equal(expectedPressureRA1, res.Pressure[0].Pressure, "expected: %s, got: %s", expectedPressureRA1, res.Pressure[0].Pressure)
-		s.Require().Equal(expectedPressureRA2, res.Pressure[1].Pressure, "expected: %s, got: %s", expectedPressureRA2, res.Pressure[1].Pressure)
+	// Define test cases
+	tests := []struct {
+		name     string
+		testFunc func(s *KeeperTestSuite)
+	}{
+		{
+			name: "PumpPressure - returns all rollapp pressures",
+			testFunc: func(s *KeeperTestSuite) {
+				res, err := s.querier.PumpPressure(s.Ctx, &types.PumpPressureRequest{})
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Len(res.Pressure, 2)
+
+				s.Require().Equal(expectedPressureRA1, res.Pressure[0].Pressure,
+					"expected: %s, got: %s", expectedPressureRA1, res.Pressure[0].Pressure)
+				s.Require().Equal(expectedPressureRA2, res.Pressure[1].Pressure,
+					"expected: %s, got: %s", expectedPressureRA2, res.Pressure[1].Pressure)
+			},
+		},
+		{
+			name: "PumpPressureByRollapp - returns specific rollapp pressure",
+			testFunc: func(s *KeeperTestSuite) {
+				res, err := s.querier.PumpPressureByRollapp(s.Ctx, &types.PumpPressureByRollappRequest{
+					RollappId: ra1,
+				})
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+
+				s.Require().Equal(expectedPressureRA1, res.Pressure.Pressure,
+					"expected: %s, got: %s", expectedPressureRA1, res.Pressure.Pressure)
+			},
+		},
+		{
+			name: "PumpPressureByStream - num rollapps equal to top",
+			testFunc: func(s *KeeperTestSuite) {
+				res, err := s.querier.PumpPressureByStream(s.Ctx, &types.PumpPressureByStreamRequest{
+					StreamId: stream1ID,
+				})
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Len(res.Pressure, 2)
+
+				s.Require().Equal(expectedPressureStream1RA1, res.Pressure[0].Pressure,
+					"expected: %s, got: %s", expectedPressureRA1, res.Pressure[0].Pressure)
+				s.Require().Equal(expectedPressureStream1RA2, res.Pressure[1].Pressure,
+					"expected: %s, got: %s", expectedPressureRA2, res.Pressure[1].Pressure)
+			},
+		},
+		{
+			name: "PumpPressureByStream - more rollapps than in top",
+			testFunc: func(s *KeeperTestSuite) {
+				res, err := s.querier.PumpPressureByStream(s.Ctx, &types.PumpPressureByStreamRequest{
+					StreamId: stream2ID,
+				})
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Len(res.Pressure, 1)
+
+				s.Require().Equal(expectedPressureStream2RA1, res.Pressure[0].Pressure,
+					"expected: %s, got: %s", expectedPressureRA1, res.Pressure[0].Pressure)
+			},
+		},
 	}
 
-	// PumpPressureByRollapp returns specific rollapp pressure
-	{
-		res, err := s.querier.PumpPressureByRollapp(s.Ctx, &types.PumpPressureByRollappRequest{
-			RollappId: ra1,
+	// Run test cases
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			tc.testFunc(s)
 		})
-		s.Require().NoError(err)
-		s.Require().NotNil(res)
-
-		s.Require().Equal(expectedPressureRA1, res.Pressure.Pressure, "expected: %s, got: %s", expectedPressureRA1, res.Pressure.Pressure)
-	}
-
-	// PumpPressureByUser returns user pressure for all rollapps
-	{
-		res, err := s.querier.PumpPressureByUser(s.Ctx, &types.PumpPressureByUserRequest{
-			Address: del1.GetDelegatorAddr(),
-		})
-		s.Require().NoError(err)
-		s.Require().NotNil(res)
-		s.Require().Len(res.Pressure, 2)
-
-		s.Require().Equal(expectedUserPressureRA1, res.Pressure[0].Pressure, "expected: %s, got: %s", expectedUserPressureRA1, res.Pressure[0].Pressure)
-		s.Require().Equal(expectedUserPressureRA2, res.Pressure[1].Pressure, "expected: %s, got: %s", expectedUserPressureRA2, res.Pressure[1].Pressure)
-	}
-
-	// PumpPressureByUserByRollapp returns user pressure for specific rollapp
-	{
-		res, err := s.querier.PumpPressureByUserByRollapp(s.Ctx, &types.PumpPressureByUserByRollappRequest{
-			Address:   del1.GetDelegatorAddr(),
-			RollappId: ra1,
-		})
-		s.Require().NoError(err)
-		s.Require().NotNil(res)
-
-		s.Require().Equal(expectedUserPressureRA1, res.Pressure.Pressure, "expected: %s, got: %s", expectedUserPressureRA1, res.Pressure.Pressure)
 	}
 }
