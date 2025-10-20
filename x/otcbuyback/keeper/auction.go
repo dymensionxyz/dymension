@@ -160,12 +160,9 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 		return errorsmod.Wrap(err, "failed to get params")
 	}
 
-	pp := auction.PumpParams
-	pi := auction.PumpInfo
-
 	// For the first pump, last_pump_time == start_time (set in `NewAuction`)
 	// Pumps should happen after last_pump_time + pump_interval
-	nextPumpTime := pi.LastPumpTime.Add(pp.PumpInterval)
+	nextPumpTime := auction.PumpInfo.LastPumpTime.Add(auction.PumpParams.PumpInterval)
 
 	// Check if it's time for the next pump
 	if ctx.BlockTime().Before(nextPumpTime) {
@@ -174,7 +171,7 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 
 	// Check if enough has been sold since the last pump to warrant creating a pump stream
 	// TODO: use actual spot prices of raised liquidity vs. sold since last pump
-	soldSinceLast := auction.SoldAmount.Sub(pi.LastSoldAmount)
+	soldSinceLast := auction.SoldAmount.Sub(auction.PumpInfo.LastSoldAmount)
 	if soldSinceLast.LT(params.MinSoldDifferenceToPump) {
 		// Nothing significant to pump, but we still update the last pump time
 		// to avoid checking this auction on every block
@@ -190,11 +187,10 @@ func (k Keeper) ProcessIntervalPumping(ctx sdk.Context, auction types.Auction) e
 	}
 
 	// Update auction state
-	pi.LastPumpTime = ctx.BlockTime()
-	pi.LastRaisedAmount = auction.RaisedAmount
-	pi.LastSoldAmount = auction.SoldAmount
+	auction.PumpInfo.LastPumpTime = ctx.BlockTime()
+	auction.PumpInfo.LastRaisedAmount = auction.RaisedAmount
+	auction.PumpInfo.LastSoldAmount = auction.SoldAmount
 
-	auction.PumpInfo = pi
 	err = k.SetAuction(ctx, auction)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to save auction")
