@@ -84,8 +84,8 @@ message MsgBuy {
   string denom_to_pay = 4;
 
   // For FixedDiscount auctions, the vesting period chosen by the user
-  // Must match one of the vesting periods in the auction's FixedDiscount options
-  // For LinearDiscount auctions, this field is ignored
+  // Must match one of the vesting periods in the auction's FixedDiscount
+  // options For LinearDiscount auctions, this field is ignored
   google.protobuf.Duration vesting_period = 5
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }
@@ -104,8 +104,8 @@ message MsgBuyExactSpend {
   cosmos.base.v1beta1.Coin payment_coin = 3 [ (gogoproto.nullable) = false ];
 
   // For FixedDiscount auctions, the vesting period chosen by the user
-  // Must match one of the vesting periods in the auction's FixedDiscount options
-  // For LinearDiscount auctions, this field is ignored
+  // Must match one of the vesting periods in the auction's FixedDiscount
+  // options For LinearDiscount auctions, this field is ignored
   google.protobuf.Duration vesting_period = 4
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }
@@ -166,8 +166,9 @@ message MsgCreateAuction {
   // The discount type for the auction (linear or fixed)
   DiscountType discount_type = 5 [ (gogoproto.nullable) = false ];
 
-  // Vesting params for purchased tokens
-  Auction.VestingParams vesting_params = 6 [ (gogoproto.nullable) = false ];
+  // Delay when vesting starts after the purchase (e.g., "7 days")
+  google.protobuf.Duration vesting_delay = 6
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
   // Pump Params defines parameters for the pump streams created after auction
   // completion

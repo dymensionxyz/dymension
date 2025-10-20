@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 			suite.Ctx.BlockTime(),
 			suite.Ctx.BlockTime().Add(24*time.Hour),
 			types.NewLinearDiscountType(math.LegacyNewDecWithPrec(1, 1), math.LegacyNewDecWithPrec(5, 1), 24*time.Hour),
-			types.Auction_VestingParams{VestingDelay: 0},
+			0,
 			pumpParams,
 		)
 		suite.Require().NoError(err)
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(200).MulRaw(1e18), "usdc", 0)
 		suite.Require().NoError(err)
 
-		// Before pump_delay - no pump should occur
+		// Before the first pump_interval-no pump should occur
 		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
 		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
 		suite.Require().NoError(err)
@@ -194,8 +194,8 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 		streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
 		suite.Require().Equal(0, len(streams), "No pump before delay")
 
-		// After pump_delay - first pump should occur
-		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
+		// After the first pump_interval - first pump should occur
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(3 * time.Hour))
 		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
 		suite.Require().NoError(err)
 
@@ -209,8 +209,8 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 
 		// Test: Advance past pump_interval with NO new purchases
 		// Don't make any purchases after first pump
-		// Advance time past pump_interval (4 hours from first pump at 2h)
-		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(4 * time.Hour))
+		// Advance time past pump_interval (5 hours from first pump => second should be already triggered)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(5 * time.Hour))
 		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
 		suite.Require().NoError(err)
 

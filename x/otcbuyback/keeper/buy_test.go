@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		suite.Require().True(found)
 
-		discount, _, err := auction.GetDiscount(suite.Ctx.BlockTime(), 0)
+		discount, err := auction.GetDiscount(suite.Ctx.BlockTime(), 0)
 		suite.Require().NoError(err)
 		suite.Require().Equal(discount, auction.DiscountType.GetLinear().InitialDiscount) // 10% default
 
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		suite.Require().True(found)
 
-		discount, _, err := auction.GetDiscount(suite.Ctx.BlockTime(), 0)
+		discount, err := auction.GetDiscount(suite.Ctx.BlockTime(), 0)
 		suite.Require().NoError(err)
 		suite.Require().Equal(discount, auction.DiscountType.GetLinear().InitialDiscount) // 10% default
 
@@ -114,9 +114,6 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(1000)))
 
 		// Create auction with higher initial discount (20%)
-		vestingParams := types.Auction_VestingParams{
-			VestingDelay: 0,
-		}
 		pumpParams := types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -137,7 +134,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 			suite.Ctx.BlockTime(),                   // start time
 			suite.Ctx.BlockTime().Add(24*time.Hour), // end time
 			discount,
-			vestingParams,
+			0,
 			pumpParams,
 		)
 		suite.Require().NoError(err)
@@ -177,7 +174,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 			suite.Ctx.BlockTime(),
 			suite.Ctx.BlockTime().Add(24*time.Hour),
 			discountType,
-			types.Auction_VestingParams{VestingDelay: 0},
+			0,
 			types.DefaultPumpParams,
 		)
 		suite.Require().NoError(err)
@@ -448,7 +445,7 @@ func (suite *KeeperTestSuite) TestFixedDiscountBuy() {
 			suite.Ctx.BlockTime(),
 			suite.Ctx.BlockTime().Add(24*time.Hour),
 			discountType,
-			types.DefaultVestingParams,
+			0,
 			types.DefaultPumpParams,
 		)
 		suite.Require().NoError(err)
@@ -525,7 +522,7 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 		suite.Require().NoError(err)
 	})
 
-	suite.Run("auction end when remaining below minimum", func() {
+	suite.Run("buy fails when remaining below minimum", func() {
 		suite.SetupTest()
 
 		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
@@ -539,14 +536,10 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 		buyer := suite.CreateRandomAccount()
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
 
-		// Buy almost all, leaving 5 DYM (below minimum)
+		// Buy almost all, leaving 5 DYM (below minimum) – should fail
 		amountToBuy := auction.Allocation.Sub(math.NewInt(5).MulRaw(1e18))
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
-		suite.Require().NoError(err)
-
-		// Verify auction ended
-		auction, _ = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
-		suite.Require().True(auction.IsCompleted())
+		suite.Require().Error(err)
 	})
 }
 
@@ -568,7 +561,7 @@ func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
 			suite.Ctx.BlockTime(),
 			suite.Ctx.BlockTime().Add(24*time.Hour),
 			discountType,
-			types.Auction_VestingParams{VestingDelay: 0},
+			0,
 			types.DefaultPumpParams,
 		)
 		suite.Require().NoError(err)
@@ -627,7 +620,7 @@ func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
 			suite.Ctx.BlockTime(),
 			suite.Ctx.BlockTime().Add(24*time.Hour),
 			discountType,
-			types.Auction_VestingParams{VestingDelay: 0}, // instant vesting
+			0, // instant vesting
 			types.DefaultPumpParams,
 		)
 		suite.Require().NoError(err)

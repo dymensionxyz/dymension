@@ -27,9 +27,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ActiveAuction() 
 		suite.Ctx.BlockTime().Add(-1*time.Hour), // started 1 hour ago
 		suite.Ctx.BlockTime().Add(1*time.Hour),  // ends in 1 hour
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -87,9 +85,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_CompletedAuction
 		suite.Ctx.BlockTime().Add(-2*time.Hour), // started 2 hours ago
 		suite.Ctx.BlockTime().Add(-1*time.Hour), // ended 1 hour ago
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -146,9 +142,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_NegativeClaimed(
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -193,9 +187,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ClaimedExceedsAm
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -240,9 +232,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_TotalPurchasedNo
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -292,9 +282,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_SoldAmountExceed
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -332,9 +320,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_InsufficientModu
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -385,9 +371,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,
@@ -407,9 +391,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
 		defaultLinearDiscount,
-		types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,

@@ -29,9 +29,7 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 		StartTime:    time.Now().Add(time.Hour),
 		EndTime:      time.Now().Add(25 * time.Hour), // 24 hour auction
 		DiscountType: linearDiscount,
-		VestingParams: types.Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		VestingDelay: time.Hour,
 		PumpParams: types.Auction_PumpParams{
 			EpochIdentifier:    "day",
 			NumEpochs:          30,

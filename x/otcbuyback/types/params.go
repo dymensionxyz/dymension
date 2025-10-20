@@ -43,10 +43,6 @@ func (p Params) ValidateBasic() error {
 	return nil
 }
 
-var DefaultVestingParams = Auction_VestingParams{
-	VestingDelay: 0, // No delay by default
-}
-
 var DefaultPumpParams = Auction_PumpParams{
 	PumpDelay:          time.Hour,           // Start a pump stream after 1 hour of creation
 	PumpInterval:       15 * 24 * time.Hour, // Create pump streams every 15 days

@@ -27,9 +27,7 @@ func TestAuction_GetDiscount_Linear(t *testing.T) {
 		startTime,            // start time
 		endTime,              // end time
 		discountType,
-		Auction_VestingParams{ // vesting params
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		Auction_PumpParams{}, // pump params
 	)
 
@@ -85,7 +83,7 @@ func TestAuction_GetDiscount_Linear(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualDiscount, _, err := auction.GetDiscount(tt.currentTime, 0)
+			actualDiscount, err := auction.GetDiscount(tt.currentTime, 0)
 			require.NoError(t, err, "unexpected error getting discount")
 			require.True(t, tt.expectedDiscount.Equal(actualDiscount),
 				"%s: expected discount %s, got %s", tt.description, tt.expectedDiscount.String(), actualDiscount.String())
@@ -112,9 +110,7 @@ func TestAuction_GetDiscount_Linear_ZeroDiscountRange(t *testing.T) {
 		startTime,
 		endTime,
 		discountType,
-		Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		Auction_PumpParams{},
 	)
 
@@ -128,7 +124,7 @@ func TestAuction_GetDiscount_Linear_ZeroDiscountRange(t *testing.T) {
 	}
 
 	for _, testTime := range testTimes {
-		actualDiscount, _, err := auction.GetDiscount(testTime, 0)
+		actualDiscount, err := auction.GetDiscount(testTime, 0)
 		require.NoError(t, err, "unexpected error getting discount")
 		require.True(t, discount.Equal(actualDiscount),
 			"Expected constant discount %s, got %s at time %s",
@@ -156,15 +152,13 @@ func TestAuction_GetDiscount_Linear_ZeroDuration(t *testing.T) {
 		startTime,
 		endTime, // Same as startTime
 		discountType,
-		Auction_VestingParams{
-			VestingDelay: time.Hour,
-		},
+		time.Hour,
 		Auction_PumpParams{},
 	)
 
 	// Test at the exact time when start equals end
 	// Should return max discount immediately since there's no time for progression
-	actualDiscount, _, err := auction.GetDiscount(startTime, 0)
+	actualDiscount, err := auction.GetDiscount(startTime, 0)
 	require.NoError(t, err, "unexpected error getting discount")
 	require.True(t, maxDiscount.Equal(actualDiscount),
 		"Expected max discount %s for zero-duration auction, got %s",
@@ -188,7 +182,7 @@ func TestAuction_GetDiscount_Fixed(t *testing.T) {
 		startTime,
 		endTime,
 		discountType,
-		Auction_VestingParams{VestingDelay: time.Hour},
+		time.Hour,
 		Auction_PumpParams{},
 	)
 
@@ -222,13 +216,12 @@ func TestAuction_GetDiscount_Fixed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			discount, actualVesting, err := auction.GetDiscount(startTime, tt.vestingPeriod)
+			discount, err := auction.GetDiscount(startTime, tt.vestingPeriod)
 			if tt.expectError {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 				require.True(t, tt.expectedDiscount.Equal(discount))
-				require.Equal(t, tt.vestingPeriod, actualVesting)
 			}
 		})
 	}

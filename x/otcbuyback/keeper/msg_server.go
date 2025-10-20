@@ -123,7 +123,7 @@ func (s msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 		startTime,
 		msg.EndTime,
 		msg.DiscountType,
-		msg.VestingParams,
+		msg.VestingDelay,
 		msg.PumpParams,
 	)
 	if err != nil {

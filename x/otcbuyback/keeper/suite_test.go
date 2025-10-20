@@ -51,10 +51,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) CreateDefaultLinearAuction() uint64 {
 	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(100)))
 
-	// Create default vesting and pump params
-	vestingParams := types.Auction_VestingParams{
-		VestingDelay: 0,
-	}
+	// Create default pump params
 	pumpParams := types.Auction_PumpParams{
 		EpochIdentifier:    "day",
 		NumEpochs:          30,
@@ -76,7 +73,7 @@ func (suite *KeeperTestSuite) CreateDefaultLinearAuction() uint64 {
 		suite.Ctx.BlockTime(),
 		suite.Ctx.BlockTime().Add(24*time.Hour),
 		discount,
-		vestingParams,
+		0,
 		pumpParams,
 	)
 	suite.Require().NoError(err)

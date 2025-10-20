@@ -25,18 +25,26 @@ func NewAuction(
 	allocation math.Int,
 	startTime, endTime time.Time,
 	discountType DiscountType,
-	vestingParams Auction_VestingParams,
+	vestingDelay time.Duration,
 	pumpParams Auction_PumpParams,
 ) Auction {
 	return Auction{
-		Id:            id,
-		Allocation:    allocation,
-		StartTime:     startTime,
-		EndTime:       endTime,
-		DiscountType:  discountType,
-		SoldAmount:    math.ZeroInt(),
-		VestingParams: vestingParams,
-		PumpParams:    pumpParams,
+		Id:           id,
+		Completed:    false,
+		Allocation:   allocation,
+		StartTime:    startTime,
+		EndTime:      endTime,
+		SoldAmount:   math.ZeroInt(),
+		RaisedAmount: nil,
+		PumpInfo: PumpInfo{
+			// The first pump should happen after start_time + pump_interval, so last_pump_time == start_time
+			LastPumpTime:     startTime,
+			LastRaisedAmount: nil,
+			LastSoldAmount:   math.ZeroInt(),
+		},
+		VestingDelay: vestingDelay,
+		PumpParams:   pumpParams,
+		DiscountType: discountType,
 	}
 }
 
@@ -68,7 +76,7 @@ func (a Auction) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid discount type")
 	}
 
-	if a.VestingParams.VestingDelay < 0 {
+	if a.VestingDelay < 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "vesting delay cannot be negative")
 	}
 
@@ -82,7 +90,7 @@ func (a Auction) ValidateBasic() error {
 	if a.PumpParams.PumpDelay < 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "pumpDelay cannot be negative")
 	}
-	if a.PumpParams.PumpInterval <= 0 {
+	if a.PumpParams.PumpInterval < 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "pumpInterval must be positive")
 	}
 	if a.PumpParams.PumpDistr == streamertypes.PumpDistr_PUMP_DISTR_UNSPECIFIED {
@@ -95,21 +103,14 @@ func (a Auction) ValidateBasic() error {
 // GetDiscount returns the discount for a given vesting period
 // For LinearDiscount: returns time-based discount (ignores vestingPeriod)
 // For FixedDiscount: returns discount for the specified vesting period (ignores currentTime)
-// Additionally, returns the vesting period for the discount
-func (a Auction) GetDiscount(currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, time.Duration, error) {
+func (a Auction) GetDiscount(currentTime time.Time, vestingPeriod time.Duration) (math.LegacyDec, error) {
 	switch a.DiscountType.Type.(type) {
 	case *DiscountType_Linear:
-		l := a.DiscountType.GetLinear()
-		return l.GetDiscount(currentTime, a.StartTime, a.EndTime), l.VestingPeriod, nil
+		return a.DiscountType.GetLinear().GetDiscount(currentTime, a.StartTime, a.EndTime), nil
 	case *DiscountType_Fixed:
-		f := a.DiscountType.GetFixed()
-		discount, err := f.GetDiscount(vestingPeriod)
-		if err != nil {
-			return math.LegacyZeroDec(), 0, err
-		}
-		return discount, vestingPeriod, nil
+		return a.DiscountType.GetFixed().GetDiscount(vestingPeriod)
 	default:
-		return math.LegacyZeroDec(), 0, errors.New("unknown discount type")
+		return math.LegacyZeroDec(), errors.New("unknown discount type")
 	}
 }
 
@@ -120,7 +121,7 @@ func (a Auction) GetRemainingAllocation() math.Int {
 
 // GetVestingStartTime returns the vesting start time for a purchase made at purchaseTime
 func (a Auction) GetVestingStartTime(purchaseTime time.Time) time.Time {
-	return purchaseTime.Add(a.VestingParams.VestingDelay)
+	return purchaseTime.Add(a.VestingDelay)
 }
 
 /* -------------------------------------------------------------------------- */

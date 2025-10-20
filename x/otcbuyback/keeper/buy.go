@@ -56,10 +56,19 @@ func (k Keeper) Buy(
 		return sdk.Coin{}, types.ErrInsufficientAllocation
 	}
 
+	if remainingAllocation.Sub(amountToBuy).LT(params.MinPurchaseAmount) {
+		return sdk.Coin{}, errorsmod.Wrapf(
+			types.ErrInvalidPurchaseAmount,
+			"remaining tokens would be less than min purchase amount: remaining=%s, min=%s",
+			remainingAllocation.Sub(amountToBuy).String(),
+			params.MinPurchaseAmount.String(),
+		)
+	}
+
 	// Get the current price and associated vesting period
 	// For linear discount, it's hardcoded in the auction
 	// For fixed discount, it's the same as specified in the request (if valid; otherwise, error)
-	currentPrice, actualVestingPeriod, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime(), vestingPeriod)
+	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, denomToPay, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
@@ -95,11 +104,15 @@ func (k Keeper) Buy(
 			fmt.Sprintf("maximum purchases per user per auction is %d", params.MaxPurchaseNumber))
 	}
 
+	if l := auction.DiscountType.GetLinear(); l != nil {
+		vestingPeriod = l.VestingPeriod
+	}
+
 	// Create a new purchase entry with vesting start after delay
 	purchase.AddEntry(types.NewPurchaseEntry(
 		amountToBuy,
 		auction.GetVestingStartTime(ctx.BlockTime()),
-		actualVestingPeriod,
+		vestingPeriod,
 	))
 
 	// Save purchase
@@ -137,10 +150,8 @@ func (k Keeper) Buy(
 		"price", currentPrice,
 		"vesting_period", vestingPeriod)
 
-	// Check if auction should end (sold out):
-	// 'remaining = allocation - sold < min' => no one could buy the remaining part since it's too small.
-	// If min is 0, the previous check is not performed, so we check 'allocation <= sold' instead.
-	if auction.SoldAmount.GTE(auction.Allocation) || auction.GetRemainingAllocation().LT(params.MinPurchaseAmount) {
+	// Check if auction should end (sold out)
+	if auction.SoldAmount.GTE(auction.Allocation) {
 		// we make the end auction flow gas free, as it's not relevant to the specific user's action
 		noGasCtx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 		err = k.EndAuction(noGasCtx, auctionID, "auction_sold_out")
@@ -161,7 +172,7 @@ func (k Keeper) BuyExactSpend(
 	vestingPeriod time.Duration,
 ) (math.Int, error) {
 	// Get current price
-	currentPrice, _, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
+	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
 	if err != nil {
 		return math.ZeroInt(), err
 	}
@@ -188,27 +199,27 @@ func (k Keeper) GetDiscountedPrice(
 	quoteDenom string,
 	currentTime time.Time,
 	vestingPeriod time.Duration,
-) (math.LegacyDec, time.Duration, error) {
+) (math.LegacyDec, error) {
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
-		return math.LegacyZeroDec(), 0, types.ErrAuctionNotFound
+		return math.LegacyZeroDec(), types.ErrAuctionNotFound
 	}
 
 	// Get discount based on the auction type
-	discount, actualVestingPeriod, err := auction.GetDiscount(currentTime, vestingPeriod)
+	discount, err := auction.GetDiscount(currentTime, vestingPeriod)
 	if err != nil {
-		return math.LegacyZeroDec(), 0, fmt.Errorf("get discount: %w", err)
+		return math.LegacyZeroDec(), fmt.Errorf("get discount: %w", err)
 	}
 
 	basePrice, err := k.GetBasePrice(ctx, quoteDenom)
 	if err != nil {
-		return math.LegacyZeroDec(), 0, fmt.Errorf("get base price: %w", err)
+		return math.LegacyZeroDec(), fmt.Errorf("get base price: %w", err)
 	}
 
 	discountMultiplier := math.LegacyOneDec().Sub(discount)
 
 	// Price = AMM Price × (1 - Current Discount%)
-	return basePrice.Mul(discountMultiplier), actualVestingPeriod, nil
+	return basePrice.Mul(discountMultiplier), nil
 }
 
 // GetBasePrice gets base price (max(current_price, average_price))
