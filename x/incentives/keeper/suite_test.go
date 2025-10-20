@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 	return lockOwner, gaugeID, gaugeCoins, startTime
 }
 
-// SetupLockAndGauge creates both a lock and a gauge.
+// CreateDefaultRollappFrom creates a default rollapp from the given address.
 func (suite *KeeperTestSuite) CreateDefaultRollappFrom(addr sdk.AccAddress) string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:          addr.String(),
