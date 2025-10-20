@@ -15,4 +15,21 @@ message Params {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  // maximum number of purchases one user can make in one auction
+  uint64 max_purchase_number = 2;
+
+  // minimum amount that can be purchased in a single buy transaction
+  string min_purchase_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // minimum sold difference required to trigger interval pumping
+  string min_sold_difference_to_pump = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }

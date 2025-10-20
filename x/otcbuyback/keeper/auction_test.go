@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/otcbuyback/types"
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
@@ -20,7 +21,7 @@ func (suite *KeeperTestSuite) TestAuctionLifecycle() {
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
 	// Create auction and verify initial state
-	auctionID := suite.CreateDefaultAuction()
+	auctionID := suite.CreateDefaultLinearAuction()
 	auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 	suite.Require().True(found, "auction should be found")
 	suite.Require().False(auction.IsCompleted(), "auction should not be completed")
@@ -94,7 +95,7 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
 	// Create auction and make some purchases
-	auctionID := suite.CreateDefaultAuction()
+	auctionID := suite.CreateDefaultLinearAuction()
 
 	// Create a buyer and make a purchase
 	buyer := suite.CreateRandomAccount()
@@ -103,7 +104,7 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 
 	// Make a purchase (buy 50 DYM tokens)
 	amountToBuy := math.NewInt(50).MulRaw(1e18)
-	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc")
+	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 	suite.Require().NoError(err)
 
 	auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
@@ -145,4 +146,91 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 	pumpPool := streamPumpParams.GetPool()
 	suite.Require().Equal(uint64(1), pumpPool.PoolId)
 	suite.Require().Equal("adym", pumpPool.TokenOut)
+}
+
+func (suite *KeeperTestSuite) TestIntervalPumping() {
+	suite.Run("pump delay and final pump", func() {
+		suite.SetupTest()
+
+		suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(common.DymUint64(10000)))
+
+		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
+		params.MinSoldDifferenceToPump = math.NewInt(100).MulRaw(1e18)
+		err := suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+		suite.Require().NoError(err)
+
+		pumpParams := types.Auction_PumpParams{
+			PumpDelay:          2 * time.Hour,
+			PumpInterval:       4 * time.Hour,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+		}
+
+		auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
+			suite.Ctx,
+			common.DymUint64(10000),
+			suite.Ctx.BlockTime(),
+			suite.Ctx.BlockTime().Add(24*time.Hour),
+			types.NewLinearDiscountType(math.LegacyNewDecWithPrec(1, 1), math.LegacyNewDecWithPrec(5, 1), 24*time.Hour),
+			0,
+			pumpParams,
+		)
+		suite.Require().NoError(err)
+
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(1000000).MulRaw(1e6))))
+
+		// First purchase: 200 DYM
+		purchaseAmt := math.NewInt(200).MulRaw(1e18)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0)
+		suite.Require().NoError(err)
+
+		// Before the first pump_interval-no pump should occur
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
+		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
+		suite.Require().NoError(err)
+
+		streams := suite.App.StreamerKeeper.GetStreams(suite.Ctx)
+		suite.Require().Equal(0, len(streams), "No pump before delay")
+
+		// After the first pump_interval - first pump should occur
+		pumpTime1 := suite.Ctx.BlockTime().Add(3 * time.Hour)
+		suite.Ctx = suite.Ctx.WithBlockTime(pumpTime1)
+		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
+		suite.Require().NoError(err)
+
+		// Check state – auction's pump info should be updated
+		auction, ok := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		suite.Require().True(ok)
+		suite.Require().Equal(pumpTime1, auction.PumpInfo.LastPumpTime)
+		suite.Require().Equal(purchaseAmt, auction.SoldAmount)
+
+		streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)
+		suite.Require().Equal(1, len(streams), "First pump after delay")
+
+		// Verify pump stream has correct parameters
+		stream := streams[0]
+		suite.Require().True(stream.IsPumpStream())
+		suite.Require().Equal(pumpParams.NumOfPumpsPerEpoch, stream.PumpParams.NumPumps)
+
+		// Test: Advance past pump_interval with NO new purchases
+		// Don't make any purchases after first pump
+		// Advance time past pump_interval (5 hours from first pump => second should be already triggered)
+		pumpTime2 := suite.Ctx.BlockTime().Add(5 * time.Hour)
+		suite.Ctx = suite.Ctx.WithBlockTime(pumpTime2)
+		err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
+		suite.Require().NoError(err)
+
+		// Check state – auction's last pump time should be updated, sold amount should not change
+		auction, ok = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		suite.Require().True(ok)
+		suite.Require().Equal(pumpTime2, auction.PumpInfo.LastPumpTime)
+		suite.Require().Equal(purchaseAmt, auction.SoldAmount)
+
+		// Verify no second pump was created because sold difference is 0 (below 100 DYM threshold)
+		streams = suite.App.StreamerKeeper.GetStreams(suite.Ctx)
+		suite.Require().Equal(1, len(streams), "No pump when sold difference is below threshold")
+	})
 }
