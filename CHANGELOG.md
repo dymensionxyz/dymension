@@ -103,6 +103,7 @@
 * **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
 * **lightclient:** update IBC headers from state info ([#1836](https://github.com/dymensionxyz/dymension/issues/1836)) ([90824cb](https://github.com/dymensionxyz/dymension/commit/90824cb9a1b1066f31f10fe389c296ab08f2578b))
 * **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
+* **otcbuyback:** discounted offers ([#2061](https://github.com/dymensionxyz/dymension/issues/2061)) ([5d154a6](https://github.com/dymensionxyz/dymension/commit/5d154a6de64e9e6a14a97f38b9e3ee06ccf69135))
 * **OTCBuyback:** feat OTC buyback ([#2010](https://github.com/dymensionxyz/dymension/issues/2010)) ([0a1597e](https://github.com/dymensionxyz/dymension/commit/0a1597e003e5f366ce1294c5ec48e149ce403427))
 * **otcbuyback:** invariants ([#2034](https://github.com/dymensionxyz/dymension/issues/2034)) ([2b587b1](https://github.com/dymensionxyz/dymension/commit/2b587b1ec01f16d84e5b8c5befe3aee6eaaea0c8))
 * print HL message field by field in utils (CLIENT ONLY) ([#1948](https://github.com/dymensionxyz/dymension/issues/1948)) ([01282e3](https://github.com/dymensionxyz/dymension/commit/01282e3198fb3874fa9660205785f75fc8f64d0c))
