@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-18)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-20)
 
 
 ### Bug Fixes
