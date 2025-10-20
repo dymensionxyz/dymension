@@ -616,14 +616,14 @@ func (s *KeeperTestSuite) TestTopRollapps() {
 
 	limit := uint32(5)
 
-	top := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, nil, &limit)
+	top := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, &limit)
 	s.T().Log(top)
 
 	limit = uint32(10)
 
 	budget = s.strToInt("9301141315610998")
 
-	top1 := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, nil, &limit)
+	top1 := s.App.StreamerKeeper.TopRollapps(s.Ctx, gauges, budget, &limit)
 	s.T().Log(top1)
 }
 
