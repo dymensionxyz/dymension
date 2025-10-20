@@ -196,6 +196,7 @@ func fixRPC(in []string, moduleName string) []string {
 					blockLines = injectOpenapiv2IfNeeded(blockLines, moduleName, true)
 				}
 				out = append(out, blockLines...)
+				i++
 				continue
 			}
 
