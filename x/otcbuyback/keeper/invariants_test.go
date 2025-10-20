@@ -10,27 +10,31 @@ import (
 	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+var defaultLinearDiscount = types.NewLinearDiscountType(
+	math.LegacyNewDecWithPrec(2, 1), // 0.2 = 20% initial discount
+	math.LegacyNewDecWithPrec(5, 1), // 0.5 = 50% max discount
+	24*time.Hour,
+)
+
 func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ActiveAuction() {
 	// Create and complete an auction
 	allocation := sdk.NewCoin("adym", math.NewInt(10).MulRaw(1e18))
 	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(allocation))
+
 	auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
 		suite.Ctx,
 		allocation,
 		suite.Ctx.BlockTime().Add(-1*time.Hour), // started 1 hour ago
 		suite.Ctx.BlockTime().Add(1*time.Hour),  // ends in 1 hour
-		math.LegacyNewDecWithPrec(5, 2),         // 5% initial discount
-		math.LegacyNewDecWithPrec(20, 2),        // 20% max discount
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
@@ -40,12 +44,12 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ActiveAuction() 
 	buyer2 := suite.CreateRandomAccount()
 
 	// Purchase 3 tokens by buyer1
-	purchase1 := types.NewPurchase(math.NewInt(3).MulRaw(1e18))
+	purchase1 := newTestPurchase(math.NewInt(3).MulRaw(1e18))
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer1, purchase1)
 	suite.Require().NoError(err)
 
 	// Purchase 2 tokens by buyer2, claim 0.5
-	purchase2 := types.NewPurchase(math.NewInt(2).MulRaw(1e18))
+	purchase2 := newTestPurchase(math.NewInt(2).MulRaw(1e18))
 	purchase2.ClaimTokens(math.NewInt(1).MulRaw(1e17)) // claim 0.5 tokens
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer2, purchase2)
 	suite.Require().NoError(err)
@@ -80,18 +84,15 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_CompletedAuction
 		allocation,
 		suite.Ctx.BlockTime().Add(-2*time.Hour), // started 2 hours ago
 		suite.Ctx.BlockTime().Add(-1*time.Hour), // ended 1 hour ago
-		math.LegacyNewDecWithPrec(5, 2),         // 5% initial discount
-		math.LegacyNewDecWithPrec(20, 2),        // 20% max discount
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
@@ -101,13 +102,13 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_CompletedAuction
 	buyer2 := suite.CreateRandomAccount()
 
 	// Purchase 4 tokens by buyer1, claim 1
-	purchase1 := types.NewPurchase(math.NewInt(4).MulRaw(1e18))
+	purchase1 := newTestPurchase(math.NewInt(4).MulRaw(1e18))
 	purchase1.ClaimTokens(math.NewInt(1).MulRaw(1e18)) // claim 1 token
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer1, purchase1)
 	suite.Require().NoError(err)
 
 	// Purchase 3 tokens by buyer2, claim 2
-	purchase2 := types.NewPurchase(math.NewInt(3).MulRaw(1e18))
+	purchase2 := newTestPurchase(math.NewInt(3).MulRaw(1e18))
 	purchase2.ClaimTokens(math.NewInt(2).MulRaw(1e18)) // claim 2 tokens
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer2, purchase2)
 	suite.Require().NoError(err)
@@ -140,25 +141,22 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_NegativeClaimed(
 		allocation,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
 
 	// Create a purchase with negative claimed amount (invalid state)
 	buyer := suite.CreateRandomAccount()
-	purchase := types.NewPurchase(math.NewInt(1).MulRaw(1e18))
+	purchase := newTestPurchase(math.NewInt(1).MulRaw(1e18))
 	purchase.Claimed = math.NewInt(-1).MulRaw(1e17) // negative claimed amount (-0.1)
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer, purchase)
 	suite.Require().NoError(err)
@@ -188,25 +186,22 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_ClaimedExceedsAm
 		allocation,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
 
 	// Create a purchase with claimed amount exceeding purchased amount
 	buyer := suite.CreateRandomAccount()
-	purchase := types.NewPurchase(math.NewInt(1).MulRaw(1e18))
+	purchase := newTestPurchase(math.NewInt(1).MulRaw(1e18))
 	purchase.Claimed = math.NewInt(2).MulRaw(1e18) // claimed > amount (2 > 1)
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer, purchase)
 	suite.Require().NoError(err)
@@ -236,18 +231,15 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_TotalPurchasedNo
 		allocation,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
@@ -256,11 +248,11 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_TotalPurchasedNo
 	buyer1 := suite.CreateRandomAccount()
 	buyer2 := suite.CreateRandomAccount()
 
-	purchase1 := types.NewPurchase(math.NewInt(1).MulRaw(1e18))
+	purchase1 := newTestPurchase(math.NewInt(1).MulRaw(1e18))
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer1, purchase1)
 	suite.Require().NoError(err)
 
-	purchase2 := types.NewPurchase(math.NewInt(1).MulRaw(1e18))
+	purchase2 := newTestPurchase(math.NewInt(1).MulRaw(1e18))
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer2, purchase2)
 	suite.Require().NoError(err)
 
@@ -289,18 +281,15 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_SoldAmountExceed
 		allocation,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
@@ -330,25 +319,22 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_InsufficientModu
 		allocation,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
 
 	// Create purchases
 	buyer := suite.CreateRandomAccount()
-	purchase := types.NewPurchase(math.NewInt(5).MulRaw(1e18))
+	purchase := newTestPurchase(math.NewInt(5).MulRaw(1e18))
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID, buyer, purchase)
 	suite.Require().NoError(err)
 
@@ -384,18 +370,15 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 		allocation1,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
@@ -407,18 +390,15 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 		allocation2,
 		suite.Ctx.BlockTime().Add(-1*time.Hour),
 		suite.Ctx.BlockTime().Add(1*time.Hour),
-		math.LegacyNewDecWithPrec(5, 2),
-		math.LegacyNewDecWithPrec(20, 2),
-		types.Auction_VestingParams{
-			VestingStartAfterAuctionEnd: time.Hour,
-			VestingPeriod:               time.Hour * 24,
-		},
+		defaultLinearDiscount,
+		time.Hour,
 		types.Auction_PumpParams{
-			StartTimeAfterAuctionEnd: time.Hour,
-			EpochIdentifier:          "day",
-			NumEpochs:                30,
-			NumOfPumpsPerEpoch:       1,
-			PumpDistr:                streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			EpochIdentifier:    "day",
+			NumEpochs:          30,
+			NumOfPumpsPerEpoch: 1,
+			PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+			PumpDelay:          time.Hour,
+			PumpInterval:       time.Hour,
 		},
 	)
 	suite.Require().NoError(err)
@@ -428,13 +408,13 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 	buyer2 := suite.CreateRandomAccount()
 
 	// Auction 1: 3 tokens purchased, 1 claimed
-	purchase1 := types.NewPurchase(math.NewInt(3).MulRaw(1e18))
+	purchase1 := newTestPurchase(math.NewInt(3).MulRaw(1e18))
 	purchase1.ClaimTokens(math.NewInt(1).MulRaw(1e18))
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID1, buyer1, purchase1)
 	suite.Require().NoError(err)
 
 	// Auction 2: 2 tokens purchased, 0.5 claimed
-	purchase2 := types.NewPurchase(math.NewInt(2).MulRaw(1e18))
+	purchase2 := newTestPurchase(math.NewInt(2).MulRaw(1e18))
 	purchase2.ClaimTokens(math.NewInt(1).MulRaw(1e17)) // 0.5 tokens
 	err = suite.App.OTCBuybackKeeper.SetPurchase(suite.Ctx, auctionID2, buyer2, purchase2)
 	suite.Require().NoError(err)
@@ -464,4 +444,8 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 
 	// The invariant should pass, which means the module account has sufficient balance
 	// to cover all outstanding obligations (remaining allocation + unclaimed + raised amount)
+}
+
+func newTestPurchase(amt math.Int) types.Purchase {
+	return types.NewPurchase(types.NewPurchaseEntry(amt, time.Time{}, 0))
 }

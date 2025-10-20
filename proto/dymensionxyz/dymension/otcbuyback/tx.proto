@@ -82,6 +82,12 @@ message MsgBuy {
     (gogoproto.nullable) = false
   ];
   string denom_to_pay = 4;
+
+  // For FixedDiscount auctions, the vesting period chosen by the user
+  // Must match one of the vesting periods in the auction's FixedDiscount
+  // options For LinearDiscount auctions, this field is ignored
+  google.protobuf.Duration vesting_period = 5
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }
 
 // MsgBuy represents a purchase request in an auction
@@ -96,6 +102,12 @@ message MsgBuyExactSpend {
 
   // Amount to pay (in one of the accepted tokens)
   cosmos.base.v1beta1.Coin payment_coin = 3 [ (gogoproto.nullable) = false ];
+
+  // For FixedDiscount auctions, the vesting period chosen by the user
+  // Must match one of the vesting periods in the auction's FixedDiscount
+  // options For LinearDiscount auctions, this field is ignored
+  google.protobuf.Duration vesting_period = 4
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 }
 
 message MsgBuyResponse {
@@ -151,26 +163,16 @@ message MsgCreateAuction {
   google.protobuf.Timestamp end_time = 4
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
-  // Initial discount percentage (e.g., "0.05" for 5%)
-  string initial_discount = 6 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false
-  ];
+  // The discount type for the auction (linear or fixed)
+  DiscountType discount_type = 5 [ (gogoproto.nullable) = false ];
 
-  // Maximum discount percentage (e.g., "0.50" for 50%)
-  string max_discount = 7 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false
-  ];
-
-  // Vesting params for purchased tokens
-  Auction.VestingParams vesting_params = 8 [ (gogoproto.nullable) = false ];
+  // Delay when vesting starts after the purchase (e.g., "7 days")
+  google.protobuf.Duration vesting_delay = 6
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
   // Pump Params defines parameters for the pump streams created after auction
   // completion
-  Auction.PumpParams pump_params = 10 [ (gogoproto.nullable) = false ];
+  Auction.PumpParams pump_params = 7 [ (gogoproto.nullable) = false ];
 }
 
 message MsgCreateAuctionResponse { uint64 auction_id = 1; }

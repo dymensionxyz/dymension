@@ -4,6 +4,7 @@ package dymensionxyz.dymension.otcbuyback;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "dymensionxyz/dymension/otcbuyback/auction.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
@@ -16,16 +17,12 @@ message EventAuctionCreated {
   cosmos.base.v1beta1.Coin allocation = 2 [ (gogoproto.nullable) = false ];
 
   // Start time of the auction
-  string start_time = 4;
+  string start_time = 3;
 
   // Duration of the auction
-  string end_time = 5;
+  string end_time = 4;
 
-  // Initial discount percentage
-  string initial_discount = 6;
-
-  // Maximum discount percentage
-  string max_discount = 7;
+  DiscountType discount_type = 5 [ (gogoproto.nullable) = false ];
 }
 
 // EventTokensPurchased is emitted when tokens are purchased in an auction
@@ -74,6 +71,25 @@ message EventAuctionCompleted {
 
   // Reason for completion (sold_out, time_expired, etc.)
   string completion_reason = 5;
+}
+
+message EventAuctionPumped {
+  // Auction ID
+  uint64 auction_id = 1;
+
+  // Sold tokens since the last pump
+  string sold_since_last = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Raised tokens since the last pump
+  repeated cosmos.base.v1beta1.Coin raised_since_last = 3
+      [ (gogoproto.nullable) = false ];
+
+  // Created pump streams
+  repeated uint64 pump_streams = 4;
 }
 
 // EventTokensClaimed is emitted when a user claims vested tokens

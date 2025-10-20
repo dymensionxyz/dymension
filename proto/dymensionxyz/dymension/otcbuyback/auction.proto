@@ -6,23 +6,13 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 import "dymensionxyz/dymension/streamer/stream.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
 // Auction represents a Dutch auction with decreasing prices over time
 message Auction {
-
-  message VestingParams {
-    // Vesting period for purchased tokens (e.g., "3 months")
-    google.protobuf.Duration vesting_period = 1
-        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
-
-    // Delay before vesting starts after auction ends (e.g., "7 days")
-    google.protobuf.Duration vesting_start_after_auction_end = 2
-        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
-  }
-
   // Pump Params defines parameters for the pump streams created after auction
   // completion
   message PumpParams {
@@ -30,7 +20,13 @@ message Auction {
     uint64 num_epochs = 2;
     uint64 num_of_pumps_per_epoch = 3;
     dymensionxyz.dymension.streamer.PumpDistr pump_distr = 4;
-    google.protobuf.Duration start_time_after_auction_end = 5
+
+    // Delay when pumping starts after triggering (e.g., "7 days")
+    google.protobuf.Duration pump_delay = 5
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+    // Interval between pumps (e.g., "1 hour").
+    // If 0, the pump will be triggered only at the auction end.
+    google.protobuf.Duration pump_interval = 6
         [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   }
 
@@ -54,36 +50,94 @@ message Auction {
   google.protobuf.Timestamp end_time = 5
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
 
-  // Initial discount percentage (e.g., "0.05" for 5%)
-  string initial_discount = 6 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false
-  ];
-
-  // Maximum discount percentage (e.g., "0.50" for 50%)
-  string max_discount = 7 [
-    (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
-    (gogoproto.nullable) = false
-  ];
-
   // Total amount of tokens already sold
-  string sold_amount = 8 [
+  string sold_amount = 6 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // Total raised amount in all accepted tokens
-  repeated cosmos.base.v1beta1.Coin raised_amount = 9 [
+  repeated cosmos.base.v1beta1.Coin raised_amount = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // The vesting params for purchased tokens in the auction
-  VestingParams vesting_params = 10 [ (gogoproto.nullable) = false ];
+  PumpInfo pump_info = 8 [ (gogoproto.nullable) = false ];
+
+  // Delay when vesting starts after the purchase (e.g., "7 days")
+  google.protobuf.Duration vesting_delay = 9
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
 
   // Pump params to be used for pump streams after auction completion
-  PumpParams pump_params = 11 [ (gogoproto.nullable) = false ];
+  PumpParams pump_params = 10 [ (gogoproto.nullable) = false ];
+
+  // The discount type of the auction
+  DiscountType discount_type = 11 [ (gogoproto.nullable) = false ];
+}
+
+message PumpInfo {
+  // Last time pump streams were created (for interval pumping)
+  google.protobuf.Timestamp last_pump_time = 1
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // The amount that was raised at the moment of the last pump stream
+  // (to see how much was raised after the last pump)
+  repeated cosmos.base.v1beta1.Coin last_raised_amount = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // The amount that was sold at the moment of the last pump stream
+  // (to see how much was sold after the last pump)
+  string last_sold_amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Vesting params for purchased tokens in the auction
+message DiscountType {
+  oneof type {
+    LinearDiscount linear = 1 [ (amino.oneof_name) = "linear" ];
+    FixedDiscount fixed = 2 [ (amino.oneof_name) = "fixed" ];
+  }
+}
+
+// The discount will increase linearly from initial_discount to max_discount
+// over the duration of the auction
+message LinearDiscount {
+  // Initial discount percentage (e.g., "0.05" for 5%)
+  string initial_discount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  // Maximum discount percentage (e.g., "0.50" for 50%)
+  string max_discount = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  // Vesting period for purchased tokens (e.g., "3 months")
+  google.protobuf.Duration vesting_period = 3
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+}
+
+// The discount is fixed at the same percentage for different vesting periods
+// over the duration of the auction
+message FixedDiscount {
+  message Discount {
+    // The discount percentage (e.g., "0.10" for 10%)
+    string discount = 1 [
+      (cosmos_proto.scalar) = "cosmos.Dec",
+      (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+      (gogoproto.nullable) = false
+    ];
+    // The vesting period for for purchased tokens with this discount
+    // (e.g., "3 months")
+    google.protobuf.Duration vesting_period = 2
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+  }
+
+  repeated Discount discounts = 1 [ (gogoproto.nullable) = false ];
 }
