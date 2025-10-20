@@ -24,7 +24,7 @@ func ParseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
 }
 
 // ParseJsonFromFile parses a json file into a slice of type T
-func ParseJsonFromFile[T any](path string, result T) error {
+func ParseJsonFromFile[T any](path string, result *T) error {
 	// #nosec G304
 	contents, err := os.ReadFile(path)
 	if err != nil {
