@@ -85,6 +85,9 @@ message Rollapp {
 
   // Revisions is a list of all the rollapp revisions.
   repeated Revision revisions = 19 [ (gogoproto.nullable) = false ];
+
+  // togglable by owner: enable fast finalization via TEE nodes (note: global gov param required too)
+  bool enable_tee = 21;
 }
 
 // Revision is a representation of the rollapp revision.
