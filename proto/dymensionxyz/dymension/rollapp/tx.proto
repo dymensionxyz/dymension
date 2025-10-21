@@ -240,6 +240,8 @@ message TEENonce {
   uint64 finalized_height = 3;
   // height TEE recently validated
   uint64 curr_height = 4;
+  //// stateRoot/appHash is a 32 byte array of the hash of the block
+  bytes state_root = 5;
 }
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE
