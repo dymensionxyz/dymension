@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-20)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-21)
 
 
 ### Bug Fixes
@@ -58,6 +58,7 @@
 * **streamer:** oneof parsing in MsgCreatePumpStream ([#2023](https://github.com/dymensionxyz/dymension/issues/2023)) ([8c2345c](https://github.com/dymensionxyz/dymension/commit/8c2345c97b0b74b9e40bbd3313767ab2e6215fed))
 * **streamer:** tests after v50 ([#1983](https://github.com/dymensionxyz/dymension/issues/1983)) ([1e2563c](https://github.com/dymensionxyz/dymension/commit/1e2563c967ea4f06862a828bf9c9b342e29b305a))
 * **streamer:** top rollapps normalization ([#2044](https://github.com/dymensionxyz/dymension/issues/2044)) ([9d6a3f7](https://github.com/dymensionxyz/dymension/commit/9d6a3f704dc4b626ca327508745196911831aee5))
+* **tee:** add attested bd state root to nonce ([#2066](https://github.com/dymensionxyz/dymension/issues/2066)) ([66f106e](https://github.com/dymensionxyz/dymension/commit/66f106e843adac2f99a751d22f553d8598834f74))
 * **tee:** harden policies to be production ready ([#2057](https://github.com/dymensionxyz/dymension/issues/2057)) ([200127d](https://github.com/dymensionxyz/dymension/commit/200127d34d92d95a363508f70bde616474951832))
 * **TEE:** include hub chain id in nonce ([#2059](https://github.com/dymensionxyz/dymension/issues/2059)) ([6489f4f](https://github.com/dymensionxyz/dymension/commit/6489f4f05a55f15ec6621c899bbc8db08e371a9b))
 * **TEE:** remove a check (moved from on-chain to offchain in dymint) ([#2055](https://github.com/dymensionxyz/dymension/issues/2055)) ([8defaf5](https://github.com/dymensionxyz/dymension/commit/8defaf5fe364dde303f0994e3e467ccaaade99e8))
