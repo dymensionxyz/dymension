@@ -34,6 +34,7 @@ service Msg {
 
   rpc FastFinalizeWithTEE(MsgFastFinalizeWithTEE)
       returns (MsgFastFinalizeWithTEEResponse);
+  rpc ToggleTEE(MsgToggleTEE) returns (MsgToggleTEEResponse);
 }
 
 // MsgUpdateParams allows to update module params.
@@ -246,3 +247,17 @@ message TEENonce {
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE
 message MsgFastFinalizeWithTEEResponse {}
+
+
+// MsgToggleTEE toggles the TEE feature for a rollapp
+message MsgToggleTEE {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
+  string rollapp_id = 2;
+  // enable is true if the TEE feature should be enabled, false otherwise
+  bool enable = 3;
+}
+
+message MsgToggleTEEResponse {}

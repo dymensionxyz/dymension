@@ -21,6 +21,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(Params{}, "rollapp/Params", nil)
 	cdc.RegisterConcrete(&MsgForceGenesisInfoChange{}, "rollapp/ForceGenesisInfoChange", nil)
 	cdc.RegisterConcrete(&GenesisInfo{}, "rollapp/GenesisInfo", nil)
+	cdc.RegisterConcrete(&MsgToggleTEE{}, "rollapp/ToggleTEE", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -36,6 +37,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgMarkObsoleteRollapps{},
 		&MsgForceGenesisInfoChange{},
 		&MsgUpdateParams{},
+		&MsgToggleTEE{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
