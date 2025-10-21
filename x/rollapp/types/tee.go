@@ -21,6 +21,7 @@ func (n TEENonce) Hash() string {
 	binary.BigEndian.PutUint64(bzIx, n.CurrHeight)
 	bz = append(bz, bzIx...)
 
+	bz = append(bz, n.StateRoot...)
 	bz = append(bz, []byte(n.RollappId)...)
 	bz = append(bz, []byte(n.HubChainId)...)
 
@@ -37,6 +38,9 @@ func (n TEENonce) Validate() error {
 	}
 	if n.HubChainId == "" {
 		return gerrc.ErrInvalidArgument.Wrap("hub chain id is required")
+	}
+	if len(n.StateRoot) != 32 {
+		return gerrc.ErrInvalidArgument.Wrap("state root must be 32 bytes")
 	}
 	return nil
 }
