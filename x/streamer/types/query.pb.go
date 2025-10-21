@@ -984,7 +984,7 @@ type QueryClient interface {
 	PumpPressureByRollapp(ctx context.Context, in *PumpPressureByRollappRequest, opts ...grpc.CallOption) (*PumpPressureByRollappResponse, error)
 	// PumpPressureByStream is how much DYM will be used for buying RA tokens if
 	// pump occurs in the given stream. Returns pump pressure for a specific
-	// rollapp from a given streams.
+	// rollapp from the given streams.
 	PumpPressureByStream(ctx context.Context, in *PumpPressureByStreamRequest, opts ...grpc.CallOption) (*PumpPressureByStreamResponse, error)
 }
 
@@ -1099,7 +1099,7 @@ type QueryServer interface {
 	PumpPressureByRollapp(context.Context, *PumpPressureByRollappRequest) (*PumpPressureByRollappResponse, error)
 	// PumpPressureByStream is how much DYM will be used for buying RA tokens if
 	// pump occurs in the given stream. Returns pump pressure for a specific
-	// rollapp from a given streams.
+	// rollapp from the given streams.
 	PumpPressureByStream(context.Context, *PumpPressureByStreamRequest) (*PumpPressureByStreamResponse, error)
 }
 

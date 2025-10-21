@@ -11,6 +11,24 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
+func (k msgServer) ToggleTEE(goCtx context.Context, msg *types.MsgToggleTEE) (*types.MsgToggleTEEResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
+	if !found {
+		return nil, gerrc.ErrNotFound
+	}
+
+	if msg.Owner != rollapp.Owner {
+		return nil, gerrc.ErrPermissionDenied
+	}
+
+	rollapp.EnableTee = msg.Enable
+	k.SetRollapp(ctx, rollapp)
+
+	return &types.MsgToggleTEEResponse{}, nil
+}
+
 // FastFinalizeWithTEE handles TEE attestation-based fast finalization
 func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFastFinalizeWithTEE) (*types.MsgFastFinalizeWithTEEResponse, error) {
 	///////////
@@ -36,9 +54,12 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 
 	rollapp := msg.Nonce.RollappId
 
-	_, found := k.GetRollapp(ctx, rollapp)
+	rol, found := k.GetRollapp(ctx, rollapp)
 	if !found {
 		return nil, gerrc.ErrNotFound.Wrapf("rollapp: %s", rollapp)
+	}
+	if !rol.EnableTee {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("TEE fast finalization is not enabled for rollapp")
 	}
 
 	///////////
