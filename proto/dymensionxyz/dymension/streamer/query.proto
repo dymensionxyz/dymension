@@ -65,7 +65,7 @@ service Query {
   rpc PumpPressureByStream(PumpPressureByStreamRequest)
       returns (PumpPressureByStreamResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/streamer/"
-        "pump_pressure_by_stream/{stream_id}";
+                                   "pump_pressure_by_stream/{stream_id}";
   }
 }
 
