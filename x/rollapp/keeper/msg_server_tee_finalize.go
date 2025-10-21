@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -59,6 +60,15 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	info, err := k.FindStateInfoByHeight(ctx, rollapp, msg.Nonce.CurrHeight)
 	if err != nil {
 		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
+	}
+
+	bd, ok := info.GetBlockDescriptor(msg.Nonce.CurrHeight)
+	if !ok {
+		return nil, gerrc.ErrInternal.Wrapf("block descriptor: %d", msg.Nonce.CurrHeight)
+	}
+
+	if !bytes.Equal(bd.StateRoot, msg.Nonce.StateRoot) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("state root does not match")
 	}
 
 	indexToFinalize := info.GetIndex().Index
