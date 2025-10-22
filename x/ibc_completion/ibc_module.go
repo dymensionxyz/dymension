@@ -211,7 +211,7 @@ func parseEIBCMemo(memoBz []byte) (commontypes.CompletionHookCall, error) {
 }
 
 func memoHasConflictingMiddleware(memoBz []byte) bool {
-	d := make(map[string]interface{})
+	d := make(map[string]any)
 	err := json.Unmarshal(memoBz, &d)
 	containsCosmosPacketForwardMemo := d[pfmKey] != nil
 	return err != nil || containsCosmosPacketForwardMemo

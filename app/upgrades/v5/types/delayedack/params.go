@@ -80,7 +80,7 @@ func (p Params) Validate() error {
 	return nil
 }
 
-func validateEpochIdentifier(i interface{}) error {
+func validateEpochIdentifier(i any) error {
 	v, ok := i.(string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -91,7 +91,7 @@ func validateEpochIdentifier(i interface{}) error {
 	return nil
 }
 
-func validateBridgingFee(i interface{}) error {
+func validateBridgingFee(i any) error {
 	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -102,7 +102,7 @@ func validateBridgingFee(i interface{}) error {
 	return nil
 }
 
-func validateDeletePacketsEpochLimit(i interface{}) error {
+func validateDeletePacketsEpochLimit(i any) error {
 	v, ok := i.(int32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

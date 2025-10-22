@@ -29,7 +29,7 @@ func LogarithmicRangeForRapid(t *rapid.T, min, max int64) int64 {
 }
 
 // ApproxEqual checks if two values of different types are approximately equal
-func ApproxEqual(expected, actual, allowed_diff interface{}) error {
+func ApproxEqual(expected, actual, allowed_diff any) error {
 	switch e := expected.(type) {
 	case sdkmath.LegacyDec:
 		a, ok := actual.(sdkmath.LegacyDec)
@@ -66,7 +66,7 @@ func ApproxEqual(expected, actual, allowed_diff interface{}) error {
 }
 
 // ApproxEqualRatio checks if two values of different types are approximately equal
-func ApproxEqualRatio(expected, actual interface{}, allowed_ratio_diff float64) error {
+func ApproxEqualRatio(expected, actual any, allowed_ratio_diff float64) error {
 	switch e := expected.(type) {
 	case sdkmath.LegacyDec:
 		a, ok := actual.(sdkmath.LegacyDec)

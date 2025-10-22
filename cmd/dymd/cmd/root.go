@@ -68,7 +68,7 @@ var (
 type EmptyAppOptions struct{}
 
 // Get implements AppOptions
-func (ao EmptyAppOptions) Get(o string) interface{} {
+func (ao EmptyAppOptions) Get(o string) any {
 	return nil
 }
 
@@ -188,7 +188,7 @@ func initCometBFTConfig() *cmtcfg.Config {
 
 // initAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
-func initAppConfig() (string, interface{}) {
+func initAppConfig() (string, any) {
 	baseDenom, err := sdk.GetBaseDenom()
 	if err != nil {
 		panic(err)
