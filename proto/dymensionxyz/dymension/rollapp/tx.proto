@@ -34,6 +34,7 @@ service Msg {
 
   rpc FastFinalizeWithTEE(MsgFastFinalizeWithTEE)
       returns (MsgFastFinalizeWithTEEResponse);
+  rpc ToggleTEE(MsgToggleTEE) returns (MsgToggleTEEResponse);
 }
 
 // MsgUpdateParams allows to update module params.
@@ -240,7 +241,23 @@ message TEENonce {
   uint64 finalized_height = 3;
   // height TEE recently validated
   uint64 curr_height = 4;
+  //// stateRoot/appHash is a 32 byte array of the hash of the block
+  bytes state_root = 5;
 }
 
 // MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE
 message MsgFastFinalizeWithTEEResponse {}
+
+
+// MsgToggleTEE toggles the TEE feature for a rollapp
+message MsgToggleTEE {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
+  string rollapp_id = 2;
+  // enable is true if the TEE feature should be enabled, false otherwise
+  bool enable = 3;
+}
+
+message MsgToggleTEEResponse {}

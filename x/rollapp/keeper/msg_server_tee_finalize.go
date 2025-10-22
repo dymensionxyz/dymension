@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -10,6 +11,24 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
+
+func (k msgServer) ToggleTEE(goCtx context.Context, msg *types.MsgToggleTEE) (*types.MsgToggleTEEResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
+	if !found {
+		return nil, gerrc.ErrNotFound
+	}
+
+	if msg.Owner != rollapp.Owner {
+		return nil, gerrc.ErrPermissionDenied
+	}
+
+	rollapp.EnableTee = msg.Enable
+	k.SetRollapp(ctx, rollapp)
+
+	return &types.MsgToggleTEEResponse{}, nil
+}
 
 // FastFinalizeWithTEE handles TEE attestation-based fast finalization
 func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFastFinalizeWithTEE) (*types.MsgFastFinalizeWithTEEResponse, error) {
@@ -36,9 +55,12 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 
 	rollapp := msg.Nonce.RollappId
 
-	_, found := k.GetRollapp(ctx, rollapp)
+	rol, found := k.GetRollapp(ctx, rollapp)
 	if !found {
 		return nil, gerrc.ErrNotFound.Wrapf("rollapp: %s", rollapp)
+	}
+	if !rol.EnableTee {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("TEE fast finalization is not enabled for rollapp")
 	}
 
 	///////////
@@ -59,6 +81,15 @@ func (k msgServer) FastFinalizeWithTEE(goCtx context.Context, msg *types.MsgFast
 	info, err := k.FindStateInfoByHeight(ctx, rollapp, msg.Nonce.CurrHeight)
 	if err != nil {
 		return nil, gerrc.ErrNotFound.Wrapf("state info for rollapp: %s", rollapp)
+	}
+
+	bd, ok := info.GetBlockDescriptor(msg.Nonce.CurrHeight)
+	if !ok {
+		return nil, gerrc.ErrInternal.Wrapf("block descriptor: %d", msg.Nonce.CurrHeight)
+	}
+
+	if !bytes.Equal(bd.StateRoot, msg.Nonce.StateRoot) {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("state root does not match")
 	}
 
 	indexToFinalize := info.GetIndex().Index
