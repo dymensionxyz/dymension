@@ -48,7 +48,7 @@ func (p Params) String() string {
 	return string(out)
 }
 
-func validateEpochIdentifier(i interface{}) error {
+func validateEpochIdentifier(i any) error {
 	v, ok := i.(string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -59,7 +59,7 @@ func validateEpochIdentifier(i interface{}) error {
 	return nil
 }
 
-func validateTimeoutFee(i interface{}) error {
+func validateTimeoutFee(i any) error {
 	v, ok := i.(math.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

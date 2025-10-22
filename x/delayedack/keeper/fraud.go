@@ -21,7 +21,7 @@ func (k Keeper) OnHardFork(ctx sdk.Context, rollappID string, lastValidHeight ui
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {
-		logContext := []interface{}{
+		logContext := []any{
 			"rollappID", rollappID,
 			"sourceChannel", rollappPacket.Packet.SourceChannel,
 			"destChannel", rollappPacket.Packet.DestinationChannel,

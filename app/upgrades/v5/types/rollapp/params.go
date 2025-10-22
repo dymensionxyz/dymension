@@ -120,7 +120,7 @@ func (p Params) Validate() error {
 	return nil
 }
 
-func validateDisputePeriodInBlocks(i interface{}) error {
+func validateDisputePeriodInBlocks(i any) error {
 	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -131,7 +131,7 @@ func validateDisputePeriodInBlocks(i interface{}) error {
 	return nil
 }
 
-func validateLivenessSlashBlocks(i interface{}) error {
+func validateLivenessSlashBlocks(i any) error {
 	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -142,7 +142,7 @@ func validateLivenessSlashBlocks(i interface{}) error {
 	return nil
 }
 
-func validateLivenessSlashInterval(i interface{}) error {
+func validateLivenessSlashInterval(i any) error {
 	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -153,7 +153,7 @@ func validateLivenessSlashInterval(i interface{}) error {
 	return nil
 }
 
-func validateAppRegistrationFee(i interface{}) error {
+func validateAppRegistrationFee(i any) error {
 	v, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -164,7 +164,7 @@ func validateAppRegistrationFee(i interface{}) error {
 	return nil
 }
 
-func validateMinSequencerBondGlobal(i interface{}) error {
+func validateMinSequencerBondGlobal(i any) error {
 	v, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

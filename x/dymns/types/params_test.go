@@ -534,7 +534,7 @@ func TestMiscParams_Validate(t *testing.T) {
 func Test_validateEpochIdentifier(t *testing.T) {
 	tests := []struct {
 		name    string
-		i       interface{}
+		i       any
 		wantErr bool
 	}{
 		{

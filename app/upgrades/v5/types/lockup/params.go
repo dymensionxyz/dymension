@@ -43,7 +43,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func validateAddresses(i interface{}) error {
+func validateAddresses(i any) error {
 	addresses, ok := i.([]string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

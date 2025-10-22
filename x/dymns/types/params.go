@@ -200,7 +200,7 @@ func (m MiscParams) Validate() error {
 }
 
 // validateEpochIdentifier checks if the given epoch identifier is valid.
-func validateEpochIdentifier(i interface{}) error {
+func validateEpochIdentifier(i any) error {
 	v, ok := i.(string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -217,7 +217,7 @@ func validateEpochIdentifier(i interface{}) error {
 }
 
 // validatePriceParams checks if the given PriceParams are valid.
-func validatePriceParams(i interface{}) error {
+func validatePriceParams(i any) error {
 	m, ok := i.(PriceParams)
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
@@ -330,7 +330,7 @@ func validateAliasPriceParams(m PriceParams) error {
 }
 
 // validateChainsParams checks if the given ChainsParams are valid.
-func validateChainsParams(i interface{}) error {
+func validateChainsParams(i any) error {
 	m, ok := i.(ChainsParams)
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
@@ -384,7 +384,7 @@ func validateAliasesOfChainIds(aliasesOfChainIds []AliasesOfChainId) error {
 }
 
 // validateMiscParams checks if the given MiscParams are valid.
-func validateMiscParams(i interface{}) error {
+func validateMiscParams(i any) error {
 	m, ok := i.(MiscParams)
 	if !ok {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
