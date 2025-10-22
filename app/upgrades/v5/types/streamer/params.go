@@ -62,7 +62,7 @@ func (p Params) Validate() error {
 	return nil
 }
 
-func validateMaxIterationsPerBlock(i interface{}) error {
+func validateMaxIterationsPerBlock(i any) error {
 	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
