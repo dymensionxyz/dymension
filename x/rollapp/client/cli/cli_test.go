@@ -46,6 +46,54 @@ func TestGetTxCmd(t *testing.T) {
 	assert.True(t, cmd.Flags().HasFlags())
 }
 
+func TestCmdToggleTEE(t *testing.T) {
+	addr := sdk.AccAddress("testAddress").String()
+
+	testCases := []struct {
+		name   string
+		args   []string
+		errMsg string
+	}{
+		{
+			"valid enable TEE",
+			[]string{"testRollappId", "true", "--from", addr},
+			"",
+		},
+		{
+			"valid disable TEE",
+			[]string{"testRollappId", "false", "--from", addr},
+			"",
+		},
+		{
+			"valid default to false when enable not provided",
+			[]string{"testRollappId", "--from", addr},
+			"",
+		},
+		{
+			"invalid boolean value",
+			[]string{"testRollappId", "invalid", "--from", addr},
+			"invalid syntax",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := cli.CmdToggleTEE()
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			if tc.errMsg != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errMsg)
+			} else {
+				// we expect this error because we are not setting the key.
+				expected1 := "No directory provided for file keyring"
+				expected2 := "key not found"
+				ok := strings.Contains(err.Error(), expected1) || strings.Contains(err.Error(), expected2)
+				require.True(t, ok)
+			}
+		})
+	}
+}
+
 func TestCmdCreateRollapp(t *testing.T) {
 	addr := sdk.AccAddress("testAddress").String()
 
