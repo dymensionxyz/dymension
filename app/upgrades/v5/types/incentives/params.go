@@ -71,7 +71,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func validateCreateGaugeFeeInterface(i interface{}) error {
+func validateCreateGaugeFeeInterface(i any) error {
 	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -82,7 +82,7 @@ func validateCreateGaugeFeeInterface(i interface{}) error {
 	return nil
 }
 
-func validateAddToGaugeFeeInterface(i interface{}) error {
+func validateAddToGaugeFeeInterface(i any) error {
 	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -93,7 +93,7 @@ func validateAddToGaugeFeeInterface(i interface{}) error {
 	return nil
 }
 
-func validateAddDenomFee(i interface{}) error {
+func validateAddDenomFee(i any) error {
 	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
