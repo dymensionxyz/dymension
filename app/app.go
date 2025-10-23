@@ -11,6 +11,7 @@ import (
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
@@ -22,9 +23,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
-	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
@@ -302,17 +300,6 @@ func (app *App) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	// PATCH
-	if app.ChainID() == "dymension_3405-1" {
-		maccI := app.AccountKeeper.GetModuleAccount(ctx, streamermoduletypes.ModuleName)
-		macc, ok := maccI.(*authtypes.ModuleAccount)
-		if !ok {
-			panic("failed to type assert module account")
-		}
-		macc.Permissions = []string{authtypes.Burner}
-		app.AccountKeeper.SetModuleAccount(ctx, macc)
-	}
-
 	return app.mm.BeginBlock(ctx)
 }
 
