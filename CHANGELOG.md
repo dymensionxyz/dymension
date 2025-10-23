@@ -1,12 +1,13 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-22)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-23)
 
 
 ### Bug Fixes
 
 * add missing validations in x/rollapp/types/genesis.go ([#1657](https://github.com/dymensionxyz/dymension/issues/1657)) ([4ebef89](https://github.com/dymensionxyz/dymension/commit/4ebef89664fbefbede41aa2df24cc0087e01a288))
+* added burner permission for x/streamer ([#2070](https://github.com/dymensionxyz/dymension/issues/2070)) ([048af62](https://github.com/dymensionxyz/dymension/commit/048af62e584609b1585d0a8678841889d90ff96c))
 * **ci:** free up disk space task ([#2043](https://github.com/dymensionxyz/dymension/issues/2043)) ([0a105b4](https://github.com/dymensionxyz/dymension/commit/0a105b4cd78b5bb315e73df4acfee797e74bd71e))
 * **cli:** properly parse recipient flag for IBC forwarding ([#2041](https://github.com/dymensionxyz/dymension/issues/2041)) ([04fbb9c](https://github.com/dymensionxyz/dymension/commit/04fbb9c0be4f0b7194675e5dc1f49b2e04f18a30))
 * **codec:** added missing codec registrations ([#1896](https://github.com/dymensionxyz/dymension/issues/1896)) ([845cf55](https://github.com/dymensionxyz/dymension/commit/845cf55999b92f498e76f916b2827935a0370f56))
