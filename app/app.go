@@ -11,8 +11,6 @@ import (
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
-
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
@@ -303,17 +301,6 @@ func (app *App) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	// PATCH
-	if app.ChainID() == "dymension_3405-1" {
-		maccI := app.AccountKeeper.GetModuleAccount(ctx, streamermoduletypes.ModuleName)
-		macc, ok := maccI.(*authtypes.ModuleAccount)
-		if !ok {
-			panic("failed to type assert module account")
-		}
-		macc.Permissions = append(macc.Permissions, authtypes.Burner)
-		app.AccountKeeper.SetModuleAccount(ctx, macc)
-	}
-
 	return app.mm.BeginBlock(ctx)
 }
 
