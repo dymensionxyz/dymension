@@ -13,9 +13,11 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	streamertypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -86,6 +88,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.populateSequencers(s.Ctx, s.App.SequencerKeeper)
 				s.populateLivenessEvents(s.Ctx, s.App.RollappKeeper)
 				s.populateIBCChannels()
+				s.disableStreamerBurner() // should be enabled after upgrade
 				return nil
 			},
 			upgrade: func() {
@@ -139,6 +142,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// validate consensus params
 				s.validateConsensusParamsMigration()
+
+				s.validateStreamerCanBurn()
 
 				return
 			},
@@ -296,6 +301,21 @@ func (s *UpgradeTestSuite) validateConsensusParamsMigration() {
 	consensusParams, err := s.App.ConsensusParamsKeeper.Params(s.Ctx, nil)
 	s.Require().NoError(err)
 	s.Require().Equal(expectedEvidenceMaxAgeNumBlocks, consensusParams.Params.Evidence.MaxAgeNumBlocks)
+}
+
+func (s *UpgradeTestSuite) disableStreamerBurner() {
+	macc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, streamertypes.ModuleName)
+	m, ok := macc.(*authtypes.ModuleAccount)
+	s.Require().True(ok)
+	m.Permissions = slices.DeleteFunc(m.Permissions, func(perm string) bool { return perm == authtypes.Burner })
+	s.App.AccountKeeper.SetModuleAccount(s.Ctx, m)
+}
+
+func (s *UpgradeTestSuite) validateStreamerCanBurn() {
+	macc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, streamertypes.ModuleName)
+	s.Require().NotNil(macc)
+	ok := macc.HasPermission(authtypes.Burner)
+	s.Require().True(ok)
 }
 
 func (s *UpgradeTestSuite) populateAMMPool() {
