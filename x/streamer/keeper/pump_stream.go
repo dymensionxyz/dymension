@@ -433,6 +433,10 @@ func (k Keeper) DistributePumpStreams(ctx sdk.Context, pumpStreams []types.Strea
 			// Skip non-pump streams
 			continue
 		}
+		if len(stream.PumpParams.EpochCoinsLeft) == 0 {
+			// Nothing to pump
+			continue
+		}
 
 		epochBlocks, err := k.EpochBlocks(ctx, stream.DistrEpochIdentifier)
 		if err != nil {
