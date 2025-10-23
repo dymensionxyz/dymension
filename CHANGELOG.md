@@ -57,6 +57,7 @@
 * **sponsorship:** added epoch identifier ([#1864](https://github.com/dymensionxyz/dymension/issues/1864)) ([1094223](https://github.com/dymensionxyz/dymension/commit/109422326685781577a3148e5284efdeeb80a2e1))
 * **sponsorship:** missing total power in the endorsement migration ([#1865](https://github.com/dymensionxyz/dymension/issues/1865)) ([3e0e9ef](https://github.com/dymensionxyz/dymension/commit/3e0e9effdd628dfd8c3c21cae98ff3a14162791f))
 * **streamer:** oneof parsing in MsgCreatePumpStream ([#2023](https://github.com/dymensionxyz/dymension/issues/2023)) ([8c2345c](https://github.com/dymensionxyz/dymension/commit/8c2345c97b0b74b9e40bbd3313767ab2e6215fed))
+* **streamer:** panic in pump streamer when spending entire epoch budget ([#2076](https://github.com/dymensionxyz/dymension/issues/2076)) ([098ecdd](https://github.com/dymensionxyz/dymension/commit/098ecddbae8053e9e6776ca3b1c4f28664d4876c))
 * **streamer:** tests after v50 ([#1983](https://github.com/dymensionxyz/dymension/issues/1983)) ([1e2563c](https://github.com/dymensionxyz/dymension/commit/1e2563c967ea4f06862a828bf9c9b342e29b305a))
 * **streamer:** top rollapps normalization ([#2044](https://github.com/dymensionxyz/dymension/issues/2044)) ([9d6a3f7](https://github.com/dymensionxyz/dymension/commit/9d6a3f704dc4b626ca327508745196911831aee5))
 * **tee:** add attested bd state root to nonce ([#2066](https://github.com/dymensionxyz/dymension/issues/2066)) ([66f106e](https://github.com/dymensionxyz/dymension/commit/66f106e843adac2f99a751d22f553d8598834f74))
