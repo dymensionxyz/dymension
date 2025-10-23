@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
@@ -92,6 +93,11 @@ func CreateUpgradeHandler(
 
 		// add authorized circuit breaker
 		addAuthorizedCircuitBreaker(ctx, keepers.CircuitBreakKeeper, keepers.AccountKeeper)
+
+		err = enableStreamerBurner(ctx, keepers.AccountKeeper)
+		if err != nil {
+			return nil, fmt.Errorf("enable streamer burner: %w", err)
+		}
 
 		/* ----------------------------- params updates ----------------------------- */
 		// new IRO params
@@ -645,5 +651,16 @@ func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) error {
 			return fmt.Errorf("add rate limit: denom: %s, channelID: %s, error: %w", path.Denom, path.ChannelId, err)
 		}
 	}
+	return nil
+}
+
+func enableStreamerBurner(ctx sdk.Context, k *authkeeper.AccountKeeper) error {
+	maccI := k.GetModuleAccount(ctx, streamermoduletypes.ModuleName)
+	macc, ok := maccI.(*authtypes.ModuleAccount)
+	if !ok {
+		return fmt.Errorf("failed to convert ModuleAccountI to *ModuleAccount for x/streamer")
+	}
+	macc.Permissions = append(macc.Permissions, authtypes.Burner)
+	k.SetModuleAccount(ctx, macc)
 	return nil
 }
