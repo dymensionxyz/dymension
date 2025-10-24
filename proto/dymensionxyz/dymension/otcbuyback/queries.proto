@@ -10,11 +10,26 @@ import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/otcbuyback/auction.proto";
 import "dymensionxyz/dymension/otcbuyback/purchase.proto";
 import "dymensionxyz/dymension/otcbuyback/tokens.proto";
+import "dymensionxyz/dymension/otcbuyback/params.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/otcbuyback/types";
 
+// QueryParamsRequest is the request type for the Query/Params RPC method
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method
+message QueryParamsResponse {
+  // params holds all the parameters of this module
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
 // Query defines the gRPC querier service.
 service Query {
+  // Params queries the parameters of the module
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/otcbuyback/params";
+  }
+
   // AllAuctions queries all auctions with optional filtering
   rpc AllAuctions(QueryAllAuctionsRequest) returns (QueryAllAuctionsResponse) {
     option (google.api.http).get =
