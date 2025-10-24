@@ -504,11 +504,13 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 		suite.SetupTest()
 
 		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
-		params.MinPurchaseAmount = math.NewInt(10).MulRaw(1e18)
+		minPurchaseAmount := math.NewInt(10).MulRaw(1e18)
+		params.MinPurchaseAmount = minPurchaseAmount
 		err := suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
 		suite.Require().NoError(err)
 
 		auctionID := suite.CreateDefaultLinearAuction()
+
 		buyer := suite.CreateRandomAccount()
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000).MulRaw(1e6))))
 
@@ -519,6 +521,38 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 
 		// Buy exactly minimum (should work)
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 0)
+		suite.Require().NoError(err)
+
+		// Buy all except min purchase amount
+		auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		amountToBuy := auction.GetRemainingAllocation().Sub(minPurchaseAmount)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		suite.Require().NoError(err)
+
+		// Buy the remaining part
+		auction, _ = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+		amountToBuy = auction.GetRemainingAllocation()
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		suite.Require().NoError(err)
+	})
+
+	suite.Run("min purchase amount – buy all tokens", func() {
+		suite.SetupTest()
+
+		params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
+		params.MinPurchaseAmount = math.NewInt(10).MulRaw(1e18)
+		err := suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+		suite.Require().NoError(err)
+
+		auctionID := suite.CreateDefaultLinearAuction()
+		auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+
+		buyer := suite.CreateRandomAccount()
+		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000).MulRaw(1e6))))
+
+		// Try to buy the entire allocation
+		amountToBuy := auction.GetRemainingAllocation()
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
 		suite.Require().NoError(err)
 	})
 

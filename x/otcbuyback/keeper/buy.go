@@ -56,7 +56,8 @@ func (k Keeper) Buy(
 		return sdk.Coin{}, types.ErrInsufficientAllocation
 	}
 
-	if remainingAllocation.Sub(amountToBuy).LT(params.MinPurchaseAmount) {
+	remainingAfterBuy := remainingAllocation.Sub(amountToBuy)
+	if remainingAfterBuy.IsPositive() && remainingAfterBuy.LT(params.MinPurchaseAmount) {
 		return sdk.Coin{}, errorsmod.Wrapf(
 			types.ErrInvalidPurchaseAmount,
 			"remaining tokens would be less than min purchase amount: remaining=%s, min=%s",
