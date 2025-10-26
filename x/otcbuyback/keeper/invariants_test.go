@@ -446,6 +446,119 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_MultipleAuctions
 	// to cover all outstanding obligations (remaining allocation + unclaimed + raised amount)
 }
 
+func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_WithIntervalPumping() {
+	// Create an active auction with interval pumping enabled
+	allocation := sdk.NewCoin("adym", math.NewInt(10000).MulRaw(1e18))
+	suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(allocation))
+
+	// Set params for minimum pump threshold
+	params, _ := suite.App.OTCBuybackKeeper.GetParams(suite.Ctx)
+	params.MinSoldDifferenceToPump = math.NewInt(100).MulRaw(1e18)
+	err := suite.App.OTCBuybackKeeper.SetParams(suite.Ctx, params)
+	suite.Require().NoError(err)
+
+	pumpParams := types.Auction_PumpParams{
+		PumpDelay:          2 * time.Hour,
+		PumpInterval:       4 * time.Hour,
+		EpochIdentifier:    "day",
+		NumEpochs:          30,
+		NumOfPumpsPerEpoch: 1,
+		PumpDistr:          streamertypes.PumpDistr_PUMP_DISTR_UNIFORM,
+	}
+
+	auctionID, err := suite.App.OTCBuybackKeeper.CreateAuction(
+		suite.Ctx,
+		allocation,
+		suite.Ctx.BlockTime(),
+		suite.Ctx.BlockTime().Add(24*time.Hour),
+		types.NewLinearDiscountType(math.LegacyNewDecWithPrec(1, 1), math.LegacyNewDecWithPrec(5, 1), 24*time.Hour),
+		0,
+		pumpParams,
+	)
+	suite.Require().NoError(err)
+
+	// Create purchases
+	buyer := suite.CreateRandomAccount()
+	purchaseAmt := math.NewInt(200).MulRaw(1e18)
+	// Fund buyer with enough USDC for purchases
+	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000000).MulRaw(1e6))))
+
+	paymentCoin1, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0)
+	suite.Require().NoError(err)
+	suite.Require().True(paymentCoin1.IsPositive())
+
+	// Get auction state to check raised amount
+	auction, ok := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+	suite.Require().True(ok)
+	raisedAfterFirstPurchase := auction.RaisedAmount
+
+	// Verify invariant passes before pumping
+	invariant := keeper.ModuleAccountBalanceInvariant(*suite.App.OTCBuybackKeeper)
+	msg, broken := invariant(suite.Ctx)
+	suite.Require().False(broken, "invariant should not be broken before pumping: %s", msg)
+
+	// Advance time to trigger first pump
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(7 * time.Hour))
+	err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
+	suite.Require().NoError(err)
+
+	// Verify auction's pump info was updated
+	auction, ok = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+	suite.Require().True(ok)
+	suite.Require().Equal(raisedAfterFirstPurchase, auction.PumpInfo.LastRaisedAmount,
+		"LastRaisedAmount should equal RaisedAmount after pump")
+
+	// Verify invariant still passes after interval pumping
+	// The raised amount should have been transferred to streamer module
+	msg, broken = invariant(suite.Ctx)
+	suite.Require().False(broken, "invariant should not be broken after interval pumping: %s", msg)
+
+	// Make another purchase after pumping
+	purchaseAmt2 := math.NewInt(300).MulRaw(1e18)
+	paymentCoin2, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt2, "usdc", 0)
+	suite.Require().NoError(err)
+	suite.Require().True(paymentCoin2.IsPositive())
+
+	// Get updated auction state
+	auction, ok = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+	suite.Require().True(ok)
+
+	// Verify invariant passes with new raised amount not yet pumped
+	msg, broken = invariant(suite.Ctx)
+	suite.Require().False(broken, "invariant should not be broken with new raised amount: %s", msg)
+
+	// Verify the module account has the correct balance:
+	// - Remaining allocation (10000 - 500 = 9500)
+	// - Unclaimed purchased tokens (500)
+	// - Unpumped raised amount (only the second purchase, as the first was pumped)
+	moduleBalance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, suite.App.OTCBuybackKeeper.GetModuleAccountAddress())
+
+	expectedAdym := allocation.Amount // remaining allocation + unclaimed = 10000
+	suite.Require().True(moduleBalance.AmountOf("adym").Equal(expectedAdym),
+		"expected %s adym, got %s", expectedAdym, moduleBalance.AmountOf("adym"))
+
+	// Only the second raised amount should be in the module (first was pumped)
+	unpumpedRaised := auction.RaisedAmount.Sub(auction.PumpInfo.LastRaisedAmount...)
+	suite.Require().Equal(paymentCoin2.Amount, unpumpedRaised.AmountOf("usdc"),
+		"unpumped raised amount should equal second payment")
+	suite.Require().True(moduleBalance.AmountOf("usdc").Equal(unpumpedRaised.AmountOf("usdc")),
+		"expected %s usdc, got %s", unpumpedRaised.AmountOf("usdc"), moduleBalance.AmountOf("usdc"))
+
+	// Trigger second pump
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(5 * time.Hour))
+	err = suite.App.OTCBuybackKeeper.BeginBlock(suite.Ctx)
+	suite.Require().NoError(err)
+
+	// Verify invariant still passes after second interval pumping
+	msg, broken = invariant(suite.Ctx)
+	suite.Require().False(broken, "invariant should not be broken after second interval pumping: %s", msg)
+
+	// Now module should have no usdc (all pumped)
+	moduleBalance = suite.App.BankKeeper.GetAllBalances(suite.Ctx, suite.App.OTCBuybackKeeper.GetModuleAccountAddress())
+	suite.Require().True(moduleBalance.AmountOf("usdc").IsZero(),
+		"expected 0 usdc after second pump, got %s", moduleBalance.AmountOf("usdc"))
+}
+
 func newTestPurchase(amt math.Int) types.Purchase {
 	return types.NewPurchase(types.NewPurchaseEntry(amt, time.Time{}, 0))
 }
