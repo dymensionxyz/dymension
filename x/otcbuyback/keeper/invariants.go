@@ -78,7 +78,10 @@ func ModuleAccountBalanceInvariant(k Keeper) sdk.Invariant {
 			// For active auctions: remaining allocation and raised amount is expected to be in the module account
 			if !auction.IsCompleted() {
 				expecetedBalance = expecetedBalance.Add(sdk.NewCoin(k.baseDenom, auction.GetRemainingAllocation()))
-				expecetedBalance = expecetedBalance.Add(auction.GetRaisedAmount()...)
+				// Only expect unpumped raised amount to be in the module account
+				// (pumped amount was already transferred to streamer module during interval pumping)
+				unpumpedRaisedAmount := auction.GetRaisedAmount().Sub(auction.PumpInfo.GetLastRaisedAmount()...)
+				expecetedBalance = expecetedBalance.Add(unpumpedRaisedAmount...)
 			}
 		}
 

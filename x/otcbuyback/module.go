@@ -127,8 +127,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // RegisterInvariants registers the module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// FIXME: invariants
-	// keeper.RegisterInvariants(ir, am.keeper)
+	keeper.RegisterInvariants(ir, am.keeper)
 }
 
 // GetTxCmd returns the transaction commands for this module
