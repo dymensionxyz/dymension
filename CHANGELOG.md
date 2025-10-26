@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-24)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-26)
 
 
 ### Bug Fixes
@@ -46,6 +46,7 @@
 * **migration:** reverted eibc/authz protos ([#1924](https://github.com/dymensionxyz/dymension/issues/1924)) ([ab62145](https://github.com/dymensionxyz/dymension/commit/ab6214531bc85298fbacae9a44838bd0acc8f91b))
 * **migration:** update min swap fee ([#1915](https://github.com/dymensionxyz/dymension/issues/1915)) ([6d86081](https://github.com/dymensionxyz/dymension/commit/6d860818fa62a3115908b7700a0a64df7dfce7df))
 * **otcbuyback:**  audit fixes ([#2029](https://github.com/dymensionxyz/dymension/issues/2029)) ([d7c7425](https://github.com/dymensionxyz/dymension/commit/d7c742570ed524df242d5fb93ceb0971be480901))
+* **otcbuyback:** fix invariants ([#2067](https://github.com/dymensionxyz/dymension/issues/2067)) ([#2078](https://github.com/dymensionxyz/dymension/issues/2078)) ([55c7ed8](https://github.com/dymensionxyz/dymension/commit/55c7ed8308dac70e940ea5264a464101d3894a32))
 * **otcbuyback:** make end auction flow gas free ([#2042](https://github.com/dymensionxyz/dymension/issues/2042)) ([#2045](https://github.com/dymensionxyz/dymension/issues/2045)) ([b87c1f2](https://github.com/dymensionxyz/dymension/commit/b87c1f2ec6f6cc04c3acb0401e41a857bd9691ca))
 * **otcbuyback:** unable to buy remaining allocation if min purchase amt is positive ([#2079](https://github.com/dymensionxyz/dymension/issues/2079)) ([6cd8388](https://github.com/dymensionxyz/dymension/commit/6cd838898f29a26d968ea2f3e13d0a2c3776e4fe))
 * **proto:** formatting proto files ([#1904](https://github.com/dymensionxyz/dymension/issues/1904)) ([9956d00](https://github.com/dymensionxyz/dymension/commit/9956d0060cfa268541c85229893c8f85bfa33d36))
