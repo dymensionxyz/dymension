@@ -23,12 +23,42 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		CmdQueryParams(),
 		CmdQueryAllAuctions(),
 		CmdQueryAuction(),
 		CmdQueryUserPurchase(),
 		CmdQueryAcceptedTokens(),
 		CmdQueryAcceptedToken(),
 	)
+
+	return cmd
+}
+
+// CmdQueryParams implements the query params command.
+func CmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Short: "Query the parameters of the module",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryParamsRequest{}
+
+			res, err := queryClient.Params(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

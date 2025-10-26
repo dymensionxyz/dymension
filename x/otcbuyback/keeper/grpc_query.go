@@ -22,6 +22,21 @@ func NewQueryServerImpl(keeper Keeper) types.QueryServer {
 	return &queryServer{Keeper: keeper}
 }
 
+// Params queries the parameters of the module
+func (q queryServer) Params(goCtx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	params, err := q.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryParamsResponse{Params: params}, nil
+}
+
 // AllAuctions queries all auctions with optional filtering
 func (q queryServer) AllAuctions(goCtx context.Context, req *types.QueryAllAuctionsRequest) (*types.QueryAllAuctionsResponse, error) {
 	if req == nil {
