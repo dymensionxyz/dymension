@@ -196,7 +196,7 @@ func GetCmdNextLockID() *cobra.Command {
 		`{{.Short}}`, types.ModuleName, types.NewQueryClient)
 }
 
-// GetCmdAccountLockedLongerDuration returns account locked records with longer duration.
+// GetCmdAccountLockedLongerDuration returns account locked records with duration longer than the specified duration.
 func GetCmdAccountLockedLongerDuration() *cobra.Command {
 	return osmocli.SimpleQueryCmd[*types.AccountLockedLongerDurationRequest](
 		"account-locked-longer-duration <address> <duration>",
@@ -204,7 +204,7 @@ func GetCmdAccountLockedLongerDuration() *cobra.Command {
 		`{{.Short}}`, types.ModuleName, types.NewQueryClient)
 }
 
-// GetCmdAccountLockedLongerDuration returns account locked records with longer duration.
+// GetCmdAccountLockedDuration returns account locked records with a specific duration.
 func GetCmdAccountLockedDuration() *cobra.Command {
 	return osmocli.SimpleQueryCmd[*types.AccountLockedDurationRequest](
 		"account-locked-duration <address> <duration>",
