@@ -91,6 +91,10 @@ func (gi GenesisInfo) ValidateBasic() error {
 		return errors.Join(ErrInvalidMetadata, err)
 	}
 
+	if AllowedDecimals(gi.NativeDenom.Exponent) != Decimals18 {
+		return errorsmod.Wrap(ErrInvalidMetadata, "invalid exponent for native denom")
+	}
+
 	if !gi.InitialSupply.IsNil() && gi.InitialSupply.IsNegative() {
 		return ErrInvalidInitialSupply
 	}
