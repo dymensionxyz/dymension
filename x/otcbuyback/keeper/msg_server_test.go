@@ -262,10 +262,6 @@ func (suite *KeeperTestSuite) TestMsgServer_SetAcceptedTokens() {
 					Denom:  "atom",
 					PoolId: poolID2,
 				})
-				pools, err := suite.App.GAMMKeeper.GetPoolsAndPoke(suite.Ctx)
-				suite.Require().NoError(err)
-				suite.T().Log(pools)
-				suite.T().Log(tcMsg.AcceptedTokens)
 			},
 			expectError: false,
 			postCheck: func() {
