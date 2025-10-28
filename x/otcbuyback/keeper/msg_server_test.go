@@ -151,3 +151,157 @@ func (suite *KeeperTestSuite) TestMsgServer_CreateAuction() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestMsgServer_SetAcceptedTokens() {
+	var tcMsg types.MsgSetAcceptedTokens
+
+	// use func to allocate a new AcceptedTokens slice on every test rather than reusing the same one
+	validMsg := func() types.MsgSetAcceptedTokens {
+		return types.MsgSetAcceptedTokens{
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			AcceptedTokens: []types.MsgSetAcceptedTokens_Token{
+				{
+					Denom:  "usdc",
+					PoolId: 1,
+				},
+			},
+		}
+	}
+
+	testCases := []struct {
+		name        string
+		setup       func()
+		expectError bool
+		postCheck   func()
+	}{
+		{
+			name: "error - invalid authority",
+			setup: func() {
+				tcMsg.Authority = sdk.AccAddress([]byte("invalid_authority")).String()
+			},
+			expectError: true,
+		},
+		{
+			name: "error - pool doesn't exist",
+			setup: func() {
+				tcMsg.AcceptedTokens[0].PoolId = 999
+			},
+			expectError: true,
+		},
+		{
+			name: "error - pool doesn't have base denom",
+			setup: func() {
+				// Create a pool without the base denom (adym)
+				poolID := suite.PreparePoolWithCoins(sdk.NewCoins(
+					sdk.NewCoin("usdc", math.NewInt(500_000).MulRaw(1e6)),
+					sdk.NewCoin("atom", math.NewInt(1_000_000).MulRaw(1e6)),
+				))
+				tcMsg.AcceptedTokens[0].PoolId = poolID
+			},
+			expectError: true,
+		},
+		{
+			name: "error - pool doesn't have token denom",
+			setup: func() {
+				// Create a pool without the token denom (usdc)
+				poolID := suite.PreparePoolWithCoins(sdk.NewCoins(
+					sdk.NewCoin("atom", math.NewInt(1_000_000).MulRaw(1e6)),
+					sdk.NewCoin("adym", math.NewInt(2_000_000).MulRaw(1e18)),
+				))
+				tcMsg.AcceptedTokens[0].PoolId = poolID
+			},
+			expectError: true,
+		},
+		{
+			name: "success - valid pool with base denom first",
+			setup: func() {
+				// Create a pool with adym (base denom) first
+				poolID := suite.PreparePoolWithCoins(sdk.NewCoins(
+					sdk.NewCoin("adym", math.NewInt(2_000_000).MulRaw(1e18)),
+					sdk.NewCoin("usdc", math.NewInt(500_000).MulRaw(1e6)),
+				))
+				tcMsg.AcceptedTokens[0].PoolId = poolID
+			},
+			expectError: false,
+			postCheck: func() {
+				// Verify token was set
+				tokenData, err := suite.App.OTCBuybackKeeper.GetAcceptedTokenData(suite.Ctx, "usdc")
+				suite.Require().NoError(err, "token should be set")
+				suite.Require().Equal(tcMsg.AcceptedTokens[0].PoolId, tokenData.PoolId)
+				suite.Require().True(tokenData.LastAveragePrice.IsPositive(), "price should be positive")
+			},
+		},
+		{
+			name: "success - valid pool with token denom first",
+			setup: func() {
+				// Create a pool with usdc (token denom) first
+				poolID := suite.PreparePoolWithCoins(sdk.NewCoins(
+					sdk.NewCoin("usdc", math.NewInt(500_000).MulRaw(1e6)),
+					sdk.NewCoin("adym", math.NewInt(2_000_000).MulRaw(1e18)),
+				))
+				tcMsg.AcceptedTokens[0].PoolId = poolID
+			},
+			expectError: false,
+			postCheck: func() {
+				// Verify token was set
+				tokenData, err := suite.App.OTCBuybackKeeper.GetAcceptedTokenData(suite.Ctx, "usdc")
+				suite.Require().NoError(err, "token should be set")
+				suite.Require().Equal(tcMsg.AcceptedTokens[0].PoolId, tokenData.PoolId)
+				suite.Require().True(tokenData.LastAveragePrice.IsPositive(), "price should be positive")
+			},
+		},
+		{
+			name: "success - multiple tokens",
+			setup: func() {
+				// Create another pool with a different token
+				poolID2 := suite.PreparePoolWithCoins(sdk.NewCoins(
+					sdk.NewCoin("atom", math.NewInt(1_000_000).MulRaw(1e6)),
+					sdk.NewCoin("adym", math.NewInt(4_000_000).MulRaw(1e18)),
+				))
+				tcMsg.AcceptedTokens = append(tcMsg.AcceptedTokens, types.MsgSetAcceptedTokens_Token{
+					Denom:  "atom",
+					PoolId: poolID2,
+				})
+				pools, err := suite.App.GAMMKeeper.GetPoolsAndPoke(suite.Ctx)
+				suite.Require().NoError(err)
+				suite.T().Log(pools)
+				suite.T().Log(tcMsg.AcceptedTokens)
+			},
+			expectError: false,
+			postCheck: func() {
+				// Verify both tokens were set
+				tokenData1, err := suite.App.OTCBuybackKeeper.GetAcceptedTokenData(suite.Ctx, "usdc")
+				suite.Require().NoError(err, "usdc token should be set")
+				suite.Require().True(tokenData1.LastAveragePrice.IsPositive())
+
+				tokenData2, err := suite.App.OTCBuybackKeeper.GetAcceptedTokenData(suite.Ctx, "atom")
+				suite.Require().NoError(err, "atom token should be set")
+				suite.Require().True(tokenData2.LastAveragePrice.IsPositive())
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // Reset state for each test
+
+			tcMsg = validMsg()
+
+			if tc.setup != nil {
+				tc.setup()
+			}
+
+			msgServer := keeper.NewMsgServerImpl(*suite.App.OTCBuybackKeeper)
+			_, err := msgServer.SetAcceptedTokens(suite.Ctx, &tcMsg)
+
+			if tc.expectError {
+				suite.Require().Error(err, "expected error for test case: %s", tc.name)
+			} else {
+				suite.Require().NoError(err, "unexpected error for test case: %s", tc.name)
+				if tc.postCheck != nil {
+					tc.postCheck()
+				}
+			}
+		})
+	}
+}

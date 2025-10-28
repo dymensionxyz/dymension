@@ -64,9 +64,10 @@ func (ms msgServer) SetAcceptedTokens(goCtx context.Context, req *types.MsgSetAc
 		if len(denoms) != 2 {
 			return nil, fmt.Errorf("pool must have two denoms")
 		}
-		if (denoms[0] != ms.baseDenom && denoms[1] != token.Denom) ||
-			(denoms[1] != ms.baseDenom && denoms[0] != token.Denom) {
-			return nil, fmt.Errorf("pool must have the token denom and the base denom, got %s and %s", denoms[0], denoms[1])
+
+		validDenoms := (denoms[0] == ms.baseDenom && denoms[1] == token.Denom) || (denoms[0] == token.Denom && denoms[1] == ms.baseDenom)
+		if !validDenoms {
+			return nil, fmt.Errorf("pool must have the token denom and the base denom: pool %d has (%s, %s), got (%s, %s)", token.PoolId, denoms[0], denoms[1], ms.baseDenom, token.Denom)
 		}
 
 		price, err := ms.ammKeeper.CalculateSpotPrice(ctx, token.PoolId, token.Denom, ms.baseDenom)
