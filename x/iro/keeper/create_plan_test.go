@@ -290,7 +290,7 @@ func (s *KeeperTestSuite) TestStandardLaunch_TargetRaise() {
 	s.Require().NoError(err)
 }
 
-// TestStandardLaunchTargetRaiseConversion tests the conversion from params' target raise
+// TestStandardLaunch_TargetRaiseConversion tests the conversion from params' target raise
 // to liquidity denom and validates that the bonding curve is correctly configured
 func (s *KeeperTestSuite) TestStandardLaunch_TargetRaiseConversion() {
 	s.SetupTest()
