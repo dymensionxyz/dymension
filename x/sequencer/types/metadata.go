@@ -67,8 +67,8 @@ func (dm DenomMetadata) Validate() error {
 	}
 
 	// validate exponent
-	if AllowedDecimals(dm.Exponent) != Decimals18 {
-		return fmt.Errorf("invalid exponent")
+	if dm.Exponent == 0 {
+		return fmt.Errorf("exponent must be non-zero")
 	}
 
 	return nil
