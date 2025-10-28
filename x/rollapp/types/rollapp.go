@@ -218,9 +218,8 @@ func (dm DenomMetadata) Validate() error {
 		return fmt.Errorf("invalid metadata display denom: %w", err)
 	}
 
-	// validate exponent
-	if AllowedDecimals(dm.Exponent) != Decimals18 {
-		return fmt.Errorf("invalid exponent")
+	if dm.Exponent == 0 {
+		return fmt.Errorf("exponent must be non-zero")
 	}
 
 	return nil
