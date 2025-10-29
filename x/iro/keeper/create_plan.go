@@ -201,21 +201,39 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 	if err != nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
 	}
+	evaluationAmountDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent)).MulInt64(2)
 
-	// Calculate M parameter for the bonding curve
-	// Convert amounts to decimal representation for calculation
-	allocationDec := types.ScaleFromBase(params.StandardLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
-	evaluationDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent)).MulInt64(2)
+	/* -------------------------------------------------------------------------- */
+	/*                 Calculate bonding curve parameters                         */
+	/* -------------------------------------------------------------------------- */
+	// already validated in rollapp creation, but just for the explicitness
+	if rollapp.GenesisInfo.NativeDenom.Exponent != types.RollappDenomDecimals {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "rollapp native denom decimals must be %d", types.RollappDenomDecimals)
+	}
+
+	// liquidity part is 1.0 for standard launch
 	liquidityPart := math.LegacyOneDec()
 
-	calculatedM := types.CalculateM(evaluationDec, allocationDec, params.StandardLaunch.CurveExp, liquidityPart)
-	if !calculatedM.IsPositive() {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
+	// Convert amounts to decimal representation for calculation
+	allocationDec := types.ScaleFromBase(params.StandardLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
+
+	// fixme: calculate C from params, and convert to liquidity denom
+	C := math.LegacyMustNewDecFromStr("0.005")
+
+	graduationPoint, err := types.FindGraduation(allocationDec, params.StandardLaunch.CurveExp, C, evaluationAmountDec)
+	if err != nil {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to find graduation point: %v", err.Error())
+	}
+	graduationPointDec := types.ScaleFromBase(graduationPoint, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
+
+	M := types.MOfX(graduationPointDec, allocationDec, params.StandardLaunch.CurveExp, C)
+	if !M.IsPositive() {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", M)
 	}
 
 	// Create bonding curve with calculated M and global parameters
 	bondingCurve := types.NewBondingCurve(
-		calculatedM,
+		M,
 		params.StandardLaunch.CurveExp,
 		math.LegacyZeroDec(),
 		uint64(rollapp.GenesisInfo.NativeDenom.Exponent),
@@ -232,6 +250,7 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 		ctx,
 		req.LiquidityDenom,
 		params.StandardLaunch.AllocationAmount,
+		graduationPoint,
 		0,           // no minimum plan duration
 		time.Time{}, // no start time
 		req.TradingEnabled,
