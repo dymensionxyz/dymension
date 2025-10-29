@@ -117,6 +117,7 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 	planId, err := m.Keeper.CreatePlan(ctx,
 		req.LiquidityDenom,
 		req.AllocatedAmount,
+		types.FindEquilibrium(req.BondingCurve, req.AllocatedAmount, req.LiquidityPart),
 		req.IroPlanDuration,
 		req.StartTime,
 		req.TradingEnabled,
@@ -270,13 +271,13 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 // 4. Creates a new module account for the IRO plan.
 // 5. Charges the creation fee from the rollapp owner to the plan's module account.
 // 6. Stores the plan in the keeper.
-func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, standardLaunch bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
+func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmount, graduationPoint math.Int, planDuration time.Duration, startTime time.Time, tradingEnabled bool, standardLaunch bool, rollapp rollapptypes.Rollapp, curve types.BondingCurve, incentivesParams types.IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) (string, error) {
 	allocation, err := k.MintAllocation(ctx, allocatedAmount, rollapp.RollappId, rollapp.GenesisInfo.NativeDenom.Display, uint64(rollapp.GenesisInfo.NativeDenom.Exponent))
 	if err != nil {
 		return "", err
 	}
 
-	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, liquidityDenom, allocation, curve, planDuration, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
+	plan := types.NewPlan(k.GetNextPlanIdAndIncrement(ctx), rollapp.RollappId, liquidityDenom, allocation, graduationPoint, curve, planDuration, incentivesParams, liquidityPart, vestingDuration, vestingStartTimeAfterSettlement)
 	plan.StandardLaunch = standardLaunch
 
 	// if trading enabled initially, set start time and pre-launch time
