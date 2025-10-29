@@ -24,7 +24,8 @@ func (s *KeeperTestSuite) TestInvariantAccounting() {
 
 	// Create a plan
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	eq := types.FindEquilibrium(curve, amt, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, eq, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	plan := k.MustGetPlan(s.Ctx, planId)
 	planDenom := plan.TotalAllocation.Denom

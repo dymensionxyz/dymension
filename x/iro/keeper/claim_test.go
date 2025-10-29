@@ -26,7 +26,8 @@ func (s *KeeperTestSuite) TestClaim() {
 	amt := math.NewInt(1_000_000).MulRaw(1e18)
 
 	rollapp, _ := s.App.RollappKeeper.GetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	eq := types.FindEquilibrium(curve, amt, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, eq, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)
@@ -74,7 +75,8 @@ func (s *KeeperTestSuite) TestClaimVested() {
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 
 	rollapp := s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
-	planId, err := k.CreatePlan(s.Ctx, "adym", amt, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	eq := types.FindEquilibrium(curve, amt, liquidityPart)
+	planId, err := k.CreatePlan(s.Ctx, "adym", amt, eq, time.Hour, startTime, true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	planDenom := k.MustGetPlan(s.Ctx, planId).TotalAllocation.Denom
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), planDenom)

@@ -22,7 +22,8 @@ func (s *KeeperTestSuite) setV1IRO(rollappId string) types.Plan {
 	curve.RollappDenomDecimals = 0
 
 	id := s.App.IROKeeper.GetNextPlanIdAndIncrement(s.Ctx)
-	plan := types.NewPlan(id, rollappId, "", allocation, curve, 0, defaultIncentives, math.LegacyOneDec(), 0, 0)
+	eq := types.FindEquilibrium(curve, allocation.Amount, math.LegacyOneDec())
+	plan := types.NewPlan(id, rollappId, "", allocation, eq, curve, 0, defaultIncentives, math.LegacyOneDec(), 0, 0)
 	plan.MaxAmountToSell = math.ZeroInt()
 	plan.LiquidityPart = math.LegacyDec{}
 	plan.VestingPlan = types.IROVestingPlan{}

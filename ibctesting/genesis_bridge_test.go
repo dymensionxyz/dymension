@@ -144,7 +144,9 @@ func (s *GenesisBridgeSuite) TestIRO() {
 
 	// create IRO plan
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
-	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), "adym", amt, 0, time.Time{}, true, false, rollapp, irotypes.DefaultBondingCurve(), irotypes.DefaultIncentivePlanParams(), irotypes.DefaultParams().MinLiquidityPart, time.Hour, 0)
+	curve := irotypes.DefaultBondingCurve()
+	eq := irotypes.FindEquilibrium(curve, amt, irotypes.DefaultParams().MinLiquidityPart)
+	_, err := s.hubApp().IROKeeper.CreatePlan(s.hubCtx(), "adym", amt, eq, 0, time.Time{}, true, false, rollapp, curve, irotypes.DefaultIncentivePlanParams(), irotypes.DefaultParams().MinLiquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	// register the sequencer

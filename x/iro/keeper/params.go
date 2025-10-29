@@ -48,6 +48,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	evaluationDec := types.ScaleFromBase(targetRaise.Amount, int64(targetRaiseExponent)).MulInt64(2)
 	liquidityPart := math.LegacyOneDec()
 
+	// FIXME: review
 	calculatedM := types.CalculateM(evaluationDec, allocationDec, standardLaunch.CurveExp, liquidityPart)
 	if !calculatedM.IsPositive() {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
