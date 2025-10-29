@@ -94,6 +94,11 @@ func (m msgServer) CreatePlan(goCtx context.Context, req *types.MsgCreatePlan) (
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "rollapp decimals must be %d", rollapp.GenesisInfo.NativeDenom.Exponent)
 	}
 
+	// positive C is supported only for fixed price for now (due to equilibrium calculation)
+	if !req.BondingCurve.C.IsZero() && (!req.BondingCurve.M.IsZero() && !req.BondingCurve.N.IsZero()) {
+		return nil, errorsmod.Wrapf(types.ErrInvalidBondingCurve, "minimum price bonding curve is not supported")
+	}
+
 	// validate the liquidity denom is registered and curve decimals are correct
 	liqToken, ok := m.BK.GetDenomMetaData(ctx, req.LiquidityDenom)
 	if !ok {
