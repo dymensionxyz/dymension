@@ -22,9 +22,6 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(NewCmdSubmitCreateDenomMetadataProposal())
-	cmd.AddCommand(NewCmdSubmitUpdateDenomMetadataProposal())
 	cmd.AddCommand(NewCmdRegisterHLTokenDenomMetadata())
-
 	return cmd
 }
