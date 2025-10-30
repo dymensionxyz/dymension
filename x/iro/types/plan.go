@@ -24,8 +24,7 @@ func RollappIDFromIRODenom(denom string) (string, bool) {
 
 var MinTokenAllocation = math.LegacyNewDec(10) // min allocation in decimal representation
 
-func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.Coin, curve BondingCurve, planDuration time.Duration, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
-	eq := FindEquilibrium(curve, allocation.Amount, liquidityPart)
+func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.Coin, graduationPoint math.Int, curve BondingCurve, planDuration time.Duration, incentivesParams IncentivePlanParams, liquidityPart math.LegacyDec, vestingDuration, vestingStartTimeAfterSettlement time.Duration) Plan {
 	// start time and pre-launch time are set later on
 	plan := Plan{
 		Id:                  id,
@@ -36,7 +35,7 @@ func NewPlan(id uint64, rollappId string, liquidityDenom string, allocation sdk.
 		SoldAmt:             math.ZeroInt(),
 		ClaimedAmt:          math.ZeroInt(),
 		IncentivePlanParams: incentivesParams,
-		MaxAmountToSell:     eq,
+		MaxAmountToSell:     graduationPoint,
 		LiquidityPart:       liquidityPart,
 		LiquidityDenom:      liquidityDenom,
 		VestingPlan: IROVestingPlan{

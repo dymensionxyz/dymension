@@ -304,7 +304,7 @@ func (s *KeeperTestSuite) CreatePlan(rollappID string, allocation math.Int, stan
 	incentives := irotypes.DefaultIncentivePlanParams()
 	liquidityPart := irotypes.DefaultParams().MinLiquidityPart
 
-	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, time.Hour, time.Now().Add(-time.Minute), true, standardLaunch, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+	planID, err := k.CreatePlan(s.Ctx, sdk.DefaultBondDenom, allocation, math.ZeroInt(), time.Hour, time.Now().Add(-time.Minute), true, standardLaunch, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	return planID
 }

@@ -291,6 +291,8 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 		NobleUSDCDenom,
 		math.NewIntWithDecimal(10, 3).MulRaw(1e6)) // 10K USDC
 
+	params.StandardLaunch.InitialFdv = math.NewIntWithDecimal(5, 3).MulRaw(1e6) // 5K USDC
+
 	k.SetParams(ctx, params)
 }
 
