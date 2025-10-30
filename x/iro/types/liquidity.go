@@ -87,7 +87,6 @@ func graduationTargetG(
 	N math.LegacyDec,
 	C math.LegacyDec,
 ) math.LegacyDec {
-
 	one := math.LegacyOneDec()
 
 	nPlusOne := N.Add(one)        // N+1
@@ -125,7 +124,6 @@ func MOfX(
 	N math.LegacyDec,
 	C math.LegacyDec,
 ) math.LegacyDec {
-
 	one := math.LegacyOneDec()
 	nPlusOne := N.Add(one)
 	nPlusTwo := nPlusOne.Add(one)
@@ -137,8 +135,7 @@ func MOfX(
 	xBig := osmomath.BigDecFromSDKDec(x)
 	nBig := osmomath.BigDecFromSDKDec(N)
 
-	var xPowN osmomath.BigDec
-	xPowN = xBig.Power(nBig) // Calculate x^N
+	var xPowN osmomath.BigDec = xBig.Power(nBig) // Calculate x^N
 
 	// inner = x*(N+2)/(N+1) - T
 	frac := nPlusTwo.Quo(nPlusOne) // (N+2)/(N+1)
