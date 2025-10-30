@@ -183,61 +183,16 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "allocated amount mismatch")
 	}
 
-	// Validate liquidity denom is registered and allowed
-	liqToken, ok := m.BK.GetDenomMetaData(ctx, req.LiquidityDenom)
-	if !ok {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "denom %s not registered", req.LiquidityDenom)
-	}
-	liqTokenExponent := liqToken.DenomUnits[len(liqToken.DenomUnits)-1].Exponent
-
 	// check liquidity denom is allowed
 	if !slices.Contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, req.LiquidityDenom) {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
-	/* -------------------------------------------------------------------------- */
-	/*                  convert global params to liquidity denom                  */
-	/* -------------------------------------------------------------------------- */
-	// Convert target raise from its original denom to the requested liquidity denom
-	convertedTargetRaise, err := m.convertTargetRaiseToLiquidityDenom(ctx, params.StandardLaunch.TargetRaise, req.LiquidityDenom)
+	// Get the bonding curve and graduation point
+	bondingCurve, graduationPoint, err := m.GetCurveByLiquidityDenom(ctx, req.LiquidityDenom, params.StandardLaunch)
 	if err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to get standard launch curve and graduation point: %v", err.Error())
 	}
-	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
-
-	initialTVLCoin := sdk.NewCoin(params.StandardLaunch.TargetRaise.Denom, params.StandardLaunch.InitialTvl)
-	covertedInitialTvl, err := m.convertTargetRaiseToLiquidityDenom(ctx, initialTVLCoin, req.LiquidityDenom)
-	if err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert initial TVL to liquidity denom: %v", err.Error())
-	}
-	initialTvlDec := types.ScaleFromBase(covertedInitialTvl.Amount, int64(liqTokenExponent))
-
-	/* -------------------------------------------------------------------------- */
-	/*                 Calculate bonding curve parameters                         */
-	/* -------------------------------------------------------------------------- */
-	// calculate C from initial TVL param
-	allocationDec := types.ScaleFromBase(params.StandardLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
-	C := initialTvlDec.Quo(allocationDec)
-
-	evaluationAmountDec := targetRaiseDec.MulInt64(2) // evaluation is 2x of target raise
-	graduationPointDec, err := types.FindGraduation(allocationDec, params.StandardLaunch.CurveExp, C, evaluationAmountDec)
-	if err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to find graduation point: %v", err.Error())
-	}
-
-	M := types.MOfX(graduationPointDec, allocationDec, params.StandardLaunch.CurveExp, C)
-	if !M.IsPositive() {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", M)
-	}
-
-	// Create bonding curve with calculated M and global parameters
-	bondingCurve := types.NewBondingCurve(
-		M,
-		params.StandardLaunch.CurveExp,
-		C,
-		uint64(rollapp.GenesisInfo.NativeDenom.Exponent),
-		uint64(liqTokenExponent),
-	)
 
 	// Validate the bonding curve
 	if err := bondingCurve.ValidateBasic(); err != nil {
@@ -249,7 +204,7 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 		ctx,
 		req.LiquidityDenom,
 		params.StandardLaunch.AllocationAmount,
-		types.ScaleToBase(graduationPointDec, int64(rollapp.GenesisInfo.NativeDenom.Exponent)),
+		graduationPoint,
 		0,           // no minimum plan duration
 		time.Time{}, // no start time
 		req.TradingEnabled,
@@ -279,6 +234,61 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 	return &types.MsgCreatePlanResponse{
 		PlanId: planId,
 	}, nil
+}
+
+// get curve and graduation point of standard launch
+func (k Keeper) GetCurveByLiquidityDenom(ctx sdk.Context, liquidityDenom string, params types.StandardLaunch) (types.BondingCurve, math.Int, error) {
+	liqToken, ok := k.BK.GetDenomMetaData(ctx, liquidityDenom)
+	if !ok {
+		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "denom metadata not found for %s", liquidityDenom)
+	}
+	liqTokenExponent := liqToken.DenomUnits[len(liqToken.DenomUnits)-1].Exponent
+
+	/* -------------------------------------------------------------------------- */
+	/*                  convert global params to liquidity denom                  */
+	/* -------------------------------------------------------------------------- */
+	// Convert target raise from its original denom to the requested liquidity denom
+	convertedTargetRaise, err := k.convertTargetRaiseToLiquidityDenom(ctx, params.TargetRaise, liquidityDenom)
+	if err != nil {
+		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
+	}
+	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
+
+	initialTVLCoin := sdk.NewCoin(params.TargetRaise.Denom, params.InitialTvl)
+	covertedInitialTvl, err := k.convertTargetRaiseToLiquidityDenom(ctx, initialTVLCoin, liquidityDenom)
+	if err != nil {
+		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert initial TVL to liquidity denom: %v", err.Error())
+	}
+	initialTvlDec := types.ScaleFromBase(covertedInitialTvl.Amount, int64(liqTokenExponent))
+
+	/* -------------------------------------------------------------------------- */
+	/*                 Calculate bonding curve parameters                         */
+	/* -------------------------------------------------------------------------- */
+	// calculate C from initial TVL param
+	allocationDec := types.ScaleFromBase(params.AllocationAmount, int64(18))
+	C := initialTvlDec.Quo(allocationDec)
+
+	evaluationAmountDec := targetRaiseDec.MulInt64(2) // evaluation is 2x of target raise
+	graduationPointDec, err := types.FindGraduation(allocationDec, params.CurveExp, C, evaluationAmountDec)
+	if err != nil {
+		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to find graduation point: %v", err.Error())
+	}
+
+	M := types.MOfX(graduationPointDec, allocationDec, params.CurveExp, C)
+	if !M.IsPositive() {
+		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", M)
+	}
+
+	// Create bonding curve with calculated M and global parameters
+	bondingCurve := types.NewBondingCurve(
+		M,
+		params.CurveExp,
+		C,
+		18,
+		uint64(liqTokenExponent),
+	)
+
+	return bondingCurve, types.ScaleToBase(graduationPointDec, 18), nil
 }
 
 // CreatePlan creates a new IRO plan for a rollapp
@@ -357,20 +367,20 @@ func (k Keeper) CreatePlan(ctx sdk.Context, liquidityDenom string, allocatedAmou
 // convertTargetRaiseToLiquidityDenom converts the target raise from its original denom to the requested liquidity denom
 // If the denoms are the same, it returns the original target raise
 // If they're different, it attempts to find a conversion path or returns an error
-func (m msgServer) convertTargetRaiseToLiquidityDenom(ctx sdk.Context, targetRaise sdk.Coin, liquidityDenom string) (sdk.Coin, error) {
+func (k Keeper) convertTargetRaiseToLiquidityDenom(ctx sdk.Context, targetRaise sdk.Coin, liquidityDenom string) (sdk.Coin, error) {
 	// if the target raise denom is the same as the liquidity denom, return the original target raise
 	if targetRaise.Denom == liquidityDenom {
 		return targetRaise, nil
 	}
 
 	// convert the target raise to the base denom (just in case it's not set in base denom)
-	baseTargetRaise, err := m.tk.CalcCoinInBaseDenom(ctx, targetRaise)
+	baseTargetRaise, err := k.tk.CalcCoinInBaseDenom(ctx, targetRaise)
 	if err != nil {
 		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to base denom: %v", err.Error())
 	}
 
 	// now get the target raise in the required liquidity denom
-	liquidityTargetRaise, err := m.tk.CalcBaseInCoin(ctx, baseTargetRaise, liquidityDenom)
+	liquidityTargetRaise, err := k.tk.CalcBaseInCoin(ctx, baseTargetRaise, liquidityDenom)
 	if err != nil {
 		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
 	}

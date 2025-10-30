@@ -212,8 +212,6 @@ func FindGraduation(
 	ratio := nPlusOne.Quo(nPlusTwo)               // (N+1)/(N+2)
 	highLimit := T.Mul(ratio)
 
-	// FIXME: validations?
-
 	// target = VAL/2
 	target := VAL.QuoInt64(2)
 

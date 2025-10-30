@@ -25,7 +25,7 @@ var (
 		AllocationAmount: math.NewInt(1e9).MulRaw(1e18), // 1B RA tokens
 		TargetRaise:      common.DymUint64(20_000),      // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.25"),
-		InitialTvl:       common.DYM.MulRaw(500), // 500 DYM
+		InitialTvl:       common.DYM.MulRaw(10_000), // 10K DYM
 	}
 )
 
