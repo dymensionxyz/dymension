@@ -149,10 +149,12 @@ func MOfX(
 }
 
 // FindGraduation finds x_g (graduation point) given:
-// - totalAllocation T
+// - totalAllocation T (in scaled/decimal form, e.g. 1e9 for 1 billion tokens)
 // - curve exponent N
-// - floor price C
-// - target valuation VAL
+// - floor price C (price per token in scaled form)
+// - target valuation VAL (in scaled/decimal form, e.g. 40000 for 40K)
+//
+// Returns the graduation point in BASE DENOMINATION.
 //
 // It uses the condition:
 //

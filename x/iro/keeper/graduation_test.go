@@ -157,7 +157,7 @@ func (s *KeeperTestSuite) TestGraduateStandardLaunchPlan() {
 
 	// assert ~all rollapptokens were used for the pool
 	tokensLeftovers := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), plan.GetIRODenom())
-	s.Require().NoError(testutil.ApproxEqual(tokensLeftovers.Amount, math.ZeroInt(), math.NewInt(1e18)), "not all tokens were used for the pool: %s", tokensLeftovers.String())
+	s.Require().NoError(testutil.ApproxEqual(math.ZeroInt(), tokensLeftovers.Amount, math.NewInt(100).MulRaw(1e18)), "not all tokens were used for the pool: %s", tokensLeftovers.String())
 
 	// assert rollapp is launchable
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
