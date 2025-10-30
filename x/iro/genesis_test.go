@@ -21,11 +21,9 @@ var (
 	defaultDuration      = time.Hour
 )
 
-var defaultGraduationPoint = types.FindEquilibrium(defaultCurve, fooCoin.Amount, defaultLiquidityPart)
-
 var plans = []types.Plan{
-	types.NewPlan(1, "rollapp1", "adym", fooCoin, defaultGraduationPoint, defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
-	types.NewPlan(2, "rollapp2", "adym", fooCoin, defaultGraduationPoint, defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
+	types.NewPlan(1, "rollapp1", "adym", fooCoin, math.ZeroInt(), defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
+	types.NewPlan(2, "rollapp2", "adym", fooCoin, math.ZeroInt(), defaultCurve, time.Hour, defaultIncentives, defaultLiquidityPart, defaultDuration, 0),
 }
 
 func TestGenesis(t *testing.T) {

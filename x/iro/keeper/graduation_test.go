@@ -36,9 +36,7 @@ func (s *KeeperTestSuite) TestGraduatePlan() {
 	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin("adym", k.GetParams(s.Ctx).CreationFee)))
-
-	eq := types.FindEquilibrium(curve, allocation, liquidityPart)
-	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, eq, time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	plan := k.MustGetPlan(s.Ctx, planId)
 
@@ -239,8 +237,7 @@ func (s *KeeperTestSuite) TestGraduationGasFree() {
 		RollappDenomDecimals:   18,
 		LiquidityDenomDecimals: 18,
 	}
-	eq := types.FindEquilibrium(curve, allocation, liquidityPart)
-	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, eq, time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	// check how much gas is consumed by standard buy

@@ -47,8 +47,7 @@ func generateRandomPlan(r *rand.Rand, id uint64) types.Plan {
 
 	// Generate random bonding curve
 	curve := generateRandomBondingCurve(r, allocatedAmount, liquidityPart)
-	eq := types.FindEquilibrium(curve, allocatedAmount, liquidityPart)
-	plan := types.NewPlan(id, rollappId, "adym", allocation, eq, curve, 24*time.Hour, types.DefaultIncentivePlanParams(), liquidityPart, 24*time.Hour, 0)
+	plan := types.NewPlan(id, rollappId, "adym", allocation, math.ZeroInt(), curve, 24*time.Hour, types.DefaultIncentivePlanParams(), liquidityPart, 24*time.Hour, 0)
 	plan.EnableTradingWithStartTime(time.Now())
 
 	// randomize starting sold amount

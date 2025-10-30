@@ -69,8 +69,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.GenesisInfo.GenesisChecksum = ""
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		eq := types.FindEquilibrium(curve, allocation, liquidityPart)
-		_, err := k.CreatePlan(s.Ctx, "adym", allocation, eq, time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+		_, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 		s.Require().Error(err)
 	})
 
@@ -84,8 +83,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.Launched = true
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		eq := types.FindEquilibrium(curve, allocation, liquidityPart)
-		_, err := k.CreatePlan(s.Ctx, "adym", allocation, eq, time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+		_, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 		s.Require().Error(err)
 	})
 
@@ -99,8 +97,7 @@ func (s *KeeperTestSuite) TestValidateRollappPreconditions() {
 		rollapp.Launched = false
 		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 
-		eq := types.FindEquilibrium(curve, allocation, liquidityPart)
-		_, err := k.CreatePlan(s.Ctx, "adym", allocation, eq, time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
+		_, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, time.Now(), true, false, rollapp, curve, incentives, liquidityPart, time.Hour, 0)
 		s.Require().NoError(err)
 	})
 }
