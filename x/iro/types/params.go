@@ -25,6 +25,7 @@ var (
 		AllocationAmount: math.NewInt(1e9).MulRaw(1e18), // 1B RA tokens
 		TargetRaise:      common.DymUint64(20_000),      // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.25"),
+		InitialTvl:       common.DYM.MulRaw(500), // 500 DYM
 	}
 )
 
@@ -90,18 +91,37 @@ func (p Params) ValidateBasic() error {
 		return fmt.Errorf("minimum vesting duration must be non-negative: %v", p.MinVestingDuration)
 	}
 
-	if !p.StandardLaunch.AllocationAmount.IsPositive() {
-		return fmt.Errorf("allocation amount must be positive: %s", p.StandardLaunch.AllocationAmount)
-	}
-
-	if !p.StandardLaunch.TargetRaise.IsValid() || !p.StandardLaunch.TargetRaise.Amount.IsPositive() {
-		return fmt.Errorf("target raise is not valid: %s", p.StandardLaunch.TargetRaise)
-	}
-
 	if err := validateMinTradeAmount(p.MinTradeAmount); err != nil {
 		return err
 	}
 
+	if err := p.StandardLaunch.ValidateBasic(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validate standard launch params
+func (p StandardLaunch) ValidateBasic() error {
+	if !p.AllocationAmount.IsPositive() {
+		return fmt.Errorf("allocation amount must be positive: %s", p.AllocationAmount)
+	}
+	if !p.TargetRaise.IsValid() || !p.TargetRaise.Amount.IsPositive() {
+		return fmt.Errorf("target raise is not valid: %s", p.TargetRaise)
+	}
+	if !p.InitialTvl.IsPositive() {
+		return fmt.Errorf("initial TVL must be positive: %s", p.InitialTvl)
+	}
+	if !p.CurveExp.IsPositive() {
+		return fmt.Errorf("curve exponent must be positive: %s", p.CurveExp)
+	}
+	if p.CurveExp.GT(math.LegacyNewDec(MaxNValue)) {
+		return fmt.Errorf("curve exponent exceeds maximum value of %d: %s", MaxNValue, p.CurveExp)
+	}
+	if !checkPrecision(p.CurveExp) {
+		return fmt.Errorf("curve exponent must have at most %d decimal places", MaxNPrecision)
+	}
 	return nil
 }
 

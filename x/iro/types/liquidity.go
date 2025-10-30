@@ -179,15 +179,15 @@ func FindGraduation(
 	N math.LegacyDec,
 	C math.LegacyDec,
 	VAL math.LegacyDec,
-) (math.Int, error) {
+) (math.LegacyDec, error) {
 	if T.IsZero() {
-		return math.ZeroInt(), errors.New("T is zero")
+		return math.LegacyZeroDec(), errors.New("T is zero")
 	}
 	if C.IsZero() {
-		return math.ZeroInt(), errors.New("C is zero")
+		return math.LegacyZeroDec(), errors.New("C is zero")
 	}
 	if N.IsNegative() {
-		return math.ZeroInt(), errors.New("N is negative")
+		return math.LegacyZeroDec(), errors.New("N is negative")
 	}
 	// Preconditions we assume are already validated externally:
 	// - T > 0
@@ -256,11 +256,11 @@ func FindGraduation(
 			highX = mid
 		default:
 			// perfect hit
-			return ScaleToBase(mid, RollappDenomDecimals), nil
+			return mid, nil
 		}
 
 		if count > MaxFindGraduationIterations {
-			return math.ZeroInt(), errors.New("max iterations reached")
+			return math.LegacyZeroDec(), errors.New("max iterations reached")
 		}
 	}
 }

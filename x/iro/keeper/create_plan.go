@@ -195,36 +195,35 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
+	/* -------------------------------------------------------------------------- */
+	/*                  convert global params to liquidity denom                  */
+	/* -------------------------------------------------------------------------- */
 	// Convert target raise from its original denom to the requested liquidity denom
-	// This is needed because params.StandardLaunch.TargetRaise might be in a different denom
 	convertedTargetRaise, err := m.convertTargetRaiseToLiquidityDenom(ctx, params.StandardLaunch.TargetRaise, req.LiquidityDenom)
 	if err != nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
 	}
-	evaluationAmountDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent)).MulInt64(2)
+	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
+
+	initialTVLCoin := sdk.NewCoin(params.StandardLaunch.TargetRaise.Denom, params.StandardLaunch.InitialTvl)
+	covertedInitialTvl, err := m.convertTargetRaiseToLiquidityDenom(ctx, initialTVLCoin, req.LiquidityDenom)
+	if err != nil {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert initial TVL to liquidity denom: %v", err.Error())
+	}
+	initialTvlDec := types.ScaleFromBase(covertedInitialTvl.Amount, int64(liqTokenExponent))
 
 	/* -------------------------------------------------------------------------- */
 	/*                 Calculate bonding curve parameters                         */
 	/* -------------------------------------------------------------------------- */
-	// already validated in rollapp creation, but just for the explicitness
-	if rollapp.GenesisInfo.NativeDenom.Exponent != types.RollappDenomDecimals {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "rollapp native denom decimals must be %d", types.RollappDenomDecimals)
-	}
-
-	// liquidity part is 1.0 for standard launch
-	liquidityPart := math.LegacyOneDec()
-
-	// Convert amounts to decimal representation for calculation
+	// calculate C from initial TVL param
 	allocationDec := types.ScaleFromBase(params.StandardLaunch.AllocationAmount, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
+	C := initialTvlDec.Quo(allocationDec)
 
-	// fixme: calculate C from params, and convert to liquidity denom
-	C := math.LegacyMustNewDecFromStr("0.005")
-
-	graduationPoint, err := types.FindGraduation(allocationDec, params.StandardLaunch.CurveExp, C, evaluationAmountDec)
+	evaluationAmountDec := targetRaiseDec.MulInt64(2) // evaluation is 2x of target raise
+	graduationPointDec, err := types.FindGraduation(allocationDec, params.StandardLaunch.CurveExp, C, evaluationAmountDec)
 	if err != nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to find graduation point: %v", err.Error())
 	}
-	graduationPointDec := types.ScaleFromBase(graduationPoint, int64(rollapp.GenesisInfo.NativeDenom.Exponent))
 
 	M := types.MOfX(graduationPointDec, allocationDec, params.StandardLaunch.CurveExp, C)
 	if !M.IsPositive() {
@@ -235,7 +234,7 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 	bondingCurve := types.NewBondingCurve(
 		M,
 		params.StandardLaunch.CurveExp,
-		math.LegacyZeroDec(),
+		C,
 		uint64(rollapp.GenesisInfo.NativeDenom.Exponent),
 		uint64(liqTokenExponent),
 	)
@@ -250,7 +249,7 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 		ctx,
 		req.LiquidityDenom,
 		params.StandardLaunch.AllocationAmount,
-		graduationPoint,
+		types.ScaleToBase(graduationPointDec, int64(rollapp.GenesisInfo.NativeDenom.Exponent)),
 		0,           // no minimum plan duration
 		time.Time{}, // no start time
 		req.TradingEnabled,
@@ -258,9 +257,9 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 		rollapp,
 		bondingCurve,
 		types.IncentivePlanParams{}, // no incentive plan params for standard launch
-		liquidityPart,
-		0, // liquidity part for standard launch is 1.0, so no vesting duration
-		0, // liquidity part for standard launch is 1.0, so no vesting start time after settlement
+		math.LegacyOneDec(),         // liquidity part for standard launch is 1.0
+		0,                           // liquidity part for standard launch is 1.0, so no vesting duration
+		0,                           // liquidity part for standard launch is 1.0, so no vesting start time after settlement
 	)
 	if err != nil {
 		return nil, err

@@ -87,4 +87,13 @@ message StandardLaunch {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+
+  // initial TVL for standard launch, in the target raise denom
+  // it will set the initial price for the standard launch curve (curve's C parameter)
+  string initial_tvl = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
