@@ -25,7 +25,7 @@ var (
 		AllocationAmount: math.NewInt(1e9).MulRaw(1e18), // 1B RA tokens
 		TargetRaise:      common.DymUint64(20_000),      // 20K DYM
 		CurveExp:         math.LegacyMustNewDecFromStr("1.25"),
-		InitialTvl:       common.DYM.MulRaw(10_000), // 10K DYM
+		InitialFdv:       common.DYM.MulRaw(10_000), // 10K DYM
 	}
 )
 
@@ -110,8 +110,8 @@ func (p StandardLaunch) ValidateBasic() error {
 	if !p.TargetRaise.IsValid() || !p.TargetRaise.Amount.IsPositive() {
 		return fmt.Errorf("target raise is not valid: %s", p.TargetRaise)
 	}
-	if !p.InitialTvl.IsPositive() {
-		return fmt.Errorf("initial TVL must be positive: %s", p.InitialTvl)
+	if !p.InitialFdv.IsPositive() {
+		return fmt.Errorf("initial TVL must be positive: %s", p.InitialFdv)
 	}
 	if !p.CurveExp.IsPositive() {
 		return fmt.Errorf("curve exponent must be positive: %s", p.CurveExp)

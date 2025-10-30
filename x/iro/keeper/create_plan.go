@@ -254,19 +254,19 @@ func (k Keeper) GetCurveByLiquidityDenom(ctx sdk.Context, liquidityDenom string,
 	}
 	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
 
-	initialTVLCoin := sdk.NewCoin(params.TargetRaise.Denom, params.InitialTvl)
-	covertedInitialTvl, err := k.convertTargetRaiseToLiquidityDenom(ctx, initialTVLCoin, liquidityDenom)
+	initialFDVCoin := sdk.NewCoin(params.TargetRaise.Denom, params.InitialFdv)
+	covertedInitialFDV, err := k.convertTargetRaiseToLiquidityDenom(ctx, initialFDVCoin, liquidityDenom)
 	if err != nil {
 		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert initial TVL to liquidity denom: %v", err.Error())
 	}
-	initialTvlDec := types.ScaleFromBase(covertedInitialTvl.Amount, int64(liqTokenExponent))
+	initialFDVDec := types.ScaleFromBase(covertedInitialFDV.Amount, int64(liqTokenExponent))
 
 	/* -------------------------------------------------------------------------- */
 	/*                 Calculate bonding curve parameters                         */
 	/* -------------------------------------------------------------------------- */
 	// calculate C from initial TVL param
 	allocationDec := types.ScaleFromBase(params.AllocationAmount, int64(18))
-	C := initialTvlDec.Quo(allocationDec)
+	C := initialFDVDec.Quo(allocationDec)
 
 	evaluationAmountDec := targetRaiseDec.MulInt64(2) // evaluation is 2x of target raise
 	graduationPointDec, err := types.FindGraduation(allocationDec, params.CurveExp, C, evaluationAmountDec)

@@ -349,7 +349,7 @@ func (s *KeeperTestSuite) TestStandardLaunch_TargetRaise_InUSDC() {
 
 	iroParams := s.App.IROKeeper.GetParams(s.Ctx)
 	iroParams.StandardLaunch.TargetRaise = sdk.NewCoin("usdc", math.NewInt(5_000).MulRaw(1e6)) // 5K USDC
-	iroParams.StandardLaunch.InitialTvl = math.NewInt(100).MulRaw(1e6)                         // 100 USDC
+	iroParams.StandardLaunch.InitialFdv = math.NewInt(100).MulRaw(1e6)                         // 100 USDC
 	s.App.IROKeeper.SetParams(s.Ctx, iroParams)
 
 	rollappId := s.CreateStandardLaunchRollapp()
