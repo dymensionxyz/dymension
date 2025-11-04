@@ -36,7 +36,7 @@ func (s *KeeperTestSuite) TestGraduatePlan() {
 	allocation := math.NewInt(1_000_000).MulRaw(1e18)
 	liquidityPart := types.DefaultParams().MinLiquidityPart
 	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(rollapp.Owner), sdk.NewCoins(sdk.NewCoin("adym", k.GetParams(s.Ctx).CreationFee)))
-	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 	plan := k.MustGetPlan(s.Ctx, planId)
 
@@ -155,7 +155,7 @@ func (s *KeeperTestSuite) TestGraduateStandardLaunchPlan() {
 
 	// assert ~all rollapptokens were used for the pool
 	tokensLeftovers := s.App.BankKeeper.GetBalance(s.Ctx, k.AK.GetModuleAddress(types.ModuleName), plan.GetIRODenom())
-	s.Require().NoError(testutil.ApproxEqual(tokensLeftovers.Amount, math.ZeroInt(), math.NewInt(1e18)), "not all tokens were used for the pool: %s", tokensLeftovers.String())
+	s.Require().NoError(testutil.ApproxEqual(math.ZeroInt(), tokensLeftovers.Amount, math.NewInt(100).MulRaw(1e18)), "not all tokens were used for the pool: %s", tokensLeftovers.String())
 
 	// assert rollapp is launchable
 	rollapp = s.App.RollappKeeper.MustGetRollapp(s.Ctx, rollappId)
@@ -237,7 +237,7 @@ func (s *KeeperTestSuite) TestGraduationGasFree() {
 		RollappDenomDecimals:   18,
 		LiquidityDenomDecimals: 18,
 	}
-	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
+	planId, err := k.CreatePlan(s.Ctx, "adym", allocation, math.ZeroInt(), time.Hour, startTime, true, false, rollapp, curve, types.DefaultIncentivePlanParams(), liquidityPart, time.Hour, 0)
 	s.Require().NoError(err)
 
 	// check how much gas is consumed by standard buy

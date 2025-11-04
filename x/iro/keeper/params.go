@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -31,40 +30,20 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	standardLaunch := req.NewParams.StandardLaunch
 
 	// validate target raise denom is allowed
-	targetRaise := standardLaunch.TargetRaise
-	targetRaiseMetadata, ok := m.BK.GetDenomMetaData(ctx, targetRaise.Denom)
-	if !ok {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "denom %s not registered", targetRaise.Denom)
-	}
-	targetRaiseExponent := targetRaiseMetadata.DenomUnits[len(targetRaiseMetadata.DenomUnits)-1].Exponent
-
-	// validate target raise denom is allowed
-	if !slices.Contains(m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms, targetRaise.Denom) {
+	allowedDenoms := m.Keeper.gk.GetParams(ctx).AllowedPoolCreationDenoms
+	if !slices.Contains(allowedDenoms, standardLaunch.TargetRaise.Denom) {
 		return nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "denom not allowed")
 	}
 
-	// validate curve is valid
-	allocationDec := types.ScaleFromBase(standardLaunch.AllocationAmount, 18)
-	evaluationDec := types.ScaleFromBase(targetRaise.Amount, int64(targetRaiseExponent)).MulInt64(2)
-	liquidityPart := math.LegacyOneDec()
-
-	calculatedM := types.CalculateM(evaluationDec, allocationDec, standardLaunch.CurveExp, liquidityPart)
-	if !calculatedM.IsPositive() {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "calculated M parameter is not positive: %s", calculatedM)
-	}
-
-	// Create bonding curve with calculated M and global parameters
-	bondingCurve := types.NewBondingCurve(
-		calculatedM,
-		standardLaunch.CurveExp,
-		math.LegacyZeroDec(),
-		18,
-		uint64(targetRaiseExponent),
-	)
-
-	// Validate the bonding curve
-	if err := bondingCurve.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err.Error())
+	// validate the curve is valid, for all allowed liquidity denoms
+	for _, denom := range allowedDenoms {
+		bondingCurve, _, err := m.GetCurveByLiquidityDenom(ctx, denom, standardLaunch)
+		if err != nil {
+			return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to get standard launch curve and graduation point: %v", err.Error())
+		}
+		if err := bondingCurve.ValidateBasic(); err != nil {
+			return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err.Error())
+		}
 	}
 
 	m.SetParams(ctx, req.NewParams)
