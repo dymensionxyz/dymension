@@ -49,6 +49,7 @@ const (
 	// dymd q ibc-transfer denom-trace B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4 --node https://rpc-dymension.mzonder.com/
 	NobleUSDCDenom     = "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4"
 	NobleUSDCChannelID = "channel-6"
+	NoblePoolID        = 2
 
 	// Kava USDT. Channel ID is derived from
 	// dymd q ibc-transfer denom-trace B72B5B3F7AD44783584921DC33354BCE07C8EB0A7F0349247C3DAD38C3B6E6A5 --node https://rpc-dymension.mzonder.com/
@@ -59,6 +60,7 @@ const (
 const (
 	NobleUSDCDenomTN     = "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
 	NobleUSDCChannelIDTN = "channel-3"
+	NobluePoolIDTN       = 1
 )
 
 func NobleUsdcDenom(ctx sdk.Context) string {
@@ -66,6 +68,13 @@ func NobleUsdcDenom(ctx sdk.Context) string {
 		return NobleUSDCDenomTN
 	}
 	return NobleUSDCDenom
+}
+
+func GetNoblePoolID(ctx sdk.Context) uint64 {
+	if IsTestnet(ctx) {
+		return NobluePoolIDTN
+	}
+	return NoblePoolID
 }
 
 var IBCChannels = []ratelimittypes.Path{
