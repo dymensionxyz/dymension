@@ -135,7 +135,7 @@ func MOfX(
 	xBig := osmomath.BigDecFromSDKDec(x)
 	nBig := osmomath.BigDecFromSDKDec(N)
 
-	var xPowN osmomath.BigDec = xBig.Power(nBig) // Calculate x^N
+	xPowN := xBig.Power(nBig) // Calculate x^N
 
 	// inner = x*(N+2)/(N+1) - T
 	frac := nPlusTwo.Quo(nPlusOne) // (N+2)/(N+1)
@@ -178,13 +178,13 @@ func FindGraduation(
 	VAL math.LegacyDec,
 ) (math.LegacyDec, error) {
 	if T.IsZero() {
-		return math.LegacyZeroDec(), errors.New("T is zero")
+		return math.LegacyZeroDec(), errors.New("allocation is zero")
 	}
 	if C.IsZero() {
-		return math.LegacyZeroDec(), errors.New("C is zero")
+		return math.LegacyZeroDec(), errors.New("curve C is zero")
 	}
 	if N.IsNegative() {
-		return math.LegacyZeroDec(), errors.New("N is negative")
+		return math.LegacyZeroDec(), errors.New("curve N is negative")
 	}
 	// Preconditions we assume are already validated externally:
 	// - T > 0
