@@ -241,12 +241,12 @@ func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper, ammKeep
 
 	// Set USDC as accepted token
 	poolID := uint64(2)
-	spotPrice, err := ammKeeper.CalculateSpotPrice(ctx, poolID, NobleUSDCDenom, "adym")
+	spotPrice, err := ammKeeper.CalculateSpotPrice(ctx, poolID, NobleUsdcDenom(ctx), "adym")
 	if err != nil {
 		panic(err)
 	}
 	// Set USDC as accepted token
-	err = k.SetAcceptedToken(ctx, NobleUSDCDenom, otcbuybacktypes.TokenData{
+	err = k.SetAcceptedToken(ctx, NobleUsdcDenom(ctx), otcbuybacktypes.TokenData{
 		PoolId:           poolID,
 		LastAveragePrice: spotPrice,
 	})
@@ -261,7 +261,7 @@ func addAuthorizedCircuitBreaker(ctx sdk.Context, k *circuitkeeper.Keeper, ak *a
 		Level: circuittypes.Permissions_LEVEL_SUPER_ADMIN,
 	}
 
-	for _, grantee := range CircuitBreakPermissioned {
+	for _, grantee := range CircuitBreakPermissioned(ctx) {
 		grantee, err := ak.AddressCodec().StringToBytes(grantee)
 		if err != nil {
 			panic(err)
@@ -288,7 +288,7 @@ func updateIROParams(ctx sdk.Context, k *irokeeper.Keeper) {
 	params.StandardLaunch = defParams.StandardLaunch
 	// overwrite target raise to use mainnet USDC values
 	params.StandardLaunch.TargetRaise = sdk.NewCoin(
-		NobleUSDCDenom,
+		NobleUsdcDenom(ctx),
 		math.NewIntWithDecimal(10, 3).MulRaw(1e6)) // 10K USDC
 
 	params.StandardLaunch.InitialFdv = math.NewIntWithDecimal(5, 3).MulRaw(1e6) // 5K USDC
@@ -639,7 +639,7 @@ func updateConsensusParams(ctx sdk.Context, csk *consensusparamkeeper.Keeper) {
 
 // setupRateLimitingParams sets up the rate limiting parameters for Noble USDC and Kava USDT
 func setupRateLimitingParams(ctx sdk.Context, k *ratelimitkeeper.Keeper) error {
-	for _, path := range IBCChannels {
+	for _, path := range IbcChannels(ctx) {
 		// 1-Day Limit (15% send, no receive limit, 24h)
 		err := k.AddRateLimit(ctx, &ratelimittypes.MsgAddRateLimit{
 			Authority:      "", // is not necessary here
