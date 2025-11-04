@@ -1,7 +1,16 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-11-04)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc01...v) (2025-11-04)
+
+
+### Bug Fixes
+
+* **upgrade:** differentiate blumbus ([#2090](https://github.com/dymensionxyz/dymension/issues/2090)) ([9798d49](https://github.com/dymensionxyz/dymension/commit/9798d498462028759c19ab7d6191c4adc69a2707))
+
+
+
+# [4.0.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v4.0.0-rc01) (2025-11-04)
 
 
 ### Bug Fixes
