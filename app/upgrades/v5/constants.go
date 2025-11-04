@@ -7,6 +7,7 @@ import (
 
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v8/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
@@ -33,10 +34,14 @@ var Upgrade = upgrades.Upgrade{
 	},
 }
 
-var CircuitBreakPermissioned = []string{
+var CircuitBreakPermissionedAddrs = []string{
 	"dym1fljlkdrsp5qpthxcltahjagzkzw6vgqgpzunv8",
 	"dym1k5rmr6j8fce7el3hr0t3ujya7nqttzh8kyqp56",
 	"dym15vcpft3dwh08c5gr604pmvaukt9lyv4jn6e03t",
+}
+
+func CircuitBreakPermissioned(ctx sdk.Context) []string {
+	return CircuitBreakPermissionedAddrs
 }
 
 const (
@@ -51,6 +56,18 @@ const (
 	KavaUSDTChannelID = "channel-3"
 )
 
+const (
+	NobleUSDCDenomTN     = "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+	NobleUSDCChannelIDTN = "channel-3"
+)
+
+func NobleUsdcDenom(ctx sdk.Context) string {
+	if IsTestnet(ctx) {
+		return NobleUSDCDenomTN
+	}
+	return NobleUSDCDenom
+}
+
 var IBCChannels = []ratelimittypes.Path{
 	{
 		Denom:     NobleUSDCDenom,
@@ -60,4 +77,20 @@ var IBCChannels = []ratelimittypes.Path{
 		Denom:     KavaUSDTDenom,
 		ChannelId: KavaUSDTChannelID,
 	},
+}
+
+func IsTestnet(ctx sdk.Context) bool {
+	return ctx.ChainID() == "blumbus_111-1"
+}
+
+func IbcChannels(ctx sdk.Context) []ratelimittypes.Path {
+	if IsTestnet(ctx) {
+		return []ratelimittypes.Path{
+			{
+				Denom:     NobleUSDCDenomTN,
+				ChannelId: NobleUSDCChannelIDTN,
+			},
+		}
+	}
+	return IBCChannels
 }
