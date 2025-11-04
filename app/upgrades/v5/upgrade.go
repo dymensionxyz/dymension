@@ -240,7 +240,7 @@ func updateOTCBuybackParams(ctx sdk.Context, k *otcbuybackkeeper.Keeper, ammKeep
 	}
 
 	// Set USDC as accepted token
-	poolID := uint64(2)
+	poolID := GetNoblePoolID(ctx)
 	spotPrice, err := ammKeeper.CalculateSpotPrice(ctx, poolID, NobleUsdcDenom(ctx), "adym")
 	if err != nil {
 		panic(err)
