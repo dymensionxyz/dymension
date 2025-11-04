@@ -1,7 +1,16 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc01...v) (2025-11-04)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc02...v) (2025-11-04)
+
+
+### Bug Fixes
+
+* **migration:** differentiate noble pool id in upgrade ([#2091](https://github.com/dymensionxyz/dymension/issues/2091)) ([76c9e97](https://github.com/dymensionxyz/dymension/commit/76c9e97ea9ebb25bcd564960df4a8816ad5e7ea7))
+
+
+
+# [4.0.0-rc02](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc01...v4.0.0-rc02) (2025-11-04)
 
 
 ### Bug Fixes
