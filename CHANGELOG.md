@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-10-29)
+# [](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v) (2025-11-04)
 
 
 ### Bug Fixes
@@ -100,6 +100,7 @@
 * **iro:** ability to send percentage of the iro raised funds directly to founder ([#1755](https://github.com/dymensionxyz/dymension/issues/1755)) ([90a5c8b](https://github.com/dymensionxyz/dymension/commit/90a5c8b0975286ab17e1c4c89bea1a9b434b6daa))
 * **IRO:** add min trading amount requirement ([#2052](https://github.com/dymensionxyz/dymension/issues/2052)) ([33e4e4f](https://github.com/dymensionxyz/dymension/commit/33e4e4f4055eedeacdcc804e39cc3e6fcb42e781))
 * **iro:** add option for vesting for owner funds ([#1768](https://github.com/dymensionxyz/dymension/issues/1768)) ([a4b33b0](https://github.com/dymensionxyz/dymension/commit/a4b33b0bb79720bd785a38ecc123b24bb91b8e70))
+* **IRO:** adding initial FDV for standard (v2) IRO ([#2088](https://github.com/dymensionxyz/dymension/issues/2088)) ([9a14e20](https://github.com/dymensionxyz/dymension/commit/9a14e207b144274ba72a856f00a94f4981da2cf5))
 * **iro:** after purchase, validate remaining tokens are purchasable ([#2033](https://github.com/dymensionxyz/dymension/issues/2033)) ([479e43c](https://github.com/dymensionxyz/dymension/commit/479e43c45379e11522c49a3c987391f61744c460))
 * **iro:** founder can trade before start time ([#1753](https://github.com/dymensionxyz/dymension/issues/1753)) ([e7cf378](https://github.com/dymensionxyz/dymension/commit/e7cf378e9c35e428b30d8c5d03ae31497c616a15))
 * **IRO:** graduate completed IROs into amm pool ([#1986](https://github.com/dymensionxyz/dymension/issues/1986)) ([e7afe40](https://github.com/dymensionxyz/dymension/commit/e7afe40c14f438e6b8bb76d399791f32e362c69f))
