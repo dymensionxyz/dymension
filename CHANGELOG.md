@@ -1,7 +1,16 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc02...v) (2025-11-04)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc03...v) (2025-11-05)
+
+
+### Bug Fixes
+
+* **ante:** unblock vesting msgs from ante handler ([#2092](https://github.com/dymensionxyz/dymension/issues/2092)) ([6183bf3](https://github.com/dymensionxyz/dymension/commit/6183bf33f5faa224a34359d0f1b68b311a50ab9c))
+
+
+
+# [4.0.0-rc03](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc02...v4.0.0-rc03) (2025-11-04)
 
 
 ### Bug Fixes
