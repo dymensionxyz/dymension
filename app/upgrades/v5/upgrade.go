@@ -228,6 +228,8 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 		sdk.MsgTypeURL(&irotypes.MsgBuy{}),
 		sdk.MsgTypeURL(&irotypes.MsgBuyExactSpend{}),
 		sdk.MsgTypeURL(&irotypes.MsgSell{}),
+		sdk.MsgTypeURL(&otcbuybacktypes.MsgBuy{}),
+		sdk.MsgTypeURL(&otcbuybacktypes.MsgBuyExactSpend{}),
 	}
 	k.SetParams(ctx, params)
 }
