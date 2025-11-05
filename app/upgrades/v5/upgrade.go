@@ -225,6 +225,11 @@ func updateTxfeesParams(ctx sdk.Context, k *txfeeskeeper.Keeper) {
 	params.FeeExemptMsgs = []string{
 		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountIn{}),
 		sdk.MsgTypeURL(&gammtypes.MsgSwapExactAmountOut{}),
+		sdk.MsgTypeURL(&irotypes.MsgBuy{}),
+		sdk.MsgTypeURL(&irotypes.MsgBuyExactSpend{}),
+		sdk.MsgTypeURL(&irotypes.MsgSell{}),
+		sdk.MsgTypeURL(&otcbuybacktypes.MsgBuy{}),
+		sdk.MsgTypeURL(&otcbuybacktypes.MsgBuyExactSpend{}),
 	}
 	k.SetParams(ctx, params)
 }
