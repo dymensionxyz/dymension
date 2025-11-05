@@ -1,7 +1,16 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc03...v) (2025-11-05)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc04...v) (2025-11-05)
+
+
+### Features
+
+* **upgrade:** add new fee exempt message types for IRO transactions ([#2093](https://github.com/dymensionxyz/dymension/issues/2093)) ([1791000](https://github.com/dymensionxyz/dymension/commit/1791000ccc8ee8d1b0964e9d6e75dd373dcab171))
+
+
+
+# [4.0.0-rc04](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc03...v4.0.0-rc04) (2025-11-05)
 
 
 ### Bug Fixes
