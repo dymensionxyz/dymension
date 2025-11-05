@@ -4,14 +4,12 @@ import (
 	circuitante "cosmossdk.io/x/circuit/ante"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	proofheightante "github.com/dymensionxyz/dymension/v3/x/delayedack/ante"
 	lightclientkeeper "github.com/dymensionxyz/dymension/v3/x/lightclient/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
@@ -30,11 +28,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewRejectMessagesDecorator().
 			WithPredicate(BlockTypeUrls(
 				0,
-				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}), // deprecated. not supposed to be used
-				sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
-				sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
-				sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}))),
+				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}))),
 
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		mempoolFeeDecorator,
