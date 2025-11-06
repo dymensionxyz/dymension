@@ -6,6 +6,7 @@
 
 ### Bug Fixes
 
+* **ante:** block MsgSubmitMisbehaviour to ensure validation logic in … ([#2095](https://github.com/dymensionxyz/dymension/issues/2095)) ([02293a5](https://github.com/dymensionxyz/dymension/commit/02293a5b9f931aa861a75b6557dd992b25a59ed2))
 * **app:** trigger eth tracers registration ([#2094](https://github.com/dymensionxyz/dymension/issues/2094)) ([69dfdef](https://github.com/dymensionxyz/dymension/commit/69dfdeff70c330068a881c7de22036294bc41d8f))
 
 
