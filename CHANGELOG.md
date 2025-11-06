@@ -1,7 +1,12 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc04...v) (2025-11-05)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc04...v) (2025-11-06)
+
+
+### Bug Fixes
+
+* **app:** trigger eth tracers registration ([#2094](https://github.com/dymensionxyz/dymension/issues/2094)) ([69dfdef](https://github.com/dymensionxyz/dymension/commit/69dfdeff70c330068a881c7de22036294bc41d8f))
 
 
 ### Features
