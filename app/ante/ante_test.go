@@ -43,7 +43,7 @@ func TestAnteTestSuite(t *testing.T) {
 	suite.Run(t, new(AnteTestSuite))
 }
 
-// SetupTestCheckTx setups a new test, with new app, context, and anteHandler.
+// SetupTestCheckTx sets up a new test with a new app, context, and anteHandler.
 func (s *AnteTestSuite) SetupTestCheckTx(isCheckTx bool) {
 	s.app = apptesting.Setup(s.T())
 	s.ctx = s.app.BaseApp.NewContext(isCheckTx).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
