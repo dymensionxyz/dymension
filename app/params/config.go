@@ -16,7 +16,7 @@ const (
 	// BaseDenomUnit is the base denom unit for the Hub
 	BaseDenom = "adym"
 
-	// BaseDenomUnit defines the base denomination unit for Photons.
+	// BaseDenomUnit defines the base denomination unit for DYM.
 	// 1 DYM = 1x10^{BaseDenomUnit} adym
 	BaseDenomUnit = 18
 

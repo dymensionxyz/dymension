@@ -49,7 +49,7 @@ func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	}
 }
 
-// errorResponse defines the attributes of a JSON error response.
+// errorResponse defines the structure of a JSON error response.
 type errorResponse struct {
 	Code  int    `json:"code,omitempty"`
 	Error string `json:"error"`
