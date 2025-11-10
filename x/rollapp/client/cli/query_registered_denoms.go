@@ -10,9 +10,10 @@ import (
 
 func CmdQueryRegisteredDenoms() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "registered-denoms",
-		Short: "Lists the registered denoms for a Rollapp",
-		Args:  cobra.ExactArgs(1),
+		Use:     "registered-denoms [rollapp-id]",
+		Short:   "Query registered denoms for a rollapp",
+		Example: "dymd query rollapp registered-denoms rollapp_1234-1",
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
