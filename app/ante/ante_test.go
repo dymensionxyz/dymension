@@ -120,7 +120,7 @@ func (suite *AnteTestSuite) TestCircuitBreaker() {
 
 	// Try again - should pass
 	_, err = suite.anteHandler(suite.ctx, suite.txBuilder.GetTx(), false)
-	suite.Require().NotContains(err.Error(), "tx type not allowed") // not circuit breaker error
+	suite.Require().NoError(err) // not circuit breaker error
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
