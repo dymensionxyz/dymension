@@ -13,7 +13,7 @@ import (
 // IterateConsensusStateDescending iterates through all consensus states in descending order
 // until cb returns true.
 func IterateConsensusStateDescending(clientStore storetypes.KVStore, cb func(height exported.Height) (stop bool)) {
-	iterator := storetypes.KVStoreReversePrefixIterator(clientStore, []byte(ibctm.KeyIterateConsensusStatePrefix))
+	iterator := storetypes.KVStoreReversePrefixIterator(clientStore, ibctm.KeyIterateConsensusStatePrefix())
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
