@@ -11,7 +11,7 @@ import (
 func CmdQueryObsoleteDRSVersions() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "obsolete-drs-versions",
-		Short: "shows the list of obsolete DRS versions",
+		Short: "Query the list of obsolete DRS versions",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
