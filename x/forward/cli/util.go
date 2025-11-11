@@ -129,18 +129,6 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdCosmosAddrToHLAddr())
 	cmd.AddCommand(CmdEstimateFees())
 
-	// Backward compatibility
-	cmd.AddCommand(CmdMemoIBCtoHL())
-	cmd.AddCommand(CmdMemoIBCtoIBC())
-	cmd.AddCommand(CmdMemoEIBCtoHL())
-	cmd.AddCommand(CmdMemoEIBCtoIBC())
-	cmd.AddCommand(CmdMemoHLtoIBCRaw())
-	cmd.AddCommand(CmdMemoHLtoHLRaw())
-	cmd.AddCommand(CmdTestHLtoIBCMessage())
-	cmd.AddCommand(CmdHLMessageKaspaToHub())
-	cmd.AddCommand(CmdHLMessageKaspaToIBC())
-	cmd.AddCommand(CmdHLMessageKaspaToHL())
-
 	return cmd
 }
 
@@ -179,7 +167,7 @@ dymd q forward create-memo --src=eibc --dst=ibc \
 func CmdCreateHLMessage() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-hl-message",
-		Short: "Create a Hyperlane message for testing or for including in Kaspa payloads",
+		Short: "Create a Hyperlane message for testing or for including in Kaspa payloads or Solana/EVM chain outbound transfers",
 		Long: `Create a Hyperlane message from various srcs (HL, Kaspa) to various destination (Hub, IBC, HL).
 The src and destination determine the message format and required parameters.`,
 		Example: `# Kaspa to Hub (no forwarding - hub recipient is final recipient)
