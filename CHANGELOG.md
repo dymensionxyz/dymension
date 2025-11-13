@@ -4,6 +4,11 @@
 # [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc05...v) (2025-11-13)
 
 
+### Features
+
+* **rollapp:** add tee-config query command ([#2101](https://github.com/dymensionxyz/dymension/issues/2101)) ([0de6275](https://github.com/dymensionxyz/dymension/commit/0de6275e03975b0dca69f9bb6be5c1f7e3049eb7))
+
+
 
 # [4.0.0-rc05](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc04...v4.0.0-rc05) (2025-11-06)
 
