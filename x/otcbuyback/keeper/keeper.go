@@ -165,7 +165,7 @@ func (k Keeper) SetAcceptedToken(ctx sdk.Context, token string, tokenData types.
 	return k.acceptedTokens.Set(ctx, token, tokenData)
 }
 
-// GetAcceptedTokenPoolID retrieves the pool ID for a given token
+// GetAcceptedTokenData retrieves the token data for a given token
 func (k Keeper) GetAcceptedTokenData(ctx sdk.Context, token string) (types.TokenData, error) {
 	return k.acceptedTokens.Get(ctx, token)
 }
