@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"time"
 
 	"cosmossdk.io/log"
 	dbm "github.com/cosmos/cosmos-db"
@@ -178,6 +179,10 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 // return cmtcfg.DefaultConfig if no custom configuration is required for the application.
 func initCometBFTConfig() *cmtcfg.Config {
 	cfg := cmtcfg.DefaultConfig()
+
+	// Set consensus timeouts to support fast block time
+	cfg.Consensus.TimeoutPropose = 1800 * time.Millisecond
+	cfg.Consensus.TimeoutCommit = 500 * time.Millisecond
 
 	// these values put a higher strain on node memory
 	// cfg.P2P.MaxNumInboundPeers = 100
