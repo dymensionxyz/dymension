@@ -13,7 +13,7 @@ jobs:
       - name: Free disk space
         run: curl -fsSL https://raw.githubusercontent.com/apache/arrow/2c63d481dcf7582d7b8ab3664ff4bdf45d7dd599/ci/scripts/util_free_space.sh | bash
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
