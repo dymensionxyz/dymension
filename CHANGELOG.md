@@ -4,6 +4,11 @@
 # [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-11-24)
 
 
+### Bug Fixes
+
+* **eth:** fix `eth_gasPrice` query ([#2113](https://github.com/dymensionxyz/dymension/issues/2113)) ([230706a](https://github.com/dymensionxyz/dymension/commit/230706abb96de7b7f8f8daea233242279211d2b5))
+
+
 
 # [4.0.0-rc06](https://github.com/dymensionxyz/dymension/compare/v4.0.0...v4.0.0-rc06) (2025-11-13)
 
