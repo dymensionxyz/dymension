@@ -1,10 +1,25 @@
+# Protocol Buffers Compiler Configuration (e.g., buf.gen.yaml)
+
 version: v1
 
 plugins:
   - name: swagger
+    # Define the output directory relative to the current configuration file.
+    # The 'tmp-' prefix suggests these files are generated and should not be committed.
+    # Using a clearer path like 'gen/swagger' might be more conventional, 
+    # but the existing structure is kept for file system context.
     out: ../tmp-swagger-gen
+    
+    # Options passed directly to the swagger code generator
     opt:
+      # Directs logging output to standard error for better visibility during generation.
       - logtostderr=true
+      # Use Fully Qualified Names (FQN) for Swagger types to prevent naming collisions. 
+      # This is a critical best practice for large projects.
       - fqn_for_swagger_name=true
+      # Generates simpler, more readable operation IDs in the OpenAPI spec.
       - simple_operation_ids=true
+    
+    # Strategy 'all' ensures that all input Protobuf files are processed into 
+    # a single, merged Swagger specification file.
     strategy: all
