@@ -7,67 +7,51 @@ import (
 	"os"
 	"path/filepath"
 
+	// 1. Cosmos SDK/Consensus Imports
+	abci "github.com/cometbft/cometbft/abci/types"
+	dbm "github.com/cosmos/cosmos-db"
+	
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-
-	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
-	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-
-	"github.com/cosmos/cosmos-sdk/runtime"
-
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
-
-	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
-
 	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
-
-	abci "github.com/cometbft/cometbft/abci/types"
-
-	"github.com/spf13/cast"
-
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
+	
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
+	"github.com/cosmos/cosmos-sdk/runtime"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
+	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	
+	"github.com/spf13/cast"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/cosmos/gogoproto/proto"
-
-	"github.com/dymensionxyz/dymension/v3/app/ante"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-
-	/* ------------------------------ ethermint imports ----------------------------- */
-
+	// 2. Ethermint/EVM Imports
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
@@ -75,6 +59,13 @@ import (
 	// Force-load the tracer engines to trigger registration due to Go-Ethereum v1.10.15 changes
 	_ "github.com/ethereum/go-ethereum/eth/tracers/js"
 	_ "github.com/ethereum/go-ethereum/eth/tracers/native"
+
+	// 3. Dymension Local Imports
+	"github.com/dymensionxyz/dymension/v3/app/ante"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
+	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 )
 
 var (
@@ -97,6 +88,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
+	// Set the global power reduction for the app (used by EVM)
 	sdk.DefaultPowerReduction = ethermint.PowerReduction
 }
 
@@ -114,7 +106,8 @@ type App struct {
 	// keepers
 	AppKeepers
 	// the module manager
-	mm                 *module.Manager
+	mm *module.Manager
+	// the module basic manager
 	BasicModuleManager module.BasicManager
 
 	// module configurator
@@ -153,31 +146,27 @@ func New(
 		AppKeepers:        AppKeepers{},
 	}
 
+	// Initialize the app's keys (MaccPerms, etc.)
 	app.GenerateKeys()
 
-	// register streaming services
+	// Register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
 		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
+	// Initialize Keepers (Account, Bank, Staking, etc.)
 	app.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts)
 	app.SetupHooks()
 	app.InitTransferStack()
 
-	/****  Module Options ****/
-
-	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
-	// we prefer to be more strict in what arguments the modules expect.
+	// Skip genesis invariants check if specified in options
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
-	// NOTE: Any module instantiated in the module manager that is later modified
-	// must be passed by reference here.
+	// Initialize the Module Manager
+	// NOTE: Any module instantiated here that is later modified must be passed by reference.
 	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, skipGenesisInvariants)...)
 
-	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
-	// non-dependant module elements, such as codec registration and genesis verification.
-	// By default it is composed of all the module from the module manager.
-	// Additionally, app module basics can be overwritten by passing them as argument.
+	// Initialize the Basic Module Manager for codec registration and genesis verification.
 	app.BasicModuleManager = module.NewBasicManagerFromManager(
 		app.mm,
 		map[string]module.AppModuleBasic{
@@ -195,36 +184,31 @@ func New(
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 
-	// NOTE: upgrade module is required to be prioritized
+	// Set module ordering for block execution
 	app.mm.SetOrderPreBlockers(PreBlockers...)
-	// During begin block slashing happens after distr.BeginBlocker so that
-	// there is nothing left over in the validator fee pool, so as to keep the
-	// CanWithdrawInvariant invariant.
-	// NOTE: staking module is required if HistoricalEntries param > 0
-	// TODO: use "github.com/osmosis-labs/osmosis/osmoutils/partialord" to order modules
 	app.mm.SetOrderBeginBlockers(BeginBlockers...)
 	app.mm.SetOrderEndBlockers(EndBlockers...)
 
-	// NOTE: The genutils module must occur after staking so that pools are
-	// properly initialized with tokens from genesis accounts.
+	// Set module ordering for InitGenesis and ExportGenesis
 	app.mm.SetOrderInitGenesis(InitGenesis...)
 	app.mm.SetOrderExportGenesis(InitGenesis...)
 
-	// Set a custom migration order here.
+	// Set a custom migration order
 	app.mm.SetOrderMigrations(CustomMigrationOrder(app.mm.ModuleNames())...)
 
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
+	// Register all module services (gRPC query/message services)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	err := app.mm.RegisterServices(app.configurator)
 	if err != nil {
-		panic(fmt.Errorf("failed to register services: %w", err))
+		panic(fmt.Errorf("failed to register module services: %w", err))
 	}
 
-	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
-	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	// Register upgrade handlers after ModuleManager and configurator are set.
 	app.setupUpgradeHandlers()
 
+	// Register AutoCLI and Reflection Services
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
 
 	reflectionSvc, err := runtimeservices.NewReflectionService()
@@ -233,40 +217,40 @@ func New(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
-	/****  Simulations ****/
+	// Setup Simulation Manager
 	overrideModules := map[string]module.AppModuleSimulation{
 		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 	}
 	app.sm = module.NewSimulationManagerFromAppModules(app.mm.Modules, overrideModules)
 	app.sm.RegisterStoreDecoders()
 
-	// initialize stores
+	// Initialize KV/Transient/Memory stores
 	app.MountKVStores(KVStoreKeys)
 	app.MountTransientStores(app.GetTransientStoreKey())
 	app.MountMemoryStores(app.GetMemoryStoreKey())
 
-	// initialize BaseApp
+	// Initialize BaseApp run phases
 	app.SetInitChainer(app.InitChainer)
 	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	/* ---------------------------- set ante handler ---------------------------- */
+	// Set Ante Handler
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:          app.AccountKeeper,
-		BankKeeper:             app.BankKeeper,
-		ExtensionOptionChecker: nil, // reject all extension options as default
-		FeegrantKeeper:         app.FeeGrantKeeper,
-		SignModeHandler:        txConfig.SignModeHandler(),
-		IBCKeeper:              app.IBCKeeper,
-		FeeMarketKeeper:        app.FeeMarketKeeper,
-		EvmKeeper:              app.EvmKeeper,
-		TxFeesKeeper:           app.TxFeesKeeper,
-		MaxTxGasWanted:         maxGasWanted,
-		RollappKeeper:          *app.RollappKeeper,
-		LightClientKeeper:      &app.LightClientKeeper,
-		CircuitKeeper:          &app.CircuitBreakerKeeper,
+		AccountKeeper: app.AccountKeeper,
+		BankKeeper: app.BankKeeper,
+		ExtensionOptionChecker: nil,
+		FeegrantKeeper: app.FeeGrantKeeper,
+		SignModeHandler: txConfig.SignModeHandler(),
+		IBCKeeper: app.IBCKeeper,
+		FeeMarketKeeper: app.FeeMarketKeeper,
+		EvmKeeper: app.EvmKeeper,
+		TxFeesKeeper: app.TxFeesKeeper,
+		MaxTxGasWanted: maxGasWanted,
+		RollappKeeper: *app.RollappKeeper,
+		LightClientKeeper: &app.LightClientKeeper,
+		CircuitKeeper: &app.CircuitBreakerKeeper,
 	})
 	if err != nil {
 		panic(fmt.Errorf("failed to create ante handler: %w", err))
@@ -274,16 +258,14 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 
-	// At startup, after all modules have been registered, check that all proto
-	// annotations are correct.
+	// Validate Protobuf annotations for message services
 	protoFiles, err := proto.MergedRegistry()
 	if err != nil {
 		panic(err)
 	}
 	err = msgservice.ValidateProtoAnnotations(protoFiles)
 	if err != nil {
-		// Once we switch to using protoreflect-based antehandlers, we might
-		// want to panic here instead of logging a warning.
+		// Log warning for annotation issues (does not halt the application)
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 
@@ -299,17 +281,17 @@ func New(
 // Name returns the name of the App
 func (app *App) Name() string { return app.BaseApp.Name() }
 
-// PreBlocker application updates every pre block
+// PreBlocker executes application logic before block execution
 func (app *App) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
 	return app.mm.PreBlock(ctx)
 }
 
-// BeginBlocker application updates every begin block
+// BeginBlocker executes application logic at the beginning of the block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	return app.mm.BeginBlock(ctx)
 }
 
-// EndBlocker application updates every end block
+// EndBlocker executes application logic at the end of the block
 func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return app.mm.EndBlock(ctx)
 }
@@ -318,7 +300,7 @@ func (a *App) Configurator() module.Configurator {
 	return a.configurator
 }
 
-// InitChainer application update at chain initialization
+// InitChainer initializes the chain with the genesis state
 func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
@@ -336,18 +318,12 @@ func (app *App) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
-// LegacyAmino returns SimApp's amino codec.
-//
-// NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
+// LegacyAmino returns SimApp's amino codec. NOTE: Used solely for testing.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
-// AppCodec returns an app codec.
-//
-// NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
+// AppCodec returns an app codec. NOTE: Used solely for testing.
 func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
@@ -393,8 +369,7 @@ func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
-// RegisterAPIRoutes registers all application module routes with the provided
-// API server.
+// RegisterAPIRoutes registers all application module routes with the provided API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	// Register new tx routes from grpc-gateway.
@@ -409,7 +384,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// Register grpc-gateway routes for all modules.
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
-	// register swagger API from root so that other applications can override easily
+	// Register swagger API from root so that other applications can override easily
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
@@ -436,12 +411,14 @@ func (app *App) RegisterNodeService(clientCtx client.Context, cfg config.Config)
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
+// setupUpgradeHandlers registers the handlers for on-chain upgrades.
 func (app *App) setupUpgradeHandlers() {
 	for _, u := range Upgrades {
 		app.setupUpgradeHandler(u)
 	}
 }
 
+// setupUpgradeHandler registers a specific upgrade handler.
 func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrade.Name,
@@ -480,11 +457,12 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	}
 
 	if upgradeInfo.Name == upgrade.Name && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		// configure store loader with the store upgrades
+		// Configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
 }
 
+// ExportState exports the application's current state (genesis).
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	export, err := app.mm.ExportGenesis(ctx, app.AppCodec())
 	if err != nil {
@@ -493,10 +471,9 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return export
 }
 
-/* -------------------------------------------------------------------------- */
-/*                            ibc testing interface                           */
-/* -------------------------------------------------------------------------- */
+/* --- IBC Testing Interface --- */
 
+// GetBaseApp implements ibctesting.TestingApp.
 func (app *App) GetBaseApp() *baseapp.BaseApp {
 	return app.BaseApp
 }
