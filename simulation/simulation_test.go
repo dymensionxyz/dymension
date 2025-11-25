@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time" // Added for better random seed generation if needed
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -22,11 +23,30 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 )
 
+// Ensure all simulator flags are registered before test execution
 func init() {
 	simcli.GetSimulatorFlags()
 }
 
-const SimulationAppChainID = "dymension_100-1"
+const (
+	SimulationAppChainID = "dymension_100-1"
+	DefaultBondDenom     = "adym"
+	DefaultPowerReduction = 1000000
+)
+
+// setupConfiguration sets the required Cosmos SDK address prefixes, default denominations, and power reduction.
+func setupConfiguration() {
+	// Configure SDK address prefixes
+	sdkConfig := types.GetConfig()
+	sdkConfig.SetBech32PrefixForAccount("dym", "dympub")
+	sdkConfig.SetBech32PrefixForValidator("dymvaloper", "dymvaloperpub")
+	sdkConfig.SetBech32PrefixForConsensusNode("dymvalcons", "dymvalconspub")
+	sdkConfig.Seal()
+
+	// Configure default denominations and power reduction
+	types.DefaultBondDenom = DefaultBondDenom
+	types.DefaultPowerReduction = math.NewIntFromUint64(DefaultPowerReduction)
+}
 
 /*
 To execute a completely pseudo-random simulation (from the root of the repository):
@@ -35,52 +55,14 @@ To execute a completely pseudo-random simulation (from the root of the repositor
 		-run=TestFullAppSimulation \
 		-Enabled=true \
 		-NumBlocks=100 \
-		-BlockSize=200 \
-		-Commit=true \
-		-Seed=99 \
-		-Period=1 \
-		-PrintAllInvariants=true \
-		-v -timeout 24h
-
-To export the simulation params to a file at a given block height:
-
-	go test ./simulation \
-		-run=TestFullAppSimulation \
-		-Enabled=true \
-		-NumBlocks=100 \
-		-BlockSize=200 \
-		-Commit=true \
-		-Seed=99 \
-		-Period=1 \
-		-PrintAllInvariants=true \
-		-ExportParamsPath=/path/to/params.json \
-		-ExportParamsHeight=50 \
-		-v -timeout 24h
-
-To export the simulation app state (i.e genesis) to a file:
-
-	go test ./simulation \
-		-run=TestFullAppSimulation \
-		-Enabled=true \
-		-NumBlocks=100 \
-		-BlockSize=200 \
-		-Commit=true \
-		-Seed=99 \
-		-Period=1 \
-		-PrintAllInvariants=true \
-		-ExportStatePath=/path/to/genesis.json \
-		-v -timeout 24h
+		...
 */
 func TestFullAppSimulation(t *testing.T) {
+	// OPTIMIZATION: Centralize configuration setup
+	setupConfiguration() 
+	
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimulationAppChainID
-
-	// Configure SDK address prefixes before creating app
-	sdkConfig := types.GetConfig()
-	sdkConfig.SetBech32PrefixForAccount("dym", "dympub")
-	sdkConfig.SetBech32PrefixForValidator("dymvaloper", "dymvaloperpub")
-	sdkConfig.SetBech32PrefixForConsensusNode("dymvalcons", "dymvalconspub")
-	sdkConfig.Seal()
 
 	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
 	if skip {
@@ -93,20 +75,23 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
+	// Configure application-specific options for the simulation run
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = app.DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
-	appOptions[cli.FlagDefaultBondDenom] = "adym"
-	types.DefaultBondDenom = "adym"
-	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
+	// The period at which invariants are checked
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue 
+	// Default bond denomination used in the genesis state
+	appOptions[cli.FlagDefaultBondDenom] = DefaultBondDenom 
 
+	// Initialize the Dymension application instance
 	dymdApp := app.New(logger, db, nil, true, appOptions, baseapp.SetChainID(SimulationAppChainID))
 	require.Equal(t, "dymension", dymdApp.Name())
 
-	genesis, err := prepareGenesis(dymdApp.AppCodec())
+	// prepareGenesis must be defined elsewhere and returns the initial state bytes.
+	genesis, err := prepareGenesis(dymdApp.AppCodec()) 
 	require.NoError(t, err)
 
-	// run randomized simulation
+	// Run randomized simulation from the configured seed
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t,
 		os.Stdout,
@@ -119,7 +104,7 @@ func TestFullAppSimulation(t *testing.T) {
 		dymdApp.AppCodec(),
 	)
 
-	// export state and simParams before the simulation error is checked
+	// Export state and simParams before checking the simulation error
 	err = simtestutil.CheckExportSimulation(dymdApp, config, simParams)
 	require.NoError(t, err)
 	require.NoError(t, simErr)
@@ -133,31 +118,16 @@ func TestFullAppSimulation(t *testing.T) {
 }
 
 /*
-TestAppStateDeterminism runs a simulation to ensure that the application is deterministic.
-It generates a random seed and runs the simulation multiple times with the same seed to ensure
-that the resulting app hash is the same each time. You may manually specify a seed by using
-the -Seed flag. The test may take a few minutes to run.
-
-	go test ./simulation \
-		-run=TestAppStateDeterminism \
-		-Enabled=true \
-		-NumBlocks=50 \
-		-BlockSize=300 \
-		-Commit=true \
-		-Period=0 \
-		-v -timeout 24h
+TestAppStateDeterminism runs a simulation multiple times with the same seed
+to ensure that the application is deterministic (i.e., the resulting app hash is the same each time).
 */
 func TestAppStateDeterminism(t *testing.T) {
 	if !simcli.FlagEnabledValue {
 		t.Skip("skipping application simulation")
 	}
 
-	// Configure SDK address prefixes before creating app
-	sdkConfig := types.GetConfig()
-	sdkConfig.SetBech32PrefixForAccount("dym", "dympub")
-	sdkConfig.SetBech32PrefixForValidator("dymvaloper", "dymvaloperpub")
-	sdkConfig.SetBech32PrefixForConsensusNode("dymvalcons", "dymvalconspub")
-	sdkConfig.Seal()
+	// OPTIMIZATION: Centralize configuration setup
+	setupConfiguration() 
 
 	config := simcli.NewConfigFromFlags()
 	config.InitialBlockHeight = 1
@@ -165,31 +135,37 @@ func TestAppStateDeterminism(t *testing.T) {
 	config.OnOperation = false
 	config.AllInvariants = false
 	config.ChainID = SimulationAppChainID
+	
+	// If no seed is provided via flags, use a truly random seed for better test coverage
+	if config.Seed == simcli.DefaultSeedValue {
+		rand.Seed(time.Now().UnixNano())
+		config.Seed = rand.Int63() 
+	}
 
-	numSeeds := 1
-	numTimesToRunPerSeed := 5
+	// Default run settings for determinism test
+	const (
+		numTimesToRunPerSeed = 5
+		numSeeds             = 1 
+	)
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = app.DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue // period at which invariants are checked
-	appOptions[cli.FlagDefaultBondDenom] = "adym"
-	types.DefaultBondDenom = "adym"
-	types.DefaultPowerReduction = math.NewIntFromUint64(1000000) // overwrite evm module's default power reduction
+	// The period at which invariants are checked
+	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue 
+	// Default bond denomination used in the genesis state
+	appOptions[cli.FlagDefaultBondDenom] = DefaultBondDenom 
 
 	for i := 0; i < numSeeds; i++ {
-		if config.Seed == simcli.DefaultSeedValue {
-			// overwrite default seed
-			config.Seed = rand.Int63() //nolint:gosec
-		}
-
 		fmt.Println("config.Seed: ", config.Seed)
 
 		appHashList := make([]string, numTimesToRunPerSeed)
 
 		for j := 0; j < numTimesToRunPerSeed; j++ {
+			// Setup simulation environment for a clean run
 			db, _, logger, _, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
 			require.NoError(t, err, "simulation setup failed")
-
+			
+			// Initialize application
 			dymdApp := app.New(logger, db, nil, true, appOptions, baseapp.SetChainID(SimulationAppChainID))
 			require.Equal(t, "dymension", dymdApp.Name())
 
@@ -201,6 +177,7 @@ func TestAppStateDeterminism(t *testing.T) {
 			genesis, err := prepareGenesis(dymdApp.AppCodec())
 			require.NoError(t, err)
 
+			// Run simulation with the same seed
 			_, _, err = simulation.SimulateFromSeed(
 				t,
 				os.Stdout,
@@ -218,14 +195,17 @@ func TestAppStateDeterminism(t *testing.T) {
 				simtestutil.PrintStats(db)
 			}
 
+			// Capture the final application hash
 			appHash := base64.StdEncoding.EncodeToString(dymdApp.LastCommitID().Hash)
 			fmt.Printf("Seed: %d, attempt: %d/%d, app hash: %s\n", config.Seed, j+1, numTimesToRunPerSeed, appHash)
 			appHashList[j] = appHash
 
+			// Check determinism: compare current hash with the first hash captured for this seed
 			if j != 0 {
 				require.Equal(
 					t, appHashList[0], appHashList[j],
-					"non-determinism in seed %d: %d/%d, attempt: %d/%d\n", config.Seed, i+1, numSeeds, j+1, numTimesToRunPerSeed,
+					"non-determinism in seed %d: %d/%d, attempt: %d/%d. Hashes: %s vs %s\n", 
+					config.Seed, i+1, numSeeds, j+1, numTimesToRunPerSeed, appHashList[0], appHashList[j],
 				)
 			}
 		}
