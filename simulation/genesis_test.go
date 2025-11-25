@@ -12,8 +12,8 @@ import (
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	govtypes2 "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypes1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashing "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -32,108 +32,111 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+// Helper function to marshal a module's genesis state and assign it to the overall genesis map.
+func marshalAndSetGenesis(cdc codec.JSONCodec, genesis app.GenesisState, moduleName string, moduleGenesis interface{}) error {
+	rawGenesis, err := cdc.MarshalJSON(moduleGenesis)
+	if err != nil {
+		return fmt.Errorf("failed to marshal %s genesis state: %w", moduleName, err)
+	}
+	genesis[moduleName] = rawGenesis
+	return nil
+}
+
+// prepareGenesis sets up a modified GenesisState for simulation purposes.
+// It initializes default parameters and overrides them for specific simulation requirements.
 func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.EmptyAppOptions{}, baseapp.SetChainID(SimulationAppChainID))
 	genesis := newApp.DefaultGenesis()
-	// Modify gov params
-	govGenesis := govtypes1.DefaultGenesisState()
+	var err error
+
+	// --- Government (Gov) Params ---
+	govGenesis := govtypesv1.DefaultGenesisState()
+	// Set a non-zero minimum deposit and a short voting period for faster simulation results.
 	govGenesis.Params.MinDeposit[0].Amount = math.NewInt(10000000000)
 	govGenesis.Params.MinDeposit[0].Denom = "adym"
 	govVotingPeriod := time.Minute
 	govGenesis.Params.VotingPeriod = &govVotingPeriod
-	govRawGenesis, err := cdc.MarshalJSON(govGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, govtypes.ModuleName, govGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[govtypes2.ModuleName] = govRawGenesis
 
-	// Modify rollapp params
+	// --- Rollapp Params ---
 	rollappGenesis := rollapptypes.DefaultGenesis()
+	// Set a short dispute period for simulation
 	rollappGenesis.Params.DisputePeriodInBlocks = 50
-	rollappRawGenesis, err := cdc.MarshalJSON(rollappGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal rollapp genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, rollapptypes.ModuleName, rollappGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[rollapptypes.ModuleName] = rollappRawGenesis
 
-	// Modify sequencer params
+	// --- Sequencer Params ---
 	sequencerGenesis := sequencertypes.DefaultGenesis()
+	// Set a short notice period
 	sequencerGenesis.Params.NoticePeriod = time.Minute
-	sequencerRawGenesis, err := cdc.MarshalJSON(sequencerGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal sequencer genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, sequencertypes.ModuleName, sequencerGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[sequencertypes.ModuleName] = sequencerRawGenesis
 
-	// Modify auth params
+	// --- Auth Params ---
 	authGenesis := auth.DefaultGenesisState()
+	// Adjust the transaction size cost
 	authGenesis.Params.TxSizeCostPerByte = 100
-	authRawGenesis, err := cdc.MarshalJSON(authGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal auth genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, auth.ModuleName, authGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[auth.ModuleName] = authRawGenesis
 
-	// Modify slashing params
+	// --- Slashing Params ---
 	slashingGenesis := slashing.DefaultGenesisState()
 	slashingGenesis.Params.SignedBlocksWindow = 10000
 	slashingGenesis.Params.MinSignedPerWindow = math.LegacyMustNewDecFromStr("0.800000000000000000")
 	slashingGenesis.Params.DowntimeJailDuration = 2 * time.Minute
+	// Disable downtime slash to keep validators active during simulation
 	slashingGenesis.Params.SlashFractionDowntime = math.LegacyZeroDec()
-	slashingRawGenesis, err := cdc.MarshalJSON(slashingGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, slashing.ModuleName, slashingGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[slashing.ModuleName] = slashingRawGenesis
 
-	// Modify staking params
+	// --- Staking Params ---
 	stakingGenesis := stakingtypes.DefaultGenesisState()
 	stakingGenesis.Params.BondDenom = "adym"
-	stakingRawGenesis, err := cdc.MarshalJSON(stakingGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal staking genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, stakingtypes.ModuleName, stakingGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[stakingtypes.ModuleName] = stakingRawGenesis
 
-	// Modify mint params
+	// --- Mint Params ---
 	mintGenesis := minttypes.DefaultGenesisState()
 	mintGenesis.Params.MintDenom = "adym"
-	mintRawGenesis, err := cdc.MarshalJSON(mintGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal mint genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, minttypes.ModuleName, mintGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[minttypes.ModuleName] = mintRawGenesis
 
-	// Modify evm params
+	// --- EVM Params (Ethermint) ---
 	evmGenesis := evmtypes.DefaultGenesisState()
 	evmGenesis.Params.EvmDenom = "adym"
+	// Disable contract creation for simplicity in simulation
 	evmGenesis.Params.EnableCreate = false
-	evmRawGenesis, err := cdc.MarshalJSON(evmGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal evm genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, evmtypes.ModuleName, evmGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[evmtypes.ModuleName] = evmRawGenesis
 
-	// Modify feemarket params
+	// --- Feemarket Params (EIP-1559) ---
 	feemarketGenesis := feemarkettypes.DefaultGenesisState()
+	// Disable base fee enforcement for simpler transaction processing
 	feemarketGenesis.Params.NoBaseFee = true
-	feemarketRawGenesis, err := cdc.MarshalJSON(feemarketGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal feemarket genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, feemarkettypes.ModuleName, feemarketGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[feemarkettypes.ModuleName] = feemarketRawGenesis
 
-	// Modify dymns params
+	// --- Dymns Params (Dymension Name Service) ---
 	dymnsGenesis := dymnstypes.DefaultGenesis()
+	// Set a short duration for sell orders
 	dymnsGenesis.Params.Misc.SellOrderDuration = 2 * time.Minute
-	dymnsRawGenesis, err := cdc.MarshalJSON(dymnsGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal dymns genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, dymnstypes.ModuleName, dymnsGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[dymnstypes.ModuleName] = dymnsRawGenesis
 
-	// Modify bank denom metadata
+	// --- Bank Params (Denom Metadata) ---
 	bankGenesis := banktypes.DefaultGenesisState()
+	// Define metadata for the base asset (adym/DYM)
 	bankGenesis.DenomMetadata = []banktypes.Metadata{
 		{
 			Base: "adym",
@@ -147,51 +150,45 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 			Symbol:      "DYM",
 		},
 	}
-	bankRawGenesis, err := cdc.MarshalJSON(bankGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal bank genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, banktypes.ModuleName, bankGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[banktypes.ModuleName] = bankRawGenesis
 
-	// Modify misc params
+	// --- Crisis Params ---
 	crisisGenesis := crisistypes.DefaultGenesisState()
 	crisisGenesis.ConstantFee.Denom = "adym"
-	crisisRawGenesis, err := cdc.MarshalJSON(crisisGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal crisis genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, crisistypes.ModuleName, crisisGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[crisistypes.ModuleName] = crisisRawGenesis
 
+	// --- Txfees Params (Osmosis) ---
 	txfeesGenesis := txfeestypes.DefaultGenesis()
 	txfeesGenesis.Basedenom = "adym"
 	txfeesGenesis.Params.EpochIdentifier = "minute"
-	txfeesRawGenesis, err := cdc.MarshalJSON(txfeesGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal txfees genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, txfeestypes.ModuleName, txfeesGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[txfeestypes.ModuleName] = txfeesRawGenesis
 
+	// --- Gamm Params (Osmosis Liquidity Pools) ---
 	gammGenesis := gammtypes.DefaultGenesis()
 	gammGenesis.Params.PoolCreationFee[0].Denom = "adym"
 	gammGenesis.Params.EnableGlobalPoolFees = true
-	gammRawGenesis, err := cdc.MarshalJSON(gammGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal gamm genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, gammtypes.ModuleName, gammGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[gammtypes.ModuleName] = gammRawGenesis
 
-	// Modify incentives params
+	// --- Incentives Params (Osmosis) ---
 	incentivesGenesis := incentivestypes.DefaultGenesis()
 	incentivesGenesis.Params.DistrEpochIdentifier = "minute"
+	// Set a short lock duration for incentives simulation
 	incentivesGenesis.LockableDurations = []time.Duration{time.Minute}
-	incentivesRawGenesis, err := cdc.MarshalJSON(incentivesGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal incentives genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, incentivestypes.ModuleName, incentivesGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[incentivestypes.ModuleName] = incentivesRawGenesis
 
-	// Modify epochs params
+	// --- Epochs Params (Osmosis) ---
 	epochsGenesis := epochstypes.DefaultGenesis()
+	// Define the "minute" epoch for use by incentives/txfees
 	epochsGenesis.Epochs = append(epochsGenesis.Epochs, epochstypes.EpochInfo{
 		Identifier:              "minute",
 		StartTime:               time.Time{},
@@ -199,11 +196,9 @@ func prepareGenesis(cdc codec.JSONCodec) (app.GenesisState, error) {
 		CurrentEpoch:            0,
 		CurrentEpochStartHeight: 0,
 	})
-	epochsRawGenesis, err := cdc.MarshalJSON(epochsGenesis)
-	if err != nil {
-		return app.GenesisState{}, fmt.Errorf("failed to marshal epochs genesis state: %w", err)
+	if err = marshalAndSetGenesis(cdc, genesis, epochstypes.ModuleName, epochsGenesis); err != nil {
+		return app.GenesisState{}, err
 	}
-	genesis[epochstypes.ModuleName] = epochsRawGenesis
 
 	return genesis, nil
 }
