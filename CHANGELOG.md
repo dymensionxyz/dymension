@@ -1,12 +1,17 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-11-24)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-11-27)
 
 
 ### Bug Fixes
 
 * **eth:** fix `eth_gasPrice` query ([#2113](https://github.com/dymensionxyz/dymension/issues/2113)) ([230706a](https://github.com/dymensionxyz/dymension/commit/230706abb96de7b7f8f8daea233242279211d2b5))
+
+
+### Features
+
+* **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
 
 
 
