@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-11-27)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-11-30)
 
 
 ### Bug Fixes
