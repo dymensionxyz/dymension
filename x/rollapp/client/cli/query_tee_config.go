@@ -42,7 +42,7 @@ func CmdQueryTeeConfig() *cobra.Command {
 			if teeConfig.PolicyValues != "" {
 				fmt.Println("Policy Values:")
 				fmt.Println("-------------")
-				var policyValues map[string]interface{}
+				var policyValues map[string]any
 				if err := json.Unmarshal([]byte(teeConfig.PolicyValues), &policyValues); err == nil {
 					prettyJSON, _ := json.MarshalIndent(policyValues, "", "  ")
 					fmt.Println(string(prettyJSON))
