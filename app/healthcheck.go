@@ -59,12 +59,13 @@ func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 
 		// Check if the node is stalling.
 		// time.Since is cleaner and safer than manual subtraction with time.Now().
-		if time.Since(latestTime) > maxNoHeightProgressDuration {
-			errMsg := fmt.Sprintf("Node is not syncing. Last block time: %s, time since: %s", 
-				latestTime.UTC().Format(time.RFC3339), 
-				time.Since(latestTime).String(),
+		elapsed := time.Since(latestTime)
+		if elapsed > maxNoHeightProgressDuration {
+			errMsg := fmt.Sprintf("Node is not syncing. Last block time: %s, time since: %s",
+				latestTime.UTC().Format(time.RFC3339),
+				elapsed.String(),
 			)
-			
+
 			// 503 Service Unavailable is more appropriate for a sync lag than 500 Internal Error.
 			writeJSONResponse(w, http.StatusServiceUnavailable, errorResponse{
 				Status: "error",
