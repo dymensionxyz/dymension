@@ -51,22 +51,12 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("decode hex: %w", err)
 	}
 
-	// Try to parse as a full Hyperlane message first
-	body, isFullMessage := tryParseAsHyperlaneMessage(bz)
+	// Try to parse as a full Hyperlane message first (returns bz unchanged if not)
+	body := tryParseAsHyperlaneMessage(bz)
 
-	// Parse the body as a warp payload
 	warpPL, err := warptypes.ParseWarpPayload(body)
 	if err != nil {
-		// If we thought it was a full message but warp parsing failed,
-		// try parsing the original bytes as warp payload directly
-		if isFullMessage {
-			warpPL, err = warptypes.ParseWarpPayload(bz)
-			if err != nil {
-				return fmt.Errorf("parse warp payload: %w", err)
-			}
-		} else {
-			return fmt.Errorf("parse warp payload: %w", err)
-		}
+		return fmt.Errorf("parse warp payload: %w", err)
 	}
 
 	// Decode the forwarding memo
@@ -79,25 +69,25 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 }
 
 // tryParseAsHyperlaneMessage attempts to parse bytes as a Hyperlane message.
-// Returns the body bytes and true if successful, or the original bytes and false if not.
-func tryParseAsHyperlaneMessage(bz []byte) (body []byte, isMessage bool) {
+// Returns the message body if successful, or the original bytes if not.
+func tryParseAsHyperlaneMessage(bz []byte) []byte {
 	msg, err := util.ParseHyperlaneMessage(bz)
 	if err != nil {
-		return bz, false
+		return bz
 	}
 
 	// Sanity check: version should be reasonable (currently 3)
 	if msg.Version > 10 {
-		return bz, false
+		return bz
 	}
 
 	// Sanity check: body should not be empty for a warp message
 	if len(msg.Body) == 0 {
-		return bz, false
+		return bz
 	}
 
 	printHyperlaneMessage(msg)
-	return msg.Body, true
+	return msg.Body
 }
 
 func decodeForwardingMemo(warpPL warptypes.WarpPayload) {
