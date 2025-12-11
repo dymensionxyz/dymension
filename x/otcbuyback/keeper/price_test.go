@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestMovingAverageUpdates() {
 
 	// Assert that the price change follows the EMA formula with smoothing factor
 	// new_avg = alpha * current_price + (1 - alpha) * old_avg
-	// expeted new price is 0.1 * 0.1 + 0.9 * 0.25 = 0.235
+	// expected new price is 0.1 * 0.1 + 0.9 * 0.25 = 0.235
 	newPrice, err := suite.App.OTCBuybackKeeper.GetMovingAveragePrice(suite.Ctx, "usdc")
 	suite.Require().NoError(err)
 	expectedNewPrice := math.LegacyMustNewDecFromStr("0.235").QuoInt64(1e12)
@@ -59,7 +59,7 @@ func (suite *KeeperTestSuite) TestMovingAverageUpdates() {
 	newPrice, err = suite.App.OTCBuybackKeeper.GetMovingAveragePrice(suite.Ctx, "usdc")
 	suite.Require().NoError(err)
 
-	// expeted new price is 0.2 * 0.1 + 0.8 * 0.235 = 0.208
+	// expected new price is 0.2 * 0.1 + 0.8 * 0.235 = 0.208
 	expectedNewPrice = math.LegacyMustNewDecFromStr("0.208").QuoInt64(1e12)
 	suite.Require().Equal(expectedNewPrice, newPrice, "new moving average should match EMA calculation: alpha * spot_price + (1-alpha) * old_avg")
 
@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestMovingAverageUpdates() {
 	newPrice, err = suite.App.OTCBuybackKeeper.GetMovingAveragePrice(suite.Ctx, "usdc")
 	suite.Require().NoError(err)
 
-	// expeted new price is 0.5 * 0.25 + 0.5 * 0.208 = 0.229
+	// expected new price is 0.5 * 0.25 + 0.5 * 0.208 = 0.229
 	expectedNewPrice = math.LegacyMustNewDecFromStr("0.229").QuoInt64(1e12)
 	suite.Require().Equal(expectedNewPrice, newPrice, "new moving average should match EMA calculation: alpha * spot_price + (1-alpha) * old_avg")
 }
