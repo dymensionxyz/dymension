@@ -13,7 +13,7 @@ func (suite *KeeperTestSuite) TestGaugeReferencesManagement() {
 	_ = suite.App.IncentivesKeeper.AddGaugeRefByKey(suite.Ctx, key2, 2)
 	_ = suite.App.IncentivesKeeper.AddGaugeRefByKey(suite.Ctx, key2, 3)
 
-	// ensure key1 only has 2 entires
+	// ensure key1 only has 2 entries
 	gaugeRefs1 := suite.App.IncentivesKeeper.GetGaugeRefs(suite.Ctx, key1)
 	suite.Require().Equal(len(gaugeRefs1), 2)
 
@@ -25,7 +25,7 @@ func (suite *KeeperTestSuite) TestGaugeReferencesManagement() {
 	err := suite.App.IncentivesKeeper.DeleteGaugeRefByKey(suite.Ctx, key2, 1)
 	suite.Require().NoError(err)
 
-	// ensure key2 now only has 2 entires
+	// ensure key2 now only has 2 entries
 	gaugeRefs3 := suite.App.IncentivesKeeper.GetGaugeRefs(suite.Ctx, key2)
 	suite.Require().Equal(len(gaugeRefs3), 2)
 }

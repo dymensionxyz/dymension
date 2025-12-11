@@ -201,8 +201,8 @@ func decodeAndParseDERCertificate(certificate string) (*x509.Certificate, error)
 	return cert, nil
 }
 
-// validatePKIToken validates the PKI token returned from the attestation service.
-// It verifies the token the certificate chain and that the token is signed by Google
+// validateAttestationAuthenticity validates the attestation token returned from the attestation service.
+// It verifies the token, the certificate chain and that the token is properly signed.
 // Returns a jwt.Token or returns an error if invalid.
 func (k Keeper) validateAttestationAuthenticity(ctx sdk.Context, attestationToken string) (jwt.Token, error) {
 	// IMPORTANT: The attestation token should be considered untrusted until the certificate chain and
