@@ -69,7 +69,8 @@ func tryParseAsHyperlaneMessage(bz []byte) []byte {
 		return bz
 	}
 
-	if len(msg.Body) == 0 {
+	// Version 0 indicates this isn't a real HL message (probably raw warp payload)
+	if msg.Version == 0 || len(msg.Body) == 0 {
 		return bz
 	}
 
