@@ -14,6 +14,15 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
+type decodedHL struct {
+	hlMsg        *util.HyperlaneMessage
+	warpPL       warptypes.WarpPayload
+	hlMetadata   *types.HLMetadata
+	rawMetadata  []byte // set when metadata exists but isn't valid HLMetadata
+	forwardToIBC *types.HookForwardToIBC
+	forwardToHL  *types.HookForwardToHL
+}
+
 func CmdDecodeHL() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "decode-hl [hexstring]",
@@ -50,74 +59,58 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("decode hex: %w", err)
 	}
 
-	body := tryParseAsHyperlaneMessage(bz)
-
-	warpPL, err := warptypes.ParseWarpPayload(body)
+	decoded, err := parseHL(bz)
 	if err != nil {
-		return fmt.Errorf("parse warp payload: %w", err)
+		return err
 	}
 
-	decodeForwardingMemo(warpPL)
-	printWarpPayload(warpPL)
-
+	printDecoded(decoded)
 	return nil
 }
 
-func tryParseAsHyperlaneMessage(bz []byte) []byte {
-	msg, err := util.ParseHyperlaneMessage(bz)
+func parseHL(bz []byte) (*decodedHL, error) {
+	decoded := &decodedHL{}
+
+	// Input is either a full HL message (envelope + body) or just the body (warp payload).
+	// Try HL message first; version 0 means it's not a real HL message.
+	body := bz
+	if msg, err := util.ParseHyperlaneMessage(bz); err == nil && msg.Version != 0 && len(msg.Body) > 0 {
+		decoded.hlMsg = &msg
+		body = msg.Body
+	}
+
+	warpPL, err := warptypes.ParseWarpPayload(body)
 	if err != nil {
-		return bz
+		return nil, fmt.Errorf("parse warp payload: %w", err)
+	}
+	decoded.warpPL = warpPL
+
+	metadata := warpPL.Metadata()
+	if len(metadata) > 0 {
+		hlMetadata, err := types.UnpackHLMetadata(metadata)
+		if err != nil {
+			decoded.rawMetadata = metadata
+		} else {
+			decoded.hlMetadata = hlMetadata
+			if len(hlMetadata.HookForwardToIbc) > 0 {
+				decoded.forwardToIBC, _ = types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
+			}
+			if len(hlMetadata.HookForwardToHl) > 0 {
+				decoded.forwardToHL, _ = types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
+			}
+		}
 	}
 
-	// Version 0 indicates this isn't a real HL message (probably raw warp payload)
-	if msg.Version == 0 || len(msg.Body) == 0 {
-		return bz
-	}
-
-	printHyperlaneMessage(msg)
-	return msg.Body
+	return decoded, nil
 }
 
-func decodeForwardingMemo(warpPL warptypes.WarpPayload) {
-	metadata := warpPL.Metadata()
-	if len(metadata) == 0 {
-		fmt.Println("\n=== Forwarding Memo ===")
-		fmt.Println("  (none)")
-		return
+func printDecoded(d *decodedHL) {
+	if d.hlMsg != nil {
+		printHyperlaneMessage(*d.hlMsg)
 	}
 
-	hlMetadata, err := types.UnpackHLMetadata(metadata)
-	if err != nil {
-		fmt.Println("\n=== Forwarding Memo ===")
-		fmt.Println("  (not a valid HLMetadata protobuf)")
-		fmt.Printf("  Raw hex:    %s\n", util.EncodeEthHex(metadata))
-		if isASCIIPrintable(metadata) {
-			fmt.Printf("  Raw string: %s\n", string(metadata))
-		}
-		return
-	}
-
-	printHLMetadata(hlMetadata)
-
-	if hlMetadata != nil {
-		if len(hlMetadata.HookForwardToIbc) > 0 {
-			m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
-			if err != nil {
-				fmt.Printf("\n=== Forward to IBC ===\n  (decode error: %v)\n", err)
-			} else {
-				printForwardToIBC(m)
-			}
-		}
-
-		if len(hlMetadata.HookForwardToHl) > 0 {
-			m, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
-			if err != nil {
-				fmt.Printf("\n=== Forward to Hyperlane ===\n  (decode error: %v)\n", err)
-			} else {
-				printForwardToHL(m)
-			}
-		}
-	}
+	printForwardingMemo(d)
+	printWarpPayload(d.warpPL)
 }
 
 func printHyperlaneMessage(msg util.HyperlaneMessage) {
@@ -131,13 +124,24 @@ func printHyperlaneMessage(msg util.HyperlaneMessage) {
 	fmt.Printf("  Body:        %s\n", util.EncodeEthHex(msg.Body))
 }
 
-func printHLMetadata(m *types.HLMetadata) {
+func printForwardingMemo(d *decodedHL) {
 	fmt.Println("\n=== Forwarding Memo ===")
-	if m == nil {
-		fmt.Println("  (nil)")
+
+	if d.rawMetadata != nil {
+		fmt.Println("  (not a valid HLMetadata protobuf)")
+		fmt.Printf("  Raw hex:    %s\n", util.EncodeEthHex(d.rawMetadata))
+		if isASCIIPrintable(d.rawMetadata) {
+			fmt.Printf("  Raw string: %s\n", string(d.rawMetadata))
+		}
 		return
 	}
 
+	if d.hlMetadata == nil {
+		fmt.Println("  (none)")
+		return
+	}
+
+	m := d.hlMetadata
 	hasIBC := len(m.HookForwardToIbc) > 0
 	hasHL := len(m.HookForwardToHl) > 0
 	hasKaspa := len(m.Kaspa) > 0
@@ -155,6 +159,13 @@ func printHLMetadata(m *types.HLMetadata) {
 	}
 	if hasKaspa {
 		fmt.Printf("  Kaspa metadata: yes (%d bytes)\n", len(m.Kaspa))
+	}
+
+	if d.forwardToIBC != nil {
+		printForwardToIBC(d.forwardToIBC)
+	}
+	if d.forwardToHL != nil {
+		printForwardToHL(d.forwardToHL)
 	}
 }
 
