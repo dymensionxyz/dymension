@@ -13,7 +13,7 @@ func (suite *KeeperTestSuite) TestStreamReferencesManagement() {
 	_ = suite.App.StreamerKeeper.AddStreamRefByKey(suite.Ctx, key2, 2)
 	_ = suite.App.StreamerKeeper.AddStreamRefByKey(suite.Ctx, key2, 3)
 
-	// ensure key1 only has 2 entires
+	// ensure key1 only has 2 entries
 	streamRefs1 := suite.App.StreamerKeeper.GetStreamRefs(suite.Ctx, key1)
 	suite.Require().Equal(len(streamRefs1), 2)
 
@@ -25,7 +25,7 @@ func (suite *KeeperTestSuite) TestStreamReferencesManagement() {
 	err := suite.App.StreamerKeeper.DeleteStreamRefByKey(suite.Ctx, key2, 1)
 	suite.Require().NoError(err)
 
-	// ensure key2 now only has 2 entires
+	// ensure key2 now only has 2 entries
 	streamRefs3 := suite.App.StreamerKeeper.GetStreamRefs(suite.Ctx, key2)
 	suite.Require().Equal(len(streamRefs3), 2)
 }
