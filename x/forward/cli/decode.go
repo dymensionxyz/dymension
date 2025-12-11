@@ -69,7 +69,7 @@ func tryParseAsHyperlaneMessage(bz []byte) []byte {
 		return bz
 	}
 
-	if msg.Version > 10 || len(msg.Body) == 0 {
+	if len(msg.Body) == 0 {
 		return bz
 	}
 
