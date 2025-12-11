@@ -14,7 +14,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
-// CmdDecodeHL returns the decode-hl command
 func CmdDecodeHL() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "decode-hl [hexstring]",
@@ -51,7 +50,6 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("decode hex: %w", err)
 	}
 
-	// Try to parse as a full Hyperlane message first (returns bz unchanged if not)
 	body := tryParseAsHyperlaneMessage(bz)
 
 	warpPL, err := warptypes.ParseWarpPayload(body)
@@ -59,30 +57,19 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("parse warp payload: %w", err)
 	}
 
-	// Decode the forwarding memo
 	decodeForwardingMemo(warpPL)
-
-	// Print warp payload
 	printWarpPayload(warpPL)
 
 	return nil
 }
 
-// tryParseAsHyperlaneMessage attempts to parse bytes as a Hyperlane message.
-// Returns the message body if successful, or the original bytes if not.
 func tryParseAsHyperlaneMessage(bz []byte) []byte {
 	msg, err := util.ParseHyperlaneMessage(bz)
 	if err != nil {
 		return bz
 	}
 
-	// Sanity check: version should be reasonable (currently 3)
-	if msg.Version > 10 {
-		return bz
-	}
-
-	// Sanity check: body should not be empty for a warp message
-	if len(msg.Body) == 0 {
+	if msg.Version > 10 || len(msg.Body) == 0 {
 		return bz
 	}
 
@@ -222,7 +209,6 @@ func printWarpPayload(warpPL warptypes.WarpPayload) {
 	fmt.Printf("  Amount:         %s\n", warpPL.Amount().String())
 }
 
-// isASCIIPrintable checks if all bytes are printable ASCII characters
 func isASCIIPrintable(data []byte) bool {
 	for _, b := range data {
 		if b < 32 || b > 126 {
