@@ -140,7 +140,7 @@ func printHyperlaneMessage(msg util.HyperlaneMessage) {
 	fmt.Printf("  Sender:      %s\n", msg.Sender)
 	fmt.Printf("  Destination: %d\n", msg.Destination)
 	fmt.Printf("  Recipient:   %s\n", msg.Recipient)
-	fmt.Printf("  Body:        %d bytes\n", len(msg.Body))
+	fmt.Printf("  Body:        %s\n", util.EncodeEthHex(msg.Body))
 }
 
 func printHLMetadata(m *types.HLMetadata) {
