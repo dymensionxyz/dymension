@@ -19,8 +19,8 @@ import (
 type decodedHL struct {
 	hlMsg        *util.HyperlaneMessage
 	warpPL       warptypes.WarpPayload
-	hlMetadata   *types.HLMetadata
-	rawMetadata  []byte // set when metadata exists but isn't valid HLMetadata
+	rawMetadata  []byte            // always set when metadata exists
+	hlMetadata   *types.HLMetadata // set only when rawMetadata is valid HLMetadata protobuf
 	forwardToIBC *types.HookForwardToIBC
 	forwardToHL  *types.HookForwardToHL
 }
@@ -89,10 +89,8 @@ func parseHL(bz []byte) (*decodedHL, error) {
 
 	metadata := warpPL.Metadata()
 	if len(metadata) > 0 {
-		hlMetadata, err := types.UnpackHLMetadata(metadata)
-		if err != nil {
-			decoded.rawMetadata = metadata
-		} else {
+		decoded.rawMetadata = metadata
+		if hlMetadata, err := types.UnpackHLMetadata(metadata); err == nil {
 			decoded.hlMetadata = hlMetadata
 			if len(hlMetadata.HookForwardToIbc) > 0 {
 				decoded.forwardToIBC, _ = types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
@@ -129,17 +127,18 @@ func printHyperlaneMessage(msg util.HyperlaneMessage) {
 func printForwardingMemo(d *decodedHL) {
 	fmt.Println("\n=== Forwarding Memo ===")
 
-	if d.rawMetadata != nil {
-		fmt.Println("  (not a valid HLMetadata protobuf)")
-		fmt.Printf("  Raw hex:    %s\n", util.EncodeEthHex(d.rawMetadata))
-		if isASCIIPrintable(d.rawMetadata) {
-			fmt.Printf("  Raw string: %s\n", string(d.rawMetadata))
-		}
+	if d.rawMetadata == nil {
+		fmt.Println("  (none)")
 		return
 	}
 
+	fmt.Printf("  Raw hex:    %s\n", util.EncodeEthHex(d.rawMetadata))
+	if isASCIIPrintable(d.rawMetadata) {
+		fmt.Printf("  Raw string: %s\n", string(d.rawMetadata))
+	}
+
 	if d.hlMetadata == nil {
-		fmt.Println("  (none)")
+		fmt.Println("  (not a valid HLMetadata protobuf)")
 		return
 	}
 
@@ -149,7 +148,7 @@ func printForwardingMemo(d *decodedHL) {
 	hasKaspa := len(m.Kaspa) > 0
 
 	if !hasIBC && !hasHL && !hasKaspa {
-		fmt.Println("  (empty - no forwarding)")
+		fmt.Println("  (empty HLMetadata - no forwarding)")
 		return
 	}
 
