@@ -78,6 +78,10 @@ func parseHL(bz []byte) (*decodedHL, error) {
 		return nil, err
 	}
 
+	if len(body) == 0 {
+		return decoded, nil
+	}
+
 	warpPL, err := warptypes.ParseWarpPayload(body)
 	if err != nil {
 		return nil, fmt.Errorf("parse warp payload: %w", err)
@@ -102,7 +106,7 @@ func parseHL(bz []byte) (*decodedHL, error) {
 }
 
 // tryParseAsHyperlaneMessage attempts to parse bytes as a full Hyperlane message.
-// If successful, it populates decoded.hlMsg and returns the message body.
+// If successful, it populates decoded.hlMsg and returns the message body (may be empty).
 // If not a valid HL message, returns the original bytes unchanged.
 func tryParseAsHyperlaneMessage(bz []byte, decoded *decodedHL) ([]byte, error) {
 	msg, err := util.ParseHyperlaneMessage(bz)
@@ -112,10 +116,6 @@ func tryParseAsHyperlaneMessage(bz []byte, decoded *decodedHL) ([]byte, error) {
 
 	if msg.Version == 0 {
 		return nil, fmt.Errorf("invalid Hyperlane message: version 0")
-	}
-
-	if len(msg.Body) == 0 {
-		return nil, fmt.Errorf("invalid Hyperlane message: empty body")
 	}
 
 	decoded.hlMsg = &msg
