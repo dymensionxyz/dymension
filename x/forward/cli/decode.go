@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -217,7 +219,15 @@ func printForwardToHL(m *types.HookForwardToHL) {
 
 func printWarpPayload(warpPL warptypes.WarpPayload) {
 	fmt.Println("\n=== Warp Payload ===")
-	fmt.Printf("  Cosmos Account: %s\n", warpPL.GetCosmosAccount().String())
+
+	recipient := warpPL.Recipient()
+	// EVM addresses are 20 bytes zero-padded to 32 bytes (12 leading zeros + 20 bytes)
+	if len(recipient) == 32 && bytes.Equal(recipient[:12], make([]byte, 12)) {
+		fmt.Printf("  EVM Address:    0x%s\n", hex.EncodeToString(recipient[12:]))
+	} else {
+		fmt.Printf("  Cosmos Account: %s\n", warpPL.GetCosmosAccount().String())
+	}
+
 	fmt.Printf("  Amount:         %s\n", warpPL.Amount().String())
 }
 
