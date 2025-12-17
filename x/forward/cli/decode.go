@@ -73,12 +73,9 @@ func runDecodeHL(cmd *cobra.Command, args []string) error {
 func parseHL(bz []byte) (*decodedHL, error) {
 	decoded := &decodedHL{}
 
-	// Input is either a full HL message (envelope + body) or just the body (warp payload).
-	// Try HL message first; version 0 means it's not a real HL message.
-	body := bz
-	if msg, err := util.ParseHyperlaneMessage(bz); err == nil && msg.Version != 0 && len(msg.Body) > 0 {
-		decoded.hlMsg = &msg
-		body = msg.Body
+	body, err := tryParseAsHyperlaneMessage(bz, decoded)
+	if err != nil {
+		return nil, err
 	}
 
 	warpPL, err := warptypes.ParseWarpPayload(body)
@@ -102,6 +99,27 @@ func parseHL(bz []byte) (*decodedHL, error) {
 	}
 
 	return decoded, nil
+}
+
+// tryParseAsHyperlaneMessage attempts to parse bytes as a full Hyperlane message.
+// If successful, it populates decoded.hlMsg and returns the message body.
+// If not a valid HL message, returns the original bytes unchanged.
+func tryParseAsHyperlaneMessage(bz []byte, decoded *decodedHL) ([]byte, error) {
+	msg, err := util.ParseHyperlaneMessage(bz)
+	if err != nil {
+		return bz, nil
+	}
+
+	if msg.Version == 0 {
+		return nil, fmt.Errorf("invalid Hyperlane message: version 0")
+	}
+
+	if len(msg.Body) == 0 {
+		return nil, fmt.Errorf("invalid Hyperlane message: empty body")
+	}
+
+	decoded.hlMsg = &msg
+	return msg.Body, nil
 }
 
 func printDecoded(d *decodedHL) {
