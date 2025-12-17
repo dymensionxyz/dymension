@@ -21,15 +21,11 @@ const (
 	FlagNewOwner          = "new-owner"
 	FlagRenounceOwnership = "renounce-ownership"
 	FlagHookIds           = "hook-ids"
-	FlagSkipConfirmation  = "yes"
 )
 
 // confirmDestructiveAction prompts the user to confirm a destructive action.
-// Returns nil if confirmed or skipConfirmation is true, error otherwise.
-func confirmDestructiveAction(skipConfirmation bool, warning string) error {
-	if skipConfirmation {
-		return nil
-	}
+// Returns nil if confirmed, error otherwise.
+func confirmDestructiveAction(warning string) error {
 	buf := bufio.NewReader(os.Stdin)
 	confirmed, err := input.GetConfirmation(warning, buf, os.Stderr)
 	if err != nil {
@@ -111,7 +107,7 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 		Long: `Update the configuration of an existing fee hook, including fees, ownership, or other settings.
 
 WARNING: All fields are overwritten on update. If --hook-fees is not provided or is empty,
-ALL existing fees will be REMOVED from the hook. Use --yes to skip confirmation prompts.
+ALL existing fees will be REMOVED from the hook.
 
 Examples:
 # Update fees (single fee)
@@ -152,11 +148,6 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 				return err
 			}
 
-			skipConfirmation, err := cmd.Flags().GetBool(FlagSkipConfirmation)
-			if err != nil {
-				return err
-			}
-
 			var fees []types.HLAssetFee
 			if feesJSONStr != "" {
 				if err := json.Unmarshal([]byte(feesJSONStr), &fees); err != nil {
@@ -166,7 +157,7 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 
 			// Warn user if fees will be cleared
 			if len(fees) == 0 {
-				if err := confirmDestructiveAction(skipConfirmation,
+				if err := confirmDestructiveAction(
 					"WARNING: --hook-fees is empty or not provided. This will REMOVE ALL existing fees from the hook. Continue?",
 				); err != nil {
 					return err
@@ -188,7 +179,6 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 	cmd.Flags().String(FlagSetFees, "", "Fee configuration as JSON array (format: [{\"token_id\":\"0x...\",\"inbound_fee\":\"0.01\",\"outbound_fee\":\"0.02\"}])")
 	cmd.Flags().String(FlagNewOwner, "", "Transfer ownership to this address")
 	cmd.Flags().Bool(FlagRenounceOwnership, false, "Renounce ownership of the hook")
-	cmd.Flags().BoolP(FlagSkipConfirmation, "y", false, "Skip confirmation prompts")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -251,7 +241,7 @@ func CmdSetAggregationHook() *cobra.Command {
 		Long: `Update the configuration of an existing aggregation hook, including the list of sub-hooks or ownership settings.
 
 WARNING: All fields are overwritten on update. If --hook-ids is not provided or is empty,
-ALL existing hook IDs will be REMOVED from the aggregation hook. Use --yes to skip confirmation prompts.
+ALL existing hook IDs will be REMOVED from the aggregation hook.
 
 Examples:
 # Update hook IDs (multiple)
@@ -292,11 +282,6 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 				return err
 			}
 
-			skipConfirmation, err := cmd.Flags().GetBool(FlagSkipConfirmation)
-			if err != nil {
-				return err
-			}
-
 			var hookIds []hyputil.HexAddress
 			if hookIdsStr != "" {
 				parts := strings.SplitSeq(hookIdsStr, ",")
@@ -315,7 +300,7 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 
 			// Warn user if hook IDs will be cleared
 			if len(hookIds) == 0 {
-				if err := confirmDestructiveAction(skipConfirmation,
+				if err := confirmDestructiveAction(
 					"WARNING: --hook-ids is empty or not provided. This will REMOVE ALL existing hook IDs from the aggregation hook. Continue?",
 				); err != nil {
 					return err
@@ -337,7 +322,6 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 	cmd.Flags().String(FlagHookIds, "", "Comma-separated list of hook IDs to aggregate (format: \"0x...,0x...\")")
 	cmd.Flags().String(FlagNewOwner, "", "Transfer ownership to this address")
 	cmd.Flags().Bool(FlagRenounceOwnership, false, "Renounce ownership of the hook")
-	cmd.Flags().BoolP(FlagSkipConfirmation, "y", false, "Skip confirmation prompts")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
