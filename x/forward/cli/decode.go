@@ -242,6 +242,15 @@ func printWarpPayload(warpPL warptypes.WarpPayload) {
 	if len(recipient) == 32 && bytes.Equal(recipient[:12], make([]byte, 12)) {
 		fmt.Printf("  EVM Address:    0x%s\n", hex.EncodeToString(recipient[12:]))
 	}
+
+	// Kaspa addresses: convert 32-byte recipient to kaspa bech32m address
+	if len(recipient) == 32 {
+		kaspaAddr, err := H256ToKaspaAddress(recipient, true) // assume mainnet
+		if err == nil {
+			fmt.Printf("  Kaspa Address:  %s\n", kaspaAddr)
+		}
+	}
+
 	fmt.Printf("  Cosmos Account: %s\n", warpPL.GetCosmosAccount().String())
 
 	fmt.Printf("  Amount:         %s\n", warpPL.Amount().String())
