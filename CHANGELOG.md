@@ -1,11 +1,12 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-12-11)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2025-12-18)
 
 
 ### Bug Fixes
 
+* **bridgingfee:** add CLI guards against empty field updates ([#2130](https://github.com/dymensionxyz/dymension/issues/2130)) ([58abdae](https://github.com/dymensionxyz/dymension/commit/58abdae600c5fa6b7210ca70192f0e46a4fe0ff5))
 * **eth:** fix `eth_gasPrice` query ([#2113](https://github.com/dymensionxyz/dymension/issues/2113)) ([230706a](https://github.com/dymensionxyz/dymension/commit/230706abb96de7b7f8f8daea233242279211d2b5))
 
 
