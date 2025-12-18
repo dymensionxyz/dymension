@@ -13,6 +13,7 @@
 ### Features
 
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
+* **forward:** pretty print decode-hl forwarding memo ([#2128](https://github.com/dymensionxyz/dymension/issues/2128)) ([79e7b3b](https://github.com/dymensionxyz/dymension/commit/79e7b3bacb3eee3a3f4f2afa31f311f3311be5ae))
 
 
 
