@@ -65,8 +65,6 @@ const (
 
 	FlagKasToken = "kas-token"
 
-	FlagDecodeMemo = "decode-memo"
-
 	SrcIBC   = "ibc"
 	SrcEIBC  = "eibc"
 	SrcHL    = "hl"
@@ -210,21 +208,6 @@ dymd q forward create-hl-message --src=hl --dst=hl \
 	addHyperlaneFlags(cmd)
 	addIBCFlags(cmd)
 	addKaspaFlags(cmd)
-
-	return cmd
-}
-
-func CmdDecodeHL() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "decode-hl [body|message] [hexsing]",
-		Args:    cobra.ExactArgs(2),
-		Short:   "Decode a Hyperlane message or body from hex string",
-		Example: `dymd q forward decode-hl message 0x00000000... --decode-memo`,
-		RunE:    runDecodeHL,
-	}
-
-	cmd.Flags().Bool(FlagDecodeMemo, false, "Decode the memo from the payload")
-	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -890,72 +873,6 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 	return nil
 }
 
-func runDecodeHL(cmd *cobra.Command, args []string) error {
-	kind := args[0]
-	if kind != "body" && kind != "message" {
-		return fmt.Errorf("unsupported message type: %s (use 'body' or 'message')", kind)
-	}
-
-	d := args[1]
-	d = strings.TrimSpace(d)
-	d = strings.ReplaceAll(d, `\`, "")
-	d = strings.ReplaceAll(d, " ", "")
-
-	fmt.Printf("input: %s\n", d)
-
-	bz, err := util.DecodeEthHex(d)
-	if err != nil {
-		return fmt.Errorf("decode eth hex: %w", err)
-	}
-
-	body := bz
-	if kind == "message" {
-		m, err := util.ParseHyperlaneMessage(bz)
-		if err != nil {
-			return fmt.Errorf("parse message: %w", err)
-		}
-		body = m.Body
-		PrintHyperlaneMessage(m)
-	}
-
-	decodeMemo, _ := cmd.Flags().GetBool(FlagDecodeMemo)
-
-	warpPL, err := warptypes.ParseWarpPayload(body)
-	if err != nil {
-		return fmt.Errorf("parse warp payload: %w", err)
-	}
-
-	if decodeMemo {
-		hlMetadata, err := types.UnpackHLMetadata(warpPL.Metadata())
-		if err != nil {
-			return fmt.Errorf("unpack hl metadata: %w", err)
-		}
-		fmt.Printf("hl metadata: %+v\n", hlMetadata)
-
-		if len(hlMetadata.HookForwardToIbc) > 0 {
-			m, err := types.UnpackForwardToIBC(hlMetadata.HookForwardToIbc)
-			if err != nil {
-				return fmt.Errorf("unpack ibc forward: %w", err)
-			}
-			fmt.Printf("ibc forward: %+v\n", m)
-		}
-
-		if len(hlMetadata.HookForwardToHl) > 0 {
-			m, err := types.UnpackForwardToHL(hlMetadata.HookForwardToHl)
-			if err != nil {
-				return fmt.Errorf("unpack hl forward: %w", err)
-			}
-			fmt.Printf("hl forward: %+v\n", m)
-		}
-	}
-
-	fmt.Printf("warp payload message: %+v\n", warpPL)
-	fmt.Printf("cosmos account: %s\n", warpPL.GetCosmosAccount().String())
-	fmt.Printf("amount: %s\n", warpPL.Amount().String())
-
-	return nil
-}
-
 func runEstimateFees(cmd *cobra.Command, args []string) error {
 	hlAmountS, _ := cmd.Flags().GetString(FlagHLAmount)
 	hlGasS, _ := cmd.Flags().GetString(FlagHLGas)
@@ -1195,17 +1112,6 @@ func decodeHyperlaneMessageEthHexToHyperlaneToEIBCMemo(s string) (*types.HookFor
 		return nil, errorsmod.Wrap(err, "unpack memo from hl message")
 	}
 	return d, nil
-}
-
-func PrintHyperlaneMessage(msg util.HyperlaneMessage) {
-	fmt.Printf("HyperlaneMessage: encoded: %+v\n", msg)
-	fmt.Printf("Version: %d\n", msg.Version)
-	fmt.Printf("Nonce: %d\n", msg.Nonce)
-	fmt.Printf("Origin: %d\n", msg.Origin)
-	fmt.Printf("Sender: %s\n", msg.Sender)
-	fmt.Printf("Destination: %d\n", msg.Destination)
-	fmt.Printf("Recipient: %s\n", msg.Recipient)
-	fmt.Printf("Body: %x\n", msg.Body)
 }
 
 // validateHookForwardToIBC validates that all required fields for IBC forwarding are populated
