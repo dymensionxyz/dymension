@@ -3,19 +3,24 @@ package cli
 import (
 	"fmt"
 	"strings"
+
+	"github.com/btcsuite/btcd/btcutil/bech32"
 )
 
 // kaspa bech32m charset
 const kaspaCharset = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
-// H256ToKaspaAddress converts a 32-byte H256 (Hyperlane recipient) to a Kaspa address
-// The H256 is the raw 32-byte public key payload that gets bech32m encoded
+// H256ToKaspaAddress converts a 32-byte H256 (Hyperlane recipient) to a Kaspa address.
+// Kaspa uses a bech32-like encoding with key differences from standard bech32m:
+// - Separator is ':' instead of '1'
+// - 40-bit checksum (8 chars) instead of standard 30-bit (6 chars)
+// - Different generator polynomial and HRP expansion
+// These differences require custom checksum functions (kaspaChecksum, kaspaPolymod).
 func H256ToKaspaAddress(h256 []byte, mainnet bool) (string, error) {
 	if len(h256) != 32 {
 		return "", fmt.Errorf("invalid H256 length: expected 32, got %d", len(h256))
 	}
 
-	// Determine prefix
 	prefix := "kaspa"
 	if !mainnet {
 		prefix = "kaspatest"
@@ -26,7 +31,7 @@ func H256ToKaspaAddress(h256 []byte, mainnet bool) (string, error) {
 
 	// Convert version + payload bytes to 5-bit values
 	data := append([]byte{versionByte}, h256...)
-	values, err := convertBits(data, 8, 5, true)
+	values, err := bech32.ConvertBits(data, 8, 5, true)
 	if err != nil {
 		return "", fmt.Errorf("convert bits: %w", err)
 	}
@@ -46,36 +51,6 @@ func H256ToKaspaAddress(h256 []byte, mainnet bool) (string, error) {
 	}
 
 	return sb.String(), nil
-}
-
-// convertBits converts a byte slice from one bit-width to another (BIP-173 algorithm)
-func convertBits(data []byte, fromBits, toBits int, pad bool) ([]byte, error) {
-	acc := 0
-	bits := 0
-	result := make([]byte, 0, len(data)*fromBits/toBits+1)
-	maxv := (1 << toBits) - 1
-
-	for _, value := range data {
-		if int(value) < 0 || (int(value)>>fromBits) != 0 {
-			return nil, fmt.Errorf("invalid value: %d", value)
-		}
-		acc = (acc << fromBits) | int(value)
-		bits += fromBits
-		for bits >= toBits {
-			bits -= toBits
-			result = append(result, byte((acc>>bits)&maxv))
-		}
-	}
-
-	if pad {
-		if bits > 0 {
-			result = append(result, byte((acc<<(toBits-bits))&maxv))
-		}
-	} else if bits >= fromBits || ((acc<<(toBits-bits))&maxv) != 0 {
-		return nil, fmt.Errorf("invalid padding")
-	}
-
-	return result, nil
 }
 
 // kaspaChecksum computes the Kaspa bech32m 8-character checksum

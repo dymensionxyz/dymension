@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,12 +43,12 @@ func TestConvertBits(t *testing.T) {
 	input := []byte{0x00, 0xbe, 0x0a}
 
 	// 8 -> 5
-	result5, err := convertBits(input, 8, 5, true)
+	result5, err := bech32.ConvertBits(input, 8, 5, true)
 	require.NoError(t, err)
 	require.NotEmpty(t, result5)
 
 	// 5 -> 8 (round trip won't be exact due to padding)
-	result8, err := convertBits(result5, 5, 8, false)
+	result8, err := bech32.ConvertBits(result5, 5, 8, false)
 	require.NoError(t, err)
 
 	// First bytes should match
