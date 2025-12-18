@@ -13,6 +13,7 @@ import (
 
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	"github.com/dymensionxyz/dymension/v3/x/forward/cli/kaspaaddr"
 	"github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
 
@@ -244,10 +245,10 @@ func printWarpPayload(warpPL warptypes.WarpPayload) {
 	}
 
 	// Kaspa addresses: convert 32-byte recipient to kaspa bech32m address (both networks)
-	if mainnetAddr, err := H256ToKaspaAddress(recipient, true); err == nil {
+	if mainnetAddr, err := kaspaaddr.FromH256(recipient, true); err == nil {
 		fmt.Printf("  Kaspa (mainnet): %s\n", mainnetAddr)
 	}
-	if testnetAddr, err := H256ToKaspaAddress(recipient, false); err == nil {
+	if testnetAddr, err := kaspaaddr.FromH256(recipient, false); err == nil {
 		fmt.Printf("  Kaspa (testnet): %s\n", testnetAddr)
 	}
 
