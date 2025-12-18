@@ -1,13 +1,16 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee/types"
 	"github.com/spf13/cobra"
@@ -19,6 +22,20 @@ const (
 	FlagRenounceOwnership = "renounce-ownership"
 	FlagHookIds           = "hook-ids"
 )
+
+// confirmDestructiveAction prompts the user to confirm a destructive action.
+// Returns nil if confirmed, error otherwise.
+func confirmDestructiveAction(warning string) error {
+	buf := bufio.NewReader(os.Stdin)
+	confirmed, err := input.GetConfirmation(warning, buf, os.Stderr)
+	if err != nil {
+		return fmt.Errorf("get confirmation: %w", err)
+	}
+	if !confirmed {
+		return fmt.Errorf("aborted by user")
+	}
+	return nil
+}
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
@@ -89,7 +106,8 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 		Short: "Update an existing bridging fee hook",
 		Long: `Update the configuration of an existing fee hook, including fees, ownership, or other settings.
 
-Note that old values will be overwritten by new values. All fee objects must be supplied otherwise they will be removed.
+WARNING: All fields are overwritten on update. If --hook-fees is not provided or is empty,
+ALL existing fees will be REMOVED from the hook.
 
 Examples:
 # Update fees (single fee)
@@ -98,8 +116,8 @@ dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x12345678
 # Update fees (multiple fees)
 dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02"},{"token_id":"0x5678...","inbound_fee":"0.05","outbound_fee":"0.03"}]'
 
-# Transfer ownership
-dymd tx bridgingfee set-fee-hook 0x1234... --new-owner dym1newowner...
+# Transfer ownership (WARNING: will also clear fees if --hook-fees not provided)
+dymd tx bridgingfee set-fee-hook 0x1234... --new-owner dym1newowner... --hook-fees '[...]'
 
 # Renounce ownership
 dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
@@ -134,6 +152,15 @@ dymd tx bridgingfee set-fee-hook 0x1234... --renounce-ownership`,
 			if feesJSONStr != "" {
 				if err := json.Unmarshal([]byte(feesJSONStr), &fees); err != nil {
 					return fmt.Errorf("parse fees JSON array: %w", err)
+				}
+			}
+
+			// Warn user if fees will be cleared
+			if len(fees) == 0 {
+				if err := confirmDestructiveAction(
+					"WARNING: --hook-fees is empty or not provided. This will REMOVE ALL existing fees from the hook. Continue?",
+				); err != nil {
+					return err
 				}
 			}
 
@@ -213,6 +240,9 @@ func CmdSetAggregationHook() *cobra.Command {
 		Short: "Update an existing aggregation hook",
 		Long: `Update the configuration of an existing aggregation hook, including the list of sub-hooks or ownership settings.
 
+WARNING: All fields are overwritten on update. If --hook-ids is not provided or is empty,
+ALL existing hook IDs will be REMOVED from the aggregation hook.
+
 Examples:
 # Update hook IDs (multiple)
 dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids "0x1234567890abcdef1234567890abcdef12345678,0x5678901234567890abcdef1234567890abcdef56"
@@ -220,8 +250,8 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids "0x1234567890abcde
 # Update hook IDs (single)
 dymd tx bridgingfee set-aggregation-hook 0x1234... --hook-ids "0x1234567890abcdef1234567890abcdef12345678"
 
-# Transfer ownership
-dymd tx bridgingfee set-aggregation-hook 0x1234... --new-owner dym1newowner...
+# Transfer ownership (WARNING: will also clear hook IDs if --hook-ids not provided)
+dymd tx bridgingfee set-aggregation-hook 0x1234... --new-owner dym1newowner... --hook-ids "0x..."
 
 # Renounce ownership
 dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
@@ -265,6 +295,15 @@ dymd tx bridgingfee set-aggregation-hook 0x1234... --renounce-ownership`,
 						return fmt.Errorf("invalid hook ID %q: %w", part, err)
 					}
 					hookIds = append(hookIds, hookId)
+				}
+			}
+
+			// Warn user if hook IDs will be cleared
+			if len(hookIds) == 0 {
+				if err := confirmDestructiveAction(
+					"WARNING: --hook-ids is empty or not provided. This will REMOVE ALL existing hook IDs from the aggregation hook. Continue?",
+				); err != nil {
+					return err
 				}
 			}
 
