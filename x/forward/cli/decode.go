@@ -243,12 +243,12 @@ func printWarpPayload(warpPL warptypes.WarpPayload) {
 		fmt.Printf("  EVM Address:    0x%s\n", hex.EncodeToString(recipient[12:]))
 	}
 
-	// Kaspa addresses: convert 32-byte recipient to kaspa bech32m address
-	if len(recipient) == 32 {
-		kaspaAddr, err := H256ToKaspaAddress(recipient, true) // assume mainnet
-		if err == nil {
-			fmt.Printf("  Kaspa Address:  %s\n", kaspaAddr)
-		}
+	// Kaspa addresses: convert 32-byte recipient to kaspa bech32m address (both networks)
+	if mainnetAddr, err := H256ToKaspaAddress(recipient, true); err == nil {
+		fmt.Printf("  Kaspa (mainnet): %s\n", mainnetAddr)
+	}
+	if testnetAddr, err := H256ToKaspaAddress(recipient, false); err == nil {
+		fmt.Printf("  Kaspa (testnet): %s\n", testnetAddr)
 	}
 
 	fmt.Printf("  Cosmos Account: %s\n", warpPL.GetCosmosAccount().String())
