@@ -33,7 +33,7 @@ To unlock these LP shares, users must trigger the unlock timer and wait for the 
 
 This module provides interfaces for other modules to iterate the locks efficiently and grpc query to check the status of locked coins.
 
-There are currently three incentivize lockup periods; `1 day` (24h), `1 week` (168h), and `2 weeks` (336h). When locking tokens in the 2 week period, the liquidity provider is effectively earning rewards for a combination of the 1 day, 1 week, and 2 week bonding periods.
+There are currently three incentivized lockup periods; `1 day` (24h), `1 week` (168h), and `2 weeks` (336h). When locking tokens in the 2 week period, the liquidity provider is effectively earning rewards for a combination of the 1 day, 1 week, and 2 week bonding periods.
 
 The 2 week period refers to how long it takes to unbond the LP shares. The liquidity provider can keep their LP shares bonded to the 2 week lockup period indefinitely. Unbonding is only required when the liquidity provider desires access to the underlying assets.
 

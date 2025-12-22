@@ -157,7 +157,7 @@ for _, f := range foo {
 
 ### Interfaces
 
-1. Interfaces should always be defined in the package of the API consumer. Ubiquitous interfaces likes std `Stringer` are exceptions.
+1. Interfaces should always be defined in the package of the API consumer. Ubiquitous interfaces like std `Stringer` are exceptions.
 
 
 2. Interfaces should be named with verbs, not with `*I` suffix.

@@ -30,7 +30,7 @@ When combined, this flow implies a few relationships between parameters
 dymint max idle time < trusting period < rollapp x/sequencers unbonding period = hub x/sequencer unbonding period
 ```
 
-and additionally, before creating the channel it is wise also set `dymint max batch time` to a small value, since step (2) in the procedure above requires a state update.
+and additionally, before creating the channel it is wise to also set `dymint max batch time` to a small value, since step (2) in the procedure above requires a state update.
 
 
 ### Operator checklist
