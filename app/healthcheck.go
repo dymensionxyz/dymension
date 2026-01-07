@@ -90,7 +90,7 @@ type errorResponse struct {
 
 // writeJSONResponse is a helper to marshal data to JSON and write it to the response writer.
 // It replaces the heavy Cosmos Legacy Amino codec with the standard encoding/json library.
-func writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
+func writeJSONResponse(w http.ResponseWriter, statusCode int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
