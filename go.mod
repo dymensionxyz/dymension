@@ -281,6 +281,8 @@ require (
 
 replace (
 	github.com/bcp-innovations/hyperlane-cosmos => github.com/dymensionxyz/hyperlane-cosmos v1.0.1-dymension-fork
+
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft-sec-tachyon v0.38.21-0.20260113214209-9ac677707f85
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v2.0.0-rc02
 	// use dymension forks
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
