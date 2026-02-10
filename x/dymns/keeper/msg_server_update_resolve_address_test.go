@@ -1194,7 +1194,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 
 				s.requireFallbackAddress(anotherAcc.fallback()).notMappedToAnyDymName()
 
-				// dont returns for similar address (+0x)
+				// don't returns for similar address (+0x)
 				s.requireConfiguredAddress(anotherAcc.hexStr()).notMappedToAnyDymName()
 				s.requireConfiguredAddress(anotherAcc.checksumHex()).notMappedToAnyDymName()
 			},
@@ -1235,7 +1235,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateResolveAddress() {
 
 				s.requireFallbackAddress(_32BytesAcc.fallback()).notMappedToAnyDymName()
 
-				// dont returns for similar address (+0x)
+				// don't returns for similar address (+0x)
 				s.requireConfiguredAddress(_32BytesAcc.hexStr()).notMappedToAnyDymName()
 				s.requireConfiguredAddress("0x" + strings.ToUpper(_32BytesAcc.hexStr())[2:]).notMappedToAnyDymName()
 			},

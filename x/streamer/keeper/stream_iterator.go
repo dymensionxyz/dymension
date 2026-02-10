@@ -108,7 +108,7 @@ func (i *StreamIterator) findNextStream() {
 // 4. Stream epoch identifier matches the provided
 // 5. gaugeIdx is less than the number of gauges: the iterator points to the existing gauge
 func (i StreamIterator) validInvariants() bool {
-	/////  1. streamIdx is less than the number of streams
+	// 1. streamIdx is less than the number of streams
 	return i.streamIdx < len(i.data) &&
 
 		// 2. stream is not pumping

@@ -71,7 +71,7 @@ func (m IBCModule) logger(
 	)
 }
 
-// For non rollapp packets, or rollapp packets which arrived after proof height was finalized (and didnt route through delayedack)
+// For non rollapp packets, or rollapp packets which arrived after proof height was finalized (and didn't route through delayedack)
 func (m IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -140,7 +140,7 @@ func (m IBCModule) getCompletionHookToRun(ctx sdk.Context, packet channeltypes.P
 	}
 
 	// first need to complete the inbound transfer so that the funds are available
-	// (that's why we cant allow PFM or other middlewares which conflict)
+	// (that's why we can't allow PFM or other middlewares which conflict)
 
 	amt, ok := math.NewIntFromString(transfer.Amount)
 	if !ok {

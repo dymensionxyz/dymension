@@ -380,7 +380,7 @@ func (s *KeeperTestSuite) TestKeeper_MigrateChainIds() {
 			},
 		},
 		{
-			name:     "pass - should complete even tho nothing to update",
+			name:     "pass - should complete even though nothing to update",
 			dymNames: nil,
 			replacement: []dymnstypes.MigrateChainId{
 				{

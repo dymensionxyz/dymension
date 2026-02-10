@@ -1335,7 +1335,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			wantOutputAddress: "",
 		},
 		{
-			name:    "resolve extra format 0x1234...6789@dym, do not resolve if chain-id is not RollApp, even tho alias was defined",
+			name:    "resolve extra format 0x1234...6789@dym, do not resolve if chain-id is not RollApp, even though alias was defined",
 			dymName: nil,
 			preSetup: func(s *KeeperTestSuite) {
 				params := s.dymNsKeeper.GetParams(s.ctx)
@@ -3474,7 +3474,7 @@ func (s *KeeperTestSuite) TestKeeper_ReplaceChainIdWithAliasIfPossible() {
 				{
 					SubName:        "a",
 					Name:           "b",
-					ChainIdOrAlias: "rollapp_4-4", // keep as is, even tho it has alias
+					ChainIdOrAlias: "rollapp_4-4", // keep as is, even though it has alias
 				},
 				{
 					SubName:        "a",
