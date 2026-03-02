@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-02-24)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-03-02)
 
 
 ### Bug Fixes
@@ -15,8 +15,6 @@
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
 * **forward:** pretty print decode-hl forwarding memo ([#2128](https://github.com/dymensionxyz/dymension/issues/2128)) ([79e7b3b](https://github.com/dymensionxyz/dymension/commit/79e7b3bacb3eee3a3f4f2afa31f311f3311be5ae))
 
-
-
 # [4.0.0-rc06](https://github.com/dymensionxyz/dymension/compare/v4.0.0...v4.0.0-rc06) (2025-11-13)
 
 
@@ -28,8 +26,6 @@
 ### Features
 
 * **rollapp:** add tee-config query command ([#2101](https://github.com/dymensionxyz/dymension/issues/2101)) ([0de6275](https://github.com/dymensionxyz/dymension/commit/0de6275e03975b0dca69f9bb6be5c1f7e3049eb7))
-
-
 
 # [4.0.0-rc05](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc04...v4.0.0-rc05) (2025-11-06)
 
@@ -44,16 +40,12 @@
 
 * **upgrade:** add new fee exempt message types for IRO transactions ([#2093](https://github.com/dymensionxyz/dymension/issues/2093)) ([1791000](https://github.com/dymensionxyz/dymension/commit/1791000ccc8ee8d1b0964e9d6e75dd373dcab171))
 
-
-
 # [4.0.0-rc04](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc03...v4.0.0-rc04) (2025-11-05)
 
 
 ### Bug Fixes
 
 * **ante:** unblock vesting msgs from ante handler ([#2092](https://github.com/dymensionxyz/dymension/issues/2092)) ([6183bf3](https://github.com/dymensionxyz/dymension/commit/6183bf33f5faa224a34359d0f1b68b311a50ab9c))
-
-
 
 # [4.0.0-rc03](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc02...v4.0.0-rc03) (2025-11-04)
 
@@ -62,16 +54,12 @@
 
 * **migration:** differentiate noble pool id in upgrade ([#2091](https://github.com/dymensionxyz/dymension/issues/2091)) ([76c9e97](https://github.com/dymensionxyz/dymension/commit/76c9e97ea9ebb25bcd564960df4a8816ad5e7ea7))
 
-
-
 # [4.0.0-rc02](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc01...v4.0.0-rc02) (2025-11-04)
 
 
 ### Bug Fixes
 
 * **upgrade:** differentiate blumbus ([#2090](https://github.com/dymensionxyz/dymension/issues/2090)) ([9798d49](https://github.com/dymensionxyz/dymension/commit/9798d498462028759c19ab7d6191c4adc69a2707))
-
-
 
 # [4.0.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v4.0.0-rc01) (2025-11-04)
 
@@ -206,8 +194,6 @@
 * **upgrade:** added authorized circuit breaker accounts ([#1907](https://github.com/dymensionxyz/dymension/issues/1907)) ([8a7b6f7](https://github.com/dymensionxyz/dymension/commit/8a7b6f74817d0c9dda88143385f9c9dd156fa4c2))
 * **upgrade:** upgrade handler to initialize endorsements for existing rollapps ([#1821](https://github.com/dymensionxyz/dymension/issues/1821)) ([43d5686](https://github.com/dymensionxyz/dymension/commit/43d5686ca949dd282fb2e5910f050e49b3243f41))
 * **upgrade:** wired gas free whitelisted txs ([#1906](https://github.com/dymensionxyz/dymension/issues/1906)) ([191680b](https://github.com/dymensionxyz/dymension/commit/191680b799b525602d464cdd09158e1eddb1281b))
-
-
 
 # [3.2.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.1.0-rc03...v3.2.0-rc01) (2024-12-24)
 
@@ -497,8 +483,6 @@
 
 * **streamer:** don't distribute abstained part of sponsored distri… ([#1117](https://github.com/dymensionxyz/dymension/issues/1117)) ([908cb39](https://github.com/dymensionxyz/dymension/commit/908cb39023ef48f2b2f9ee2627e02d36ae6e6ae9))
 
-
-
 # [3.1.0-rc03](https://github.com/dymensionxyz/dymension/compare/v3.1.0-rc01...v3.1.0-rc03) (2024-04-08)
 
 
@@ -509,8 +493,6 @@
 * **delayedack:** wrong delayedack channels for onTimeout and OnAck  ([#815](https://github.com/dymensionxyz/dymension/issues/815)) ([32b5ea0](https://github.com/dymensionxyz/dymension/commit/32b5ea0672c0883aa18040b2f5d1732f2a584cf9))
 * **fraud:** refunding pending outgoing packets ([#816](https://github.com/dymensionxyz/dymension/issues/816)) ([456e6aa](https://github.com/dymensionxyz/dymension/commit/456e6aa4991d3e98a2f96e034758d1adb44928e7))
 * **rollapp:** allow creating rollapp with same eip155 when forking ([#808](https://github.com/dymensionxyz/dymension/issues/808)) ([8007da9](https://github.com/dymensionxyz/dymension/commit/8007da9377090a9d95ceb99f956e8fc890b3c346))
-
-
 
 # [3.1.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.0.0-rc02...v3.1.0-rc01) (2024-04-02)
 
@@ -596,23 +578,13 @@
 * support automatic eibc order creation for timeout ([#598](https://github.com/dymensionxyz/dymension/issues/598)) ([86db62a](https://github.com/dymensionxyz/dymension/commit/86db62a74e6dcd9e95eaaf170c3c8deccd7d07f4))
 * **upgrade:** add upgrade handler for new and modified modules ([#783](https://github.com/dymensionxyz/dymension/issues/783)) ([1a1da34](https://github.com/dymensionxyz/dymension/commit/1a1da347b0aa6032a72b59cad2ed8d011dedcfea))
 
-
-
 # [3.0.0-rc02](https://github.com/dymensionxyz/dymension/compare/v3.0.0-rc01...v3.0.0-rc02) (2023-12-19)
-
-
 
 # [3.0.0-rc01](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.7...v3.0.0-rc01) (2023-12-18)
 
-
-
 # [2.0.0-alpha.7](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.6...v2.0.0-alpha.7) (2023-12-13)
 
-
-
 # [2.0.0-alpha.6](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.5...v2.0.0-alpha.6) (2023-12-12)
-
-
 
 # [2.0.0-alpha.5](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.4...v2.0.0-alpha.5) (2023-12-11)
 
@@ -621,8 +593,6 @@
 
 * Restored power reduction to 100k  ([#450](https://github.com/dymensionxyz/dymension/issues/450)) ([6d7a371](https://github.com/dymensionxyz/dymension/commit/6d7a371d93e7157f92ce62f9cbc1fac43749c092))
 
-
-
 # [2.0.0-alpha.4](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.3...v2.0.0-alpha.4) (2023-12-11)
 
 
@@ -630,15 +600,9 @@
 
 * Changed v2 upgrade handler to not panic when client status is not found. ([#449](https://github.com/dymensionxyz/dymension/issues/449)) ([8e297d3](https://github.com/dymensionxyz/dymension/commit/8e297d31f1d659350cbf1aa87be4325d4117c368))
 
-
-
 # [2.0.0-alpha.3](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2023-12-10)
 
-
-
 # [2.0.0-alpha.2](https://github.com/dymensionxyz/dymension/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2023-12-08)
-
-
 
 # [2.0.0-alpha.1](https://github.com/dymensionxyz/dymension/compare/v1.0.0-rc1...v2.0.0-alpha.1) (2023-12-06)
 
@@ -670,8 +634,6 @@
 * register denom metadata for new rollapp received ibc ([#313](https://github.com/dymensionxyz/dymension/issues/313)) ([bfb96d9](https://github.com/dymensionxyz/dymension/commit/bfb96d9198fb10846d27f2b87ffd181ea974019f))
 * streamer additional gov proposals ([#424](https://github.com/dymensionxyz/dymension/issues/424)) ([70af875](https://github.com/dymensionxyz/dymension/commit/70af8755d2cd9a050cbc1372638d4e5c848a2dde))
 
-
-
 # [1.0.0-rc1](https://github.com/dymensionxyz/dymension/compare/v0.2.0-beta...v1.0.0-rc1) (2023-06-22)
 
 
@@ -690,11 +652,7 @@
 * IRC module and IBC message interceptor refactor ([#200](https://github.com/dymensionxyz/dymension/issues/200)) ([e7131ff](https://github.com/dymensionxyz/dymension/commit/e7131ffb3987092fca3517ea36d23c13fe6a601c))
 * refactored hooks from `panic` to errors ([#259](https://github.com/dymensionxyz/dymension/issues/259)) ([6d41b3b](https://github.com/dymensionxyz/dymension/commit/6d41b3b948186f725c31b54afb7d7c40f47cd3e3))
 
-
-
 # [0.2.0-beta](https://github.com/dymensionxyz/dymension/compare/v0.1.0-alpha...v0.2.0-beta) (2023-01-31)
-
-
 
 # [0.1.0-alpha](https://github.com/dymensionxyz/dymension/compare/d3df68e98a24c1c03c5082a07582b8e1e96ec91b...v0.1.0-alpha) (2022-09-20)
 
@@ -715,6 +673,3 @@
 * **sequencer:** sequencer scheduler ([#64](https://github.com/dymensionxyz/dymension/issues/64)) ([6cca902](https://github.com/dymensionxyz/dymension/commit/6cca9024fc09d08b28ae76f76c1bef92af30a5df))
 * simulation tests ([#76](https://github.com/dymensionxyz/dymension/issues/76)) ([3fc38ce](https://github.com/dymensionxyz/dymension/commit/3fc38ceeac18acd8b91d8eb1e591f2994aa0e8a7))
 * update state ([#63](https://github.com/dymensionxyz/dymension/issues/63)) ([2a4290d](https://github.com/dymensionxyz/dymension/commit/2a4290d6047178042a19b74795ddef1301461797))
-
-
-
