@@ -64,7 +64,7 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 		// hub just started
 		return
 	}
-	// check to see if there are pending  states to be finalized
+	// check to see if there are pending states to be finalized
 	finalizationHeight := h - k.DisputePeriodInBlocks(ctx)
 	queue, err := k.GetFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 	if err != nil {

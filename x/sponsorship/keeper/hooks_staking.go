@@ -149,13 +149,13 @@ func (h StakingHooks) beforeDelegationRemoved(goCtx context.Context, delAddr sdk
 	return nil
 }
 
-// processHook is a genetic method to handle changes in delegations. The method:
+// processHook is a generic method to handle changes in delegations. The method:
 //  1. Retrieving the vote cast by the delegator
 //  2. Calculates the difference between the new (updated) and old (stored in the state) voting power gained from
 //     the validator passed as a parameter
 //  3. Applies the diff to the total user's voting power
 //  4. If the new voting power falls under the minimum required, revoke the vote
-//  5. Otherwise, the update the vote, distribution, and voting power records accordingly
+//  5. Otherwise, update the vote, distribution, and voting power records accordingly
 //  6. The new voting power might be zero if the user completely undelegated. If it is, the record associated with
 //     this validator is deleted.
 //
@@ -179,7 +179,7 @@ func (h StakingHooks) processHook(
 		return nil, fmt.Errorf("cannot get module params: %w", err)
 	}
 
-	// Calculate the diff: if it's > 0, then the user has increase it's bond. Otherwise, decreased it's bond.
+	// Calculate the diff: if it's > 0, then the user has increased their bond. Otherwise, decreased their bond.
 	powerDiff := newVP.Sub(oldVP)
 	newTotalVP := vote.VotingPower.Add(powerDiff)
 
