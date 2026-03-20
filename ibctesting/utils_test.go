@@ -165,7 +165,7 @@ func (s *ibcTestingSuite) createRollapp(transfersEnabled bool, channelID *string
 
 	// for some reason, the ibctesting frameworks creates headers with App version=2
 	// we use this field as revision number, so it breaks the tests as the expected revision number is 0
-	// this is an hack to fix the tests
+	// this is a hack to fix the tests
 	rollapp := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 	rollapp.Revisions[0].Number = 2
 	s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), rollapp)

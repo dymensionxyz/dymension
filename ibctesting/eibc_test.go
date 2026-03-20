@@ -407,7 +407,7 @@ func (s *eibcSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool 
 	return s.hubChain().App.GetIBCKeeper().ChannelKeeper.HasPacketCommitment(s.rollappCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 }
 
-// TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
+// TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, then eIBC can be used to recover quickly.
 func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Setup endpoints
 	hubEndpoint := s.path.EndpointA
@@ -587,7 +587,7 @@ func (s *eibcSuite) transferRollappToHub(
 	return packet
 }
 
-// Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence
+// Each demand order tracks the underlying packet key which can then indicate the order by the channel and sequence
 func getLastDemandOrderByChannelAndSequence(demandOrders []*eibctypes.DemandOrder) *eibctypes.DemandOrder {
 	sort.Slice(demandOrders, func(i, j int) bool {
 		iKeyParts := strings.Split((demandOrders)[i].TrackingPacketKey, "/")
