@@ -142,9 +142,9 @@ func (r Rollapp) LatestRevision() Revision {
 
 // TODO: rollapp type method should be more robust https://github.com/dymensionxyz/dymension/issues/1596
 func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
-	for i := len(r.Revisions) - 1; i >= 0; i-- {
-		if r.Revisions[i].StartHeight <= h {
-			return r.Revisions[i]
+	for _, v := range slices.Backward(r.Revisions) {
+		if v.StartHeight <= h {
+			return v
 		}
 	}
 	return Revision{}
