@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestAuctionLifecycle() {
 	suite.Require().Equal(0, len(streams))
 }
 
-// TestAuctionLifecycleWithPurchases tests the complete auction lifecycle including purchases
+// TestPumpStreamsCreation tests the complete auction lifecycle including purchases
 // to verify pump stream creation with raised funds.
 func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
