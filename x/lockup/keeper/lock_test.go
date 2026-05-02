@@ -160,7 +160,7 @@ func (suite *KeeperTestSuite) TestUnlock() {
 			}
 
 			// check unlocking coins. When a lock is a partial lock
-			// (i.e. tc.unlockingCoins is not nit and less than initialLockCoins),
+			// (i.e. tc.unlockingCoins is not nil and less than initialLockCoins),
 			// we only unlock the partial amount of tc.unlockingCoins
 			expectedUnlockingCoins := tc.unlockingCoins
 			if expectedUnlockingCoins == nil {

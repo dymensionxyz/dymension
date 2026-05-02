@@ -101,7 +101,7 @@ func (lbc BondingCurve) ValidateBasic() error {
 
 // SpotPrice returns the spot price at x
 // - x: the current supply, in the base denomination
-// - returns: the spot price at x, as price per token (e.g 0.1 DYM per token)
+// - returns: the spot price at x, as price per token (e.g., 0.1 DYM per token)
 func (lbc BondingCurve) SpotPrice(x math.Int) math.LegacyDec {
 	return lbc.spotPriceInternal(ScaleFromBase(x, lbc.SupplyDecimals()))
 }
@@ -253,7 +253,7 @@ func (lbc BondingCurve) integral(x math.LegacyDec) math.LegacyDec {
 
 // CalculateM computes the M parameter for a bonding curve
 // It's actually not used in the codebase, but it's here for reference and for testing purposes
-// val: total value to be raised in display denom (e.g DYM, not adym)
+// val: total value to be raised in display denom (e.g., DYM, not adym)
 // t: total number of tokens (rollapp's tokens in decimal representation, not base denomination)
 // n: curve exponent
 //
@@ -292,13 +292,13 @@ func CalculateM(val, t, n, r math.LegacyDec) math.LegacyDec {
 }
 
 /* ---------------------------- helper functions ---------------------------- */
-// Scales x from it's base denomination to a decimal representation (e.g 1500000000000000 to 1.5)
+// Scales x from its base denomination to a decimal representation (e.g 1500000000000000 to 1.5)
 // This is used to scale X before passing it to the bonding curve functions
 func ScaleFromBase(x math.Int, precision int64) math.LegacyDec {
 	return math.LegacyNewDecFromIntWithPrec(x, precision)
 }
 
-// Scales x from the decimal scale to it's base denomination (e.g 1.5 to 1500000000000000)
+// Scales x from the decimal scale to its base denomination (e.g 1.5 to 1500000000000000)
 func ScaleToBase(x math.LegacyDec, precision int64) math.Int {
 	scaleFactor := math.NewIntWithDecimal(1, int(precision))
 	return x.MulInt(scaleFactor).TruncateInt()
