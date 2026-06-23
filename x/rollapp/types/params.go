@@ -1,20 +1,16 @@
 package types
 
 import (
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uparam"
-	opastorage "github.com/open-policy-agent/opa/v1/storage"
-	"github.com/open-policy-agent/opa/v1/storage/inmem"
-	"github.com/open-policy-agent/opa/v1/util"
 	"gopkg.in/yaml.v2"
 )
 
@@ -152,29 +148,23 @@ func validateAppRegistrationFee(v sdk.Coin) error {
 	return nil
 }
 
-func (v TEEConfig) PemCert() (*x509.Certificate, error) {
-	block, _ := pem.Decode([]byte(v.GcpRootCertPem))
-	if block == nil {
-		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
+// Policy adapts the rollapp TEEConfig to the neutral shared tee.Policy.
+func (v TEEConfig) Policy() tee.Policy {
+	return tee.Policy{
+		GcpRootCertPem:  v.GcpRootCertPem,
+		PolicyValues:    v.PolicyValues,
+		PolicyQuery:     v.PolicyQuery,
+		PolicyStructure: v.PolicyStructure,
 	}
-	return x509.ParseCertificate(block.Bytes)
-}
-
-func (v TEEConfig) PolicyValuesStore() (opastorage.Store, error) {
-	var json map[string]any
-	err := util.UnmarshalJSON([]byte(v.PolicyValues), &json)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "unmarshal json")
-	}
-	return inmem.NewFromObject(json), nil
 }
 
 func validateTeeConfig(v TEEConfig) error {
 	if v.Verify {
-		if _, err := v.PemCert(); err != nil {
+		policy := v.Policy()
+		if _, err := policy.PemCert(); err != nil {
 			return errorsmod.Wrap(err, "pem cert")
 		}
-		if _, err := v.PolicyValuesStore(); err != nil {
+		if _, err := policy.PolicyValuesStore(); err != nil {
 			return errorsmod.Wrap(err, "policy values store")
 		}
 		if v.PolicyQuery == "" {

@@ -1,0 +1,24 @@
+syntax = "proto3";
+package dymensionxyz.dymension.common;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/common/tee";
+
+// Policy is a neutral TEE attestation verification policy, consumed by the
+// shared TEE verifier. Consumers (rollapp, agent) adapt their own config to it.
+message Policy {
+  // gcp_root_cert_pem is the GCP root certificate in PEM format
+  string gcp_root_cert_pem = 1
+      [ (gogoproto.moretags) = "yaml:\"gcp_root_cert_pem\"" ];
+  // policy_values is the OPA data store values (JSON)
+  string policy_values = 2
+      [ (gogoproto.moretags) = "yaml:\"policy_json_values\"" ];
+  // policy_query is the OPA rego query
+  string policy_query = 3
+      [ (gogoproto.moretags) = "yaml:\"policy_rego_query\"" ];
+  // policy_structure is the OPA rego policy module. The %s is formatted with
+  // the raw nonce by the verifier.
+  string policy_structure = 4
+      [ (gogoproto.moretags) = "yaml:\"policy_rego_structure\"" ];
+}
