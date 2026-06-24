@@ -17,7 +17,8 @@ import (
 
 type Keeper struct {
 	// verifier checks TEE attestation tokens. Stored now, used from issue 4.
-	verifier tee.Verifier
+	verifier   tee.Verifier
+	bankKeeper types.BankKeeper
 
 	params collections.Item[types.Params]
 	// agents keyed by id
@@ -30,11 +31,13 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	service store.KVStoreService,
 	verifier tee.Verifier,
+	bankKeeper types.BankKeeper,
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(service)
 
 	return &Keeper{
-		verifier: verifier,
+		verifier:   verifier,
+		bankKeeper: bankKeeper,
 		params: collections.NewItem(sb, collections.NewPrefix(types.KeyParams),
 			types.KeyParams,
 			collcompat.ProtoValue[types.Params](cdc)),
@@ -63,4 +66,20 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 
 func (k Keeper) SetParams(ctx sdk.Context, p types.Params) error {
 	return k.params.Set(ctx, p)
+}
+
+func (k Keeper) AgentRegistrationFee(ctx sdk.Context) sdk.Coin {
+	return k.GetParams(ctx).AgentRegistrationFee
+}
+
+func (k Keeper) HasAgent(ctx sdk.Context, id string) (bool, error) {
+	return k.agents.Has(ctx, id)
+}
+
+func (k Keeper) GetAgent(ctx sdk.Context, id string) (types.Agent, error) {
+	return k.agents.Get(ctx, id)
+}
+
+func (k Keeper) SetAgent(ctx sdk.Context, a types.Agent) error {
+	return k.agents.Set(ctx, a.Id, a)
 }

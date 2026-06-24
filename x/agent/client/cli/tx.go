@@ -18,5 +18,8 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	cmd.AddCommand(CmdRegisterAgent())
+	cmd.AddCommand(CmdDeactivateAgent())
+
 	return cmd
 }

@@ -218,7 +218,7 @@ var maccPerms = map[string][]string{
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 	kastypes.ModuleName:                                nil,
-	agenttypes.ModuleName:                              nil,
+	agenttypes.ModuleName:                              {authtypes.Burner},
 	bridgingfeetypes.ModuleName:                        nil,
 	ratelimittypes.ModuleName:                          nil,
 }

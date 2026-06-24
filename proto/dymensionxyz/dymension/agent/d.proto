@@ -36,3 +36,15 @@ message Params {
       [ (gogoproto.nullable) = false ];
   uint64 max_action_bytes = 2;
 }
+
+// EventRegisterAgent is emitted when an agent is registered.
+message EventRegisterAgent {
+  string agent_id = 1;
+  string owner = 2;
+}
+
+// EventDeactivateAgent is emitted when an agent is deactivated.
+message EventDeactivateAgent {
+  string agent_id = 1;
+  string owner = 2;
+}

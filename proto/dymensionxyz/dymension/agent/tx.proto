@@ -2,11 +2,39 @@ syntax = "proto3";
 package dymensionxyz.dymension.agent;
 
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/common/tee.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
-// Msg defines the module messages. Registration and action submission land in
-// later issues.
+// Msg defines the module messages. Action submission lands in a later issue.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
+  // RegisterAgent registers a new agent with an immutable attestation policy.
+  rpc RegisterAgent(MsgRegisterAgent) returns (MsgRegisterAgentResponse);
+
+  // DeactivateAgent deactivates an existing agent. Owner only.
+  rpc DeactivateAgent(MsgDeactivateAgent) returns (MsgDeactivateAgentResponse);
 }
+
+message MsgRegisterAgent {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  dymensionxyz.dymension.common.Policy policy = 3
+      [ (gogoproto.nullable) = false ];
+}
+
+message MsgRegisterAgentResponse {}
+
+message MsgDeactivateAgent {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+}
+
+message MsgDeactivateAgentResponse {}

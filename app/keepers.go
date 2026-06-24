@@ -597,6 +597,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[agenttypes.ModuleName]),
 		tee.NewVerifier(),
+		a.BankKeeper,
 	)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(
