@@ -19,7 +19,8 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderEscalationClamp() {
 	dackParams := dacktypes.NewParams("hour", math.LegacyNewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
-	// amount 1000, 1% bridging => bridging fee 10, so maxFee clamped to 990.
+	// amount 1000, 1% bridging => bridging fee 10. maxFee clamped to
+	// amount-bridgingFee-1 = 989 so the price floor stays >= 1.
 	pd := transfertypes.NewFungibleTokenPacketData(
 		sdk.DefaultBondDenom, "1000", eibcSenderAddr.String(), eibcReceiverAddr.String(),
 		`{"eibc":{"fee":"100","fee_max":"100000","fee_escalation_blocks":20}}`,
@@ -32,9 +33,15 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderEscalationClamp() {
 	order, err := suite.App.EIBCKeeper.CreateDemandOrderOnRecv(suite.Ctx, pd, &rp)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(order.FeeEscalation)
-	suite.Require().Equal(math.NewInt(990), order.FeeEscalation.MaxFeeAmount)
+	suite.Require().Equal(math.NewInt(989), order.FeeEscalation.MaxFeeAmount)
 	suite.Require().Equal(uint64(20), order.FeeEscalation.DurationBlocks)
 	suite.Require().Equal(math.NewInt(100), order.GetFeeAmount())
+
+	// At/after the window end the effective price must stay strictly positive and
+	// EffectiveFeePercent must not panic (division by zero).
+	suite.Require().True(order.EffectivePriceAmount(order.CreationHeight + 20).IsPositive())
+	suite.Require().NotPanics(func() { _ = order.EffectiveFeePercent(order.CreationHeight + 20) })
+	suite.Require().NotPanics(func() { _ = order.EffectiveFeePercent(order.CreationHeight + 9999) })
 }
 
 // MsgFulfillOrder on an escalating order: succeeds when expected_fee <= effectiveFee(H),

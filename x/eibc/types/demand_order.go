@@ -140,7 +140,14 @@ func (m *DemandOrder) EffectivePriceAmount(height uint64) math.Int {
 
 // EffectiveFeePercent returns the fee/price ratio at the given block height.
 func (m *DemandOrder) EffectiveFeePercent(height uint64) math.LegacyDec {
-	return math.LegacyNewDecFromInt(m.EffectiveFeeAmount(height)).Quo(math.LegacyNewDecFromInt(m.EffectivePriceAmount(height)))
+	price := m.EffectivePriceAmount(height)
+	// Defensive: a zero price (degenerate, prevented at creation by the maxFee
+	// clamp) would make the fee infinite. Treat it as maximally attractive so the
+	// LP comparison never divides by zero.
+	if !price.IsPositive() {
+		return math.LegacyOneDec()
+	}
+	return math.LegacyNewDecFromInt(m.EffectiveFeeAmount(height)).Quo(math.LegacyNewDecFromInt(price))
 }
 
 // ApplyEffectiveFee locks the order's Fee/Price to their height-effective values

@@ -82,13 +82,15 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	}
 
 	// Build the optional fee escalation spec. The base fee/price above are the
-	// starting values; maxFee is clamped to amount-bridgingFee so the effective
-	// price floor stays >= 0 (maxFee-baseFee <= basePrice).
+	// starting values; maxFee is clamped so the effective price floor stays
+	// strictly positive (>= 1): maxFee-baseFee <= basePrice-1. Without the -1 the
+	// price would hit exactly 0 at the window end, stranding the recipient and
+	// dividing by zero in EffectiveFeePercent.
 	var feeEscalation *types.FeeEscalation
 	if memoEIBC.HasFeeEscalation() {
 		feeMax, _ := memoEIBC.FeeMaxInt() // guaranteed ok by above validation
 		bridgingFee := bridgeFeeMul.MulInt(amt).TruncateInt()
-		if maxAllowed := amt.Sub(bridgingFee); feeMax.GT(maxAllowed) {
+		if maxAllowed := amt.Sub(bridgingFee).Sub(math.OneInt()); feeMax.GT(maxAllowed) {
 			feeMax = maxAllowed
 		}
 		feeEscalation = &types.FeeEscalation{

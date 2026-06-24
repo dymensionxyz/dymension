@@ -54,6 +54,16 @@ func TestEffectiveFeePercent(t *testing.T) {
 	require.Equal(t, escOrder(nil).GetFeePercent(), escOrder(nil).EffectiveFeePercent(105))
 }
 
+// A spec that drives the effective price to exactly 0 (e.g. an order not created
+// through the clamping path) must not panic in EffectiveFeePercent.
+func TestEffectiveFeePercentZeroPriceNoPanic(t *testing.T) {
+	// base fee=50, price=150 => maxFee=200 over 10 blocks drops price to 0 at end.
+	o := escOrder(&FeeEscalation{MaxFeeAmount: math.NewInt(200), DurationBlocks: 10})
+	require.True(t, o.EffectivePriceAmount(110).IsZero())
+	require.NotPanics(t, func() { _ = o.EffectiveFeePercent(110) })
+	require.Equal(t, math.LegacyOneDec(), o.EffectiveFeePercent(110))
+}
+
 func TestApplyEffectiveFee(t *testing.T) {
 	o := escOrder(&FeeEscalation{MaxFeeAmount: math.NewInt(150), DurationBlocks: 10})
 	o.ApplyEffectiveFee(105)
