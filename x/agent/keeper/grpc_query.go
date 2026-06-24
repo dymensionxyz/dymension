@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"context"
-	"errors"
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
 
@@ -29,12 +29,9 @@ func (k Keeper) Agent(c context.Context, req *types.QueryAgentRequest) (*types.Q
 	if req == nil || req.Id == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	a, err := k.GetAgent(sdk.UnwrapSDKContext(c), req.Id)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "agent not found: %s", req.Id)
-		}
-		return nil, status.Error(codes.Internal, err.Error())
+	a, found := k.GetAgent(sdk.UnwrapSDKContext(c), req.Id)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "agent not found: %s", req.Id)
 	}
 	return &types.QueryAgentResponse{Agent: a}, nil
 }
@@ -43,7 +40,8 @@ func (k Keeper) Agents(c context.Context, req *types.QueryAgentsRequest) (*types
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	agents, pageResp, err := k.GetAllAgentsPaginated(sdk.UnwrapSDKContext(c), req.Pagination)
+	agents, pageResp, err := collcompat.CollectionPaginate(sdk.UnwrapSDKContext(c), k.agents, req.Pagination,
+		func(_ string, a types.Agent) (types.Agent, error) { return a, nil })
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -54,7 +52,11 @@ func (k Keeper) AgentActions(c context.Context, req *types.QueryAgentActionsRequ
 	if req == nil || req.AgentId == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	actions, pageResp, err := k.GetAgentActionsPaginated(sdk.UnwrapSDKContext(c), req.AgentId, req.Pagination)
+	actions, pageResp, err := collcompat.CollectionPaginate(sdk.UnwrapSDKContext(c), k.actionLog, req.Pagination,
+		func(_ collections.Pair[string, uint64], e types.ActionLogEntry) (types.ActionLogEntry, error) {
+			return e, nil
+		},
+		collcompat.WithCollectionPaginationPairPrefix[string, uint64](req.AgentId))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -65,12 +67,9 @@ func (k Keeper) AgentAction(c context.Context, req *types.QueryAgentActionReques
 	if req == nil || req.AgentId == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	e, err := k.GetActionLogEntry(sdk.UnwrapSDKContext(c), req.AgentId, req.Seq)
-	if err != nil {
-		if errors.Is(err, collections.ErrNotFound) {
-			return nil, status.Errorf(codes.NotFound, "action not found: agent %s seq %d", req.AgentId, req.Seq)
-		}
-		return nil, status.Error(codes.Internal, err.Error())
+	e, found := k.GetActionLogEntry(sdk.UnwrapSDKContext(c), req.AgentId, req.Seq)
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "action not found: agent %s seq %d", req.AgentId, req.Seq)
 	}
 	return &types.QueryAgentActionResponse{Action: e}, nil
 }

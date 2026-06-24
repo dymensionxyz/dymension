@@ -121,6 +121,7 @@ import (
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	agentkeeper "github.com/dymensionxyz/dymension/v3/x/agent/keeper"
 	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
+	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
@@ -594,6 +595,7 @@ func (a *AppKeepers) InitKeepers(
 	a.AgentKeeper = agentkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[agenttypes.ModuleName]),
+		tee.NewVerifier(),
 	)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(

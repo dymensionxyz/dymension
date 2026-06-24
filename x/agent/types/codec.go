@@ -1,13 +1,13 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-// The agent module exposes only queries (registry + attested action log).
-// Messages (registration, submission) live in their own issues; there is
-// nothing to register here yet.
-func RegisterCodec(*codec.LegacyAmino) {}
+func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgSubmitAttestedAction{})
 
-func RegisterInterfaces(cdctypes.InterfaceRegistry) {}
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+}

@@ -45,9 +45,7 @@ func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterCodec(cdc)
-}
+func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 
 func (AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(reg)
@@ -102,6 +100,7 @@ func (am AppModule) Name() string {
 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(*am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
