@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-06-23)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-06-24)
 
 
 ### Bug Fixes
@@ -12,6 +12,7 @@
 
 ### Features
 
+* **agent:** add SubmitAttestedAction (nonce binding + attestation verify + append log) ([#2164](https://github.com/dymensionxyz/dymension/issues/2164)) ([558d9b9](https://github.com/dymensionxyz/dymension/commit/558d9b9ce1f68a03bff4d5d5a636ff8d87572e61))
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
 * **forward/cli:** add Kaspa recipient address display in decode-hl ([#2131](https://github.com/dymensionxyz/dymension/issues/2131)) ([a8fe841](https://github.com/dymensionxyz/dymension/commit/a8fe841c8ef5fc835f815615103d1de4fc311ffa))
 * **forward:** pretty print decode-hl forwarding memo ([#2128](https://github.com/dymensionxyz/dymension/issues/2128)) ([79e7b3b](https://github.com/dymensionxyz/dymension/commit/79e7b3bacb3eee3a3f4f2afa31f311f3311be5ae))
