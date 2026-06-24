@@ -12,10 +12,24 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/agent/params";
   }
+
+  // Agent queries a single agent by id.
+  rpc Agent(QueryAgentRequest) returns (QueryAgentResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}";
+  }
 }
 
 message QueryParamsRequest {}
 
 message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAgentRequest {
+  string agent_id = 1;
+}
+
+message QueryAgentResponse {
+  Agent agent = 1 [ (gogoproto.nullable) = false ];
 }

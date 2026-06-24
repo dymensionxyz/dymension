@@ -128,6 +128,14 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Query: &autocliv1.ServiceCommandDescriptor{
 			Service: "dymensionxyz.dymension.agent.Query",
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod:      "Agent",
+					Use:            "show-agent [agent-id]",
+					Short:          "Show a registered agent by id",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
+			},
 		},
 	}
 }
