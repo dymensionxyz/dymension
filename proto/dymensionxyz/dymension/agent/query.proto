@@ -1,0 +1,21 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "dymensionxyz/dymension/agent/d.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+service Query {
+  // Params queries the module parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/agent/params";
+  }
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}

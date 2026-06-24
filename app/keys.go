@@ -35,6 +35,7 @@ import (
 
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
@@ -138,6 +139,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	hypercoretypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	agenttypes.ModuleName,
 	bridgingfeetypes.ModuleName,
 
 	// ethermint keys

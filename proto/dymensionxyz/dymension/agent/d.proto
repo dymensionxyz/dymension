@@ -1,0 +1,38 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/common/tee.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+// Agent is a registered TEE workload identified by id, owned by an account, and
+// gated by a TEE attestation policy.
+message Agent {
+  string id = 1;
+  string owner = 2;
+  dymensionxyz.dymension.common.Policy policy = 3
+      [ (gogoproto.nullable) = false ];
+  bool active = 4;
+  uint64 action_seq = 5;
+}
+
+// ActionLogEntry records a single action submitted by an agent.
+message ActionLogEntry {
+  string agent_id = 1;
+  uint64 seq = 2;
+  bytes payload = 3;
+  bytes payload_hash = 4;
+  int64 height = 5;
+  google.protobuf.Timestamp time = 6
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+}
+
+// Params holds the module parameters.
+message Params {
+  cosmos.base.v1beta1.Coin agent_registration_fee = 1
+      [ (gogoproto.nullable) = false ];
+  uint64 max_action_bytes = 2;
+}

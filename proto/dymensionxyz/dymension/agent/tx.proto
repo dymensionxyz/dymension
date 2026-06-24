@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+import "cosmos/msg/v1/msg.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+// Msg defines the module messages. Registration and action submission land in
+// later issues.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+}
