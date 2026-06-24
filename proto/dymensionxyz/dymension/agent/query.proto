@@ -1,0 +1,81 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymensionxyz/dymension/agent/d.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+service Query {
+  // Params returns the module parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/agent/params";
+  }
+
+  // Agent returns a single agent by id.
+  rpc Agent(QueryAgentRequest) returns (QueryAgentResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/agent/agent/{id}";
+  }
+
+  // Agents returns a paginated list of agents.
+  rpc Agents(QueryAgentsRequest) returns (QueryAgentsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/agent/agents";
+  }
+
+  // AgentActions returns a paginated action log for an agent.
+  rpc AgentActions(QueryAgentActionsRequest)
+      returns (QueryAgentActionsResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/actions";
+  }
+
+  // AgentAction returns a single action log entry for an agent.
+  rpc AgentAction(QueryAgentActionRequest) returns (QueryAgentActionResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/actions/{seq}";
+  }
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAgentRequest {
+  string id = 1;
+}
+
+message QueryAgentResponse {
+  Agent agent = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAgentsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAgentsResponse {
+  repeated Agent agents = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryAgentActionsRequest {
+  string agent_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryAgentActionsResponse {
+  repeated ActionLogEntry actions = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryAgentActionRequest {
+  string agent_id = 1;
+  uint64 seq = 2;
+}
+
+message QueryAgentActionResponse {
+  ActionLogEntry action = 1 [ (gogoproto.nullable) = false ];
+}
