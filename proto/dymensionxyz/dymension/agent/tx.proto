@@ -1,0 +1,32 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // SubmitAttestedAction verifies a TEE attestation token against the agent's
+  // policy, bound by a per-action nonce, and appends an entry to the agent's
+  // action log.
+  rpc SubmitAttestedAction(MsgSubmitAttestedAction)
+      returns (MsgSubmitAttestedActionResponse);
+}
+
+// MsgSubmitAttestedAction submits an attested action on behalf of an agent.
+// The submitter signs and pays for the tx but is not validated against the
+// agent: the enclave token authorizes the content, so any account may submit a
+// valid attested action.
+message MsgSubmitAttestedAction {
+  option (cosmos.msg.v1.signer) = "submitter";
+
+  string submitter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  bytes payload = 3;
+  string token = 4;
+}
+
+message MsgSubmitAttestedActionResponse { uint64 seq = 1; }
