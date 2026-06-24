@@ -21,6 +21,11 @@ type EIBCMemo struct {
 	Fee string `json:"fee"`
 	// can be nil
 	OnCompletionHook []byte `json:"dym_on_completion,omitempty"`
+	// optional time-based competitive fee escalation. Both fields must be set
+	// together or both omitted. When set, the offered fee rises from Fee up to
+	// FeeMax over FeeEscalationBlocks blocks.
+	FeeMax              string `json:"fee_max,omitempty"`
+	FeeEscalationBlocks uint64 `json:"fee_escalation_blocks,omitempty"`
 }
 
 func DefaultEIBCMemo() EIBCMemo {
@@ -64,12 +69,26 @@ func (e EIBCMemo) GetCompletionHook() (*commontypes.CompletionHookCall, error) {
 }
 
 func (e EIBCMemo) ValidateBasic() error {
-	_, err := e.FeeInt()
+	fee, err := e.FeeInt()
 	if err != nil {
 		return fmt.Errorf("fee: %w", err)
 	}
 	if _, err := e.GetCompletionHook(); err != nil {
 		return fmt.Errorf("get on completion hook: %w", err)
+	}
+	hasMax := e.FeeMax != ""
+	hasBlocks := e.FeeEscalationBlocks != 0
+	if hasMax != hasBlocks {
+		return fmt.Errorf("fee escalation: both fee_max and fee_escalation_blocks must be set")
+	}
+	if hasMax {
+		feeMax, err := e.FeeMaxInt()
+		if err != nil {
+			return fmt.Errorf("fee_max: %w", err)
+		}
+		if feeMax.LT(fee) {
+			return fmt.Errorf("fee_max must be >= fee")
+		}
 	}
 	return nil
 }
@@ -80,6 +99,20 @@ func (e EIBCMemo) FeeInt() (math.Int, error) {
 		return math.Int{}, ErrBadEIBCFee
 	}
 	return i, nil
+}
+
+func (e EIBCMemo) FeeMaxInt() (math.Int, error) {
+	i, ok := math.NewIntFromString(e.FeeMax)
+	if !ok || i.IsNegative() {
+		return math.Int{}, ErrBadEIBCFee
+	}
+	return i, nil
+}
+
+// HasFeeEscalation reports whether the memo carries a valid escalation spec.
+// Only meaningful after ValidateBasic has passed.
+func (e EIBCMemo) HasFeeEscalation() bool {
+	return e.FeeMax != "" && e.FeeEscalationBlocks != 0
 }
 
 const (
