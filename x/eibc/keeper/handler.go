@@ -75,9 +75,26 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	// Calculate the demand order price and validate it,
 	amt, _ := math.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 	fee, _ := memoEIBC.FeeInt()                                     // guaranteed ok by above validation
-	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
+	bridgeFeeMul := k.dack.BridgingFee(ctx)
+	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, bridgeFeeMul)
 	if err != nil {
 		return nil, err
+	}
+
+	// Build the optional fee escalation spec. The base fee/price above are the
+	// starting values; maxFee is clamped to amount-bridgingFee so the effective
+	// price floor stays >= 0 (maxFee-baseFee <= basePrice).
+	var feeEscalation *types.FeeEscalation
+	if memoEIBC.HasFeeEscalation() {
+		feeMax, _ := memoEIBC.FeeMaxInt() // guaranteed ok by above validation
+		bridgingFee := bridgeFeeMul.MulInt(amt).TruncateInt()
+		if maxAllowed := amt.Sub(bridgingFee); feeMax.GT(maxAllowed) {
+			feeMax = maxAllowed
+		}
+		feeEscalation = &types.FeeEscalation{
+			MaxFeeAmount:   feeMax,
+			DurationBlocks: memoEIBC.FeeEscalationBlocks,
+		}
 	}
 
 	demandOrderDenom := denomutils.GetIncomingTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
@@ -94,7 +111,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 		}
 	}
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete, feeEscalation)
 	return order, nil
 }
 
@@ -140,7 +157,7 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	creationHeight := uint64(ctx.BlockHeight())            //nolint:gosec // block height is always positive
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil, nil)
 	return order, nil
 }
 
