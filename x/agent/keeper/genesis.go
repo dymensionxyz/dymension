@@ -24,8 +24,12 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 }
 
 func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
 	g := types.GenesisState{
-		Params: k.GetParams(ctx),
+		Params: params,
 	}
 
 	if err := k.agents.Walk(ctx, nil, func(_ string, a types.Agent) (stop bool, err error) {

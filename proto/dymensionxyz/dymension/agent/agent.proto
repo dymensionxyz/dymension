@@ -1,0 +1,55 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/common/tee.proto";
+
+// Params defines the x/agent module parameters.
+message Params {
+  // max_action_bytes is the maximum allowed size of an attested action payload.
+  uint64 max_action_bytes = 1;
+  // agent_registration_fee is charged from the owner on registration and burned.
+  cosmos.base.v1beta1.Coin agent_registration_fee = 2
+      [ (gogoproto.nullable) = false ];
+}
+
+// Agent is a registered agent whose actions are attested by a TEE. Its action
+// log is an append-only sequence; action_seq is the next sequence number and
+// binds each attested action to a unique nonce.
+message Agent {
+  string id = 1;
+  dymensionxyz.dymension.common.Policy policy = 2
+      [ (gogoproto.nullable) = false ];
+  bool active = 3;
+  uint64 action_seq = 4;
+  // owner is the account that registered the agent; only it may deactivate.
+  string owner = 5;
+}
+
+// EventRegisterAgent is emitted when an agent is registered.
+message EventRegisterAgent {
+  string agent_id = 1;
+  string owner = 2;
+}
+
+// EventDeactivateAgent is emitted when an agent is deactivated.
+message EventDeactivateAgent {
+  string agent_id = 1;
+  string owner = 2;
+}
+
+// ActionLogEntry is an immutable record of one attested action, keyed by
+// (agent_id, seq).
+message ActionLogEntry {
+  string agent_id = 1;
+  uint64 seq = 2;
+  bytes payload = 3;
+  bytes payload_hash = 4;
+  int64 height = 5;
+  google.protobuf.Timestamp time = 6
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+}

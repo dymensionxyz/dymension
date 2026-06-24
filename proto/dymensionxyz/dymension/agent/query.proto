@@ -3,7 +3,7 @@ package dymensionxyz.dymension.agent;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "dymensionxyz/dymension/agent/d.proto";
+import "dymensionxyz/dymension/agent/agent.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 

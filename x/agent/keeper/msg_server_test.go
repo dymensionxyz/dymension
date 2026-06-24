@@ -1,120 +1,199 @@
 package keeper_test
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
-	"math/big"
+	"errors"
 	"testing"
 
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/agent/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 )
 
-type KeeperTestSuite struct {
-	apptesting.KeeperTestHelper
-
-	msgServer types.MsgServer
+// fakeVerifier stands in for the real GCP verifier: a valid GCP-signed token
+// can't be produced locally, so the fake asserts the nonce the handler derived
+// matches the nonce embedded in the (fake) token. token == expected nonce means
+// accept; anything else rejects, exactly as the real verifier rejects a token
+// whose nonce claim doesn't match.
+type fakeVerifier struct {
+	gotNonce  string
+	gotPolicy tee.Policy
+	calls     int
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+func (f *fakeVerifier) Verify(_ sdk.Context, policy tee.Policy, nonce, token string) error {
+	f.calls++
+	f.gotNonce = nonce
+	f.gotPolicy = policy
+	if token != nonce {
+		return errors.New("nonce mismatch")
+	}
+	return nil
 }
 
-func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T())
-	s.App = app
-	s.Ctx = app.NewContext(false)
-	s.msgServer = keeper.NewMsgServerImpl(s.App.AgentKeeper)
+func setup(t *testing.T) (sdk.Context, *keeper.Keeper, *fakeVerifier) {
+	t.Helper()
+
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	db := dbm.NewMemDB()
+	cms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	cms.MountStoreWithDB(key, storetypes.StoreTypeIAVL, db)
+	require.NoError(t, cms.LoadLatestVersion())
+
+	registry := cdctypes.NewInterfaceRegistry()
+	cdc := codec.NewProtoCodec(registry)
+
+	v := &fakeVerifier{}
+	// bankKeeper is nil: SubmitAttestedAction never charges fees. Registration
+	// fee burning is covered by the apptesting-based suite in registry_test.go.
+	k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), v, nil)
+
+	ctx := sdk.NewContext(cms, cmtproto.Header{Height: 10}, false, log.NewNopLogger())
+	require.NoError(t, k.SetParams(ctx, types.Params{MaxActionBytes: 1024}))
+	return ctx, k, v
 }
 
-// validPolicy returns a policy that passes ValidateBasic: a parseable self-signed
-// cert plus non-empty rego fields.
-func validPolicy(s *KeeperTestSuite) tee.Policy {
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	s.Require().NoError(err)
-	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: "test"}}
-	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
-	s.Require().NoError(err)
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	return tee.Policy{
-		GcpRootCertPem:  string(certPEM),
-		PolicyValues:    `{"k":"v"}`,
-		PolicyQuery:     "data.x.allow",
-		PolicyStructure: "package x\nallow = true",
+func seedAgent(t *testing.T, ctx sdk.Context, k *keeper.Keeper, id string, active bool) {
+	t.Helper()
+	require.NoError(t, k.SetAgent(ctx, types.Agent{
+		Id:        id,
+		Policy:    tee.Policy{},
+		Active:    active,
+		ActionSeq: 0,
+	}))
+}
+
+func submitter(t *testing.T) string {
+	t.Helper()
+	_, _, addr := testdata.KeyTestPubAddr()
+	return addr.String()
+}
+
+// validMsg builds a message whose token equals the nonce the handler will
+// derive, so the fake verifier accepts it.
+func validMsg(t *testing.T, agentID string, payload []byte, seq uint64) *types.MsgSubmitAttestedAction {
+	t.Helper()
+	return &types.MsgSubmitAttestedAction{
+		Submitter: submitter(t),
+		AgentId:   agentID,
+		Payload:   payload,
+		Token:     types.ActionNonce(agentID, payload, seq),
 	}
 }
 
-func (s *KeeperTestSuite) fundedOwner() sdk.AccAddress {
-	_, _, addr := testdata.KeyTestPubAddr()
-	fee := s.App.AgentKeeper.AgentRegistrationFee(s.Ctx)
-	s.FundAcc(addr, sdk.NewCoins(sdk.NewCoin(fee.Denom, fee.Amount.MulRaw(10))))
-	return addr
+func TestSubmitAttestedAction_Valid(t *testing.T) {
+	ctx, k, v := setup(t)
+	seedAgent(t, ctx, k, "agent1", true)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	payload := []byte("do the thing")
+	res, err := ms.SubmitAttestedAction(ctx, validMsg(t, "agent1", payload, 0))
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), res.Seq)
+	require.Equal(t, 1, v.calls)
+	require.Equal(t, types.ActionNonce("agent1", payload, 0), v.gotNonce)
+
+	entry, found := k.GetActionLogEntry(ctx, "agent1", 0)
+	require.True(t, found)
+	require.Equal(t, payload, entry.Payload)
+	require.Equal(t, int64(10), entry.Height)
+
+	agent, _ := k.GetAgent(ctx, "agent1")
+	require.Equal(t, uint64(1), agent.ActionSeq)
 }
 
-func (s *KeeperTestSuite) TestRegisterAgent_HappyPathAndFeeBurned() {
-	owner := s.fundedOwner()
-	fee := s.App.AgentKeeper.AgentRegistrationFee(s.Ctx)
-	balBefore := s.App.BankKeeper.GetBalance(s.Ctx, owner, fee.Denom)
-	supplyBefore := s.App.BankKeeper.GetSupply(s.Ctx, fee.Denom)
+func TestSubmitAttestedAction_TamperedPayload(t *testing.T) {
+	ctx, k, _ := setup(t)
+	seedAgent(t, ctx, k, "agent1", true)
+	ms := keeper.NewMsgServerImpl(*k)
 
-	_, err := s.msgServer.RegisterAgent(s.Ctx, types.NewMsgRegisterAgent(owner.String(), "agent-1", validPolicy(s)))
-	s.Require().NoError(err)
+	// Token minted for the original payload; the submitted payload differs, so
+	// the re-derived nonce won't match the token's nonce.
+	msg := validMsg(t, "agent1", []byte("original"), 0)
+	msg.Payload = []byte("tampered")
 
-	agent, err := s.App.AgentKeeper.GetAgent(s.Ctx, "agent-1")
-	s.Require().NoError(err)
-	s.Require().Equal(owner.String(), agent.Owner)
-	s.Require().True(agent.Active)
-	s.Require().Equal(uint64(0), agent.ActionSeq)
+	_, err := ms.SubmitAttestedAction(ctx, msg)
+	require.Error(t, err)
 
-	// fee debited from owner and burned (total supply reduced)
-	balAfter := s.App.BankKeeper.GetBalance(s.Ctx, owner, fee.Denom)
-	s.Require().Equal(balBefore.Amount.Sub(fee.Amount), balAfter.Amount)
-	supplyAfter := s.App.BankKeeper.GetSupply(s.Ctx, fee.Denom)
-	s.Require().Equal(supplyBefore.Amount.Sub(fee.Amount), supplyAfter.Amount)
+	_, found := k.GetActionLogEntry(ctx, "agent1", 0)
+	require.False(t, found)
+	agent, _ := k.GetAgent(ctx, "agent1")
+	require.Equal(t, uint64(0), agent.ActionSeq)
 }
 
-func (s *KeeperTestSuite) TestRegisterAgent_DuplicateRejected() {
-	owner := s.fundedOwner()
-	_, err := s.msgServer.RegisterAgent(s.Ctx, types.NewMsgRegisterAgent(owner.String(), "dup", validPolicy(s)))
-	s.Require().NoError(err)
+func TestSubmitAttestedAction_WrongSeq(t *testing.T) {
+	ctx, k, _ := setup(t)
+	seedAgent(t, ctx, k, "agent1", true)
+	ms := keeper.NewMsgServerImpl(*k)
 
-	_, err = s.msgServer.RegisterAgent(s.Ctx, types.NewMsgRegisterAgent(owner.String(), "dup", validPolicy(s)))
-	s.Require().ErrorIs(err, types.ErrAgentExists)
+	// Token minted for seq=5 but the agent is at seq=0.
+	msg := validMsg(t, "agent1", []byte("p"), 5)
+
+	_, err := ms.SubmitAttestedAction(ctx, msg)
+	require.Error(t, err)
+
+	agent, _ := k.GetAgent(ctx, "agent1")
+	require.Equal(t, uint64(0), agent.ActionSeq)
 }
 
-func (s *KeeperTestSuite) TestDeactivateAgent_NonOwnerRejected() {
-	owner := s.fundedOwner()
-	_, err := s.msgServer.RegisterAgent(s.Ctx, types.NewMsgRegisterAgent(owner.String(), "agent-x", validPolicy(s)))
-	s.Require().NoError(err)
+func TestSubmitAttestedAction_ReplayAfterSuccess(t *testing.T) {
+	ctx, k, _ := setup(t)
+	seedAgent(t, ctx, k, "agent1", true)
+	ms := keeper.NewMsgServerImpl(*k)
 
-	_, _, other := testdata.KeyTestPubAddr()
-	_, err = s.msgServer.DeactivateAgent(s.Ctx, types.NewMsgDeactivateAgent(other.String(), "agent-x"))
-	s.Require().ErrorIs(err, types.ErrUnauthorized)
+	payload := []byte("once")
+	msg := validMsg(t, "agent1", payload, 0)
 
-	agent, err := s.App.AgentKeeper.GetAgent(s.Ctx, "agent-x")
-	s.Require().NoError(err)
-	s.Require().True(agent.Active)
+	_, err := ms.SubmitAttestedAction(ctx, msg)
+	require.NoError(t, err)
+
+	// Re-submit the exact same (payload, token): action_seq is now 1, so the
+	// re-derived nonce differs from the token's, and the verifier rejects.
+	_, err = ms.SubmitAttestedAction(ctx, msg)
+	require.Error(t, err)
+
+	agent, _ := k.GetAgent(ctx, "agent1")
+	require.Equal(t, uint64(1), agent.ActionSeq)
 }
 
-func (s *KeeperTestSuite) TestDeactivateAgent_OwnerSucceeds() {
-	owner := s.fundedOwner()
-	_, err := s.msgServer.RegisterAgent(s.Ctx, types.NewMsgRegisterAgent(owner.String(), "agent-y", validPolicy(s)))
-	s.Require().NoError(err)
+func TestSubmitAttestedAction_PayloadTooLarge(t *testing.T) {
+	ctx, k, _ := setup(t)
+	require.NoError(t, k.SetParams(ctx, types.Params{MaxActionBytes: 4}))
+	seedAgent(t, ctx, k, "agent1", true)
+	ms := keeper.NewMsgServerImpl(*k)
 
-	_, err = s.msgServer.DeactivateAgent(s.Ctx, types.NewMsgDeactivateAgent(owner.String(), "agent-y"))
-	s.Require().NoError(err)
+	_, err := ms.SubmitAttestedAction(ctx, validMsg(t, "agent1", []byte("too long"), 0))
+	require.Error(t, err)
 
-	agent, err := s.App.AgentKeeper.GetAgent(s.Ctx, "agent-y")
-	s.Require().NoError(err)
-	s.Require().False(agent.Active)
+	agent, _ := k.GetAgent(ctx, "agent1")
+	require.Equal(t, uint64(0), agent.ActionSeq)
+}
+
+func TestSubmitAttestedAction_InactiveAgent(t *testing.T) {
+	ctx, k, _ := setup(t)
+	seedAgent(t, ctx, k, "agent1", false)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	_, err := ms.SubmitAttestedAction(ctx, validMsg(t, "agent1", []byte("p"), 0))
+	require.Error(t, err)
+}
+
+func TestSubmitAttestedAction_NonexistentAgent(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	_, err := ms.SubmitAttestedAction(ctx, validMsg(t, "ghost", []byte("p"), 0))
+	require.Error(t, err)
 }

@@ -215,11 +215,129 @@ func (m *MsgDeactivateAgentResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDeactivateAgentResponse proto.InternalMessageInfo
 
+// MsgSubmitAttestedAction submits an attested action on behalf of an agent.
+// The submitter signs and pays for the tx but is not validated against the
+// agent: the enclave token authorizes the content, so any account may submit a
+// valid attested action.
+type MsgSubmitAttestedAction struct {
+	Submitter string `protobuf:"bytes,1,opt,name=submitter,proto3" json:"submitter,omitempty"`
+	AgentId   string `protobuf:"bytes,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Payload   []byte `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Token     string `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"`
+}
+
+func (m *MsgSubmitAttestedAction) Reset()         { *m = MsgSubmitAttestedAction{} }
+func (m *MsgSubmitAttestedAction) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitAttestedAction) ProtoMessage()    {}
+func (*MsgSubmitAttestedAction) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{4}
+}
+func (m *MsgSubmitAttestedAction) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSubmitAttestedAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSubmitAttestedAction.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSubmitAttestedAction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitAttestedAction.Merge(m, src)
+}
+func (m *MsgSubmitAttestedAction) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSubmitAttestedAction) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitAttestedAction.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSubmitAttestedAction proto.InternalMessageInfo
+
+func (m *MsgSubmitAttestedAction) GetSubmitter() string {
+	if m != nil {
+		return m.Submitter
+	}
+	return ""
+}
+
+func (m *MsgSubmitAttestedAction) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *MsgSubmitAttestedAction) GetPayload() []byte {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *MsgSubmitAttestedAction) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+type MsgSubmitAttestedActionResponse struct {
+	Seq uint64 `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"`
+}
+
+func (m *MsgSubmitAttestedActionResponse) Reset()         { *m = MsgSubmitAttestedActionResponse{} }
+func (m *MsgSubmitAttestedActionResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitAttestedActionResponse) ProtoMessage()    {}
+func (*MsgSubmitAttestedActionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{5}
+}
+func (m *MsgSubmitAttestedActionResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSubmitAttestedActionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSubmitAttestedActionResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSubmitAttestedActionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitAttestedActionResponse.Merge(m, src)
+}
+func (m *MsgSubmitAttestedActionResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSubmitAttestedActionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitAttestedActionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSubmitAttestedActionResponse proto.InternalMessageInfo
+
+func (m *MsgSubmitAttestedActionResponse) GetSeq() uint64 {
+	if m != nil {
+		return m.Seq
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*MsgRegisterAgent)(nil), "dymensionxyz.dymension.agent.MsgRegisterAgent")
 	proto.RegisterType((*MsgRegisterAgentResponse)(nil), "dymensionxyz.dymension.agent.MsgRegisterAgentResponse")
 	proto.RegisterType((*MsgDeactivateAgent)(nil), "dymensionxyz.dymension.agent.MsgDeactivateAgent")
 	proto.RegisterType((*MsgDeactivateAgentResponse)(nil), "dymensionxyz.dymension.agent.MsgDeactivateAgentResponse")
+	proto.RegisterType((*MsgSubmitAttestedAction)(nil), "dymensionxyz.dymension.agent.MsgSubmitAttestedAction")
+	proto.RegisterType((*MsgSubmitAttestedActionResponse)(nil), "dymensionxyz.dymension.agent.MsgSubmitAttestedActionResponse")
 }
 
 func init() {
@@ -227,32 +345,40 @@ func init() {
 }
 
 var fileDescriptor_cc4323968b6c653f = []byte{
-	// 400 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4d, 0xa9, 0xcc, 0x4d,
-	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x13, 0xd3, 0x53, 0xf3,
-	0x4a, 0xf4, 0x4b, 0x2a, 0xf4, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x64, 0x90, 0x95, 0xe9, 0xc1,
-	0x39, 0x7a, 0x60, 0x65, 0x52, 0xe2, 0xc9, 0xf9, 0xc5, 0xb9, 0xf9, 0xc5, 0xfa, 0xb9, 0xc5, 0xe9,
-	0xfa, 0x65, 0x86, 0x20, 0x0a, 0xa2, 0x4d, 0x4a, 0x12, 0x22, 0x11, 0x0f, 0xe6, 0xe9, 0x43, 0x38,
-	0x50, 0x29, 0x91, 0xf4, 0xfc, 0xf4, 0x7c, 0x88, 0x38, 0x88, 0x05, 0x15, 0x55, 0xc7, 0xe1, 0x9c,
-	0xe4, 0xfc, 0xdc, 0xdc, 0xfc, 0x3c, 0xfd, 0x92, 0xd4, 0x54, 0x88, 0x42, 0xa5, 0x75, 0x8c, 0x5c,
-	0x02, 0xbe, 0xc5, 0xe9, 0x41, 0xa9, 0xe9, 0x99, 0xc5, 0x25, 0xa9, 0x45, 0x8e, 0x20, 0x77, 0x08,
-	0xe9, 0x71, 0xb1, 0xe6, 0x97, 0xe7, 0xa5, 0x16, 0x49, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x3a, 0x49,
-	0x5c, 0xda, 0xa2, 0x2b, 0x02, 0xb5, 0xd4, 0x31, 0x25, 0xa5, 0x28, 0xb5, 0xb8, 0x38, 0xb8, 0xa4,
-	0x28, 0x33, 0x2f, 0x3d, 0x08, 0xa2, 0x4c, 0x48, 0x92, 0x8b, 0x03, 0xec, 0x81, 0xf8, 0xcc, 0x14,
-	0x09, 0x26, 0x90, 0x96, 0x20, 0x76, 0x30, 0xdf, 0x33, 0x45, 0xc8, 0x99, 0x8b, 0xad, 0x20, 0x3f,
-	0x27, 0x33, 0xb9, 0x52, 0x82, 0x59, 0x81, 0x51, 0x83, 0xdb, 0x48, 0x55, 0x0f, 0x47, 0x08, 0x40,
-	0x5c, 0xa6, 0x17, 0x00, 0x56, 0xec, 0xc4, 0x72, 0xe2, 0x9e, 0x3c, 0x43, 0x10, 0x54, 0xab, 0x15,
-	0x57, 0xd3, 0xf3, 0x0d, 0x5a, 0x10, 0xbb, 0x94, 0xa4, 0xb8, 0x24, 0xd0, 0xdd, 0x1b, 0x94, 0x5a,
-	0x5c, 0x90, 0x9f, 0x57, 0x9c, 0xaa, 0x94, 0xcd, 0x25, 0xe4, 0x5b, 0x9c, 0xee, 0x92, 0x9a, 0x98,
-	0x5c, 0x92, 0x59, 0x96, 0x58, 0x92, 0x4a, 0x6d, 0xdf, 0xa0, 0x38, 0x44, 0x86, 0x4b, 0x0a, 0xd3,
-	0x32, 0x98, 0x53, 0x8c, 0x5a, 0x98, 0xb8, 0x98, 0x7d, 0x8b, 0xd3, 0x85, 0xca, 0xb9, 0x78, 0xd1,
-	0xc2, 0x56, 0x0f, 0x5f, 0x12, 0xd0, 0x43, 0xf7, 0x9b, 0x94, 0x19, 0x69, 0xea, 0x61, 0x0e, 0x10,
-	0xaa, 0xe5, 0xe2, 0x47, 0x0f, 0x08, 0x03, 0x82, 0x46, 0xa1, 0xe9, 0x90, 0xb2, 0x20, 0x55, 0x07,
-	0xcc, 0x7a, 0x29, 0xd6, 0x86, 0xe7, 0x1b, 0xb4, 0x18, 0x9d, 0x7c, 0x4e, 0x3c, 0x92, 0x63, 0xbc,
-	0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63,
-	0xb8, 0xf1, 0x58, 0x8e, 0x21, 0xca, 0x28, 0x3d, 0xb3, 0x24, 0xa3, 0x34, 0x09, 0x14, 0xef, 0xfa,
-	0x38, 0x12, 0x6b, 0x99, 0xb1, 0x7e, 0x05, 0x2c, 0x03, 0x55, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81,
-	0xd3, 0xac, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x31, 0x99, 0xd1, 0x94, 0x6d, 0x03, 0x00, 0x00,
+	// 516 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0x4f, 0x6b, 0x13, 0x4f,
+	0x18, 0xc7, 0x33, 0xbf, 0x24, 0xed, 0xaf, 0x8f, 0xff, 0xca, 0x12, 0xe8, 0x76, 0x29, 0xdb, 0x12,
+	0x28, 0x96, 0x82, 0x3b, 0x9a, 0x60, 0x91, 0x82, 0x87, 0x44, 0x2f, 0x82, 0x01, 0xd9, 0xde, 0xbc,
+	0x94, 0xcd, 0xee, 0x30, 0x0e, 0xed, 0xce, 0xac, 0x3b, 0xd3, 0x34, 0x2b, 0x08, 0xe2, 0xd9, 0x83,
+	0xe0, 0xdb, 0x10, 0xe9, 0xc1, 0x17, 0xd1, 0x63, 0xf1, 0xe4, 0x49, 0x24, 0x39, 0xf4, 0x6d, 0xc8,
+	0xce, 0x24, 0x5b, 0x5d, 0x9b, 0xd6, 0x8a, 0xa7, 0xcc, 0x77, 0xf2, 0xfd, 0xce, 0x7c, 0x9e, 0x99,
+	0xd9, 0x07, 0xd6, 0xa3, 0x2c, 0x26, 0x5c, 0x32, 0xc1, 0x87, 0xd9, 0x2b, 0x5c, 0x08, 0x1c, 0x50,
+	0xc2, 0x15, 0x56, 0x43, 0x2f, 0x49, 0x85, 0x12, 0xd6, 0xca, 0xcf, 0x36, 0xaf, 0x10, 0x9e, 0xb6,
+	0x39, 0xcb, 0xa1, 0x90, 0xb1, 0x90, 0xbb, 0xda, 0x8b, 0x8d, 0x30, 0x41, 0x67, 0xc9, 0x28, 0x1c,
+	0x4b, 0x8a, 0x07, 0xf7, 0xf2, 0x9f, 0xc9, 0x1f, 0x0d, 0x2a, 0xa8, 0x30, 0x81, 0x7c, 0x34, 0x99,
+	0xbd, 0x3d, 0x03, 0x27, 0x14, 0x71, 0x2c, 0x38, 0x56, 0x84, 0x18, 0x63, 0xf3, 0x13, 0x82, 0xc5,
+	0x9e, 0xa4, 0x3e, 0xa1, 0x4c, 0x2a, 0x92, 0x76, 0x72, 0x0e, 0xcb, 0x83, 0xba, 0x38, 0xe4, 0x24,
+	0xb5, 0xd1, 0x1a, 0xda, 0x58, 0xe8, 0xda, 0x5f, 0x3e, 0xdf, 0x69, 0x4c, 0x68, 0x3a, 0x51, 0x94,
+	0x12, 0x29, 0x77, 0x54, 0xca, 0x38, 0xf5, 0x8d, 0xcd, 0x5a, 0x86, 0xff, 0x75, 0x01, 0xbb, 0x2c,
+	0xb2, 0xff, 0xcb, 0x23, 0xfe, 0xbc, 0xd6, 0x4f, 0x22, 0xeb, 0x11, 0xcc, 0x25, 0x62, 0x9f, 0x85,
+	0x99, 0x5d, 0x5d, 0x43, 0x1b, 0xd7, 0x5a, 0xeb, 0xde, 0x8c, 0x13, 0x30, 0x64, 0xde, 0x33, 0x6d,
+	0xee, 0xd6, 0x8e, 0xbf, 0xad, 0x56, 0xfc, 0x49, 0x74, 0x1b, 0xde, 0x9e, 0x1e, 0x6d, 0x9a, 0xbd,
+	0x9a, 0x0e, 0xd8, 0x65, 0x5e, 0x9f, 0xc8, 0x44, 0x70, 0x49, 0x9a, 0x7b, 0x60, 0xf5, 0x24, 0x7d,
+	0x4c, 0x82, 0x50, 0xb1, 0x41, 0xa0, 0xc8, 0xbf, 0xae, 0xe6, 0x17, 0x90, 0x15, 0x70, 0x7e, 0xdf,
+	0xac, 0x40, 0xf9, 0x88, 0x60, 0xa9, 0x27, 0xe9, 0xce, 0x41, 0x3f, 0x66, 0xaa, 0xa3, 0x14, 0x91,
+	0x8a, 0x44, 0x9d, 0x50, 0x31, 0xc1, 0xad, 0x2d, 0x58, 0x90, 0x7a, 0x5e, 0xfd, 0x01, 0xd4, 0x99,
+	0xf5, 0xa2, 0x63, 0xb6, 0x61, 0x3e, 0x09, 0xb2, 0x7d, 0x11, 0x44, 0xfa, 0x9c, 0xaf, 0xfb, 0x53,
+	0x69, 0x35, 0xa0, 0xae, 0xc4, 0x1e, 0xe1, 0x76, 0x4d, 0x27, 0x8c, 0xd8, 0xbe, 0x99, 0x17, 0x72,
+	0xb6, 0x74, 0xb3, 0x0d, 0xab, 0x33, 0x68, 0xa7, 0x15, 0x59, 0x8b, 0x50, 0x95, 0xe4, 0xa5, 0xe6,
+	0xad, 0xf9, 0xf9, 0xb0, 0xf5, 0xa1, 0x0a, 0xd5, 0x9e, 0xa4, 0xd6, 0x21, 0xdc, 0x28, 0xbd, 0x1f,
+	0xef, 0xa2, 0x67, 0xee, 0x95, 0xef, 0xcf, 0xd9, 0xba, 0x9a, 0xbf, 0x40, 0x7a, 0x0d, 0xb7, 0xca,
+	0x97, 0x7d, 0xf7, 0xd2, 0xa5, 0x4a, 0x09, 0xe7, 0xc1, 0x55, 0x13, 0xc5, 0xf6, 0xef, 0x10, 0x34,
+	0xce, 0xbd, 0xe0, 0xfb, 0x97, 0x2e, 0x79, 0x5e, 0xcc, 0x79, 0xf8, 0x57, 0xb1, 0x29, 0x8e, 0x53,
+	0x7f, 0x73, 0x7a, 0xb4, 0x89, 0xba, 0x4f, 0x8f, 0x47, 0x2e, 0x3a, 0x19, 0xb9, 0xe8, 0xfb, 0xc8,
+	0x45, 0xef, 0xc7, 0x6e, 0xe5, 0x64, 0xec, 0x56, 0xbe, 0x8e, 0xdd, 0xca, 0xf3, 0x16, 0x65, 0xea,
+	0xc5, 0x41, 0x3f, 0xff, 0xd4, 0xf0, 0x8c, 0xfe, 0x30, 0x68, 0xe3, 0xe1, 0xb4, 0x67, 0x65, 0x09,
+	0x91, 0xfd, 0x39, 0xdd, 0x26, 0xda, 0x3f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x55, 0xcf, 0x85, 0x5b,
+	0xe0, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -271,6 +397,10 @@ type MsgClient interface {
 	RegisterAgent(ctx context.Context, in *MsgRegisterAgent, opts ...grpc.CallOption) (*MsgRegisterAgentResponse, error)
 	// DeactivateAgent deactivates an existing agent. Owner only.
 	DeactivateAgent(ctx context.Context, in *MsgDeactivateAgent, opts ...grpc.CallOption) (*MsgDeactivateAgentResponse, error)
+	// SubmitAttestedAction verifies a TEE attestation token against the agent's
+	// policy, bound by a per-action nonce, and appends an entry to the agent's
+	// action log.
+	SubmitAttestedAction(ctx context.Context, in *MsgSubmitAttestedAction, opts ...grpc.CallOption) (*MsgSubmitAttestedActionResponse, error)
 }
 
 type msgClient struct {
@@ -299,12 +429,25 @@ func (c *msgClient) DeactivateAgent(ctx context.Context, in *MsgDeactivateAgent,
 	return out, nil
 }
 
+func (c *msgClient) SubmitAttestedAction(ctx context.Context, in *MsgSubmitAttestedAction, opts ...grpc.CallOption) (*MsgSubmitAttestedActionResponse, error) {
+	out := new(MsgSubmitAttestedActionResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.agent.Msg/SubmitAttestedAction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// RegisterAgent registers a new agent with an immutable attestation policy.
 	RegisterAgent(context.Context, *MsgRegisterAgent) (*MsgRegisterAgentResponse, error)
 	// DeactivateAgent deactivates an existing agent. Owner only.
 	DeactivateAgent(context.Context, *MsgDeactivateAgent) (*MsgDeactivateAgentResponse, error)
+	// SubmitAttestedAction verifies a TEE attestation token against the agent's
+	// policy, bound by a per-action nonce, and appends an entry to the agent's
+	// action log.
+	SubmitAttestedAction(context.Context, *MsgSubmitAttestedAction) (*MsgSubmitAttestedActionResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -316,6 +459,9 @@ func (*UnimplementedMsgServer) RegisterAgent(ctx context.Context, req *MsgRegist
 }
 func (*UnimplementedMsgServer) DeactivateAgent(ctx context.Context, req *MsgDeactivateAgent) (*MsgDeactivateAgentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeactivateAgent not implemented")
+}
+func (*UnimplementedMsgServer) SubmitAttestedAction(ctx context.Context, req *MsgSubmitAttestedAction) (*MsgSubmitAttestedActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitAttestedAction not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -358,6 +504,24 @@ func _Msg_DeactivateAgent_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_SubmitAttestedAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSubmitAttestedAction)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SubmitAttestedAction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.agent.Msg/SubmitAttestedAction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SubmitAttestedAction(ctx, req.(*MsgSubmitAttestedAction))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.agent.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -369,6 +533,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeactivateAgent",
 			Handler:    _Msg_DeactivateAgent_Handler,
+		},
+		{
+			MethodName: "SubmitAttestedAction",
+			Handler:    _Msg_SubmitAttestedAction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -505,6 +673,85 @@ func (m *MsgDeactivateAgentResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgSubmitAttestedAction) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSubmitAttestedAction) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSubmitAttestedAction) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Token) > 0 {
+		i -= len(m.Token)
+		copy(dAtA[i:], m.Token)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Token)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Payload) > 0 {
+		i -= len(m.Payload)
+		copy(dAtA[i:], m.Payload)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Payload)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Submitter) > 0 {
+		i -= len(m.Submitter)
+		copy(dAtA[i:], m.Submitter)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Submitter)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSubmitAttestedActionResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSubmitAttestedActionResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSubmitAttestedActionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Seq != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Seq))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -567,6 +814,43 @@ func (m *MsgDeactivateAgentResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	return n
+}
+
+func (m *MsgSubmitAttestedAction) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Submitter)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Payload)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Token)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgSubmitAttestedActionResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Seq != 0 {
+		n += 1 + sovTx(uint64(m.Seq))
+	}
 	return n
 }
 
@@ -916,6 +1200,255 @@ func (m *MsgDeactivateAgentResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgDeactivateAgentResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSubmitAttestedAction) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSubmitAttestedAction: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSubmitAttestedAction: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Submitter", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Submitter = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Payload = append(m.Payload[:0], dAtA[iNdEx:postIndex]...)
+			if m.Payload == nil {
+				m.Payload = []byte{}
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Token = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSubmitAttestedActionResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSubmitAttestedActionResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSubmitAttestedActionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seq", wireType)
+			}
+			m.Seq = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Seq |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

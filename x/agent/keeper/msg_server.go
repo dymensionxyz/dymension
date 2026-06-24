@@ -2,94 +2,89 @@ package keeper
 
 import (
 	"context"
-	"errors"
+	"crypto/sha256"
+	"fmt"
 
-	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
 
 type msgServer struct {
-	*Keeper
+	Keeper
 }
 
-func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
-	return &msgServer{Keeper: keeper}
+func NewMsgServerImpl(k Keeper) types.MsgServer {
+	return msgServer{Keeper: k}
 }
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAgent) (*types.MsgRegisterAgentResponse, error) {
+// SubmitAttestedAction verifies a TEE attestation token against the agent's
+// policy, bound by a per-action nonce, and appends an immutable entry to the
+// agent's action log.
+func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSubmitAttestedAction) (*types.MsgSubmitAttestedActionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	exists, err := k.HasAgent(ctx, msg.AgentId)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+
+	params, err := k.GetParams(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "get params")
 	}
-	if exists {
-		return nil, errorsmod.Wrap(types.ErrAgentExists, msg.AgentId)
-	}
-
-	// charge the registration fee: send to module then burn (mirrors rollapp app registration)
-	owner := sdk.MustAccAddressFromBech32(msg.Owner)
-	fee := sdk.NewCoins(k.AgentRegistrationFee(ctx))
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, fee); err != nil {
-		return nil, errorsmod.Wrap(types.ErrRegistrationFeePayment, err.Error())
-	}
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, fee); err != nil {
-		return nil, errorsmod.Wrap(types.ErrRegistrationFeePayment, err.Error())
+	if uint64(len(msg.Payload)) > params.MaxActionBytes {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("payload exceeds max action bytes: got %d, max %d", len(msg.Payload), params.MaxActionBytes)
 	}
 
-	agent := types.Agent{
-		Id:        msg.AgentId,
-		Owner:     msg.Owner,
-		Policy:    msg.Policy,
-		Active:    true,
-		ActionSeq: 0,
+	agent, found := k.GetAgent(ctx, msg.AgentId)
+	if !found {
+		return nil, gerrc.ErrNotFound.Wrapf("agent: %s", msg.AgentId)
 	}
+	if !agent.Active {
+		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", msg.AgentId)
+	}
+
+	seq := agent.ActionSeq
+	nonce := types.ActionNonce(msg.AgentId, msg.Payload, seq)
+
+	// On any failure the tx rolls back, so no state changes. Replay protection
+	// is structural: action_seq below advances, so re-submitting the same
+	// (payload, token) re-derives a different nonce and the verifier rejects.
+	if err := k.verifier.Verify(ctx, agent.Policy, nonce, msg.Token); err != nil {
+		return nil, errorsmod.Wrap(err, "verify attestation")
+	}
+
+	payloadHash := sha256.Sum256(msg.Payload)
+	entry := types.ActionLogEntry{
+		AgentId:     msg.AgentId,
+		Seq:         seq,
+		Payload:     msg.Payload,
+		PayloadHash: payloadHash[:],
+		Height:      ctx.BlockHeight(),
+		Time:        ctx.BlockTime(),
+	}
+	if err := k.setActionLogEntry(ctx, entry); err != nil {
+		return nil, errorsmod.Wrap(err, "append action log entry")
+	}
+
+	agent.ActionSeq = seq + 1
 	if err := k.SetAgent(ctx, agent); err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "set agent")
 	}
 
-	if err := uevent.EmitTypedEvent(ctx, &types.EventRegisterAgent{
-		AgentId: agent.Id,
-		Owner:   agent.Owner,
-	}); err != nil {
-		return nil, err
-	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAttestedAction,
+			sdk.NewAttribute(types.AttributeKeyAgentID, msg.AgentId),
+			sdk.NewAttribute(types.AttributeKeySeq, fmt.Sprintf("%d", seq)),
+			sdk.NewAttribute(types.AttributeKeyPayloadHash, fmt.Sprintf("%x", payloadHash[:])),
+			sdk.NewAttribute(types.AttributeKeySubmitter, msg.Submitter),
+		),
+	)
 
-	return &types.MsgRegisterAgentResponse{}, nil
-}
-
-func (k msgServer) DeactivateAgent(goCtx context.Context, msg *types.MsgDeactivateAgent) (*types.MsgDeactivateAgentResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	agent, err := k.GetAgent(ctx, msg.AgentId)
-	if errors.Is(err, collections.ErrNotFound) {
-		return nil, errorsmod.Wrap(types.ErrAgentNotFound, msg.AgentId)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if agent.Owner != msg.Owner {
-		return nil, errorsmod.Wrap(types.ErrUnauthorized, "not the agent owner")
-	}
-
-	agent.Active = false
-	if err := k.SetAgent(ctx, agent); err != nil {
-		return nil, err
-	}
-
-	if err := uevent.EmitTypedEvent(ctx, &types.EventDeactivateAgent{
-		AgentId: agent.Id,
-		Owner:   agent.Owner,
-	}); err != nil {
-		return nil, err
-	}
-
-	return &types.MsgDeactivateAgentResponse{}, nil
+	return &types.MsgSubmitAttestedActionResponse{Seq: seq}, nil
 }

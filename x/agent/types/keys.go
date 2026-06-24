@@ -10,8 +10,9 @@ const (
 	QuerierRoute = ModuleName
 )
 
-const (
-	KeyParams    = "params"
-	KeyAgents    = "agents"
-	KeyActionLog = "action_log"
+// Store prefixes.
+var (
+	KeyParams    = []byte{0x00}
+	KeyAgents    = []byte{0x01}
+	KeyActionLog = []byte{0x02}
 )
