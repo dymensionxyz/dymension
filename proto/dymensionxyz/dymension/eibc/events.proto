@@ -81,6 +81,9 @@ message EventDemandOrderFulfilled {
   string fulfiller = 9;
   // packet_type is the type of the packet.
   string packet_type = 10;
+  // effective_fee is the height-effective fee the order actually cleared at,
+  // accounting for any time-based escalation.
+  string effective_fee = 11;
 }
 
 // EventDemandOrderFulfilledAuthorized is emitted when the demand order is
@@ -108,6 +111,9 @@ message EventDemandOrderFulfilledAuthorized {
   string operator_address = 13;
   // operator_fee is the fee of the operator.
   string operator_fee = 14;
+  // effective_fee is the height-effective fee the order actually cleared at,
+  // accounting for any time-based escalation.
+  string effective_fee = 15;
 }
 
 message EventDemandOrderDeleted {
