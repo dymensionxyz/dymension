@@ -33,9 +33,9 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 	irotypes "github.com/dymensionxyz/dymension/v3/x/iro/types"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
-	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 
