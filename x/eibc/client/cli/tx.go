@@ -74,6 +74,9 @@ const (
 	FlagRollappId          = "rollapp-id"
 	FlagPrice              = "price"
 	FlagAmount             = "amount"
+	FlagValidUntilHeight   = "valid-until-height"
+	FlagRateLimitAmount    = "rate-limit-amount"
+	FlagRateLimitBlocks    = "rate-limit-blocks"
 )
 
 func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
@@ -280,6 +283,28 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 				return fmt.Errorf("invalid order min age blocks: %w", err)
 			}
 
+			validUntilHeight, err := cmd.Flags().GetUint64(FlagValidUntilHeight)
+			if err != nil {
+				return err
+			}
+
+			rateLimitBlocks, err := cmd.Flags().GetUint64(FlagRateLimitBlocks)
+			if err != nil {
+				return err
+			}
+
+			rateLimitAmount := math.ZeroInt()
+			rateLimitAmountStr, err := cmd.Flags().GetString(FlagRateLimitAmount)
+			if err != nil {
+				return err
+			}
+			if rateLimitAmountStr != "" {
+				rateLimitAmount, ok = math.NewIntFromString(rateLimitAmountStr)
+				if !ok {
+					return fmt.Errorf("invalid rate limit amount")
+				}
+			}
+
 			msg := &types.MsgCreateOnDemandLP{
 				Lp: &types.OnDemandLP{
 					FundsAddr:         clientCtx.GetFromAddress().String(),
@@ -289,6 +314,9 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 					MinFee:            minFee,
 					SpendLimit:        spendLimit,
 					OrderMinAgeBlocks: orderMinAgeBlocks,
+					ValidUntilHeight:  validUntilHeight,
+					RateLimitAmount:   rateLimitAmount,
+					RateLimitBlocks:   rateLimitBlocks,
 				},
 				Signer: clientCtx.GetFromAddress().String(),
 			}
@@ -301,6 +329,9 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().Uint64(FlagValidUntilHeight, 0, "LP stops accepting orders at heights >= this value (0 = no expiry)")
+	cmd.Flags().String(FlagRateLimitAmount, "", "Max amount spendable within one rate window (empty = disabled)")
+	cmd.Flags().Uint64(FlagRateLimitBlocks, 0, "Length in blocks of the rate window")
 
 	return cmd
 }
