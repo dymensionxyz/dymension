@@ -56,7 +56,9 @@ func setup(t *testing.T) (sdk.Context, *keeper.Keeper, *fakeVerifier) {
 	cdc := codec.NewProtoCodec(registry)
 
 	v := &fakeVerifier{}
-	k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), v)
+	// bankKeeper is nil: SubmitAttestedAction never charges fees. Registration
+	// fee burning is covered by the apptesting-based suite in registry_test.go.
+	k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), v, nil)
 
 	ctx := sdk.NewContext(cms, cmtproto.Header{Height: 10}, false, log.NewNopLogger())
 	require.NoError(t, k.SetParams(ctx, types.Params{MaxActionBytes: 1024}))

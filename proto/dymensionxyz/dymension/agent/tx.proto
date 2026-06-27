@@ -5,9 +5,17 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
 import "cosmos_proto/cosmos.proto";
 import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/common/tee.proto";
 
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
+  // RegisterAgent registers a new agent with an immutable attestation policy.
+  rpc RegisterAgent(MsgRegisterAgent) returns (MsgRegisterAgentResponse);
+
+  // DeactivateAgent deactivates an existing agent. Owner only.
+  rpc DeactivateAgent(MsgDeactivateAgent) returns (MsgDeactivateAgentResponse);
 
   // SubmitAttestedAction verifies a TEE attestation token against the agent's
   // policy, bound by a per-action nonce, and appends an entry to the agent's
@@ -15,6 +23,26 @@ service Msg {
   rpc SubmitAttestedAction(MsgSubmitAttestedAction)
       returns (MsgSubmitAttestedActionResponse);
 }
+
+message MsgRegisterAgent {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  dymensionxyz.dymension.common.Policy policy = 3
+      [ (gogoproto.nullable) = false ];
+}
+
+message MsgRegisterAgentResponse {}
+
+message MsgDeactivateAgent {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+}
+
+message MsgDeactivateAgentResponse {}
 
 // MsgSubmitAttestedAction submits an attested action on behalf of an agent.
 // The submitter signs and pays for the tx but is not validated against the
