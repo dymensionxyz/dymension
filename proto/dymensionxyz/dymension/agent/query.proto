@@ -3,6 +3,7 @@ package dymensionxyz.dymension.agent;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
@@ -18,6 +19,24 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}";
   }
+
+  // Agents queries all registered agents, paginated.
+  rpc Agents(QueryAgentsRequest) returns (QueryAgentsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/agent/agents";
+  }
+
+  // AgentActions queries an agent's attested action log, paginated.
+  rpc AgentActions(QueryAgentActionsRequest)
+      returns (QueryAgentActionsResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/actions";
+  }
+
+  // AgentAction queries a single action log entry by (agent_id, seq).
+  rpc AgentAction(QueryAgentActionRequest) returns (QueryAgentActionResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/actions/{seq}";
+  }
 }
 
 message QueryParamsRequest {}
@@ -32,4 +51,32 @@ message QueryAgentRequest {
 
 message QueryAgentResponse {
   Agent agent = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAgentsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAgentsResponse {
+  repeated Agent agents = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryAgentActionsRequest {
+  string agent_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryAgentActionsResponse {
+  repeated ActionLogEntry actions = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryAgentActionRequest {
+  string agent_id = 1;
+  uint64 seq = 2;
+}
+
+message QueryAgentActionResponse {
+  ActionLogEntry action = 1 [ (gogoproto.nullable) = false ];
 }

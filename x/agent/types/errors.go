@@ -8,4 +8,5 @@ var (
 	ErrRegistrationFeePayment = errorsmod.Register(ModuleName, 4, "agent registration fee payment error")
 	ErrUnauthorized           = errorsmod.Register(ModuleName, 5, "unauthorized")
 	ErrInvalidPolicy          = errorsmod.Register(ModuleName, 6, "invalid policy")
+	ErrActionNotFound         = errorsmod.Register(ModuleName, 7, "action log entry not found")
 )
