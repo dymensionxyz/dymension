@@ -63,9 +63,10 @@ func (s LPs) Create(ctx sdk.Context, lp *types.OnDemandLP) (uint64, error) {
 		return 0, errorsmod.Wrap(err, "next id")
 	}
 	if err := s.Set(ctx, types.OnDemandLPRecord{
-		Id:    id,
-		Lp:    lp,
-		Spent: math.ZeroInt(),
+		Id:          id,
+		Lp:          lp,
+		Spent:       math.ZeroInt(),
+		WindowSpent: math.ZeroInt(),
 	}); err != nil {
 		return 0, errorsmod.Wrap(err, "set")
 	}
@@ -230,7 +231,7 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) e
 		}); err != nil {
 			return errorsmod.Wrap(err, "emit event")
 		}
-		lp.Spent = lp.Spent.Add(o.PriceAmount())
+		lp.RecordSpend(uint64(ctx.BlockHeight()), o.PriceAmount()) //nolint:gosec
 		if err = k.LPs.Set(ctx, lp); err != nil {
 			return errorsmod.Wrap(err, "set lp")
 		}
