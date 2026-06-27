@@ -47,4 +47,21 @@ message DemandOrder {
   uint64 creation_height = 12;
   // an optional hook which uses the funds when the order is fulfilled
   dymensionxyz.dymension.common.CompletionHookCall completion_hook = 13;
+  // an optional time-based competitive fee escalation spec. nil means the fee
+  // is static (fee/price above are authoritative for all heights).
+  FeeEscalation fee_escalation = 14;
+}
+
+// FeeEscalation makes the offered fee rise (and the price fall) deterministically
+// with block height, from the base fee up to max_fee_amount over duration_blocks.
+// This is a Dutch auction from the recipient's cost perspective: price only falls.
+message FeeEscalation {
+  // max_fee_amount is the fee reached at creation_height + duration_blocks. It is
+  // >= the base fee.
+  string max_fee_amount = 1 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  // duration_blocks is the number of blocks over which the fee escalates. > 0.
+  uint64 duration_blocks = 2;
 }

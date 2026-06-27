@@ -59,12 +59,19 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
-	// Check that the fulfiller expected fee is equal to the demand order fee
+	// For static orders keep exact-equality. For escalating orders the fee moves
+	// per block, so treat expected_fee as the fulfiller's minimum acceptable fee:
+	// they receive the current effective fee, so a lower bound is the only guard.
 	expectedFee, _ := math.NewIntFromString(msg.ExpectedFee)
-	orderFee := demandOrder.GetFeeAmount()
-	if !orderFee.Equal(expectedFee) {
+	if demandOrder.FeeEscalation == nil {
+		if !demandOrder.GetFeeAmount().Equal(expectedFee) {
+			return nil, types.ErrExpectedFeeNotMet
+		}
+	} else if demandOrder.EffectiveFeeAmount(uint64(ctx.BlockHeight())).LT(expectedFee) { //nolint:gosec
 		return nil, types.ErrExpectedFeeNotMet
 	}
+
+	demandOrder.ApplyEffectiveFee(uint64(ctx.BlockHeight())) //nolint:gosec
 
 	err = m.fulfillBasic(ctx, demandOrder, msg.GetFulfillerBech32Address())
 	if err != nil {
@@ -93,6 +100,8 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 	if err := m.validateOrder(ctx, demandOrder, msg); err != nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
 	}
+
+	demandOrder.ApplyEffectiveFee(uint64(ctx.BlockHeight())) //nolint:gosec
 
 	lp := msg.GetLPBech32Address()
 	operator := msg.GetOperatorFeeBech32Address()
@@ -139,15 +148,25 @@ func (m msgServer) validateOrder(ctx sdk.Context, demandOrder *types.DemandOrder
 		return types.ErrRollappIdMismatch
 	}
 
-	if !demandOrder.Price.Equal(msg.Price) {
-		return types.ErrPriceMismatch
-	}
-
-	// Check that the expected fee is equal to the demand order fee
+	// For static orders keep exact-equality. For escalating orders the target
+	// moves per block, so bound each party: the LP pays at most its quoted price
+	// and earns at least its quoted fee.
 	expectedFee, _ := math.NewIntFromString(msg.ExpectedFee)
-	orderFee := demandOrder.GetFeeAmount()
-	if !orderFee.Equal(expectedFee) {
-		return types.ErrExpectedFeeNotMet
+	if demandOrder.FeeEscalation == nil {
+		if !demandOrder.Price.Equal(msg.Price) {
+			return types.ErrPriceMismatch
+		}
+		if !demandOrder.GetFeeAmount().Equal(expectedFee) {
+			return types.ErrExpectedFeeNotMet
+		}
+	} else {
+		h := uint64(ctx.BlockHeight()) //nolint:gosec
+		if demandOrder.EffectivePriceAmount(h).GT(msg.Price.AmountOf(demandOrder.Denom())) {
+			return types.ErrPriceMismatch
+		}
+		if demandOrder.EffectiveFeeAmount(h).LT(expectedFee) {
+			return types.ErrExpectedFeeNotMet
+		}
 	}
 
 	if msg.SettlementValidated {
@@ -235,6 +254,9 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	denom := demandOrder.Price[0].Denom
 	demandOrder.Fee = sdk.NewCoins(sdk.NewCoin(denom, newFeeInt))
 	demandOrder.Price = sdk.NewCoins(sdk.NewCoin(denom, newPrice))
+	// Manual update makes the recipient's fee authoritative; drop escalation so it
+	// is not re-overridden per block.
+	demandOrder.FeeEscalation = nil
 
 	if err = m.SetDemandOrder(ctx, demandOrder); err != nil {
 		return nil, err
