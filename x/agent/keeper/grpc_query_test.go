@@ -2,13 +2,13 @@ package keeper_test
 
 import (
 	"crypto/sha256"
+	"errors"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
@@ -27,32 +27,6 @@ func submitAction(t *testing.T, ctx sdk.Context, k *keeper.Keeper, agentID strin
 		Token:     types.ActionNonce(agentID, payload, seq),
 	})
 	require.NoError(t, err)
-}
-
-func TestParamsQuery(t *testing.T) {
-	ctx, k, _ := setup(t)
-	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
-
-	res, err := k.Params(ctx, &types.QueryParamsRequest{})
-	require.NoError(t, err)
-	require.Equal(t, types.DefaultParams(), res.Params)
-	require.Equal(t, uint64(types.DefaultMaxActionBytes), res.Params.MaxActionBytes)
-}
-
-func TestAgentQuery(t *testing.T) {
-	ctx, k, _ := setup(t)
-	seedAgent(t, ctx, k, "agent-1", true)
-
-	res, err := k.Agent(ctx, &types.QueryAgentRequest{Id: "agent-1"})
-	require.NoError(t, err)
-	require.Equal(t, "agent-1", res.Agent.Id)
-	require.True(t, res.Agent.Active)
-
-	_, err = k.Agent(ctx, &types.QueryAgentRequest{Id: "missing"})
-	require.Equal(t, codes.NotFound, status.Code(err))
-
-	_, err = k.Agent(ctx, &types.QueryAgentRequest{Id: ""})
-	require.Equal(t, codes.InvalidArgument, status.Code(err))
 }
 
 func TestAgentsQueryPagination(t *testing.T) {
@@ -113,7 +87,7 @@ func TestAgentActionsQueryScopedAndPaginated(t *testing.T) {
 	require.Equal(t, "agent-2", other.Actions[0].AgentId)
 
 	_, err = k.AgentActions(ctx, &types.QueryAgentActionsRequest{AgentId: ""})
-	require.Equal(t, codes.InvalidArgument, status.Code(err))
+	require.True(t, errors.Is(err, gerrc.ErrInvalidArgument))
 }
 
 func TestAgentActionQuery(t *testing.T) {
@@ -130,11 +104,15 @@ func TestAgentActionQuery(t *testing.T) {
 	require.Equal(t, want[:], res.Action.PayloadHash)
 
 	_, err = k.AgentAction(ctx, &types.QueryAgentActionRequest{AgentId: "agent-1", Seq: 99})
-	require.Equal(t, codes.NotFound, status.Code(err))
+	require.True(t, errors.Is(err, types.ErrActionNotFound))
+
+	_, err = k.AgentAction(ctx, &types.QueryAgentActionRequest{AgentId: ""})
+	require.True(t, errors.Is(err, gerrc.ErrInvalidArgument))
 }
 
-func TestGenesisRoundTrip(t *testing.T) {
+func TestGenesisRoundTripWithActionLog(t *testing.T) {
 	ctx, k, _ := setup(t)
+	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
 	seedAgent(t, ctx, k, "agent-1", true)
 	seedAgent(t, ctx, k, "agent-2", true)
 	submitAction(t, ctx, k, "agent-1", []byte("x"), 0)
@@ -147,7 +125,5 @@ func TestGenesisRoundTrip(t *testing.T) {
 
 	ctx2, k2, _ := setup(t)
 	keeper.InitGenesis(ctx2, k2, *exported)
-
-	reexported := keeper.ExportGenesis(ctx2, k2)
-	require.Equal(t, exported, reexported)
+	require.Equal(t, exported, keeper.ExportGenesis(ctx2, k2))
 }

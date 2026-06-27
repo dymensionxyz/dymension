@@ -9,14 +9,17 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
 
-func GetQueryCmd() *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
+
+	cmd.AddCommand(CmdRegisterAgent())
+	cmd.AddCommand(CmdDeactivateAgent())
 
 	return cmd
 }

@@ -9,29 +9,30 @@ import "dymensionxyz/dymension/agent/agent.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
 service Query {
-  // Params returns the module parameters.
+  // Params queries the module parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/agent/params";
   }
 
-  // Agent returns a single agent by id.
+  // Agent queries a single agent by id.
   rpc Agent(QueryAgentRequest) returns (QueryAgentResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/agent/agent/{id}";
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}";
   }
 
-  // Agents returns a paginated list of agents.
+  // Agents queries all registered agents, paginated.
   rpc Agents(QueryAgentsRequest) returns (QueryAgentsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/agent/agents";
   }
 
-  // AgentActions returns a paginated action log for an agent.
+  // AgentActions queries an agent's attested action log, paginated.
   rpc AgentActions(QueryAgentActionsRequest)
       returns (QueryAgentActionsResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}/actions";
   }
 
-  // AgentAction returns a single action log entry for an agent.
+  // AgentAction queries a single action log entry by (agent_id, seq).
   rpc AgentAction(QueryAgentActionRequest) returns (QueryAgentActionResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}/actions/{seq}";
@@ -45,7 +46,7 @@ message QueryParamsResponse {
 }
 
 message QueryAgentRequest {
-  string id = 1;
+  string agent_id = 1;
 }
 
 message QueryAgentResponse {

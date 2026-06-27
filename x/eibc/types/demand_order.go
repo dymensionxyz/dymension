@@ -15,7 +15,7 @@ import (
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *commontypes.CompletionHookCall) *DemandOrder {
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *commontypes.CompletionHookCall, feeEscalation *FeeEscalation) *DemandOrder {
 	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
@@ -28,6 +28,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Type:                 rollappPacket.Type,
 		CreationHeight:       creationHeight,
 		CompletionHook:       completionHook,
+		FeeEscalation:        feeEscalation,
 	}
 }
 
@@ -98,6 +99,70 @@ func (m *DemandOrder) GetFeeAmount() math.Int {
 
 func (m *DemandOrder) GetFeePercent() math.LegacyDec {
 	return math.LegacyNewDecFromInt(m.GetFeeAmount()).Quo(math.LegacyNewDecFromInt(m.PriceAmount()))
+}
+
+// escalates reports whether the order has an active, well-formed escalation spec
+// and the given height is past creation. When false, all effective values equal
+// the base values.
+func (m *DemandOrder) escalates(height uint64) bool {
+	return m.FeeEscalation != nil && m.FeeEscalation.DurationBlocks != 0 && height > m.CreationHeight
+}
+
+// EffectiveFeeAmount returns the fee offered at the given block height. It rises
+// linearly from the base fee at creation to FeeEscalation.MaxFeeAmount after
+// DurationBlocks, then stays flat. Equals GetFeeAmount() when not escalating.
+func (m *DemandOrder) EffectiveFeeAmount(height uint64) math.Int {
+	base := m.GetFeeAmount()
+	if !m.escalates(height) {
+		return base
+	}
+	elapsed := height - m.CreationHeight
+	d := m.FeeEscalation.DurationBlocks
+	if elapsed > d {
+		elapsed = d
+	}
+	delta := m.FeeEscalation.MaxFeeAmount.Sub(base)
+	inc := delta.Mul(math.NewIntFromUint64(elapsed)).Quo(math.NewIntFromUint64(d))
+	return base.Add(inc)
+}
+
+// EffectivePriceAmount returns the price at the given block height. Escalating
+// the fee is equivalent to lowering the price by the same amount. Equals
+// PriceAmount() when not escalating.
+func (m *DemandOrder) EffectivePriceAmount(height uint64) math.Int {
+	base := m.PriceAmount()
+	if !m.escalates(height) {
+		return base
+	}
+	feeIncrease := m.EffectiveFeeAmount(height).Sub(m.GetFeeAmount())
+	return base.Sub(feeIncrease)
+}
+
+// EffectiveFeePercent returns the fee/price ratio at the given block height.
+func (m *DemandOrder) EffectiveFeePercent(height uint64) math.LegacyDec {
+	price := m.EffectivePriceAmount(height)
+	// Defensive: a zero price (degenerate, prevented at creation by the maxFee
+	// clamp) would make the fee infinite. Treat it as maximally attractive so the
+	// LP comparison never divides by zero.
+	if !price.IsPositive() {
+		return math.LegacyOneDec()
+	}
+	return math.LegacyNewDecFromInt(m.EffectiveFeeAmount(height)).Quo(math.LegacyNewDecFromInt(price))
+}
+
+// ApplyEffectiveFee locks the order's Fee/Price to their height-effective values
+// and clears the escalation spec, so the persisted record is self-consistent.
+// No-op for non-escalating orders.
+func (m *DemandOrder) ApplyEffectiveFee(height uint64) {
+	if m.FeeEscalation == nil {
+		return
+	}
+	denom := m.Denom()
+	fee := m.EffectiveFeeAmount(height)
+	price := m.EffectivePriceAmount(height)
+	m.Fee = sdk.NewCoins(sdk.NewCoin(denom, fee))
+	m.Price = sdk.NewCoins(sdk.NewCoin(denom, price))
+	m.FeeEscalation = nil
 }
 
 func (m *DemandOrder) ValidateOrderIsOutstanding() error {

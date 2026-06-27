@@ -63,8 +63,8 @@ func (r OnDemandLPRecord) MaxSpend() math.Int {
 }
 
 func (r OnDemandLPRecord) Accepts(nowHeight uint64, o *DemandOrder) bool {
-	priceOK := o.PriceAmount().LTE(r.MaxSpend())
-	feeOK := r.Lp.MinFee.LTE(o.GetFeePercent())
+	priceOK := o.EffectivePriceAmount(nowHeight).LTE(r.MaxSpend())
+	feeOK := r.Lp.MinFee.LTE(o.EffectiveFeePercent(nowHeight))
 	ageOK := r.Lp.OrderMinAgeBlocks <= nowHeight-o.CreationHeight
 	return priceOK && feeOK && ageOK
 }

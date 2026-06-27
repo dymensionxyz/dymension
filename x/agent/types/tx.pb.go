@@ -8,8 +8,10 @@ import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
+	tee "github.com/dymensionxyz/dymension/v3/x/common/tee"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -29,6 +31,190 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type MsgRegisterAgent struct {
+	Owner   string     `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	AgentId string     `protobuf:"bytes,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Policy  tee.Policy `protobuf:"bytes,3,opt,name=policy,proto3" json:"policy"`
+}
+
+func (m *MsgRegisterAgent) Reset()         { *m = MsgRegisterAgent{} }
+func (m *MsgRegisterAgent) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterAgent) ProtoMessage()    {}
+func (*MsgRegisterAgent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{0}
+}
+func (m *MsgRegisterAgent) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRegisterAgent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRegisterAgent.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRegisterAgent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterAgent.Merge(m, src)
+}
+func (m *MsgRegisterAgent) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRegisterAgent) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterAgent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRegisterAgent proto.InternalMessageInfo
+
+func (m *MsgRegisterAgent) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
+func (m *MsgRegisterAgent) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *MsgRegisterAgent) GetPolicy() tee.Policy {
+	if m != nil {
+		return m.Policy
+	}
+	return tee.Policy{}
+}
+
+type MsgRegisterAgentResponse struct {
+}
+
+func (m *MsgRegisterAgentResponse) Reset()         { *m = MsgRegisterAgentResponse{} }
+func (m *MsgRegisterAgentResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterAgentResponse) ProtoMessage()    {}
+func (*MsgRegisterAgentResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{1}
+}
+func (m *MsgRegisterAgentResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRegisterAgentResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRegisterAgentResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRegisterAgentResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterAgentResponse.Merge(m, src)
+}
+func (m *MsgRegisterAgentResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRegisterAgentResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterAgentResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRegisterAgentResponse proto.InternalMessageInfo
+
+type MsgDeactivateAgent struct {
+	Owner   string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	AgentId string `protobuf:"bytes,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+}
+
+func (m *MsgDeactivateAgent) Reset()         { *m = MsgDeactivateAgent{} }
+func (m *MsgDeactivateAgent) String() string { return proto.CompactTextString(m) }
+func (*MsgDeactivateAgent) ProtoMessage()    {}
+func (*MsgDeactivateAgent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{2}
+}
+func (m *MsgDeactivateAgent) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeactivateAgent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeactivateAgent.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeactivateAgent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeactivateAgent.Merge(m, src)
+}
+func (m *MsgDeactivateAgent) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeactivateAgent) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeactivateAgent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeactivateAgent proto.InternalMessageInfo
+
+func (m *MsgDeactivateAgent) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
+func (m *MsgDeactivateAgent) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+type MsgDeactivateAgentResponse struct {
+}
+
+func (m *MsgDeactivateAgentResponse) Reset()         { *m = MsgDeactivateAgentResponse{} }
+func (m *MsgDeactivateAgentResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDeactivateAgentResponse) ProtoMessage()    {}
+func (*MsgDeactivateAgentResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{3}
+}
+func (m *MsgDeactivateAgentResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeactivateAgentResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeactivateAgentResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeactivateAgentResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeactivateAgentResponse.Merge(m, src)
+}
+func (m *MsgDeactivateAgentResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeactivateAgentResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeactivateAgentResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeactivateAgentResponse proto.InternalMessageInfo
+
 // MsgSubmitAttestedAction submits an attested action on behalf of an agent.
 // The submitter signs and pays for the tx but is not validated against the
 // agent: the enclave token authorizes the content, so any account may submit a
@@ -44,7 +230,7 @@ func (m *MsgSubmitAttestedAction) Reset()         { *m = MsgSubmitAttestedAction
 func (m *MsgSubmitAttestedAction) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitAttestedAction) ProtoMessage()    {}
 func (*MsgSubmitAttestedAction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc4323968b6c653f, []int{0}
+	return fileDescriptor_cc4323968b6c653f, []int{4}
 }
 func (m *MsgSubmitAttestedAction) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -109,7 +295,7 @@ func (m *MsgSubmitAttestedActionResponse) Reset()         { *m = MsgSubmitAttest
 func (m *MsgSubmitAttestedActionResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgSubmitAttestedActionResponse) ProtoMessage()    {}
 func (*MsgSubmitAttestedActionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc4323968b6c653f, []int{1}
+	return fileDescriptor_cc4323968b6c653f, []int{5}
 }
 func (m *MsgSubmitAttestedActionResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -146,6 +332,10 @@ func (m *MsgSubmitAttestedActionResponse) GetSeq() uint64 {
 }
 
 func init() {
+	proto.RegisterType((*MsgRegisterAgent)(nil), "dymensionxyz.dymension.agent.MsgRegisterAgent")
+	proto.RegisterType((*MsgRegisterAgentResponse)(nil), "dymensionxyz.dymension.agent.MsgRegisterAgentResponse")
+	proto.RegisterType((*MsgDeactivateAgent)(nil), "dymensionxyz.dymension.agent.MsgDeactivateAgent")
+	proto.RegisterType((*MsgDeactivateAgentResponse)(nil), "dymensionxyz.dymension.agent.MsgDeactivateAgentResponse")
 	proto.RegisterType((*MsgSubmitAttestedAction)(nil), "dymensionxyz.dymension.agent.MsgSubmitAttestedAction")
 	proto.RegisterType((*MsgSubmitAttestedActionResponse)(nil), "dymensionxyz.dymension.agent.MsgSubmitAttestedActionResponse")
 }
@@ -155,29 +345,40 @@ func init() {
 }
 
 var fileDescriptor_cc4323968b6c653f = []byte{
-	// 350 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4d, 0xa9, 0xcc, 0x4d,
-	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x13, 0xd3, 0x53, 0xf3,
-	0x4a, 0xf4, 0x4b, 0x2a, 0xf4, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x64, 0x90, 0x95, 0xe9, 0xc1,
-	0x39, 0x7a, 0x60, 0x65, 0x52, 0x92, 0xc9, 0xf9, 0xc5, 0xb9, 0xf9, 0xc5, 0xf1, 0x60, 0xb5, 0xfa,
-	0x10, 0x0e, 0x44, 0xa3, 0x94, 0x38, 0x84, 0xa7, 0x9f, 0x5b, 0x9c, 0xae, 0x5f, 0x66, 0x08, 0xa2,
-	0x20, 0x12, 0x4a, 0x6b, 0x18, 0xb9, 0xc4, 0x7d, 0x8b, 0xd3, 0x83, 0x4b, 0x93, 0x72, 0x33, 0x4b,
-	0x1c, 0x4b, 0x4a, 0x52, 0x8b, 0x4b, 0x52, 0x53, 0x1c, 0x93, 0x4b, 0x32, 0xf3, 0xf3, 0x84, 0xcc,
-	0xb8, 0x38, 0x8b, 0xc1, 0xe2, 0x25, 0xa9, 0x45, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x4e, 0x12,
-	0x97, 0xb6, 0xe8, 0x8a, 0x40, 0x4d, 0x76, 0x4c, 0x49, 0x29, 0x4a, 0x2d, 0x2e, 0x0e, 0x2e, 0x29,
-	0xca, 0xcc, 0x4b, 0x0f, 0x42, 0x28, 0x15, 0x92, 0xe4, 0xe2, 0x00, 0x3b, 0x28, 0x3e, 0x33, 0x45,
-	0x82, 0x09, 0xa4, 0x2d, 0x88, 0x1d, 0xcc, 0xf7, 0x4c, 0x11, 0x92, 0xe0, 0x62, 0x2f, 0x48, 0xac,
-	0xcc, 0xc9, 0x4f, 0x4c, 0x91, 0x60, 0x56, 0x60, 0xd4, 0xe0, 0x09, 0x82, 0x71, 0x85, 0x44, 0xb8,
-	0x58, 0x4b, 0xf2, 0xb3, 0x53, 0xf3, 0x24, 0x58, 0xc0, 0x3a, 0x20, 0x1c, 0x2b, 0xbe, 0xa6, 0xe7,
-	0x1b, 0xb4, 0x10, 0x46, 0x2b, 0x19, 0x73, 0xc9, 0xe3, 0x70, 0x6d, 0x50, 0x6a, 0x71, 0x41, 0x7e,
-	0x5e, 0x71, 0xaa, 0x90, 0x00, 0x17, 0x73, 0x71, 0x6a, 0x21, 0xd8, 0xbd, 0x2c, 0x41, 0x20, 0xa6,
-	0xd1, 0x6c, 0x46, 0x2e, 0x66, 0xdf, 0xe2, 0x74, 0xa1, 0x1e, 0x46, 0x2e, 0x11, 0xac, 0x1e, 0x35,
-	0xd5, 0xc3, 0x17, 0xae, 0x7a, 0x38, 0x6c, 0x94, 0xb2, 0x25, 0x4b, 0x1b, 0xcc, 0xa1, 0x52, 0xac,
-	0x0d, 0xcf, 0x37, 0x68, 0x31, 0x3a, 0xf9, 0x9c, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3,
-	0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c,
-	0x43, 0x94, 0x51, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x3e, 0x8e, 0xf4,
-	0x51, 0x66, 0xac, 0x5f, 0x01, 0x4b, 0x24, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0x68, 0x35,
-	0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x8d, 0xa5, 0xb6, 0x49, 0x51, 0x02, 0x00, 0x00,
+	// 516 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0x4f, 0x6b, 0x13, 0x4f,
+	0x18, 0xc7, 0x33, 0xbf, 0x24, 0xed, 0xaf, 0x8f, 0xff, 0xca, 0x12, 0xe8, 0x76, 0x29, 0xdb, 0x12,
+	0x28, 0x96, 0x82, 0x3b, 0x9a, 0x60, 0x91, 0x82, 0x87, 0x44, 0x2f, 0x82, 0x01, 0xd9, 0xde, 0xbc,
+	0x94, 0xcd, 0xee, 0x30, 0x0e, 0xed, 0xce, 0xac, 0x3b, 0xd3, 0x34, 0x2b, 0x08, 0xe2, 0xd9, 0x83,
+	0xe0, 0xdb, 0x10, 0xe9, 0xc1, 0x17, 0xd1, 0x63, 0xf1, 0xe4, 0x49, 0x24, 0x39, 0xf4, 0x6d, 0xc8,
+	0xce, 0x24, 0x5b, 0x5d, 0x9b, 0xd6, 0x8a, 0xa7, 0xcc, 0x77, 0xf2, 0xfd, 0xce, 0x7c, 0x9e, 0x99,
+	0xd9, 0x07, 0xd6, 0xa3, 0x2c, 0x26, 0x5c, 0x32, 0xc1, 0x87, 0xd9, 0x2b, 0x5c, 0x08, 0x1c, 0x50,
+	0xc2, 0x15, 0x56, 0x43, 0x2f, 0x49, 0x85, 0x12, 0xd6, 0xca, 0xcf, 0x36, 0xaf, 0x10, 0x9e, 0xb6,
+	0x39, 0xcb, 0xa1, 0x90, 0xb1, 0x90, 0xbb, 0xda, 0x8b, 0x8d, 0x30, 0x41, 0x67, 0xc9, 0x28, 0x1c,
+	0x4b, 0x8a, 0x07, 0xf7, 0xf2, 0x9f, 0xc9, 0x1f, 0x0d, 0x2a, 0xa8, 0x30, 0x81, 0x7c, 0x34, 0x99,
+	0xbd, 0x3d, 0x03, 0x27, 0x14, 0x71, 0x2c, 0x38, 0x56, 0x84, 0x18, 0x63, 0xf3, 0x13, 0x82, 0xc5,
+	0x9e, 0xa4, 0x3e, 0xa1, 0x4c, 0x2a, 0x92, 0x76, 0x72, 0x0e, 0xcb, 0x83, 0xba, 0x38, 0xe4, 0x24,
+	0xb5, 0xd1, 0x1a, 0xda, 0x58, 0xe8, 0xda, 0x5f, 0x3e, 0xdf, 0x69, 0x4c, 0x68, 0x3a, 0x51, 0x94,
+	0x12, 0x29, 0x77, 0x54, 0xca, 0x38, 0xf5, 0x8d, 0xcd, 0x5a, 0x86, 0xff, 0x75, 0x01, 0xbb, 0x2c,
+	0xb2, 0xff, 0xcb, 0x23, 0xfe, 0xbc, 0xd6, 0x4f, 0x22, 0xeb, 0x11, 0xcc, 0x25, 0x62, 0x9f, 0x85,
+	0x99, 0x5d, 0x5d, 0x43, 0x1b, 0xd7, 0x5a, 0xeb, 0xde, 0x8c, 0x13, 0x30, 0x64, 0xde, 0x33, 0x6d,
+	0xee, 0xd6, 0x8e, 0xbf, 0xad, 0x56, 0xfc, 0x49, 0x74, 0x1b, 0xde, 0x9e, 0x1e, 0x6d, 0x9a, 0xbd,
+	0x9a, 0x0e, 0xd8, 0x65, 0x5e, 0x9f, 0xc8, 0x44, 0x70, 0x49, 0x9a, 0x7b, 0x60, 0xf5, 0x24, 0x7d,
+	0x4c, 0x82, 0x50, 0xb1, 0x41, 0xa0, 0xc8, 0xbf, 0xae, 0xe6, 0x17, 0x90, 0x15, 0x70, 0x7e, 0xdf,
+	0xac, 0x40, 0xf9, 0x88, 0x60, 0xa9, 0x27, 0xe9, 0xce, 0x41, 0x3f, 0x66, 0xaa, 0xa3, 0x14, 0x91,
+	0x8a, 0x44, 0x9d, 0x50, 0x31, 0xc1, 0xad, 0x2d, 0x58, 0x90, 0x7a, 0x5e, 0xfd, 0x01, 0xd4, 0x99,
+	0xf5, 0xa2, 0x63, 0xb6, 0x61, 0x3e, 0x09, 0xb2, 0x7d, 0x11, 0x44, 0xfa, 0x9c, 0xaf, 0xfb, 0x53,
+	0x69, 0x35, 0xa0, 0xae, 0xc4, 0x1e, 0xe1, 0x76, 0x4d, 0x27, 0x8c, 0xd8, 0xbe, 0x99, 0x17, 0x72,
+	0xb6, 0x74, 0xb3, 0x0d, 0xab, 0x33, 0x68, 0xa7, 0x15, 0x59, 0x8b, 0x50, 0x95, 0xe4, 0xa5, 0xe6,
+	0xad, 0xf9, 0xf9, 0xb0, 0xf5, 0xa1, 0x0a, 0xd5, 0x9e, 0xa4, 0xd6, 0x21, 0xdc, 0x28, 0xbd, 0x1f,
+	0xef, 0xa2, 0x67, 0xee, 0x95, 0xef, 0xcf, 0xd9, 0xba, 0x9a, 0xbf, 0x40, 0x7a, 0x0d, 0xb7, 0xca,
+	0x97, 0x7d, 0xf7, 0xd2, 0xa5, 0x4a, 0x09, 0xe7, 0xc1, 0x55, 0x13, 0xc5, 0xf6, 0xef, 0x10, 0x34,
+	0xce, 0xbd, 0xe0, 0xfb, 0x97, 0x2e, 0x79, 0x5e, 0xcc, 0x79, 0xf8, 0x57, 0xb1, 0x29, 0x8e, 0x53,
+	0x7f, 0x73, 0x7a, 0xb4, 0x89, 0xba, 0x4f, 0x8f, 0x47, 0x2e, 0x3a, 0x19, 0xb9, 0xe8, 0xfb, 0xc8,
+	0x45, 0xef, 0xc7, 0x6e, 0xe5, 0x64, 0xec, 0x56, 0xbe, 0x8e, 0xdd, 0xca, 0xf3, 0x16, 0x65, 0xea,
+	0xc5, 0x41, 0x3f, 0xff, 0xd4, 0xf0, 0x8c, 0xfe, 0x30, 0x68, 0xe3, 0xe1, 0xb4, 0x67, 0x65, 0x09,
+	0x91, 0xfd, 0x39, 0xdd, 0x26, 0xda, 0x3f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x55, 0xcf, 0x85, 0x5b,
+	0xe0, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -192,6 +393,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// RegisterAgent registers a new agent with an immutable attestation policy.
+	RegisterAgent(ctx context.Context, in *MsgRegisterAgent, opts ...grpc.CallOption) (*MsgRegisterAgentResponse, error)
+	// DeactivateAgent deactivates an existing agent. Owner only.
+	DeactivateAgent(ctx context.Context, in *MsgDeactivateAgent, opts ...grpc.CallOption) (*MsgDeactivateAgentResponse, error)
 	// SubmitAttestedAction verifies a TEE attestation token against the agent's
 	// policy, bound by a per-action nonce, and appends an entry to the agent's
 	// action log.
@@ -206,6 +411,24 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
+func (c *msgClient) RegisterAgent(ctx context.Context, in *MsgRegisterAgent, opts ...grpc.CallOption) (*MsgRegisterAgentResponse, error) {
+	out := new(MsgRegisterAgentResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.agent.Msg/RegisterAgent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) DeactivateAgent(ctx context.Context, in *MsgDeactivateAgent, opts ...grpc.CallOption) (*MsgDeactivateAgentResponse, error) {
+	out := new(MsgDeactivateAgentResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.agent.Msg/DeactivateAgent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) SubmitAttestedAction(ctx context.Context, in *MsgSubmitAttestedAction, opts ...grpc.CallOption) (*MsgSubmitAttestedActionResponse, error) {
 	out := new(MsgSubmitAttestedActionResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.agent.Msg/SubmitAttestedAction", in, out, opts...)
@@ -217,6 +440,10 @@ func (c *msgClient) SubmitAttestedAction(ctx context.Context, in *MsgSubmitAttes
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// RegisterAgent registers a new agent with an immutable attestation policy.
+	RegisterAgent(context.Context, *MsgRegisterAgent) (*MsgRegisterAgentResponse, error)
+	// DeactivateAgent deactivates an existing agent. Owner only.
+	DeactivateAgent(context.Context, *MsgDeactivateAgent) (*MsgDeactivateAgentResponse, error)
 	// SubmitAttestedAction verifies a TEE attestation token against the agent's
 	// policy, bound by a per-action nonce, and appends an entry to the agent's
 	// action log.
@@ -227,12 +454,54 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
+func (*UnimplementedMsgServer) RegisterAgent(ctx context.Context, req *MsgRegisterAgent) (*MsgRegisterAgentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterAgent not implemented")
+}
+func (*UnimplementedMsgServer) DeactivateAgent(ctx context.Context, req *MsgDeactivateAgent) (*MsgDeactivateAgentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeactivateAgent not implemented")
+}
 func (*UnimplementedMsgServer) SubmitAttestedAction(ctx context.Context, req *MsgSubmitAttestedAction) (*MsgSubmitAttestedActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitAttestedAction not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
+}
+
+func _Msg_RegisterAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterAgent)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.agent.Msg/RegisterAgent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterAgent(ctx, req.(*MsgRegisterAgent))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_DeactivateAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeactivateAgent)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DeactivateAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.agent.Msg/DeactivateAgent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DeactivateAgent(ctx, req.(*MsgDeactivateAgent))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_SubmitAttestedAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -258,12 +527,150 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "RegisterAgent",
+			Handler:    _Msg_RegisterAgent_Handler,
+		},
+		{
+			MethodName: "DeactivateAgent",
+			Handler:    _Msg_DeactivateAgent_Handler,
+		},
+		{
 			MethodName: "SubmitAttestedAction",
 			Handler:    _Msg_SubmitAttestedAction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "dymensionxyz/dymension/agent/tx.proto",
+}
+
+func (m *MsgRegisterAgent) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRegisterAgent) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRegisterAgent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Policy.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRegisterAgentResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRegisterAgentResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRegisterAgentResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeactivateAgent) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeactivateAgent) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeactivateAgent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeactivateAgentResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeactivateAgentResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeactivateAgentResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
 }
 
 func (m *MsgSubmitAttestedAction) Marshal() (dAtA []byte, err error) {
@@ -356,6 +763,60 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *MsgRegisterAgent) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Policy.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgRegisterAgentResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgDeactivateAgent) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgDeactivateAgentResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgSubmitAttestedAction) Size() (n int) {
 	if m == nil {
 		return 0
@@ -398,6 +859,367 @@ func sovTx(x uint64) (n int) {
 }
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *MsgRegisterAgent) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRegisterAgent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRegisterAgent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Policy", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Policy.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRegisterAgentResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRegisterAgentResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRegisterAgentResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeactivateAgent) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeactivateAgent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeactivateAgent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeactivateAgentResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeactivateAgentResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeactivateAgentResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *MsgSubmitAttestedAction) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/internal/collcompat"
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
@@ -14,62 +14,58 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	p, err := k.GetParams(sdk.UnwrapSDKContext(c))
+func (k Keeper) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	params, err := k.GetParams(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, err
 	}
-	return &types.QueryParamsResponse{Params: p}, nil
+	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-func (k Keeper) Agent(c context.Context, req *types.QueryAgentRequest) (*types.QueryAgentResponse, error) {
-	if req == nil || req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	a, found := k.GetAgent(sdk.UnwrapSDKContext(c), req.Id)
+func (k Keeper) Agent(goCtx context.Context, req *types.QueryAgentRequest) (*types.QueryAgentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	agent, found := k.GetAgent(ctx, req.AgentId)
 	if !found {
-		return nil, status.Errorf(codes.NotFound, "agent not found: %s", req.Id)
+		return nil, errorsmod.Wrap(types.ErrAgentNotFound, req.AgentId)
 	}
-	return &types.QueryAgentResponse{Agent: a}, nil
+	return &types.QueryAgentResponse{Agent: agent}, nil
 }
 
-func (k Keeper) Agents(c context.Context, req *types.QueryAgentsRequest) (*types.QueryAgentsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	agents, pageResp, err := collcompat.CollectionPaginate(sdk.UnwrapSDKContext(c), k.agents, req.Pagination,
+func (k Keeper) Agents(goCtx context.Context, req *types.QueryAgentsRequest) (*types.QueryAgentsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	agents, pageResp, err := collcompat.CollectionPaginate(ctx, k.agents, req.Pagination,
 		func(_ string, a types.Agent) (types.Agent, error) { return a, nil })
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, err
 	}
 	return &types.QueryAgentsResponse{Agents: agents, Pagination: pageResp}, nil
 }
 
-func (k Keeper) AgentActions(c context.Context, req *types.QueryAgentActionsRequest) (*types.QueryAgentActionsResponse, error) {
-	if req == nil || req.AgentId == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+func (k Keeper) AgentActions(goCtx context.Context, req *types.QueryAgentActionsRequest) (*types.QueryAgentActionsResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
 	}
-	actions, pageResp, err := collcompat.CollectionPaginate(sdk.UnwrapSDKContext(c), k.actionLog, req.Pagination,
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	actions, pageResp, err := collcompat.CollectionPaginate(ctx, k.actionLog, req.Pagination,
 		func(_ collections.Pair[string, uint64], e types.ActionLogEntry) (types.ActionLogEntry, error) {
 			return e, nil
 		},
 		collcompat.WithCollectionPaginationPairPrefix[string, uint64](req.AgentId))
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, err
 	}
 	return &types.QueryAgentActionsResponse{Actions: actions, Pagination: pageResp}, nil
 }
 
-func (k Keeper) AgentAction(c context.Context, req *types.QueryAgentActionRequest) (*types.QueryAgentActionResponse, error) {
-	if req == nil || req.AgentId == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+func (k Keeper) AgentAction(goCtx context.Context, req *types.QueryAgentActionRequest) (*types.QueryAgentActionResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
 	}
-	e, found := k.GetActionLogEntry(sdk.UnwrapSDKContext(c), req.AgentId, req.Seq)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	entry, found := k.GetActionLogEntry(ctx, req.AgentId, req.Seq)
 	if !found {
-		return nil, status.Errorf(codes.NotFound, "action not found: agent %s seq %d", req.AgentId, req.Seq)
+		return nil, errorsmod.Wrapf(types.ErrActionNotFound, "agent %s seq %d", req.AgentId, req.Seq)
 	}
-	return &types.QueryAgentActionResponse{Action: e}, nil
+	return &types.QueryAgentActionResponse{Action: entry}, nil
 }

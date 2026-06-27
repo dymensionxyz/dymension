@@ -119,11 +119,12 @@ import (
 	hypercoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
 	hyperwarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
 	hyperwarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
+	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
+
 	agentkeeper "github.com/dymensionxyz/dymension/v3/x/agent/keeper"
 	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 	"github.com/dymensionxyz/dymension/v3/x/common/tee"
-	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
-	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
 	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
@@ -596,6 +597,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[agenttypes.ModuleName]),
 		tee.NewVerifier(),
+		a.BankKeeper,
 	)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(

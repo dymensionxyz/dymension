@@ -68,12 +68,13 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/agent"
-	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 	dymnsmodule "github.com/dymensionxyz/dymension/v3/x/dymns"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/dymensionxyz/dymension/v3/x/kas"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/agent"
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -217,7 +218,7 @@ var maccPerms = map[string][]string{
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 	kastypes.ModuleName:                                nil,
-	agenttypes.ModuleName:                              nil,
+	agenttypes.ModuleName:                              {authtypes.Burner},
 	bridgingfeetypes.ModuleName:                        nil,
 	ratelimittypes.ModuleName:                          nil,
 }

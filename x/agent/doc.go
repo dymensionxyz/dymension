@@ -1,3 +1,4 @@
-// Package agent implements the verifiable agent registry and attested action
-// log: a read-only, auditable on-chain record of attested agent actions.
+// Package agent maintains the registry of TEE agents and their action log.
+// Business-logic messages (registration, action submission) and queries beyond
+// params are added in later issues.
 package agent

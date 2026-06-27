@@ -12,12 +12,12 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 		panic(err)
 	}
 	for _, a := range g.Agents {
-		if err := k.SetAgent(ctx, a); err != nil {
+		if err := k.agents.Set(ctx, a.Id, a); err != nil {
 			panic(err)
 		}
 	}
 	for _, e := range g.ActionLog {
-		if err := k.setActionLogEntry(ctx, e); err != nil {
+		if err := k.actionLog.Set(ctx, collections.Join(e.AgentId, e.Seq), e); err != nil {
 			panic(err)
 		}
 	}
@@ -28,26 +28,23 @@ func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
 	if err != nil {
 		panic(err)
 	}
+	g := types.GenesisState{
+		Params: params,
+	}
 
-	var agents []types.Agent
-	if err := k.agents.Walk(ctx, nil, func(_ string, a types.Agent) (bool, error) {
-		agents = append(agents, a)
+	if err := k.agents.Walk(ctx, nil, func(_ string, a types.Agent) (stop bool, err error) {
+		g.Agents = append(g.Agents, a)
 		return false, nil
 	}); err != nil {
 		panic(err)
 	}
 
-	var actionLog []types.ActionLogEntry
-	if err := k.actionLog.Walk(ctx, nil, func(_ collections.Pair[string, uint64], e types.ActionLogEntry) (bool, error) {
-		actionLog = append(actionLog, e)
+	if err := k.actionLog.Walk(ctx, nil, func(_ collections.Pair[string, uint64], e types.ActionLogEntry) (stop bool, err error) {
+		g.ActionLog = append(g.ActionLog, e)
 		return false, nil
 	}); err != nil {
 		panic(err)
 	}
 
-	return &types.GenesisState{
-		Params:    params,
-		Agents:    agents,
-		ActionLog: actionLog,
-	}
+	return &g
 }
