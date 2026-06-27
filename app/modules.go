@@ -73,6 +73,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/kas"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
+	"github.com/dymensionxyz/dymension/v3/x/agent"
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
+
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
@@ -168,6 +171,7 @@ func (app *App) SetupModules(
 		hypercore.NewAppModule(appCodec, &app.HyperCoreKeeper),
 		hyperwarp.NewAppModule(appCodec, app.HyperWarpKeeper),
 		kas.NewAppModule(appCodec, app.KasKeeper),
+		agent.NewAppModule(appCodec, app.AgentKeeper),
 		bridgingfee.NewAppModule(app.BridgingFeeKeeper),
 	}
 }
@@ -214,6 +218,7 @@ var maccPerms = map[string][]string{
 	hypertypes.ModuleName:                              nil,
 	hyperwarptypes.ModuleName:                          {authtypes.Minter, authtypes.Burner},
 	kastypes.ModuleName:                                nil,
+	agenttypes.ModuleName:                              {authtypes.Burner},
 	bridgingfeetypes.ModuleName:                        nil,
 	ratelimittypes.ModuleName:                          nil,
 }
@@ -266,6 +271,7 @@ var BeginBlockers = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	agenttypes.ModuleName,
 	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
@@ -314,6 +320,7 @@ var EndBlockers = []string{
 	hypertypes.ModuleName,
 	hyperwarptypes.ModuleName,
 	kastypes.ModuleName,
+	agenttypes.ModuleName,
 	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }
@@ -363,6 +370,7 @@ var InitGenesis = []string{
 	hyperwarptypes.ModuleName,
 	circuittypes.ModuleName,
 	kastypes.ModuleName,
+	agenttypes.ModuleName,
 	bridgingfeetypes.ModuleName,
 	ratelimittypes.ModuleName,
 }

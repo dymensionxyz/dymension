@@ -17,7 +17,8 @@ import (
 type Keeper struct {
 	// verifier is injected so the attestation seam can be faked in tests; the
 	// real verifier does GCP PKI + rego evaluation.
-	verifier tee.Verifier
+	verifier   tee.Verifier
+	bankKeeper types.BankKeeper
 
 	params    collections.Item[types.Params]
 	agents    collections.Map[string, types.Agent]
@@ -28,11 +29,13 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	service store.KVStoreService,
 	verifier tee.Verifier,
+	bankKeeper types.BankKeeper,
 ) *Keeper {
 	sb := collections.NewSchemaBuilder(service)
 
 	k := &Keeper{
-		verifier: verifier,
+		verifier:   verifier,
+		bankKeeper: bankKeeper,
 		params: collections.NewItem(sb, collections.NewPrefix(types.KeyParams),
 			"params", collcompat.ProtoValue[types.Params](cdc)),
 		agents: collections.NewMap(sb, collections.NewPrefix(types.KeyAgents),

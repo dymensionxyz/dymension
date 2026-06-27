@@ -122,6 +122,10 @@ import (
 	kaskeeper "github.com/dymensionxyz/dymension/v3/x/kas/keeper"
 	kastypes "github.com/dymensionxyz/dymension/v3/x/kas/types"
 
+	agentkeeper "github.com/dymensionxyz/dymension/v3/x/agent/keeper"
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
+	"github.com/dymensionxyz/dymension/v3/x/common/tee"
+
 	forward "github.com/dymensionxyz/dymension/v3/x/forward"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 )
@@ -186,6 +190,7 @@ type AppKeepers struct {
 	HyperCoreKeeper   hypercorekeeper.Keeper
 	HyperWarpKeeper   hyperwarpkeeper.Keeper
 	KasKeeper         *kaskeeper.Keeper
+	AgentKeeper       *agentkeeper.Keeper
 	BridgingFeeKeeper bridgingfeekeeper.Keeper
 	Forward           *forward.Forward
 
@@ -586,6 +591,13 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[kastypes.ModuleName]),
 		govModuleAddress,
 		&a.HyperCoreKeeper,
+	)
+
+	a.AgentKeeper = agentkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[agenttypes.ModuleName]),
+		tee.NewVerifier(),
+		a.BankKeeper,
 	)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(

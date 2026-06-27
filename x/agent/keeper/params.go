@@ -13,3 +13,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 func (k Keeper) GetParams(ctx sdk.Context) (types.Params, error) {
 	return k.params.Get(ctx)
 }
+
+func (k Keeper) AgentRegistrationFee(ctx sdk.Context) (sdk.Coin, error) {
+	p, err := k.GetParams(ctx)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	return p.AgentRegistrationFee, nil
+}
