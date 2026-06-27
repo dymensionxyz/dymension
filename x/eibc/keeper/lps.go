@@ -204,7 +204,9 @@ func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) e
 	if err != nil {
 		return errorsmod.Wrap(err, "get compatible lp")
 	}
-	r := rand.New(rand.NewPCG(rng, 0)) //nolint:gosec // This is used for deterministic shuffling in order processing
+	// Lock the price/fee to the current height before moving funds and bookkeeping.
+	o.ApplyEffectiveFee(uint64(ctx.BlockHeight())) //nolint:gosec
+	r := rand.New(rand.NewPCG(rng, 0))             //nolint:gosec // This is used for deterministic shuffling in order processing
 	r.Shuffle(len(lps), func(i, j int) {
 		lps[i], lps[j] = lps[j], lps[i]
 	})

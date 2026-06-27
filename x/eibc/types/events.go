@@ -29,6 +29,7 @@ func GetFulfilledEvent(m *DemandOrder) *EventDemandOrderFulfilled {
 		PacketStatus: m.TrackingPacketStatus.String(),
 		Fulfiller:    m.FulfillerAddress,
 		PacketType:   m.Type.String(),
+		EffectiveFee: m.GetFeeAmount().String(),
 	}
 }
 
@@ -48,6 +49,7 @@ func GetFulfilledAuthorizedEvent(m *DemandOrder,
 		LpAddress:       lpAddress,
 		OperatorAddress: operatorAddress,
 		OperatorFee:     operatorFee,
+		EffectiveFee:    m.GetFeeAmount().String(),
 	}
 }
 
