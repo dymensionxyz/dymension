@@ -24,6 +24,22 @@ service Query {
         "/dymensionxyz/dymension/dymns/dym_name/{dym_name}";
   }
 
+  // DymNameServices queries all the typed service/endpoint records of a
+  // Dym-Name.
+  rpc DymNameServices(QueryDymNameServicesRequest)
+      returns (QueryDymNameServicesResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/dymns/dym_name/{name}/services";
+  }
+
+  // DymNameService queries a single typed service/endpoint record of a
+  // Dym-Name by its service key.
+  rpc DymNameService(QueryDymNameServiceRequest)
+      returns (QueryDymNameServiceResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/dymns/dym_name/{name}/services/{service_key}";
+  }
+
   // Alias queries the chain_id associated as well as the Sell-Order and
   // Buy-Order IDs relates to the alias.
   rpc Alias(QueryAliasRequest) returns (QueryAliasResponse) {
@@ -170,6 +186,51 @@ message QueryDymNameRequest {
 message QueryDymNameResponse {
   // dym_name is the Dym-Name queried for.
   DymName dym_name = 1;
+}
+
+// ServiceRecord is a single typed service/endpoint record of a Dym-Name.
+message ServiceRecord {
+  // service_key is the key of the service record (e.g. `mcp`, `a2a`, `x402`).
+  string service_key = 1;
+
+  // value is the opaque endpoint string.
+  string value = 2;
+}
+
+// QueryDymNameServicesRequest is the request type for the
+// Query/DymNameServices RPC method.
+message QueryDymNameServicesRequest {
+  option (gogoproto.equal) = false;
+
+  // name is the Dym-Name to query the service records for.
+  string name = 1;
+}
+
+// QueryDymNameServicesResponse is the response type for the
+// Query/DymNameServices RPC method.
+message QueryDymNameServicesResponse {
+  // services are the typed service/endpoint records of the Dym-Name.
+  repeated ServiceRecord services = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryDymNameServiceRequest is the request type for the Query/DymNameService
+// RPC method.
+message QueryDymNameServiceRequest {
+  option (gogoproto.equal) = false;
+
+  // name is the Dym-Name to query the service record for.
+  string name = 1;
+
+  // service_key is the key of the service record to query.
+  string service_key = 2;
+}
+
+// QueryDymNameServiceResponse is the response type for the Query/DymNameService
+// RPC method.
+message QueryDymNameServiceResponse {
+  // value is the opaque endpoint string the service record resolves to.
+  // Empty if the Dym-Name has no service record for the given key.
+  string value = 1;
 }
 
 // QueryAliasRequest is the request type for the Query/QueryAlias RPC method.

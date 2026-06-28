@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -78,6 +80,10 @@ func (m *DymNameConfig) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config is nil")
 	}
 
+	if m.Type == DymNameConfigType_DCT_SERVICE {
+		return m.validateService()
+	}
+
 	if m.ChainId == "" {
 		// ok to be empty
 	} else if !dymnsutils.IsValidChainIdFormat(m.ChainId) {
@@ -122,6 +128,42 @@ func (m *DymNameConfig) Validate() error {
 			gerrc.ErrInvalidArgument,
 			"Dym-Name config type must be: %s", DymNameConfigType_DCT_NAME.String(),
 		)
+	}
+
+	return nil
+}
+
+// validateService validates a DCT_SERVICE config record, where Path holds the
+// service key and Value holds the opaque endpoint string. Service records are
+// never treated as addresses, so the bech32/hex address checks do not apply.
+func (m *DymNameConfig) validateService() error {
+	if m.ChainId != "" {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name service config chain id must be empty")
+	}
+
+	if !dymnsutils.IsValidServiceKey(m.Path) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name service config key is not valid")
+	}
+
+	if m.IsDelete() {
+		return nil
+	}
+
+	if len(m.Value) > MaxServiceValueLength {
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"dym name service config value is too long; got: %d, max: %d", len(m.Value), MaxServiceValueLength,
+		)
+	}
+
+	if !utf8.ValidString(m.Value) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name service config value must be valid UTF-8")
+	}
+
+	for _, r := range m.Value {
+		if !unicode.IsPrint(r) {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name service config value must be printable")
+		}
 	}
 
 	return nil
