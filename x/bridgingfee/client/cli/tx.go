@@ -67,9 +67,15 @@ func CmdCreateBridgingFeeHook() *cobra.Command {
 
 Fees should be provided as a JSON array of fee objects.
 
+Optional per-asset outbound bounds (in the token's base units): "min_outbound_fee"
+sets a floor (0 = none), "max_outbound_fee" sets a ceiling (0 = none).
+
 Examples:
 # Single fee
 dymd tx bridgingfee create-fee-hook '[{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}]'
+
+# Single fee with min/max outbound bounds
+dymd tx bridgingfee create-fee-hook '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02","min_outbound_fee":"1000","max_outbound_fee":"0"}]'
 
 # Multiple fees
 dymd tx bridgingfee create-fee-hook '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02"},{"token_id":"0x5678...","inbound_fee":"0.05","outbound_fee":"0.03"}]'`,
@@ -109,9 +115,15 @@ func CmdSetBridgingFeeHook() *cobra.Command {
 WARNING: All fields are overwritten on update. If --hook-fees is not provided or is empty,
 ALL existing fees will be REMOVED from the hook.
 
+Optional per-asset outbound bounds (in the token's base units): "min_outbound_fee"
+sets a floor (0 = none), "max_outbound_fee" sets a ceiling (0 = none).
+
 Examples:
 # Update fees (single fee)
 dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x1234567890abcdef1234567890abcdef12345678","inbound_fee":"0.01","outbound_fee":"0.02"}]'
+
+# Update fees with min/max outbound bounds
+dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02","min_outbound_fee":"1000","max_outbound_fee":"0"}]'
 
 # Update fees (multiple fees)
 dymd tx bridgingfee set-fee-hook 0x1234... --hook-fees '[{"token_id":"0x1234...","inbound_fee":"0.01","outbound_fee":"0.02"},{"token_id":"0x5678...","inbound_fee":"0.05","outbound_fee":"0.03"}]'

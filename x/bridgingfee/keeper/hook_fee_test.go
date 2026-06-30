@@ -214,6 +214,182 @@ func (s *KeeperTestSuite) TestFeeHookPostDispatch() {
 	})
 }
 
+func (s *KeeperTestSuite) TestQuoteFeeOutboundBounds() {
+	creator := s.CreateRandomAccount()
+	s.FundAcc(creator, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(10_000_000))))
+
+	mailboxId, _ := s.createDummyMailbox(creator.String())
+	tokenId := s.createDummyToken(creator.String(), mailboxId, "stake")
+	feeHandler := keeper.NewFeeHookHandler(s.App.BridgingFeeKeeper)
+
+	// newHook creates a fee hook for tokenId with the given outbound config.
+	// A nil min/max (math.Int{}) models a hook persisted before the bounds existed.
+	newHook := func(outbound string, minFee, maxFee math.Int) hyputil.HexAddress {
+		hookId, err := s.App.BridgingFeeKeeper.CreateFeeHook(s.Ctx, &types.MsgCreateBridgingFeeHook{
+			Owner: creator.String(),
+			Fees: []types.HLAssetFee{{
+				TokenId:        tokenId,
+				InboundFee:     math.LegacyZeroDec(),
+				OutboundFee:    math.LegacyMustNewDecFromStr(outbound),
+				MinOutboundFee: minFee,
+				MaxOutboundFee: maxFee,
+			}},
+		})
+		s.Require().NoError(err)
+		return hookId
+	}
+
+	quote := func(hookId hyputil.HexAddress, amt math.Int) math.Int {
+		coins, err := feeHandler.QuoteFee(s.Ctx, hookId, tokenId, amt)
+		s.Require().NoError(err)
+		return coins.AmountOf("stake")
+	}
+
+	tests := []struct {
+		name     string
+		outbound string
+		minFee   math.Int
+		maxFee   math.Int
+		amt      math.Int
+		want     math.Int
+	}{
+		{
+			name:     "unclamped percentage between bounds",
+			outbound: "0.02", minFee: math.NewInt(1000), maxFee: math.NewInt(100_000),
+			amt: math.NewInt(1_000_000), want: math.NewInt(20_000),
+		},
+		{
+			name:     "floor applied when percentage below min",
+			outbound: "0.02", minFee: math.NewInt(50_000), maxFee: math.ZeroInt(),
+			amt: math.NewInt(1_000_000), want: math.NewInt(50_000),
+		},
+		{
+			name:     "floor applied when percentage truncates to zero",
+			outbound: "0.000001", minFee: math.NewInt(1000), maxFee: math.ZeroInt(),
+			amt: math.NewInt(1), want: math.NewInt(1000),
+		},
+		{
+			name:     "ceiling applied when percentage above max",
+			outbound: "0.5", minFee: math.ZeroInt(), maxFee: math.NewInt(100_000),
+			amt: math.NewInt(1_000_000), want: math.NewInt(100_000),
+		},
+		{
+			name:     "flat per-transfer fee (outbound 0 + min)",
+			outbound: "0", minFee: math.NewInt(1000), maxFee: math.ZeroInt(),
+			amt: math.NewInt(1_000_000), want: math.NewInt(1000),
+		},
+		{
+			name:     "min=max=0 is pure percentage",
+			outbound: "0.02", minFee: math.ZeroInt(), maxFee: math.ZeroInt(),
+			amt: math.NewInt(1_000_000), want: math.NewInt(20_000),
+		},
+		{
+			name:     "nil bounds (pre-upgrade) byte-for-byte identical to percentage",
+			outbound: "0.02", minFee: math.Int{}, maxFee: math.Int{},
+			amt: math.NewInt(1_000_000), want: math.NewInt(20_000),
+		},
+		{
+			name:     "nil bounds truncate to zero like before",
+			outbound: "0.000001", minFee: math.Int{}, maxFee: math.Int{},
+			amt: math.NewInt(1), want: math.ZeroInt(),
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			hookId := newHook(tt.outbound, tt.minFee, tt.maxFee)
+			s.Require().Equal(tt.want, quote(hookId, tt.amt))
+		})
+	}
+}
+
+// TestPostDispatchChargesFloor proves a sub-threshold transfer that previously
+// cost zero now charges min_outbound_fee, and is actually deducted from the sender.
+func (s *KeeperTestSuite) TestPostDispatchChargesFloor() {
+	creator := s.CreateRandomAccount()
+	sender := s.CreateRandomAccount()
+	s.FundAcc(creator, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(10_000_000))))
+	s.FundAcc(sender, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(10_000_000))))
+
+	mailboxId, _ := s.createDummyMailbox(creator.String())
+	tokenId := s.createDummyToken(creator.String(), mailboxId, "stake")
+
+	hookId, err := s.App.BridgingFeeKeeper.CreateFeeHook(s.Ctx, &types.MsgCreateBridgingFeeHook{
+		Owner: creator.String(),
+		Fees: []types.HLAssetFee{{
+			TokenId:        tokenId,
+			InboundFee:     math.LegacyZeroDec(),
+			OutboundFee:    math.LegacyMustNewDecFromStr("0.02"),
+			MinOutboundFee: math.NewInt(1000),
+			MaxOutboundFee: math.ZeroInt(),
+		}},
+	})
+	s.Require().NoError(err)
+
+	// 2% of 100 truncates to 2, which is below the 1000 floor.
+	transferAmount := math.NewInt(100)
+	payload, err := warptypes.NewWarpPayload(make([]byte, 32), *transferAmount.BigInt(), []byte{})
+	s.Require().NoError(err)
+
+	recipient, _ := hyputil.DecodeHexAddress("0xd7194459d45619d04a5a0f9e78dc9594a0f37fd6da8382fe12ddda6f2f46d647")
+	message := hyputil.HyperlaneMessage{
+		Version: 1, Nonce: 1, Origin: 11, Sender: tokenId,
+		Destination: 1, Recipient: recipient, Body: payload.Bytes(),
+	}
+	metadata := hyputil.StandardHookMetadata{GasLimit: math.NewInt(50_000), Address: sender}
+
+	feeHandler := keeper.NewFeeHookHandler(s.App.BridgingFeeKeeper)
+	maxFee := sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100_000)))
+
+	initialBalance := s.App.BankKeeper.GetBalance(s.Ctx, sender, "stake")
+	collectedFee, err := feeHandler.PostDispatch(s.Ctx, mailboxId, hookId, metadata, message, maxFee)
+	s.Require().NoError(err)
+	s.Require().Equal(sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1000))), collectedFee)
+
+	finalBalance := s.App.BankKeeper.GetBalance(s.Ctx, sender, "stake")
+	s.Require().Equal(initialBalance.Sub(collectedFee[0]), finalBalance)
+}
+
+// TestGenesisRoundTripOutboundBounds verifies the new min/max fields survive
+// genesis export -> import unchanged.
+func (s *KeeperTestSuite) TestGenesisRoundTripOutboundBounds() {
+	creator := s.CreateRandomAccount()
+	s.FundAcc(creator, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(10_000_000))))
+
+	mailboxId, _ := s.createDummyMailbox(creator.String())
+	tokenId := s.createDummyToken(creator.String(), mailboxId, "stake")
+
+	hookId, err := s.App.BridgingFeeKeeper.CreateFeeHook(s.Ctx, &types.MsgCreateBridgingFeeHook{
+		Owner: creator.String(),
+		Fees: []types.HLAssetFee{{
+			TokenId:        tokenId,
+			InboundFee:     math.LegacyMustNewDecFromStr("0.01"),
+			OutboundFee:    math.LegacyMustNewDecFromStr("0.02"),
+			MinOutboundFee: math.NewInt(1000),
+			MaxOutboundFee: math.NewInt(500_000),
+		}},
+	})
+	s.Require().NoError(err)
+
+	exported := s.App.BridgingFeeKeeper.ExportGenesis(s.Ctx)
+
+	var found *types.HLAssetFee
+	for _, h := range exported.FeeHooks {
+		if h.Id.Equal(hookId) {
+			found = &h.Fees[0]
+			break
+		}
+	}
+	s.Require().NotNil(found)
+	s.Require().Equal(math.NewInt(1000), found.MinOutboundFee)
+	s.Require().Equal(math.NewInt(500_000), found.MaxOutboundFee)
+
+	// Re-import into a fresh context and confirm it round-trips.
+	s.App.BridgingFeeKeeper.InitGenesis(s.Ctx, *exported)
+	reExported := s.App.BridgingFeeKeeper.ExportGenesis(s.Ctx)
+	s.Require().Equal(exported.FeeHooks, reExported.FeeHooks)
+}
+
 // Helper function to create a real mailbox and ISM
 func (s *KeeperTestSuite) createDummyMailbox(creator string) (hyputil.HexAddress, hyputil.HexAddress) {
 	s.T().Helper()

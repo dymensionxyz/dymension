@@ -127,7 +127,14 @@ func (f FeeHookHandler) QuoteFee(ctx sdk.Context, hookId hyputil.HexAddress, sen
 		return nil, fmt.Errorf("get token from warp keeper: %w", err)
 	}
 
-	// fee = transferAmt * outboundFee
+	// fee = transferAmt * outboundFee, clamped to [min, max] (floor then ceiling).
+	// Validate forbids 0 < max < min, so the two bounds never conflict here.
 	fee := assetFee.OutboundFee.MulInt(transferAmt).TruncateInt()
+	if minFee := types.NormInt(assetFee.MinOutboundFee); fee.LT(minFee) {
+		fee = minFee
+	}
+	if maxFee := types.NormInt(assetFee.MaxOutboundFee); maxFee.IsPositive() && fee.GT(maxFee) {
+		fee = maxFee
+	}
 	return sdk.NewCoins(sdk.NewCoin(tokenResp.Token.OriginDenom, fee)), nil
 }

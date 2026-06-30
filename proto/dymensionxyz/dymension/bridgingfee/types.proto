@@ -28,6 +28,23 @@ message HLAssetFee {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+
+  // Minimum fee charged per outbound transfer, in the token's base units.
+  // 0 = no floor. Lets operators price micropayments and close the
+  // truncate-to-zero / structuring leak.
+  string min_outbound_fee = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Maximum fee charged per outbound transfer, in the token's base units.
+  // 0 = no ceiling.
+  string max_outbound_fee = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message HLFeeHook {
