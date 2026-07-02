@@ -21,3 +21,11 @@ func (k Keeper) AgentRegistrationFee(ctx sdk.Context) (sdk.Coin, error) {
 	}
 	return p.AgentRegistrationFee, nil
 }
+
+func (k Keeper) PolicyRotationDelayBlocks(ctx sdk.Context) (uint64, error) {
+	p, err := k.GetParams(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return p.PolicyRotationDelayBlocks, nil
+}
