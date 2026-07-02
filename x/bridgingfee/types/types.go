@@ -3,9 +3,20 @@ package types
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// NormInt normalizes a possibly-nil math.Int to zero. Fields persisted before
+// the min/max outbound fee bounds existed deserialize with an uninitialized
+// (nil) big.Int; treating those as zero keeps old hooks behaving as before.
+func NormInt(i math.Int) math.Int {
+	if i.IsNil() {
+		return math.ZeroInt()
+	}
+	return i
+}
 
 // Validate validates the fee hook
 func (h HLFeeHook) Validate() error {
@@ -39,6 +50,15 @@ func (f HLAssetFee) Validate() error {
 	}
 	if f.OutboundFee.IsNegative() {
 		return fmt.Errorf("outbound fee cannot be negative")
+	}
+	if NormInt(f.MinOutboundFee).IsNegative() {
+		return fmt.Errorf("min outbound fee cannot be negative")
+	}
+	if NormInt(f.MaxOutboundFee).IsNegative() {
+		return fmt.Errorf("max outbound fee cannot be negative")
+	}
+	if mx := NormInt(f.MaxOutboundFee); mx.IsPositive() && mx.LT(NormInt(f.MinOutboundFee)) {
+		return fmt.Errorf("max outbound fee must be >= min outbound fee")
 	}
 	return nil
 }
