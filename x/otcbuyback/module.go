@@ -141,7 +141,7 @@ func (am AppModuleBasic) GetQueryCmd() *cobra.Command {
 }
 
 // InitGenesis performs the otcbuyback module's genesis initialization
-// InitGenssis should be called after GAMM module genesis
+// InitGenesis should be called after GAMM module genesis
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(gs, &genState)

@@ -39,8 +39,8 @@ func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewCh
 
 	if len(params.Chains.AliasesOfChainIds) > 0 {
 		existingAliasesOfChainIds := make(map[string]dymnstypes.AliasesOfChainId)
-		// Describe usage of Go Map: only used for mapping chain id to the alias configuration  of chain id
-		// and should not be used for other purposes as well as iteration.
+		// Describe usage of Go Map: only used for mapping chain id to the alias configuration of chain id
+		// and should not be used for other purposes or iteration.
 
 		for _, record := range params.Chains.AliasesOfChainIds {
 			existingAliasesOfChainIds[record.ChainId] = record
@@ -145,7 +145,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 	chainIdToAliasConfig := make(map[string]map[string]bool)
 	// Describe usage of Go Map: used to map from chain id to alias configuration.
 	// This map is used to quickly find the alias configuration of a chain id.
-	// Data should be sorted before persist.
+	// Data should be sorted before being persisted.
 
 	for _, record := range params.Chains.AliasesOfChainIds {
 		aliasesPerChainId := make(map[string]bool)
@@ -198,7 +198,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 	}
 
 	// build new params
-	// Note: data must be sorted before persist
+	// Note: data must be sorted before being persisted
 
 	sortedChainIds := dymnsutils.GetSortedStringKeys(chainIdToAliasConfig)
 
