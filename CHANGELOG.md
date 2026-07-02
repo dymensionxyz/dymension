@@ -17,6 +17,7 @@
 * **agent:** registry register + deactivate ([#2166](https://github.com/dymensionxyz/dymension/issues/2166)) ([d0eca0e](https://github.com/dymensionxyz/dymension/commit/d0eca0e3709cbbaaaf9490aae6cbfd7dfdaba10d)), closes [#2158](https://github.com/dymensionxyz/dymension/issues/2158) [#2158](https://github.com/dymensionxyz/dymension/issues/2158) [#2159](https://github.com/dymensionxyz/dymension/issues/2159)
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
 * **eibc:** time-based competitive fee escalation for demand orders ([#2168](https://github.com/dymensionxyz/dymension/issues/2168)) ([c4238fc](https://github.com/dymensionxyz/dymension/commit/c4238fc19d342bfcfdcad93f2528aa900b63905b))
+* **eibc:** validity window + spend-velocity cap for on-demand LPs ([#2170](https://github.com/dymensionxyz/dymension/issues/2170)) ([a6eaaeb](https://github.com/dymensionxyz/dymension/commit/a6eaaeb47e68d7ef03a58545ba00d48762da4276))
 * **forward/cli:** add Kaspa recipient address display in decode-hl ([#2131](https://github.com/dymensionxyz/dymension/issues/2131)) ([a8fe841](https://github.com/dymensionxyz/dymension/commit/a8fe841c8ef5fc835f815615103d1de4fc311ffa))
 * **forward:** pretty print decode-hl forwarding memo ([#2128](https://github.com/dymensionxyz/dymension/issues/2128)) ([79e7b3b](https://github.com/dymensionxyz/dymension/commit/79e7b3bacb3eee3a3f4f2afa31f311f3311be5ae))
 
