@@ -1,9 +1,12 @@
 package keeper_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // create some lps and for a given order, find the compatible lps
@@ -149,6 +152,109 @@ func (suite *KeeperTestSuite) TestLPCompatibilityHeightAge() {
 			suite.NotEmpty(lps)
 		}
 	}
+}
+
+// orderWithSeq builds and stores a distinct outstanding demand order (unique
+// packet sequence => unique id) and returns its id.
+func (suite *KeeperTestSuite) orderWithSeq(seq uint64, recipient string, price, fee math.Int) string {
+	pkt := *rollappPacket
+	innerPkt := *pkt.Packet
+	innerPkt.Sequence = seq
+	pkt.Packet = &innerPkt
+	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, pkt)
+	order := types.NewDemandOrder(pkt, price, fee, sdk.DefaultBondDenom, recipient, 1, nil)
+	suite.Require().NoError(suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, order))
+	return order.Id
+}
+
+// LP with a velocity cap: cumulative fills up to the cap within a bucket
+// succeed; the next fill that would exceed it is rejected; advancing into a new
+// bucket resets capacity.
+func (suite *KeeperTestSuite) TestLPVelocityCap() {
+	k := suite.App.EIBCKeeper
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(10_000_000))
+	orderAddr, lpAddr := addrs[0], addrs[1]
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(5) // bucket 0 (window of 10)
+	_, err := k.LPs.Create(suite.Ctx, &types.OnDemandLP{
+		FundsAddr:       lpAddr.String(),
+		Rollapp:         rollappPacket.RollappId,
+		Denom:           sdk.DefaultBondDenom,
+		MaxPrice:        math.NewInt(100),
+		MinFee:          math.LegacyZeroDec(),
+		SpendLimit:      math.NewInt(1000),
+		RateLimitAmount: math.NewInt(100),
+		RateLimitBlocks: 10,
+	})
+	suite.Require().NoError(err)
+
+	// fill 60 within the cap
+	id1 := suite.orderWithSeq(1, orderAddr.String(), math.NewInt(60), math.NewInt(10))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id1, 0))
+
+	// next fill of 60 would bring window to 120 > 100: rejected (only lp filtered out)
+	id2 := suite.orderWithSeq(2, orderAddr.String(), math.NewInt(60), math.NewInt(10))
+	err = k.FulfillByOnDemandLP(suite.Ctx, id2, 0)
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "expected no compatible lp, got %v", err)
+
+	// a fill that stays within remaining 40 still succeeds in the same bucket
+	id3 := suite.orderWithSeq(3, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id3, 0))
+
+	// advance into the next bucket (height 12 => bucket 10): capacity resets
+	suite.Ctx = suite.Ctx.WithBlockHeight(12)
+	id4 := suite.orderWithSeq(4, orderAddr.String(), math.NewInt(90), math.NewInt(10))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id4, 0))
+}
+
+// LP with a validity window is matched below the expiry height and not at/after.
+func (suite *KeeperTestSuite) TestLPValidityWindowFulfill() {
+	k := suite.App.EIBCKeeper
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(10_000_000))
+	orderAddr, lpAddr := addrs[0], addrs[1]
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(50)
+	_, err := k.LPs.Create(suite.Ctx, &types.OnDemandLP{
+		FundsAddr:        lpAddr.String(),
+		Rollapp:          rollappPacket.RollappId,
+		Denom:            sdk.DefaultBondDenom,
+		MaxPrice:         math.NewInt(100),
+		MinFee:           math.LegacyZeroDec(),
+		SpendLimit:       math.NewInt(1000),
+		ValidUntilHeight: 100,
+	})
+	suite.Require().NoError(err)
+
+	// below expiry: fulfilled
+	suite.Ctx = suite.Ctx.WithBlockHeight(99)
+	id1 := suite.orderWithSeq(1, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id1, 0))
+
+	// at expiry (exclusive): not matched
+	suite.Ctx = suite.Ctx.WithBlockHeight(100)
+	id2 := suite.orderWithSeq(2, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	err = k.FulfillByOnDemandLP(suite.Ctx, id2, 0)
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "expected no compatible lp, got %v", err)
+}
+
+// CreateOnDemandLP rejects an LP whose validity window is already in the past.
+func (suite *KeeperTestSuite) TestCreateLPAlreadyExpired() {
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(10_000_000))
+	suite.Ctx = suite.Ctx.WithBlockHeight(100)
+	msg := &types.MsgCreateOnDemandLP{
+		Lp: &types.OnDemandLP{
+			FundsAddr:        addrs[0].String(),
+			Rollapp:          rollappPacket.RollappId,
+			Denom:            sdk.DefaultBondDenom,
+			MaxPrice:         math.NewInt(100),
+			MinFee:           math.LegacyZeroDec(),
+			SpendLimit:       math.NewInt(1000),
+			ValidUntilHeight: 100,
+		},
+		Signer: addrs[0].String(),
+	}
+	_, err := suite.msgServer.CreateOnDemandLP(suite.Ctx, msg)
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrInvalidArgument), "got %v", err)
 }
 
 func (suite *KeeperTestSuite) TestLPQueriesByAddr() {
