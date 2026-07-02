@@ -135,6 +135,23 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Show a registered agent by id",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
 				},
+				{
+					RpcMethod: "Agents",
+					Use:       "list-agents",
+					Short:     "List all registered agents",
+				},
+				{
+					RpcMethod:      "AgentActions",
+					Use:            "agent-actions [agent-id]",
+					Short:          "List an agent's attested action log",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
+				{
+					RpcMethod:      "AgentAction",
+					Use:            "agent-action [agent-id] [seq]",
+					Short:          "Show a single attested action log entry",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "seq"}},
+				},
 			},
 		},
 	}
