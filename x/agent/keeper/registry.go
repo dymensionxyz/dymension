@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
@@ -76,4 +77,45 @@ func (k msgServer) DeactivateAgent(goCtx context.Context, msg *types.MsgDeactiva
 	}
 
 	return &types.MsgDeactivateAgentResponse{}, nil
+}
+
+func (k msgServer) UpdateAgentPolicy(goCtx context.Context, msg *types.MsgUpdateAgentPolicy) (*types.MsgUpdateAgentPolicyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+
+	agent, found := k.GetAgent(ctx, msg.AgentId)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrAgentNotFound, msg.AgentId)
+	}
+	if agent.Owner != msg.Owner {
+		return nil, errorsmod.Wrap(types.ErrUnauthorized, "not the agent owner")
+	}
+	if !agent.Active {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("agent is not active")
+	}
+
+	delay, err := k.PolicyRotationDelayBlocks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Re-proposing overwrites any existing pending rotation and restarts the
+	// timelock, doubling as the cancel/replace path.
+	agent.PendingPolicy = &msg.NewPolicy
+	agent.PendingPolicyHeight = ctx.BlockHeight() + int64(delay) //nolint:gosec // delay is a small governance param, no realistic overflow
+	if err := k.SetAgent(ctx, agent); err != nil {
+		return nil, err
+	}
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventUpdateAgentPolicy{
+		AgentId:          agent.Id,
+		ActivationHeight: agent.PendingPolicyHeight,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateAgentPolicyResponse{ActivationHeight: agent.PendingPolicyHeight}, nil
 }

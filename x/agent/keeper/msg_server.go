@@ -48,6 +48,14 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", msg.AgentId)
 	}
 
+	// Promote a matured pending policy so verification uses the effective policy;
+	// the SetAgent below persists the promotion in the same write.
+	if agent.PendingPolicy != nil && ctx.BlockHeight() >= agent.PendingPolicyHeight {
+		agent.Policy = *agent.PendingPolicy
+		agent.PendingPolicy = nil
+		agent.PendingPolicyHeight = 0
+	}
+
 	seq := agent.ActionSeq
 	nonce := types.ActionNonce(msg.AgentId, msg.Payload, seq)
 
