@@ -1,7 +1,14 @@
 package keeper_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"errors"
+	"math/big"
 	"testing"
 
 	"cosmossdk.io/log"
@@ -15,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/keeper"
@@ -61,8 +69,34 @@ func setup(t *testing.T) (sdk.Context, *keeper.Keeper, *fakeVerifier) {
 	k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), v, nil)
 
 	ctx := sdk.NewContext(cms, cmtproto.Header{Height: 10}, false, log.NewNopLogger())
-	require.NoError(t, k.SetParams(ctx, types.Params{MaxActionBytes: 1024}))
+	require.NoError(t, k.SetParams(ctx, types.Params{MaxActionBytes: 1024, PolicyRotationDelayBlocks: rotationDelay}))
 	return ctx, k, v
+}
+
+const rotationDelay = 100
+
+// validCertPEM generates a parseable self-signed cert so validatePolicy passes.
+func validCertPEM(t *testing.T) string {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: "test"}}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	require.NoError(t, err)
+	return string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}))
+}
+
+// validPolicy returns a policy passing ValidateBasic, tagged by query so tests
+// can tell old from new via fakeVerifier.gotPolicy.
+func validPolicyT(t *testing.T, query string) tee.Policy {
+	t.Helper()
+	return tee.Policy{GcpRootCertPem: validCertPEM(t), PolicyValues: "{}", PolicyQuery: query, PolicyStructure: "package x"}
+}
+
+func owner(t *testing.T) string {
+	t.Helper()
+	_, _, addr := testdata.KeyTestPubAddr()
+	return addr.String()
 }
 
 func seedAgent(t *testing.T, ctx sdk.Context, k *keeper.Keeper, id string, active bool) {
@@ -196,4 +230,149 @@ func TestSubmitAttestedAction_NonexistentAgent(t *testing.T) {
 
 	_, err := ms.SubmitAttestedAction(ctx, validMsg(t, "ghost", []byte("p"), 0))
 	require.Error(t, err)
+}
+
+// seedOwnedAgent stores an active agent with the given owner and old policy.
+func seedOwnedAgent(t *testing.T, ctx sdk.Context, k *keeper.Keeper, id, own string, policy tee.Policy) {
+	t.Helper()
+	require.NoError(t, k.SetAgent(ctx, types.Agent{Id: id, Owner: own, Policy: policy, Active: true}))
+}
+
+func TestUpdateAgentPolicy_NonOwner(t *testing.T) {
+	ctx, k, _ := setup(t)
+	own := owner(t)
+	seedOwnedAgent(t, ctx, k, "a1", own, validPolicyT(t, "old"))
+	ms := keeper.NewMsgServerImpl(*k)
+
+	_, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(owner(t), "a1", validPolicyT(t, "new")))
+	require.ErrorIs(t, err, types.ErrUnauthorized)
+}
+
+func TestUpdateAgentPolicy_UnknownAgent(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	_, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(owner(t), "ghost", validPolicyT(t, "new")))
+	require.ErrorIs(t, err, types.ErrAgentNotFound)
+}
+
+func TestUpdateAgentPolicy_InactiveAgent(t *testing.T) {
+	ctx, k, _ := setup(t)
+	own := owner(t)
+	require.NoError(t, k.SetAgent(ctx, types.Agent{Id: "a1", Owner: own, Policy: validPolicyT(t, "old"), Active: false}))
+	ms := keeper.NewMsgServerImpl(*k)
+
+	_, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", validPolicyT(t, "new")))
+	require.ErrorIs(t, err, gerrc.ErrFailedPrecondition)
+}
+
+func TestUpdateAgentPolicy_MalformedPolicy(t *testing.T) {
+	ctx, k, _ := setup(t)
+	own := owner(t)
+	seedOwnedAgent(t, ctx, k, "a1", own, validPolicyT(t, "old"))
+	ms := keeper.NewMsgServerImpl(*k)
+
+	bad := tee.Policy{GcpRootCertPem: "not a cert", PolicyQuery: "q", PolicyStructure: "s"}
+	_, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", bad))
+	require.ErrorIs(t, err, types.ErrInvalidPolicy)
+}
+
+func TestUpdateAgentPolicy_HappyPath(t *testing.T) {
+	ctx, k, _ := setup(t)
+	own := owner(t)
+	oldPol := validPolicyT(t, "old")
+	seedOwnedAgent(t, ctx, k, "a1", own, oldPol)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	newPol := validPolicyT(t, "new")
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol))
+	require.NoError(t, err)
+	wantHeight := ctx.BlockHeight() + rotationDelay
+	require.Equal(t, wantHeight, res.ActivationHeight)
+
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.Equal(t, oldPol, agent.Policy)
+	require.NotNil(t, agent.PendingPolicy)
+	require.Equal(t, newPol, *agent.PendingPolicy)
+	require.Equal(t, wantHeight, agent.PendingPolicyHeight)
+	require.Equal(t, uint64(0), agent.ActionSeq)
+}
+
+func TestUpdateAgentPolicy_Overwrite(t *testing.T) {
+	ctx, k, _ := setup(t)
+	own := owner(t)
+	seedOwnedAgent(t, ctx, k, "a1", own, validPolicyT(t, "old"))
+	ms := keeper.NewMsgServerImpl(*k)
+
+	_, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", validPolicyT(t, "new1")))
+	require.NoError(t, err)
+
+	// advance a block, re-propose: pending must be replaced and timelock restarted.
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 5)
+	newPol2 := validPolicyT(t, "new2")
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol2))
+	require.NoError(t, err)
+	require.Equal(t, ctx.BlockHeight()+rotationDelay, res.ActivationHeight)
+
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.Equal(t, newPol2, *agent.PendingPolicy)
+	require.Equal(t, ctx.BlockHeight()+rotationDelay, agent.PendingPolicyHeight)
+}
+
+func TestSubmitAttestedAction_PendingPolicyBeforeActivation(t *testing.T) {
+	ctx, k, v := setup(t)
+	own := owner(t)
+	oldPol := validPolicyT(t, "old")
+	seedOwnedAgent(t, ctx, k, "a1", own, oldPol)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	newPol := validPolicyT(t, "new")
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol))
+	require.NoError(t, err)
+
+	// one block before activation: verification uses the old policy.
+	ctx = ctx.WithBlockHeight(res.ActivationHeight - 1)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("p"), 0))
+	require.NoError(t, err)
+	require.Equal(t, oldPol, v.gotPolicy)
+
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.Equal(t, oldPol, agent.Policy)
+	require.NotNil(t, agent.PendingPolicy)
+}
+
+func TestSubmitAttestedAction_PendingPolicyAtActivation(t *testing.T) {
+	ctx, k, v := setup(t)
+	own := owner(t)
+	seedOwnedAgent(t, ctx, k, "a1", own, validPolicyT(t, "old"))
+	ms := keeper.NewMsgServerImpl(*k)
+
+	newPol := validPolicyT(t, "new")
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol))
+	require.NoError(t, err)
+
+	// at activation height: verification uses the new policy and it is persisted.
+	ctx = ctx.WithBlockHeight(res.ActivationHeight)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("p"), 0))
+	require.NoError(t, err)
+	require.Equal(t, newPol, v.gotPolicy)
+
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.Equal(t, newPol, agent.Policy)
+	require.Nil(t, agent.PendingPolicy)
+	require.Equal(t, int64(0), agent.PendingPolicyHeight)
+}
+
+func TestAgent_EffectivePolicy(t *testing.T) {
+	oldPol := validPolicyT(t, "old")
+	newPol := validPolicyT(t, "new")
+
+	// no pending: always the active policy.
+	a := types.Agent{Policy: oldPol}
+	require.Equal(t, oldPol, a.EffectivePolicy(1000))
+
+	a = types.Agent{Policy: oldPol, PendingPolicy: &newPol, PendingPolicyHeight: 100}
+	require.Equal(t, oldPol, a.EffectivePolicy(99))
+	require.Equal(t, newPol, a.EffectivePolicy(100))
+	require.Equal(t, newPol, a.EffectivePolicy(101))
 }
