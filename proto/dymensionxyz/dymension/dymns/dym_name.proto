@@ -41,10 +41,17 @@ message DymName {
 }
 
 // DymNameConfigType specifies the type of the Dym-Name configuration.
-// Currently only supports Name, similar to DNS.
 enum DymNameConfigType {
   DCT_UNKNOWN = 0;
+  // DCT_NAME is a name resolution record, similar to DNS. It resolves to a
+  // blockchain address.
   DCT_NAME = 1;
+  // DCT_SERVICE is a typed service/endpoint record for agent/service
+  // discovery. For a service record, `path` holds the service key (e.g. `mcp`,
+  // `a2a`, `x402`, `agent`) and `value` holds the opaque endpoint string.
+  // Service records are never treated as addresses and are invisible to
+  // address resolution and reverse-address lookups.
+  DCT_SERVICE = 2;
 }
 
 // DymNameConfig contains the resolution configuration for the Dym-Name.
