@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) orderWithSeq(seq uint64, recipient string, price, 
 	innerPkt.Sequence = seq
 	pkt.Packet = &innerPkt
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, pkt)
-	order := types.NewDemandOrder(pkt, price, fee, sdk.DefaultBondDenom, recipient, 1, nil)
+	order := types.NewDemandOrder(pkt, price, fee, sdk.DefaultBondDenom, recipient, 1, nil, nil)
 	suite.Require().NoError(suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, order))
 	return order.Id
 }
