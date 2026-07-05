@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
@@ -15,6 +16,18 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 
 	if _, found := k.GetAgent(ctx, msg.AgentId); found {
 		return nil, errorsmod.Wrap(types.ErrAgentExists, msg.AgentId)
+	}
+
+	fp, err := types.PolicyFingerprint(msg.Policy)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "policy fingerprint")
+	}
+	revoked, err := k.IsPolicyRevoked(ctx, fp)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "is policy revoked")
+	}
+	if revoked {
+		return nil, gerrc.ErrFailedPrecondition.Wrapf("policy revoked: %s", fp)
 	}
 
 	// charge the registration fee: send to module then burn (mirrors rollapp app registration)
@@ -43,8 +56,9 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 	}
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventRegisterAgent{
-		AgentId: agent.Id,
-		Owner:   agent.Owner,
+		AgentId:     agent.Id,
+		Owner:       agent.Owner,
+		Fingerprint: fp,
 	}); err != nil {
 		return nil, err
 	}

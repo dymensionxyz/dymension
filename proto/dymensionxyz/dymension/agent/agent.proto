@@ -12,7 +12,8 @@ import "dymensionxyz/dymension/common/tee.proto";
 message Params {
   // max_action_bytes is the maximum allowed size of an attested action payload.
   uint64 max_action_bytes = 1;
-  // agent_registration_fee is charged from the owner on registration and burned.
+  // agent_registration_fee is charged from the owner on registration and
+  // burned.
   cosmos.base.v1beta1.Coin agent_registration_fee = 2
       [ (gogoproto.nullable) = false ];
 }
@@ -34,6 +35,9 @@ message Agent {
 message EventRegisterAgent {
   string agent_id = 1;
   string owner = 2;
+  // fingerprint is the lowercase hex SHA-256 of the deterministic proto
+  // marshaling of the agent's policy; pass it to MsgRevokePolicy to revoke.
+  string fingerprint = 3;
 }
 
 // EventDeactivateAgent is emitted when an agent is deactivated.
@@ -41,6 +45,15 @@ message EventDeactivateAgent {
   string agent_id = 1;
   string owner = 2;
 }
+
+// EventPolicyRevoked is emitted when a policy fingerprint is revoked.
+message EventPolicyRevoked {
+  string fingerprint = 1;
+  string reason = 2;
+}
+
+// EventPolicyUnrevoked is emitted when a policy fingerprint is unrevoked.
+message EventPolicyUnrevoked { string fingerprint = 1; }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by
 // (agent_id, seq).

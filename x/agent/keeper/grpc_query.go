@@ -29,7 +29,15 @@ func (k Keeper) Agent(goCtx context.Context, req *types.QueryAgentRequest) (*typ
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrAgentNotFound, req.AgentId)
 	}
-	return &types.QueryAgentResponse{Agent: agent}, nil
+	fp, err := types.PolicyFingerprint(agent.Policy)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "policy fingerprint")
+	}
+	revoked, err := k.IsPolicyRevoked(ctx, fp)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "is policy revoked")
+	}
+	return &types.QueryAgentResponse{Agent: agent, Fingerprint: fp, Revoked: revoked}, nil
 }
 
 func (k Keeper) Agents(goCtx context.Context, req *types.QueryAgentsRequest) (*types.QueryAgentsResponse, error) {
@@ -68,4 +76,25 @@ func (k Keeper) AgentAction(goCtx context.Context, req *types.QueryAgentActionRe
 		return nil, errorsmod.Wrapf(types.ErrActionNotFound, "agent %s seq %d", req.AgentId, req.Seq)
 	}
 	return &types.QueryAgentActionResponse{Action: entry}, nil
+}
+
+func (k Keeper) RevokedPolicies(goCtx context.Context, _ *types.QueryRevokedPoliciesRequest) (*types.QueryRevokedPoliciesResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	fps, err := k.AllRevokedPolicies(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryRevokedPoliciesResponse{Fingerprints: fps}, nil
+}
+
+func (k Keeper) PolicyRevoked(goCtx context.Context, req *types.QueryPolicyRevokedRequest) (*types.QueryPolicyRevokedResponse, error) {
+	if err := types.ValidateFingerprint(req.Fingerprint); err != nil {
+		return nil, err
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	revoked, err := k.IsPolicyRevoked(ctx, req.Fingerprint)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryPolicyRevokedResponse{Revoked: revoked}, nil
 }

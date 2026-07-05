@@ -48,6 +48,20 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", msg.AgentId)
 	}
 
+	// Revocation is a pure denylist: agent.Active is never mutated, so
+	// unrevoking re-enables every affected agent with zero side effects.
+	fp, err := types.PolicyFingerprint(agent.Policy)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "policy fingerprint")
+	}
+	revoked, err := k.IsPolicyRevoked(ctx, fp)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "is policy revoked")
+	}
+	if revoked {
+		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent policy revoked: %s", fp)
+	}
+
 	seq := agent.ActionSeq
 	nonce := types.ActionNonce(msg.AgentId, msg.Payload, seq)
 

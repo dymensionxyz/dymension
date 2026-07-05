@@ -15,12 +15,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 )
+
+var govAuthority = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 // fakeVerifier stands in for the real GCP verifier: a valid GCP-signed token
 // can't be produced locally, so the fake asserts the nonce the handler derived
@@ -58,7 +62,7 @@ func setup(t *testing.T) (sdk.Context, *keeper.Keeper, *fakeVerifier) {
 	v := &fakeVerifier{}
 	// bankKeeper is nil: SubmitAttestedAction never charges fees. Registration
 	// fee burning is covered by the apptesting-based suite in registry_test.go.
-	k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), v, nil)
+	k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), v, nil, govAuthority)
 
 	ctx := sdk.NewContext(cms, cmtproto.Header{Height: 10}, false, log.NewNopLogger())
 	require.NoError(t, k.SetParams(ctx, types.Params{MaxActionBytes: 1024}))

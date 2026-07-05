@@ -21,6 +21,11 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 			panic(err)
 		}
 	}
+	for _, fp := range g.RevokedPolicies {
+		if err := k.revokedPolicies.Set(ctx, fp); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
@@ -45,6 +50,12 @@ func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
 	}); err != nil {
 		panic(err)
 	}
+
+	revoked, err := k.AllRevokedPolicies(ctx)
+	if err != nil {
+		panic(err)
+	}
+	g.RevokedPolicies = revoked
 
 	return &g
 }
