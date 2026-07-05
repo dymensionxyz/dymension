@@ -13,6 +13,9 @@ const (
 	// This is another layer protects spamming the chain with large data.
 	MaxConfigSize = 100
 
+	// MaxServiceValueLength is the maximum length allowed for a service record endpoint value.
+	MaxServiceValueLength = 256
+
 	// MinDymNamePriceStepsCount is the minimum number of price steps required for Dym-Name price.
 	MinDymNamePriceStepsCount = 4
 

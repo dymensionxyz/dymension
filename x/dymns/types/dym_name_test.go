@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -559,6 +560,65 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			Path:    "a",
 			Value:   "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
 			wantErr: false,
+		},
+		{
+			name:  "pass - valid service config",
+			Type:  DymNameConfigType_DCT_SERVICE,
+			Path:  "mcp",
+			Value: "https://mcp.example.com",
+		},
+		{
+			name:  "pass - service config value can be arbitrary opaque string",
+			Type:  DymNameConfigType_DCT_SERVICE,
+			Path:  "x402",
+			Value: "not-a-uri but printable text",
+		},
+		{
+			name:  "pass - service config delete (empty value)",
+			Type:  DymNameConfigType_DCT_SERVICE,
+			Path:  "mcp",
+			Value: "",
+		},
+		{
+			name:            "fail - service config must have empty chain-id",
+			Type:            DymNameConfigType_DCT_SERVICE,
+			ChainId:         "dymension_1100-1",
+			Path:            "mcp",
+			Value:           "https://mcp.example.com",
+			wantErr:         true,
+			wantErrContains: "service config chain id must be empty",
+		},
+		{
+			name:            "fail - service config bad key (uppercase)",
+			Type:            DymNameConfigType_DCT_SERVICE,
+			Path:            "MCP",
+			Value:           "https://mcp.example.com",
+			wantErr:         true,
+			wantErrContains: "service config key is not valid",
+		},
+		{
+			name:            "fail - service config empty key",
+			Type:            DymNameConfigType_DCT_SERVICE,
+			Path:            "",
+			Value:           "https://mcp.example.com",
+			wantErr:         true,
+			wantErrContains: "service config key is not valid",
+		},
+		{
+			name:            "fail - service config value too long",
+			Type:            DymNameConfigType_DCT_SERVICE,
+			Path:            "mcp",
+			Value:           strings.Repeat("a", MaxServiceValueLength+1),
+			wantErr:         true,
+			wantErrContains: "service config value is too long",
+		},
+		{
+			name:            "fail - service config value not printable",
+			Type:            DymNameConfigType_DCT_SERVICE,
+			Path:            "mcp",
+			Value:           "bad\x00value",
+			wantErr:         true,
+			wantErrContains: "service config value must be printable",
 		},
 	}
 	for _, tt := range tests {
