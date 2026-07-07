@@ -45,6 +45,8 @@ func TestGenesisValidate(t *testing.T) {
 		{"enabled agent with invalid denom", func(g *types.GenesisState) { g.Agents[0].SpendDenom = "1" }},
 		{"window spent above limit", func(g *types.GenesisState) { g.Agents[0].SpendWindowSpent = math.NewInt(101) }},
 		{"negative window spent", func(g *types.GenesisState) { g.Agents[0].SpendWindowSpent = math.NewInt(-1) }},
+		{"window start not bucket-aligned", func(g *types.GenesisState) { g.Agents[0].SpendWindowStartHeight = 15 }},
+		{"duplicate agent entry", func(g *types.GenesisState) { g.Agents = append(g.Agents, spendingAgent()) }},
 		{"disabled agent with window blocks", func(g *types.GenesisState) {
 			g.Agents[0] = types.Agent{Id: "a1", SpendWindowBlocks: 10}
 		}},

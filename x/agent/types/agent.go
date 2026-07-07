@@ -4,17 +4,17 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
-	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 )
 
-// EffectivePolicy returns the policy in force at the given block height,
-// promoting a pending policy once its activation height is reached.
-func (a Agent) EffectivePolicy(height int64) tee.Policy {
+// PromotePendingPolicy applies a matured pending policy in place, so
+// verification at or after the activation height uses the rotated policy.
+// Callers persist the agent to make the promotion durable.
+func (a *Agent) PromotePendingPolicy(height int64) {
 	if a.PendingPolicy != nil && height >= a.PendingPolicyHeight {
-		return *a.PendingPolicy
+		a.Policy = *a.PendingPolicy
+		a.PendingPolicy = nil
+		a.PendingPolicyHeight = 0
 	}
-	return a.Policy
 }
 
 // SpendEnabled reports whether the agent has a spend policy configured. Empty
@@ -43,6 +43,11 @@ func (a Agent) ValidateSpendState() error {
 	}
 	if spent.GT(a.SpendLimitPerWindow) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window spent greater than spend limit")
+	}
+	// RecordSpend only ever writes bucket starts (multiples of the window
+	// length), so anything else is not a state the runtime can produce.
+	if a.SpendWindowStartHeight%a.SpendWindowBlocks != 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window start height not bucket-aligned")
 	}
 	return nil
 }

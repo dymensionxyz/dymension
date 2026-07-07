@@ -23,6 +23,45 @@ func NewMsgServerImpl(k Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+// loadAttestingAgent returns the active agent with any matured pending policy
+// promoted, so verification uses the effective policy; the caller's final
+// SetAgent persists the promotion in the same write.
+func (k msgServer) loadAttestingAgent(ctx sdk.Context, agentID string) (types.Agent, error) {
+	agent, found := k.GetAgent(ctx, agentID)
+	if !found {
+		return types.Agent{}, gerrc.ErrNotFound.Wrapf("agent: %s", agentID)
+	}
+	if !agent.Active {
+		return types.Agent{}, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", agentID)
+	}
+	agent.PromotePendingPolicy(ctx.BlockHeight())
+	return agent, nil
+}
+
+// appendAttested writes the action log entry for payload at the agent's
+// current seq, advances the seq and persists the agent. Shared by attested
+// actions and attested transfers so both feed the same auditable, monotonic
+// log.
+func (k msgServer) appendAttested(ctx sdk.Context, agent *types.Agent, payload, payloadHash []byte) error {
+	entry := types.ActionLogEntry{
+		AgentId:     agent.Id,
+		Seq:         agent.ActionSeq,
+		Payload:     payload,
+		PayloadHash: payloadHash,
+		Height:      ctx.BlockHeight(),
+		Time:        ctx.BlockTime(),
+	}
+	if err := k.setActionLogEntry(ctx, entry); err != nil {
+		return errorsmod.Wrap(err, "append action log entry")
+	}
+
+	agent.ActionSeq++
+	if err := k.SetAgent(ctx, *agent); err != nil {
+		return errorsmod.Wrap(err, "set agent")
+	}
+	return nil
+}
+
 // SubmitAttestedAction verifies a TEE attestation token against the agent's
 // policy, bound by a per-action nonce, and appends an immutable entry to the
 // agent's action log.
@@ -41,20 +80,9 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 		return nil, gerrc.ErrInvalidArgument.Wrapf("payload exceeds max action bytes: got %d, max %d", len(msg.Payload), params.MaxActionBytes)
 	}
 
-	agent, found := k.GetAgent(ctx, msg.AgentId)
-	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("agent: %s", msg.AgentId)
-	}
-	if !agent.Active {
-		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", msg.AgentId)
-	}
-
-	// Promote a matured pending policy so verification uses the effective policy;
-	// the SetAgent below persists the promotion in the same write.
-	if agent.PendingPolicy != nil && ctx.BlockHeight() >= agent.PendingPolicyHeight {
-		agent.Policy = *agent.PendingPolicy
-		agent.PendingPolicy = nil
-		agent.PendingPolicyHeight = 0
+	agent, err := k.loadAttestingAgent(ctx, msg.AgentId)
+	if err != nil {
+		return nil, err
 	}
 
 	seq := agent.ActionSeq
@@ -68,21 +96,8 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 	}
 
 	payloadHash := sha256.Sum256(msg.Payload)
-	entry := types.ActionLogEntry{
-		AgentId:     msg.AgentId,
-		Seq:         seq,
-		Payload:     msg.Payload,
-		PayloadHash: payloadHash[:],
-		Height:      ctx.BlockHeight(),
-		Time:        ctx.BlockTime(),
-	}
-	if err := k.setActionLogEntry(ctx, entry); err != nil {
-		return nil, errorsmod.Wrap(err, "append action log entry")
-	}
-
-	agent.ActionSeq = seq + 1
-	if err := k.SetAgent(ctx, agent); err != nil {
-		return nil, errorsmod.Wrap(err, "set agent")
+	if err := k.appendAttested(ctx, &agent, msg.Payload, payloadHash[:]); err != nil {
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -101,7 +116,8 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 // SubmitAttestedTransfer pays out from the agent's escrow to a recipient,
 // authorized by the same TEE attestation + nonce machinery as
 // SubmitAttestedAction. The nonce commits to the exact (recipient, denom,
-// amount, memo), so the enclave — not the submitter — authorizes the payment.
+// amount, memo) in the transfer domain, so the enclave — not the submitter —
+// authorizes the payment.
 func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgSubmitAttestedTransfer) (*types.MsgSubmitAttestedTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -113,32 +129,23 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get params")
 	}
-	if uint64(len(msg.Memo)) > params.MaxActionBytes {
-		return nil, gerrc.ErrInvalidArgument.Wrapf("memo exceeds max action bytes: got %d, max %d", len(msg.Memo), params.MaxActionBytes)
-	}
 
-	agent, found := k.GetAgent(ctx, msg.AgentId)
-	if !found {
-		return nil, gerrc.ErrNotFound.Wrapf("agent: %s", msg.AgentId)
-	}
-	if !agent.Active {
-		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", msg.AgentId)
+	agent, err := k.loadAttestingAgent(ctx, msg.AgentId)
+	if err != nil {
+		return nil, err
 	}
 	if !agent.SpendEnabled() {
 		return nil, errorsmod.Wrap(types.ErrSpendingDisabled, msg.AgentId)
 	}
 
-	// Promote a matured pending policy so verification uses the effective policy;
-	// the SetAgent below persists the promotion in the same write.
-	if agent.PendingPolicy != nil && ctx.BlockHeight() >= agent.PendingPolicyHeight {
-		agent.Policy = *agent.PendingPolicy
-		agent.PendingPolicy = nil
-		agent.PendingPolicyHeight = 0
-	}
-
 	seq := agent.ActionSeq
 	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.Memo)
-	nonce := types.ActionNonce(msg.AgentId, payload, seq)
+	// bound the stored log entry, not just the memo: the payload is what the
+	// log persists
+	if uint64(len(payload)) > params.MaxActionBytes {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("transfer payload exceeds max action bytes: got %d, max %d", len(payload), params.MaxActionBytes)
+	}
+	nonce := types.TransferNonce(msg.AgentId, payload, seq)
 
 	// On any failure the tx rolls back, so no state changes. Replay protection
 	// is structural, as in SubmitAttestedAction: action_seq below advances, so
@@ -165,23 +172,10 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		return nil, errorsmod.Wrap(err, "send coins to recipient")
 	}
 
-	payloadHash := sha256.Sum256(payload)
-	entry := types.ActionLogEntry{
-		AgentId:     msg.AgentId,
-		Seq:         seq,
-		Payload:     payload,
-		PayloadHash: payloadHash[:],
-		Height:      ctx.BlockHeight(),
-		Time:        ctx.BlockTime(),
-	}
-	if err := k.setActionLogEntry(ctx, entry); err != nil {
-		return nil, errorsmod.Wrap(err, "append action log entry")
-	}
-
 	agent.RecordSpend(height, msg.Amount)
-	agent.ActionSeq = seq + 1
-	if err := k.SetAgent(ctx, agent); err != nil {
-		return nil, errorsmod.Wrap(err, "set agent")
+	payloadHash := sha256.Sum256(payload)
+	if err := k.appendAttested(ctx, &agent, payload, payloadHash[:]); err != nil {
+		return nil, err
 	}
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventAttestedTransfer{
@@ -189,6 +183,7 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		Seq:       seq,
 		Recipient: msg.Recipient,
 		Amount:    sdk.NewCoin(agent.SpendDenom, msg.Amount),
+		Submitter: msg.Submitter,
 	}); err != nil {
 		return nil, err
 	}

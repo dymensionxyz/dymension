@@ -96,6 +96,41 @@ message EventAttestedTransfer {
   uint64 seq = 2;
   string recipient = 3;
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
+  string submitter = 5;
+}
+
+// EventFundAgentEscrow is emitted when an agent's escrow is funded.
+message EventFundAgentEscrow {
+  string agent_id = 1;
+  string funder = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// EventWithdrawAgentEscrow is emitted when the owner withdraws from an
+// agent's escrow.
+message EventWithdrawAgentEscrow {
+  string agent_id = 1;
+  string owner = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// EventUpdateAgentSpendPolicy is emitted when the owner updates an agent's
+// spend policy.
+message EventUpdateAgentSpendPolicy {
+  string agent_id = 1;
+  string spend_denom = 2;
+  string spend_limit_per_window = 3 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+  uint64 spend_window_blocks = 4;
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by

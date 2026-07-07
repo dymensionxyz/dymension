@@ -85,7 +85,7 @@ func (s *EscrowTestSuite) transferMsg(id string, recipient sdk.AccAddress, amt i
 		Recipient: recipient.String(),
 		Amount:    amount,
 		Memo:      memo,
-		Token:     types.ActionNonce(id, payload, seq),
+		Token:     types.TransferNonce(id, payload, seq),
 	}
 }
 
@@ -181,6 +181,58 @@ func (s *EscrowTestSuite) TestTransfer_NonceBindsRecipientAndAmount() {
 	s.Require().ErrorContains(err, "verify attestation")
 
 	s.Require().Equal(math.NewInt(500), s.k.GetEscrowBalance(s.Ctx, "a1").AmountOf(spendDenom))
+}
+
+// TestCrossDomainReplayRejected pins the nonce domain separation: a token
+// minted for a pending transfer cannot be replayed as a plain action at the
+// same seq (which would advance the counter and kill the enclave-authorized
+// payment), and vice versa.
+func (s *EscrowTestSuite) TestCrossDomainReplayRejected() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	// observer copies a pending transfer's payload+token and submits it as an action
+	transfer := s.transferMsg("a1", recipient, 100, 0)
+	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, transfer.Amount, transfer.Memo)
+	_, err := s.msgServer.SubmitAttestedAction(s.Ctx, &types.MsgSubmitAttestedAction{
+		Submitter: transfer.Submitter,
+		AgentId:   "a1",
+		Payload:   payload,
+		Token:     transfer.Token,
+	})
+	s.Require().ErrorContains(err, "verify attestation")
+
+	// seq unchanged: the original transfer still goes through
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, transfer)
+	s.Require().NoError(err)
+
+	// and an action token cannot authorize a transfer of the same payload
+	actionToken := types.ActionNonce("a1", payload, 1)
+	transfer2 := s.transferMsg("a1", recipient, 100, 1)
+	transfer2.Token = actionToken
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, transfer2)
+	s.Require().ErrorContains(err, "verify attestation")
+}
+
+func (s *EscrowTestSuite) TestTransfer_PayloadTooLarge() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+
+	msg := s.transferMsg("a1", recipient, 100, 0)
+	msg.Memo = make([]byte, params.MaxActionBytes) // payload = memo + transfer fields > max
+	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, msg.Amount, msg.Memo)
+	msg.Token = types.TransferNonce("a1", payload, 0)
+
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().ErrorContains(err, "max action bytes")
+
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(uint64(0), agent.ActionSeq)
 }
 
 func (s *EscrowTestSuite) TestTransfer_ReplayRejected() {
@@ -287,6 +339,32 @@ func (s *EscrowTestSuite) TestUpdateSpendPolicy_OwnerOnly() {
 	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx,
 		types.NewMsgUpdateAgentSpendPolicy(other.String(), "a1", spendDenom, math.NewInt(1), 1))
 	s.Require().ErrorIs(err, types.ErrUnauthorized)
+}
+
+// TestEscrowSolvencyInvariant exercises the invariant across the full
+// lifecycle: fund, transfer, withdraw.
+func (s *EscrowTestSuite) TestEscrowSolvencyInvariant() {
+	inv := keeper.AllInvariants(*s.k)
+	check := func() {
+		s.T().Helper()
+		msg, broken := inv(s.Ctx)
+		s.Require().False(broken, msg)
+	}
+
+	check()
+	owner := s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	check()
+
+	_, _, recipient := testdata.KeyTestPubAddr()
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 200, 0))
+	s.Require().NoError(err)
+	check()
+
+	_, err = s.msgServer.WithdrawAgentEscrow(s.Ctx,
+		types.NewMsgWithdrawAgentEscrow(owner.String(), "a1", sdk.NewCoins(sdk.NewCoin(spendDenom, math.NewInt(300)))))
+	s.Require().NoError(err)
+	check()
 }
 
 func (s *EscrowTestSuite) TestEscrowBalanceQuery() {

@@ -15,6 +15,9 @@ func (g GenesisState) Validate() error {
 
 	agentIDs := make(map[string]struct{}, len(g.Agents))
 	for _, a := range g.Agents {
+		if _, dup := agentIDs[a.Id]; dup {
+			return fmt.Errorf("duplicate agent entry: %s", a.Id)
+		}
 		if err := a.ValidateSpendState(); err != nil {
 			return fmt.Errorf("agent %s: %w", a.Id, err)
 		}

@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
@@ -55,6 +56,14 @@ func (k msgServer) FundAgentEscrow(goCtx context.Context, msg *types.MsgFundAgen
 		return nil, errorsmod.Wrap(err, "set escrow balance")
 	}
 
+	if err := uevent.EmitTypedEvent(ctx, &types.EventFundAgentEscrow{
+		AgentId: msg.AgentId,
+		Funder:  msg.Funder,
+		Amount:  msg.Amount,
+	}); err != nil {
+		return nil, err
+	}
+
 	return &types.MsgFundAgentEscrowResponse{}, nil
 }
 
@@ -86,6 +95,14 @@ func (k msgServer) WithdrawAgentEscrow(goCtx context.Context, msg *types.MsgWith
 		return nil, errorsmod.Wrap(err, "send coins to owner")
 	}
 
+	if err := uevent.EmitTypedEvent(ctx, &types.EventWithdrawAgentEscrow{
+		AgentId: msg.AgentId,
+		Owner:   msg.Owner,
+		Amount:  msg.Amount,
+	}); err != nil {
+		return nil, err
+	}
+
 	return &types.MsgWithdrawAgentEscrowResponse{}, nil
 }
 
@@ -115,6 +132,15 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 	agent.SpendWindowSpent = math.ZeroInt()
 	if err := k.SetAgent(ctx, agent); err != nil {
 		return nil, errorsmod.Wrap(err, "set agent")
+	}
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventUpdateAgentSpendPolicy{
+		AgentId:             msg.AgentId,
+		SpendDenom:          msg.SpendDenom,
+		SpendLimitPerWindow: msg.SpendLimitPerWindow,
+		SpendWindowBlocks:   msg.SpendWindowBlocks,
+	}); err != nil {
+		return nil, err
 	}
 
 	return &types.MsgUpdateAgentSpendPolicyResponse{}, nil
