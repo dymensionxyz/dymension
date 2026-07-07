@@ -152,6 +152,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Show a single attested action log entry",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "seq"}},
 				},
+				{
+					RpcMethod:      "EscrowBalance",
+					Use:            "escrow-balance [agent-id]",
+					Short:          "Show an agent's escrow balance and remaining window spend budget",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
 			},
 		},
 	}
