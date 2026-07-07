@@ -1,16 +1,18 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
 
 // TestAgentSpendWindow mirrors the eIBC on-demand LP bucket tests: the window
 // is an absolute-aligned tumbling bucket that fully resets on rollover.
 func TestAgentSpendWindow(t *testing.T) {
-	a := Agent{
+	a := types.Agent{
 		SpendDenom:          "adym",
 		SpendLimitPerWindow: math.NewInt(100),
 		SpendWindowBlocks:   10,
@@ -38,7 +40,7 @@ func TestAgentSpendWindow(t *testing.T) {
 }
 
 func TestAgentSpendDisabled(t *testing.T) {
-	a := Agent{}
+	a := types.Agent{}
 	require.False(t, a.SpendEnabled())
 	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(100))
 	require.False(t, a.SpendAllows(100, math.NewInt(1)))

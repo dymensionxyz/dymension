@@ -1,7 +1,9 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 )
@@ -19,6 +21,30 @@ func (a Agent) EffectivePolicy(height int64) tee.Policy {
 // spend_denom means spending is disabled (pure-log agent).
 func (a Agent) SpendEnabled() bool {
 	return a.SpendDenom != ""
+}
+
+// ValidateSpendState checks that the agent's spend policy and window
+// bookkeeping are a state the runtime could have produced, guarding genesis
+// imports against e.g. an enabled agent with a zero window length (which would
+// make SpendBucket divide by zero).
+func (a Agent) ValidateSpendState() error {
+	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks); err != nil {
+		return err
+	}
+	spent := a.spendWindowSpentAmount()
+	if spent.IsNegative() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "negative spend window spent")
+	}
+	if !a.SpendEnabled() {
+		if !spent.IsZero() || a.SpendWindowStartHeight != 0 {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window state set without spend denom")
+		}
+		return nil
+	}
+	if spent.GT(a.SpendLimitPerWindow) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window spent greater than spend limit")
+	}
+	return nil
 }
 
 // SpendBucket returns the start height of the absolute-aligned tumbling

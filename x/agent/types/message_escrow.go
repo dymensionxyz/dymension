@@ -70,23 +70,31 @@ func (m *MsgUpdateAgentSpendPolicy) ValidateBasic() error {
 	if m.AgentId == "" {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
 	}
-	if m.SpendDenom == "" {
+	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks)
+}
+
+// ValidateSpendPolicy checks the spend-policy invariant shared by
+// MsgUpdateAgentSpendPolicy and genesis-imported agents: the budget fields are
+// set iff the denom is, so SpendBucket can never divide by zero on an enabled
+// agent.
+func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks uint64) error {
+	if spendDenom == "" {
 		// disabling spending: the budget fields must be unset
-		if !m.SpendLimitPerWindow.IsNil() && !m.SpendLimitPerWindow.IsZero() {
+		if !spendLimitPerWindow.IsNil() && !spendLimitPerWindow.IsZero() {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend limit set without spend denom")
 		}
-		if m.SpendWindowBlocks != 0 {
+		if spendWindowBlocks != 0 {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window blocks set without spend denom")
 		}
 		return nil
 	}
-	if sdk.ValidateDenom(m.SpendDenom) != nil {
+	if sdk.ValidateDenom(spendDenom) != nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend denom")
 	}
-	if m.SpendLimitPerWindow.IsNil() || !m.SpendLimitPerWindow.IsPositive() {
+	if spendLimitPerWindow.IsNil() || !spendLimitPerWindow.IsPositive() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend limit per window must be positive")
 	}
-	if m.SpendWindowBlocks == 0 {
+	if spendWindowBlocks == 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window blocks must be positive")
 	}
 	return nil
