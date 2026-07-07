@@ -9,4 +9,7 @@ var (
 	ErrUnauthorized           = errorsmod.Register(ModuleName, 5, "unauthorized")
 	ErrInvalidPolicy          = errorsmod.Register(ModuleName, 6, "invalid policy")
 	ErrActionNotFound         = errorsmod.Register(ModuleName, 7, "action log entry not found")
+	ErrSpendingDisabled       = errorsmod.Register(ModuleName, 8, "agent spending is disabled")
+	ErrSpendBudgetExceeded    = errorsmod.Register(ModuleName, 9, "spend budget exceeded for the current window")
+	ErrInsufficientEscrow     = errorsmod.Register(ModuleName, 10, "insufficient escrow balance")
 )

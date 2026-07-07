@@ -1,4 +1,4 @@
-// Package agent maintains the registry of TEE agents and their action log.
-// Business-logic messages (registration, action submission) and queries beyond
-// params are added in later issues.
+// Package agent maintains the registry of TEE agents, their append-only
+// attested action log, and per-agent escrows from which attested transfers
+// pay out under an owner-set, per-window spend budget.
 package agent

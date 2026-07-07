@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+
+	"cosmossdk.io/math"
 )
 
 // ActionNonce derives the per-action nonce that binds an attestation token to a
@@ -27,4 +29,21 @@ func ActionNonce(agentID string, payload []byte, actionSeq uint64) string {
 
 	hash := sha256.Sum256(buf)
 	return hex.EncodeToString(hash[:])
+}
+
+// AttestedTransferBytes is the canonical payload an attested transfer's nonce
+// commits to, so the enclave attests to this exact recipient, denom and
+// amount rather than an opaque blob. Fields are NUL-separated: 0x00 cannot
+// appear in a bech32 address, a denom or a decimal string, so the encoding is
+// unambiguous and deterministic.
+func AttestedTransferBytes(recipient, spendDenom string, amount math.Int, memo []byte) []byte {
+	buf := make([]byte, 0, len(recipient)+len(spendDenom)+len(memo)+24)
+	buf = append(buf, recipient...)
+	buf = append(buf, 0x00)
+	buf = append(buf, spendDenom...)
+	buf = append(buf, 0x00)
+	buf = append(buf, amount.String()...)
+	buf = append(buf, 0x00)
+	buf = append(buf, memo...)
+	return buf
 }

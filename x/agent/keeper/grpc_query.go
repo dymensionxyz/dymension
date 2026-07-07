@@ -69,3 +69,18 @@ func (k Keeper) AgentAction(goCtx context.Context, req *types.QueryAgentActionRe
 	}
 	return &types.QueryAgentActionResponse{Action: entry}, nil
 }
+
+func (k Keeper) EscrowBalance(goCtx context.Context, req *types.QueryEscrowBalanceRequest) (*types.QueryEscrowBalanceResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	agent, found := k.GetAgent(ctx, req.AgentId)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrAgentNotFound, req.AgentId)
+	}
+	return &types.QueryEscrowBalanceResponse{
+		Balance:               k.GetEscrowBalance(ctx, req.AgentId),
+		RemainingWindowBudget: agent.RemainingWindowBudget(uint64(ctx.BlockHeight())), //nolint:gosec // block height is never negative
+	}, nil
+}
