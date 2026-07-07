@@ -6,13 +6,15 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/common/tee.proto";
 
 // Params defines the x/agent module parameters.
 message Params {
   // max_action_bytes is the maximum allowed size of an attested action payload.
   uint64 max_action_bytes = 1;
-  // agent_registration_fee is charged from the owner on registration and burned.
+  // agent_registration_fee is charged from the owner on registration and
+  // burned.
   cosmos.base.v1beta1.Coin agent_registration_fee = 2
       [ (gogoproto.nullable) = false ];
   // policy_rotation_delay_blocks is the timelock, in blocks, before a proposed
@@ -35,6 +37,37 @@ message Agent {
   dymensionxyz.dymension.common.Policy pending_policy = 6
       [ (gogoproto.nullable) = true ];
   int64 pending_policy_height = 7;
+  // spend_denom is the single denom this agent may spend from its escrow.
+  // Empty means spending is disabled (pure-log agent).
+  string spend_denom = 8;
+  // spend_limit_per_window is the max spendable per rate window.
+  string spend_limit_per_window = 9 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+  // spend_window_blocks is the rate window length in blocks. Must be > 0 iff
+  // spend_denom is set.
+  uint64 spend_window_blocks = 10;
+  // spend_window_start_height is the aligned bucket start of the current
+  // window.
+  uint64 spend_window_start_height = 11;
+  // spend_window_spent is the amount spent so far in the current window.
+  string spend_window_spent = 12 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+}
+
+// AgentEscrow is one agent's escrow ledger entry: funds held in the agent
+// module account and spendable by attested transfers.
+message AgentEscrow {
+  string agent_id = 1;
+  repeated cosmos.base.v1beta1.Coin balance = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
 // EventRegisterAgent is emitted when an agent is registered.
@@ -54,6 +87,15 @@ message EventDeactivateAgent {
 message EventUpdateAgentPolicy {
   string agent_id = 1;
   int64 activation_height = 2;
+}
+
+// EventAttestedTransfer is emitted when an attested transfer pays out from an
+// agent's escrow.
+message EventAttestedTransfer {
+  string agent_id = 1;
+  uint64 seq = 2;
+  string recipient = 3;
+  cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by
