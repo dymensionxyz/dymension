@@ -599,6 +599,7 @@ func (a *AppKeepers) InitKeepers(
 		tee.NewVerifier(),
 		a.BankKeeper,
 	)
+	a.EIBCKeeper.SetAgentKeeper(a.AgentKeeper)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(
 		appCodec,
