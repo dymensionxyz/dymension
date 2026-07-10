@@ -5,6 +5,9 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	agentkeeper "github.com/dymensionxyz/dymension/v3/x/agent/keeper"
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -162,7 +165,7 @@ func (suite *KeeperTestSuite) orderWithSeq(seq uint64, recipient string, price, 
 	innerPkt.Sequence = seq
 	pkt.Packet = &innerPkt
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, pkt)
-	order := types.NewDemandOrder(pkt, price, fee, sdk.DefaultBondDenom, recipient, 1, nil)
+	order := types.NewDemandOrder(pkt, price, fee, sdk.DefaultBondDenom, recipient, 1, nil, nil)
 	suite.Require().NoError(suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, order))
 	return order.Id
 }
@@ -255,6 +258,101 @@ func (suite *KeeperTestSuite) TestCreateLPAlreadyExpired() {
 	}
 	_, err := suite.msgServer.CreateOnDemandLP(suite.Ctx, msg)
 	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrInvalidArgument), "got %v", err)
+}
+
+// LP bound to an active agent fulfills exactly like an unbound one. After
+// DeactivateAgent (fleet kill-switch), the bound LP is skipped at match time
+// while a co-existing unbound LP still fulfills.
+func (suite *KeeperTestSuite) TestLPAgentBinding() {
+	k := suite.App.EIBCKeeper
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 3, math.NewInt(10_000_000))
+	orderAddr, lpAddr, ownerAddr := addrs[0], addrs[1], addrs[2]
+
+	suite.Require().NoError(suite.App.AgentKeeper.SetAgent(suite.Ctx, agenttypes.Agent{
+		Id:     "agent1",
+		Owner:  ownerAddr.String(),
+		Active: true,
+	}))
+
+	lp := types.OnDemandLP{
+		FundsAddr:  lpAddr.String(),
+		Rollapp:    rollappPacket.RollappId,
+		Denom:      sdk.DefaultBondDenom,
+		MaxPrice:   math.NewInt(100),
+		MinFee:     math.LegacyZeroDec(),
+		SpendLimit: math.NewInt(1000),
+		AgentId:    "agent1",
+	}
+	boundID, err := k.LPs.Create(suite.Ctx, &lp)
+	suite.Require().NoError(err)
+
+	// bound to an active agent: matched and fulfilled like an unbound LP
+	id1 := suite.orderWithSeq(1, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id1, 0))
+
+	// deactivate the agent: every bound LP is disabled with a single message
+	agentMsgServer := agentkeeper.NewMsgServerImpl(*suite.App.AgentKeeper)
+	_, err = agentMsgServer.DeactivateAgent(suite.Ctx, agenttypes.NewMsgDeactivateAgent(ownerAddr.String(), "agent1"))
+	suite.Require().NoError(err)
+
+	id2 := suite.orderWithSeq(2, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	o, err := k.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, id2)
+	suite.Require().NoError(err)
+	compat, err := k.LPs.GetOrderCompatibleLPs(suite.Ctx, *o)
+	suite.Require().NoError(err)
+	suite.Require().Empty(compat)
+	err = k.FulfillByOnDemandLP(suite.Ctx, id2, 0)
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "expected no compatible lp, got %v", err)
+
+	// an unbound LP is unaffected by the deactivation
+	unbound := lp
+	unbound.AgentId = ""
+	unboundID, err := k.LPs.Create(suite.Ctx, &unbound)
+	suite.Require().NoError(err)
+	compat, err = k.LPs.GetOrderCompatibleLPs(suite.Ctx, *o)
+	suite.Require().NoError(err)
+	suite.Require().Len(compat, 1)
+	suite.Require().Equal(unboundID, compat[0].Id)
+	suite.Require().NotEqual(boundID, compat[0].Id)
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id2, 0))
+}
+
+// CreateOnDemandLP requires a referenced agent to exist, but not to be active.
+func (suite *KeeperTestSuite) TestCreateLPAgentBinding() {
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(10_000_000))
+	lpAddr, ownerAddr := addrs[0], addrs[1]
+
+	suite.Require().NoError(suite.App.AgentKeeper.SetAgent(suite.Ctx, agenttypes.Agent{
+		Id:     "agent1",
+		Owner:  ownerAddr.String(),
+		Active: false,
+	}))
+
+	msg := func(agentID string) *types.MsgCreateOnDemandLP {
+		return &types.MsgCreateOnDemandLP{
+			Lp: &types.OnDemandLP{
+				FundsAddr:  lpAddr.String(),
+				Rollapp:    rollappPacket.RollappId,
+				Denom:      sdk.DefaultBondDenom,
+				MaxPrice:   math.NewInt(100),
+				MinFee:     math.LegacyZeroDec(),
+				SpendLimit: math.NewInt(1000),
+				AgentId:    agentID,
+			},
+			Signer: lpAddr.String(),
+		}
+	}
+
+	_, err := suite.msgServer.CreateOnDemandLP(suite.Ctx, msg("nonexistent"))
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "got %v", err)
+
+	// existing but inactive agent: creation is allowed, only fulfillment requires liveness
+	_, err = suite.msgServer.CreateOnDemandLP(suite.Ctx, msg("agent1"))
+	suite.Require().NoError(err)
+
+	// unbound
+	_, err = suite.msgServer.CreateOnDemandLP(suite.Ctx, msg(""))
+	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) TestLPQueriesByAddr() {

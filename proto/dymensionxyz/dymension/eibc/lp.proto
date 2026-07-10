@@ -46,7 +46,8 @@ message OnDemandLP {
   // LP stops accepting orders at heights >= this value. 0 = no expiry.
   uint64 valid_until_height = 8;
 
-  // Max amount that may be spent within any one rate window. nil/zero = disabled.
+  // Max amount that may be spent within any one rate window. nil/zero =
+  // disabled.
   string rate_limit_amount = 9 [
     (gogoproto.nullable) = false,
     (cosmos_proto.scalar) = "cosmos.Int",
@@ -55,6 +56,10 @@ message OnDemandLP {
 
   // Length in blocks of the rate window. Must be > 0 iff rate_limit_amount > 0.
   uint64 rate_limit_blocks = 10;
+
+  // Optional x/agent agent this LP is bound to. Empty = unbound. If set, the
+  // LP is only matched while the agent is active.
+  string agent_id = 11;
 }
 
 message OnDemandLPRecord {
