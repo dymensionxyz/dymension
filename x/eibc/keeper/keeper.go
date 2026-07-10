@@ -289,3 +289,9 @@ func (k *Keeper) GetHooks() types.EIBCHooks {
 func (k *Keeper) SetDelayedAckKeeper(delayedAckKeeper types.DelayedAckKeeper) {
 	k.dack = delayedAckKeeper
 }
+
+// SetAgentKeeper sets the agent keeper used to gate agent-bound LPs.
+// must be called when initializing the keeper.
+func (k *Keeper) SetAgentKeeper(agentKeeper types.AgentKeeper) {
+	k.LPs.agents = agentKeeper
+}

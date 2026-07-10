@@ -299,6 +299,13 @@ func (m msgServer) CreateOnDemandLP(goCtx context.Context, msg *types.MsgCreateO
 		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "valid until height already passed")
 	}
 
+	// existence only: the agent need not be active at creation, only at fulfillment
+	if msg.Lp.AgentId != "" {
+		if _, found := m.LPs.agents.GetAgent(ctx, msg.Lp.AgentId); !found {
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "agent: %s", msg.Lp.AgentId)
+		}
+	}
+
 	id, err := m.CreateLP(ctx, msg.Lp)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "create lp")

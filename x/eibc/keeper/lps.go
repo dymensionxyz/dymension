@@ -30,6 +30,8 @@ type LPs struct {
 	// <addr,id>
 	byAddr collections.KeySet[collections.Pair[string, uint64]]
 	nextID collections.Sequence
+	// liveness oracle for agent-bound LPs, set after construction (see Keeper.SetAgentKeeper)
+	agents types.AgentKeeper
 }
 
 func makeLPsStore(sb *collections.SchemaBuilder, cdc codec.BinaryCodec) LPs {
@@ -189,11 +191,32 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 			return nil, err
 		}
 		h := uint64(ctx.BlockHeight()) //nolint:gosec
-		if lpr.Accepts(h, &o) {
+		if lpr.Accepts(h, &o) && s.agentLive(ctx, lpr.Lp.AgentId) {
 			compat = append(compat, lpr)
 		}
 	}
 	return compat, nil
+}
+
+// agentLive reports whether an LP bound to agentID may fulfill. Unbound LPs
+// (empty id) are always live; bound LPs require the agent to exist and be
+// active, so deactivating an agent lazily disables its whole LP fleet.
+func (s LPs) agentLive(ctx sdk.Context, agentID string) bool {
+	if agentID == "" {
+		return true
+	}
+	agent, found := s.agents.GetAgent(ctx, agentID)
+	return found && agent.Active
+}
+
+// NextID returns the current value of the LP id sequence.
+func (s LPs) NextID(ctx sdk.Context) (uint64, error) {
+	return s.nextID.Peek(ctx)
+}
+
+// SetNextID sets the LP id sequence, used on genesis import.
+func (s LPs) SetNextID(ctx sdk.Context, id uint64) error {
+	return s.nextID.Set(ctx, id)
 }
 
 func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {

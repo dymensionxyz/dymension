@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -31,4 +32,9 @@ type DelayedAckKeeper interface {
 type RollappKeeper interface {
 	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
 	IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool
+}
+
+// AgentKeeper provides liveness checks for LPs bound to an x/agent agent.
+type AgentKeeper interface {
+	GetAgent(ctx sdk.Context, id string) (agenttypes.Agent, bool)
 }
