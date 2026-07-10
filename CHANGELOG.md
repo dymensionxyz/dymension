@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-05)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-10)
 
 
 ### Bug Fixes
@@ -19,6 +19,7 @@
 * **bridgingfee:** per-asset min/max outbound fee bounds ([#2174](https://github.com/dymensionxyz/dymension/issues/2174)) ([5bf9013](https://github.com/dymensionxyz/dymension/commit/5bf90137c11208c3590ea040aa8ce070ac97d446)), closes [hi#frequency](https://github.com/hi/issues/frequency)
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
 * **dymns:** typed service/endpoint records (DCT_SERVICE) for agent discovery ([#2172](https://github.com/dymensionxyz/dymension/issues/2172)) ([0b63076](https://github.com/dymensionxyz/dymension/commit/0b630764fc5f514197fb28652daae44180989d3e)), closes [#2171](https://github.com/dymensionxyz/dymension/issues/2171)
+* **eibc:** bind on-demand LP to x/agent attested agent ([#2183](https://github.com/dymensionxyz/dymension/issues/2183)) ([bbdefe2](https://github.com/dymensionxyz/dymension/commit/bbdefe20955a16b6550842f471fdaac2c45dab06)), closes [pre-#2167](https://github.com/pre-/issues/2167)
 * **eibc:** time-based competitive fee escalation for demand orders ([#2168](https://github.com/dymensionxyz/dymension/issues/2168)) ([c4238fc](https://github.com/dymensionxyz/dymension/commit/c4238fc19d342bfcfdcad93f2528aa900b63905b))
 * **eibc:** validity window + spend-velocity cap for on-demand LPs ([#2170](https://github.com/dymensionxyz/dymension/issues/2170)) ([a6eaaeb](https://github.com/dymensionxyz/dymension/commit/a6eaaeb47e68d7ef03a58545ba00d48762da4276))
 * **forward/cli:** add Kaspa recipient address display in decode-hl ([#2131](https://github.com/dymensionxyz/dymension/issues/2131)) ([a8fe841](https://github.com/dymensionxyz/dymension/commit/a8fe841c8ef5fc835f815615103d1de4fc311ffa))
