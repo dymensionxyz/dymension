@@ -152,6 +152,24 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Show a single attested action log entry",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "seq"}},
 				},
+				{
+					RpcMethod:      "AgentReputation",
+					Use:            "agent-reputation [agent-id]",
+					Short:          "Show an agent's aggregate reputation and average score",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
+				{
+					RpcMethod:      "AgentFeedback",
+					Use:            "agent-feedback [agent-id] [client]",
+					Short:          "Show a single feedback record by agent and client",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "client"}},
+				},
+				{
+					RpcMethod:      "AgentFeedbacks",
+					Use:            "agent-feedbacks [agent-id]",
+					Short:          "List all feedback records for an agent",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
 			},
 		},
 	}

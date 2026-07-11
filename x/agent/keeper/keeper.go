@@ -20,9 +20,11 @@ type Keeper struct {
 	verifier   tee.Verifier
 	bankKeeper types.BankKeeper
 
-	params    collections.Item[types.Params]
-	agents    collections.Map[string, types.Agent]
-	actionLog collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
+	params     collections.Item[types.Params]
+	agents     collections.Map[string, types.Agent]
+	actionLog  collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
+	feedback   collections.Map[collections.Pair[string, string], types.Feedback]
+	reputation collections.Map[string, types.Reputation]
 }
 
 func NewKeeper(
@@ -43,6 +45,11 @@ func NewKeeper(
 		actionLog: collections.NewMap(sb, collections.NewPrefix(types.KeyActionLog),
 			"action_log", collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
 			collcompat.ProtoValue[types.ActionLogEntry](cdc)),
+		feedback: collections.NewMap(sb, collections.NewPrefix(types.KeyFeedback),
+			"feedback", collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+			collcompat.ProtoValue[types.Feedback](cdc)),
+		reputation: collections.NewMap(sb, collections.NewPrefix(types.KeyReputation),
+			"reputation", collections.StringKey, collcompat.ProtoValue[types.Reputation](cdc)),
 	}
 
 	if _, err := sb.Build(); err != nil {

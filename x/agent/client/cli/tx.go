@@ -21,6 +21,8 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdRegisterAgent())
 	cmd.AddCommand(CmdDeactivateAgent())
 	cmd.AddCommand(CmdUpdateAgentPolicy())
+	cmd.AddCommand(CmdSubmitFeedback())
+	cmd.AddCommand(CmdRevokeFeedback())
 
 	return cmd
 }
