@@ -435,6 +435,218 @@ func (m *MsgSubmitAttestedActionResponse) GetSeq() uint64 {
 	return 0
 }
 
+type MsgSubmitFeedback struct {
+	Client  string `protobuf:"bytes,1,opt,name=client,proto3" json:"client,omitempty"`
+	AgentId string `protobuf:"bytes,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	// score is fixed-point with 2 decimals: 0..10000 == 0.00%..100.00%.
+	Score uint32 `protobuf:"varint,3,opt,name=score,proto3" json:"score,omitempty"`
+	// tag1 is the primary dimension name, e.g. "liveness". Required.
+	Tag1 string `protobuf:"bytes,4,opt,name=tag1,proto3" json:"tag1,omitempty"`
+	// tag2 is an optional secondary dimension name.
+	Tag2 string `protobuf:"bytes,5,opt,name=tag2,proto3" json:"tag2,omitempty"`
+	// evidence_seq must reference an existing action-log entry of the agent.
+	EvidenceSeq uint64 `protobuf:"varint,6,opt,name=evidence_seq,json=evidenceSeq,proto3" json:"evidence_seq,omitempty"`
+}
+
+func (m *MsgSubmitFeedback) Reset()         { *m = MsgSubmitFeedback{} }
+func (m *MsgSubmitFeedback) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitFeedback) ProtoMessage()    {}
+func (*MsgSubmitFeedback) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{8}
+}
+func (m *MsgSubmitFeedback) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSubmitFeedback) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSubmitFeedback.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSubmitFeedback) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitFeedback.Merge(m, src)
+}
+func (m *MsgSubmitFeedback) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSubmitFeedback) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitFeedback.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSubmitFeedback proto.InternalMessageInfo
+
+func (m *MsgSubmitFeedback) GetClient() string {
+	if m != nil {
+		return m.Client
+	}
+	return ""
+}
+
+func (m *MsgSubmitFeedback) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *MsgSubmitFeedback) GetScore() uint32 {
+	if m != nil {
+		return m.Score
+	}
+	return 0
+}
+
+func (m *MsgSubmitFeedback) GetTag1() string {
+	if m != nil {
+		return m.Tag1
+	}
+	return ""
+}
+
+func (m *MsgSubmitFeedback) GetTag2() string {
+	if m != nil {
+		return m.Tag2
+	}
+	return ""
+}
+
+func (m *MsgSubmitFeedback) GetEvidenceSeq() uint64 {
+	if m != nil {
+		return m.EvidenceSeq
+	}
+	return 0
+}
+
+type MsgSubmitFeedbackResponse struct {
+}
+
+func (m *MsgSubmitFeedbackResponse) Reset()         { *m = MsgSubmitFeedbackResponse{} }
+func (m *MsgSubmitFeedbackResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitFeedbackResponse) ProtoMessage()    {}
+func (*MsgSubmitFeedbackResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{9}
+}
+func (m *MsgSubmitFeedbackResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSubmitFeedbackResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSubmitFeedbackResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSubmitFeedbackResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitFeedbackResponse.Merge(m, src)
+}
+func (m *MsgSubmitFeedbackResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSubmitFeedbackResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitFeedbackResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSubmitFeedbackResponse proto.InternalMessageInfo
+
+type MsgRevokeFeedback struct {
+	Client  string `protobuf:"bytes,1,opt,name=client,proto3" json:"client,omitempty"`
+	AgentId string `protobuf:"bytes,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+}
+
+func (m *MsgRevokeFeedback) Reset()         { *m = MsgRevokeFeedback{} }
+func (m *MsgRevokeFeedback) String() string { return proto.CompactTextString(m) }
+func (*MsgRevokeFeedback) ProtoMessage()    {}
+func (*MsgRevokeFeedback) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{10}
+}
+func (m *MsgRevokeFeedback) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRevokeFeedback) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRevokeFeedback.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRevokeFeedback) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRevokeFeedback.Merge(m, src)
+}
+func (m *MsgRevokeFeedback) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRevokeFeedback) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRevokeFeedback.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRevokeFeedback proto.InternalMessageInfo
+
+func (m *MsgRevokeFeedback) GetClient() string {
+	if m != nil {
+		return m.Client
+	}
+	return ""
+}
+
+func (m *MsgRevokeFeedback) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+type MsgRevokeFeedbackResponse struct {
+}
+
+func (m *MsgRevokeFeedbackResponse) Reset()         { *m = MsgRevokeFeedbackResponse{} }
+func (m *MsgRevokeFeedbackResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRevokeFeedbackResponse) ProtoMessage()    {}
+func (*MsgRevokeFeedbackResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc4323968b6c653f, []int{11}
+}
+func (m *MsgRevokeFeedbackResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRevokeFeedbackResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRevokeFeedbackResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRevokeFeedbackResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRevokeFeedbackResponse.Merge(m, src)
+}
+func (m *MsgRevokeFeedbackResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRevokeFeedbackResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRevokeFeedbackResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRevokeFeedbackResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgRegisterAgent)(nil), "dymensionxyz.dymension.agent.MsgRegisterAgent")
 	proto.RegisterType((*MsgRegisterAgentResponse)(nil), "dymensionxyz.dymension.agent.MsgRegisterAgentResponse")
@@ -444,6 +656,10 @@ func init() {
 	proto.RegisterType((*MsgUpdateAgentPolicyResponse)(nil), "dymensionxyz.dymension.agent.MsgUpdateAgentPolicyResponse")
 	proto.RegisterType((*MsgSubmitAttestedAction)(nil), "dymensionxyz.dymension.agent.MsgSubmitAttestedAction")
 	proto.RegisterType((*MsgSubmitAttestedActionResponse)(nil), "dymensionxyz.dymension.agent.MsgSubmitAttestedActionResponse")
+	proto.RegisterType((*MsgSubmitFeedback)(nil), "dymensionxyz.dymension.agent.MsgSubmitFeedback")
+	proto.RegisterType((*MsgSubmitFeedbackResponse)(nil), "dymensionxyz.dymension.agent.MsgSubmitFeedbackResponse")
+	proto.RegisterType((*MsgRevokeFeedback)(nil), "dymensionxyz.dymension.agent.MsgRevokeFeedback")
+	proto.RegisterType((*MsgRevokeFeedbackResponse)(nil), "dymensionxyz.dymension.agent.MsgRevokeFeedbackResponse")
 }
 
 func init() {
@@ -451,44 +667,53 @@ func init() {
 }
 
 var fileDescriptor_cc4323968b6c653f = []byte{
-	// 592 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0x4d, 0x6b, 0x13, 0x41,
-	0x18, 0xce, 0x98, 0xa4, 0x35, 0xaf, 0x5f, 0xe9, 0x12, 0xe8, 0x76, 0x09, 0xdb, 0x12, 0x28, 0x96,
-	0x8a, 0xbb, 0x9a, 0x60, 0x91, 0x80, 0x87, 0x44, 0x0f, 0x7e, 0x05, 0xca, 0x16, 0x2f, 0x5e, 0x42,
-	0x92, 0x1d, 0x26, 0x4b, 0xbb, 0x33, 0x6b, 0x66, 0x9a, 0x0f, 0x41, 0x10, 0xbd, 0x7a, 0xf0, 0xea,
-	0x7f, 0x10, 0xe9, 0xc1, 0x8b, 0xff, 0xa0, 0xc7, 0xe2, 0xc9, 0x93, 0x48, 0x72, 0xe8, 0xdf, 0x90,
-	0x9d, 0x4d, 0x36, 0xba, 0x49, 0x9a, 0xa6, 0xf4, 0x94, 0x7d, 0x67, 0x9e, 0xe7, 0x9d, 0xe7, 0x79,
-	0x78, 0x67, 0x02, 0x9b, 0x76, 0xcf, 0xc5, 0x94, 0x3b, 0x8c, 0x76, 0x7b, 0x6f, 0xcd, 0xb0, 0x30,
-	0x6b, 0x04, 0x53, 0x61, 0x8a, 0xae, 0xe1, 0xb5, 0x98, 0x60, 0x4a, 0xf6, 0x5f, 0x98, 0x11, 0x16,
-	0x86, 0x84, 0x69, 0x6b, 0x0d, 0xc6, 0x5d, 0xc6, 0xab, 0x12, 0x6b, 0x06, 0x45, 0x40, 0xd4, 0x56,
-	0x83, 0xca, 0x74, 0x39, 0x31, 0xdb, 0xf7, 0xfd, 0x9f, 0xe1, 0x46, 0x86, 0x30, 0xc2, 0x02, 0x82,
-	0xff, 0x35, 0x5c, 0xbd, 0x3d, 0x43, 0x4e, 0x83, 0xb9, 0x2e, 0xa3, 0xa6, 0xc0, 0x38, 0x00, 0xe6,
-	0xbe, 0x21, 0x48, 0x57, 0x38, 0xb1, 0x30, 0x71, 0xb8, 0xc0, 0xad, 0x92, 0xaf, 0x43, 0x31, 0x20,
-	0xc9, 0x3a, 0x14, 0xb7, 0x54, 0xb4, 0x81, 0xb6, 0x52, 0x65, 0xf5, 0xe7, 0xf7, 0xbb, 0x99, 0xa1,
-	0x9a, 0x92, 0x6d, 0xb7, 0x30, 0xe7, 0x7b, 0xa2, 0xe5, 0x50, 0x62, 0x05, 0x30, 0x65, 0x0d, 0xae,
-	0x4a, 0x03, 0x55, 0xc7, 0x56, 0xaf, 0xf8, 0x14, 0x6b, 0x59, 0xd6, 0xcf, 0x6c, 0xe5, 0x31, 0x2c,
-	0x79, 0xec, 0xc0, 0x69, 0xf4, 0xd4, 0xf8, 0x06, 0xda, 0xba, 0x96, 0xdf, 0x34, 0x66, 0x24, 0x10,
-	0x28, 0x33, 0x76, 0x25, 0xb8, 0x9c, 0x38, 0xfe, 0xbd, 0x1e, 0xb3, 0x86, 0xd4, 0x22, 0x7c, 0x38,
-	0x3d, 0xda, 0x0e, 0xce, 0xca, 0x69, 0xa0, 0x46, 0xf5, 0x5a, 0x98, 0x7b, 0x8c, 0x72, 0x9c, 0xdb,
-	0x07, 0xa5, 0xc2, 0xc9, 0x13, 0x5c, 0x6b, 0x08, 0xa7, 0x5d, 0x13, 0xf8, 0xb2, 0xdd, 0xfc, 0x27,
-	0x24, 0x0b, 0xda, 0xe4, 0x61, 0xa1, 0x94, 0x1f, 0x08, 0x32, 0x15, 0x4e, 0x5e, 0x79, 0xf6, 0x68,
-	0x2b, 0x70, 0x76, 0x99, 0xd9, 0x3e, 0x07, 0xa0, 0xb8, 0x53, 0xbd, 0x78, 0xbe, 0x29, 0x8a, 0x3b,
-	0xbb, 0x93, 0x11, 0xbf, 0x80, 0xec, 0x34, 0xe9, 0x23, 0x6f, 0xca, 0x1d, 0x58, 0x19, 0x9a, 0x76,
-	0x18, 0xad, 0x36, 0xb1, 0x43, 0x9a, 0x42, 0xda, 0x89, 0x5b, 0xe9, 0xf1, 0xc6, 0x53, 0xb9, 0x9e,
-	0xfb, 0x8a, 0x60, 0xb5, 0xc2, 0xc9, 0xde, 0x61, 0xdd, 0x75, 0x44, 0x49, 0x08, 0xcc, 0x05, 0xb6,
-	0x4b, 0x0d, 0x1f, 0xa1, 0xec, 0x40, 0x8a, 0xcb, 0x75, 0x71, 0x8e, 0x3c, 0xc6, 0xd0, 0xb3, 0x32,
-	0x51, 0x61, 0xd9, 0xab, 0xf5, 0x0e, 0x58, 0xcd, 0x96, 0x81, 0x5c, 0xb7, 0x46, 0xa5, 0x92, 0x81,
-	0xa4, 0x60, 0xfb, 0x98, 0xaa, 0x09, 0xc9, 0x08, 0x8a, 0xe2, 0x4d, 0xdf, 0xf7, 0xb8, 0x75, 0xae,
-	0x00, 0xeb, 0x33, 0xd4, 0x86, 0xf6, 0xd3, 0x10, 0xe7, 0xf8, 0x8d, 0xd4, 0x9b, 0xb0, 0xfc, 0xcf,
-	0xfc, 0x97, 0x04, 0xc4, 0x2b, 0x9c, 0x28, 0x1d, 0xb8, 0x11, 0xb9, 0x48, 0xc6, 0x59, 0xf7, 0xdd,
-	0x88, 0x0e, 0xb2, 0xb6, 0xb3, 0x18, 0x3e, 0x94, 0xf4, 0x0e, 0x6e, 0x45, 0xa7, 0xfe, 0xde, 0xdc,
-	0x56, 0x11, 0x86, 0xf6, 0x70, 0x51, 0x46, 0x78, 0xfc, 0x47, 0x04, 0x2b, 0x93, 0x93, 0x9e, 0x9f,
-	0xdb, 0x6f, 0x82, 0xa3, 0x15, 0x17, 0xe7, 0x84, 0x2a, 0x3e, 0x21, 0xc8, 0x4c, 0x1d, 0xb3, 0x07,
-	0x73, 0x9b, 0x4e, 0xa3, 0x69, 0x8f, 0x2e, 0x44, 0x1b, 0xc9, 0xd1, 0x92, 0xef, 0x4f, 0x8f, 0xb6,
-	0x51, 0xf9, 0xe5, 0x71, 0x5f, 0x47, 0x27, 0x7d, 0x1d, 0xfd, 0xe9, 0xeb, 0xe8, 0xf3, 0x40, 0x8f,
-	0x9d, 0x0c, 0xf4, 0xd8, 0xaf, 0x81, 0x1e, 0x7b, 0x9d, 0x27, 0x8e, 0x68, 0x1e, 0xd6, 0xfd, 0x9b,
-	0x69, 0xce, 0x78, 0xae, 0xdb, 0x05, 0xb3, 0x3b, 0xfa, 0x0b, 0xe9, 0x79, 0x98, 0xd7, 0x97, 0xe4,
-	0xab, 0x5d, 0xf8, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x9f, 0xb4, 0x81, 0xc7, 0x6f, 0x06, 0x00, 0x00,
+	// 732 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x4d, 0x4b, 0x1b, 0x5d,
+	0x14, 0xce, 0xbc, 0xf9, 0xf0, 0xf5, 0xf8, 0xf1, 0xea, 0x10, 0x70, 0x9c, 0x57, 0xa2, 0x0d, 0x48,
+	0xc5, 0xd2, 0x19, 0x8d, 0xd4, 0x96, 0x40, 0x17, 0xb1, 0xa5, 0xf4, 0x2b, 0x20, 0x23, 0xdd, 0x74,
+	0x13, 0x92, 0x99, 0xc3, 0x75, 0x88, 0x99, 0x1b, 0x73, 0xaf, 0x89, 0x11, 0x0a, 0xa5, 0xdd, 0x76,
+	0xd1, 0xfe, 0x8f, 0x52, 0x5c, 0x74, 0xd3, 0x7f, 0xe0, 0xaa, 0x48, 0x57, 0x5d, 0x95, 0xa2, 0x0b,
+	0xff, 0x46, 0x99, 0x3b, 0x1f, 0xea, 0x24, 0x31, 0x89, 0xd8, 0x55, 0xe6, 0x9c, 0xfb, 0x3c, 0xf7,
+	0x3c, 0xcf, 0xe1, 0xde, 0x93, 0x0b, 0x8b, 0x56, 0xbb, 0x86, 0x0e, 0xb3, 0xa9, 0xb3, 0xdf, 0x3e,
+	0xd0, 0xc3, 0x40, 0x2f, 0x13, 0x74, 0xb8, 0xce, 0xf7, 0xb5, 0x7a, 0x83, 0x72, 0x2a, 0xcf, 0x5d,
+	0x84, 0x69, 0x61, 0xa0, 0x09, 0x98, 0x3a, 0x6b, 0x52, 0x56, 0xa3, 0xac, 0x24, 0xb0, 0xba, 0x17,
+	0x78, 0x44, 0x75, 0xc6, 0x8b, 0xf4, 0x1a, 0x23, 0x7a, 0x73, 0xd5, 0xfd, 0xf1, 0x17, 0xd2, 0x84,
+	0x12, 0xea, 0x11, 0xdc, 0x2f, 0x3f, 0x7b, 0xbb, 0x87, 0x1c, 0x93, 0xd6, 0x6a, 0xd4, 0xd1, 0x39,
+	0xa2, 0x07, 0xcc, 0x7e, 0x91, 0x60, 0xaa, 0xc8, 0x88, 0x81, 0xc4, 0x66, 0x1c, 0x1b, 0x05, 0x57,
+	0x87, 0xac, 0x41, 0x92, 0xb6, 0x1c, 0x6c, 0x28, 0xd2, 0x82, 0xb4, 0x34, 0xba, 0xa1, 0xfc, 0xf8,
+	0x7a, 0x37, 0xed, 0xab, 0x29, 0x58, 0x56, 0x03, 0x19, 0xdb, 0xe2, 0x0d, 0xdb, 0x21, 0x86, 0x07,
+	0x93, 0x67, 0xe1, 0x5f, 0x61, 0xa0, 0x64, 0x5b, 0xca, 0x3f, 0x2e, 0xc5, 0x18, 0x11, 0xf1, 0x33,
+	0x4b, 0x7e, 0x04, 0xa9, 0x3a, 0xdd, 0xb1, 0xcd, 0xb6, 0x12, 0x5f, 0x90, 0x96, 0xc6, 0x72, 0x8b,
+	0x5a, 0x8f, 0x0e, 0x78, 0xca, 0xb4, 0x4d, 0x01, 0xde, 0x48, 0x1c, 0xfd, 0x9a, 0x8f, 0x19, 0x3e,
+	0x35, 0x0f, 0xef, 0xce, 0x0e, 0x97, 0xbd, 0x5a, 0x59, 0x15, 0x94, 0xa8, 0x5e, 0x03, 0x59, 0x9d,
+	0x3a, 0x0c, 0xb3, 0x55, 0x90, 0x8b, 0x8c, 0x3c, 0xc6, 0xb2, 0xc9, 0xed, 0x66, 0x99, 0xe3, 0x4d,
+	0xbb, 0xb9, 0x24, 0x64, 0x0e, 0xd4, 0xce, 0x62, 0xa1, 0x94, 0x6f, 0x12, 0xa4, 0x8b, 0x8c, 0xbc,
+	0xaa, 0x5b, 0xc1, 0x92, 0xe7, 0xec, 0x26, 0x7b, 0xfb, 0x1c, 0xc0, 0xc1, 0x56, 0xe9, 0xfa, 0xfd,
+	0x1d, 0x75, 0xb0, 0xb5, 0xd9, 0xd9, 0xe2, 0x17, 0x30, 0xd7, 0x4d, 0x7a, 0xe0, 0x4d, 0xbe, 0x03,
+	0xd3, 0xbe, 0x69, 0x9b, 0x3a, 0xa5, 0x6d, 0xb4, 0xc9, 0x36, 0x17, 0x76, 0xe2, 0xc6, 0xd4, 0xf9,
+	0xc2, 0x53, 0x91, 0xcf, 0x7e, 0x96, 0x60, 0xa6, 0xc8, 0xc8, 0xd6, 0x5e, 0xa5, 0x66, 0xf3, 0x02,
+	0xe7, 0xc8, 0x38, 0x5a, 0x05, 0xd3, 0x45, 0xc8, 0xeb, 0x30, 0xca, 0x44, 0x9e, 0x0f, 0xd0, 0x8f,
+	0x73, 0xe8, 0x55, 0x3d, 0x51, 0x60, 0xa4, 0x5e, 0x6e, 0xef, 0xd0, 0xb2, 0x25, 0x1a, 0x32, 0x6e,
+	0x04, 0xa1, 0x9c, 0x86, 0x24, 0xa7, 0x55, 0x74, 0x94, 0x84, 0x60, 0x78, 0x41, 0x7e, 0xd2, 0xf5,
+	0x7d, 0xbe, 0x75, 0x76, 0x0d, 0xe6, 0x7b, 0xa8, 0x0d, 0xed, 0x4f, 0x41, 0x9c, 0xe1, 0xae, 0xd0,
+	0x9b, 0x30, 0xdc, 0xcf, 0xec, 0x77, 0x09, 0xa6, 0x43, 0xd6, 0x13, 0x44, 0xab, 0x52, 0x36, 0xab,
+	0xf2, 0x0a, 0xa4, 0xcc, 0x1d, 0x1b, 0x1d, 0xde, 0xd7, 0x9a, 0x8f, 0xbb, 0xca, 0x57, 0x1a, 0x92,
+	0xcc, 0xa4, 0x0d, 0x14, 0xae, 0x26, 0x0c, 0x2f, 0x90, 0x65, 0x48, 0xf0, 0x32, 0x59, 0xf5, 0x2d,
+	0x89, 0x6f, 0x3f, 0x97, 0x53, 0x92, 0x61, 0x2e, 0x27, 0xdf, 0x82, 0x71, 0x6c, 0xda, 0x16, 0x3a,
+	0x26, 0x96, 0x5c, 0xed, 0x29, 0xa1, 0x7d, 0x2c, 0xc8, 0x6d, 0xe1, 0x6e, 0x7e, 0xcc, 0x6d, 0x84,
+	0x2f, 0x24, 0xfb, 0x3f, 0xcc, 0x76, 0xf8, 0x09, 0x8f, 0x76, 0x4d, 0x98, 0x35, 0xb0, 0x49, 0xab,
+	0xf8, 0x57, 0xcc, 0x76, 0xd3, 0x72, 0xb9, 0x5c, 0xa0, 0x25, 0xf7, 0x29, 0x05, 0xf1, 0x22, 0x23,
+	0x72, 0x0b, 0x26, 0x22, 0x23, 0x4c, 0xbb, 0x6a, 0xd2, 0x6a, 0xd1, 0x11, 0xa2, 0xae, 0x0f, 0x87,
+	0x0f, 0x0f, 0xc3, 0x1b, 0xf8, 0x2f, 0x3a, 0x6f, 0x56, 0xfa, 0x6e, 0x15, 0x61, 0xa8, 0x0f, 0x86,
+	0x65, 0x84, 0xe5, 0xdf, 0x4b, 0x30, 0xdd, 0x39, 0x63, 0x72, 0x7d, 0xf7, 0xeb, 0xe0, 0xa8, 0xf9,
+	0xe1, 0x39, 0xa1, 0x8a, 0x0f, 0x12, 0xa4, 0xbb, 0x5e, 0xf0, 0x7b, 0x7d, 0x37, 0xed, 0x46, 0x53,
+	0x1f, 0x5e, 0x8b, 0x16, 0xca, 0x39, 0x80, 0xc9, 0xc8, 0x55, 0xd4, 0x07, 0xdc, 0x30, 0x20, 0xa8,
+	0xf7, 0x87, 0x24, 0x5c, 0xac, 0x1d, 0xb9, 0x19, 0xfa, 0x00, 0x27, 0xeb, 0x22, 0x61, 0x80, 0xda,
+	0xdd, 0x2f, 0x83, 0x9a, 0x7c, 0x7b, 0x76, 0xb8, 0x2c, 0x6d, 0xbc, 0x3c, 0x3a, 0xc9, 0x48, 0xc7,
+	0x27, 0x19, 0xe9, 0xf7, 0x49, 0x46, 0xfa, 0x78, 0x9a, 0x89, 0x1d, 0x9f, 0x66, 0x62, 0x3f, 0x4f,
+	0x33, 0xb1, 0xd7, 0x39, 0x62, 0xf3, 0xed, 0xbd, 0x8a, 0xfb, 0x5f, 0xa0, 0xf7, 0x78, 0x20, 0x34,
+	0xd7, 0xf4, 0xfd, 0xe0, 0xd1, 0xd2, 0xae, 0x23, 0xab, 0xa4, 0xc4, 0x3b, 0x61, 0xed, 0x4f, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x4c, 0x23, 0x15, 0xab, 0xe1, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -507,14 +732,19 @@ type MsgClient interface {
 	RegisterAgent(ctx context.Context, in *MsgRegisterAgent, opts ...grpc.CallOption) (*MsgRegisterAgentResponse, error)
 	// DeactivateAgent deactivates an existing agent. Owner only.
 	DeactivateAgent(ctx context.Context, in *MsgDeactivateAgent, opts ...grpc.CallOption) (*MsgDeactivateAgentResponse, error)
-	// UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
-	// policy. Owner only. The new policy activates after
+	// UpdateAgentPolicy schedules a timelocked rotation of the agent's
+	// attestation policy. Owner only. The new policy activates after
 	// policy_rotation_delay_blocks.
 	UpdateAgentPolicy(ctx context.Context, in *MsgUpdateAgentPolicy, opts ...grpc.CallOption) (*MsgUpdateAgentPolicyResponse, error)
 	// SubmitAttestedAction verifies a TEE attestation token against the agent's
 	// policy, bound by a per-action nonce, and appends an entry to the agent's
 	// action log.
 	SubmitAttestedAction(ctx context.Context, in *MsgSubmitAttestedAction, opts ...grpc.CallOption) (*MsgSubmitAttestedActionResponse, error)
+	// SubmitFeedback submits or overwrites the client's feedback score for an
+	// agent, grounded in an existing action-log entry.
+	SubmitFeedback(ctx context.Context, in *MsgSubmitFeedback, opts ...grpc.CallOption) (*MsgSubmitFeedbackResponse, error)
+	// RevokeFeedback removes the client's feedback for an agent.
+	RevokeFeedback(ctx context.Context, in *MsgRevokeFeedback, opts ...grpc.CallOption) (*MsgRevokeFeedbackResponse, error)
 }
 
 type msgClient struct {
@@ -561,20 +791,43 @@ func (c *msgClient) SubmitAttestedAction(ctx context.Context, in *MsgSubmitAttes
 	return out, nil
 }
 
+func (c *msgClient) SubmitFeedback(ctx context.Context, in *MsgSubmitFeedback, opts ...grpc.CallOption) (*MsgSubmitFeedbackResponse, error) {
+	out := new(MsgSubmitFeedbackResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.agent.Msg/SubmitFeedback", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RevokeFeedback(ctx context.Context, in *MsgRevokeFeedback, opts ...grpc.CallOption) (*MsgRevokeFeedbackResponse, error) {
+	out := new(MsgRevokeFeedbackResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.agent.Msg/RevokeFeedback", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// RegisterAgent registers a new agent with an immutable attestation policy.
 	RegisterAgent(context.Context, *MsgRegisterAgent) (*MsgRegisterAgentResponse, error)
 	// DeactivateAgent deactivates an existing agent. Owner only.
 	DeactivateAgent(context.Context, *MsgDeactivateAgent) (*MsgDeactivateAgentResponse, error)
-	// UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
-	// policy. Owner only. The new policy activates after
+	// UpdateAgentPolicy schedules a timelocked rotation of the agent's
+	// attestation policy. Owner only. The new policy activates after
 	// policy_rotation_delay_blocks.
 	UpdateAgentPolicy(context.Context, *MsgUpdateAgentPolicy) (*MsgUpdateAgentPolicyResponse, error)
 	// SubmitAttestedAction verifies a TEE attestation token against the agent's
 	// policy, bound by a per-action nonce, and appends an entry to the agent's
 	// action log.
 	SubmitAttestedAction(context.Context, *MsgSubmitAttestedAction) (*MsgSubmitAttestedActionResponse, error)
+	// SubmitFeedback submits or overwrites the client's feedback score for an
+	// agent, grounded in an existing action-log entry.
+	SubmitFeedback(context.Context, *MsgSubmitFeedback) (*MsgSubmitFeedbackResponse, error)
+	// RevokeFeedback removes the client's feedback for an agent.
+	RevokeFeedback(context.Context, *MsgRevokeFeedback) (*MsgRevokeFeedbackResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -592,6 +845,12 @@ func (*UnimplementedMsgServer) UpdateAgentPolicy(ctx context.Context, req *MsgUp
 }
 func (*UnimplementedMsgServer) SubmitAttestedAction(ctx context.Context, req *MsgSubmitAttestedAction) (*MsgSubmitAttestedActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitAttestedAction not implemented")
+}
+func (*UnimplementedMsgServer) SubmitFeedback(ctx context.Context, req *MsgSubmitFeedback) (*MsgSubmitFeedbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitFeedback not implemented")
+}
+func (*UnimplementedMsgServer) RevokeFeedback(ctx context.Context, req *MsgRevokeFeedback) (*MsgRevokeFeedbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeFeedback not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -670,6 +929,42 @@ func _Msg_SubmitAttestedAction_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_SubmitFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSubmitFeedback)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SubmitFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.agent.Msg/SubmitFeedback",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SubmitFeedback(ctx, req.(*MsgSubmitFeedback))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RevokeFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRevokeFeedback)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RevokeFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.agent.Msg/RevokeFeedback",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RevokeFeedback(ctx, req.(*MsgRevokeFeedback))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.agent.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -689,6 +984,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SubmitAttestedAction",
 			Handler:    _Msg_SubmitAttestedAction_Handler,
+		},
+		{
+			MethodName: "SubmitFeedback",
+			Handler:    _Msg_SubmitFeedback_Handler,
+		},
+		{
+			MethodName: "RevokeFeedback",
+			Handler:    _Msg_RevokeFeedback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -979,6 +1282,150 @@ func (m *MsgSubmitAttestedActionResponse) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgSubmitFeedback) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSubmitFeedback) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSubmitFeedback) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.EvidenceSeq != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.EvidenceSeq))
+		i--
+		dAtA[i] = 0x30
+	}
+	if len(m.Tag2) > 0 {
+		i -= len(m.Tag2)
+		copy(dAtA[i:], m.Tag2)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Tag2)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Tag1) > 0 {
+		i -= len(m.Tag1)
+		copy(dAtA[i:], m.Tag1)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Tag1)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Score != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Score))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Client) > 0 {
+		i -= len(m.Client)
+		copy(dAtA[i:], m.Client)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Client)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSubmitFeedbackResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSubmitFeedbackResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSubmitFeedbackResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRevokeFeedback) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRevokeFeedback) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRevokeFeedback) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Client) > 0 {
+		i -= len(m.Client)
+		copy(dAtA[i:], m.Client)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Client)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRevokeFeedbackResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRevokeFeedbackResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRevokeFeedbackResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -1109,6 +1556,72 @@ func (m *MsgSubmitAttestedActionResponse) Size() (n int) {
 	if m.Seq != 0 {
 		n += 1 + sovTx(uint64(m.Seq))
 	}
+	return n
+}
+
+func (m *MsgSubmitFeedback) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Client)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Score != 0 {
+		n += 1 + sovTx(uint64(m.Score))
+	}
+	l = len(m.Tag1)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Tag2)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.EvidenceSeq != 0 {
+		n += 1 + sovTx(uint64(m.EvidenceSeq))
+	}
+	return n
+}
+
+func (m *MsgSubmitFeedbackResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRevokeFeedback) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Client)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgRevokeFeedbackResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -1923,6 +2436,436 @@ func (m *MsgSubmitAttestedActionResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSubmitFeedback) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSubmitFeedback: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSubmitFeedback: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Client", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Client = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Score", wireType)
+			}
+			m.Score = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Score |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tag1", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tag1 = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tag2", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tag2 = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EvidenceSeq", wireType)
+			}
+			m.EvidenceSeq = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.EvidenceSeq |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSubmitFeedbackResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSubmitFeedbackResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSubmitFeedbackResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRevokeFeedback) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRevokeFeedback: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRevokeFeedback: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Client", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Client = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRevokeFeedbackResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRevokeFeedbackResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRevokeFeedbackResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

@@ -1,0 +1,48 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+// Feedback is one client's current rating of an agent. At most one Feedback
+// exists per (agent_id, client); a resubmission overwrites it.
+message Feedback {
+  string agent_id = 1;
+  // client is the bech32 account that submitted the feedback.
+  string client = 2;
+  // score is fixed-point with 2 decimals: 0..10000 == 0.00%..100.00%.
+  uint32 score = 3;
+  // tag1 is the primary dimension name, e.g. "liveness". Required.
+  string tag1 = 4;
+  // tag2 is an optional secondary dimension name.
+  string tag2 = 5;
+  // evidence_seq references an existing action-log entry of the agent.
+  uint64 evidence_seq = 6;
+  int64 height = 7;
+  google.protobuf.Timestamp time = 8
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+}
+
+// Reputation is the per-agent incremental aggregate. average = score_sum/count.
+message Reputation {
+  string agent_id = 1;
+  // count is the number of distinct clients with current feedback.
+  uint64 count = 2;
+  // score_sum is the sum of current scores.
+  uint64 score_sum = 3;
+}
+
+// EventSubmitFeedback is emitted when feedback is submitted or overwritten.
+message EventSubmitFeedback {
+  string agent_id = 1;
+  string client = 2;
+  uint32 score = 3;
+}
+
+// EventRevokeFeedback is emitted when feedback is revoked.
+message EventRevokeFeedback {
+  string agent_id = 1;
+  string client = 2;
+}

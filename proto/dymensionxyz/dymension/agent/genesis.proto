@@ -3,6 +3,7 @@ package dymensionxyz.dymension.agent;
 
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
+import "dymensionxyz/dymension/agent/feedback.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -10,4 +11,7 @@ message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
   repeated Agent agents = 2 [ (gogoproto.nullable) = false ];
   repeated ActionLogEntry action_log = 3 [ (gogoproto.nullable) = false ];
+  // feedbacks holds all current feedback records; reputation aggregates are
+  // rebuilt from them on init.
+  repeated Feedback feedbacks = 4 [ (gogoproto.nullable) = false ];
 }
