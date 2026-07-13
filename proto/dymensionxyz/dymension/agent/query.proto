@@ -4,6 +4,8 @@ package dymensionxyz.dymension.agent;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
@@ -37,6 +39,14 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}/actions/{seq}";
   }
+
+  // EscrowBalance queries an agent's escrow balance and the remaining spend
+  // budget in the current rate window.
+  rpc EscrowBalance(QueryEscrowBalanceRequest)
+      returns (QueryEscrowBalanceResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/escrow";
+  }
 }
 
 message QueryParamsRequest {}
@@ -45,13 +55,9 @@ message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryAgentRequest {
-  string agent_id = 1;
-}
+message QueryAgentRequest { string agent_id = 1; }
 
-message QueryAgentResponse {
-  Agent agent = 1 [ (gogoproto.nullable) = false ];
-}
+message QueryAgentResponse { Agent agent = 1 [ (gogoproto.nullable) = false ]; }
 
 message QueryAgentsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
@@ -79,4 +85,20 @@ message QueryAgentActionRequest {
 
 message QueryAgentActionResponse {
   ActionLogEntry action = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryEscrowBalanceRequest { string agent_id = 1; }
+
+message QueryEscrowBalanceResponse {
+  repeated cosmos.base.v1beta1.Coin balance = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // remaining_window_budget is the spend budget left in the rate window at the
+  // current height. Zero when spending is disabled.
+  string remaining_window_budget = 2 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }

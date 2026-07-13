@@ -5,6 +5,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
 import "cosmos_proto/cosmos.proto";
 import "cosmos/msg/v1/msg.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/common/tee.proto";
 
@@ -17,8 +18,8 @@ service Msg {
   // DeactivateAgent deactivates an existing agent. Owner only.
   rpc DeactivateAgent(MsgDeactivateAgent) returns (MsgDeactivateAgentResponse);
 
-  // UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
-  // policy. Owner only. The new policy activates after
+  // UpdateAgentPolicy schedules a timelocked rotation of the agent's
+  // attestation policy. Owner only. The new policy activates after
   // policy_rotation_delay_blocks.
   rpc UpdateAgentPolicy(MsgUpdateAgentPolicy)
       returns (MsgUpdateAgentPolicyResponse);
@@ -28,6 +29,25 @@ service Msg {
   // action log.
   rpc SubmitAttestedAction(MsgSubmitAttestedAction)
       returns (MsgSubmitAttestedActionResponse);
+
+  // FundAgentEscrow deposits funds into an agent's escrow. Anyone may fund.
+  rpc FundAgentEscrow(MsgFundAgentEscrow) returns (MsgFundAgentEscrowResponse);
+
+  // WithdrawAgentEscrow withdraws funds from an agent's escrow. Owner only.
+  rpc WithdrawAgentEscrow(MsgWithdrawAgentEscrow)
+      returns (MsgWithdrawAgentEscrowResponse);
+
+  // UpdateAgentSpendPolicy sets the agent's spend policy (denom, per-window
+  // limit, window length). Owner only, effective immediately.
+  rpc UpdateAgentSpendPolicy(MsgUpdateAgentSpendPolicy)
+      returns (MsgUpdateAgentSpendPolicyResponse);
+
+  // SubmitAttestedTransfer verifies a TEE attestation token bound to a
+  // specific (recipient, denom, amount, memo), checks the per-window spend
+  // budget, pays out from the agent's escrow, and appends an entry to the
+  // agent's action log.
+  rpc SubmitAttestedTransfer(MsgSubmitAttestedTransfer)
+      returns (MsgSubmitAttestedTransferResponse);
 }
 
 message MsgRegisterAgent {
@@ -75,3 +95,68 @@ message MsgSubmitAttestedAction {
 }
 
 message MsgSubmitAttestedActionResponse { uint64 seq = 1; }
+
+message MsgFundAgentEscrow {
+  option (cosmos.msg.v1.signer) = "funder";
+
+  string funder = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgFundAgentEscrowResponse {}
+
+message MsgWithdrawAgentEscrow {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgWithdrawAgentEscrowResponse {}
+
+message MsgUpdateAgentSpendPolicy {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  string owner = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  // spend_denom is the single spendable denom; empty disables spending.
+  string spend_denom = 3;
+  string spend_limit_per_window = 4 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+  uint64 spend_window_blocks = 5;
+}
+
+message MsgUpdateAgentSpendPolicyResponse {}
+
+// MsgSubmitAttestedTransfer submits an attested transfer on behalf of an
+// agent. Like MsgSubmitAttestedAction, the submitter signs and pays for the tx
+// but is not validated against the agent: the enclave token is bound to the
+// exact (recipient, denom, amount, memo) via the nonce, so the enclave — not
+// the submitter — authorizes the payment.
+message MsgSubmitAttestedTransfer {
+  option (cosmos.msg.v1.signer) = "submitter";
+
+  string submitter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  string recipient = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string amount = 4 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+  bytes memo = 5;
+  string token = 6;
+}
+
+message MsgSubmitAttestedTransferResponse { uint64 seq = 1; }

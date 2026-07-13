@@ -363,16 +363,24 @@ func TestSubmitAttestedAction_PendingPolicyAtActivation(t *testing.T) {
 	require.Equal(t, int64(0), agent.PendingPolicyHeight)
 }
 
-func TestAgent_EffectivePolicy(t *testing.T) {
+func TestAgent_PromotePendingPolicy(t *testing.T) {
 	oldPol := validPolicyT(t, "old")
 	newPol := validPolicyT(t, "new")
 
-	// no pending: always the active policy.
+	// no pending: nothing changes.
 	a := types.Agent{Policy: oldPol}
-	require.Equal(t, oldPol, a.EffectivePolicy(1000))
+	a.PromotePendingPolicy(1000)
+	require.Equal(t, oldPol, a.Policy)
 
+	// before activation: pending stays pending.
 	a = types.Agent{Policy: oldPol, PendingPolicy: &newPol, PendingPolicyHeight: 100}
-	require.Equal(t, oldPol, a.EffectivePolicy(99))
-	require.Equal(t, newPol, a.EffectivePolicy(100))
-	require.Equal(t, newPol, a.EffectivePolicy(101))
+	a.PromotePendingPolicy(99)
+	require.Equal(t, oldPol, a.Policy)
+	require.NotNil(t, a.PendingPolicy)
+
+	// at activation: promoted and cleared.
+	a.PromotePendingPolicy(100)
+	require.Equal(t, newPol, a.Policy)
+	require.Nil(t, a.PendingPolicy)
+	require.Equal(t, int64(0), a.PendingPolicyHeight)
 }

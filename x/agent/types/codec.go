@@ -12,6 +12,10 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDeactivateAgent{}, "agent/DeactivateAgent", nil)
 	cdc.RegisterConcrete(&MsgUpdateAgentPolicy{}, "agent/UpdateAgentPolicy", nil)
 	cdc.RegisterConcrete(&MsgSubmitAttestedAction{}, "agent/SubmitAttestedAction", nil)
+	cdc.RegisterConcrete(&MsgFundAgentEscrow{}, "agent/FundAgentEscrow", nil)
+	cdc.RegisterConcrete(&MsgWithdrawAgentEscrow{}, "agent/WithdrawAgentEscrow", nil)
+	cdc.RegisterConcrete(&MsgUpdateAgentSpendPolicy{}, "agent/UpdateAgentSpendPolicy", nil)
+	cdc.RegisterConcrete(&MsgSubmitAttestedTransfer{}, "agent/SubmitAttestedTransfer", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -20,6 +24,10 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgDeactivateAgent{},
 		&MsgUpdateAgentPolicy{},
 		&MsgSubmitAttestedAction{},
+		&MsgFundAgentEscrow{},
+		&MsgWithdrawAgentEscrow{},
+		&MsgUpdateAgentSpendPolicy{},
+		&MsgSubmitAttestedTransfer{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

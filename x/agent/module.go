@@ -26,6 +26,7 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 	_ module.HasGenesis     = AppModule{}
 	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
 
 	_ appmodule.AppModule = AppModule{}
 )
@@ -111,6 +112,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
+// RegisterInvariants registers the module's invariants.
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, *am.keeper)
+}
+
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(gs, &genState)
@@ -151,6 +157,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:            "agent-action [agent-id] [seq]",
 					Short:          "Show a single attested action log entry",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "seq"}},
+				},
+				{
+					RpcMethod:      "EscrowBalance",
+					Use:            "escrow-balance [agent-id]",
+					Short:          "Show an agent's escrow balance and remaining window spend budget",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
 				},
 			},
 		},
