@@ -461,6 +461,43 @@ func TestExportThenInitGenesis(t *testing.T) {
 	})
 }
 
+// TestGenesis_ServiceRecordRoundTrip verifies that a Dym-Name carrying a DCT_SERVICE
+// config survives an export -> import cycle (validation passes on import).
+func TestGenesis_ServiceRecordRoundTrip(t *testing.T) {
+	now := time.Now().UTC()
+
+	oldKeeper, _, _, oldCtx := testkeeper.DymNSKeeper(t)
+	oldCtx = oldCtx.WithBlockTime(now)
+
+	owner := sample.AccAddress()
+	dymName := dymnstypes.DymName{
+		Name:       "agent",
+		Owner:      owner,
+		Controller: owner,
+		ExpireAt:   now.Add(time.Hour).Unix(),
+		Configs: []dymnstypes.DymNameConfig{
+			{
+				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
+				Value: owner,
+			},
+			{
+				Type:  dymnstypes.DymNameConfigType_DCT_SERVICE,
+				Path:  "mcp",
+				Value: "https://mcp.example.com",
+			},
+		},
+	}
+	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName))
+
+	genState := dymns.ExportGenesis(oldCtx, oldKeeper)
+
+	newKeeper, _, _, newCtx := testkeeper.DymNSKeeper(t)
+	newCtx = newCtx.WithBlockTime(now)
+	dymns.InitGenesis(newCtx, newKeeper, *genState)
+
+	require.Equal(t, "https://mcp.example.com", newKeeper.GetServiceRecord(newCtx, dymName.Name, "mcp"))
+}
+
 func testCoin(amount int64) sdk.Coin {
 	return sdk.Coin{
 		Denom:  params.BaseDenom,

@@ -15,6 +15,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSetController{}, "dymns/SetController", nil)
 	cdc.RegisterConcrete(&MsgUpdateResolveAddress{}, "dymns/UpdateResolveAddress", nil)
 	cdc.RegisterConcrete(&MsgUpdateDetails{}, "dymns/UpdateDetails", nil)
+	cdc.RegisterConcrete(&MsgSetServiceRecord{}, "dymns/SetServiceRecord", nil)
 	cdc.RegisterConcrete(&MsgPlaceSellOrder{}, "dymns/PlaceSellOrder", nil)
 	cdc.RegisterConcrete(&MsgCompleteSellOrder{}, "dymns/CompleteSellOrder", nil)
 	cdc.RegisterConcrete(&MsgCancelSellOrder{}, "dymns/CancelSellOrder", nil)
@@ -41,6 +42,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSetController{},
 		&MsgUpdateResolveAddress{},
 		&MsgUpdateDetails{},
+		&MsgSetServiceRecord{},
 		&MsgUpdateParams{},
 		&MsgPlaceSellOrder{},
 		&MsgCompleteSellOrder{},

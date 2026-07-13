@@ -46,6 +46,32 @@ func (q queryServer) DymName(goCtx context.Context, req *dymnstypes.QueryDymName
 	return &dymnstypes.QueryDymNameResponse{DymName: dymName}, nil
 }
 
+// DymNameServices queries all the typed service/endpoint records of a Dym-Name.
+func (q queryServer) DymNameServices(goCtx context.Context, req *dymnstypes.QueryDymNameServicesRequest) (*dymnstypes.QueryDymNameServicesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	return &dymnstypes.QueryDymNameServicesResponse{
+		Services: q.GetServiceRecords(ctx, req.Name),
+	}, nil
+}
+
+// DymNameService queries a single typed service/endpoint record of a Dym-Name by its service key.
+func (q queryServer) DymNameService(goCtx context.Context, req *dymnstypes.QueryDymNameServiceRequest) (*dymnstypes.QueryDymNameServiceResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	return &dymnstypes.QueryDymNameServiceResponse{
+		Value: q.GetServiceRecord(ctx, req.Name, req.ServiceKey),
+	}, nil
+}
+
 // ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
 //
 // For example:

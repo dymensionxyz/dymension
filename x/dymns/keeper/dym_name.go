@@ -148,6 +148,48 @@ func (k Keeper) GetDymNameWithExpirationCheck(ctx sdk.Context, name string) *dym
 	return dymName
 }
 
+// GetServiceRecords returns all typed service/endpoint records of a non-expired Dym-Name.
+// Returns nil if the Dym-Name does not exist or is expired.
+func (k Keeper) GetServiceRecords(ctx sdk.Context, name string) []dymnstypes.ServiceRecord {
+	dymName := k.GetDymNameWithExpirationCheck(ctx, name)
+	if dymName == nil {
+		return nil
+	}
+
+	var records []dymnstypes.ServiceRecord
+	for _, config := range dymName.Configs {
+		if config.Type != dymnstypes.DymNameConfigType_DCT_SERVICE {
+			continue
+		}
+		records = append(records, dymnstypes.ServiceRecord{
+			ServiceKey: config.Path,
+			Value:      config.Value,
+		})
+	}
+
+	return records
+}
+
+// GetServiceRecord returns the endpoint value of a single service record of a non-expired
+// Dym-Name by its service key. Returns empty string when not found.
+func (k Keeper) GetServiceRecord(ctx sdk.Context, name, serviceKey string) string {
+	dymName := k.GetDymNameWithExpirationCheck(ctx, name)
+	if dymName == nil {
+		return ""
+	}
+
+	for _, config := range dymName.Configs {
+		if config.Type != dymnstypes.DymNameConfigType_DCT_SERVICE {
+			continue
+		}
+		if config.Path == serviceKey {
+			return config.Value
+		}
+	}
+
+	return ""
+}
+
 // DeleteDymName removes a Dym-Name from the KVStore.
 // This function will remove the Dym-Name record as well as the existing reverse mappings records.
 func (k Keeper) DeleteDymName(ctx sdk.Context, name string) error {

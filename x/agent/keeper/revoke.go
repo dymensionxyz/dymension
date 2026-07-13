@@ -9,7 +9,25 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
+	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 )
+
+// fingerprintNotRevoked returns the policy's fingerprint, or
+// ErrFailedPrecondition if it is in the revocation denylist.
+func (k Keeper) fingerprintNotRevoked(ctx sdk.Context, p tee.Policy) (string, error) {
+	fp, err := types.PolicyFingerprint(p)
+	if err != nil {
+		return "", errorsmod.Wrap(err, "policy fingerprint")
+	}
+	revoked, err := k.IsPolicyRevoked(ctx, fp)
+	if err != nil {
+		return "", errorsmod.Wrap(err, "is policy revoked")
+	}
+	if revoked {
+		return "", gerrc.ErrFailedPrecondition.Wrapf("policy revoked: %s", fp)
+	}
+	return fp, nil
+}
 
 func (k Keeper) SetRevoked(ctx sdk.Context, fp string) error {
 	return k.revokedPolicies.Set(ctx, fp)

@@ -29,7 +29,9 @@ func (k Keeper) Agent(goCtx context.Context, req *types.QueryAgentRequest) (*typ
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrAgentNotFound, req.AgentId)
 	}
-	fp, err := types.PolicyFingerprint(agent.Policy)
+	// Fingerprint the effective policy so the reported revocation status
+	// matches what submit-time enforcement would apply right now.
+	fp, err := types.PolicyFingerprint(agent.EffectivePolicy(ctx.BlockHeight()))
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "policy fingerprint")
 	}

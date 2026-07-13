@@ -48,18 +48,21 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", msg.AgentId)
 	}
 
-	// Revocation is a pure denylist: agent.Active is never mutated, so
-	// unrevoking re-enables every affected agent with zero side effects.
-	fp, err := types.PolicyFingerprint(agent.Policy)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "policy fingerprint")
+	// Promote a matured pending policy so verification uses the effective policy;
+	// the SetAgent below persists the promotion in the same write.
+	if agent.PendingPolicy != nil && ctx.BlockHeight() >= agent.PendingPolicyHeight {
+		agent.Policy = *agent.PendingPolicy
+		agent.PendingPolicy = nil
+		agent.PendingPolicyHeight = 0
 	}
-	revoked, err := k.IsPolicyRevoked(ctx, fp)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "is policy revoked")
-	}
-	if revoked {
-		return nil, gerrc.ErrFailedPrecondition.Wrapf("agent policy revoked: %s", fp)
+
+	// The denylist check runs on the effective (post-promotion) policy: a
+	// matured clean rotation escapes a revoked old policy, and a matured
+	// revoked rotation is blocked even if the old policy was clean. Revocation
+	// is a pure denylist: agent.Active is never mutated, so unrevoking
+	// re-enables every affected agent with zero side effects.
+	if _, err := k.fingerprintNotRevoked(ctx, agent.Policy); err != nil {
+		return nil, err
 	}
 
 	seq := agent.ActionSeq

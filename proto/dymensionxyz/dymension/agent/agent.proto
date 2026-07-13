@@ -16,6 +16,9 @@ message Params {
   // burned.
   cosmos.base.v1beta1.Coin agent_registration_fee = 2
       [ (gogoproto.nullable) = false ];
+  // policy_rotation_delay_blocks is the timelock, in blocks, before a proposed
+  // policy rotation takes effect.
+  uint64 policy_rotation_delay_blocks = 3;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action
@@ -29,6 +32,10 @@ message Agent {
   uint64 action_seq = 4;
   // owner is the account that registered the agent; only it may deactivate.
   string owner = 5;
+  // pending_policy, if set, becomes the active policy at pending_policy_height.
+  dymensionxyz.dymension.common.Policy pending_policy = 6
+      [ (gogoproto.nullable) = true ];
+  int64 pending_policy_height = 7;
 }
 
 // EventRegisterAgent is emitted when an agent is registered.
@@ -54,6 +61,13 @@ message EventPolicyRevoked {
 
 // EventPolicyUnrevoked is emitted when a policy fingerprint is unrevoked.
 message EventPolicyUnrevoked { string fingerprint = 1; }
+
+// EventUpdateAgentPolicy is emitted when a timelocked policy rotation is
+// scheduled.
+message EventUpdateAgentPolicy {
+  string agent_id = 1;
+  int64 activation_height = 2;
+}
 
 // ActionLogEntry is an immutable record of one attested action, keyed by
 // (agent_id, seq).

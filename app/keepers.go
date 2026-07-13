@@ -600,6 +600,7 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		govModuleAddress,
 	)
+	a.EIBCKeeper.SetAgentKeeper(a.AgentKeeper)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(
 		appCodec,

@@ -18,16 +18,9 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 		return nil, errorsmod.Wrap(types.ErrAgentExists, msg.AgentId)
 	}
 
-	fp, err := types.PolicyFingerprint(msg.Policy)
+	fp, err := k.fingerprintNotRevoked(ctx, msg.Policy)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "policy fingerprint")
-	}
-	revoked, err := k.IsPolicyRevoked(ctx, fp)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "is policy revoked")
-	}
-	if revoked {
-		return nil, gerrc.ErrFailedPrecondition.Wrapf("policy revoked: %s", fp)
+		return nil, err
 	}
 
 	// charge the registration fee: send to module then burn (mirrors rollapp app registration)
@@ -90,4 +83,51 @@ func (k msgServer) DeactivateAgent(goCtx context.Context, msg *types.MsgDeactiva
 	}
 
 	return &types.MsgDeactivateAgentResponse{}, nil
+}
+
+func (k msgServer) UpdateAgentPolicy(goCtx context.Context, msg *types.MsgUpdateAgentPolicy) (*types.MsgUpdateAgentPolicyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+
+	agent, found := k.GetAgent(ctx, msg.AgentId)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrAgentNotFound, msg.AgentId)
+	}
+	if agent.Owner != msg.Owner {
+		return nil, errorsmod.Wrap(types.ErrUnauthorized, "not the agent owner")
+	}
+	if !agent.Active {
+		return nil, gerrc.ErrFailedPrecondition.Wrap("agent is not active")
+	}
+
+	// No point scheduling a rotation to a known-bad image. The submit-time
+	// check remains the backstop for policies revoked after scheduling.
+	if _, err := k.fingerprintNotRevoked(ctx, msg.NewPolicy); err != nil {
+		return nil, err
+	}
+
+	delay, err := k.PolicyRotationDelayBlocks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Re-proposing overwrites any existing pending rotation and restarts the
+	// timelock, doubling as the cancel/replace path.
+	agent.PendingPolicy = &msg.NewPolicy
+	agent.PendingPolicyHeight = ctx.BlockHeight() + int64(delay) //nolint:gosec // delay is a small governance param, no realistic overflow
+	if err := k.SetAgent(ctx, agent); err != nil {
+		return nil, err
+	}
+
+	if err := uevent.EmitTypedEvent(ctx, &types.EventUpdateAgentPolicy{
+		AgentId:          agent.Id,
+		ActivationHeight: agent.PendingPolicyHeight,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateAgentPolicyResponse{ActivationHeight: agent.PendingPolicyHeight}, nil
 }

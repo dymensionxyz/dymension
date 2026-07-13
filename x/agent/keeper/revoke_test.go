@@ -208,6 +208,124 @@ func TestRevokedPoliciesQueries(t *testing.T) {
 	require.True(t, agentRes.Revoked)
 }
 
+func TestUpdateAgentPolicy_RevokedPolicy(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+	own := owner(t)
+	seedOwnedAgent(t, ctx, k, "a1", own, validPolicyT(t, "old"))
+
+	badPol := validPolicyT(t, "bad")
+	_, err := ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fingerprint(t, badPol), "bad image"))
+	require.NoError(t, err)
+
+	_, err = ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", badPol))
+	require.True(t, errors.Is(err, gerrc.ErrFailedPrecondition))
+	require.ErrorContains(t, err, "policy revoked")
+
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.Nil(t, agent.PendingPolicy, "revoked rotation must not be scheduled")
+}
+
+// TestSubmitAttestedAction_RevokedPendingPolicy proves promote-then-check: a
+// scheduled rotation to a policy revoked after scheduling works until it
+// matures, is blocked from maturity on (nothing persisted, nothing appended),
+// and unrevoking restores the agent, letting the promotion land.
+func TestSubmitAttestedAction_RevokedPendingPolicy(t *testing.T) {
+	ctx, k, v := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+	own := owner(t)
+	oldPol := validPolicyT(t, "old")
+	newPol := validPolicyT(t, "new")
+	seedOwnedAgent(t, ctx, k, "a1", own, oldPol)
+
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol))
+	require.NoError(t, err)
+	_, err = ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fingerprint(t, newPol), "bad image"))
+	require.NoError(t, err)
+
+	// before maturity the clean old policy is still effective
+	ctx = ctx.WithBlockHeight(res.ActivationHeight - 1)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("p"), 0))
+	require.NoError(t, err)
+	require.Equal(t, oldPol, v.gotPolicy)
+
+	// from maturity on, the promoted policy is revoked: blocked, no log entry,
+	// no promotion persisted
+	ctx = ctx.WithBlockHeight(res.ActivationHeight)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("q"), 1))
+	require.True(t, errors.Is(err, gerrc.ErrFailedPrecondition))
+	require.ErrorContains(t, err, "policy revoked")
+	_, found := k.GetActionLogEntry(ctx, "a1", 1)
+	require.False(t, found)
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.True(t, agent.Active)
+	require.Equal(t, oldPol, agent.Policy)
+	require.NotNil(t, agent.PendingPolicy)
+	require.Equal(t, uint64(1), agent.ActionSeq)
+
+	// unrevoke: the pending policy promotes and verification uses it
+	_, err = ms.UnrevokePolicy(ctx, types.NewMsgUnrevokePolicy(govAuthority, fingerprint(t, newPol)))
+	require.NoError(t, err)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("q"), 1))
+	require.NoError(t, err)
+	require.Equal(t, newPol, v.gotPolicy)
+	agent, _ = k.GetAgent(ctx, "a1")
+	require.Equal(t, newPol, agent.Policy)
+	require.Nil(t, agent.PendingPolicy)
+}
+
+// TestSubmitAttestedAction_RevokedActiveCleanPending proves the other ordering
+// property: an agent whose active policy is revoked escapes via a matured
+// clean rotation, because promotion happens before the denylist check.
+func TestSubmitAttestedAction_RevokedActiveCleanPending(t *testing.T) {
+	ctx, k, v := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+	own := owner(t)
+	oldPol := validPolicyT(t, "old")
+	newPol := validPolicyT(t, "new")
+	seedOwnedAgent(t, ctx, k, "a1", own, oldPol)
+
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol))
+	require.NoError(t, err)
+	_, err = ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fingerprint(t, oldPol), "bad image"))
+	require.NoError(t, err)
+
+	// before maturity the revoked old policy is effective: blocked
+	ctx = ctx.WithBlockHeight(res.ActivationHeight - 1)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("p"), 0))
+	require.True(t, errors.Is(err, gerrc.ErrFailedPrecondition))
+
+	// at maturity the clean pending policy promotes: allowed
+	ctx = ctx.WithBlockHeight(res.ActivationHeight)
+	_, err = ms.SubmitAttestedAction(ctx, validMsg(t, "a1", []byte("p"), 0))
+	require.NoError(t, err)
+	require.Equal(t, newPol, v.gotPolicy)
+	agent, _ := k.GetAgent(ctx, "a1")
+	require.Equal(t, newPol, agent.Policy)
+}
+
+// TestAgentQuery_EffectiveFingerprint proves the Agent query reports the
+// fingerprint/revoked status of the policy submit-time enforcement would use.
+func TestAgentQuery_EffectiveFingerprint(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+	own := owner(t)
+	oldPol := validPolicyT(t, "old")
+	newPol := validPolicyT(t, "new")
+	seedOwnedAgent(t, ctx, k, "a1", own, oldPol)
+
+	res, err := ms.UpdateAgentPolicy(ctx, types.NewMsgUpdateAgentPolicy(own, "a1", newPol))
+	require.NoError(t, err)
+
+	before, err := k.Agent(ctx.WithBlockHeight(res.ActivationHeight-1), &types.QueryAgentRequest{AgentId: "a1"})
+	require.NoError(t, err)
+	require.Equal(t, fingerprint(t, oldPol), before.Fingerprint)
+
+	after, err := k.Agent(ctx.WithBlockHeight(res.ActivationHeight), &types.QueryAgentRequest{AgentId: "a1"})
+	require.NoError(t, err)
+	require.Equal(t, fingerprint(t, newPol), after.Fingerprint)
+}
+
 func TestGenesisRoundTripRevokedPolicies(t *testing.T) {
 	ctx, k, _ := setup(t)
 	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
