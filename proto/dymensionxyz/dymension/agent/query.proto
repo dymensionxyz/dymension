@@ -4,7 +4,7 @@ package dymensionxyz.dymension.agent;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "dymensionxyz/dymension/agent/d.proto";
+import "dymensionxyz/dymension/agent/agent.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -45,9 +45,13 @@ message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryAgentRequest { string agent_id = 1; }
+message QueryAgentRequest {
+  string agent_id = 1;
+}
 
-message QueryAgentResponse { Agent agent = 1 [ (gogoproto.nullable) = false ]; }
+message QueryAgentResponse {
+  Agent agent = 1 [ (gogoproto.nullable) = false ];
+}
 
 message QueryAgentsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;

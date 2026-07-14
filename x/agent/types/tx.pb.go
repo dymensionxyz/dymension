@@ -507,8 +507,8 @@ type MsgClient interface {
 	RegisterAgent(ctx context.Context, in *MsgRegisterAgent, opts ...grpc.CallOption) (*MsgRegisterAgentResponse, error)
 	// DeactivateAgent deactivates an existing agent. Owner only.
 	DeactivateAgent(ctx context.Context, in *MsgDeactivateAgent, opts ...grpc.CallOption) (*MsgDeactivateAgentResponse, error)
-	// UpdateAgentPolicy schedules a timelocked rotation of the agent's
-	// attestation policy. Owner only. The new policy activates after
+	// UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
+	// policy. Owner only. The new policy activates after
 	// policy_rotation_delay_blocks.
 	UpdateAgentPolicy(ctx context.Context, in *MsgUpdateAgentPolicy, opts ...grpc.CallOption) (*MsgUpdateAgentPolicyResponse, error)
 	// SubmitAttestedAction verifies a TEE attestation token against the agent's
@@ -567,8 +567,8 @@ type MsgServer interface {
 	RegisterAgent(context.Context, *MsgRegisterAgent) (*MsgRegisterAgentResponse, error)
 	// DeactivateAgent deactivates an existing agent. Owner only.
 	DeactivateAgent(context.Context, *MsgDeactivateAgent) (*MsgDeactivateAgentResponse, error)
-	// UpdateAgentPolicy schedules a timelocked rotation of the agent's
-	// attestation policy. Owner only. The new policy activates after
+	// UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
+	// policy. Owner only. The new policy activates after
 	// policy_rotation_delay_blocks.
 	UpdateAgentPolicy(context.Context, *MsgUpdateAgentPolicy) (*MsgUpdateAgentPolicyResponse, error)
 	// SubmitAttestedAction verifies a TEE attestation token against the agent's

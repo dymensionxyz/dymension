@@ -1,19 +1,6 @@
 syntax = "proto3";
 package dymensionxyz.dymension.agent;
 
+import public "dymensionxyz/dymension/agent/agent.proto";
+
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
-
-message EventRegisterAgent {
-  string agent_id = 1;
-  string owner = 2;
-}
-
-message EventDeactivateAgent {
-  string agent_id = 1;
-  string owner = 2;
-}
-
-message EventUpdateAgentPolicy {
-  string agent_id = 1;
-  int64 activation_height = 2;
-}
