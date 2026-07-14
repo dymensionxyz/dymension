@@ -17,8 +17,8 @@ service Msg {
   // DeactivateAgent deactivates an existing agent. Owner only.
   rpc DeactivateAgent(MsgDeactivateAgent) returns (MsgDeactivateAgentResponse);
 
-  // UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
-  // policy. Owner only. The new policy activates after
+  // UpdateAgentPolicy schedules a timelocked rotation of the agent's
+  // attestation policy. Owner only. The new policy activates after
   // policy_rotation_delay_blocks.
   rpc UpdateAgentPolicy(MsgUpdateAgentPolicy)
       returns (MsgUpdateAgentPolicyResponse);

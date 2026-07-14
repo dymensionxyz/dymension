@@ -1,0 +1,38 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/common/tee.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+message Agent {
+  string id = 1;
+  dymensionxyz.dymension.common.Policy policy = 2
+      [ (gogoproto.nullable) = false ];
+  bool active = 3;
+  uint64 action_seq = 4;
+  string owner = 5;
+  dymensionxyz.dymension.common.Policy pending_policy = 6
+      [ (gogoproto.nullable) = true ];
+  int64 pending_policy_height = 7;
+}
+
+message ActionLogEntry {
+  string agent_id = 1;
+  uint64 seq = 2;
+  bytes payload = 3;
+  bytes payload_hash = 4;
+  int64 height = 5;
+  google.protobuf.Timestamp time = 6
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+}
+
+message Params {
+  uint64 max_action_bytes = 1;
+  cosmos.base.v1beta1.Coin agent_registration_fee = 2
+      [ (gogoproto.nullable) = false ];
+  uint64 policy_rotation_delay_blocks = 3;
+}
