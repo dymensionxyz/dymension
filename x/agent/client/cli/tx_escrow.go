@@ -93,3 +93,41 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
+
+func CmdSubmitAttestedTransfer() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "submit-attested-transfer [agent-id] [recipient] [amount] [memo] [token]",
+		Short: "Submit an enclave-attested transfer from an agent's escrow",
+		Args:  cobra.ExactArgs(5),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg, err := newMsgSubmitAttestedTransfer(clientCtx.GetFromAddress().String(), args)
+			if err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func newMsgSubmitAttestedTransfer(submitter string, args []string) (*types.MsgSubmitAttestedTransfer, error) {
+	amount, ok := math.NewIntFromString(args[2])
+	if !ok {
+		return nil, gerrc.ErrInvalidArgument.Wrap("amount")
+	}
+	return &types.MsgSubmitAttestedTransfer{
+		Submitter: submitter,
+		AgentId:   args[0],
+		Recipient: args[1],
+		Amount:    amount,
+		Memo:      []byte(args[3]),
+		Token:     args[4],
+	}, nil
+}
