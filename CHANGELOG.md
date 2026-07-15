@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-10)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-15)
 
 
 ### Bug Fixes
@@ -14,6 +14,7 @@
 
 * **agent:** add SubmitAttestedAction (nonce binding + attestation verify + append log) ([#2164](https://github.com/dymensionxyz/dymension/issues/2164)) ([558d9b9](https://github.com/dymensionxyz/dymension/commit/558d9b9ce1f68a03bff4d5d5a636ff8d87572e61))
 * **agent:** add x/agent registry + action-log queries and CLI ([#2165](https://github.com/dymensionxyz/dymension/issues/2165)) ([7daf244](https://github.com/dymensionxyz/dymension/commit/7daf2444f90e7ddcbf84dbbe69d94458b8e211b3)), closes [2158-#2160](https://github.com/2158-/issues/2160) [#2161](https://github.com/dymensionxyz/dymension/issues/2161)
+* **agent:** governance-gated TEE policy revocation denylist ([#2180](https://github.com/dymensionxyz/dymension/issues/2180)) ([d3701a2](https://github.com/dymensionxyz/dymension/commit/d3701a228165fc26e00986d0ff6ecf9aa6150c79)), closes [#2168](https://github.com/dymensionxyz/dymension/issues/2168) [#2170](https://github.com/dymensionxyz/dymension/issues/2170)
 * **agent:** registry register + deactivate ([#2166](https://github.com/dymensionxyz/dymension/issues/2166)) ([d0eca0e](https://github.com/dymensionxyz/dymension/commit/d0eca0e3709cbbaaaf9490aae6cbfd7dfdaba10d)), closes [#2158](https://github.com/dymensionxyz/dymension/issues/2158) [#2158](https://github.com/dymensionxyz/dymension/issues/2158) [#2159](https://github.com/dymensionxyz/dymension/issues/2159)
 * **agent:** timelocked agent policy rotation (MsgUpdateAgentPolicy) ([#2176](https://github.com/dymensionxyz/dymension/issues/2176)) ([ed58cd3](https://github.com/dymensionxyz/dymension/commit/ed58cd34af89dffc5342da90a2c71e2169754bfc))
 * **bridgingfee:** per-asset min/max outbound fee bounds ([#2174](https://github.com/dymensionxyz/dymension/issues/2174)) ([5bf9013](https://github.com/dymensionxyz/dymension/commit/5bf90137c11208c3590ea040aa8ce070ac97d446)), closes [hi#frequency](https://github.com/hi/issues/frequency)
