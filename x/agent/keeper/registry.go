@@ -18,6 +18,11 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 		return nil, errorsmod.Wrap(types.ErrAgentExists, msg.AgentId)
 	}
 
+	fp, err := k.fingerprintNotRevoked(ctx, msg.Policy)
+	if err != nil {
+		return nil, err
+	}
+
 	// charge the registration fee: send to module then burn (mirrors rollapp app registration)
 	fee, err := k.AgentRegistrationFee(ctx)
 	if err != nil {
@@ -44,8 +49,9 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 	}
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventRegisterAgent{
-		AgentId: agent.Id,
-		Owner:   agent.Owner,
+		AgentId:     agent.Id,
+		Owner:       agent.Owner,
+		Fingerprint: fp,
 	}); err != nil {
 		return nil, err
 	}
@@ -95,6 +101,12 @@ func (k msgServer) UpdateAgentPolicy(goCtx context.Context, msg *types.MsgUpdate
 	}
 	if !agent.Active {
 		return nil, gerrc.ErrFailedPrecondition.Wrap("agent is not active")
+	}
+
+	// No point scheduling a rotation to a known-bad image. The submit-time
+	// check remains the backstop for policies revoked after scheduling.
+	if _, err := k.fingerprintNotRevoked(ctx, msg.NewPolicy); err != nil {
+		return nil, err
 	}
 
 	delay, err := k.PolicyRotationDelayBlocks(ctx)

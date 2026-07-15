@@ -56,6 +56,15 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 		agent.PendingPolicyHeight = 0
 	}
 
+	// The denylist check runs on the effective (post-promotion) policy: a
+	// matured clean rotation escapes a revoked old policy, and a matured
+	// revoked rotation is blocked even if the old policy was clean. Revocation
+	// is a pure denylist: agent.Active is never mutated, so unrevoking
+	// re-enables every affected agent with zero side effects.
+	if _, err := k.fingerprintNotRevoked(ctx, agent.Policy); err != nil {
+		return nil, err
+	}
+
 	seq := agent.ActionSeq
 	nonce := types.ActionNonce(msg.AgentId, msg.Payload, seq)
 

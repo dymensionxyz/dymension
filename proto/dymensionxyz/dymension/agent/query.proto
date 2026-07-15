@@ -37,6 +37,20 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}/actions/{seq}";
   }
+
+  // RevokedPolicies queries all revoked policy fingerprints.
+  rpc RevokedPolicies(QueryRevokedPoliciesRequest)
+      returns (QueryRevokedPoliciesResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/revoked-policies";
+  }
+
+  // PolicyRevoked queries whether a policy fingerprint is revoked.
+  rpc PolicyRevoked(QueryPolicyRevokedRequest)
+      returns (QueryPolicyRevokedResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/revoked-policies/{fingerprint}";
+  }
 }
 
 message QueryParamsRequest {}
@@ -45,12 +59,15 @@ message QueryParamsResponse {
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryAgentRequest {
-  string agent_id = 1;
-}
+message QueryAgentRequest { string agent_id = 1; }
 
 message QueryAgentResponse {
   Agent agent = 1 [ (gogoproto.nullable) = false ];
+  // fingerprint is the lowercase hex SHA-256 of the deterministic proto
+  // marshaling of the agent's policy; pass it to MsgRevokePolicy to revoke.
+  string fingerprint = 2;
+  // revoked reports whether the agent's policy fingerprint is revoked.
+  bool revoked = 3;
 }
 
 message QueryAgentsRequest {
@@ -80,3 +97,11 @@ message QueryAgentActionRequest {
 message QueryAgentActionResponse {
   ActionLogEntry action = 1 [ (gogoproto.nullable) = false ];
 }
+
+message QueryRevokedPoliciesRequest {}
+
+message QueryRevokedPoliciesResponse { repeated string fingerprints = 1; }
+
+message QueryPolicyRevokedRequest { string fingerprint = 1; }
+
+message QueryPolicyRevokedResponse { bool revoked = 1; }

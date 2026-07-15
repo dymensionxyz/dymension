@@ -15,14 +15,17 @@ import (
 )
 
 type Keeper struct {
+	authority string // authority is the x/gov module account
+
 	// verifier is injected so the attestation seam can be faked in tests; the
 	// real verifier does GCP PKI + rego evaluation.
 	verifier   tee.Verifier
 	bankKeeper types.BankKeeper
 
-	params    collections.Item[types.Params]
-	agents    collections.Map[string, types.Agent]
-	actionLog collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
+	params          collections.Item[types.Params]
+	agents          collections.Map[string, types.Agent]
+	actionLog       collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
+	revokedPolicies collections.KeySet[string]
 }
 
 func NewKeeper(
@@ -30,10 +33,16 @@ func NewKeeper(
 	service store.KVStoreService,
 	verifier tee.Verifier,
 	bankKeeper types.BankKeeper,
+	authority string,
 ) *Keeper {
+	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
+		panic(fmt.Errorf("invalid x/agent authority address: %w", err))
+	}
+
 	sb := collections.NewSchemaBuilder(service)
 
 	k := &Keeper{
+		authority:  authority,
 		verifier:   verifier,
 		bankKeeper: bankKeeper,
 		params: collections.NewItem(sb, collections.NewPrefix(types.KeyParams),
@@ -43,6 +52,8 @@ func NewKeeper(
 		actionLog: collections.NewMap(sb, collections.NewPrefix(types.KeyActionLog),
 			"action_log", collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
 			collcompat.ProtoValue[types.ActionLogEntry](cdc)),
+		revokedPolicies: collections.NewKeySet(sb, collections.NewPrefix(types.KeyRevokedPolicies),
+			"revoked_policies", collections.StringKey),
 	}
 
 	if _, err := sb.Build(); err != nil {
