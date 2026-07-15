@@ -152,6 +152,17 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Show a single attested action log entry",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "seq"}},
 				},
+				{
+					RpcMethod: "RevokedPolicies",
+					Use:       "revoked-policies",
+					Short:     "List all revoked policy fingerprints",
+				},
+				{
+					RpcMethod:      "PolicyRevoked",
+					Use:            "policy-revoked [fingerprint]",
+					Short:          "Check whether a policy fingerprint is revoked",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "fingerprint"}},
+				},
 			},
 		},
 	}
