@@ -47,6 +47,9 @@ message Agent {
 message EventRegisterAgent {
   string agent_id = 1;
   string owner = 2;
+  // fingerprint is the lowercase hex SHA-256 of the deterministic proto
+  // marshaling of the agent's policy; pass it to MsgRevokePolicy to revoke.
+  string fingerprint = 3;
 }
 
 // EventDeactivateAgent is emitted when an agent is deactivated.
@@ -54,6 +57,15 @@ message EventDeactivateAgent {
   string agent_id = 1;
   string owner = 2;
 }
+
+// EventPolicyRevoked is emitted when a policy fingerprint is revoked.
+message EventPolicyRevoked {
+  string fingerprint = 1;
+  string reason = 2;
+}
+
+// EventPolicyUnrevoked is emitted when a policy fingerprint is unrevoked.
+message EventPolicyUnrevoked { string fingerprint = 1; }
 
 // EventUpdateAgentPolicy is emitted when a timelocked policy rotation is
 // scheduled.

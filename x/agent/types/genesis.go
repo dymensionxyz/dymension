@@ -12,6 +12,11 @@ func (g GenesisState) Validate() error {
 	if err := g.Params.Validate(); err != nil {
 		return err
 	}
+	for _, fp := range g.RevokedPolicies {
+		if err := ValidateFingerprint(fp); err != nil {
+			return err
+		}
+	}
 	seen := make(map[string]struct{}, len(g.Feedbacks))
 	for _, f := range g.Feedbacks {
 		if f.Score > MaxFeedbackScore {

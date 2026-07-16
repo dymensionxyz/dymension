@@ -21,6 +21,11 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 			panic(err)
 		}
 	}
+	for _, fp := range g.RevokedPolicies {
+		if err := k.revokedPolicies.Set(ctx, fp); err != nil {
+			panic(err)
+		}
+	}
 	// Reputation aggregates are rebuilt from the feedback set rather than
 	// imported, so they cannot drift from the records.
 	for _, f := range g.Feedbacks {
@@ -61,6 +66,12 @@ func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
 	}); err != nil {
 		panic(err)
 	}
+
+	revoked, err := k.AllRevokedPolicies(ctx)
+	if err != nil {
+		panic(err)
+	}
+	g.RevokedPolicies = revoked
 
 	// key order == (agent_id, client) order, so the export is deterministic
 	if err := k.feedback.Walk(ctx, nil, func(_ collections.Pair[string, string], f types.Feedback) (stop bool, err error) {

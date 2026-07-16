@@ -11,7 +11,9 @@ message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
   repeated Agent agents = 2 [ (gogoproto.nullable) = false ];
   repeated ActionLogEntry action_log = 3 [ (gogoproto.nullable) = false ];
+  // revoked_policies are the revoked policy fingerprints, ascending.
+  repeated string revoked_policies = 4;
   // feedbacks holds all current feedback records; reputation aggregates are
   // rebuilt from them on init.
-  repeated Feedback feedbacks = 4 [ (gogoproto.nullable) = false ];
+  repeated Feedback feedbacks = 5 [ (gogoproto.nullable) = false ];
 }
