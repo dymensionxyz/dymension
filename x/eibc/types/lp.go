@@ -39,6 +39,9 @@ func (d OnDemandLP) Validate() error {
 	if d.SpendLimit.IsNil() || !d.SpendLimit.IsPositive() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend limit")
 	}
+	if !d.MinFeeAbsolute.IsNil() && d.MinFeeAbsolute.IsNegative() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min fee absolute must be non-negative")
+	}
 	if d.rateLimitEnabled() {
 		if !d.RateLimitAmount.IsPositive() {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "rate limit amount must be positive")
@@ -56,6 +59,15 @@ func (d OnDemandLP) Validate() error {
 // non-positive amount means disabled, matching the opt-in semantics.
 func (d OnDemandLP) rateLimitEnabled() bool {
 	return !d.RateLimitAmount.IsNil() && d.RateLimitAmount.IsPositive()
+}
+
+// minFeeAbsolute guards against a nil read from pre-upgrade LP records; nil or
+// zero means the absolute fee floor is disabled.
+func (d OnDemandLP) minFeeAbsolute() math.Int {
+	if d.MinFeeAbsolute.IsNil() {
+		return math.ZeroInt()
+	}
+	return d.MinFeeAbsolute
 }
 
 func (r OnDemandLPRecord) Validate() error {
@@ -125,8 +137,9 @@ func (r *OnDemandLPRecord) RecordSpend(nowHeight uint64, price math.Int) {
 func (r OnDemandLPRecord) Accepts(nowHeight uint64, o *DemandOrder) bool {
 	priceOK := o.EffectivePriceAmount(nowHeight).LTE(r.MaxSpend())
 	feeOK := r.Lp.MinFee.LTE(o.EffectiveFeePercent(nowHeight))
+	minFeeAbsOK := o.EffectiveFeeAmount(nowHeight).GTE(r.Lp.minFeeAbsolute())
 	ageOK := r.Lp.OrderMinAgeBlocks <= nowHeight-o.CreationHeight
 	validOK := r.Lp.ValidUntilHeight == 0 || nowHeight < r.Lp.ValidUntilHeight
 	rateOK := r.RateAllows(nowHeight, o.PriceAmount())
-	return priceOK && feeOK && ageOK && validOK && rateOK
+	return priceOK && feeOK && minFeeAbsOK && ageOK && validOK && rateOK
 }
