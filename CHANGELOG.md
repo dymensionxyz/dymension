@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-15)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-22)
 
 
 ### Bug Fixes
@@ -20,6 +20,7 @@
 * **bridgingfee:** per-asset min/max outbound fee bounds ([#2174](https://github.com/dymensionxyz/dymension/issues/2174)) ([5bf9013](https://github.com/dymensionxyz/dymension/commit/5bf90137c11208c3590ea040aa8ce070ac97d446)), closes [hi#frequency](https://github.com/hi/issues/frequency)
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
 * **dymns:** typed service/endpoint records (DCT_SERVICE) for agent discovery ([#2172](https://github.com/dymensionxyz/dymension/issues/2172)) ([0b63076](https://github.com/dymensionxyz/dymension/commit/0b630764fc5f514197fb28652daae44180989d3e)), closes [#2171](https://github.com/dymensionxyz/dymension/issues/2171)
+* **eibc:** absolute minimum-fee floor for on-demand LPs ([#2190](https://github.com/dymensionxyz/dymension/issues/2190)) ([88c83cd](https://github.com/dymensionxyz/dymension/commit/88c83cde22dc124930e23f5683bdac8a118d6617)), closes [#2189](https://github.com/dymensionxyz/dymension/issues/2189)
 * **eibc:** bind on-demand LP to x/agent attested agent ([#2183](https://github.com/dymensionxyz/dymension/issues/2183)) ([bbdefe2](https://github.com/dymensionxyz/dymension/commit/bbdefe20955a16b6550842f471fdaac2c45dab06)), closes [pre-#2167](https://github.com/pre-/issues/2167)
 * **eibc:** time-based competitive fee escalation for demand orders ([#2168](https://github.com/dymensionxyz/dymension/issues/2168)) ([c4238fc](https://github.com/dymensionxyz/dymension/commit/c4238fc19d342bfcfdcad93f2528aa900b63905b))
 * **eibc:** validity window + spend-velocity cap for on-demand LPs ([#2170](https://github.com/dymensionxyz/dymension/issues/2170)) ([a6eaaeb](https://github.com/dymensionxyz/dymension/commit/a6eaaeb47e68d7ef03a58545ba00d48762da4276))
