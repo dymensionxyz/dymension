@@ -60,6 +60,16 @@ message OnDemandLP {
   // Optional x/agent agent this LP is bound to. Empty = unbound. If set, the
   // LP is only matched while the agent is active.
   string agent_id = 11;
+
+  // Absolute minimum fee (in `denom`) an order must offer to be fulfilled by
+  // this LP. Complements the `minFee` ratio: both must pass. nil/zero =
+  // disabled. Lets an autonomous MM ignore dust orders whose ratio-fee is
+  // below its fixed per-fill gas cost.
+  string min_fee_absolute = 12 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }
 
 message OnDemandLPRecord {

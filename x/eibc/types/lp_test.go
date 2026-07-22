@@ -27,6 +27,90 @@ func order(price int64) *DemandOrder {
 	}
 }
 
+func orderWithFee(price, fee int64) *DemandOrder {
+	return &DemandOrder{
+		Price:     sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(price))),
+		Fee:       sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(fee))),
+		RollappId: "rollapp_1234-1",
+	}
+}
+
+func TestValidateMinFeeAbsolute(t *testing.T) {
+	t.Run("nil allowed (disabled)", func(t *testing.T) {
+		lp := baseLP()
+		lp.MinFeeAbsolute = math.Int{}
+		require.NoError(t, lp.Validate())
+	})
+	t.Run("zero allowed (disabled)", func(t *testing.T) {
+		lp := baseLP()
+		lp.MinFeeAbsolute = math.ZeroInt()
+		require.NoError(t, lp.Validate())
+	})
+	t.Run("positive allowed", func(t *testing.T) {
+		lp := baseLP()
+		lp.MinFeeAbsolute = math.NewInt(100)
+		require.NoError(t, lp.Validate())
+	})
+	t.Run("negative rejected", func(t *testing.T) {
+		lp := baseLP()
+		lp.MinFeeAbsolute = math.NewInt(-1)
+		require.Error(t, lp.Validate())
+	})
+}
+
+func TestAcceptsMinFeeAbsolute(t *testing.T) {
+	rec := func(floor math.Int) OnDemandLPRecord {
+		lp := baseLP()
+		lp.MinFeeAbsolute = floor
+		return OnDemandLPRecord{Lp: &lp, Spent: math.ZeroInt(), WindowSpent: math.ZeroInt()}
+	}
+
+	t.Run("nil floor behaves as disabled (pre-upgrade record)", func(t *testing.T) {
+		require.True(t, rec(math.Int{}).Accepts(1, orderWithFee(50, 0)))
+	})
+	t.Run("zero floor behaves as disabled", func(t *testing.T) {
+		require.True(t, rec(math.ZeroInt()).Accepts(1, orderWithFee(50, 0)))
+	})
+	t.Run("fee below floor rejected", func(t *testing.T) {
+		require.False(t, rec(math.NewInt(100)).Accepts(1, orderWithFee(50, 99)))
+	})
+	t.Run("fee at floor accepted", func(t *testing.T) {
+		require.True(t, rec(math.NewInt(100)).Accepts(1, orderWithFee(50, 100)))
+	})
+	t.Run("fee above floor accepted", func(t *testing.T) {
+		require.True(t, rec(math.NewInt(100)).Accepts(1, orderWithFee(50, 101)))
+	})
+	t.Run("ratio passes but absolute floor fails", func(t *testing.T) {
+		lp := baseLP()
+		lp.MinFee = math.LegacyNewDecWithPrec(1, 1) // 0.1
+		lp.MinFeeAbsolute = math.NewInt(100)
+		r := OnDemandLPRecord{Lp: &lp, Spent: math.ZeroInt(), WindowSpent: math.ZeroInt()}
+		// fee/price = 50/50 = 1.0 >= 0.1, but 50 < 100
+		require.False(t, r.Accepts(1, orderWithFee(50, 50)))
+		lp.MinFeeAbsolute = math.NewInt(50)
+		require.True(t, r.Accepts(1, orderWithFee(50, 50)))
+	})
+}
+
+// An escalating order below the floor at creation becomes eligible exactly when
+// its rising effective fee crosses the floor.
+func TestAcceptsMinFeeAbsoluteEscalation(t *testing.T) {
+	lp := baseLP()
+	lp.MaxPrice = math.NewInt(200)
+	lp.MinFeeAbsolute = math.NewInt(100)
+	r := OnDemandLPRecord{Lp: &lp, Spent: math.ZeroInt(), WindowSpent: math.ZeroInt()}
+
+	// base fee=50, price=150, escalates to 150 over 10 blocks: fee(h) = 50 + 10*(h-100)
+	o := orderWithFee(150, 50)
+	o.CreationHeight = 100
+	o.FeeEscalation = &FeeEscalation{MaxFeeAmount: math.NewInt(150), DurationBlocks: 10}
+
+	require.False(t, r.Accepts(100, o), "below floor at creation")
+	require.False(t, r.Accepts(104, o), "below floor just before crossing")
+	require.True(t, r.Accepts(105, o), "eligible at crossing height")
+	require.True(t, r.Accepts(110, o), "eligible after crossing")
+}
+
 func TestValidateRateLimit(t *testing.T) {
 	t.Run("both unset disables feature", func(t *testing.T) {
 		lp := baseLP()
@@ -121,6 +205,7 @@ func TestRecordProtoRoundTrip(t *testing.T) {
 	lp.ValidUntilHeight = 100
 	lp.RateLimitAmount = math.NewInt(50)
 	lp.RateLimitBlocks = 10
+	lp.MinFeeAbsolute = math.NewInt(7)
 	r := OnDemandLPRecord{Id: 1, Lp: &lp, Spent: math.NewInt(5), WindowStartHeight: 10, WindowSpent: math.NewInt(30)}
 
 	bz, err := r.Marshal()
@@ -132,6 +217,7 @@ func TestRecordProtoRoundTrip(t *testing.T) {
 	require.Equal(t, r.Lp.ValidUntilHeight, got.Lp.ValidUntilHeight)
 	require.Equal(t, r.Lp.RateLimitAmount, got.Lp.RateLimitAmount)
 	require.Equal(t, r.Lp.RateLimitBlocks, got.Lp.RateLimitBlocks)
+	require.Equal(t, r.Lp.MinFeeAbsolute, got.Lp.MinFeeAbsolute)
 
 	// legacy record: no new fields set
 	old := baseLP()
