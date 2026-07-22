@@ -19,6 +19,11 @@ message Params {
   // policy_rotation_delay_blocks is the timelock, in blocks, before a proposed
   // policy rotation takes effect.
   uint64 policy_rotation_delay_blocks = 3;
+  // feedback_fee is charged from the client on feedback submission and burned.
+  cosmos.base.v1beta1.Coin feedback_fee = 4 [ (gogoproto.nullable) = false ];
+  // feedback_tag_max_bytes is the maximum byte length of a feedback dimension
+  // tag.
+  uint64 feedback_tag_max_bytes = 5;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action

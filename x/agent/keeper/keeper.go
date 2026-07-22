@@ -26,6 +26,8 @@ type Keeper struct {
 	agents          collections.Map[string, types.Agent]
 	actionLog       collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
 	revokedPolicies collections.KeySet[string]
+	feedback        collections.Map[collections.Pair[string, string], types.Feedback]
+	reputation      collections.Map[string, types.Reputation]
 }
 
 func NewKeeper(
@@ -54,6 +56,11 @@ func NewKeeper(
 			collcompat.ProtoValue[types.ActionLogEntry](cdc)),
 		revokedPolicies: collections.NewKeySet(sb, collections.NewPrefix(types.KeyRevokedPolicies),
 			"revoked_policies", collections.StringKey),
+		feedback: collections.NewMap(sb, collections.NewPrefix(types.KeyFeedback),
+			"feedback", collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+			collcompat.ProtoValue[types.Feedback](cdc)),
+		reputation: collections.NewMap(sb, collections.NewPrefix(types.KeyReputation),
+			"reputation", collections.StringKey, collcompat.ProtoValue[types.Reputation](cdc)),
 	}
 
 	if _, err := sb.Build(); err != nil {

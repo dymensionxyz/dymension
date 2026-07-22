@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
+import "dymensionxyz/dymension/agent/feedback.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -51,6 +52,28 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/revoked-policies/{fingerprint}";
   }
+
+  // AgentReputation queries an agent's aggregate reputation. Zero-valued when
+  // no feedback exists.
+  rpc AgentReputation(QueryAgentReputationRequest)
+      returns (QueryAgentReputationResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/reputation";
+  }
+
+  // AgentFeedback queries a single feedback record by (agent_id, client).
+  rpc AgentFeedback(QueryAgentFeedbackRequest)
+      returns (QueryAgentFeedbackResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/feedbacks/{client}";
+  }
+
+  // AgentFeedbacks queries all feedback records for an agent, paginated.
+  rpc AgentFeedbacks(QueryAgentFeedbacksRequest)
+      returns (QueryAgentFeedbacksResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/feedbacks";
+  }
 }
 
 message QueryParamsRequest {}
@@ -96,6 +119,33 @@ message QueryAgentActionRequest {
 
 message QueryAgentActionResponse {
   ActionLogEntry action = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAgentReputationRequest { string agent_id = 1; }
+
+message QueryAgentReputationResponse {
+  Reputation reputation = 1 [ (gogoproto.nullable) = false ];
+  // average_score is score_sum / count via integer division; 0 when count is 0.
+  uint32 average_score = 2;
+}
+
+message QueryAgentFeedbackRequest {
+  string agent_id = 1;
+  string client = 2;
+}
+
+message QueryAgentFeedbackResponse {
+  Feedback feedback = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAgentFeedbacksRequest {
+  string agent_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryAgentFeedbacksResponse {
+  repeated Feedback feedbacks = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryRevokedPoliciesRequest {}
