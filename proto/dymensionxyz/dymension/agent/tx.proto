@@ -17,8 +17,8 @@ service Msg {
   // DeactivateAgent deactivates an existing agent. Owner only.
   rpc DeactivateAgent(MsgDeactivateAgent) returns (MsgDeactivateAgentResponse);
 
-  // UpdateAgentPolicy schedules a timelocked rotation of the agent's attestation
-  // policy. Owner only. The new policy activates after
+  // UpdateAgentPolicy schedules a timelocked rotation of the agent's
+  // attestation policy. Owner only. The new policy activates after
   // policy_rotation_delay_blocks.
   rpc UpdateAgentPolicy(MsgUpdateAgentPolicy)
       returns (MsgUpdateAgentPolicyResponse);
@@ -36,6 +36,13 @@ service Msg {
   // UnrevokePolicy removes a policy fingerprint from the revocation denylist.
   // Governance only.
   rpc UnrevokePolicy(MsgUnrevokePolicy) returns (MsgUnrevokePolicyResponse);
+
+  // SubmitFeedback submits or overwrites the client's feedback score for an
+  // agent, grounded in an existing action-log entry.
+  rpc SubmitFeedback(MsgSubmitFeedback) returns (MsgSubmitFeedbackResponse);
+
+  // RevokeFeedback removes the client's feedback for an agent.
+  rpc RevokeFeedback(MsgRevokeFeedback) returns (MsgRevokeFeedbackResponse);
 }
 
 message MsgRegisterAgent {
@@ -113,3 +120,29 @@ message MsgUnrevokePolicy {
 }
 
 message MsgUnrevokePolicyResponse {}
+
+message MsgSubmitFeedback {
+  option (cosmos.msg.v1.signer) = "client";
+
+  string client = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+  // score is fixed-point with 2 decimals: 0..10000 == 0.00%..100.00%.
+  uint32 score = 3;
+  // tag1 is the primary dimension name, e.g. "liveness". Required.
+  string tag1 = 4;
+  // tag2 is an optional secondary dimension name.
+  string tag2 = 5;
+  // evidence_seq must reference an existing action-log entry of the agent.
+  uint64 evidence_seq = 6;
+}
+
+message MsgSubmitFeedbackResponse {}
+
+message MsgRevokeFeedback {
+  option (cosmos.msg.v1.signer) = "client";
+
+  string client = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string agent_id = 2;
+}
+
+message MsgRevokeFeedbackResponse {}

@@ -100,3 +100,48 @@ func (k Keeper) PolicyRevoked(goCtx context.Context, req *types.QueryPolicyRevok
 	}
 	return &types.QueryPolicyRevokedResponse{Revoked: revoked}, nil
 }
+
+func (k Keeper) AgentReputation(goCtx context.Context, req *types.QueryAgentReputationRequest) (*types.QueryAgentReputationResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	rep, found := k.GetReputation(ctx, req.AgentId)
+	if !found {
+		return &types.QueryAgentReputationResponse{}, nil
+	}
+	// average fits uint32: every score is <= MaxFeedbackScore, so the mean is too.
+	avg := uint32(rep.ScoreSum / rep.Count) //nolint:gosec
+	return &types.QueryAgentReputationResponse{Reputation: rep, AverageScore: avg}, nil
+}
+
+func (k Keeper) AgentFeedback(goCtx context.Context, req *types.QueryAgentFeedbackRequest) (*types.QueryAgentFeedbackResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	if req.Client == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty client")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	fb, found := k.GetFeedback(ctx, req.AgentId, req.Client)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrFeedbackNotFound, "agent %s client %s", req.AgentId, req.Client)
+	}
+	return &types.QueryAgentFeedbackResponse{Feedback: fb}, nil
+}
+
+func (k Keeper) AgentFeedbacks(goCtx context.Context, req *types.QueryAgentFeedbacksRequest) (*types.QueryAgentFeedbacksResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	feedbacks, pageResp, err := collcompat.CollectionPaginate(ctx, k.feedback, req.Pagination,
+		func(_ collections.Pair[string, string], f types.Feedback) (types.Feedback, error) {
+			return f, nil
+		},
+		collcompat.WithCollectionPaginationPairPrefix[string, string](req.AgentId))
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryAgentFeedbacksResponse{Feedbacks: feedbacks, Pagination: pageResp}, nil
+}

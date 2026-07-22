@@ -3,6 +3,7 @@ package dymensionxyz.dymension.agent;
 
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
+import "dymensionxyz/dymension/agent/feedback.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -12,4 +13,7 @@ message GenesisState {
   repeated ActionLogEntry action_log = 3 [ (gogoproto.nullable) = false ];
   // revoked_policies are the revoked policy fingerprints, ascending.
   repeated string revoked_policies = 4;
+  // feedbacks holds all current feedback records; reputation aggregates are
+  // rebuilt from them on init.
+  repeated Feedback feedbacks = 5 [ (gogoproto.nullable) = false ];
 }

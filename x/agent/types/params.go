@@ -12,11 +12,16 @@ const DefaultMaxActionBytes = 100_000
 // DefaultPolicyRotationDelayBlocks is ~7 days at 6s blocks.
 const DefaultPolicyRotationDelayBlocks = 100_800
 
+// DefaultFeedbackTagMaxBytes caps the byte length of a feedback dimension tag.
+const DefaultFeedbackTagMaxBytes = 32
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:      commontypes.DYMCoin,
 		MaxActionBytes:            DefaultMaxActionBytes,
 		PolicyRotationDelayBlocks: DefaultPolicyRotationDelayBlocks,
+		FeedbackFee:               commontypes.DYMCoin,
+		FeedbackTagMaxBytes:       DefaultFeedbackTagMaxBytes,
 	}
 }
 
@@ -29,6 +34,12 @@ func (p Params) Validate() error {
 	}
 	if p.PolicyRotationDelayBlocks == 0 {
 		return fmt.Errorf("policy rotation delay blocks must be positive")
+	}
+	if err := p.FeedbackFee.Validate(); err != nil {
+		return fmt.Errorf("feedback fee: %w", err)
+	}
+	if p.FeedbackTagMaxBytes == 0 {
+		return fmt.Errorf("feedback tag max bytes must be positive")
 	}
 	return nil
 }
