@@ -29,7 +29,17 @@ func (k Keeper) Agent(goCtx context.Context, req *types.QueryAgentRequest) (*typ
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrAgentNotFound, req.AgentId)
 	}
-	return &types.QueryAgentResponse{Agent: agent}, nil
+	// Fingerprint the effective policy so the reported revocation status
+	// matches what submit-time enforcement would apply right now.
+	fp, err := types.PolicyFingerprint(agent.EffectivePolicy(ctx.BlockHeight()))
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "policy fingerprint")
+	}
+	revoked, err := k.IsPolicyRevoked(ctx, fp)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "is policy revoked")
+	}
+	return &types.QueryAgentResponse{Agent: agent, Fingerprint: fp, Revoked: revoked}, nil
 }
 
 func (k Keeper) Agents(goCtx context.Context, req *types.QueryAgentsRequest) (*types.QueryAgentsResponse, error) {
@@ -83,4 +93,70 @@ func (k Keeper) EscrowBalance(goCtx context.Context, req *types.QueryEscrowBalan
 		Balance:               k.GetEscrowBalance(ctx, req.AgentId),
 		RemainingWindowBudget: agent.RemainingWindowBudget(uint64(ctx.BlockHeight())), //nolint:gosec // block height is never negative
 	}, nil
+}
+
+func (k Keeper) RevokedPolicies(goCtx context.Context, _ *types.QueryRevokedPoliciesRequest) (*types.QueryRevokedPoliciesResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	fps, err := k.AllRevokedPolicies(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryRevokedPoliciesResponse{Fingerprints: fps}, nil
+}
+
+func (k Keeper) PolicyRevoked(goCtx context.Context, req *types.QueryPolicyRevokedRequest) (*types.QueryPolicyRevokedResponse, error) {
+	if err := types.ValidateFingerprint(req.Fingerprint); err != nil {
+		return nil, err
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	revoked, err := k.IsPolicyRevoked(ctx, req.Fingerprint)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryPolicyRevokedResponse{Revoked: revoked}, nil
+}
+
+func (k Keeper) AgentReputation(goCtx context.Context, req *types.QueryAgentReputationRequest) (*types.QueryAgentReputationResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	rep, found := k.GetReputation(ctx, req.AgentId)
+	if !found {
+		return &types.QueryAgentReputationResponse{}, nil
+	}
+	// average fits uint32: every score is <= MaxFeedbackScore, so the mean is too.
+	avg := uint32(rep.ScoreSum / rep.Count) //nolint:gosec
+	return &types.QueryAgentReputationResponse{Reputation: rep, AverageScore: avg}, nil
+}
+
+func (k Keeper) AgentFeedback(goCtx context.Context, req *types.QueryAgentFeedbackRequest) (*types.QueryAgentFeedbackResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	if req.Client == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty client")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	fb, found := k.GetFeedback(ctx, req.AgentId, req.Client)
+	if !found {
+		return nil, errorsmod.Wrapf(types.ErrFeedbackNotFound, "agent %s client %s", req.AgentId, req.Client)
+	}
+	return &types.QueryAgentFeedbackResponse{Feedback: fb}, nil
+}
+
+func (k Keeper) AgentFeedbacks(goCtx context.Context, req *types.QueryAgentFeedbacksRequest) (*types.QueryAgentFeedbacksResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	feedbacks, pageResp, err := collcompat.CollectionPaginate(ctx, k.feedback, req.Pagination,
+		func(_ collections.Pair[string, string], f types.Feedback) (types.Feedback, error) {
+			return f, nil
+		},
+		collcompat.WithCollectionPaginationPairPrefix[string, string](req.AgentId))
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryAgentFeedbacksResponse{Feedbacks: feedbacks, Pagination: pageResp}, nil
 }

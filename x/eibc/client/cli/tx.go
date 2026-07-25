@@ -77,6 +77,7 @@ const (
 	FlagValidUntilHeight   = "valid-until-height"
 	FlagRateLimitAmount    = "rate-limit-amount"
 	FlagRateLimitBlocks    = "rate-limit-blocks"
+	FlagMinFeeAbsolute     = "min-fee-absolute"
 )
 
 func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
@@ -305,6 +306,15 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 				}
 			}
 
+			minFeeAbsoluteStr, err := cmd.Flags().GetString(FlagMinFeeAbsolute)
+			if err != nil {
+				return err
+			}
+			minFeeAbsolute, ok := math.NewIntFromString(minFeeAbsoluteStr)
+			if !ok {
+				return fmt.Errorf("invalid min fee absolute")
+			}
+
 			msg := &types.MsgCreateOnDemandLP{
 				Lp: &types.OnDemandLP{
 					FundsAddr:         clientCtx.GetFromAddress().String(),
@@ -317,6 +327,7 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 					ValidUntilHeight:  validUntilHeight,
 					RateLimitAmount:   rateLimitAmount,
 					RateLimitBlocks:   rateLimitBlocks,
+					MinFeeAbsolute:    minFeeAbsolute,
 				},
 				Signer: clientCtx.GetFromAddress().String(),
 			}
@@ -332,6 +343,7 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 	cmd.Flags().Uint64(FlagValidUntilHeight, 0, "LP stops accepting orders at heights >= this value (0 = no expiry)")
 	cmd.Flags().String(FlagRateLimitAmount, "", "Max amount spendable within one rate window (empty = disabled)")
 	cmd.Flags().Uint64(FlagRateLimitBlocks, 0, "Length in blocks of the rate window")
+	cmd.Flags().String(FlagMinFeeAbsolute, "0", "Absolute minimum fee (in the LP denom) an order must offer (0 = disabled)")
 
 	return cmd
 }

@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
 import "dymensionxyz/dymension/eibc/demand_order.proto";
+import "dymensionxyz/dymension/eibc/lp.proto";
 import "dymensionxyz/dymension/eibc/params.proto";
 import "gogoproto/gogo.proto";
 
@@ -11,4 +12,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 message GenesisState {
   Params params = 1 [ (gogoproto.nullable) = false ];
   repeated DemandOrder demand_orders = 2 [ (gogoproto.nullable) = false ];
+  repeated OnDemandLPRecord on_demand_lps = 3 [ (gogoproto.nullable) = false ];
+  // next id for the on-demand LP sequence, so imported chains do not reuse ids
+  uint64 lps_next_id = 4;
 }

@@ -164,6 +164,35 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Show an agent's escrow balance and remaining window spend budget",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
 				},
+				{
+					RpcMethod: "RevokedPolicies",
+					Use:       "revoked-policies",
+					Short:     "List all revoked policy fingerprints",
+				},
+				{
+					RpcMethod:      "PolicyRevoked",
+					Use:            "policy-revoked [fingerprint]",
+					Short:          "Check whether a policy fingerprint is revoked",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "fingerprint"}},
+				},
+				{
+					RpcMethod:      "AgentReputation",
+					Use:            "agent-reputation [agent-id]",
+					Short:          "Show an agent's aggregate reputation and average score",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
+				{
+					RpcMethod:      "AgentFeedback",
+					Use:            "agent-feedback [agent-id] [client]",
+					Short:          "Show a single feedback record by agent and client",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}, {ProtoField: "client"}},
+				},
+				{
+					RpcMethod:      "AgentFeedbacks",
+					Use:            "agent-feedbacks [agent-id]",
+					Short:          "List all feedback records for an agent",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
 			},
 		},
 	}

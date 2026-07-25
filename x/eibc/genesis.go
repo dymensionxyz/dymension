@@ -31,6 +31,15 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			panic(err)
 		}
 	}
+
+	for _, lp := range genState.OnDemandLps {
+		if err := k.LPs.Set(ctx, lp); err != nil {
+			panic(err)
+		}
+	}
+	if err := k.LPs.SetNextID(ctx, genState.LpsNextId); err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis returns the module's exported genesis
@@ -56,6 +65,19 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		}
 
 		genesis.DemandOrders[i] = orderCopy
+	}
+
+	lps, err := k.LPs.GetAll(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.OnDemandLps = make([]types.OnDemandLPRecord, len(lps))
+	for i, lp := range lps {
+		genesis.OnDemandLps[i] = *lp
+	}
+	genesis.LpsNextId, err = k.LPs.NextID(ctx)
+	if err != nil {
+		panic(err)
 	}
 
 	return genesis

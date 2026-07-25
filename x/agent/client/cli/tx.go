@@ -25,6 +25,10 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdWithdrawAgentEscrow())
 	cmd.AddCommand(CmdUpdateAgentSpendPolicy())
 	cmd.AddCommand(CmdSubmitAttestedTransfer())
+	cmd.AddCommand(CmdRevokePolicy())
+	cmd.AddCommand(CmdUnrevokePolicy())
+	cmd.AddCommand(CmdSubmitFeedback())
+	cmd.AddCommand(CmdRevokeFeedback())
 
 	return cmd
 }

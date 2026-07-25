@@ -37,6 +37,23 @@ func TestInitGenesis(t *testing.T) {
 				TrackingPacketStatus: commontypes.Status_FINALIZED,
 			},
 		},
+		OnDemandLps: []types.OnDemandLPRecord{
+			{
+				Id:    3,
+				Spent: math.NewInt(7),
+				Lp: &types.OnDemandLP{
+					FundsAddr:  "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
+					Rollapp:    "rollapp_1234-1",
+					Denom:      "adym",
+					MaxPrice:   math.NewInt(100),
+					MinFee:     math.LegacyZeroDec(),
+					SpendLimit: math.NewInt(1000),
+					AgentId:    "agent1",
+				},
+				WindowSpent: math.ZeroInt(),
+			},
+		},
+		LpsNextId: 4,
 	}
 
 	k, ctx := keepertest.EIBCKeeper(t)
@@ -44,6 +61,8 @@ func TestInitGenesis(t *testing.T) {
 	got := eibc.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 	require.ElementsMatch(t, genesisState.DemandOrders, got.DemandOrders)
+	require.Equal(t, genesisState.OnDemandLps, got.OnDemandLps)
+	require.Equal(t, genesisState.LpsNextId, got.LpsNextId)
 
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)

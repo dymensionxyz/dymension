@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -41,7 +42,13 @@ func (s *EscrowTestSuite) SetupTest() {
 	s.Ctx = s.App.NewContext(false)
 	s.verifier = &fakeVerifier{}
 	key := s.App.GetKVStoreKeys()[types.StoreKey]
-	s.k = keeper.NewKeeper(s.App.AppCodec(), runtime.NewKVStoreService(key), s.verifier, s.App.BankKeeper)
+	s.k = keeper.NewKeeper(
+		s.App.AppCodec(),
+		runtime.NewKVStoreService(key),
+		s.verifier,
+		s.App.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 	s.msgServer = keeper.NewMsgServerImpl(*s.k)
 }
 
@@ -118,6 +125,27 @@ func (s *EscrowTestSuite) TestFundTransfer_HappyPath() {
 	agent, _ := s.k.GetAgent(s.Ctx, "a1")
 	s.Require().Equal(uint64(1), agent.ActionSeq)
 	s.Require().Equal(math.NewInt(200), agent.SpendWindowSpent)
+}
+
+func (s *EscrowTestSuite) TestTransfer_RevokedPolicyRejected() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+
+	agent, found := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	fp, err := types.PolicyFingerprint(agent.Policy)
+	s.Require().NoError(err)
+	s.Require().NoError(s.k.SetRevoked(s.Ctx, fp))
+
+	_, _, recipient := testdata.KeyTestPubAddr()
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 200, 0))
+	s.Require().ErrorContains(err, "policy revoked")
+	s.Require().Equal(math.ZeroInt(), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+	s.Require().Equal(math.NewInt(500), s.k.GetEscrowBalance(s.Ctx, "a1").AmountOf(spendDenom))
+
+	agent, found = s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	s.Require().Zero(agent.ActionSeq)
 }
 
 func (s *EscrowTestSuite) TestTransfer_ExceedsWindowCap_NothingChanges() {

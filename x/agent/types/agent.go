@@ -4,6 +4,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 )
 
 // PromotePendingPolicy applies a matured pending policy in place, so
@@ -15,6 +17,13 @@ func (a *Agent) PromotePendingPolicy(height int64) {
 		a.PendingPolicy = nil
 		a.PendingPolicyHeight = 0
 	}
+}
+
+// EffectivePolicy returns the policy in force at height without mutating the
+// stored agent.
+func (a Agent) EffectivePolicy(height int64) tee.Policy {
+	a.PromotePendingPolicy(height)
+	return a.Policy
 }
 
 // SpendEnabled reports whether the agent has a spend policy configured. Empty

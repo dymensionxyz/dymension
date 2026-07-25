@@ -35,6 +35,10 @@ func (k msgServer) loadAttestingAgent(ctx sdk.Context, agentID string) (types.Ag
 		return types.Agent{}, gerrc.ErrFailedPrecondition.Wrapf("agent is not active: %s", agentID)
 	}
 	agent.PromotePendingPolicy(ctx.BlockHeight())
+	// The denylist applies to every attested operation, including transfers.
+	if _, err := k.fingerprintNotRevoked(ctx, agent.Policy); err != nil {
+		return types.Agent{}, err
+	}
 	return agent, nil
 }
 

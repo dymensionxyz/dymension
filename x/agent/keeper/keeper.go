@@ -15,14 +15,19 @@ import (
 )
 
 type Keeper struct {
+	authority string // authority is the x/gov module account
+
 	// verifier is injected so the attestation seam can be faked in tests; the
 	// real verifier does GCP PKI + rego evaluation.
 	verifier   tee.Verifier
 	bankKeeper types.BankKeeper
 
-	params    collections.Item[types.Params]
-	agents    collections.Map[string, types.Agent]
-	actionLog collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
+	params          collections.Item[types.Params]
+	agents          collections.Map[string, types.Agent]
+	actionLog       collections.Map[collections.Pair[string, uint64], types.ActionLogEntry]
+	revokedPolicies collections.KeySet[string]
+	feedback        collections.Map[collections.Pair[string, string], types.Feedback]
+	reputation      collections.Map[string, types.Reputation]
 	// escrows tracks per-agent balances of the pooled funds held in the agent
 	// module account.
 	escrows collections.Map[string, types.AgentEscrow]
@@ -33,10 +38,16 @@ func NewKeeper(
 	service store.KVStoreService,
 	verifier tee.Verifier,
 	bankKeeper types.BankKeeper,
+	authority string,
 ) *Keeper {
+	if _, err := sdk.AccAddressFromBech32(authority); err != nil {
+		panic(fmt.Errorf("invalid x/agent authority address: %w", err))
+	}
+
 	sb := collections.NewSchemaBuilder(service)
 
 	k := &Keeper{
+		authority:  authority,
 		verifier:   verifier,
 		bankKeeper: bankKeeper,
 		params: collections.NewItem(sb, collections.NewPrefix(types.KeyParams),
@@ -48,6 +59,13 @@ func NewKeeper(
 			collcompat.ProtoValue[types.ActionLogEntry](cdc)),
 		escrows: collections.NewMap(sb, collections.NewPrefix(types.KeyAgentEscrow),
 			"escrows", collections.StringKey, collcompat.ProtoValue[types.AgentEscrow](cdc)),
+		revokedPolicies: collections.NewKeySet(sb, collections.NewPrefix(types.KeyRevokedPolicies),
+			"revoked_policies", collections.StringKey),
+		feedback: collections.NewMap(sb, collections.NewPrefix(types.KeyFeedback),
+			"feedback", collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+			collcompat.ProtoValue[types.Feedback](cdc)),
+		reputation: collections.NewMap(sb, collections.NewPrefix(types.KeyReputation),
+			"reputation", collections.StringKey, collcompat.ProtoValue[types.Reputation](cdc)),
 	}
 
 	if _, err := sb.Build(); err != nil {
