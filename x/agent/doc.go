@@ -2,6 +2,7 @@
 // Agents register with an attestation policy, may rotate it after a timelock,
 // and append actions verified against the policy currently in force. A
 // governance-gated denylist prevents byte-identical policy fingerprints from
-// registering new agents or appending attested actions. Unrevoking is fully
-// reversible since agent state is never mutated by revocation.
+// registering new agents, appending attested actions, or fulfilling eIBC orders
+// through agent-bound on-demand LPs. Unrevoking is fully reversible since agent
+// state is never mutated by revocation.
 package agent
