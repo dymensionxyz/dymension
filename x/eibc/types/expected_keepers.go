@@ -37,4 +37,5 @@ type RollappKeeper interface {
 // AgentKeeper provides liveness checks for LPs bound to an x/agent agent.
 type AgentKeeper interface {
 	GetAgent(ctx sdk.Context, id string) (agenttypes.Agent, bool)
+	IsAgentLive(ctx sdk.Context, id string) bool
 }

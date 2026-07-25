@@ -37,6 +37,8 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"MaxActionBytes":            {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},
 			"AgentRegistrationFee":      {"bytes,2,opt,name=agent_registration_fee,json=agentRegistrationFee,proto3", reflect.TypeOf(types.DefaultParams().AgentRegistrationFee)},
 			"PolicyRotationDelayBlocks": {"varint,3,opt,name=policy_rotation_delay_blocks,json=policyRotationDelayBlocks,proto3", reflect.TypeOf(uint64(0))},
+			"FeedbackFee":               {"bytes,4,opt,name=feedback_fee,json=feedbackFee,proto3", reflect.TypeOf(types.DefaultParams().FeedbackFee)},
+			"FeedbackTagMaxBytes":       {"varint,5,opt,name=feedback_tag_max_bytes,json=feedbackTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
 		}},
 		{types.ActionLogEntry{}, map[string]fieldContract{
 			"AgentId":     {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
@@ -47,8 +49,9 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"Time":        {"bytes,6,opt,name=time,proto3,stdtime", reflect.TypeOf(time.Time{})},
 		}},
 		{types.EventRegisterAgent{}, map[string]fieldContract{
-			"AgentId": {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
-			"Owner":   {"bytes,2,opt,name=owner,proto3", reflect.TypeOf("")},
+			"AgentId":     {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
+			"Owner":       {"bytes,2,opt,name=owner,proto3", reflect.TypeOf("")},
+			"Fingerprint": {"bytes,3,opt,name=fingerprint,proto3", reflect.TypeOf("")},
 		}},
 		{types.EventDeactivateAgent{}, map[string]fieldContract{
 			"AgentId": {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
@@ -91,14 +94,17 @@ func TestAgentProtoRoundTripCompatibility(t *testing.T) {
 		}, &types.Agent{}},
 		{&types.Params{
 			MaxActionBytes: 1024, AgentRegistrationFee: sdk.NewInt64Coin("adym", 12),
-			PolicyRotationDelayBlocks: 99,
+			PolicyRotationDelayBlocks: 99, FeedbackFee: sdk.NewInt64Coin("adym", 34),
+			FeedbackTagMaxBytes: 56,
 		}, &types.Params{}},
 		{&types.ActionLogEntry{
 			AgentId: "agent-1", Seq: 7, Payload: []byte("payload"),
 			PayloadHash: []byte("hash"), Height: 42,
 			Time: time.Date(2026, time.July, 14, 12, 34, 56, 789, time.UTC),
 		}, &types.ActionLogEntry{}},
-		{&types.EventRegisterAgent{AgentId: "agent-1", Owner: "dym1owner"}, &types.EventRegisterAgent{}},
+		{&types.EventRegisterAgent{
+			AgentId: "agent-1", Owner: "dym1owner", Fingerprint: "fingerprint",
+		}, &types.EventRegisterAgent{}},
 		{&types.EventDeactivateAgent{AgentId: "agent-1", Owner: "dym1owner"}, &types.EventDeactivateAgent{}},
 		{&types.EventUpdateAgentPolicy{AgentId: "agent-1", ActivationHeight: 42}, &types.EventUpdateAgentPolicy{}},
 	}

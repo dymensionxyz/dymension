@@ -92,6 +92,63 @@ func TestRevokePolicy_AuthorityGated(t *testing.T) {
 	require.False(t, revoked)
 }
 
+func TestIsAgentLive(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	require.False(t, k.IsAgentLive(ctx, "unknown"))
+
+	require.NoError(t, k.SetAgent(ctx, types.Agent{
+		Id:     "inactive",
+		Policy: policyA(),
+		Active: false,
+	}))
+	require.False(t, k.IsAgentLive(ctx, "inactive"))
+
+	seedAgentWithPolicy(t, ctx, k, "active", policyA())
+	require.True(t, k.IsAgentLive(ctx, "active"))
+
+	fp := fingerprint(t, policyA())
+	_, err := ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fp, "bad image"))
+	require.NoError(t, err)
+	require.False(t, k.IsAgentLive(ctx, "active"))
+
+	_, err = ms.UnrevokePolicy(ctx, types.NewMsgUnrevokePolicy(govAuthority, fp))
+	require.NoError(t, err)
+	require.True(t, k.IsAgentLive(ctx, "active"))
+}
+
+func TestIsAgentLive_UsesEffectivePolicy(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+	fpA := fingerprint(t, policyA())
+	fpB := fingerprint(t, policyB())
+
+	_, err := ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fpB, "bad rotation"))
+	require.NoError(t, err)
+	seedAgentWithPolicy(t, ctx, k, "rotating-to-revoked", policyA())
+	agent, _ := k.GetAgent(ctx, "rotating-to-revoked")
+	pending := policyB()
+	agent.PendingPolicy = &pending
+	agent.PendingPolicyHeight = 100
+	require.NoError(t, k.SetAgent(ctx, agent))
+	require.True(t, k.IsAgentLive(ctx.WithBlockHeight(99), agent.Id))
+	require.False(t, k.IsAgentLive(ctx.WithBlockHeight(100), agent.Id))
+
+	_, err = ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fpA, "bad old policy"))
+	require.NoError(t, err)
+	_, err = ms.UnrevokePolicy(ctx, types.NewMsgUnrevokePolicy(govAuthority, fpB))
+	require.NoError(t, err)
+	seedAgentWithPolicy(t, ctx, k, "rotating-from-revoked", policyA())
+	agent, _ = k.GetAgent(ctx, "rotating-from-revoked")
+	pending = policyB()
+	agent.PendingPolicy = &pending
+	agent.PendingPolicyHeight = 100
+	require.NoError(t, k.SetAgent(ctx, agent))
+	require.False(t, k.IsAgentLive(ctx.WithBlockHeight(99), agent.Id))
+	require.True(t, k.IsAgentLive(ctx.WithBlockHeight(100), agent.Id))
+}
+
 func TestRevokePolicy_ValidateBasic(t *testing.T) {
 	ctx, k, _ := setup(t)
 	ms := keeper.NewMsgServerImpl(*k)
