@@ -378,6 +378,30 @@ func (suite *KeeperTestSuite) TestLPAgentPolicyRevocation() {
 	suite.Require().NoError(err)
 	suite.Require().Len(compat, 1)
 	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id2, 0))
+
+	agent, found := suite.App.AgentKeeper.GetAgent(suite.Ctx, "agent1")
+	suite.Require().True(found)
+	revokedPendingPolicy := policy
+	revokedPendingPolicy.PolicyValues = `{"measurement":"revoked-rotation"}`
+	agent.PendingPolicy = &revokedPendingPolicy
+	agent.PendingPolicyHeight = suite.Ctx.BlockHeight() + 1
+	suite.Require().NoError(suite.App.AgentKeeper.SetAgent(suite.Ctx, agent))
+	pendingFP, err := agenttypes.PolicyFingerprint(revokedPendingPolicy)
+	suite.Require().NoError(err)
+	_, err = agentMsgServer.RevokePolicy(suite.Ctx, agenttypes.NewMsgRevokePolicy(
+		govAuthority, pendingFP, "bad rotation",
+	))
+	suite.Require().NoError(err)
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(agent.PendingPolicyHeight)
+	id3 := suite.orderWithSeq(3, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	order, err = k.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, id3)
+	suite.Require().NoError(err)
+	compat, err = k.LPs.GetOrderCompatibleLPs(suite.Ctx, *order)
+	suite.Require().NoError(err)
+	suite.Require().Empty(compat)
+	err = k.FulfillByOnDemandLP(suite.Ctx, id3, 0)
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "expected no compatible lp, got %v", err)
 }
 
 // CreateOnDemandLP requires a referenced agent to exist, but not to be active.

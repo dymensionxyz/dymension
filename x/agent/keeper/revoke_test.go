@@ -118,6 +118,37 @@ func TestIsAgentLive(t *testing.T) {
 	require.True(t, k.IsAgentLive(ctx, "active"))
 }
 
+func TestIsAgentLive_UsesEffectivePolicy(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+	fpA := fingerprint(t, policyA())
+	fpB := fingerprint(t, policyB())
+
+	_, err := ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fpB, "bad rotation"))
+	require.NoError(t, err)
+	seedAgentWithPolicy(t, ctx, k, "rotating-to-revoked", policyA())
+	agent, _ := k.GetAgent(ctx, "rotating-to-revoked")
+	pending := policyB()
+	agent.PendingPolicy = &pending
+	agent.PendingPolicyHeight = 100
+	require.NoError(t, k.SetAgent(ctx, agent))
+	require.True(t, k.IsAgentLive(ctx.WithBlockHeight(99), agent.Id))
+	require.False(t, k.IsAgentLive(ctx.WithBlockHeight(100), agent.Id))
+
+	_, err = ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fpA, "bad old policy"))
+	require.NoError(t, err)
+	_, err = ms.UnrevokePolicy(ctx, types.NewMsgUnrevokePolicy(govAuthority, fpB))
+	require.NoError(t, err)
+	seedAgentWithPolicy(t, ctx, k, "rotating-from-revoked", policyA())
+	agent, _ = k.GetAgent(ctx, "rotating-from-revoked")
+	pending = policyB()
+	agent.PendingPolicy = &pending
+	agent.PendingPolicyHeight = 100
+	require.NoError(t, k.SetAgent(ctx, agent))
+	require.False(t, k.IsAgentLive(ctx.WithBlockHeight(99), agent.Id))
+	require.True(t, k.IsAgentLive(ctx.WithBlockHeight(100), agent.Id))
+}
+
 func TestRevokePolicy_ValidateBasic(t *testing.T) {
 	ctx, k, _ := setup(t)
 	ms := keeper.NewMsgServerImpl(*k)

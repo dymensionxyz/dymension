@@ -41,14 +41,14 @@ func (k Keeper) IsPolicyRevoked(ctx sdk.Context, fp string) (bool, error) {
 	return k.revokedPolicies.Has(ctx, fp)
 }
 
-// IsAgentLive reports whether an agent may act on-chain. Keep this check on
-// agent.Policy aligned with SubmitAttestedAction's revocation check.
+// IsAgentLive reports whether an agent may act on-chain. Keep this effective
+// policy check aligned with SubmitAttestedAction and the Agent query.
 func (k Keeper) IsAgentLive(ctx sdk.Context, agentID string) bool {
 	agent, err := k.agents.Get(ctx, agentID)
 	if err != nil || !agent.Active {
 		return false
 	}
-	fp, err := types.PolicyFingerprint(agent.Policy)
+	fp, err := types.PolicyFingerprint(agent.EffectivePolicy(ctx.BlockHeight()))
 	if err != nil {
 		return false
 	}
