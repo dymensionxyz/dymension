@@ -92,6 +92,32 @@ func TestRevokePolicy_AuthorityGated(t *testing.T) {
 	require.False(t, revoked)
 }
 
+func TestIsAgentLive(t *testing.T) {
+	ctx, k, _ := setup(t)
+	ms := keeper.NewMsgServerImpl(*k)
+
+	require.False(t, k.IsAgentLive(ctx, "unknown"))
+
+	require.NoError(t, k.SetAgent(ctx, types.Agent{
+		Id:     "inactive",
+		Policy: policyA(),
+		Active: false,
+	}))
+	require.False(t, k.IsAgentLive(ctx, "inactive"))
+
+	seedAgentWithPolicy(t, ctx, k, "active", policyA())
+	require.True(t, k.IsAgentLive(ctx, "active"))
+
+	fp := fingerprint(t, policyA())
+	_, err := ms.RevokePolicy(ctx, types.NewMsgRevokePolicy(govAuthority, fp, "bad image"))
+	require.NoError(t, err)
+	require.False(t, k.IsAgentLive(ctx, "active"))
+
+	_, err = ms.UnrevokePolicy(ctx, types.NewMsgUnrevokePolicy(govAuthority, fp))
+	require.NoError(t, err)
+	require.True(t, k.IsAgentLive(ctx, "active"))
+}
+
 func TestRevokePolicy_ValidateBasic(t *testing.T) {
 	ctx, k, _ := setup(t)
 	ms := keeper.NewMsgServerImpl(*k)

@@ -4,9 +4,12 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	agentkeeper "github.com/dymensionxyz/dymension/v3/x/agent/keeper"
 	agenttypes "github.com/dymensionxyz/dymension/v3/x/agent/types"
+	"github.com/dymensionxyz/dymension/v3/x/common/tee"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -314,6 +317,66 @@ func (suite *KeeperTestSuite) TestLPAgentBinding() {
 	suite.Require().Len(compat, 1)
 	suite.Require().Equal(unboundID, compat[0].Id)
 	suite.Require().NotEqual(boundID, compat[0].Id)
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id2, 0))
+}
+
+func (suite *KeeperTestSuite) TestLPAgentPolicyRevocation() {
+	k := suite.App.EIBCKeeper
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(10_000_000))
+	orderAddr, lpAddr := addrs[0], addrs[1]
+	policy := tee.Policy{
+		GcpRootCertPem:  "cert",
+		PolicyValues:    `{"measurement":"agent-lp"}`,
+		PolicyQuery:     "data.x.allow",
+		PolicyStructure: "package x\nallow = true",
+	}
+	registrationFee, err := suite.App.AgentKeeper.AgentRegistrationFee(suite.Ctx)
+	suite.Require().NoError(err)
+	suite.FundAcc(lpAddr, sdk.NewCoins(registrationFee))
+	agentMsgServer := agentkeeper.NewMsgServerImpl(*suite.App.AgentKeeper)
+	_, err = agentMsgServer.RegisterAgent(
+		suite.Ctx,
+		agenttypes.NewMsgRegisterAgent(lpAddr.String(), "agent1", policy),
+	)
+	suite.Require().NoError(err)
+	_, err = k.LPs.Create(suite.Ctx, &types.OnDemandLP{
+		FundsAddr:  lpAddr.String(),
+		Rollapp:    rollappPacket.RollappId,
+		Denom:      sdk.DefaultBondDenom,
+		MaxPrice:   math.NewInt(100),
+		MinFee:     math.LegacyZeroDec(),
+		SpendLimit: math.NewInt(1000),
+		AgentId:    "agent1",
+	})
+	suite.Require().NoError(err)
+
+	id1 := suite.orderWithSeq(1, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id1, 0))
+
+	fp, err := agenttypes.PolicyFingerprint(policy)
+	suite.Require().NoError(err)
+	govAuthority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	_, err = agentMsgServer.RevokePolicy(suite.Ctx, agenttypes.NewMsgRevokePolicy(
+		govAuthority, fp, "bad image",
+	))
+	suite.Require().NoError(err)
+
+	id2 := suite.orderWithSeq(2, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	order, err := k.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, id2)
+	suite.Require().NoError(err)
+	compat, err := k.LPs.GetOrderCompatibleLPs(suite.Ctx, *order)
+	suite.Require().NoError(err)
+	suite.Require().Empty(compat)
+	err = k.FulfillByOnDemandLP(suite.Ctx, id2, 0)
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "expected no compatible lp, got %v", err)
+
+	_, err = agentMsgServer.UnrevokePolicy(suite.Ctx, agenttypes.NewMsgUnrevokePolicy(
+		govAuthority, fp,
+	))
+	suite.Require().NoError(err)
+	compat, err = k.LPs.GetOrderCompatibleLPs(suite.Ctx, *order)
+	suite.Require().NoError(err)
+	suite.Require().Len(compat, 1)
 	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id2, 0))
 }
 

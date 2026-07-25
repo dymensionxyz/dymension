@@ -199,14 +199,12 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 }
 
 // agentLive reports whether an LP bound to agentID may fulfill. Unbound LPs
-// (empty id) are always live; bound LPs require the agent to exist and be
-// active, so deactivating an agent lazily disables its whole LP fleet.
+// (empty id) are always live.
 func (s LPs) agentLive(ctx sdk.Context, agentID string) bool {
 	if agentID == "" {
 		return true
 	}
-	agent, found := s.agents.GetAgent(ctx, agentID)
-	return found && agent.Active
+	return s.agents.IsAgentLive(ctx, agentID)
 }
 
 // NextID returns the current value of the LP id sequence.
