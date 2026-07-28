@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-25)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-07-28)
 
 
 ### Bug Fixes
@@ -15,6 +15,7 @@
 
 * **agent:** add SubmitAttestedAction (nonce binding + attestation verify + append log) ([#2164](https://github.com/dymensionxyz/dymension/issues/2164)) ([558d9b9](https://github.com/dymensionxyz/dymension/commit/558d9b9ce1f68a03bff4d5d5a636ff8d87572e61))
 * **agent:** add x/agent registry + action-log queries and CLI ([#2165](https://github.com/dymensionxyz/dymension/issues/2165)) ([7daf244](https://github.com/dymensionxyz/dymension/commit/7daf2444f90e7ddcbf84dbbe69d94458b8e211b3)), closes [2158-#2160](https://github.com/2158-/issues/2160) [#2161](https://github.com/dymensionxyz/dymension/issues/2161)
+* **agent:** attested spend authority — escrow-funded, budget-capped agent transfers ([#2184](https://github.com/dymensionxyz/dymension/issues/2184)) ([8a0f2e6](https://github.com/dymensionxyz/dymension/commit/8a0f2e65c91dd09ad1a5cbc8a166fbfa11142a25)), closes [#2168](https://github.com/dymensionxyz/dymension/issues/2168) [#2170](https://github.com/dymensionxyz/dymension/issues/2170)
 * **agent:** complete module proto scaffold ([#2188](https://github.com/dymensionxyz/dymension/issues/2188)) ([3b89681](https://github.com/dymensionxyz/dymension/commit/3b896814622907341cda93783fc62bcacac2af99))
 * **agent:** governance-gated TEE policy revocation denylist ([#2180](https://github.com/dymensionxyz/dymension/issues/2180)) ([d3701a2](https://github.com/dymensionxyz/dymension/commit/d3701a228165fc26e00986d0ff6ecf9aa6150c79)), closes [#2168](https://github.com/dymensionxyz/dymension/issues/2168) [#2170](https://github.com/dymensionxyz/dymension/issues/2170)
 * **agent:** on-chain reputation registry grounded in the attested action log ([#2187](https://github.com/dymensionxyz/dymension/issues/2187)) ([ab4d98a](https://github.com/dymensionxyz/dymension/commit/ab4d98a3dde0a43f31541c454b75dd7933741cf3))
