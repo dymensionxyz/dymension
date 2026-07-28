@@ -15,4 +15,7 @@ var (
 	ErrInvalidScore           = errorsmod.Register(ModuleName, 11, "invalid feedback score")
 	ErrInvalidTag             = errorsmod.Register(ModuleName, 12, "invalid feedback tag")
 	ErrFeedbackFeePayment     = errorsmod.Register(ModuleName, 13, "feedback fee payment error")
+	ErrSpendingDisabled       = errorsmod.Register(ModuleName, 14, "agent spending is disabled")
+	ErrSpendBudgetExceeded    = errorsmod.Register(ModuleName, 15, "spend budget exceeded for the current window")
+	ErrInsufficientEscrow     = errorsmod.Register(ModuleName, 16, "insufficient escrow balance")
 )

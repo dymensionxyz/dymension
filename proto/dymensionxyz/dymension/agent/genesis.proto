@@ -16,4 +16,5 @@ message GenesisState {
   // feedbacks holds all current feedback records; reputation aggregates are
   // rebuilt from them on init.
   repeated Feedback feedbacks = 5 [ (gogoproto.nullable) = false ];
+  repeated AgentEscrow escrows = 6 [ (gogoproto.nullable) = false ];
 }

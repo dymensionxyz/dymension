@@ -18,4 +18,5 @@ var (
 	KeyRevokedPolicies = []byte{0x03}
 	KeyFeedback        = []byte{0x04}
 	KeyReputation      = []byte{0x05}
+	KeyAgentEscrow     = []byte{0x06}
 )

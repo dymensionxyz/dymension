@@ -4,7 +4,10 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -127,6 +130,19 @@ type Agent struct {
 	// pending_policy, if set, becomes the active policy at pending_policy_height.
 	PendingPolicy       *tee.Policy `protobuf:"bytes,6,opt,name=pending_policy,json=pendingPolicy,proto3" json:"pending_policy,omitempty"`
 	PendingPolicyHeight int64       `protobuf:"varint,7,opt,name=pending_policy_height,json=pendingPolicyHeight,proto3" json:"pending_policy_height,omitempty"`
+	// spend_denom is the single denom this agent may spend from its escrow.
+	// Empty means spending is disabled (pure-log agent).
+	SpendDenom string `protobuf:"bytes,8,opt,name=spend_denom,json=spendDenom,proto3" json:"spend_denom,omitempty"`
+	// spend_limit_per_window is the max spendable per rate window.
+	SpendLimitPerWindow cosmossdk_io_math.Int `protobuf:"bytes,9,opt,name=spend_limit_per_window,json=spendLimitPerWindow,proto3,customtype=cosmossdk.io/math.Int" json:"spend_limit_per_window"`
+	// spend_window_blocks is the rate window length in blocks. Must be > 0 iff
+	// spend_denom is set.
+	SpendWindowBlocks uint64 `protobuf:"varint,10,opt,name=spend_window_blocks,json=spendWindowBlocks,proto3" json:"spend_window_blocks,omitempty"`
+	// spend_window_start_height is the aligned bucket start of the current
+	// window.
+	SpendWindowStartHeight uint64 `protobuf:"varint,11,opt,name=spend_window_start_height,json=spendWindowStartHeight,proto3" json:"spend_window_start_height,omitempty"`
+	// spend_window_spent is the amount spent so far in the current window.
+	SpendWindowSpent cosmossdk_io_math.Int `protobuf:"bytes,12,opt,name=spend_window_spent,json=spendWindowSpent,proto3,customtype=cosmossdk.io/math.Int" json:"spend_window_spent"`
 }
 
 func (m *Agent) Reset()         { *m = Agent{} }
@@ -211,6 +227,81 @@ func (m *Agent) GetPendingPolicyHeight() int64 {
 	return 0
 }
 
+func (m *Agent) GetSpendDenom() string {
+	if m != nil {
+		return m.SpendDenom
+	}
+	return ""
+}
+
+func (m *Agent) GetSpendWindowBlocks() uint64 {
+	if m != nil {
+		return m.SpendWindowBlocks
+	}
+	return 0
+}
+
+func (m *Agent) GetSpendWindowStartHeight() uint64 {
+	if m != nil {
+		return m.SpendWindowStartHeight
+	}
+	return 0
+}
+
+// AgentEscrow is one agent's escrow ledger entry: funds held in the agent
+// module account and spendable by attested transfers.
+type AgentEscrow struct {
+	AgentId string                                   `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Balance github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=balance,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"balance"`
+}
+
+func (m *AgentEscrow) Reset()         { *m = AgentEscrow{} }
+func (m *AgentEscrow) String() string { return proto.CompactTextString(m) }
+func (*AgentEscrow) ProtoMessage()    {}
+func (*AgentEscrow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_82de718b81b99b21, []int{2}
+}
+func (m *AgentEscrow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AgentEscrow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AgentEscrow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AgentEscrow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentEscrow.Merge(m, src)
+}
+func (m *AgentEscrow) XXX_Size() int {
+	return m.Size()
+}
+func (m *AgentEscrow) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentEscrow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentEscrow proto.InternalMessageInfo
+
+func (m *AgentEscrow) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *AgentEscrow) GetBalance() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Balance
+	}
+	return nil
+}
+
 // EventRegisterAgent is emitted when an agent is registered.
 type EventRegisterAgent struct {
 	AgentId string `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
@@ -224,7 +315,7 @@ func (m *EventRegisterAgent) Reset()         { *m = EventRegisterAgent{} }
 func (m *EventRegisterAgent) String() string { return proto.CompactTextString(m) }
 func (*EventRegisterAgent) ProtoMessage()    {}
 func (*EventRegisterAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_82de718b81b99b21, []int{2}
+	return fileDescriptor_82de718b81b99b21, []int{3}
 }
 func (m *EventRegisterAgent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -284,7 +375,7 @@ func (m *EventDeactivateAgent) Reset()         { *m = EventDeactivateAgent{} }
 func (m *EventDeactivateAgent) String() string { return proto.CompactTextString(m) }
 func (*EventDeactivateAgent) ProtoMessage()    {}
 func (*EventDeactivateAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_82de718b81b99b21, []int{3}
+	return fileDescriptor_82de718b81b99b21, []int{4}
 }
 func (m *EventDeactivateAgent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -337,7 +428,7 @@ func (m *EventPolicyRevoked) Reset()         { *m = EventPolicyRevoked{} }
 func (m *EventPolicyRevoked) String() string { return proto.CompactTextString(m) }
 func (*EventPolicyRevoked) ProtoMessage()    {}
 func (*EventPolicyRevoked) Descriptor() ([]byte, []int) {
-	return fileDescriptor_82de718b81b99b21, []int{4}
+	return fileDescriptor_82de718b81b99b21, []int{5}
 }
 func (m *EventPolicyRevoked) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -389,7 +480,7 @@ func (m *EventPolicyUnrevoked) Reset()         { *m = EventPolicyUnrevoked{} }
 func (m *EventPolicyUnrevoked) String() string { return proto.CompactTextString(m) }
 func (*EventPolicyUnrevoked) ProtoMessage()    {}
 func (*EventPolicyUnrevoked) Descriptor() ([]byte, []int) {
-	return fileDescriptor_82de718b81b99b21, []int{5}
+	return fileDescriptor_82de718b81b99b21, []int{6}
 }
 func (m *EventPolicyUnrevoked) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -436,7 +527,7 @@ func (m *EventUpdateAgentPolicy) Reset()         { *m = EventUpdateAgentPolicy{}
 func (m *EventUpdateAgentPolicy) String() string { return proto.CompactTextString(m) }
 func (*EventUpdateAgentPolicy) ProtoMessage()    {}
 func (*EventUpdateAgentPolicy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_82de718b81b99b21, []int{6}
+	return fileDescriptor_82de718b81b99b21, []int{7}
 }
 func (m *EventUpdateAgentPolicy) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -479,6 +570,270 @@ func (m *EventUpdateAgentPolicy) GetActivationHeight() int64 {
 	return 0
 }
 
+// EventAttestedTransfer is emitted when an attested transfer pays out from an
+// agent's escrow.
+type EventAttestedTransfer struct {
+	AgentId   string     `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Seq       uint64     `protobuf:"varint,2,opt,name=seq,proto3" json:"seq,omitempty"`
+	Recipient string     `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
+	Amount    types.Coin `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount"`
+	Submitter string     `protobuf:"bytes,5,opt,name=submitter,proto3" json:"submitter,omitempty"`
+}
+
+func (m *EventAttestedTransfer) Reset()         { *m = EventAttestedTransfer{} }
+func (m *EventAttestedTransfer) String() string { return proto.CompactTextString(m) }
+func (*EventAttestedTransfer) ProtoMessage()    {}
+func (*EventAttestedTransfer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_82de718b81b99b21, []int{8}
+}
+func (m *EventAttestedTransfer) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventAttestedTransfer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventAttestedTransfer.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventAttestedTransfer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventAttestedTransfer.Merge(m, src)
+}
+func (m *EventAttestedTransfer) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventAttestedTransfer) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventAttestedTransfer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventAttestedTransfer proto.InternalMessageInfo
+
+func (m *EventAttestedTransfer) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *EventAttestedTransfer) GetSeq() uint64 {
+	if m != nil {
+		return m.Seq
+	}
+	return 0
+}
+
+func (m *EventAttestedTransfer) GetRecipient() string {
+	if m != nil {
+		return m.Recipient
+	}
+	return ""
+}
+
+func (m *EventAttestedTransfer) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
+func (m *EventAttestedTransfer) GetSubmitter() string {
+	if m != nil {
+		return m.Submitter
+	}
+	return ""
+}
+
+// EventFundAgentEscrow is emitted when an agent's escrow is funded.
+type EventFundAgentEscrow struct {
+	AgentId string                                   `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Funder  string                                   `protobuf:"bytes,2,opt,name=funder,proto3" json:"funder,omitempty"`
+	Amount  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+}
+
+func (m *EventFundAgentEscrow) Reset()         { *m = EventFundAgentEscrow{} }
+func (m *EventFundAgentEscrow) String() string { return proto.CompactTextString(m) }
+func (*EventFundAgentEscrow) ProtoMessage()    {}
+func (*EventFundAgentEscrow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_82de718b81b99b21, []int{9}
+}
+func (m *EventFundAgentEscrow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventFundAgentEscrow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventFundAgentEscrow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventFundAgentEscrow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventFundAgentEscrow.Merge(m, src)
+}
+func (m *EventFundAgentEscrow) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventFundAgentEscrow) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventFundAgentEscrow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventFundAgentEscrow proto.InternalMessageInfo
+
+func (m *EventFundAgentEscrow) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *EventFundAgentEscrow) GetFunder() string {
+	if m != nil {
+		return m.Funder
+	}
+	return ""
+}
+
+func (m *EventFundAgentEscrow) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Amount
+	}
+	return nil
+}
+
+// EventWithdrawAgentEscrow is emitted when the owner withdraws from an
+// agent's escrow.
+type EventWithdrawAgentEscrow struct {
+	AgentId string                                   `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Owner   string                                   `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	Amount  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+}
+
+func (m *EventWithdrawAgentEscrow) Reset()         { *m = EventWithdrawAgentEscrow{} }
+func (m *EventWithdrawAgentEscrow) String() string { return proto.CompactTextString(m) }
+func (*EventWithdrawAgentEscrow) ProtoMessage()    {}
+func (*EventWithdrawAgentEscrow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_82de718b81b99b21, []int{10}
+}
+func (m *EventWithdrawAgentEscrow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventWithdrawAgentEscrow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventWithdrawAgentEscrow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventWithdrawAgentEscrow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventWithdrawAgentEscrow.Merge(m, src)
+}
+func (m *EventWithdrawAgentEscrow) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventWithdrawAgentEscrow) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventWithdrawAgentEscrow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventWithdrawAgentEscrow proto.InternalMessageInfo
+
+func (m *EventWithdrawAgentEscrow) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *EventWithdrawAgentEscrow) GetOwner() string {
+	if m != nil {
+		return m.Owner
+	}
+	return ""
+}
+
+func (m *EventWithdrawAgentEscrow) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Amount
+	}
+	return nil
+}
+
+// EventUpdateAgentSpendPolicy is emitted when the owner updates an agent's
+// spend policy.
+type EventUpdateAgentSpendPolicy struct {
+	AgentId             string                `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	SpendDenom          string                `protobuf:"bytes,2,opt,name=spend_denom,json=spendDenom,proto3" json:"spend_denom,omitempty"`
+	SpendLimitPerWindow cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=spend_limit_per_window,json=spendLimitPerWindow,proto3,customtype=cosmossdk.io/math.Int" json:"spend_limit_per_window"`
+	SpendWindowBlocks   uint64                `protobuf:"varint,4,opt,name=spend_window_blocks,json=spendWindowBlocks,proto3" json:"spend_window_blocks,omitempty"`
+}
+
+func (m *EventUpdateAgentSpendPolicy) Reset()         { *m = EventUpdateAgentSpendPolicy{} }
+func (m *EventUpdateAgentSpendPolicy) String() string { return proto.CompactTextString(m) }
+func (*EventUpdateAgentSpendPolicy) ProtoMessage()    {}
+func (*EventUpdateAgentSpendPolicy) Descriptor() ([]byte, []int) {
+	return fileDescriptor_82de718b81b99b21, []int{11}
+}
+func (m *EventUpdateAgentSpendPolicy) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventUpdateAgentSpendPolicy) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventUpdateAgentSpendPolicy.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventUpdateAgentSpendPolicy) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventUpdateAgentSpendPolicy.Merge(m, src)
+}
+func (m *EventUpdateAgentSpendPolicy) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventUpdateAgentSpendPolicy) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventUpdateAgentSpendPolicy.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventUpdateAgentSpendPolicy proto.InternalMessageInfo
+
+func (m *EventUpdateAgentSpendPolicy) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *EventUpdateAgentSpendPolicy) GetSpendDenom() string {
+	if m != nil {
+		return m.SpendDenom
+	}
+	return ""
+}
+
+func (m *EventUpdateAgentSpendPolicy) GetSpendWindowBlocks() uint64 {
+	if m != nil {
+		return m.SpendWindowBlocks
+	}
+	return 0
+}
+
 // ActionLogEntry is an immutable record of one attested action, keyed by
 // (agent_id, seq).
 type ActionLogEntry struct {
@@ -494,7 +849,7 @@ func (m *ActionLogEntry) Reset()         { *m = ActionLogEntry{} }
 func (m *ActionLogEntry) String() string { return proto.CompactTextString(m) }
 func (*ActionLogEntry) ProtoMessage()    {}
 func (*ActionLogEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_82de718b81b99b21, []int{7}
+	return fileDescriptor_82de718b81b99b21, []int{12}
 }
 func (m *ActionLogEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -568,11 +923,16 @@ func (m *ActionLogEntry) GetTime() time.Time {
 func init() {
 	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.agent.Params")
 	proto.RegisterType((*Agent)(nil), "dymensionxyz.dymension.agent.Agent")
+	proto.RegisterType((*AgentEscrow)(nil), "dymensionxyz.dymension.agent.AgentEscrow")
 	proto.RegisterType((*EventRegisterAgent)(nil), "dymensionxyz.dymension.agent.EventRegisterAgent")
 	proto.RegisterType((*EventDeactivateAgent)(nil), "dymensionxyz.dymension.agent.EventDeactivateAgent")
 	proto.RegisterType((*EventPolicyRevoked)(nil), "dymensionxyz.dymension.agent.EventPolicyRevoked")
 	proto.RegisterType((*EventPolicyUnrevoked)(nil), "dymensionxyz.dymension.agent.EventPolicyUnrevoked")
 	proto.RegisterType((*EventUpdateAgentPolicy)(nil), "dymensionxyz.dymension.agent.EventUpdateAgentPolicy")
+	proto.RegisterType((*EventAttestedTransfer)(nil), "dymensionxyz.dymension.agent.EventAttestedTransfer")
+	proto.RegisterType((*EventFundAgentEscrow)(nil), "dymensionxyz.dymension.agent.EventFundAgentEscrow")
+	proto.RegisterType((*EventWithdrawAgentEscrow)(nil), "dymensionxyz.dymension.agent.EventWithdrawAgentEscrow")
+	proto.RegisterType((*EventUpdateAgentSpendPolicy)(nil), "dymensionxyz.dymension.agent.EventUpdateAgentSpendPolicy")
 	proto.RegisterType((*ActionLogEntry)(nil), "dymensionxyz.dymension.agent.ActionLogEntry")
 }
 
@@ -581,54 +941,75 @@ func init() {
 }
 
 var fileDescriptor_82de718b81b99b21 = []byte{
-	// 739 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcd, 0x4e, 0x1b, 0x49,
-	0x10, 0xf6, 0x0c, 0xb6, 0xc1, 0x6d, 0xaf, 0xc5, 0x36, 0x5e, 0xcb, 0x20, 0xd6, 0x78, 0x2d, 0xad,
-	0xd6, 0xd2, 0x4a, 0x33, 0x02, 0x2e, 0xdc, 0x56, 0x18, 0xd8, 0x10, 0x89, 0x44, 0xa8, 0x03, 0x97,
-	0x5c, 0x26, 0x3d, 0x9e, 0xf2, 0x78, 0x84, 0xa7, 0x7b, 0x98, 0x69, 0x1c, 0x3b, 0x4f, 0xc1, 0xab,
-	0xe4, 0x19, 0x72, 0xe1, 0x90, 0x03, 0xc7, 0x9c, 0x92, 0x08, 0x5e, 0x24, 0xea, 0x1f, 0x1b, 0x93,
-	0x08, 0x44, 0x72, 0x19, 0x75, 0x55, 0x7f, 0x55, 0xfd, 0xd5, 0x57, 0x35, 0x85, 0x3a, 0xc1, 0x24,
-	0x06, 0x96, 0x45, 0x9c, 0x8d, 0x27, 0xef, 0xdc, 0x99, 0xe1, 0xd2, 0x10, 0x98, 0xd0, 0x5f, 0x27,
-	0x49, 0xb9, 0xe0, 0x78, 0x7d, 0x1e, 0xe9, 0xcc, 0x0c, 0x47, 0x61, 0xd6, 0x6a, 0x21, 0x0f, 0xb9,
-	0x02, 0xba, 0xf2, 0xa4, 0x63, 0xd6, 0x36, 0x42, 0xce, 0xc3, 0x21, 0xb8, 0xca, 0xf2, 0x2f, 0xfa,
-	0xae, 0x88, 0x62, 0xc8, 0x04, 0x8d, 0x13, 0x03, 0x68, 0xf6, 0x78, 0x16, 0xf3, 0xcc, 0xf5, 0x69,
-	0x06, 0xee, 0x68, 0xd3, 0x07, 0x41, 0x37, 0xdd, 0x1e, 0x8f, 0x98, 0xb9, 0xff, 0xe7, 0x01, 0x7a,
-	0x3d, 0x1e, 0xc7, 0x9c, 0xb9, 0x02, 0x40, 0x03, 0xdb, 0x1f, 0x6c, 0x54, 0x3c, 0xa6, 0x29, 0x8d,
-	0x33, 0xdc, 0x41, 0xcb, 0x31, 0x1d, 0x7b, 0xb4, 0x27, 0x22, 0xce, 0x3c, 0x7f, 0x22, 0x20, 0x6b,
-	0x58, 0x2d, 0xab, 0x93, 0x27, 0xd5, 0x98, 0x8e, 0x77, 0x95, 0xbb, 0x2b, 0xbd, 0xf8, 0x14, 0xd5,
-	0x15, 0x7b, 0x2f, 0x85, 0x30, 0xca, 0x44, 0x4a, 0x55, 0x44, 0x1f, 0xa0, 0x61, 0xb7, 0xac, 0x4e,
-	0x79, 0x6b, 0xd5, 0xd1, 0xf4, 0x1c, 0x49, 0xcf, 0x31, 0xf4, 0x9c, 0x3d, 0x1e, 0xb1, 0x6e, 0xfe,
-	0xea, 0xf3, 0x46, 0x8e, 0xd4, 0x54, 0x38, 0x99, 0x8b, 0xfe, 0x1f, 0x00, 0xff, 0x87, 0xd6, 0x13,
-	0x3e, 0x8c, 0x7a, 0x13, 0x2f, 0xe5, 0x42, 0xe7, 0x0c, 0x60, 0x48, 0x27, 0x9e, 0x3f, 0xe4, 0xbd,
-	0xb3, 0xac, 0xb1, 0xa0, 0xc8, 0xac, 0x6a, 0x0c, 0x31, 0x90, 0x7d, 0x89, 0xe8, 0x2a, 0x00, 0xee,
-	0xa2, 0x4a, 0x1f, 0x20, 0xf0, 0x69, 0xef, 0x4c, 0xb1, 0xc9, 0x3f, 0x8d, 0x4d, 0x79, 0x1a, 0x24,
-	0x49, 0x6c, 0xa3, 0xfa, 0x2c, 0x87, 0xa0, 0xa1, 0x27, 0x25, 0xd1, 0x5a, 0x14, 0xd4, 0xf3, 0x2b,
-	0xd3, 0xdb, 0x13, 0x1a, 0xbe, 0xa0, 0x63, 0x25, 0x48, 0xfb, 0xbd, 0x8d, 0x0a, 0xbb, 0xb2, 0x24,
-	0x5c, 0x45, 0x76, 0x14, 0x28, 0xd9, 0x4a, 0xc4, 0x8e, 0x02, 0xbc, 0x87, 0x8a, 0x9a, 0xaf, 0x91,
-	0xe6, 0x6f, 0xe7, 0x81, 0x71, 0xd0, 0x9d, 0x71, 0x8e, 0x15, 0xd8, 0x10, 0x33, 0xa1, 0xb8, 0x8e,
-	0x8a, 0xb2, 0x2b, 0x23, 0x50, 0x12, 0x2c, 0x11, 0x63, 0xe1, 0x3f, 0x11, 0x32, 0xdd, 0xca, 0xe0,
-	0x5c, 0x55, 0x9b, 0x27, 0x25, 0xed, 0x79, 0x05, 0xe7, 0xb8, 0x86, 0x0a, 0xfc, 0x2d, 0x83, 0x54,
-	0x31, 0x2f, 0x11, 0x6d, 0x60, 0x82, 0xaa, 0x09, 0xb0, 0x20, 0x62, 0xa1, 0x67, 0x98, 0x15, 0x7f,
-	0x96, 0x99, 0x45, 0x7e, 0x33, 0x29, 0xb4, 0x13, 0x6f, 0xa1, 0x3f, 0xee, 0xe7, 0xf4, 0x06, 0x10,
-	0x85, 0x03, 0xd1, 0x58, 0x6c, 0x59, 0x9d, 0x05, 0xb2, 0x72, 0x0f, 0x7d, 0xa8, 0xae, 0xda, 0x21,
-	0xc2, 0x07, 0xa3, 0xd9, 0x14, 0x40, 0xaa, 0xf5, 0x5b, 0x45, 0x4b, 0x7a, 0xb4, 0x66, 0x2a, 0x2e,
-	0x2a, 0xfb, 0x79, 0x70, 0x57, 0x8e, 0x3d, 0x5f, 0x4e, 0x0b, 0x95, 0xfb, 0x11, 0x0b, 0x21, 0x4d,
-	0xd2, 0x88, 0x09, 0x25, 0x50, 0x89, 0xcc, 0xbb, 0xda, 0xcf, 0x50, 0x4d, 0x3d, 0xb4, 0x0f, 0x4a,
-	0x36, 0x2a, 0xe0, 0xd7, 0x9e, 0x6a, 0xbf, 0x34, 0x8c, 0x75, 0x19, 0x04, 0x46, 0xfc, 0x0c, 0x82,
-	0xef, 0x09, 0x58, 0x3f, 0x10, 0x90, 0xed, 0x4b, 0x81, 0x66, 0x9c, 0x99, 0x74, 0xc6, 0x6a, 0xef,
-	0x18, 0x62, 0x3a, 0xdf, 0x29, 0x4b, 0x9f, 0x9a, 0xb1, 0xfd, 0x06, 0xd5, 0x55, 0xe4, 0x69, 0x12,
-	0x4c, 0xcb, 0x31, 0x9d, 0x78, 0xa4, 0xa8, 0x7f, 0xd1, 0xef, 0x46, 0x00, 0x39, 0x31, 0xa6, 0x41,
-	0xb6, 0x6a, 0xd0, 0xf2, 0xdd, 0x85, 0xe9, 0xce, 0x47, 0x0b, 0x55, 0xf5, 0x2f, 0x7f, 0xc4, 0xc3,
-	0x03, 0x26, 0xd2, 0x47, 0x53, 0x2f, 0xa3, 0x05, 0x39, 0x81, 0xb6, 0x9a, 0x40, 0x79, 0xc4, 0x0d,
-	0xb4, 0x98, 0xd0, 0xc9, 0x90, 0xd3, 0x40, 0xb5, 0xa4, 0x42, 0xa6, 0x26, 0xfe, 0x0b, 0x55, 0xcc,
-	0xd1, 0x1b, 0xd0, 0x6c, 0xa0, 0xc6, 0xb6, 0x42, 0xca, 0xc6, 0x77, 0x48, 0xb3, 0x81, 0x14, 0xcc,
-	0xd0, 0x2b, 0x28, 0x7a, 0xc6, 0xc2, 0x3b, 0x28, 0x2f, 0x17, 0xa1, 0x19, 0xd8, 0x35, 0x47, 0x6f,
-	0x49, 0x67, 0xba, 0x25, 0x9d, 0x93, 0xe9, 0x96, 0xec, 0x2e, 0xc9, 0xff, 0xe7, 0xf2, 0xcb, 0x86,
-	0x45, 0x54, 0x44, 0xf7, 0xe8, 0xea, 0xa6, 0x69, 0x5d, 0xdf, 0x34, 0xad, 0xaf, 0x37, 0x4d, 0xeb,
-	0xf2, 0xb6, 0x99, 0xbb, 0xbe, 0x6d, 0xe6, 0x3e, 0xdd, 0x36, 0x73, 0xaf, 0xb7, 0xc2, 0x48, 0x0c,
-	0x2e, 0x7c, 0x39, 0xe5, 0xee, 0x03, 0x4b, 0x73, 0xb4, 0xed, 0x8e, 0xcd, 0x62, 0x17, 0x93, 0x04,
-	0x32, 0xbf, 0xa8, 0x5e, 0xdc, 0xfe, 0x16, 0x00, 0x00, 0xff, 0xff, 0x2d, 0x22, 0xb6, 0x3f, 0x05,
-	0x06, 0x00, 0x00,
+	// 1084 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0x4f, 0x6f, 0x1b, 0x45,
+	0x14, 0xcf, 0xda, 0x8e, 0x13, 0x3f, 0x87, 0x28, 0x9d, 0xa6, 0x96, 0x13, 0x82, 0x1d, 0x56, 0x42,
+	0x58, 0xaa, 0xba, 0x4b, 0x93, 0x03, 0xe5, 0x84, 0xe2, 0x26, 0xa5, 0x91, 0x02, 0x8a, 0xb6, 0x89,
+	0x2a, 0xb8, 0x6c, 0xc7, 0xbb, 0xe3, 0xf5, 0x28, 0xde, 0x99, 0xed, 0xce, 0x38, 0x89, 0xf9, 0x12,
+	0xf4, 0x73, 0x70, 0x40, 0x1c, 0xb8, 0x70, 0xe6, 0xd2, 0x03, 0x87, 0x8a, 0x13, 0xe2, 0xd0, 0xa2,
+	0xe4, 0xc8, 0x37, 0xe0, 0x84, 0xe6, 0x8f, 0x1d, 0x27, 0x90, 0x90, 0x20, 0xe0, 0x92, 0xec, 0xfb,
+	0x3b, 0xbf, 0xf7, 0xe6, 0xf7, 0x9e, 0x07, 0x5a, 0xf1, 0x30, 0x25, 0x4c, 0x50, 0xce, 0x8e, 0x87,
+	0x5f, 0xfa, 0x63, 0xc1, 0xc7, 0x09, 0x61, 0xd2, 0xfc, 0xf5, 0xb2, 0x9c, 0x4b, 0x8e, 0x56, 0x26,
+	0x3d, 0xbd, 0xb1, 0xe0, 0x69, 0x9f, 0xe5, 0xc5, 0x84, 0x27, 0x5c, 0x3b, 0xfa, 0xea, 0xcb, 0xc4,
+	0x2c, 0x37, 0x13, 0xce, 0x93, 0x3e, 0xf1, 0xb5, 0xd4, 0x19, 0x74, 0x7d, 0x49, 0x53, 0x22, 0x24,
+	0x4e, 0x33, 0xeb, 0xd0, 0x88, 0xb8, 0x48, 0xb9, 0xf0, 0x3b, 0x58, 0x10, 0xff, 0xf0, 0x7e, 0x87,
+	0x48, 0x7c, 0xdf, 0x8f, 0x38, 0x65, 0xd6, 0xbe, 0x64, 0xec, 0xa1, 0xc9, 0x6c, 0x04, 0x6b, 0x7a,
+	0xff, 0x12, 0xe4, 0x11, 0x4f, 0x53, 0xce, 0x7c, 0x49, 0x88, 0x71, 0x74, 0x7f, 0x28, 0x40, 0x79,
+	0x17, 0xe7, 0x38, 0x15, 0xa8, 0x05, 0x0b, 0x29, 0x3e, 0x0e, 0x71, 0x24, 0x29, 0x67, 0x61, 0x67,
+	0x28, 0x89, 0xa8, 0x3b, 0xab, 0x4e, 0xab, 0x14, 0xcc, 0xa7, 0xf8, 0x78, 0x43, 0xab, 0xdb, 0x4a,
+	0x8b, 0xf6, 0xa1, 0xa6, 0x0b, 0x0b, 0x73, 0x92, 0x50, 0x21, 0x73, 0xac, 0x23, 0xba, 0x84, 0xd4,
+	0x0b, 0xab, 0x4e, 0xab, 0xba, 0xb6, 0xe4, 0x59, 0x30, 0x0a, 0xb9, 0x67, 0x91, 0x7b, 0x0f, 0x39,
+	0x65, 0xed, 0xd2, 0xcb, 0xd7, 0xcd, 0xa9, 0x60, 0x51, 0x87, 0x07, 0x13, 0xd1, 0x8f, 0x08, 0x41,
+	0x1f, 0xc3, 0x4a, 0xc6, 0xfb, 0x34, 0x1a, 0x86, 0x39, 0x97, 0x26, 0x67, 0x4c, 0xfa, 0x78, 0x18,
+	0x76, 0xfa, 0x3c, 0x3a, 0x10, 0xf5, 0xa2, 0x06, 0xb3, 0x64, 0x7c, 0x02, 0xeb, 0xb2, 0xa9, 0x3c,
+	0xda, 0xda, 0x01, 0xb5, 0x61, 0xae, 0x4b, 0x48, 0xdc, 0xc1, 0xd1, 0x81, 0x46, 0x53, 0xba, 0x1e,
+	0x9a, 0xea, 0x28, 0x48, 0x81, 0x58, 0x87, 0xda, 0x38, 0x87, 0xc4, 0x49, 0xa8, 0x5a, 0x62, 0x7a,
+	0x31, 0xad, 0x8f, 0xbf, 0x3d, 0xb2, 0xee, 0xe1, 0xe4, 0x53, 0x7c, 0xac, 0x1b, 0xe2, 0xfe, 0x5e,
+	0x82, 0xe9, 0x0d, 0x55, 0x12, 0x9a, 0x87, 0x02, 0x8d, 0x75, 0xdb, 0x2a, 0x41, 0x81, 0xc6, 0xe8,
+	0x21, 0x94, 0x0d, 0x5e, 0xdb, 0x9a, 0xf7, 0xbc, 0x4b, 0x98, 0x62, 0x6e, 0xc6, 0xdb, 0xd5, 0xce,
+	0x16, 0x98, 0x0d, 0x45, 0x35, 0x28, 0xab, 0x5b, 0x39, 0x24, 0xba, 0x05, 0xb3, 0x81, 0x95, 0xd0,
+	0x3b, 0x00, 0xf6, 0xb6, 0x04, 0x79, 0xae, 0xab, 0x2d, 0x05, 0x15, 0xa3, 0x79, 0x42, 0x9e, 0xa3,
+	0x45, 0x98, 0xe6, 0x47, 0x8c, 0xe4, 0x1a, 0x79, 0x25, 0x30, 0x02, 0x0a, 0x60, 0x3e, 0x23, 0x2c,
+	0xa6, 0x2c, 0x09, 0x2d, 0xb2, 0xf2, 0x4d, 0x91, 0x39, 0xc1, 0x5b, 0x36, 0x85, 0x51, 0xa2, 0x35,
+	0xb8, 0x73, 0x3e, 0x67, 0xd8, 0x23, 0x34, 0xe9, 0xc9, 0xfa, 0xcc, 0xaa, 0xd3, 0x2a, 0x06, 0xb7,
+	0xcf, 0x79, 0x3f, 0xd6, 0x26, 0xd4, 0x84, 0xaa, 0x50, 0xfa, 0x30, 0x26, 0x8c, 0xa7, 0xf5, 0x59,
+	0x8d, 0x11, 0xb4, 0x6a, 0x53, 0x69, 0xd0, 0x33, 0xa8, 0x19, 0x87, 0x3e, 0x4d, 0xa9, 0x0c, 0x33,
+	0x92, 0x87, 0x47, 0x94, 0xc5, 0xfc, 0xa8, 0x5e, 0x51, 0xbe, 0xed, 0xbb, 0xaa, 0x47, 0xbf, 0xbc,
+	0x6e, 0xde, 0x31, 0xd7, 0x2b, 0xe2, 0x03, 0x8f, 0x72, 0x3f, 0xc5, 0xb2, 0xe7, 0x6d, 0x33, 0xf9,
+	0xd3, 0x77, 0xf7, 0xc0, 0xde, 0xfb, 0x36, 0x93, 0xc1, 0x6d, 0x9d, 0x6a, 0x47, 0x65, 0xda, 0x25,
+	0xf9, 0x53, 0x9d, 0x07, 0x79, 0x60, 0xd4, 0x36, 0xef, 0x88, 0x67, 0xa0, 0x1b, 0x79, 0x4b, 0x9b,
+	0x8c, 0xa7, 0xe5, 0xd7, 0x47, 0xb0, 0x74, 0xce, 0x5f, 0x48, 0x9c, 0xcb, 0x51, 0xa9, 0x55, 0x1d,
+	0x55, 0x9b, 0x88, 0x7a, 0xa2, 0xcc, 0xb6, 0xda, 0xcf, 0x01, 0x9d, 0x0f, 0xcd, 0x08, 0x93, 0xf5,
+	0xb9, 0x9b, 0x17, 0xb2, 0x30, 0x79, 0x80, 0x4a, 0xe2, 0x7e, 0xe5, 0x40, 0x55, 0x93, 0x6f, 0x4b,
+	0x44, 0x39, 0x3f, 0x42, 0x4b, 0x30, 0x6b, 0xa6, 0x73, 0x4c, 0xc4, 0x19, 0x2d, 0x6f, 0xc7, 0x88,
+	0xc0, 0x4c, 0x07, 0xf7, 0x31, 0x8b, 0xd4, 0xa4, 0x16, 0xaf, 0x9e, 0x8d, 0x0f, 0x14, 0xaa, 0xaf,
+	0xdf, 0x34, 0x5b, 0x09, 0x95, 0xbd, 0x41, 0x47, 0xd1, 0xc0, 0xee, 0x18, 0xfb, 0xef, 0x9e, 0x88,
+	0x0f, 0x7c, 0x39, 0xcc, 0x88, 0xd0, 0x01, 0x22, 0x18, 0xe5, 0x76, 0x13, 0x40, 0x5b, 0x87, 0xe3,
+	0x01, 0x27, 0xb9, 0x19, 0x8d, 0x2b, 0x70, 0x8d, 0x99, 0x5a, 0x98, 0x64, 0xea, 0x2a, 0x54, 0xbb,
+	0x94, 0x25, 0x24, 0xcf, 0x72, 0xca, 0xa4, 0xe6, 0x7e, 0x25, 0x98, 0x54, 0xb9, 0x9f, 0xc0, 0xa2,
+	0x3e, 0x68, 0x93, 0xe8, 0x89, 0xc0, 0x92, 0xfc, 0xb3, 0xa3, 0xdc, 0xcf, 0x2c, 0x62, 0xc3, 0xd0,
+	0x80, 0x1c, 0xf2, 0x03, 0x12, 0x5f, 0x04, 0xe0, 0xfc, 0x09, 0x80, 0x9a, 0xcc, 0x9c, 0x60, 0xc1,
+	0x99, 0x4d, 0x67, 0x25, 0xf7, 0x81, 0x05, 0x66, 0xf2, 0xed, 0xb3, 0xfc, 0xba, 0x19, 0xdd, 0x67,
+	0x50, 0xd3, 0x91, 0xfb, 0x59, 0x3c, 0x2a, 0xc7, 0x0e, 0xd9, 0x15, 0x45, 0xdd, 0x85, 0x5b, 0xb6,
+	0x01, 0x6a, 0x19, 0x58, 0x42, 0x16, 0xf4, 0xec, 0x2d, 0x9c, 0x19, 0x0c, 0x15, 0xdd, 0xef, 0x1d,
+	0xb8, 0xa3, 0x8f, 0xd8, 0x90, 0x92, 0x08, 0x49, 0xe2, 0xbd, 0x1c, 0x33, 0xd1, 0x25, 0xf9, 0x55,
+	0x27, 0x2c, 0x40, 0x51, 0xed, 0x98, 0x82, 0x26, 0xb9, 0xfa, 0x44, 0x2b, 0x50, 0xc9, 0x49, 0x44,
+	0x33, 0x4a, 0xc6, 0x77, 0x73, 0xa6, 0x40, 0x1f, 0x42, 0x19, 0xa7, 0x7c, 0xc0, 0xe4, 0x75, 0x97,
+	0xb0, 0x75, 0x57, 0x69, 0xc5, 0xa0, 0x93, 0x52, 0x29, 0xc7, 0x8b, 0xeb, 0x4c, 0xe1, 0x7e, 0xe3,
+	0xd8, 0xc6, 0x3e, 0x1a, 0xb0, 0xf8, 0x9a, 0xa4, 0xaf, 0x41, 0xb9, 0x3b, 0x60, 0xf1, 0xf8, 0xca,
+	0xad, 0x84, 0xa2, 0x31, 0xc4, 0xe2, 0xbf, 0x3f, 0x0b, 0x36, 0xb5, 0xfb, 0xad, 0x03, 0x75, 0x0d,
+	0xf8, 0x29, 0x95, 0xbd, 0x38, 0xc7, 0x47, 0xd7, 0x04, 0xfd, 0xd7, 0x13, 0xf1, 0xbf, 0x40, 0xfe,
+	0xcd, 0x81, 0xb7, 0x2f, 0x52, 0x50, 0x6d, 0x9a, 0xf8, 0xef, 0x79, 0x78, 0x61, 0xa7, 0x17, 0x6e,
+	0xb0, 0xd3, 0x8b, 0xff, 0xed, 0x4e, 0x2f, 0x5d, 0xb2, 0xd3, 0xdd, 0x1f, 0x1d, 0x98, 0x37, 0x6f,
+	0x9b, 0x1d, 0x9e, 0x6c, 0x31, 0x99, 0x0f, 0x6f, 0x36, 0x06, 0x75, 0x98, 0xc9, 0xf0, 0xb0, 0xcf,
+	0x71, 0xac, 0x4b, 0x98, 0x0b, 0x46, 0x22, 0x7a, 0x17, 0xe6, 0xec, 0x67, 0xd8, 0xc3, 0xa2, 0xa7,
+	0x21, 0xcc, 0x05, 0x55, 0xab, 0x7b, 0x8c, 0x45, 0x4f, 0x51, 0xd3, 0x0e, 0xeb, 0xb4, 0x1e, 0x56,
+	0x2b, 0xa1, 0x07, 0x50, 0x52, 0x8f, 0x41, 0xfb, 0xcb, 0xbc, 0xec, 0x99, 0x97, 0xa2, 0x37, 0x7a,
+	0x29, 0x7a, 0x7b, 0xa3, 0x97, 0x62, 0x7b, 0x56, 0x35, 0xec, 0xc5, 0x9b, 0xa6, 0x13, 0xe8, 0x88,
+	0xf6, 0xce, 0xcb, 0x93, 0x86, 0xf3, 0xea, 0xa4, 0xe1, 0xfc, 0x7a, 0xd2, 0x70, 0x5e, 0x9c, 0x36,
+	0xa6, 0x5e, 0x9d, 0x36, 0xa6, 0x7e, 0x3e, 0x6d, 0x4c, 0x7d, 0xb1, 0x36, 0x41, 0x84, 0x4b, 0x5e,
+	0x87, 0x87, 0xeb, 0xfe, 0xb1, 0x7d, 0xdc, 0x6a, 0x62, 0x74, 0xca, 0xfa, 0xc4, 0xf5, 0x3f, 0x02,
+	0x00, 0x00, 0xff, 0xff, 0x67, 0xe9, 0x8a, 0xf0, 0x09, 0x0b, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -709,6 +1090,43 @@ func (m *Agent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size := m.SpendWindowSpent.Size()
+		i -= size
+		if _, err := m.SpendWindowSpent.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintAgent(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x62
+	if m.SpendWindowStartHeight != 0 {
+		i = encodeVarintAgent(dAtA, i, uint64(m.SpendWindowStartHeight))
+		i--
+		dAtA[i] = 0x58
+	}
+	if m.SpendWindowBlocks != 0 {
+		i = encodeVarintAgent(dAtA, i, uint64(m.SpendWindowBlocks))
+		i--
+		dAtA[i] = 0x50
+	}
+	{
+		size := m.SpendLimitPerWindow.Size()
+		i -= size
+		if _, err := m.SpendLimitPerWindow.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintAgent(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x4a
+	if len(m.SpendDenom) > 0 {
+		i -= len(m.SpendDenom)
+		copy(dAtA[i:], m.SpendDenom)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.SpendDenom)))
+		i--
+		dAtA[i] = 0x42
+	}
 	if m.PendingPolicyHeight != 0 {
 		i = encodeVarintAgent(dAtA, i, uint64(m.PendingPolicyHeight))
 		i--
@@ -762,6 +1180,50 @@ func (m *Agent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.Id)
 		copy(dAtA[i:], m.Id)
 		i = encodeVarintAgent(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AgentEscrow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AgentEscrow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AgentEscrow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Balance) > 0 {
+		for iNdEx := len(m.Balance) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Balance[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAgent(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.AgentId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -951,6 +1413,219 @@ func (m *EventUpdateAgentPolicy) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *EventAttestedTransfer) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventAttestedTransfer) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventAttestedTransfer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Submitter) > 0 {
+		i -= len(m.Submitter)
+		copy(dAtA[i:], m.Submitter)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.Submitter)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintAgent(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.Recipient) > 0 {
+		i -= len(m.Recipient)
+		copy(dAtA[i:], m.Recipient)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.Recipient)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Seq != 0 {
+		i = encodeVarintAgent(dAtA, i, uint64(m.Seq))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventFundAgentEscrow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventFundAgentEscrow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventFundAgentEscrow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Amount) > 0 {
+		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAgent(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Funder) > 0 {
+		i -= len(m.Funder)
+		copy(dAtA[i:], m.Funder)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.Funder)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventWithdrawAgentEscrow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventWithdrawAgentEscrow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventWithdrawAgentEscrow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Amount) > 0 {
+		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAgent(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventUpdateAgentSpendPolicy) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventUpdateAgentSpendPolicy) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventUpdateAgentSpendPolicy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.SpendWindowBlocks != 0 {
+		i = encodeVarintAgent(dAtA, i, uint64(m.SpendWindowBlocks))
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size := m.SpendLimitPerWindow.Size()
+		i -= size
+		if _, err := m.SpendLimitPerWindow.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintAgent(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.SpendDenom) > 0 {
+		i -= len(m.SpendDenom)
+		copy(dAtA[i:], m.SpendDenom)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.SpendDenom)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintAgent(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *ActionLogEntry) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -971,12 +1646,12 @@ func (m *ActionLogEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	n5, err5 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.Time, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Time):])
-	if err5 != nil {
-		return 0, err5
+	n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.Time, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Time):])
+	if err6 != nil {
+		return 0, err6
 	}
-	i -= n5
-	i = encodeVarintAgent(dAtA, i, uint64(n5))
+	i -= n6
+	i = encodeVarintAgent(dAtA, i, uint64(n6))
 	i--
 	dAtA[i] = 0x32
 	if m.Height != 0 {
@@ -1075,6 +1750,39 @@ func (m *Agent) Size() (n int) {
 	if m.PendingPolicyHeight != 0 {
 		n += 1 + sovAgent(uint64(m.PendingPolicyHeight))
 	}
+	l = len(m.SpendDenom)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	l = m.SpendLimitPerWindow.Size()
+	n += 1 + l + sovAgent(uint64(l))
+	if m.SpendWindowBlocks != 0 {
+		n += 1 + sovAgent(uint64(m.SpendWindowBlocks))
+	}
+	if m.SpendWindowStartHeight != 0 {
+		n += 1 + sovAgent(uint64(m.SpendWindowStartHeight))
+	}
+	l = m.SpendWindowSpent.Size()
+	n += 1 + l + sovAgent(uint64(l))
+	return n
+}
+
+func (m *AgentEscrow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	if len(m.Balance) > 0 {
+		for _, e := range m.Balance {
+			l = e.Size()
+			n += 1 + l + sovAgent(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -1158,6 +1866,100 @@ func (m *EventUpdateAgentPolicy) Size() (n int) {
 	}
 	if m.ActivationHeight != 0 {
 		n += 1 + sovAgent(uint64(m.ActivationHeight))
+	}
+	return n
+}
+
+func (m *EventAttestedTransfer) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	if m.Seq != 0 {
+		n += 1 + sovAgent(uint64(m.Seq))
+	}
+	l = len(m.Recipient)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovAgent(uint64(l))
+	l = len(m.Submitter)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	return n
+}
+
+func (m *EventFundAgentEscrow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	l = len(m.Funder)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	if len(m.Amount) > 0 {
+		for _, e := range m.Amount {
+			l = e.Size()
+			n += 1 + l + sovAgent(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *EventWithdrawAgentEscrow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	if len(m.Amount) > 0 {
+		for _, e := range m.Amount {
+			l = e.Size()
+			n += 1 + l + sovAgent(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *EventUpdateAgentSpendPolicy) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	l = len(m.SpendDenom)
+	if l > 0 {
+		n += 1 + l + sovAgent(uint64(l))
+	}
+	l = m.SpendLimitPerWindow.Size()
+	n += 1 + l + sovAgent(uint64(l))
+	if m.SpendWindowBlocks != 0 {
+		n += 1 + sovAgent(uint64(m.SpendWindowBlocks))
 	}
 	return n
 }
@@ -1590,6 +2392,260 @@ func (m *Agent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpendDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendLimitPerWindow", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.SpendLimitPerWindow.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendWindowBlocks", wireType)
+			}
+			m.SpendWindowBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpendWindowBlocks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendWindowStartHeight", wireType)
+			}
+			m.SpendWindowStartHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpendWindowStartHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendWindowSpent", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.SpendWindowSpent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAgent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AgentEscrow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAgent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AgentEscrow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AgentEscrow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Balance", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Balance = append(m.Balance, types.Coin{})
+			if err := m.Balance[len(m.Balance)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipAgent(dAtA[iNdEx:])
@@ -2143,6 +3199,667 @@ func (m *EventUpdateAgentPolicy) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.ActivationHeight |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAgent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventAttestedTransfer) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAgent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventAttestedTransfer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventAttestedTransfer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seq", wireType)
+			}
+			m.Seq = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Seq |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Recipient", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Recipient = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Submitter", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Submitter = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAgent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventFundAgentEscrow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAgent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventFundAgentEscrow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventFundAgentEscrow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Funder", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Funder = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Amount = append(m.Amount, types.Coin{})
+			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAgent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventWithdrawAgentEscrow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAgent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventWithdrawAgentEscrow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventWithdrawAgentEscrow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Amount = append(m.Amount, types.Coin{})
+			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAgent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventUpdateAgentSpendPolicy) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAgent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventUpdateAgentSpendPolicy: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventUpdateAgentSpendPolicy: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpendDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendLimitPerWindow", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthAgent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthAgent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.SpendLimitPerWindow.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpendWindowBlocks", wireType)
+			}
+			m.SpendWindowBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAgent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpendWindowBlocks |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

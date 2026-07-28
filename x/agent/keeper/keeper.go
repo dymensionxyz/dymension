@@ -28,6 +28,9 @@ type Keeper struct {
 	revokedPolicies collections.KeySet[string]
 	feedback        collections.Map[collections.Pair[string, string], types.Feedback]
 	reputation      collections.Map[string, types.Reputation]
+	// escrows tracks per-agent balances of the pooled funds held in the agent
+	// module account.
+	escrows collections.Map[string, types.AgentEscrow]
 }
 
 func NewKeeper(
@@ -54,6 +57,8 @@ func NewKeeper(
 		actionLog: collections.NewMap(sb, collections.NewPrefix(types.KeyActionLog),
 			"action_log", collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
 			collcompat.ProtoValue[types.ActionLogEntry](cdc)),
+		escrows: collections.NewMap(sb, collections.NewPrefix(types.KeyAgentEscrow),
+			"escrows", collections.StringKey, collcompat.ProtoValue[types.AgentEscrow](cdc)),
 		revokedPolicies: collections.NewKeySet(sb, collections.NewPrefix(types.KeyRevokedPolicies),
 			"revoked_policies", collections.StringKey),
 		feedback: collections.NewMap(sb, collections.NewPrefix(types.KeyFeedback),
