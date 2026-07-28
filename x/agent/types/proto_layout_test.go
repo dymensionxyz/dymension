@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
@@ -32,6 +33,17 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"Owner":               {"bytes,5,opt,name=owner,proto3", reflect.TypeOf("")},
 			"PendingPolicy":       {"bytes,6,opt,name=pending_policy,json=pendingPolicy,proto3", reflect.TypeOf((*tee.Policy)(nil))},
 			"PendingPolicyHeight": {"varint,7,opt,name=pending_policy_height,json=pendingPolicyHeight,proto3", reflect.TypeOf(int64(0))},
+			"SpendDenom":          {"bytes,8,opt,name=spend_denom,json=spendDenom,proto3", reflect.TypeOf("")},
+			"SpendLimitPerWindow": {"bytes,9,opt,name=spend_limit_per_window,json=spendLimitPerWindow,proto3,customtype=cosmossdk.io/math.Int", reflect.TypeOf(math.Int{})},
+			"SpendWindowBlocks":   {"varint,10,opt,name=spend_window_blocks,json=spendWindowBlocks,proto3", reflect.TypeOf(uint64(0))},
+			"SpendWindowStartHeight": {
+				"varint,11,opt,name=spend_window_start_height,json=spendWindowStartHeight,proto3",
+				reflect.TypeOf(uint64(0)),
+			},
+			"SpendWindowSpent": {
+				"bytes,12,opt,name=spend_window_spent,json=spendWindowSpent,proto3,customtype=cosmossdk.io/math.Int",
+				reflect.TypeOf(math.Int{}),
+			},
 		}},
 		{types.Params{}, map[string]fieldContract{
 			"MaxActionBytes":            {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},

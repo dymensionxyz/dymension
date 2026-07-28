@@ -21,6 +21,11 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 			panic(err)
 		}
 	}
+	for _, e := range g.Escrows {
+		if err := k.escrows.Set(ctx, e.AgentId, e); err != nil {
+			panic(err)
+		}
+	}
 	for _, fp := range g.RevokedPolicies {
 		if err := k.revokedPolicies.Set(ctx, fp); err != nil {
 			panic(err)
@@ -62,6 +67,13 @@ func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
 
 	if err := k.actionLog.Walk(ctx, nil, func(_ collections.Pair[string, uint64], e types.ActionLogEntry) (stop bool, err error) {
 		g.ActionLog = append(g.ActionLog, e)
+		return false, nil
+	}); err != nil {
+		panic(err)
+	}
+
+	if err := k.escrows.Walk(ctx, nil, func(_ string, e types.AgentEscrow) (stop bool, err error) {
+		g.Escrows = append(g.Escrows, e)
 		return false, nil
 	}); err != nil {
 		panic(err)
