@@ -124,7 +124,8 @@ message MsgTryFulfillOnDemand {
 
   string order_id = 1;
 
-  // rng to choose fulfiller from eligible randomly
+  // Deprecated: ignored. The fulfiller is chosen by a chain-derived
+  // deterministic seed.
   int64 rng = 3;
 }
 
