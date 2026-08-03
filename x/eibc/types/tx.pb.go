@@ -479,7 +479,8 @@ var xxx_messageInfo_MsgUpdateDemandOrderResponse proto.InternalMessageInfo
 type MsgTryFulfillOnDemand struct {
 	Signer  string `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
 	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	// rng to choose fulfiller from eligible randomly
+	// Deprecated: ignored. The fulfiller is chosen by a chain-derived
+	// deterministic seed.
 	Rng int64 `protobuf:"varint,3,opt,name=rng,proto3" json:"rng,omitempty"`
 }
 

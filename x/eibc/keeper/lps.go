@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"math/rand/v2"
 
@@ -215,6 +217,20 @@ func (s LPs) NextID(ctx sdk.Context) (uint64, error) {
 // SetNextID sets the LP id sequence, used on genesis import.
 func (s LPs) SetNextID(ctx sdk.Context, id uint64) error {
 	return s.nextID.Set(ctx, id)
+}
+
+// deterministicFulfillSeed derives the LP-shuffle seed from data the tx
+// submitter cannot choose: the order id (per-order variation) mixed with the
+// current block hash (per-block entropy neither the fulfiller nor the order
+// creator controls at their respective action times). Consensus-safe: the
+// header hash is consensus data identical across validators, and sha256 with
+// fixed byte order is deterministic.
+func deterministicFulfillSeed(ctx sdk.Context, orderID string) uint64 {
+	h := sha256.New()
+	_, _ = h.Write([]byte(orderID))
+	_, _ = h.Write(ctx.HeaderHash())
+	sum := h.Sum(nil)
+	return binary.BigEndian.Uint64(sum[:8])
 }
 
 func (k Keeper) FulfillByOnDemandLP(ctx sdk.Context, order string, rng uint64) error {
