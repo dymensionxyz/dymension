@@ -210,7 +210,7 @@ func NewCmdTryFulfillOnDemand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "try-fulfill-on-demand [order-id] [rng]",
 		Short: short,
-		Long:  short + " Can provide rng to avoid choosing same fulfiller multiple times (number). ",
+		Long:  short + " The optional rng argument is deprecated and ignored; the fulfiller is chosen from a chain-derived seed.",
 
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -219,18 +219,11 @@ func NewCmdTryFulfillOnDemand() *cobra.Command {
 				return err
 			}
 			orderId := args[0]
-			rng := 0
-			if len(args) > 1 {
-				rng, err = strconv.Atoi(args[1])
-				if err != nil {
-					return err
-				}
-			}
 
 			msg := &types.MsgTryFulfillOnDemand{
 				Signer:  clientCtx.GetFromAddress().String(),
 				OrderId: orderId,
-				Rng:     int64(rng),
+				Rng:     0,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

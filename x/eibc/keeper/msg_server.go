@@ -278,8 +278,8 @@ func (m msgServer) TryFulfillOnDemand(goCtx context.Context, msg *types.MsgTryFu
 		return nil, errorsmod.Wrap(err, "vbasic")
 	}
 
-	shuffleSeed := uint64(msg.Rng) //nolint:gosec
-	err = m.FulfillByOnDemandLP(ctx, msg.OrderId, shuffleSeed)
+	seed := deterministicFulfillSeed(ctx, msg.OrderId)
+	err = m.FulfillByOnDemandLP(ctx, msg.OrderId, seed)
 	if err != nil {
 		return nil, err
 	}
