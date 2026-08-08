@@ -18,4 +18,5 @@ var (
 	ErrSpendingDisabled       = errorsmod.Register(ModuleName, 14, "agent spending is disabled")
 	ErrSpendBudgetExceeded    = errorsmod.Register(ModuleName, 15, "spend budget exceeded for the current window")
 	ErrInsufficientEscrow     = errorsmod.Register(ModuleName, 16, "insufficient escrow balance")
+	ErrRecipientNotAllowed    = errorsmod.Register(ModuleName, 17, "transfer recipient not in agent spend allowlist")
 )

@@ -25,6 +25,7 @@ message Params {
   // feedback_tag_max_bytes is the maximum byte length of a feedback dimension
   // tag.
   uint64 feedback_tag_max_bytes = 5;
+  uint64 spend_recipient_allowlist_max = 6;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action
@@ -63,6 +64,7 @@ message Agent {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
+  repeated string spend_recipient_allowlist = 13;
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent
@@ -148,6 +150,7 @@ message EventUpdateAgentSpendPolicy {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   uint64 spend_window_blocks = 4;
+  repeated string recipient_allowlist = 5;
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by
