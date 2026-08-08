@@ -15,13 +15,17 @@ const DefaultPolicyRotationDelayBlocks = 100_800
 // DefaultFeedbackTagMaxBytes caps the byte length of a feedback dimension tag.
 const DefaultFeedbackTagMaxBytes = 32
 
+// DefaultSpendRecipientAllowlistMax bounds per-agent recipient policy state.
+const DefaultSpendRecipientAllowlistMax = 50
+
 func DefaultParams() Params {
 	return Params{
-		AgentRegistrationFee:      commontypes.DYMCoin,
-		MaxActionBytes:            DefaultMaxActionBytes,
-		PolicyRotationDelayBlocks: DefaultPolicyRotationDelayBlocks,
-		FeedbackFee:               commontypes.DYMCoin,
-		FeedbackTagMaxBytes:       DefaultFeedbackTagMaxBytes,
+		AgentRegistrationFee:       commontypes.DYMCoin,
+		MaxActionBytes:             DefaultMaxActionBytes,
+		PolicyRotationDelayBlocks:  DefaultPolicyRotationDelayBlocks,
+		FeedbackFee:                commontypes.DYMCoin,
+		FeedbackTagMaxBytes:        DefaultFeedbackTagMaxBytes,
+		SpendRecipientAllowlistMax: DefaultSpendRecipientAllowlistMax,
 	}
 }
 
@@ -40,6 +44,9 @@ func (p Params) Validate() error {
 	}
 	if p.FeedbackTagMaxBytes == 0 {
 		return fmt.Errorf("feedback tag max bytes must be positive")
+	}
+	if p.SpendRecipientAllowlistMax == 0 {
+		return fmt.Errorf("spend recipient allowlist max must be positive")
 	}
 	return nil
 }

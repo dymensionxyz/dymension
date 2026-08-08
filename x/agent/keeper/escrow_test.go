@@ -369,6 +369,95 @@ func (s *EscrowTestSuite) TestUpdateSpendPolicy_OwnerOnly() {
 	s.Require().ErrorIs(err, types.ErrUnauthorized)
 }
 
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistPersistedQueriedAndEmitted() {
+	owner := s.registerAgent("a1")
+	_, _, recipient := testdata.KeyTestPubAddr()
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen)
+	msg.RecipientAllowlist = []string{recipient.String()}
+
+	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)
+	s.Require().NoError(err)
+
+	agent, found := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	s.Require().Equal(msg.RecipientAllowlist, agent.SpendRecipientAllowlist)
+	query, err := s.k.Agent(s.Ctx, &types.QueryAgentRequest{AgentId: "a1"})
+	s.Require().NoError(err)
+	s.Require().Equal(msg.RecipientAllowlist, query.Agent.SpendRecipientAllowlist)
+
+	events := s.Ctx.EventManager().Events()
+	s.Require().NotEmpty(events)
+	last := events[len(events)-1]
+	s.Require().Equal("dymensionxyz.dymension.agent.EventUpdateAgentSpendPolicy", last.Type)
+	foundAllowlist := false
+	for _, attr := range last.Attributes {
+		if attr.Key == "recipient_allowlist" && attr.Value == `["`+recipient.String()+`"]` {
+			foundAllowlist = true
+		}
+	}
+	s.Require().True(foundAllowlist)
+}
+
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistAboveMaxRejected() {
+	owner := s.registerAgent("a1")
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	params.SpendRecipientAllowlistMax = 1
+	s.Require().NoError(s.k.SetParams(s.Ctx, params))
+	_, _, first := testdata.KeyTestPubAddr()
+	_, _, second := testdata.KeyTestPubAddr()
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen)
+	msg.RecipientAllowlist = []string{first.String(), second.String()}
+
+	_, err = s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)
+	s.Require().Error(err)
+	agent, found := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	s.Require().Empty(agent.SpendRecipientAllowlist)
+}
+
+func (s *EscrowTestSuite) TestMigrate1to2_DefaultsRecipientAllowlistMax() {
+	params := types.DefaultParams()
+	params.SpendRecipientAllowlistMax = 0
+	s.Require().NoError(s.k.SetParams(s.Ctx, params))
+
+	migrator := keeper.NewMigrator(*s.k)
+	s.Require().NoError(migrator.Migrate1to2(s.Ctx))
+
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(types.DefaultSpendRecipientAllowlistMax), params.SpendRecipientAllowlistMax)
+}
+
+func (s *EscrowTestSuite) TestTransfer_RecipientAllowlist() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, allowed := testdata.KeyTestPubAddr()
+	_, _, denied := testdata.KeyTestPubAddr()
+	agent, found := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	agent.SpendRecipientAllowlist = []string{allowed.String()}
+	s.Require().NoError(s.k.SetAgent(s.Ctx, agent))
+
+	eventsBefore := len(s.Ctx.EventManager().Events())
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", denied, 100, 0))
+	s.Require().ErrorIs(err, types.ErrRecipientNotAllowed)
+	s.Require().Equal(eventsBefore, len(s.Ctx.EventManager().Events()))
+	s.Require().Equal(math.NewInt(500), s.k.GetEscrowBalance(s.Ctx, "a1").AmountOf(spendDenom))
+	s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, denied, spendDenom).IsZero())
+	_, found = s.k.GetActionLogEntry(s.Ctx, "a1", 0)
+	s.Require().False(found)
+	agent, found = s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	s.Require().Zero(agent.ActionSeq)
+	s.Require().True(agent.SpendWindowSpent.IsZero())
+	s.Require().Zero(s.verifier.calls)
+
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", allowed, 100, 0))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(100), s.App.BankKeeper.GetBalance(s.Ctx, allowed, spendDenom).Amount)
+}
+
 // TestEscrowSolvencyInvariant exercises the invariant across the full
 // lifecycle: fund, transfer, withdraw.
 func (s *EscrowTestSuite) TestEscrowSolvencyInvariant() {

@@ -150,6 +150,7 @@ message MsgUpdateAgentSpendPolicy {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   uint64 spend_window_blocks = 5;
+  repeated string recipient_allowlist = 6;
 }
 
 message MsgUpdateAgentSpendPolicyResponse {}

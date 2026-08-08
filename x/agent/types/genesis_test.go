@@ -1,9 +1,11 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -23,6 +25,8 @@ func spendingAgent() types.Agent {
 }
 
 func TestGenesisValidate(t *testing.T) {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	_, _, otherRecipient := testdata.KeyTestPubAddr()
 	valid := func() types.GenesisState {
 		return types.GenesisState{
 			Params: types.DefaultParams(),
@@ -46,6 +50,17 @@ func TestGenesisValidate(t *testing.T) {
 		{"window spent above limit", func(g *types.GenesisState) { g.Agents[0].SpendWindowSpent = math.NewInt(101) }},
 		{"negative window spent", func(g *types.GenesisState) { g.Agents[0].SpendWindowSpent = math.NewInt(-1) }},
 		{"window start not bucket-aligned", func(g *types.GenesisState) { g.Agents[0].SpendWindowStartHeight = 15 }},
+		{"invalid spend recipient", func(g *types.GenesisState) { g.Agents[0].SpendRecipientAllowlist = []string{"invalid"} }},
+		{"duplicate spend recipient", func(g *types.GenesisState) {
+			g.Agents[0].SpendRecipientAllowlist = []string{recipient.String(), recipient.String()}
+		}},
+		{"equivalent case spend recipient", func(g *types.GenesisState) {
+			g.Agents[0].SpendRecipientAllowlist = []string{recipient.String(), strings.ToUpper(recipient.String())}
+		}},
+		{"spend recipient allowlist above max", func(g *types.GenesisState) {
+			g.Params.SpendRecipientAllowlistMax = 1
+			g.Agents[0].SpendRecipientAllowlist = []string{recipient.String(), otherRecipient.String()}
+		}},
 		{"duplicate agent entry", func(g *types.GenesisState) { g.Agents = append(g.Agents, spendingAgent()) }},
 		{"disabled agent with window blocks", func(g *types.GenesisState) {
 			g.Agents[0] = types.Agent{Id: "a1", SpendWindowBlocks: 10}
