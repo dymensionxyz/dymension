@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,8 +42,13 @@ func (a Agent) SpendRecipientAllowed(recipient string) bool {
 	if len(a.SpendRecipientAllowlist) == 0 {
 		return true
 	}
+	address, err := sdk.AccAddressFromBech32(recipient)
+	if err != nil {
+		return false
+	}
 	for _, r := range a.SpendRecipientAllowlist {
-		if r == recipient {
+		allowedAddress, err := sdk.AccAddressFromBech32(r)
+		if err == nil && bytes.Equal(allowedAddress, address) {
 			return true
 		}
 	}

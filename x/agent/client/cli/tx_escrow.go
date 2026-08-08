@@ -2,6 +2,7 @@ package cli
 
 import (
 	"strconv"
+	"strings"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -66,32 +67,42 @@ func CmdWithdrawAgentEscrow() *cobra.Command {
 
 func CmdUpdateAgentSpendPolicy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-spend-policy [agent-id] [spend-denom] [spend-limit-per-window] [spend-window-blocks]",
+		Use:   "update-spend-policy [agent-id] [spend-denom] [spend-limit-per-window] [spend-window-blocks] [recipient-allowlist]",
 		Short: "Set an agent's spend policy (owner only, effective immediately)",
-		Long:  "Set an agent's spend policy. Pass an empty spend-denom ('') with limit 0 and window 0 to disable spending.",
-		Args:  cobra.ExactArgs(4),
+		Long:  "Set an agent's spend policy. Pass recipient-allowlist as comma-separated addresses, or '' for unrestricted spending. Pass an empty spend-denom ('') with limit 0 and window 0 to disable spending.",
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			limit, ok := math.NewIntFromString(args[2])
-			if !ok {
-				return gerrc.ErrInvalidArgument.Wrap("spend limit per window")
-			}
-			windowBlocks, err := strconv.ParseUint(args[3], 10, 64)
+			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args)
 			if err != nil {
 				return err
 			}
-
-			msg := types.NewMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args[0], args[1], limit, windowBlocks)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
+}
+
+func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdateAgentSpendPolicy, error) {
+	limit, ok := math.NewIntFromString(args[2])
+	if !ok {
+		return nil, gerrc.ErrInvalidArgument.Wrap("spend limit per window")
+	}
+	windowBlocks, err := strconv.ParseUint(args[3], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner, args[0], args[1], limit, windowBlocks)
+	if args[4] != "" {
+		msg.RecipientAllowlist = strings.Split(args[4], ",")
+	}
+	return msg, nil
 }
 
 func CmdSubmitAttestedTransfer() *cobra.Command {
