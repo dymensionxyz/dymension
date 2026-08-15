@@ -15,6 +15,12 @@ const DefaultPolicyRotationDelayBlocks = 100_800
 // DefaultFeedbackTagMaxBytes caps the byte length of a feedback dimension tag.
 const DefaultFeedbackTagMaxBytes = 32
 
+// DefaultValidationTagMaxBytes caps validation response tags.
+const DefaultValidationTagMaxBytes = 32
+
+// DefaultValidationUriMaxBytes caps validation request and response URIs.
+const DefaultValidationUriMaxBytes = 512
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:      commontypes.DYMCoin,
@@ -22,6 +28,9 @@ func DefaultParams() Params {
 		PolicyRotationDelayBlocks: DefaultPolicyRotationDelayBlocks,
 		FeedbackFee:               commontypes.DYMCoin,
 		FeedbackTagMaxBytes:       DefaultFeedbackTagMaxBytes,
+		ValidationRequestFee:      commontypes.DYMCoin,
+		ValidationTagMaxBytes:     DefaultValidationTagMaxBytes,
+		ValidationUriMaxBytes:     DefaultValidationUriMaxBytes,
 	}
 }
 
@@ -40,6 +49,15 @@ func (p Params) Validate() error {
 	}
 	if p.FeedbackTagMaxBytes == 0 {
 		return fmt.Errorf("feedback tag max bytes must be positive")
+	}
+	if err := p.ValidationRequestFee.Validate(); err != nil {
+		return fmt.Errorf("validation request fee: %w", err)
+	}
+	if p.ValidationTagMaxBytes == 0 {
+		return fmt.Errorf("validation tag max bytes must be positive")
+	}
+	if p.ValidationUriMaxBytes == 0 {
+		return fmt.Errorf("validation uri max bytes must be positive")
 	}
 	return nil
 }

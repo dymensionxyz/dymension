@@ -25,6 +25,10 @@ message Params {
   // feedback_tag_max_bytes is the maximum byte length of a feedback dimension
   // tag.
   uint64 feedback_tag_max_bytes = 5;
+  cosmos.base.v1beta1.Coin validation_request_fee = 6
+      [ (gogoproto.nullable) = false ];
+  uint64 validation_tag_max_bytes = 7;
+  uint64 validation_uri_max_bytes = 8;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action

@@ -193,6 +193,24 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "List all feedback records for an agent",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
 				},
+				{
+					RpcMethod:      "ValidationRequest",
+					Use:            "validation-request [request-hash]",
+					Short:          "Show a validation request by hash",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "request_hash"}},
+				},
+				{
+					RpcMethod:      "ValidationResponses",
+					Use:            "validation-responses [request-hash]",
+					Short:          "List responses for a validation request",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "request_hash"}},
+				},
+				{
+					RpcMethod:      "ValidationRequestsByAgent",
+					Use:            "validation-requests-by-agent [agent-id]",
+					Short:          "List validation requests for an agent",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "agent_id"}},
+				},
 			},
 		},
 	}
