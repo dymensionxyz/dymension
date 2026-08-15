@@ -20,6 +20,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUnrevokePolicy{}, "agent/UnrevokePolicy", nil)
 	cdc.RegisterConcrete(&MsgSubmitFeedback{}, "agent/SubmitFeedback", nil)
 	cdc.RegisterConcrete(&MsgRevokeFeedback{}, "agent/RevokeFeedback", nil)
+	cdc.RegisterConcrete(&MsgRequestValidation{}, "agent/RequestValidation", nil)
+	cdc.RegisterConcrete(&MsgRespondValidation{}, "agent/RespondValidation", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -36,6 +38,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgUnrevokePolicy{},
 		&MsgSubmitFeedback{},
 		&MsgRevokeFeedback{},
+		&MsgRequestValidation{},
+		&MsgRespondValidation{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

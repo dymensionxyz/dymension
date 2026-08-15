@@ -160,3 +160,51 @@ func (k Keeper) AgentFeedbacks(goCtx context.Context, req *types.QueryAgentFeedb
 	}
 	return &types.QueryAgentFeedbacksResponse{Feedbacks: feedbacks, Pagination: pageResp}, nil
 }
+
+func (k Keeper) ValidationRequest(goCtx context.Context, req *types.QueryValidationRequestRequest) (*types.QueryValidationRequestResponse, error) {
+	if len(req.RequestHash) != 32 {
+		return nil, types.ErrInvalidValidationHash
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	v, found := k.GetValidationRequest(ctx, req.RequestHash)
+	if !found {
+		return nil, types.ErrValidationRequestNotFound
+	}
+	return &types.QueryValidationRequestResponse{ValidationRequest: v}, nil
+}
+
+func (k Keeper) ValidationResponses(goCtx context.Context, req *types.QueryValidationResponsesRequest) (*types.QueryValidationResponsesResponse, error) {
+	if len(req.RequestHash) != 32 {
+		return nil, types.ErrInvalidValidationHash
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	values, page, err := collcompat.CollectionPaginate(ctx, k.validationResponses, req.Pagination, func(_ collections.Pair[[]byte, uint64], v types.ValidationResponse) (types.ValidationResponse, error) {
+		return v, nil
+	}, collcompat.WithCollectionPaginationPairPrefix[[]byte, uint64](req.RequestHash))
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryValidationResponsesResponse{ValidationResponses: values, Pagination: page}, nil
+}
+
+func (k Keeper) ValidationRequestsByAgent(goCtx context.Context, req *types.QueryValidationRequestsByAgentRequest) (*types.QueryValidationRequestsByAgentResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	hashes, page, err := collcompat.CollectionPaginate(ctx, k.validationByAgent, req.Pagination, func(key collections.Pair[string, []byte], _ collections.NoValue) ([]byte, error) {
+		return key.K2(), nil
+	}, collcompat.WithCollectionPaginationPairPrefix[string, []byte](req.AgentId))
+	if err != nil {
+		return nil, err
+	}
+	requests := make([]types.ValidationRequest, 0, len(hashes))
+	for _, hash := range hashes {
+		v, err := k.validationRequests.Get(ctx, hash)
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, v)
+	}
+	return &types.QueryValidationRequestsByAgentResponse{ValidationRequests: requests, Pagination: page}, nil
+}

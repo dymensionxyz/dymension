@@ -56,5 +56,26 @@ func (g GenesisState) Validate() error {
 		}
 		feedbackSeen[key] = struct{}{}
 	}
+	requests := make(map[string]struct{}, len(g.ValidationRequests))
+	for _, v := range g.ValidationRequests {
+		if len(v.RequestHash) != 32 {
+			return ErrInvalidValidationHash
+		}
+		if _, ok := requests[string(v.RequestHash)]; ok {
+			return ErrValidationRequestExists
+		}
+		requests[string(v.RequestHash)] = struct{}{}
+	}
+	responses := make(map[string]struct{}, len(g.ValidationResponses))
+	for _, v := range g.ValidationResponses {
+		if _, ok := requests[string(v.RequestHash)]; !ok {
+			return ErrValidationRequestNotFound
+		}
+		responseKey := fmt.Sprintf("%x/%d", v.RequestHash, v.Seq)
+		if _, ok := responses[responseKey]; ok {
+			return fmt.Errorf("duplicate validation response: %s", responseKey)
+		}
+		responses[responseKey] = struct{}{}
+	}
 	return nil
 }

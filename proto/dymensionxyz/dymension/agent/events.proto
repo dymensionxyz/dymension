@@ -2,5 +2,21 @@ syntax = "proto3";
 package dymensionxyz.dymension.agent;
 
 import public "dymensionxyz/dymension/agent/agent.proto";
+import "dymensionxyz/dymension/agent/validation.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+message EventRequestValidation {
+  bytes request_hash = 1;
+  string validator_id = 2;
+  string agent_id = 3;
+  uint64 evidence_seq = 4;
+}
+
+message EventRespondValidation {
+  bytes request_hash = 1;
+  string validator_id = 2;
+  string agent_id = 3;
+  uint32 response = 4;
+  uint64 seq = 5;
+}

@@ -47,6 +47,19 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 			panic(err)
 		}
 	}
+	for _, v := range g.ValidationRequests {
+		if err := k.validationRequests.Set(ctx, v.RequestHash, v); err != nil {
+			panic(err)
+		}
+		if err := k.validationByAgent.Set(ctx, collections.Join(v.AgentId, v.RequestHash)); err != nil {
+			panic(err)
+		}
+	}
+	for _, v := range g.ValidationResponses {
+		if err := k.validationResponses.Set(ctx, collections.Join(v.RequestHash, v.Seq), v); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
@@ -88,6 +101,18 @@ func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
 	// key order == (agent_id, client) order, so the export is deterministic
 	if err := k.feedback.Walk(ctx, nil, func(_ collections.Pair[string, string], f types.Feedback) (stop bool, err error) {
 		g.Feedbacks = append(g.Feedbacks, f)
+		return false, nil
+	}); err != nil {
+		panic(err)
+	}
+	if err := k.validationRequests.Walk(ctx, nil, func(_ []byte, v types.ValidationRequest) (bool, error) {
+		g.ValidationRequests = append(g.ValidationRequests, v)
+		return false, nil
+	}); err != nil {
+		panic(err)
+	}
+	if err := k.validationResponses.Walk(ctx, nil, func(_ collections.Pair[[]byte, uint64], v types.ValidationResponse) (bool, error) {
+		g.ValidationResponses = append(g.ValidationResponses, v)
 		return false, nil
 	}); err != nil {
 		panic(err)

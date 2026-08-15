@@ -8,6 +8,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
 import "dymensionxyz/dymension/agent/feedback.proto";
+import "dymensionxyz/dymension/agent/validation.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -83,6 +84,21 @@ service Query {
       returns (QueryAgentFeedbacksResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}/feedbacks";
+  }
+  rpc ValidationRequest(QueryValidationRequestRequest)
+      returns (QueryValidationRequestResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/validations/{request_hash}";
+  }
+  rpc ValidationResponses(QueryValidationResponsesRequest)
+      returns (QueryValidationResponsesResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/validations/{request_hash}/responses";
+  }
+  rpc ValidationRequestsByAgent(QueryValidationRequestsByAgentRequest)
+      returns (QueryValidationRequestsByAgentResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/validations";
   }
 }
 
@@ -181,3 +197,26 @@ message QueryRevokedPoliciesResponse { repeated string fingerprints = 1; }
 message QueryPolicyRevokedRequest { string fingerprint = 1; }
 
 message QueryPolicyRevokedResponse { bool revoked = 1; }
+
+message QueryValidationRequestRequest { bytes request_hash = 1; }
+message QueryValidationRequestResponse {
+  ValidationRequest validation_request = 1 [ (gogoproto.nullable) = false ];
+}
+message QueryValidationResponsesRequest {
+  bytes request_hash = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+message QueryValidationResponsesResponse {
+  repeated ValidationResponse validation_responses = 1
+      [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+message QueryValidationRequestsByAgentRequest {
+  string agent_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+message QueryValidationRequestsByAgentResponse {
+  repeated ValidationRequest validation_requests = 1
+      [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
