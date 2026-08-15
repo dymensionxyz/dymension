@@ -56,5 +56,37 @@ func (g GenesisState) Validate() error {
 		}
 		feedbackSeen[key] = struct{}{}
 	}
+	requests := make(map[string]ValidationRequest, len(g.ValidationRequests))
+	for _, v := range g.ValidationRequests {
+		if len(v.RequestHash) != 32 {
+			return ErrInvalidValidationHash
+		}
+		if _, ok := requests[string(v.RequestHash)]; ok {
+			return ErrValidationRequestExists
+		}
+		requests[string(v.RequestHash)] = v
+	}
+	responses := make(map[string]struct{}, len(g.ValidationResponses))
+	responseCounts := make(map[string]uint64, len(g.ValidationRequests))
+	for _, v := range g.ValidationResponses {
+		request, ok := requests[string(v.RequestHash)]
+		if !ok {
+			return ErrValidationRequestNotFound
+		}
+		if v.Seq >= request.ResponseCount {
+			return fmt.Errorf("non-contiguous validation response sequence: hash %x seq %d count %d", v.RequestHash, v.Seq, request.ResponseCount)
+		}
+		responseKey := fmt.Sprintf("%x/%d", v.RequestHash, v.Seq)
+		if _, ok := responses[responseKey]; ok {
+			return fmt.Errorf("duplicate validation response: %s", responseKey)
+		}
+		responses[responseKey] = struct{}{}
+		responseCounts[string(v.RequestHash)]++
+	}
+	for hash, request := range requests {
+		if responseCounts[hash] != request.ResponseCount {
+			return fmt.Errorf("validation response count mismatch: hash %x stored %d actual %d", request.RequestHash, request.ResponseCount, responseCounts[hash])
+		}
+	}
 	return nil
 }

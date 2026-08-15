@@ -29,6 +29,8 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdUnrevokePolicy())
 	cmd.AddCommand(CmdSubmitFeedback())
 	cmd.AddCommand(CmdRevokeFeedback())
+	cmd.AddCommand(CmdRequestValidation())
+	cmd.AddCommand(CmdRespondValidation())
 
 	return cmd
 }

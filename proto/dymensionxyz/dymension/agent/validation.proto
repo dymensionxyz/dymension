@@ -1,0 +1,32 @@
+syntax = "proto3";
+package dymensionxyz.dymension.agent;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+message ValidationRequest {
+  bytes request_hash = 1;
+  string requester = 2;
+  string validator_id = 3;
+  string agent_id = 4;
+  uint64 evidence_seq = 5;
+  string request_uri = 6;
+  int64 height = 7;
+  google.protobuf.Timestamp time = 8
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  uint64 response_count = 9;
+}
+
+message ValidationResponse {
+  bytes request_hash = 1;
+  uint64 seq = 2;
+  uint32 response = 3;
+  string response_uri = 4;
+  bytes response_hash = 5;
+  string tag = 6;
+  int64 height = 7;
+  google.protobuf.Timestamp time = 8
+      [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+}

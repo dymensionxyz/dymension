@@ -6,7 +6,9 @@ package types
 import (
 	fmt "fmt"
 	proto "github.com/cosmos/gogoproto/proto"
+	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -20,19 +22,787 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type EventRequestValidation struct {
+	RequestHash []byte `protobuf:"bytes,1,opt,name=request_hash,json=requestHash,proto3" json:"request_hash,omitempty"`
+	ValidatorId string `protobuf:"bytes,2,opt,name=validator_id,json=validatorId,proto3" json:"validator_id,omitempty"`
+	AgentId     string `protobuf:"bytes,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	EvidenceSeq uint64 `protobuf:"varint,4,opt,name=evidence_seq,json=evidenceSeq,proto3" json:"evidence_seq,omitempty"`
+}
+
+func (m *EventRequestValidation) Reset()         { *m = EventRequestValidation{} }
+func (m *EventRequestValidation) String() string { return proto.CompactTextString(m) }
+func (*EventRequestValidation) ProtoMessage()    {}
+func (*EventRequestValidation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_262330ea4301a086, []int{0}
+}
+func (m *EventRequestValidation) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventRequestValidation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventRequestValidation.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventRequestValidation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventRequestValidation.Merge(m, src)
+}
+func (m *EventRequestValidation) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventRequestValidation) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventRequestValidation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventRequestValidation proto.InternalMessageInfo
+
+func (m *EventRequestValidation) GetRequestHash() []byte {
+	if m != nil {
+		return m.RequestHash
+	}
+	return nil
+}
+
+func (m *EventRequestValidation) GetValidatorId() string {
+	if m != nil {
+		return m.ValidatorId
+	}
+	return ""
+}
+
+func (m *EventRequestValidation) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *EventRequestValidation) GetEvidenceSeq() uint64 {
+	if m != nil {
+		return m.EvidenceSeq
+	}
+	return 0
+}
+
+type EventRespondValidation struct {
+	RequestHash []byte `protobuf:"bytes,1,opt,name=request_hash,json=requestHash,proto3" json:"request_hash,omitempty"`
+	ValidatorId string `protobuf:"bytes,2,opt,name=validator_id,json=validatorId,proto3" json:"validator_id,omitempty"`
+	AgentId     string `protobuf:"bytes,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Response    uint32 `protobuf:"varint,4,opt,name=response,proto3" json:"response,omitempty"`
+	Seq         uint64 `protobuf:"varint,5,opt,name=seq,proto3" json:"seq,omitempty"`
+}
+
+func (m *EventRespondValidation) Reset()         { *m = EventRespondValidation{} }
+func (m *EventRespondValidation) String() string { return proto.CompactTextString(m) }
+func (*EventRespondValidation) ProtoMessage()    {}
+func (*EventRespondValidation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_262330ea4301a086, []int{1}
+}
+func (m *EventRespondValidation) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventRespondValidation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventRespondValidation.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventRespondValidation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventRespondValidation.Merge(m, src)
+}
+func (m *EventRespondValidation) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventRespondValidation) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventRespondValidation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventRespondValidation proto.InternalMessageInfo
+
+func (m *EventRespondValidation) GetRequestHash() []byte {
+	if m != nil {
+		return m.RequestHash
+	}
+	return nil
+}
+
+func (m *EventRespondValidation) GetValidatorId() string {
+	if m != nil {
+		return m.ValidatorId
+	}
+	return ""
+}
+
+func (m *EventRespondValidation) GetAgentId() string {
+	if m != nil {
+		return m.AgentId
+	}
+	return ""
+}
+
+func (m *EventRespondValidation) GetResponse() uint32 {
+	if m != nil {
+		return m.Response
+	}
+	return 0
+}
+
+func (m *EventRespondValidation) GetSeq() uint64 {
+	if m != nil {
+		return m.Seq
+	}
+	return 0
+}
+
+func init() {
+	proto.RegisterType((*EventRequestValidation)(nil), "dymensionxyz.dymension.agent.EventRequestValidation")
+	proto.RegisterType((*EventRespondValidation)(nil), "dymensionxyz.dymension.agent.EventRespondValidation")
+}
+
 func init() {
 	proto.RegisterFile("dymensionxyz/dymension/agent/events.proto", fileDescriptor_262330ea4301a086)
 }
 
 var fileDescriptor_262330ea4301a086 = []byte{
-	// 139 bytes of a gzipped FileDescriptorProto
+	// 300 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4c, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x13, 0xd3, 0x53, 0xf3,
 	0x4a, 0xf4, 0x53, 0xcb, 0x52, 0xf3, 0x4a, 0x8a, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x64,
 	0x90, 0x95, 0xea, 0xc1, 0x39, 0x7a, 0x60, 0xa5, 0x52, 0x1a, 0x78, 0x0d, 0x02, 0x93, 0x10, 0x73,
-	0x9c, 0x7c, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09,
-	0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0xca, 0x28, 0x3d, 0xb3,
-	0x24, 0xa3, 0x34, 0x49, 0x2f, 0x39, 0x3f, 0x57, 0x1f, 0x87, 0x71, 0x65, 0xc6, 0xfa, 0x15, 0x50,
-	0x33, 0x4b, 0x2a, 0x0b, 0x52, 0x8b, 0x03, 0x18, 0x92, 0xd8, 0xc0, 0xc6, 0x1a, 0x03, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0xc2, 0x5d, 0x96, 0xf2, 0xcb, 0x00, 0x00, 0x00,
+	0xa4, 0x74, 0xf1, 0xaa, 0x2c, 0x4b, 0xcc, 0xc9, 0x4c, 0x49, 0x2c, 0x01, 0x19, 0x0c, 0x56, 0xae,
+	0x34, 0x87, 0x91, 0x4b, 0xcc, 0x15, 0xe4, 0x8e, 0xa0, 0xd4, 0xc2, 0xd2, 0xd4, 0xe2, 0x92, 0x30,
+	0xb8, 0x02, 0x21, 0x45, 0x2e, 0x9e, 0x22, 0x88, 0x60, 0x7c, 0x46, 0x62, 0x71, 0x86, 0x04, 0xa3,
+	0x02, 0xa3, 0x06, 0x4f, 0x10, 0x37, 0x54, 0xcc, 0x23, 0xb1, 0x38, 0x03, 0xa4, 0x04, 0x6a, 0x62,
+	0x7e, 0x51, 0x7c, 0x66, 0x8a, 0x04, 0x93, 0x02, 0xa3, 0x06, 0x67, 0x10, 0x37, 0x5c, 0xcc, 0x33,
+	0x45, 0x48, 0x92, 0x8b, 0x03, 0x6c, 0x35, 0x48, 0x9a, 0x19, 0x2c, 0xcd, 0x0e, 0xe6, 0x7b, 0xa6,
+	0x80, 0x74, 0xa7, 0x96, 0x65, 0xa6, 0xa4, 0xe6, 0x25, 0xa7, 0xc6, 0x17, 0xa7, 0x16, 0x4a, 0xb0,
+	0x28, 0x30, 0x6a, 0xb0, 0x04, 0x71, 0xc3, 0xc4, 0x82, 0x53, 0x0b, 0x95, 0x96, 0x23, 0x9c, 0x57,
+	0x5c, 0x90, 0x9f, 0x97, 0x42, 0x4f, 0xe7, 0x49, 0x71, 0x71, 0x14, 0x81, 0x6d, 0x2d, 0x4e, 0x05,
+	0x3b, 0x8d, 0x37, 0x08, 0xce, 0x17, 0x12, 0xe0, 0x62, 0x06, 0xb9, 0x98, 0x15, 0xec, 0x62, 0x10,
+	0xd3, 0xc9, 0xe7, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f, 0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c,
+	0xf0, 0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39, 0x86, 0x1b, 0x8f, 0xe5, 0x18, 0xa2, 0x8c, 0xd2, 0x33,
+	0x4b, 0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3, 0x73, 0xf5, 0x71, 0x44, 0x4e, 0x99, 0xb1, 0x7e, 0x05,
+	0x34, 0x86, 0x4a, 0x2a, 0x0b, 0x52, 0x8b, 0x03, 0x18, 0x92, 0xd8, 0xc0, 0xf1, 0x63, 0x0c, 0x08,
+	0x00, 0x00, 0xff, 0xff, 0xba, 0x44, 0xcc, 0xa7, 0x43, 0x02, 0x00, 0x00,
 }
+
+func (m *EventRequestValidation) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventRequestValidation) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventRequestValidation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.EvidenceSeq != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.EvidenceSeq))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ValidatorId) > 0 {
+		i -= len(m.ValidatorId)
+		copy(dAtA[i:], m.ValidatorId)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.ValidatorId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RequestHash) > 0 {
+		i -= len(m.RequestHash)
+		copy(dAtA[i:], m.RequestHash)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.RequestHash)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventRespondValidation) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventRespondValidation) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventRespondValidation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Seq != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Seq))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.Response != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Response))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.AgentId) > 0 {
+		i -= len(m.AgentId)
+		copy(dAtA[i:], m.AgentId)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.AgentId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ValidatorId) > 0 {
+		i -= len(m.ValidatorId)
+		copy(dAtA[i:], m.ValidatorId)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.ValidatorId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RequestHash) > 0 {
+		i -= len(m.RequestHash)
+		copy(dAtA[i:], m.RequestHash)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.RequestHash)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
+	offset -= sovEvents(v)
+	base := offset
+	for v >= 1<<7 {
+		dAtA[offset] = uint8(v&0x7f | 0x80)
+		v >>= 7
+		offset++
+	}
+	dAtA[offset] = uint8(v)
+	return base
+}
+func (m *EventRequestValidation) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RequestHash)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.ValidatorId)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.EvidenceSeq != 0 {
+		n += 1 + sovEvents(uint64(m.EvidenceSeq))
+	}
+	return n
+}
+
+func (m *EventRespondValidation) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RequestHash)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.ValidatorId)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.AgentId)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.Response != 0 {
+		n += 1 + sovEvents(uint64(m.Response))
+	}
+	if m.Seq != 0 {
+		n += 1 + sovEvents(uint64(m.Seq))
+	}
+	return n
+}
+
+func sovEvents(x uint64) (n int) {
+	return (math_bits.Len64(x|1) + 6) / 7
+}
+func sozEvents(x uint64) (n int) {
+	return sovEvents(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *EventRequestValidation) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventRequestValidation: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventRequestValidation: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RequestHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RequestHash = append(m.RequestHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.RequestHash == nil {
+				m.RequestHash = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EvidenceSeq", wireType)
+			}
+			m.EvidenceSeq = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.EvidenceSeq |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventRespondValidation) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventRespondValidation: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventRespondValidation: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RequestHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RequestHash = append(m.RequestHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.RequestHash == nil {
+				m.RequestHash = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Response", wireType)
+			}
+			m.Response = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Response |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Seq", wireType)
+			}
+			m.Seq = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Seq |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func skipEvents(dAtA []byte) (n int, err error) {
+	l := len(dAtA)
+	iNdEx := 0
+	depth := 0
+	for iNdEx < l {
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return 0, ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return 0, io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		wireType := int(wire & 0x7)
+		switch wireType {
+		case 0:
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return 0, io.ErrUnexpectedEOF
+				}
+				iNdEx++
+				if dAtA[iNdEx-1] < 0x80 {
+					break
+				}
+			}
+		case 1:
+			iNdEx += 8
+		case 2:
+			var length int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return 0, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				length |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if length < 0 {
+				return 0, ErrInvalidLengthEvents
+			}
+			iNdEx += length
+		case 3:
+			depth++
+		case 4:
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupEvents
+			}
+			depth--
+		case 5:
+			iNdEx += 4
+		default:
+			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
+		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthEvents
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
+	}
+	return 0, io.ErrUnexpectedEOF
+}
+
+var (
+	ErrInvalidLengthEvents        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowEvents          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupEvents = fmt.Errorf("proto: unexpected end of group")
+)

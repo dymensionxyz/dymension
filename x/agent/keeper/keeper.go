@@ -30,7 +30,10 @@ type Keeper struct {
 	reputation      collections.Map[string, types.Reputation]
 	// escrows tracks per-agent balances of the pooled funds held in the agent
 	// module account.
-	escrows collections.Map[string, types.AgentEscrow]
+	escrows             collections.Map[string, types.AgentEscrow]
+	validationRequests  collections.Map[[]byte, types.ValidationRequest]
+	validationResponses collections.Map[collections.Pair[[]byte, uint64], types.ValidationResponse]
+	validationByAgent   collections.KeySet[collections.Pair[string, []byte]]
 }
 
 func NewKeeper(
@@ -66,6 +69,9 @@ func NewKeeper(
 			collcompat.ProtoValue[types.Feedback](cdc)),
 		reputation: collections.NewMap(sb, collections.NewPrefix(types.KeyReputation),
 			"reputation", collections.StringKey, collcompat.ProtoValue[types.Reputation](cdc)),
+		validationRequests:  collections.NewMap(sb, collections.NewPrefix(types.KeyValidationRequests), "validation_requests", collections.BytesKey, collcompat.ProtoValue[types.ValidationRequest](cdc)),
+		validationResponses: collections.NewMap(sb, collections.NewPrefix(types.KeyValidationResponses), "validation_responses", collections.PairKeyCodec(collections.BytesKey, collections.Uint64Key), collcompat.ProtoValue[types.ValidationResponse](cdc)),
+		validationByAgent:   collections.NewKeySet(sb, collections.NewPrefix(types.KeyValidationByAgent), "validation_by_agent", collections.PairKeyCodec(collections.StringKey, collections.BytesKey)),
 	}
 
 	if _, err := sb.Build(); err != nil {
