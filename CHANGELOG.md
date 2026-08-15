@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-08-03)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-08-15)
 
 
 ### Bug Fixes
@@ -14,6 +14,7 @@
 
 ### Features
 
+* **agent:** add ERC-8004 validation registry ([#2199](https://github.com/dymensionxyz/dymension/issues/2199)) ([7064964](https://github.com/dymensionxyz/dymension/commit/70649644964fa6c1b647fc70677d74eeab3a6f70))
 * **agent:** add SubmitAttestedAction (nonce binding + attestation verify + append log) ([#2164](https://github.com/dymensionxyz/dymension/issues/2164)) ([558d9b9](https://github.com/dymensionxyz/dymension/commit/558d9b9ce1f68a03bff4d5d5a636ff8d87572e61))
 * **agent:** add x/agent registry + action-log queries and CLI ([#2165](https://github.com/dymensionxyz/dymension/issues/2165)) ([7daf244](https://github.com/dymensionxyz/dymension/commit/7daf2444f90e7ddcbf84dbbe69d94458b8e211b3)), closes [2158-#2160](https://github.com/2158-/issues/2160) [#2161](https://github.com/dymensionxyz/dymension/issues/2161)
 * **agent:** attested spend authority — escrow-funded, budget-capped agent transfers ([#2184](https://github.com/dymensionxyz/dymension/issues/2184)) ([8a0f2e6](https://github.com/dymensionxyz/dymension/commit/8a0f2e65c91dd09ad1a5cbc8a166fbfa11142a25)), closes [#2168](https://github.com/dymensionxyz/dymension/issues/2168) [#2170](https://github.com/dymensionxyz/dymension/issues/2170)
