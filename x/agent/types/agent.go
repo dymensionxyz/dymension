@@ -1,8 +1,11 @@
 package types
 
 import (
+	"bytes"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/common/tee"
@@ -32,13 +35,48 @@ func (a Agent) SpendEnabled() bool {
 	return a.SpendDenom != ""
 }
 
+// SpendRecipientAllowed reports whether recipient may receive an attested
+// transfer. An empty allowlist means unrestricted (spending is still bounded
+// by denom + per-window limit).
+func (a Agent) SpendRecipientAllowed(recipient string) bool {
+	if len(a.SpendRecipientAllowlist) == 0 {
+		return true
+	}
+	address, err := sdk.AccAddressFromBech32(recipient)
+	if err != nil {
+		return false
+	}
+	for _, r := range a.SpendRecipientAllowlist {
+		allowedAddress, err := sdk.AccAddressFromBech32(r)
+		if err == nil && bytes.Equal(allowedAddress, address) {
+			return true
+		}
+	}
+	return false
+}
+
 // ValidateSpendState checks that the agent's spend policy and window
 // bookkeeping are a state the runtime could have produced, guarding genesis
 // imports against e.g. an enabled agent with a zero window length (which would
 // make SpendBucket divide by zero).
-func (a Agent) ValidateSpendState() error {
+func (a Agent) ValidateSpendState(spendRecipientAllowlistMax uint64) error {
 	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks); err != nil {
 		return err
+	}
+	if uint64(len(a.SpendRecipientAllowlist)) > spendRecipientAllowlistMax {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend recipient allowlist exceeds max")
+	}
+	recipients := make(map[string]struct{}, len(a.SpendRecipientAllowlist))
+	for _, recipient := range a.SpendRecipientAllowlist {
+		address, err := sdk.AccAddressFromBech32(recipient)
+		if err != nil {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend recipient allowlist address")
+		}
+		key := string(address)
+		if _, duplicate := recipients[key]; duplicate {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "duplicate spend recipient allowlist address")
+		}
+		recipients[key] = struct{}{}
 	}
 	spent := a.spendWindowSpentAmount()
 	if spent.IsNegative() {

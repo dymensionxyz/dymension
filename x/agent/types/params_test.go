@@ -10,8 +10,13 @@ import (
 
 func TestParams_Validate(t *testing.T) {
 	require.NoError(t, types.DefaultParams().Validate())
+	require.Equal(t, uint64(50), types.DefaultParams().SpendRecipientAllowlistMax)
 
 	p := types.DefaultParams()
 	p.PolicyRotationDelayBlocks = 0
+	require.Error(t, p.Validate())
+
+	p = types.DefaultParams()
+	p.SpendRecipientAllowlistMax = 0
 	require.Error(t, p.Validate())
 }

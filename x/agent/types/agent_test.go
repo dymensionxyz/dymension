@@ -1,13 +1,25 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
+
+func TestAgentSpendRecipientAllowed_EquivalentAddressEncoding(t *testing.T) {
+	_, _, allowed := testdata.KeyTestPubAddr()
+	_, _, denied := testdata.KeyTestPubAddr()
+	agent := types.Agent{SpendRecipientAllowlist: []string{allowed.String()}}
+
+	require.True(t, agent.SpendRecipientAllowed(strings.ToUpper(allowed.String())))
+	require.False(t, agent.SpendRecipientAllowed(denied.String()))
+	require.True(t, (types.Agent{}).SpendRecipientAllowed(denied.String()))
+}
 
 // TestAgentSpendWindow mirrors the eIBC on-demand LP bucket tests: the window
 // is an absolute-aligned tumbling bucket that fully resets on rollover.

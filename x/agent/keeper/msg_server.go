@@ -141,6 +141,9 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if !agent.SpendEnabled() {
 		return nil, errorsmod.Wrap(types.ErrSpendingDisabled, msg.AgentId)
 	}
+	if !agent.SpendRecipientAllowed(msg.Recipient) {
+		return nil, errorsmod.Wrap(types.ErrRecipientNotAllowed, msg.Recipient)
+	}
 
 	seq := agent.ActionSeq
 	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.Memo)

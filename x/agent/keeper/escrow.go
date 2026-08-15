@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
@@ -112,6 +113,13 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrap(err, "validate basic")
 	}
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "get params")
+	}
+	if uint64(len(msg.RecipientAllowlist)) > params.SpendRecipientAllowlistMax {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("recipient allowlist exceeds max: got %d, max %d", len(msg.RecipientAllowlist), params.SpendRecipientAllowlistMax)
+	}
 
 	agent, found := k.GetAgent(ctx, msg.AgentId)
 	if !found {
@@ -128,6 +136,7 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 	agent.SpendDenom = msg.SpendDenom
 	agent.SpendLimitPerWindow = msg.SpendLimitPerWindow
 	agent.SpendWindowBlocks = msg.SpendWindowBlocks
+	agent.SpendRecipientAllowlist = msg.RecipientAllowlist
 	agent.SpendWindowStartHeight = 0
 	agent.SpendWindowSpent = math.ZeroInt()
 	if err := k.SetAgent(ctx, agent); err != nil {
@@ -139,6 +148,7 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 		SpendDenom:          msg.SpendDenom,
 		SpendLimitPerWindow: msg.SpendLimitPerWindow,
 		SpendWindowBlocks:   msg.SpendWindowBlocks,
+		RecipientAllowlist:  msg.RecipientAllowlist,
 	}); err != nil {
 		return nil, err
 	}

@@ -15,6 +15,9 @@ const DefaultPolicyRotationDelayBlocks = 100_800
 // DefaultFeedbackTagMaxBytes caps the byte length of a feedback dimension tag.
 const DefaultFeedbackTagMaxBytes = 32
 
+// DefaultSpendRecipientAllowlistMax bounds per-agent recipient policy state.
+const DefaultSpendRecipientAllowlistMax = 50
+
 // DefaultValidationTagMaxBytes caps validation response tags.
 const DefaultValidationTagMaxBytes = 32
 
@@ -23,14 +26,15 @@ const DefaultValidationUriMaxBytes = 512
 
 func DefaultParams() Params {
 	return Params{
-		AgentRegistrationFee:      commontypes.DYMCoin,
-		MaxActionBytes:            DefaultMaxActionBytes,
-		PolicyRotationDelayBlocks: DefaultPolicyRotationDelayBlocks,
-		FeedbackFee:               commontypes.DYMCoin,
-		FeedbackTagMaxBytes:       DefaultFeedbackTagMaxBytes,
-		ValidationRequestFee:      commontypes.DYMCoin,
-		ValidationTagMaxBytes:     DefaultValidationTagMaxBytes,
-		ValidationUriMaxBytes:     DefaultValidationUriMaxBytes,
+		AgentRegistrationFee:       commontypes.DYMCoin,
+		MaxActionBytes:             DefaultMaxActionBytes,
+		PolicyRotationDelayBlocks:  DefaultPolicyRotationDelayBlocks,
+		FeedbackFee:                commontypes.DYMCoin,
+		FeedbackTagMaxBytes:        DefaultFeedbackTagMaxBytes,
+		ValidationRequestFee:       commontypes.DYMCoin,
+		ValidationTagMaxBytes:      DefaultValidationTagMaxBytes,
+		ValidationUriMaxBytes:      DefaultValidationUriMaxBytes,
+		SpendRecipientAllowlistMax: DefaultSpendRecipientAllowlistMax,
 	}
 }
 
@@ -49,6 +53,9 @@ func (p Params) Validate() error {
 	}
 	if p.FeedbackTagMaxBytes == 0 {
 		return fmt.Errorf("feedback tag max bytes must be positive")
+	}
+	if p.SpendRecipientAllowlistMax == 0 {
+		return fmt.Errorf("spend recipient allowlist max must be positive")
 	}
 	if err := p.ValidationRequestFee.Validate(); err != nil {
 		return fmt.Errorf("validation request fee: %w", err)

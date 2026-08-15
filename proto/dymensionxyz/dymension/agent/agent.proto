@@ -29,6 +29,7 @@ message Params {
       [ (gogoproto.nullable) = false ];
   uint64 validation_tag_max_bytes = 7;
   uint64 validation_uri_max_bytes = 8;
+  uint64 spend_recipient_allowlist_max = 9;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action
@@ -67,6 +68,7 @@ message Agent {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
+  repeated string spend_recipient_allowlist = 13;
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent
@@ -152,6 +154,7 @@ message EventUpdateAgentSpendPolicy {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   uint64 spend_window_blocks = 4;
+  repeated string recipient_allowlist = 5;
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by
