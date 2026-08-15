@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -12,10 +13,34 @@ import (
 
 var invs = uinv.NamedFuncsList[Keeper]{
 	{Name: "escrow-solvency", Func: InvariantEscrowSolvency},
+	{Name: "validation-response-integrity", Func: InvariantValidationResponseIntegrity},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	invs.RegisterInvariants(types.ModuleName, ir, k)
+}
+
+func InvariantValidationResponseIntegrity(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		counts := map[string]uint64{}
+		if err := k.validationResponses.Walk(ctx, nil, func(key collections.Pair[[]byte, uint64], _ types.ValidationResponse) (bool, error) {
+			if has, err := k.validationRequests.Has(ctx, key.K1()); err != nil {
+				return true, err
+			} else if !has {
+				return true, fmt.Errorf("orphaned validation response: %x/%d", key.K1(), key.K2())
+			}
+			counts[string(key.K1())]++
+			return false, nil
+		}); err != nil {
+			return err
+		}
+		return k.validationRequests.Walk(ctx, nil, func(hash []byte, req types.ValidationRequest) (bool, error) {
+			if counts[string(hash)] != req.ResponseCount {
+				return true, fmt.Errorf("validation response count mismatch: %x: stored %d actual %d", hash, req.ResponseCount, counts[string(hash)])
+			}
+			return false, nil
+		})
+	})
 }
 
 // DO NOT DELETE

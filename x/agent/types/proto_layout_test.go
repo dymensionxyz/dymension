@@ -18,6 +18,7 @@ func TestAgentProtoDescriptorCompatibility(t *testing.T) {
 	require.NotEmpty(t, proto.FileDescriptor("dymensionxyz/dymension/agent/agent.proto"))
 	require.NotEmpty(t, proto.FileDescriptor("dymensionxyz/dymension/agent/d.proto"))
 	require.NotEmpty(t, proto.FileDescriptor("dymensionxyz/dymension/agent/events.proto"))
+	require.NotEmpty(t, proto.FileDescriptor("dymensionxyz/dymension/agent/validation.proto"))
 }
 
 func TestAgentProtoFieldCompatibility(t *testing.T) {
@@ -47,12 +48,23 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"SpendRecipientAllowlist": {"bytes,13,rep,name=spend_recipient_allowlist,json=spendRecipientAllowlist,proto3", reflect.TypeOf([]string(nil))},
 		}},
 		{types.Params{}, map[string]fieldContract{
+<<<<<<< HEAD
 			"MaxActionBytes":             {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},
 			"AgentRegistrationFee":       {"bytes,2,opt,name=agent_registration_fee,json=agentRegistrationFee,proto3", reflect.TypeOf(types.DefaultParams().AgentRegistrationFee)},
 			"PolicyRotationDelayBlocks":  {"varint,3,opt,name=policy_rotation_delay_blocks,json=policyRotationDelayBlocks,proto3", reflect.TypeOf(uint64(0))},
 			"FeedbackFee":                {"bytes,4,opt,name=feedback_fee,json=feedbackFee,proto3", reflect.TypeOf(types.DefaultParams().FeedbackFee)},
 			"FeedbackTagMaxBytes":        {"varint,5,opt,name=feedback_tag_max_bytes,json=feedbackTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
 			"SpendRecipientAllowlistMax": {"varint,6,opt,name=spend_recipient_allowlist_max,json=spendRecipientAllowlistMax,proto3", reflect.TypeOf(uint64(0))},
+=======
+			"MaxActionBytes":            {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},
+			"AgentRegistrationFee":      {"bytes,2,opt,name=agent_registration_fee,json=agentRegistrationFee,proto3", reflect.TypeOf(types.DefaultParams().AgentRegistrationFee)},
+			"PolicyRotationDelayBlocks": {"varint,3,opt,name=policy_rotation_delay_blocks,json=policyRotationDelayBlocks,proto3", reflect.TypeOf(uint64(0))},
+			"FeedbackFee":               {"bytes,4,opt,name=feedback_fee,json=feedbackFee,proto3", reflect.TypeOf(types.DefaultParams().FeedbackFee)},
+			"FeedbackTagMaxBytes":       {"varint,5,opt,name=feedback_tag_max_bytes,json=feedbackTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
+			"ValidationRequestFee":      {"bytes,6,opt,name=validation_request_fee,json=validationRequestFee,proto3", reflect.TypeOf(types.DefaultParams().ValidationRequestFee)},
+			"ValidationTagMaxBytes":     {"varint,7,opt,name=validation_tag_max_bytes,json=validationTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
+			"ValidationUriMaxBytes":     {"varint,8,opt,name=validation_uri_max_bytes,json=validationUriMaxBytes,proto3", reflect.TypeOf(uint64(0))},
+>>>>>>> origin/main
 		}},
 		{types.ActionLogEntry{}, map[string]fieldContract{
 			"AgentId":     {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
@@ -109,7 +121,8 @@ func TestAgentProtoRoundTripCompatibility(t *testing.T) {
 		{&types.Params{
 			MaxActionBytes: 1024, AgentRegistrationFee: sdk.NewInt64Coin("adym", 12),
 			PolicyRotationDelayBlocks: 99, FeedbackFee: sdk.NewInt64Coin("adym", 34),
-			FeedbackTagMaxBytes: 56,
+			FeedbackTagMaxBytes:  56,
+			ValidationRequestFee: sdk.NewInt64Coin("adym", 78), ValidationTagMaxBytes: 32, ValidationUriMaxBytes: 512,
 		}, &types.Params{}},
 		{&types.ActionLogEntry{
 			AgentId: "agent-1", Seq: 7, Payload: []byte("payload"),
