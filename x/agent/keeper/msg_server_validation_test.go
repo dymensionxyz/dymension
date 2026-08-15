@@ -86,6 +86,60 @@ func TestValidationRejectsInvalidRequestsAndResponses(t *testing.T) {
 	require.ErrorIs(t, err, types.ErrValidatorInactive)
 }
 
+func TestValidationRejectsRevokedAgents(t *testing.T) {
+	ctx, k, ms, validatorOwner, requester := setupValidation(t)
+	validator, _ := k.GetAgent(ctx, "validator")
+	validator.Policy = policyA()
+	require.NoError(t, k.SetAgent(ctx, validator))
+	subject, _ := k.GetAgent(ctx, "subject")
+	subject.Policy = policyB()
+	require.NoError(t, k.SetAgent(ctx, subject))
+
+	validatorFP, err := types.PolicyFingerprint(policyA())
+	require.NoError(t, err)
+	require.NoError(t, k.SetRevoked(ctx, validatorFP))
+	hash := bytes.Repeat([]byte{8}, 32)
+	_, err = ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 0, hash, ""))
+	require.Error(t, err)
+
+	require.NoError(t, k.DeleteRevoked(ctx, validatorFP))
+	_, err = ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 0, hash, ""))
+	require.NoError(t, err)
+	require.NoError(t, k.SetRevoked(ctx, validatorFP))
+	_, err = ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+	require.Error(t, err)
+
+	subjectFP, err := types.PolicyFingerprint(policyB())
+	require.NoError(t, err)
+	require.NoError(t, k.DeleteRevoked(ctx, validatorFP))
+	require.NoError(t, k.SetRevoked(ctx, subjectFP))
+	_, err = ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 0, bytes.Repeat([]byte{9}, 32), ""))
+	require.Error(t, err)
+	_, err = ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+	require.Error(t, err)
+}
+
+func TestValidationRejectsSameOwnerAcrossAgentIDs(t *testing.T) {
+	ctx, k, ms, validatorOwner, requester := setupValidation(t)
+	subject, _ := k.GetAgent(ctx, "subject")
+	subject.Owner = validatorOwner
+	require.NoError(t, k.SetAgent(ctx, subject))
+	_, err := ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 0, bytes.Repeat([]byte{10}, 32), ""))
+	require.ErrorIs(t, err, types.ErrSelfValidation)
+}
+
+func TestValidationResponseRechecksSubjectOwner(t *testing.T) {
+	ctx, k, ms, validatorOwner, requester := setupValidation(t)
+	hash := bytes.Repeat([]byte{11}, 32)
+	_, err := ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 0, hash, ""))
+	require.NoError(t, err)
+	subject, _ := k.GetAgent(ctx, "subject")
+	subject.Owner = validatorOwner
+	require.NoError(t, k.SetAgent(ctx, subject))
+	_, err = ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+	require.ErrorIs(t, err, types.ErrSelfValidation)
+}
+
 func TestValidationGenesisRoundTripAndRejectsOrphan(t *testing.T) {
 	ctx, k, ms, validatorOwner, requester := setupValidation(t)
 	hash := bytes.Repeat([]byte{3}, 32)
@@ -105,6 +159,21 @@ func TestValidationGenesisRoundTripAndRejectsOrphan(t *testing.T) {
 	indexed, err := k2.ValidationRequestsByAgent(ctx2, &types.QueryValidationRequestsByAgentRequest{AgentId: "subject"})
 	require.NoError(t, err)
 	require.Len(t, indexed.ValidationRequests, 1)
+}
+
+func TestValidationGenesisRejectsResponseCountAndSequenceMismatch(t *testing.T) {
+	hash := bytes.Repeat([]byte{12}, 32)
+	request := types.ValidationRequest{RequestHash: hash, ResponseCount: 2}
+
+	countMismatch := *types.DefaultGenesis()
+	countMismatch.ValidationRequests = []types.ValidationRequest{request}
+	countMismatch.ValidationResponses = []types.ValidationResponse{{RequestHash: hash, Seq: 0}}
+	require.ErrorContains(t, countMismatch.Validate(), "response count mismatch")
+
+	nonContiguous := *types.DefaultGenesis()
+	nonContiguous.ValidationRequests = []types.ValidationRequest{request}
+	nonContiguous.ValidationResponses = []types.ValidationResponse{{RequestHash: hash, Seq: 0}, {RequestHash: hash, Seq: 2}}
+	require.ErrorContains(t, nonContiguous.Validate(), "non-contiguous")
 }
 
 func TestValidationResponseIntegrityInvariant(t *testing.T) {

@@ -11,10 +11,6 @@ func (k Keeper) GetValidationRequest(ctx sdk.Context, hash []byte) (types.Valida
 	return v, err == nil
 }
 
-func (k Keeper) SetValidationRequest(ctx sdk.Context, v types.ValidationRequest) error {
-	return k.validationRequests.Set(ctx, v.RequestHash, v)
-}
-
 func (k Keeper) GetValidationResponse(ctx sdk.Context, hash []byte, seq uint64) (types.ValidationResponse, bool) {
 	v, err := k.validationResponses.Get(ctx, collections.Join(hash, seq))
 	return v, err == nil

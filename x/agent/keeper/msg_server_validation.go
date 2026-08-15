@@ -29,6 +29,9 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 	if !validator.Active {
 		return nil, errorsmod.Wrap(types.ErrValidatorInactive, msg.ValidatorId)
 	}
+	if !k.IsAgentLive(ctx, msg.ValidatorId) {
+		return nil, errorsmod.Wrap(types.ErrValidatorInactive, msg.ValidatorId)
+	}
 	agent, found := k.GetAgent(ctx, msg.AgentId)
 	if !found {
 		return nil, errorsmod.Wrap(types.ErrAgentNotFound, msg.AgentId)
@@ -36,7 +39,13 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 	if !agent.Active {
 		return nil, errorsmod.Wrap(types.ErrValidatorInactive, msg.AgentId)
 	}
+	if !k.IsAgentLive(ctx, msg.AgentId) {
+		return nil, errorsmod.Wrap(types.ErrValidatorInactive, msg.AgentId)
+	}
 	if msg.ValidatorId == msg.AgentId {
+		return nil, types.ErrSelfValidation
+	}
+	if validator.Owner == agent.Owner {
 		return nil, types.ErrSelfValidation
 	}
 	if msg.EvidenceSeq >= agent.ActionSeq {
@@ -89,6 +98,19 @@ func (k msgServer) RespondValidation(goCtx context.Context, msg *types.MsgRespon
 	validator, found := k.GetAgent(ctx, req.ValidatorId)
 	if !found || !validator.Active {
 		return nil, types.ErrValidatorInactive
+	}
+	if !k.IsAgentLive(ctx, req.ValidatorId) {
+		return nil, types.ErrValidatorInactive
+	}
+	agent, found := k.GetAgent(ctx, req.AgentId)
+	if !found {
+		return nil, errorsmod.Wrap(types.ErrAgentNotFound, req.AgentId)
+	}
+	if !agent.Active || !k.IsAgentLive(ctx, req.AgentId) {
+		return nil, errorsmod.Wrap(types.ErrValidatorInactive, req.AgentId)
+	}
+	if req.ValidatorId == req.AgentId || validator.Owner == agent.Owner {
+		return nil, types.ErrSelfValidation
 	}
 	if msg.Responder != validator.Owner {
 		return nil, types.ErrUnauthorized
