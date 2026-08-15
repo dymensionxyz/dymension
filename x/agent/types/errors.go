@@ -25,4 +25,5 @@ var (
 	ErrSelfValidation            = errorsmod.Register(ModuleName, 21, "agent cannot validate itself")
 	ErrValidatorInactive         = errorsmod.Register(ModuleName, 22, "validator inactive")
 	ErrValidationFeePayment      = errorsmod.Register(ModuleName, 23, "validation request fee payment error")
+	ErrRecipientNotAllowed       = errorsmod.Register(ModuleName, 24, "transfer recipient not in agent spend allowlist")
 )

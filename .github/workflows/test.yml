@@ -6,6 +6,9 @@ on:
     branches:
       - main
   pull_request:
+permissions:
+  contents: read
+  id-token: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,6 +26,7 @@ jobs:
         run: |
           go install github.com/ory/go-acc@v0.2.6
           go-acc -o coverage.txt ./... -- -v --race
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
         with:
-          file: ./coverage.txt
+          files: ./coverage.txt
+          use_oidc: true

@@ -70,6 +70,18 @@ func (m *MsgUpdateAgentSpendPolicy) ValidateBasic() error {
 	if m.AgentId == "" {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
 	}
+	recipients := make(map[string]struct{}, len(m.RecipientAllowlist))
+	for _, recipient := range m.RecipientAllowlist {
+		address, err := sdk.AccAddressFromBech32(recipient)
+		if err != nil {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "recipient allowlist address")
+		}
+		key := string(address)
+		if _, duplicate := recipients[key]; duplicate {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "duplicate recipient allowlist address")
+		}
+		recipients[key] = struct{}{}
+	}
 	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks)
 }
 

@@ -17,7 +17,7 @@ func (g GenesisState) Validate() error {
 		if _, dup := agentIDs[a.Id]; dup {
 			return fmt.Errorf("duplicate agent entry: %s", a.Id)
 		}
-		if err := a.ValidateSpendState(); err != nil {
+		if err := a.ValidateSpendState(g.Params.SpendRecipientAllowlistMax); err != nil {
 			return fmt.Errorf("agent %s: %w", a.Id, err)
 		}
 		agentIDs[a.Id] = struct{}{}
