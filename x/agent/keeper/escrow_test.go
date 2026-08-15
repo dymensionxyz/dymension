@@ -416,8 +416,11 @@ func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistAboveMaxReject
 	s.Require().Empty(agent.SpendRecipientAllowlist)
 }
 
-func (s *EscrowTestSuite) TestMigrate1to2_DefaultsRecipientAllowlistMax() {
+func (s *EscrowTestSuite) TestMigrate1to2_DefaultsVersion2Params() {
 	params := types.DefaultParams()
+	params.ValidationRequestFee = sdk.Coin{}
+	params.ValidationTagMaxBytes = 0
+	params.ValidationUriMaxBytes = 0
 	params.SpendRecipientAllowlistMax = 0
 	s.Require().NoError(s.k.SetParams(s.Ctx, params))
 
@@ -426,6 +429,9 @@ func (s *EscrowTestSuite) TestMigrate1to2_DefaultsRecipientAllowlistMax() {
 
 	params, err := s.k.GetParams(s.Ctx)
 	s.Require().NoError(err)
+	s.Require().Equal(types.DefaultParams().ValidationRequestFee, params.ValidationRequestFee)
+	s.Require().Equal(uint64(types.DefaultValidationTagMaxBytes), params.ValidationTagMaxBytes)
+	s.Require().Equal(uint64(types.DefaultValidationUriMaxBytes), params.ValidationUriMaxBytes)
 	s.Require().Equal(uint64(types.DefaultSpendRecipientAllowlistMax), params.SpendRecipientAllowlistMax)
 }
 

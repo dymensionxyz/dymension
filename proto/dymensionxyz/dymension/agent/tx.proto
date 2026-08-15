@@ -63,6 +63,10 @@ service Msg {
 
   // RevokeFeedback removes the client's feedback for an agent.
   rpc RevokeFeedback(MsgRevokeFeedback) returns (MsgRevokeFeedbackResponse);
+  rpc RequestValidation(MsgRequestValidation)
+      returns (MsgRequestValidationResponse);
+  rpc RespondValidation(MsgRespondValidation)
+      returns (MsgRespondValidationResponse);
 }
 
 message MsgRegisterAgent {
@@ -232,3 +236,25 @@ message MsgRevokeFeedback {
 }
 
 message MsgRevokeFeedbackResponse {}
+
+message MsgRequestValidation {
+  option (cosmos.msg.v1.signer) = "requester";
+  string requester = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string validator_id = 2;
+  string agent_id = 3;
+  uint64 evidence_seq = 4;
+  bytes request_hash = 5;
+  string request_uri = 6;
+}
+message MsgRequestValidationResponse {}
+
+message MsgRespondValidation {
+  option (cosmos.msg.v1.signer) = "responder";
+  string responder = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bytes request_hash = 2;
+  uint32 response = 3;
+  string response_uri = 4;
+  bytes response_hash = 5;
+  string tag = 6;
+}
+message MsgRespondValidationResponse { uint64 seq = 1; }

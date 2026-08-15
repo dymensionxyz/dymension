@@ -4,6 +4,7 @@ package dymensionxyz.dymension.agent;
 import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/agent/agent.proto";
 import "dymensionxyz/dymension/agent/feedback.proto";
+import "dymensionxyz/dymension/agent/validation.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -17,4 +18,8 @@ message GenesisState {
   // rebuilt from them on init.
   repeated Feedback feedbacks = 5 [ (gogoproto.nullable) = false ];
   repeated AgentEscrow escrows = 6 [ (gogoproto.nullable) = false ];
+  repeated ValidationRequest validation_requests = 7
+      [ (gogoproto.nullable) = false ];
+  repeated ValidationResponse validation_responses = 8
+      [ (gogoproto.nullable) = false ];
 }

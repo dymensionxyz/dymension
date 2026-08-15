@@ -18,6 +18,12 @@ const DefaultFeedbackTagMaxBytes = 32
 // DefaultSpendRecipientAllowlistMax bounds per-agent recipient policy state.
 const DefaultSpendRecipientAllowlistMax = 50
 
+// DefaultValidationTagMaxBytes caps validation response tags.
+const DefaultValidationTagMaxBytes = 32
+
+// DefaultValidationUriMaxBytes caps validation request and response URIs.
+const DefaultValidationUriMaxBytes = 512
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:       commontypes.DYMCoin,
@@ -25,6 +31,9 @@ func DefaultParams() Params {
 		PolicyRotationDelayBlocks:  DefaultPolicyRotationDelayBlocks,
 		FeedbackFee:                commontypes.DYMCoin,
 		FeedbackTagMaxBytes:        DefaultFeedbackTagMaxBytes,
+		ValidationRequestFee:       commontypes.DYMCoin,
+		ValidationTagMaxBytes:      DefaultValidationTagMaxBytes,
+		ValidationUriMaxBytes:      DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax: DefaultSpendRecipientAllowlistMax,
 	}
 }
@@ -47,6 +56,15 @@ func (p Params) Validate() error {
 	}
 	if p.SpendRecipientAllowlistMax == 0 {
 		return fmt.Errorf("spend recipient allowlist max must be positive")
+	}
+	if err := p.ValidationRequestFee.Validate(); err != nil {
+		return fmt.Errorf("validation request fee: %w", err)
+	}
+	if p.ValidationTagMaxBytes == 0 {
+		return fmt.Errorf("validation tag max bytes must be positive")
+	}
+	if p.ValidationUriMaxBytes == 0 {
+		return fmt.Errorf("validation uri max bytes must be positive")
 	}
 	return nil
 }

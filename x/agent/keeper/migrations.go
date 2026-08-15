@@ -16,12 +16,21 @@ func NewMigrator(k Keeper) Migrator {
 	return Migrator{k: k}
 }
 
-// Migrate1to2 initializes the recipient allowlist cap for params written
-// before the field existed.
+// Migrate1to2 initializes fields added to the agent params at version 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	params, err := m.k.GetParams(ctx)
 	if err != nil {
 		return err
+	}
+	defaults := types.DefaultParams()
+	if params.ValidationRequestFee.Denom == "" {
+		params.ValidationRequestFee = defaults.ValidationRequestFee
+	}
+	if params.ValidationTagMaxBytes == 0 {
+		params.ValidationTagMaxBytes = defaults.ValidationTagMaxBytes
+	}
+	if params.ValidationUriMaxBytes == 0 {
+		params.ValidationUriMaxBytes = defaults.ValidationUriMaxBytes
 	}
 	params.SpendRecipientAllowlistMax = types.DefaultSpendRecipientAllowlistMax
 	return m.k.SetParams(ctx, params)
