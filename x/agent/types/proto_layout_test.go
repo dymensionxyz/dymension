@@ -48,23 +48,15 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"SpendRecipientAllowlist": {"bytes,13,rep,name=spend_recipient_allowlist,json=spendRecipientAllowlist,proto3", reflect.TypeOf([]string(nil))},
 		}},
 		{types.Params{}, map[string]fieldContract{
-<<<<<<< HEAD
 			"MaxActionBytes":             {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},
 			"AgentRegistrationFee":       {"bytes,2,opt,name=agent_registration_fee,json=agentRegistrationFee,proto3", reflect.TypeOf(types.DefaultParams().AgentRegistrationFee)},
 			"PolicyRotationDelayBlocks":  {"varint,3,opt,name=policy_rotation_delay_blocks,json=policyRotationDelayBlocks,proto3", reflect.TypeOf(uint64(0))},
 			"FeedbackFee":                {"bytes,4,opt,name=feedback_fee,json=feedbackFee,proto3", reflect.TypeOf(types.DefaultParams().FeedbackFee)},
 			"FeedbackTagMaxBytes":        {"varint,5,opt,name=feedback_tag_max_bytes,json=feedbackTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
-			"SpendRecipientAllowlistMax": {"varint,6,opt,name=spend_recipient_allowlist_max,json=spendRecipientAllowlistMax,proto3", reflect.TypeOf(uint64(0))},
-=======
-			"MaxActionBytes":            {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},
-			"AgentRegistrationFee":      {"bytes,2,opt,name=agent_registration_fee,json=agentRegistrationFee,proto3", reflect.TypeOf(types.DefaultParams().AgentRegistrationFee)},
-			"PolicyRotationDelayBlocks": {"varint,3,opt,name=policy_rotation_delay_blocks,json=policyRotationDelayBlocks,proto3", reflect.TypeOf(uint64(0))},
-			"FeedbackFee":               {"bytes,4,opt,name=feedback_fee,json=feedbackFee,proto3", reflect.TypeOf(types.DefaultParams().FeedbackFee)},
-			"FeedbackTagMaxBytes":       {"varint,5,opt,name=feedback_tag_max_bytes,json=feedbackTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
-			"ValidationRequestFee":      {"bytes,6,opt,name=validation_request_fee,json=validationRequestFee,proto3", reflect.TypeOf(types.DefaultParams().ValidationRequestFee)},
-			"ValidationTagMaxBytes":     {"varint,7,opt,name=validation_tag_max_bytes,json=validationTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
-			"ValidationUriMaxBytes":     {"varint,8,opt,name=validation_uri_max_bytes,json=validationUriMaxBytes,proto3", reflect.TypeOf(uint64(0))},
->>>>>>> origin/main
+			"ValidationRequestFee":       {"bytes,6,opt,name=validation_request_fee,json=validationRequestFee,proto3", reflect.TypeOf(types.DefaultParams().ValidationRequestFee)},
+			"ValidationTagMaxBytes":      {"varint,7,opt,name=validation_tag_max_bytes,json=validationTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
+			"ValidationUriMaxBytes":      {"varint,8,opt,name=validation_uri_max_bytes,json=validationUriMaxBytes,proto3", reflect.TypeOf(uint64(0))},
+			"SpendRecipientAllowlistMax": {"varint,9,opt,name=spend_recipient_allowlist_max,json=spendRecipientAllowlistMax,proto3", reflect.TypeOf(uint64(0))},
 		}},
 		{types.ActionLogEntry{}, map[string]fieldContract{
 			"AgentId":     {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},

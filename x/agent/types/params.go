@@ -15,7 +15,12 @@ const DefaultPolicyRotationDelayBlocks = 100_800
 // DefaultFeedbackTagMaxBytes caps the byte length of a feedback dimension tag.
 const DefaultFeedbackTagMaxBytes = 32
 
-<<<<<<< HEAD
+// DefaultValidationTagMaxBytes caps validation response tags.
+const DefaultValidationTagMaxBytes = 32
+
+// DefaultValidationUriMaxBytes caps validation request and response URIs.
+const DefaultValidationUriMaxBytes = 512
+
 // DefaultSpendRecipientAllowlistMax bounds per-agent recipient policy state.
 const DefaultSpendRecipientAllowlistMax = 50
 
@@ -26,25 +31,10 @@ func DefaultParams() Params {
 		PolicyRotationDelayBlocks:  DefaultPolicyRotationDelayBlocks,
 		FeedbackFee:                commontypes.DYMCoin,
 		FeedbackTagMaxBytes:        DefaultFeedbackTagMaxBytes,
+		ValidationRequestFee:       commontypes.DYMCoin,
+		ValidationTagMaxBytes:      DefaultValidationTagMaxBytes,
+		ValidationUriMaxBytes:      DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax: DefaultSpendRecipientAllowlistMax,
-=======
-// DefaultValidationTagMaxBytes caps validation response tags.
-const DefaultValidationTagMaxBytes = 32
-
-// DefaultValidationUriMaxBytes caps validation request and response URIs.
-const DefaultValidationUriMaxBytes = 512
-
-func DefaultParams() Params {
-	return Params{
-		AgentRegistrationFee:      commontypes.DYMCoin,
-		MaxActionBytes:            DefaultMaxActionBytes,
-		PolicyRotationDelayBlocks: DefaultPolicyRotationDelayBlocks,
-		FeedbackFee:               commontypes.DYMCoin,
-		FeedbackTagMaxBytes:       DefaultFeedbackTagMaxBytes,
-		ValidationRequestFee:      commontypes.DYMCoin,
-		ValidationTagMaxBytes:     DefaultValidationTagMaxBytes,
-		ValidationUriMaxBytes:     DefaultValidationUriMaxBytes,
->>>>>>> origin/main
 	}
 }
 
@@ -64,10 +54,6 @@ func (p Params) Validate() error {
 	if p.FeedbackTagMaxBytes == 0 {
 		return fmt.Errorf("feedback tag max bytes must be positive")
 	}
-<<<<<<< HEAD
-	if p.SpendRecipientAllowlistMax == 0 {
-		return fmt.Errorf("spend recipient allowlist max must be positive")
-=======
 	if err := p.ValidationRequestFee.Validate(); err != nil {
 		return fmt.Errorf("validation request fee: %w", err)
 	}
@@ -76,7 +62,9 @@ func (p Params) Validate() error {
 	}
 	if p.ValidationUriMaxBytes == 0 {
 		return fmt.Errorf("validation uri max bytes must be positive")
->>>>>>> origin/main
+	}
+	if p.SpendRecipientAllowlistMax == 0 {
+		return fmt.Errorf("spend recipient allowlist max must be positive")
 	}
 	return nil
 }
