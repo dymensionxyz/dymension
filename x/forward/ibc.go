@@ -90,6 +90,13 @@ func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget s
 }
 
 func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
+	nowNs := uint64(ctx.BlockTime().UnixNano()) //nolint:gosec // block time is never negative
+	timeoutTimestamp := transfer.TimeoutTimestamp
+	if timeoutTimestamp == 0 || timeoutTimestamp <= nowNs+types.MinForwardIBCTimeout {
+		// Give the final hop a fresh deadline when the composer's absolute timeout is no longer usable.
+		timeoutTimestamp = nowNs + types.DefaultForwardIBCTimeout
+	}
+
 	m := ibctransfertypes.NewMsgTransfer(
 		transfer.SourcePort,
 		transfer.SourceChannel,
@@ -97,7 +104,7 @@ func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTra
 		fundsSrc.String(),
 		transfer.Receiver,
 		ibcclienttypes.Height{}, // ignore, removed in ibc v2 also
-		transfer.TimeoutTimestamp,
+		timeoutTimestamp,
 		transfer.Memo, // include the original memo, so that we can have more functionality down the road (.e.g actions on rollapp)
 	)
 
