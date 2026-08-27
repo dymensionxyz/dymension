@@ -129,11 +129,11 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 
 			amount := amountInt
 
-			oepratorFeeShareStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
+			operatorFeeShareStr, err := cmd.Flags().GetString(FlagOperatorFeeShare)
 			if err != nil {
 				return fmt.Errorf("fulfiller fee part is required")
 			}
-			operatorFeeShareDec, err := math.LegacyNewDecFromStr(oepratorFeeShareStr)
+			operatorFeeShareDec, err := math.LegacyNewDecFromStr(operatorFeeShareStr)
 			if err != nil {
 				return fmt.Errorf("invalid fulfiller fee part: %w", err)
 			}
