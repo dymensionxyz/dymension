@@ -67,6 +67,97 @@ func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_AddUpdateDelete() {
 	s.Require().Empty(s.dymNsKeeper.GetServiceRecords(s.ctx, name))
 }
 
+func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_AgentBinding() {
+	s.RefreshContext()
+
+	const (
+		name    = "agent"
+		agentID = "agent-1"
+	)
+	dymName := s.setupServiceRecordDymName(name)
+	dymName.Controller = testAddr(2).bech32()
+	s.Require().NoError(s.dymNsKeeper.SetDymName(s.ctx, dymName))
+	s.agentKeeper.owners[agentID] = dymName.Owner
+
+	_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetServiceRecord(s.ctx, &dymnstypes.MsgSetServiceRecord{
+		Name:       name,
+		Controller: dymName.Controller,
+		ServiceKey: "agent",
+		Value:      agentID,
+	})
+	s.Require().NoError(err)
+
+	serviceResp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).DymNameService(s.ctx, &dymnstypes.QueryDymNameServiceRequest{
+		Name:       name,
+		ServiceKey: "agent",
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(agentID, serviceResp.Value)
+}
+
+func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_AgentBindingRejectsMissingAgent() {
+	s.RefreshContext()
+
+	dymName := s.setupServiceRecordDymName("agent")
+	_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetServiceRecord(s.ctx, &dymnstypes.MsgSetServiceRecord{
+		Name:       dymName.Name,
+		Controller: dymName.Controller,
+		ServiceKey: "agent",
+		Value:      "missing-agent",
+	})
+	s.Require().ErrorIs(err, gerrc.ErrNotFound)
+	s.Require().Contains(err.Error(), "agent not registered")
+}
+
+func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_AgentBindingRejectsDifferentOwner() {
+	s.RefreshContext()
+
+	dymName := s.setupServiceRecordDymName("agent")
+	s.agentKeeper.owners["agent-1"] = testAddr(2).bech32()
+
+	_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetServiceRecord(s.ctx, &dymnstypes.MsgSetServiceRecord{
+		Name:       dymName.Name,
+		Controller: dymName.Controller,
+		ServiceKey: "agent",
+		Value:      "agent-1",
+	})
+	s.Require().ErrorIs(err, gerrc.ErrPermissionDenied)
+	s.Require().Contains(err.Error(), "agent owner does not match Dym-Name owner")
+}
+
+func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_AgentBindingDeleteBypassesLookup() {
+	s.RefreshContext()
+
+	dymName := s.setupServiceRecordDymName("agent", dymnstypes.DymNameConfig{
+		Type:  dymnstypes.DymNameConfigType_DCT_SERVICE,
+		Path:  "agent",
+		Value: "removed-agent",
+	})
+
+	_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetServiceRecord(s.ctx, &dymnstypes.MsgSetServiceRecord{
+		Name:       dymName.Name,
+		Controller: dymName.Controller,
+		ServiceKey: "agent",
+		Value:      "",
+	})
+	s.Require().NoError(err)
+	s.Require().Empty(s.dymNsKeeper.GetServiceRecord(s.ctx, dymName.Name, "agent"))
+}
+
+func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_NonAgentKeyBypassesLookup() {
+	s.RefreshContext()
+
+	dymName := s.setupServiceRecordDymName("agent")
+	_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetServiceRecord(s.ctx, &dymnstypes.MsgSetServiceRecord{
+		Name:       dymName.Name,
+		Controller: dymName.Controller,
+		ServiceKey: "mcp",
+		Value:      "unregistered-agent-id",
+	})
+	s.Require().NoError(err)
+	s.Require().Equal("unregistered-agent-id", s.dymNsKeeper.GetServiceRecord(s.ctx, dymName.Name, "mcp"))
+}
+
 func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_Rejections() {
 	const name = "agent"
 

@@ -56,6 +56,7 @@ type KeeperTestSuite struct {
 	dymNsKeeper   dymnskeeper.Keeper
 	rollAppKeeper rollappkeeper.Keeper
 	bankKeeper    dymnstypes.BankKeeper
+	agentKeeper   *agentKeeperMock
 
 	dymNsStoreKey   storetypes.StoreKey
 	rollappStoreKey storetypes.StoreKey
@@ -76,6 +77,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	var dk dymnskeeper.Keeper
 	var bk dymnstypes.BankKeeper
 	var rk *rollappkeeper.Keeper
+	var agentk *agentKeeperMock
 	var keys map[string]*storetypes.KVStoreKey
 
 	{
@@ -133,11 +135,13 @@ func (s *KeeperTestSuite) SetupTest() {
 			bankKeeper: bk,
 		}
 
+		agentk = &agentKeeperMock{owners: make(map[string]string)}
 		dk = dymnskeeper.NewKeeper(cdc,
 			keys[dymnstypes.StoreKey],
 			bk,
 			rk,
 			txfeesk,
+			agentk,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		)
 
@@ -157,6 +161,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.dymNsKeeper = dk
 	s.rollAppKeeper = *rk
 	s.bankKeeper = bk
+	s.agentKeeper = agentk
 	s.dymNsStoreKey = keys[dymnstypes.StoreKey]
 	s.rollappStoreKey = keys[rollapptypes.StoreKey]
 
@@ -173,6 +178,15 @@ func (s *KeeperTestSuite) SetupTest() {
 	// others
 
 	s.SaveCurrentContext()
+}
+
+type agentKeeperMock struct {
+	owners map[string]string
+}
+
+func (m *agentKeeperMock) GetAgentOwner(_ sdk.Context, agentID string) (string, bool) {
+	owner, found := m.owners[agentID]
+	return owner, found
 }
 
 func (s *KeeperTestSuite) AfterTest(_, _ string) {

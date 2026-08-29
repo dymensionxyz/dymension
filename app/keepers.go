@@ -483,12 +483,21 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.AgentKeeper = agentkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(a.keys[agenttypes.ModuleName]),
+		tee.NewVerifier(),
+		a.BankKeeper,
+		govModuleAddress,
+	)
+
 	a.DymNSKeeper = dymnskeeper.NewKeeper(
 		appCodec,
 		a.keys[dymnstypes.StoreKey],
 		a.BankKeeper,
 		a.RollappKeeper,
 		a.TxFeesKeeper,
+		a.AgentKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -593,13 +602,6 @@ func (a *AppKeepers) InitKeepers(
 		&a.HyperCoreKeeper,
 	)
 
-	a.AgentKeeper = agentkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(a.keys[agenttypes.ModuleName]),
-		tee.NewVerifier(),
-		a.BankKeeper,
-		govModuleAddress,
-	)
 	a.EIBCKeeper.SetAgentKeeper(a.AgentKeeper)
 
 	a.BridgingFeeKeeper = bridgingfeekeeper.NewKeeper(
