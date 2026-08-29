@@ -57,6 +57,10 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"ValidationTagMaxBytes":      {"varint,7,opt,name=validation_tag_max_bytes,json=validationTagMaxBytes,proto3", reflect.TypeOf(uint64(0))},
 			"ValidationUriMaxBytes":      {"varint,8,opt,name=validation_uri_max_bytes,json=validationUriMaxBytes,proto3", reflect.TypeOf(uint64(0))},
 			"SpendRecipientAllowlistMax": {"varint,9,opt,name=spend_recipient_allowlist_max,json=spendRecipientAllowlistMax,proto3", reflect.TypeOf(uint64(0))},
+			"ValidationMaxResponsesPerRequest": {
+				"varint,10,opt,name=validation_max_responses_per_request,json=validationMaxResponsesPerRequest,proto3",
+				reflect.TypeOf(uint64(0)),
+			},
 		}},
 		{types.ActionLogEntry{}, map[string]fieldContract{
 			"AgentId":     {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
@@ -115,6 +119,7 @@ func TestAgentProtoRoundTripCompatibility(t *testing.T) {
 			PolicyRotationDelayBlocks: 99, FeedbackFee: sdk.NewInt64Coin("adym", 34),
 			FeedbackTagMaxBytes:  56,
 			ValidationRequestFee: sdk.NewInt64Coin("adym", 78), ValidationTagMaxBytes: 32, ValidationUriMaxBytes: 512,
+			ValidationMaxResponsesPerRequest: 8,
 		}, &types.Params{}},
 		{&types.ActionLogEntry{
 			AgentId: "agent-1", Seq: 7, Payload: []byte("payload"),
