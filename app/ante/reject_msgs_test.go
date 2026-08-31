@@ -1,6 +1,8 @@
 package ante_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -199,6 +201,28 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 			}
 		})
 	}
+}
+
+// reports the msg as allowed, so only the error can cause a rejection
+type erroringCircuitBreaker struct{}
+
+func (erroringCircuitBreaker) IsAllowed(context.Context, string) (bool, error) {
+	return true, errors.New("circuit keeper unavailable")
+}
+
+func (suite *AnteTestSuite) TestCircuitBreakerPredicateFailsClosed() {
+	suite.SetupTestCheckTx(false)
+
+	decorator := ante.NewRejectMessagesDecorator().
+		WithPredicate(ante.BlockTrippedByCircuitBreaker(erroringCircuitBreaker{}))
+
+	msg := &banktypes.MsgMultiSend{}
+	tx := &mockTx{msgs: []sdk.Msg{msg}}
+
+	ctx := suite.ctx.WithBlockHeight(1)
+	_, err := decorator.AnteHandle(ctx, tx, false, func(sdk.Context, sdk.Tx, bool) (sdk.Context, error) { return ctx, nil })
+
+	suite.Require().ErrorContains(err, "disabled: "+sdk.MsgTypeURL(msg))
 }
 
 func packMsg(t *testing.T, msg sdk.Msg) *codectypes.Any {

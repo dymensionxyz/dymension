@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	circuitante "cosmossdk.io/x/circuit/ante"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -23,7 +24,7 @@ type RejectMessagesDecorator struct {
 }
 
 // Predicate should return true if message is not allowed
-type Predicate = func(typeURL string, depth int) bool
+type Predicate = func(ctx sdk.Context, typeURL string, depth int) bool
 
 // Blocks any message with depth of depthMax OR MORE
 // Depth 0 is top level message
@@ -33,9 +34,21 @@ func BlockTypeUrls(depthMax int, typeUrls ...string) Predicate {
 	for _, url := range typeUrls {
 		block[url] = struct{}{}
 	}
-	return func(url string, depth int) bool {
+	return func(_ sdk.Context, url string, depth int) bool {
 		_, ok := block[url]
 		return ok && depthMax <= depth
+	}
+}
+
+// BlockTrippedByCircuitBreaker blocks, at any depth, messages whose type is currently tripped
+// in the circuit breaker. The SDK's own CircuitBreakerDecorator deliberately only inspects
+// top level messages, so a tripped type wrapped in authz/gov/group would otherwise be admitted
+// to the mempool and only fail later in baseapp's msg router.
+// A keeper error fails closed: baseapp re-checks and surfaces the real error at execution.
+func BlockTrippedByCircuitBreaker(ck circuitante.CircuitBreaker) Predicate {
+	return func(ctx sdk.Context, url string, _ int) bool {
+		allowed, err := ck.IsAllowed(ctx, url)
+		return err != nil || !allowed
 	}
 }
 
@@ -90,7 +103,7 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 
 	typeURL := sdk.MsgTypeURL(msg)
 	for _, pred := range rmd.predicates {
-		if pred(typeURL, depth) {
+		if pred(ctx, typeURL, depth) {
 			return gerrc.ErrInvalidArgument.Wrapf("disabled: %s", typeURL)
 		}
 	}
@@ -112,7 +125,7 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 		}
 		typeURL = authorization.MsgTypeURL()
 		for _, pred := range rmd.predicates {
-			if pred(typeURL, depth) {
+			if pred(ctx, typeURL, depth) {
 				return gerrc.ErrInvalidArgument.Wrapf("disabled grant: %s", typeURL)
 			}
 		}
