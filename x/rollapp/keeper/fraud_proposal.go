@@ -24,7 +24,7 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	}
 
 	if err := msg.ValidateBasic(); err != nil {
-		err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid msg")
+		err = errorsmod.Wrap(err, "invalid msg")
 		ctx.Logger().Error("Fraud proposal", "error", err)
 		return nil, err
 	}
