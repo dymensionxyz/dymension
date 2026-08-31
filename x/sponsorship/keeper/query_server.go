@@ -36,13 +36,13 @@ func (q QueryServer) Vote(goCtx context.Context, request *types.QueryVoteRequest
 
 	voter, err := sdk.AccAddressFromBech32(request.GetVoter())
 	if err != nil {
-		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "invalid voter address")
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid voter address: %s", err)
 	}
 
 	vote, err := q.k.GetVote(ctx, voter)
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
-			return nil, errorsmod.Wrap(errors.Join(gerrc.ErrNotFound, err), "vote")
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "vote: %s", err)
 		}
 		return nil, err
 	}
@@ -63,12 +63,12 @@ func (q QueryServer) EstimateClaim(goCtx context.Context, query *types.QueryEsti
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	addr, err := sdk.AccAddressFromBech32(query.Address)
 	if err != nil {
-		return nil, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "invalid claimer address")
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid claimer address: %s", err)
 	}
 	reward, err := q.k.EstimateClaim(ctx, addr, query.RollappId)
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
-			return nil, errorsmod.Wrap(errors.Join(gerrc.ErrNotFound, err), "claim estimate")
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "claim estimate: %s", err)
 		}
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (q QueryServer) Endorsement(goCtx context.Context, query *types.QueryEndors
 	endorsement, err := q.k.GetEndorsement(ctx, query.RollappId)
 	if err != nil {
 		if errors.Is(err, collections.ErrNotFound) {
-			return nil, errorsmod.Wrap(errors.Join(gerrc.ErrNotFound, err), "endorsement")
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "endorsement: %s", err)
 		}
 		return nil, err
 	}

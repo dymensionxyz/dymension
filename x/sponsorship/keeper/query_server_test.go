@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
@@ -46,7 +46,43 @@ func (s *KeeperTestSuite) TestQueryMissingEntitiesUseNotFound() {
 		s.Run(tt.name, func() {
 			err := tt.query()
 			s.Require().ErrorIs(err, gerrc.ErrNotFound)
-			s.Require().ErrorIs(err, collections.ErrNotFound)
+			codespace, code, _ := errorsmod.ABCIInfo(err, false)
+			s.Require().Equal(gerrc.DefaultCodespace, codespace)
+			s.Require().Equal(uint32(4), code)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestQueryInvalidAddressesUseInvalidArgument() {
+	queryServer := keeper.NewQueryServer(s.App.SponsorshipKeeper)
+	ctx := sdk.WrapSDKContext(s.Ctx)
+
+	tests := []struct {
+		name  string
+		query func() error
+	}{
+		{
+			name: "vote",
+			query: func() error {
+				_, err := queryServer.Vote(ctx, &types.QueryVoteRequest{Voter: "invalid"})
+				return err
+			},
+		},
+		{
+			name: "claim estimate",
+			query: func() error {
+				_, err := queryServer.EstimateClaim(ctx, &types.QueryEstimateClaim{Address: "invalid"})
+				return err
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			err := tt.query()
+			codespace, code, _ := errorsmod.ABCIInfo(err, false)
+			s.Require().Equal(gerrc.DefaultCodespace, codespace)
+			s.Require().Equal(uint32(2), code)
 		})
 	}
 }

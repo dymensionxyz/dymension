@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -236,7 +237,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 			},
 			expectErr:     true,
 			errorIs:       gerrc.ErrNotFound,
-			errorContains: "failed to get gauge by id: 2",
+			errorContains: "gauge 2: gauge with ID 2 does not exist",
 		},
 		{
 			name: "Weight is less than the min allocation",
@@ -360,6 +361,10 @@ func (s *KeeperTestSuite) TestMsgVote() {
 					s.Require().Error(err)
 					if tc.errorIs != nil {
 						s.Require().ErrorIs(err, tc.errorIs)
+						wantCodespace, wantCode, _ := errorsmod.ABCIInfo(tc.errorIs, false)
+						codespace, code, _ := errorsmod.ABCIInfo(err, false)
+						s.Require().Equal(wantCodespace, codespace)
+						s.Require().Equal(wantCode, code)
 					}
 					s.Require().ErrorContains(err, tc.errorContains)
 

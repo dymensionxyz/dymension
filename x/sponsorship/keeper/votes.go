@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -25,7 +24,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	// Validate specified weights
 	err = k.validateWeights(ctx, weights, params.MinAllocationWeight)
 	if err != nil {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("error validating weights: %w", err)
+		return types.Vote{}, types.Distribution{}, errorsmod.Wrap(err, "validate weights")
 	}
 
 	// Get the user’s total voting power from the x/staking
@@ -185,7 +184,7 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 		// All gauges exist
 		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
 		if err != nil {
-			return errorsmod.Wrapf(errors.Join(gerrc.ErrNotFound, err), "failed to get gauge by id: %d", weight.GaugeId)
+			return classifyGaugeLookupError(weight.GaugeId, err)
 		}
 
 		// Only vote on rollapp gauges
@@ -200,6 +199,13 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 		}
 	}
 	return nil
+}
+
+func classifyGaugeLookupError(gaugeID uint64, err error) error {
+	if err.Error() == fmt.Sprintf("gauge with ID %d does not exist", gaugeID) {
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "gauge %d: %s", gaugeID, err)
+	}
+	return fmt.Errorf("get gauge %d: %w", gaugeID, err)
 }
 
 type ValidatorPower struct {
