@@ -1,11 +1,14 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -33,7 +36,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 
 	// Validate that the user has min voting power
 	if vpBreakdown.TotalPower.LT(params.MinVotingPower) {
-		return types.Vote{}, types.Distribution{}, fmt.Errorf("voting power '%s' is less than min voting power expected '%s'", vpBreakdown.TotalPower, params.MinVotingPower)
+		return types.Vote{}, types.Distribution{}, gerrc.ErrFailedPrecondition.Wrapf("voting power '%s' is less than min voting power expected '%s'", vpBreakdown.TotalPower, params.MinVotingPower)
 	}
 
 	// Apply the vote weights to the power -> get a distribution update in absolute values
@@ -176,24 +179,24 @@ func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, mi
 	for _, weight := range weights {
 		// No gauge gets less than MinAllocationWeight
 		if weight.Weight.LT(minAllocationWeight) {
-			return fmt.Errorf("gauge weight is less than min allocation weight: gauge weight %s, min allocation %s", weight.Weight, minAllocationWeight)
+			return gerrc.ErrFailedPrecondition.Wrapf("gauge weight is less than min allocation weight: gauge weight %s, min allocation %s", weight.Weight, minAllocationWeight)
 		}
 
 		// All gauges exist
 		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
 		if err != nil {
-			return fmt.Errorf("failed to get gauge by id: %d: %w", weight.GaugeId, err)
+			return errorsmod.Wrapf(errors.Join(gerrc.ErrNotFound, err), "failed to get gauge by id: %d", weight.GaugeId)
 		}
 
 		// Only vote on rollapp gauges
 		_, isRA := gauge.DistributeTo.(*incentivestypes.Gauge_Rollapp)
 		if !isRA {
-			return fmt.Errorf("voting is only allowed for rollapp gauges: got %T: gaugeId %d", gauge.DistributeTo, weight.GaugeId)
+			return gerrc.ErrInvalidArgument.Wrapf("voting is only allowed for rollapp gauges: got %T: gaugeId %d", gauge.DistributeTo, weight.GaugeId)
 		}
 
 		// All gauges are perpetual
 		if !gauge.IsPerpetual {
-			return fmt.Errorf("gauge is not perpetual: %d", weight.GaugeId)
+			return gerrc.ErrInvalidArgument.Wrapf("gauge is not perpetual: %d", weight.GaugeId)
 		}
 	}
 	return nil

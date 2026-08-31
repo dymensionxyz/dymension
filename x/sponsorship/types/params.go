@@ -1,5 +1,7 @@
 package types
 
+import errorsmod "cosmossdk.io/errors"
+
 func DefaultParams() Params {
 	return Params{
 		MinAllocationWeight: DefaultMinAllocationWeight,
@@ -9,13 +11,13 @@ func DefaultParams() Params {
 
 func (p Params) ValidateBasic() error {
 	if p.MinAllocationWeight.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be >= 0, got %s", p.MinAllocationWeight)
+		return errorsmod.Wrapf(ErrInvalidParams, "MinAllocationWeight must be >= 0, got %s", p.MinAllocationWeight)
 	}
 	if p.MinAllocationWeight.GT(MaxAllocationWeight) {
-		return ErrInvalidParams.Wrapf("MinAllocationWeight must be <= 100 * 10^18, got %s", p.MinAllocationWeight)
+		return errorsmod.Wrapf(ErrInvalidParams, "MinAllocationWeight must be <= 100 * 10^18, got %s", p.MinAllocationWeight)
 	}
 	if p.MinVotingPower.IsNegative() {
-		return ErrInvalidParams.Wrapf("MinVotingPower must be >= 0, got %s", p.MinVotingPower)
+		return errorsmod.Wrapf(ErrInvalidParams, "MinVotingPower must be >= 0, got %s", p.MinVotingPower)
 	}
 	return nil
 }

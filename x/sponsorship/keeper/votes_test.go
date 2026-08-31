@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -27,6 +28,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 		initialDistr  types.Distribution // initial test distr
 		expectedDistr types.Distribution // final distr after applying all the votes
 		expectErr     bool               // if the error is expected, the vote slice must contain only one element
+		errorIs       error
 		errorContains string
 	}{
 		{
@@ -233,6 +235,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				},
 			},
 			expectErr:     true,
+			errorIs:       gerrc.ErrNotFound,
 			errorContains: "failed to get gauge by id: 2",
 		},
 		{
@@ -272,6 +275,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				},
 			},
 			expectErr:     true,
+			errorIs:       gerrc.ErrFailedPrecondition,
 			errorContains: "gauge weight is less than min allocation weight: gauge weight 20000000000000000000, min allocation 30000000000000000000",
 		},
 		{
@@ -311,6 +315,7 @@ func (s *KeeperTestSuite) TestMsgVote() {
 				},
 			},
 			expectErr:     true,
+			errorIs:       gerrc.ErrFailedPrecondition,
 			errorContains: "voting power '1000000' is less than min voting power expected '2000000'",
 		},
 	}
@@ -353,6 +358,9 @@ func (s *KeeperTestSuite) TestMsgVote() {
 
 				if tc.expectErr {
 					s.Require().Error(err)
+					if tc.errorIs != nil {
+						s.Require().ErrorIs(err, tc.errorIs)
+					}
 					s.Require().ErrorContains(err, tc.errorContains)
 
 					// Check the vote is not in the state
@@ -648,6 +656,32 @@ func (s *KeeperTestSuite) TestVotingNonRollapp() {
 		},
 	})
 	s.Require().Error(err)
+	s.Require().ErrorIs(err, gerrc.ErrInvalidArgument)
 	s.Require().ErrorContains(err, "voting is only allowed for rollapp gauges")
+	s.Require().Nil(voteResp)
+}
+
+func (s *KeeperTestSuite) TestVotingNonPerpetualGauge() {
+	s.CreateDefaultRollapp()
+	const gaugeID uint64 = 1
+	gauge, err := s.App.IncentivesKeeper.GetGaugeByID(s.Ctx, gaugeID)
+	s.Require().NoError(err)
+	gauge.IsPerpetual = false
+	s.Require().NoError(s.App.IncentivesKeeper.SetGauge(s.Ctx, gauge))
+
+	val := s.CreateValidator()
+	valAddr, err := sdk.ValAddressFromBech32(val.GetOperator())
+	s.Require().NoError(err)
+	del := s.CreateDelegator(valAddr, sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000)))
+	s.Require().NoError(s.App.SponsorshipKeeper.SaveDistribution(s.Ctx, types.NewDistribution()))
+
+	voteResp, err := s.msgServer.Vote(s.Ctx, &types.MsgVote{
+		Voter: del.GetDelegatorAddr(),
+		Weights: []types.GaugeWeight{
+			{GaugeId: gaugeID, Weight: types.DYM.MulRaw(50)},
+		},
+	})
+	s.Require().ErrorIs(err, gerrc.ErrInvalidArgument)
+	s.Require().ErrorContains(err, "gauge is not perpetual")
 	s.Require().Nil(voteResp)
 }
