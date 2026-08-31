@@ -67,7 +67,7 @@ func (f HLAssetFee) Validate() error {
 func (h AggregationHook) Validate() error {
 	if h.Owner != "" {
 		if _, err := sdk.AccAddressFromBech32(h.Owner); err != nil {
-			return fmt.Errorf("owner address is invalid: %s", err.Error())
+			return fmt.Errorf("owner address is invalid: %w", err)
 		}
 	}
 	return nil

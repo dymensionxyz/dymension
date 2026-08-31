@@ -1,6 +1,10 @@
 package types
 
 import (
+	"fmt"
+
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -32,7 +36,7 @@ func (m *MsgPlaceSellOrder) ValidateBasic() error {
 	so.ExpireAt = 1
 
 	if err := so.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order: %v", err.Error())
+		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("invalid order: %w", err))
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Owner); err != nil {

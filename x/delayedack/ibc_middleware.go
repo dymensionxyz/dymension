@@ -2,6 +2,9 @@ package delayedack
 
 import (
 	"errors"
+	"fmt"
+
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
@@ -133,7 +136,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	var ack channeltypes.Acknowledgement
 	if err := w.Keeper.Cdc().UnmarshalJSON(acknowledgement, &ack); err != nil {
 		l.Error("Unmarshal acknowledgement.", "err", err)
-		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err.Error())
+		return dymerrors.Join(types.ErrUnknownRequest, fmt.Errorf("unmarshal ICS-20 transfer packet acknowledgement: %w", err))
 	}
 
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_ACK)

@@ -532,7 +532,7 @@ func (s *KeeperTestSuite) Test_msgServer_PurchaseOrder_DymName() {
 			if tt.wantErr {
 				s.Require().Error(errPurchaseName, "action should be failed")
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
-				s.Require().Contains(errPurchaseName.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(errPurchaseName, tt.wantErrContains)
 				s.Require().Nil(resp)
 
 				s.Require().False(tt.wantOwnershipChanged, "mis-configured test case")

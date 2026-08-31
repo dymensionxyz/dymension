@@ -63,7 +63,7 @@ func TestHLAssetFee_Validate_OutboundBounds(t *testing.T) {
 			err := f.Validate()
 			if tt.wantErr != "" {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErr)
+				require.ErrorContains(t, err, tt.wantErr)
 			} else {
 				require.NoError(t, err)
 			}

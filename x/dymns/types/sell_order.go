@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	math "cosmossdk.io/math"
 
@@ -88,14 +90,14 @@ func (m *SellOrder) Validate() error {
 	} else if m.MinPrice.IsNegative() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO min price is negative")
 	} else if err := m.MinPrice.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO min price is invalid: %v", err.Error())
+		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("SO min price is invalid: %w", err))
 	}
 
 	if m.HasSetSellPrice() {
 		if m.SellPrice.IsNegative() {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO sell price is negative")
 		} else if err := m.SellPrice.Validate(); err != nil {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO sell price is invalid: %v", err.Error())
+			return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("SO sell price is invalid: %w", err))
 		}
 
 		if m.SellPrice.Denom != m.MinPrice.Denom {
@@ -110,7 +112,7 @@ func (m *SellOrder) Validate() error {
 	if m.HighestBid == nil {
 		// valid, means no bid yet
 	} else if err := m.HighestBid.Validate(m.AssetType); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO highest bid is invalid: %v", err.Error())
+		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("SO highest bid is invalid: %w", err))
 	} else if m.HighestBid.Price.IsLT(m.MinPrice) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO highest bid price is less than min price")
 	} else if m.HasSetSellPrice() && m.SellPrice.IsLT(m.HighestBid.Price) {
@@ -139,7 +141,7 @@ func (m *SellOrderBid) Validate(assetType AssetType) error {
 	} else if m.Price.IsNegative() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid price is negative")
 	} else if err := m.Price.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO bid price is invalid: %v", err.Error())
+		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("SO bid price is invalid: %w", err))
 	}
 
 	if err := ValidateOrderParams(m.Params, assetType); err != nil {

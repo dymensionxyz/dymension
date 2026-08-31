@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "Dym-Name: not-exists: not found")
+		s.Require().ErrorContains(err, "Dym-Name: not-exists: not found")
 	})
 
 	s.Run("fail - do not process message that type is Unknown", func() {
@@ -72,7 +72,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "invalid asset type")
+		s.Require().ErrorContains(err, "invalid asset type")
 	})
 
 	s.Run("fail - do not process that owner does not match", func() {
@@ -95,7 +95,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "not the owner of the Dym-Name")
+		s.Require().ErrorContains(err, "not the owner of the Dym-Name")
 	})
 
 	s.Run("fail - do not process for Dym-Name that does not have any SO", func() {
@@ -108,7 +108,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), fmt.Sprintf("Sell-Order: %s: not found", dymName1.Name))
+		s.Require().ErrorContains(err, fmt.Sprintf("Sell-Order: %s: not found", dymName1.Name))
 	})
 
 	s.Run("pass - cancel expired order", func() {
@@ -156,7 +156,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_DymName() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "cannot cancel once bid placed")
+		s.Require().ErrorContains(err, "cannot cancel once bid placed")
 	})
 
 	s.Run("pass - can cancel if satisfied conditions", func() {
@@ -245,7 +245,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "alias is not in-used: void: not found")
+		s.Require().ErrorContains(err, "alias is not in-used: void: not found")
 	})
 
 	s.Run("fail - do not process for Alias that does not have any SO", func() {
@@ -256,7 +256,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), fmt.Sprintf("Sell-Order: %s: not found", rollapp_1_ofOwner.alias))
+		s.Require().ErrorContains(err, fmt.Sprintf("Sell-Order: %s: not found", rollapp_1_ofOwner.alias))
 	})
 
 	s.Run("fail - do not process that owner does not match", func() {
@@ -279,7 +279,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "not the owner of the RollApp")
+		s.Require().ErrorContains(err, "not the owner of the RollApp")
 	})
 
 	s.Run("pass - cancel expired order", func() {
@@ -328,7 +328,7 @@ func (s *KeeperTestSuite) Test_msgServer_CancelSellOrder_Alias() {
 		})
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "cannot cancel once bid placed")
+		s.Require().ErrorContains(err, "cannot cancel once bid placed")
 	})
 
 	s.Run("pass - can cancel if satisfied conditions", func() {

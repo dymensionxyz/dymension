@@ -2,7 +2,10 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"slices"
+
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,10 +42,10 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	for _, denom := range allowedDenoms {
 		bondingCurve, _, err := m.GetCurveByLiquidityDenom(ctx, denom, standardLaunch)
 		if err != nil {
-			return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to get standard launch curve and graduation point: %v", err.Error())
+			return nil, dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("failed to get standard launch curve and graduation point: %w", err))
 		}
 		if err := bondingCurve.ValidateBasic(); err != nil {
-			return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err.Error())
+			return nil, dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("invalid bonding curve: %w", err))
 		}
 	}
 

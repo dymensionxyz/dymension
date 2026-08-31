@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -31,10 +33,10 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 	owner := sdk.MustAccAddressFromBech32(msg.Owner)
 	coins := sdk.NewCoins(fee)
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
-		return nil, errorsmod.Wrap(types.ErrRegistrationFeePayment, err.Error())
+		return nil, dymerrors.Join(types.ErrRegistrationFeePayment, err)
 	}
 	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
-		return nil, errorsmod.Wrap(types.ErrRegistrationFeePayment, err.Error())
+		return nil, dymerrors.Join(types.ErrRegistrationFeePayment, err)
 	}
 
 	agent := types.Agent{

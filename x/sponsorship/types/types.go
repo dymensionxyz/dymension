@@ -4,6 +4,8 @@ import (
 	"slices"
 	"sort"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -33,7 +35,7 @@ func (d Distribution) Validate() error {
 func (v Vote) Validate() error {
 	err := ValidateGaugeWeights(v.Weights)
 	if err != nil {
-		return ErrInvalidVote.Wrap(err.Error())
+		return dymerrors.Join(ErrInvalidVote, err)
 	}
 	if !v.VotingPower.IsPositive() {
 		return ErrInvalidVote.Wrapf("must be > 0, got %s", v.VotingPower)
@@ -59,7 +61,7 @@ func ValidateGaugeWeights(w []GaugeWeight) error {
 	for _, g := range w {
 		err := g.Validate()
 		if err != nil {
-			return ErrInvalidGaugeWeight.Wrap(err.Error())
+			return dymerrors.Join(ErrInvalidGaugeWeight, err)
 		}
 		if _, ok := gaugeIDs[g.GaugeId]; ok {
 			return ErrInvalidGaugeWeight.Wrapf("duplicated gauge id: %d", g.GaugeId)

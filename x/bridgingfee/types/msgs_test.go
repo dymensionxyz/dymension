@@ -7,6 +7,7 @@ import (
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,6 +33,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 		msg     MsgCreateBridgingFeeHook
 		wantErr bool
 		errMsg  string
+		errIs   error
 	}{
 		{
 			name: "valid message",
@@ -49,6 +51,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid bech32 address",
+			errIs:   sdkerrors.ErrInvalidAddress,
 		},
 		{
 			name: "duplicate fees",
@@ -88,6 +91,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "token id cannot be empty",
+			errIs:   ErrInvalidFee,
 		},
 		{
 			name: "invalid fee - negative inbound fee",
@@ -101,6 +105,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "inbound fee cannot be negative",
+			errIs:   ErrInvalidFee,
 		},
 		{
 			name: "invalid fee - negative outbound fee",
@@ -114,6 +119,7 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "outbound fee cannot be negative",
+			errIs:   ErrInvalidFee,
 		},
 	}
 
@@ -122,7 +128,10 @@ func TestMsgCreateBridgingFeeHook_ValidateBasic(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.errMsg)
+				if tt.errIs != nil {
+					require.ErrorIs(t, err, tt.errIs)
+				}
+				require.ErrorContains(t, err, tt.errMsg)
 			} else {
 				require.NoError(t, err)
 			}
@@ -145,6 +154,7 @@ func TestMsgSetBridgingFeeHook_ValidateBasic(t *testing.T) {
 		msg     MsgSetBridgingFeeHook
 		wantErr bool
 		errMsg  string
+		errIs   error
 	}{
 		{
 			name: "valid message",
@@ -179,6 +189,7 @@ func TestMsgSetBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid bech32 address",
+			errIs:   sdkerrors.ErrInvalidAddress,
 		},
 		{
 			name: "invalid new owner address",
@@ -191,6 +202,7 @@ func TestMsgSetBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid bech32 address",
+			errIs:   sdkerrors.ErrInvalidAddress,
 		},
 		{
 			name: "cannot both renounce ownership and set new owner",
@@ -203,6 +215,7 @@ func TestMsgSetBridgingFeeHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "cannot both renounce ownership and set new owner",
+			errIs:   ErrInvalidOwner,
 		},
 		{
 			name: "empty fees - allowed to disable all fees",
@@ -222,7 +235,10 @@ func TestMsgSetBridgingFeeHook_ValidateBasic(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.errMsg)
+				if tt.errIs != nil {
+					require.ErrorIs(t, err, tt.errIs)
+				}
+				require.ErrorContains(t, err, tt.errMsg)
 			} else {
 				require.NoError(t, err)
 			}
@@ -240,6 +256,7 @@ func TestMsgCreateAggregationHook_ValidateBasic(t *testing.T) {
 		msg     MsgCreateAggregationHook
 		wantErr bool
 		errMsg  string
+		errIs   error
 	}{
 		{
 			name: "valid message",
@@ -284,6 +301,7 @@ func TestMsgCreateAggregationHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid bech32 address",
+			errIs:   sdkerrors.ErrInvalidAddress,
 		},
 	}
 
@@ -292,7 +310,10 @@ func TestMsgCreateAggregationHook_ValidateBasic(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.errMsg)
+				if tt.errIs != nil {
+					require.ErrorIs(t, err, tt.errIs)
+				}
+				require.ErrorContains(t, err, tt.errMsg)
 			} else {
 				require.NoError(t, err)
 			}
@@ -312,6 +333,7 @@ func TestMsgSetAggregationHook_ValidateBasic(t *testing.T) {
 		msg     MsgSetAggregationHook
 		wantErr bool
 		errMsg  string
+		errIs   error
 	}{
 		{
 			name: "valid message",
@@ -368,6 +390,7 @@ func TestMsgSetAggregationHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid bech32 address",
+			errIs:   sdkerrors.ErrInvalidAddress,
 		},
 		{
 			name: "invalid new owner address",
@@ -380,6 +403,7 @@ func TestMsgSetAggregationHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid bech32 address",
+			errIs:   sdkerrors.ErrInvalidAddress,
 		},
 		{
 			name: "cannot both renounce ownership and set new owner",
@@ -392,6 +416,7 @@ func TestMsgSetAggregationHook_ValidateBasic(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "cannot both renounce ownership and set new owner",
+			errIs:   ErrInvalidOwner,
 		},
 	}
 
@@ -400,7 +425,10 @@ func TestMsgSetAggregationHook_ValidateBasic(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.errMsg)
+				if tt.errIs != nil {
+					require.ErrorIs(t, err, tt.errIs)
+				}
+				require.ErrorContains(t, err, tt.errMsg)
 			} else {
 				require.NoError(t, err)
 			}

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -36,7 +38,7 @@ func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfi
 func (msg *MsgFulfillOrder) ValidateBasic() error {
 	err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.FulfillerAddress)
 	if err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error()) // TODO: join
+		return dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 	return nil
 }
@@ -75,7 +77,7 @@ func (msg *MsgFulfillOrderAuthorized) ValidateBasic() error {
 	}
 
 	if err := validateCommon(msg.OrderId, msg.ExpectedFee, msg.OperatorFeeAddress, msg.LpAddress); err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	if !msg.Price.IsValid() {
@@ -116,7 +118,7 @@ func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemand
 func (m *MsgUpdateDemandOrder) ValidateBasic() error {
 	err := validateCommon(m.OrderId, m.NewFee, m.OwnerAddress)
 	if err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	return nil

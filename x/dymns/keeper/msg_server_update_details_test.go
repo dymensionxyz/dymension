@@ -660,7 +660,7 @@ func (s *KeeperTestSuite) Test_msgServer_UpdateDetails() {
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				s.Require().Nil(resp)
 
 				if tt.wantDymName != nil {
