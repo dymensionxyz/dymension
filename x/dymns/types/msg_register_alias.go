@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
 	errorsmod "cosmossdk.io/errors"
@@ -38,7 +36,7 @@ func (m *MsgRegisterAlias) ValidateBasic() error {
 	if m.ConfirmPayment.IsNil() || m.ConfirmPayment.IsZero() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "confirm payment is not set")
 	} else if err := m.ConfirmPayment.Validate(); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("invalid confirm payment: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "invalid confirm payment")
 	}
 
 	return nil

@@ -135,7 +135,7 @@ func (m *MsgClaimVested) ValidateBasic() error {
 func (m *MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
-		return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("authority '%s' must be a valid bech32 address: %w", m.Authority, err))
+		return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "authority '%s' must be a valid bech32 address", m.Authority)
 	}
 
 	err = m.NewParams.ValidateBasic()

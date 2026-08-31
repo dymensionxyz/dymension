@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
 	errorsmod "cosmossdk.io/errors"
@@ -22,7 +20,7 @@ func (m *MsgSetServiceRecord) ValidateBasic() error {
 
 	_, config := m.GetDymNameConfig()
 	if err := config.Validate(); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("config is invalid: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "config is invalid")
 	}
 
 	if !dymnsutils.IsValidBech32AccountAddress(m.Controller, true) {

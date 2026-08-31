@@ -1,8 +1,6 @@
 package denommetadata
 
 import (
-	"fmt"
-
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
 	errorsmod "cosmossdk.io/errors"
@@ -115,7 +113,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return dymerrors.Join(errortypes.ErrJSONUnmarshal, fmt.Errorf("unmarshal ICS-20 transfer packet acknowledgement: %w", err))
+		return dymerrors.Joinf(errortypes.ErrJSONUnmarshal, err, "unmarshal ICS-20 transfer packet acknowledgement")
 	}
 
 	if !ack.Success() {
@@ -124,7 +122,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.GetSourcePort(), packet.GetSourceChannel())
 	if err != nil {
-		return dymerrors.Join(errortypes.ErrInvalidRequest, fmt.Errorf("get valid transfer data: %w", err))
+		return dymerrors.Joinf(errortypes.ErrInvalidRequest, err, "get valid transfer data")
 	}
 
 	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
@@ -150,12 +148,12 @@ func (im IBCModule) OnAcknowledgementPacket(
 	// TODO: simplify: can do with just Set*
 	has, err := im.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, dm.Base)
 	if err != nil {
-		return dymerrors.Join(errortypes.ErrKeyNotFound, fmt.Errorf("check if rollapp has registered denom: %w", err))
+		return dymerrors.Joinf(errortypes.ErrKeyNotFound, err, "check if rollapp has registered denom")
 	}
 	if !has {
 		// add the new token denom base to the list of rollapp's registered denoms
 		if err = im.rollappKeeper.SetRegisteredDenom(ctx, rollapp.RollappId, dm.Base); err != nil {
-			return dymerrors.Join(errortypes.ErrKeyNotFound, fmt.Errorf("set registered denom: %w", err))
+			return dymerrors.Joinf(errortypes.ErrKeyNotFound, err, "set registered denom")
 		}
 	}
 
@@ -198,7 +196,7 @@ func (m *ICS4Wrapper) SendPacket(
 ) (sequence uint64, err error) {
 	packet := new(transfertypes.FungibleTokenPacketData)
 	if err = transfertypes.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
-		return 0, dymerrors.Join(errortypes.ErrJSONUnmarshal, fmt.Errorf("unmarshal ICS-20 transfer packet data: %w", err))
+		return 0, dymerrors.Joinf(errortypes.ErrJSONUnmarshal, err, "unmarshal ICS-20 transfer packet data")
 	}
 
 	if types.MemoHasPacketMetadata(packet.Memo) {
@@ -207,7 +205,7 @@ func (m *ICS4Wrapper) SendPacket(
 
 	transferData, err := m.rollappKeeper.GetValidTransfer(ctx, data, sourcePort, sourceChannel)
 	if err != nil {
-		return 0, dymerrors.Join(errortypes.ErrInvalidRequest, fmt.Errorf("get valid transfer data: %w", err))
+		return 0, dymerrors.Joinf(errortypes.ErrInvalidRequest, err, "get valid transfer data")
 	}
 
 	rollapp := transferData.Rollapp
@@ -235,7 +233,7 @@ func (m *ICS4Wrapper) SendPacket(
 
 	has, err := m.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, baseDenom)
 	if err != nil {
-		return 0, dymerrors.Join(errortypes.ErrKeyNotFound, fmt.Errorf("check if rollapp has registered denom: %w", err))
+		return 0, dymerrors.Joinf(errortypes.ErrKeyNotFound, err, "check if rollapp has registered denom")
 	}
 	if has {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
@@ -249,12 +247,12 @@ func (m *ICS4Wrapper) SendPacket(
 
 	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
 	if err != nil {
-		return 0, dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("add denom metadata to memo: %w", err))
+		return 0, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "add denom metadata to memo")
 	}
 
 	data, err = transfertypes.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
-		return 0, dymerrors.Join(errortypes.ErrJSONMarshal, fmt.Errorf("marshal ICS-20 transfer packet data: %w", err))
+		return 0, dymerrors.Joinf(errortypes.ErrJSONMarshal, err, "marshal ICS-20 transfer packet data")
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)

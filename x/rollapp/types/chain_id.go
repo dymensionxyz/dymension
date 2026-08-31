@@ -57,7 +57,7 @@ func NewChainID(id string) (ChainID, error) {
 
 	revision, err := strconv.ParseUint(matches[3], 0, 64)
 	if err != nil {
-		return ChainID{}, dymerrors.Join(ErrInvalidRollappID, fmt.Errorf("parse revision number: error: %w", err))
+		return ChainID{}, dymerrors.Joinf(ErrInvalidRollappID, err, "parse revision number: error")
 	}
 
 	return ChainID{

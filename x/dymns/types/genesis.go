@@ -2,7 +2,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
 
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
@@ -21,13 +20,13 @@ func DefaultGenesis() *GenesisState {
 // Validate checks if the GenesisState is valid.
 func (m GenesisState) Validate() error {
 	if err := (&m.Params).Validate(); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("params: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "params")
 	}
 
 	uniqueNames := make(map[string]struct{})
 	for _, dymName := range m.DymNames {
 		if err := dymName.Validate(); err != nil {
-			return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("Dym-Name '%s': %w", dymName.Name, err))
+			return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "Dym-Name '%s'", dymName.Name)
 		}
 		if _, duplicated := uniqueNames[dymName.Name]; duplicated {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name '%s': duplicate name", dymName.Name)
@@ -38,13 +37,13 @@ func (m GenesisState) Validate() error {
 	for _, soBid := range m.SellOrderBids {
 		soBid.Params = nil // treat it as refund name orders
 		if err := soBid.Validate(TypeName); err != nil {
-			return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("Sell-Order-Bid by '%s': %w", soBid.Bidder, err))
+			return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "Sell-Order-Bid by '%s'", soBid.Bidder)
 		}
 	}
 
 	for _, bo := range m.BuyOrders {
 		if err := bo.Validate(); err != nil {
-			return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("Buy-Order by '%s': %w", bo.Buyer, err))
+			return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "Buy-Order by '%s'", bo.Buyer)
 		}
 	}
 

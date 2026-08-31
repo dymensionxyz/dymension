@@ -156,13 +156,13 @@ func NewParams(
 // Validate checks that the parameters have valid values.
 func (m *Params) Validate() error {
 	if err := m.Price.Validate(); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("price params: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "price params")
 	}
 	if err := m.Chains.Validate(); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("chains params: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "chains params")
 	}
 	if err := m.Misc.Validate(); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("misc params: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "misc params")
 	}
 	return nil
 }
@@ -393,7 +393,7 @@ func validateMiscParams(i any) error {
 	}
 
 	if err := validateEpochIdentifier(m.EndEpochHookIdentifier); err != nil {
-		return dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("end epoch hook identifier: %w", err))
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "end epoch hook identifier")
 	}
 
 	const minGracePeriodDuration = 30 * // number of days

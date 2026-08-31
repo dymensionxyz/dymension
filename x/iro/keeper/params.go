@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
@@ -42,10 +41,10 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	for _, denom := range allowedDenoms {
 		bondingCurve, _, err := m.GetCurveByLiquidityDenom(ctx, denom, standardLaunch)
 		if err != nil {
-			return nil, dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("failed to get standard launch curve and graduation point: %w", err))
+			return nil, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to get standard launch curve and graduation point")
 		}
 		if err := bondingCurve.ValidateBasic(); err != nil {
-			return nil, dymerrors.Join(gerrc.ErrInvalidArgument, fmt.Errorf("invalid bonding curve: %w", err))
+			return nil, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "invalid bonding curve")
 		}
 	}
 

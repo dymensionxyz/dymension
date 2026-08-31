@@ -20,14 +20,14 @@ var (
 func (m MsgCreateBridgingFeeHook) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
-		return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("owner '%s' must be a valid bech32 address: %w", m.Owner, err))
+		return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "owner '%s' must be a valid bech32 address", m.Owner)
 	}
 
 	// Validate each fee configuration (empty fees are allowed to disable all fees)
 	feeSet := make(map[util.HexAddress]struct{}, len(m.Fees))
 	for i, fee := range m.Fees {
 		if err := fee.Validate(); err != nil {
-			return dymerrors.Join(ErrInvalidFee, fmt.Errorf("invalid fee at index %d: %w", i, err))
+			return dymerrors.Joinf(ErrInvalidFee, err, "invalid fee at index %d", i)
 		}
 
 		if _, ok := feeSet[fee.TokenId]; ok {
@@ -42,14 +42,14 @@ func (m MsgCreateBridgingFeeHook) ValidateBasic() error {
 func (m MsgSetBridgingFeeHook) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
-		return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("owner '%s' must be a valid bech32 address: %w", m.Owner, err))
+		return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "owner '%s' must be a valid bech32 address", m.Owner)
 	}
 
 	// Validate new owner if ownership transfer is requested
 	if !m.RenounceOwnership && m.NewOwner != "" {
 		_, err := sdk.AccAddressFromBech32(m.NewOwner)
 		if err != nil {
-			return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("new_owner '%s' must be a valid bech32 address: %w", m.NewOwner, err))
+			return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "new_owner '%s' must be a valid bech32 address", m.NewOwner)
 		}
 	}
 
@@ -61,7 +61,7 @@ func (m MsgSetBridgingFeeHook) ValidateBasic() error {
 	// Validate each fee configuration (empty fees are allowed to disable all fees)
 	for i, fee := range m.Fees {
 		if err := fee.Validate(); err != nil {
-			return dymerrors.Join(ErrInvalidFee, fmt.Errorf("invalid fee at index %d: %w", i, err))
+			return dymerrors.Joinf(ErrInvalidFee, err, "invalid fee at index %d", i)
 		}
 	}
 
@@ -71,7 +71,7 @@ func (m MsgSetBridgingFeeHook) ValidateBasic() error {
 func (m MsgCreateAggregationHook) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
-		return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("owner '%s' must be a valid bech32 address: %w", m.Owner, err))
+		return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "owner '%s' must be a valid bech32 address", m.Owner)
 	}
 	return nil
 }
@@ -79,14 +79,14 @@ func (m MsgCreateAggregationHook) ValidateBasic() error {
 func (m MsgSetAggregationHook) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
-		return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("owner '%s' must be a valid bech32 address: %w", m.Owner, err))
+		return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "owner '%s' must be a valid bech32 address", m.Owner)
 	}
 
 	// Validate new owner if ownership transfer is requested
 	if !m.RenounceOwnership && m.NewOwner != "" {
 		_, err := sdk.AccAddressFromBech32(m.NewOwner)
 		if err != nil {
-			return dymerrors.Join(sdkerrors.ErrInvalidAddress, fmt.Errorf("new_owner '%s' must be a valid bech32 address: %w", m.NewOwner, err))
+			return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "new_owner '%s' must be a valid bech32 address", m.NewOwner)
 		}
 	}
 
