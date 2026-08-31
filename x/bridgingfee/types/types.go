@@ -3,9 +3,12 @@ package types
 import (
 	"fmt"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	"cosmossdk.io/math"
 	"github.com/bcp-innovations/hyperlane-cosmos/util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NormInt normalizes a possibly-nil math.Int to zero. Fields persisted before
@@ -67,7 +70,7 @@ func (f HLAssetFee) Validate() error {
 func (h AggregationHook) Validate() error {
 	if h.Owner != "" {
 		if _, err := sdk.AccAddressFromBech32(h.Owner); err != nil {
-			return fmt.Errorf("owner address is invalid: %w", err)
+			return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "owner address is invalid")
 		}
 	}
 	return nil
