@@ -130,3 +130,19 @@ func TestResolveHLForwardAmountRejectsInvalidFee(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveHLForwardAmountLegacyRejectsMissingAmounts(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		amount, fee math.Int
+	}{
+		{"missing fee", math.NewInt(80), math.Int{}},
+		{"negative fee", math.NewInt(80), math.NewInt(-1)},
+		{"missing amount", math.Int{}, math.NewInt(10)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			hook := &HookForwardToHL{HyperlaneTransfer: &warptypes.MsgRemoteTransfer{Amount: tc.amount, MaxFee: sdk.Coin{Denom: "adym", Amount: tc.fee}}}
+			require.NotPanics(t, func() { _, err := ResolveHLForwardAmount(sdk.NewInt64Coin("adym", 100), hook); require.Error(t, err) })
+		})
+	}
+}

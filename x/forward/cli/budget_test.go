@@ -26,6 +26,7 @@ func TestHyperlaneBudgetFlags(t *testing.T) {
 		{"full budget", "80", true, false},
 		{"invalid floor", "abc", true, true},
 		{"negative floor", "-1", true, true},
+		{"inactive positive floor", "80", false, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := CmdCreateMemo()
@@ -101,4 +102,10 @@ func TestCreateAndDecodeFullBudgetMemo(t *testing.T) {
 			require.Contains(t, displayed, "Min Amount:         80")
 		})
 	}
+}
+
+func TestLegacyBudgetFloorDisplay(t *testing.T) {
+	hook := forwardtypes.NewHookForwardToHL(hyperutil.HexAddress{}, 1, hyperutil.HexAddress{}, math.NewInt(100), sdk.NewInt64Coin("adym", 10), math.ZeroInt(), nil, "", false, math.NewInt(80))
+	output := captureBudgetOutput(t, func() error { printForwardToHL(hook); return nil })
+	require.Contains(t, output, "Min Amount:         80 (inactive; requires use_full_budget)")
 }

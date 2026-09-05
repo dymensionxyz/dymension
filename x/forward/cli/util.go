@@ -287,7 +287,7 @@ func addTokenFlags(cmd *cobra.Command) {
 
 func addHyperlaneFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(FlagUseFullBudget, false, "Forward the arriving budget minus max-fee, ignoring the fixed forward amount")
-	cmd.Flags().String(FlagMinAmount, "0", "Minimum amount to forward with use-full-budget (base units; zero means no floor)")
+	cmd.Flags().String(FlagMinAmount, "0", "Minimum amount to forward (base units; positive values require --use-full-budget; zero means no floor)")
 	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce for ordering/uniqueness")
 	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID (deprecated, use --dst-domain)")
 	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source chain domain ID (e.g., 1260813472 for Dymension Hub)")
@@ -371,6 +371,10 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 	params.MinAmount, ok = math.NewIntFromString(minAmountS)
 	if !ok || params.MinAmount.IsNegative() {
 		return nil, fmt.Errorf("invalid min amount: %s", minAmountS)
+	}
+
+	if params.MinAmount.IsPositive() && !params.UseFullBudget {
+		return nil, fmt.Errorf("min-amount requires --use-full-budget")
 	}
 
 	params.Nonce, _ = cmd.Flags().GetUint32(FlagNonce)

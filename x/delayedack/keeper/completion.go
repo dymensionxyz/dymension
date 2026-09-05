@@ -38,6 +38,10 @@ func (k Keeper) RunOrderCompletionHook(ctx sdk.Context, o *eibctypes.DemandOrder
 	return k.RunCompletionHook(ctx, fundsSrc, budget, *o.CompletionHook)
 }
 
+// RunCompletionHook invokes a hook with the amount credited by the triggering transfer,
+// net of fees already charged. Callers must supply that net budget, excluding
+// any pre-existing recipient balance: the eIBC order price on fulfillment, or
+// the received packet amount minus the RollApp bridging fee on IBC completion.
 func (k Keeper) RunCompletionHook(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error {
 	f, ok := k.completionHooks[call.Name]
 	if !ok {

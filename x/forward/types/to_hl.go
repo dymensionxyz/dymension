@@ -138,15 +138,18 @@ func ResolveHLForwardAmount(budget sdk.Coin, d *HookForwardToHL) (math.Int, erro
 	if mt.MaxFee.Denom != budget.Denom {
 		return math.Int{}, gerrc.ErrInvalidArgument.Wrapf("max fee denom does not match allowed denom: %s != %s", mt.MaxFee.Denom, budget.Denom)
 	}
+	if mt.MaxFee.Amount.IsNil() || mt.MaxFee.Amount.IsNegative() {
+		return math.Int{}, gerrc.ErrInvalidArgument.Wrap("max fee amount must be non-negative")
+	}
 	if !d.UseFullBudget {
+		if mt.Amount.IsNil() {
+			return math.Int{}, gerrc.ErrInvalidArgument.Wrap("transfer amount must be set")
+		}
 		maxCost := mt.MaxFee.Amount.Add(mt.Amount)
 		if maxCost.GT(budget.Amount) {
 			return math.Int{}, gerrc.ErrInvalidArgument.Wrapf("max cost (fee + amount)exceeds max budget %s > %s", maxCost, budget.Amount)
 		}
 		return mt.Amount, nil
-	}
-	if mt.MaxFee.Amount.IsNil() || mt.MaxFee.Amount.IsNegative() {
-		return math.Int{}, gerrc.ErrInvalidArgument.Wrap("max fee amount must be non-negative")
 	}
 	send := budget.Amount.Sub(mt.MaxFee.Amount)
 	if !send.IsPositive() {

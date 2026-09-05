@@ -229,6 +229,9 @@ func printForwardToHL(m *types.HookForwardToHL) {
 	if !m.MinAmount.IsNil() {
 		minAmount = m.MinAmount.String()
 	}
+	if !m.UseFullBudget {
+		minAmount += " (inactive; requires use_full_budget)"
+	}
 	fmt.Printf("  Min Amount:         %s\n", minAmount)
 	if !t.GasLimit.IsNil() && !t.GasLimit.IsZero() {
 		fmt.Printf("  Gas Limit:          %s\n", t.GasLimit.String())
