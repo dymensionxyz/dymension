@@ -68,12 +68,9 @@ func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, bu
 	if token.OriginDenom != budget.Denom {
 		return gerrc.ErrInvalidArgument.Wrapf("token denom does not match allowed denom: %s != %s", token.OriginDenom, budget.Denom)
 	}
-	if d.HyperlaneTransfer.MaxFee.Denom != budget.Denom {
-		return gerrc.ErrInvalidArgument.Wrapf("max fee denom does not match allowed denom: %s != %s", d.HyperlaneTransfer.MaxFee.Denom, budget.Denom)
-	}
-	maxCost := d.HyperlaneTransfer.MaxFee.Amount.Add(d.HyperlaneTransfer.Amount)
-	if maxCost.GT(budget.Amount) {
-		return gerrc.ErrInvalidArgument.Wrapf("max cost (fee + amount)exceeds max budget %s > %s", maxCost, budget.Amount)
+	sendAmt, err := types.ResolveHLForwardAmount(budget, &d)
+	if err != nil {
+		return errorsmod.Wrap(err, "resolve hl forward amount")
 	}
 
 	m := &warptypes.MsgRemoteTransfer{
@@ -81,7 +78,7 @@ func (k Forward) forwardToHyperlane(ctx sdk.Context, fundsSrc sdk.AccAddress, bu
 		TokenId:           d.HyperlaneTransfer.TokenId,
 		DestinationDomain: d.HyperlaneTransfer.DestinationDomain,
 		Recipient:         d.HyperlaneTransfer.Recipient,
-		Amount:            d.HyperlaneTransfer.Amount,
+		Amount:            sendAmt,
 
 		GasLimit: d.HyperlaneTransfer.GasLimit,
 		MaxFee:   d.HyperlaneTransfer.MaxFee,

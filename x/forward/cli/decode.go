@@ -224,6 +224,12 @@ func printForwardToHL(m *types.HookForwardToHL) {
 	fmt.Printf("  Recipient:          %s\n", util.EncodeEthHex(t.Recipient[:]))
 	fmt.Printf("  Amount:             %s\n", t.Amount.String())
 	fmt.Printf("  Max Fee:            %s\n", t.MaxFee.String())
+	fmt.Printf("  Use Full Budget:    %t\n", m.UseFullBudget)
+	minAmount := "0"
+	if !m.MinAmount.IsNil() {
+		minAmount = m.MinAmount.String()
+	}
+	fmt.Printf("  Min Amount:         %s\n", minAmount)
 	if !t.GasLimit.IsNil() && !t.GasLimit.IsZero() {
 		fmt.Printf("  Gas Limit:          %s\n", t.GasLimit.String())
 	}
