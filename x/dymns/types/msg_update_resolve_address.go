@@ -1,6 +1,8 @@
 package types
 
 import (
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -22,7 +24,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 
 	_, config := m.GetDymNameConfig()
 	if err := config.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "config is invalid: %v", err.Error())
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "config is invalid")
 	}
 
 	if m.ChainId == "" {

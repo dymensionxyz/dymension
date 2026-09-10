@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,10 +62,10 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 		coins := sdk.NewCoins(p.ValidationRequestFee)
 		requester := sdk.MustAccAddressFromBech32(msg.Requester)
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleName, coins); err != nil {
-			return nil, errorsmod.Wrap(types.ErrValidationFeePayment, err.Error())
+			return nil, dymerrors.Join(types.ErrValidationFeePayment, err)
 		}
 		if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
-			return nil, errorsmod.Wrap(types.ErrValidationFeePayment, err.Error())
+			return nil, dymerrors.Join(types.ErrValidationFeePayment, err)
 		}
 	}
 	req := types.ValidationRequest{RequestHash: msg.RequestHash, Requester: msg.Requester, ValidatorId: msg.ValidatorId, AgentId: msg.AgentId, EvidenceSeq: msg.EvidenceSeq, RequestUri: msg.RequestUri, Height: ctx.BlockHeight(), Time: ctx.BlockTime()}

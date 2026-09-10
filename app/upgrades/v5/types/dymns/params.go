@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 
@@ -204,13 +206,13 @@ func NewParams(
 // Validate checks that the parameters have valid values.
 func (m *Params) Validate() error {
 	if err := m.Price.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "price params: %v", err.Error())
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "price params")
 	}
 	if err := m.Chains.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "chains params: %v", err.Error())
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "chains params")
 	}
 	if err := m.Misc.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "misc params: %v", err.Error())
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "misc params")
 	}
 	return nil
 }
@@ -441,7 +443,7 @@ func validateMiscParams(i any) error {
 	}
 
 	if err := validateEpochIdentifier(m.EndEpochHookIdentifier); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "end epoch hook identifier: %v", err.Error())
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "end epoch hook identifier")
 	}
 
 	const minGracePeriodDuration = 30 * // number of days

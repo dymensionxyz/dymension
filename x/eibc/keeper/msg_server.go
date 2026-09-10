@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -99,7 +101,7 @@ func (m msgServer) FulfillOrderAuthorized(goCtx context.Context, msg *types.MsgF
 
 	// check compat between the fulfillment and current order and packet status
 	if err := m.validateOrder(ctx, demandOrder, msg); err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, err.Error())
+		return nil, dymerrors.Join(sdkerrors.ErrUnauthorized, err)
 	}
 
 	demandOrder.ApplyEffectiveFee(uint64(ctx.BlockHeight())) //nolint:gosec

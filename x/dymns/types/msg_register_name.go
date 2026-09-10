@@ -1,6 +1,8 @@
 package types
 
 import (
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -34,7 +36,7 @@ func (m *MsgRegisterName) ValidateBasic() error {
 	if m.ConfirmPayment.IsNil() || m.ConfirmPayment.IsZero() {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "confirm payment is not set")
 	} else if err := m.ConfirmPayment.Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid confirm payment: %v", err.Error())
+		return dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "invalid confirm payment")
 	}
 
 	if len(m.Contact) > MaxDymNameContactLength {

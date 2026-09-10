@@ -1620,7 +1620,7 @@ func (s *KeeperTestSuite) Test_queryServer_ReverseResolveAddress() {
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				s.Require().Nil(resp)
 				return
 			}
@@ -2815,7 +2815,7 @@ func (s *KeeperTestSuite) Test_queryServer_Alias() {
 			if tt.wantErr {
 				s.Require().Error(err)
 				s.Require().Nil(resp)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
@@ -2948,7 +2948,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOrdersByAlias() {
 			if tt.wantErr {
 				s.Require().Error(err)
 				s.Require().Nil(resp)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
@@ -3163,7 +3163,7 @@ func (s *KeeperTestSuite) Test_queryServer_BuyOffersOfAliasesLinkedToRollApp() {
 			if tt.wantErr {
 				s.Require().Error(err)
 				s.Require().Nil(resp)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
@@ -3461,7 +3461,7 @@ func (s *KeeperTestSuite) Test_queryServer_Aliases() {
 		resp, err := dymnskeeper.NewQueryServerImpl(s.dymNsKeeper).Aliases(sdk.WrapSDKContext(s.ctx), nil)
 		s.Require().Error(err)
 		s.Require().Nil(resp)
-		s.Require().Contains(err.Error(), "invalid request")
+		s.Require().ErrorContains(err, "invalid request")
 	})
 }
 

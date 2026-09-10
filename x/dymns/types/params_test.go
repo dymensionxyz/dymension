@@ -224,7 +224,7 @@ func TestPriceParams_Validate(t *testing.T) {
 					p := test.modifier(DefaultPriceParams(), badPrice)
 					err := (&p).Validate()
 					require.Error(t, err)
-					require.Contains(t, err.Error(), "must be at least")
+					require.ErrorContains(t, err, "must be at least")
 				})
 			}
 		}
@@ -411,7 +411,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				require.ErrorContains(t, err, tt.wantErrContains)
 				return
 			}
 
@@ -517,7 +517,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				require.ErrorContains(t, err, tt.wantErrContains)
 				return
 			}
 

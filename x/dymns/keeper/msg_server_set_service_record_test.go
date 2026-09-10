@@ -205,7 +205,7 @@ func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_Rejections() {
 
 			_, err := dymnskeeper.NewMsgServerImpl(s.dymNsKeeper).SetServiceRecord(s.ctx, tt.msg)
 			s.Require().Error(err)
-			s.Require().Contains(err.Error(), tt.wantErrPart)
+			s.Require().ErrorContains(err, tt.wantErrPart)
 		})
 	}
 }
@@ -242,7 +242,7 @@ func (s *KeeperTestSuite) Test_msgServer_SetServiceRecord_ExpiredName() {
 		Value:      "https://mcp.example.com",
 	})
 	s.Require().Error(err)
-	s.Require().Contains(err.Error(), "expired")
+	s.Require().ErrorContains(err, "expired")
 }
 
 // Test_ServiceRecord_NotAnAddress verifies a service record is invisible to address

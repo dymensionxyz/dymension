@@ -377,7 +377,7 @@ func TestFulfillOrderAuthorization_Accept(t *testing.T) {
 
 			if tc.expectedError != "" {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tc.expectedError)
+				require.ErrorContains(t, err, tc.expectedError)
 				require.False(t, resp.Accept)
 			} else {
 				require.NoError(t, err)
@@ -544,7 +544,7 @@ func TestFulfillOrderAuthorization_ValidateBasic(t *testing.T) {
 
 			if tc.expectedError != "" {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tc.expectedError)
+				require.ErrorContains(t, err, tc.expectedError)
 			} else {
 				require.NoError(t, err)
 			}

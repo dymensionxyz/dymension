@@ -197,7 +197,7 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				suite.NoError(err, "Test case %s failed unexpectedly", tc.name)
 			} else {
 				suite.Error(err, "Test case %s expected error but got none", tc.name)
-				suite.Contains(err.Error(), tc.expectedError, "Test case %s error message mismatch", tc.name)
+				suite.ErrorContains(err, tc.expectedError, "Test case %s error message mismatch", tc.name)
 			}
 		})
 	}
