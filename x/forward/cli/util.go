@@ -27,9 +27,11 @@ const (
 	FlagSrc      = "src"
 	FlagDst      = "dst"
 
-	FlagTokenID = "token-id"
-	FlagAmount  = "amount"
-	FlagMaxFee  = "max-fee"
+	FlagTokenID       = "token-id"
+	FlagAmount        = "amount"
+	FlagMaxFee        = "max-fee"
+	FlagUseFullBudget = "use-full-budget"
+	FlagMinAmount     = "min-amount"
 
 	FlagDomain    = "domain"
 	FlagSrcDomain = "src-domain"
@@ -88,6 +90,8 @@ type TokenParams struct {
 }
 
 type HyperlaneParams struct {
+	UseFullBudget  bool
+	MinAmount      math.Int
 	TokenID        util.HexAddress
 	Amount         math.Int
 	RecipientFunds util.HexAddress
@@ -282,6 +286,8 @@ func addTokenFlags(cmd *cobra.Command) {
 }
 
 func addHyperlaneFlags(cmd *cobra.Command) {
+	cmd.Flags().Bool(FlagUseFullBudget, false, "Forward the arriving budget minus max-fee, ignoring the fixed forward amount")
+	cmd.Flags().String(FlagMinAmount, "0", "Minimum amount to forward (base units; positive values require --use-full-budget; zero means no floor)")
 	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce for ordering/uniqueness")
 	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID (deprecated, use --dst-domain)")
 	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source chain domain ID (e.g., 1260813472 for Dymension Hub)")
@@ -358,6 +364,18 @@ func parseTokenFlagsWithContext(cmd *cobra.Command, skipRecipient bool) (*TokenP
 func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 	var params HyperlaneParams
 	var err error
+
+	params.UseFullBudget, _ = cmd.Flags().GetBool(FlagUseFullBudget)
+	minAmountS, _ := cmd.Flags().GetString(FlagMinAmount)
+	var ok bool
+	params.MinAmount, ok = math.NewIntFromString(minAmountS)
+	if !ok || params.MinAmount.IsNegative() {
+		return nil, fmt.Errorf("invalid min amount: %s", minAmountS)
+	}
+
+	if params.MinAmount.IsPositive() && !params.UseFullBudget {
+		return nil, fmt.Errorf("min-amount requires --use-full-budget")
+	}
 
 	params.Nonce, _ = cmd.Flags().GetUint32(FlagNonce)
 	params.Domain, _ = cmd.Flags().GetUint32(FlagDomain)
@@ -492,6 +510,8 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			math.ZeroInt(),
 			nil,
 			"",
+			hlParams.UseFullBudget,
+			hlParams.MinAmount,
 		)
 
 		// Validate the created hook to ensure all required fields are populated
@@ -609,6 +629,8 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			math.ZeroInt(),
 			nil,
 			"",
+			hlParams.UseFullBudget,
+			hlParams.MinAmount,
 		)
 
 		if common.Readable {
@@ -716,6 +738,9 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 		}
 
 		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
+		if hlParams.UseFullBudget && dstAmountS == "" {
+			dstAmountS = "0"
+		}
 		dstAmount, ok := math.NewIntFromString(dstAmountS)
 		if !ok {
 			return fmt.Errorf("invalid destination amount")
@@ -730,6 +755,8 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 			math.ZeroInt(),
 			nil,
 			"",
+			hlParams.UseFullBudget,
+			hlParams.MinAmount,
 		)
 
 		hookBz, err := proto.Marshal(hook)
@@ -830,6 +857,9 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 		// - hlParams.RecipientFunds is the final recipient on the destination Hyperlane chain
 		// Need to get destination amount (what the final recipient will receive)
 		dstAmountS, _ := cmd.Flags().GetString(FlagDstAmount)
+		if hlParams.UseFullBudget && dstAmountS == "" {
+			dstAmountS = "0"
+		}
 		dstAmount, ok := math.NewIntFromString(dstAmountS)
 		if !ok {
 			return fmt.Errorf("invalid destination amount")
@@ -844,6 +874,8 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 			math.ZeroInt(),
 			nil,
 			"",
+			hlParams.UseFullBudget,
+			hlParams.MinAmount,
 		)
 
 		m, err = MakeForwardToHLHyperlaneMessage(
@@ -1170,7 +1202,7 @@ func validateHookForwardToHL(hook *types.HookForwardToHL) error {
 			return fmt.Errorf("recipient address is required for Hyperlane forwarding")
 		}
 
-		if hook.HyperlaneTransfer.Amount.IsNil() || hook.HyperlaneTransfer.Amount.IsZero() {
+		if !hook.UseFullBudget && (hook.HyperlaneTransfer.Amount.IsNil() || hook.HyperlaneTransfer.Amount.IsZero()) {
 			return fmt.Errorf("amount must be greater than zero for Hyperlane forwarding")
 		}
 

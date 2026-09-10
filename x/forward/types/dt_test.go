@@ -29,6 +29,8 @@ func TestMakeRolForwardToHLMemoString(t *testing.T) {
 		gasLimit,
 		customHookId,
 		customHookMetadata,
+		false,
+		math.ZeroInt(),
 	)
 
 	_, err := MakeRolForwardToHLMemoString(eibcFee, hook)

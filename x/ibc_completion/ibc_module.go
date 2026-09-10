@@ -53,6 +53,7 @@ type RolKeeper interface {
 }
 
 type DackKeeper interface {
+	BridgingFeeFromAmt(ctx sdk.Context, transferAmt math.Int) math.Int
 	ValidateCompletionHook(info commontypes.CompletionHookCall) error
 	RunCompletionHook(ctx sdk.Context, fundsSrc sdk.AccAddress, budget sdk.Coin, call commontypes.CompletionHookCall) error
 }
@@ -150,6 +151,11 @@ func (m IBCModule) getCompletionHookToRun(ctx sdk.Context, packet channeltypes.P
 	fundsSrc, err := sdk.AccAddressFromBech32(transfer.Receiver)
 	if err != nil {
 		return completionHookRunnable{}, fmt.Errorf("invalid recipient address: %w", err)
+	}
+	// The wrapped transfer stack charges RollApp bridging fees before the hook.
+	// Non-RollApp transfers do not pay this fee.
+	if transfer.IsRollapp() {
+		amt = amt.Sub(m.dackK.BridgingFeeFromAmt(ctx, amt))
 	}
 	budget := sdk.NewCoin(denom, amt)
 	return completionHookRunnable{
