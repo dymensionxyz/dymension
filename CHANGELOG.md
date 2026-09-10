@@ -6,6 +6,7 @@
 
 ### Bug Fixes
 
+* **agent:** bound validation responses per request ([#2205](https://github.com/dymensionxyz/dymension/issues/2205)) ([03a65c6](https://github.com/dymensionxyz/dymension/commit/03a65c67a68b775815d30dff7130f823babdd14e))
 * **bridgingfee:** add CLI guards against empty field updates ([#2130](https://github.com/dymensionxyz/dymension/issues/2130)) ([58abdae](https://github.com/dymensionxyz/dymension/commit/58abdae600c5fa6b7210ca70192f0e46a4fe0ff5))
 * **eibc:** derive on-demand LP shuffle seed ([#2195](https://github.com/dymensionxyz/dymension/issues/2195)) ([28618e9](https://github.com/dymensionxyz/dymension/commit/28618e97825b80e64f88ba24ec04f79b2c333317))
 * **eibc:** honor agent policy revocation ([#2193](https://github.com/dymensionxyz/dymension/issues/2193)) ([5b69a41](https://github.com/dymensionxyz/dymension/commit/5b69a417f16a956e6dd063e895fe0a9e77a1a629))
@@ -27,6 +28,7 @@
 * **agent:** timelocked agent policy rotation (MsgUpdateAgentPolicy) ([#2176](https://github.com/dymensionxyz/dymension/issues/2176)) ([ed58cd3](https://github.com/dymensionxyz/dymension/commit/ed58cd34af89dffc5342da90a2c71e2169754bfc))
 * **bridgingfee:** per-asset min/max outbound fee bounds ([#2174](https://github.com/dymensionxyz/dymension/issues/2174)) ([5bf9013](https://github.com/dymensionxyz/dymension/commit/5bf90137c11208c3590ea040aa8ce070ac97d446)), closes [hi#frequency](https://github.com/hi/issues/frequency)
 * **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
+* **dymns:** bind agent service records ([#2206](https://github.com/dymensionxyz/dymension/issues/2206)) ([dc5c987](https://github.com/dymensionxyz/dymension/commit/dc5c987f2d997bc4204d9c4b9da60456a92002ce))
 * **dymns:** typed service/endpoint records (DCT_SERVICE) for agent discovery ([#2172](https://github.com/dymensionxyz/dymension/issues/2172)) ([0b63076](https://github.com/dymensionxyz/dymension/commit/0b630764fc5f514197fb28652daae44180989d3e)), closes [#2171](https://github.com/dymensionxyz/dymension/issues/2171)
 * **eibc:** absolute minimum-fee floor for on-demand LPs ([#2190](https://github.com/dymensionxyz/dymension/issues/2190)) ([88c83cd](https://github.com/dymensionxyz/dymension/commit/88c83cde22dc124930e23f5683bdac8a118d6617)), closes [#2189](https://github.com/dymensionxyz/dymension/issues/2189)
 * **eibc:** bind on-demand LP to x/agent attested agent ([#2183](https://github.com/dymensionxyz/dymension/issues/2183)) ([bbdefe2](https://github.com/dymensionxyz/dymension/commit/bbdefe20955a16b6550842f471fdaac2c45dab06)), closes [pre-#2167](https://github.com/pre-/issues/2167)
