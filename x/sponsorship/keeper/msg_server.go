@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -82,7 +82,7 @@ func (m MsgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams)
 	}
 
 	if msg.Authority != m.k.authority {
-		return nil, sdkerrors.ErrorInvalidSigner.Wrapf("Only the gov module can update params")
+		return nil, gerrc.ErrUnauthenticated.Wrap("only the gov module can update params")
 	}
 
 	oldParams, err := m.k.GetParams(ctx)
