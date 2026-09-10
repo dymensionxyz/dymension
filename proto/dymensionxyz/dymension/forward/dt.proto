@@ -3,11 +3,22 @@ package dymensionxyz.dymension.forward;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/forward/types";
 
+import "gogoproto/gogo.proto";
+
 import "hyperlane/warp/v1/tx.proto";
 import "ibc/applications/transfer/v1/tx.proto";
 
 message HookForwardToHL {
   hyperlane.warp.v1.MsgRemoteTransfer hyperlane_transfer = 1;
+
+  // Ignore hyperlane_transfer.amount and forward budget minus max_fee.
+  bool use_full_budget = 2;
+
+  // Minimum resolved send amount in full-budget mode. Zero means no floor.
+  string min_amount = 3 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message HookForwardToIBC {

@@ -29,6 +29,8 @@ func TestMakeHLForwardToHLMetadata(t *testing.T) {
 		gasLimit,
 		&customHookId,
 		customHookMetadata,
+		false,
+		math.ZeroInt(),
 	)
 
 	metadataBz, err := types.MakeHLForwardToHLMetadata(hook)
@@ -75,6 +77,8 @@ func TestUnpackForwardToHL(t *testing.T) {
 					math.ZeroInt(),
 					nil,
 					"",
+					false,
+					math.ZeroInt(),
 				)
 				bz, _ := hook.Marshal()
 				return bz
