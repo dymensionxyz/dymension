@@ -142,19 +142,18 @@ func (r Rollapp) LatestRevision() Revision {
 	return r.Revisions[len(r.Revisions)-1]
 }
 
-// TODO: rollapp type method should be more robust https://github.com/dymensionxyz/dymension/issues/1596
-func (r Rollapp) GetRevisionForHeight(h uint64) Revision {
+func (r Rollapp) GetRevisionForHeight(h uint64) (Revision, bool) {
 	for i := len(r.Revisions) - 1; i >= 0; i-- {
 		if r.Revisions[i].StartHeight <= h {
-			return r.Revisions[i]
+			return r.Revisions[i], true
 		}
 	}
-	return Revision{}
+	return Revision{}, false
 }
 
 func (r Rollapp) IsRevisionStartHeight(revision, height uint64) bool {
-	rev := r.GetRevisionForHeight(height)
-	return rev.Number == revision && rev.StartHeight == height
+	rev, found := r.GetRevisionForHeight(height)
+	return found && rev.Number == revision && rev.StartHeight == height
 }
 
 func (r Rollapp) DidFork() bool {

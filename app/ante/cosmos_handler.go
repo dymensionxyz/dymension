@@ -30,7 +30,9 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 			WithPredicate(BlockTypeUrls(
 				0,
 				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}))), // blocked to avoid skipping our validation logic in lightclient ante handler
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}))). // blocked to avoid skipping our validation logic in lightclient ante handler
+			// extends the circuit breaker above, which only sees top level msgs
+			WithPredicate(BlockTrippedByCircuitBreaker(options.CircuitKeeper)),
 
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		mempoolFeeDecorator,

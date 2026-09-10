@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -43,7 +43,7 @@ func TestMsgVote(t *testing.T) {
 					{GaugeId: 12, Weight: math.NewInt(10)},
 				},
 			},
-			errorIs:       sdkerrors.ErrInvalidAddress,
+			errorIs:       gerrc.ErrInvalidArgument,
 			errorContains: "voter '123123' must be a valid bech32 address",
 		},
 		{
@@ -100,7 +100,7 @@ func TestMsgRevokeVote(t *testing.T) {
 			input: types.MsgRevokeVote{
 				Voter: "123123",
 			},
-			errorIs:       sdkerrors.ErrInvalidAddress,
+			errorIs:       gerrc.ErrInvalidArgument,
 			errorContains: "voter '123123' must be a valid bech32 address",
 		},
 	}
@@ -146,7 +146,7 @@ func TestMsgUpdateParams(t *testing.T) {
 				Authority: "123123",
 				NewParams: types.DefaultParams(),
 			},
-			errorIs:       sdkerrors.ErrInvalidAddress,
+			errorIs:       gerrc.ErrInvalidArgument,
 			errorContains: "authority '123123' must be a valid bech32 address",
 		},
 		{

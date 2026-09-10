@@ -25,7 +25,7 @@ func (g GenesisState) Validate() error {
 	for _, i := range g.VoterInfos {
 		// validate all voters are unique
 		if _, ok := voters[i.Voter]; ok {
-			return ErrInvalidGenesis.Wrapf("duplicated voters: %s", i.Voter)
+			return errorsmod.Wrapf(ErrInvalidGenesis, "duplicated voters: %s", i.Voter)
 		}
 		voters[i.Voter] = struct{}{}
 
@@ -57,13 +57,13 @@ func (v VoterInfo) Validate() error {
 	validators := make(map[string]struct{}, len(v.Validators)) // this map helps check for duplicates
 	for _, val := range v.Validators {
 		if _, ok := validators[val.Validator]; ok {
-			return ErrInvalidVoterInfo.Wrapf("duplicated validators: %s", val.Validator)
+			return errorsmod.Wrapf(ErrInvalidVoterInfo, "duplicated validators: %s", val.Validator)
 		}
 		validators[val.Validator] = struct{}{}
 		total = total.Add(val.Power)
 	}
 	if total.GT(v.Vote.VotingPower) {
-		return ErrInvalidVoterInfo.Wrapf("voting power mismatch: vote voting power %s is less than total validator power %s", v.Vote.VotingPower, total)
+		return errorsmod.Wrapf(ErrInvalidVoterInfo, "voting power mismatch: vote voting power %s is less than total validator power %s", v.Vote.VotingPower, total)
 	}
 
 	return nil

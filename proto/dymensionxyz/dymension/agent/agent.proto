@@ -30,6 +30,9 @@ message Params {
   uint64 validation_tag_max_bytes = 7;
   uint64 validation_uri_max_bytes = 8;
   uint64 spend_recipient_allowlist_max = 9;
+  // validation_max_responses_per_request bounds responses stored for one
+  // validation request. Zero means unlimited.
+  uint64 validation_max_responses_per_request = 10;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action

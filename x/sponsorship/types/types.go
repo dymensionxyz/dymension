@@ -6,6 +6,7 @@ import (
 
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -15,19 +16,19 @@ func (d Distribution) Validate() error {
 	gaugeIDs := make(map[uint64]struct{}, len(d.Gauges)) // this map helps check for duplicates
 	for _, g := range d.Gauges {
 		if _, ok := gaugeIDs[g.GaugeId]; ok {
-			return ErrInvalidDistribution.Wrapf("duplicated gauge id: %d", g.GaugeId)
+			return errorsmod.Wrapf(ErrInvalidDistribution, "duplicated gauge id: %d", g.GaugeId)
 		}
 		gaugeIDs[g.GaugeId] = struct{}{}
 		if !g.Power.IsPositive() { // zeros are already pruned
-			return ErrInvalidDistribution.Wrapf("gauge power must be > 0, got %s: id: %d", g.Power, g.GaugeId)
+			return errorsmod.Wrapf(ErrInvalidDistribution, "gauge power must be > 0, got %s: id: %d", g.Power, g.GaugeId)
 		}
 		total = total.Add(g.Power)
 	}
 	if total.GT(d.VotingPower) {
-		return ErrInvalidDistribution.Wrapf("voting power mismatch: sum of gauge powers %s is greater than the total voting power %s", total, d.VotingPower)
+		return errorsmod.Wrapf(ErrInvalidDistribution, "voting power mismatch: sum of gauge powers %s is greater than the total voting power %s", total, d.VotingPower)
 	}
 	if d.VotingPower.IsNegative() {
-		return ErrInvalidDistribution.Wrapf("voting power must be >= 0, got %s", d.VotingPower)
+		return errorsmod.Wrapf(ErrInvalidDistribution, "voting power must be >= 0, got %s", d.VotingPower)
 	}
 	return nil
 }
@@ -38,7 +39,7 @@ func (v Vote) Validate() error {
 		return dymerrors.Join(ErrInvalidVote, err)
 	}
 	if !v.VotingPower.IsPositive() {
-		return ErrInvalidVote.Wrapf("must be > 0, got %s", v.VotingPower)
+		return errorsmod.Wrapf(ErrInvalidVote, "must be > 0, got %s", v.VotingPower)
 	}
 	return nil
 }
@@ -64,23 +65,23 @@ func ValidateGaugeWeights(w []GaugeWeight) error {
 			return dymerrors.Join(ErrInvalidGaugeWeight, err)
 		}
 		if _, ok := gaugeIDs[g.GaugeId]; ok {
-			return ErrInvalidGaugeWeight.Wrapf("duplicated gauge id: %d", g.GaugeId)
+			return errorsmod.Wrapf(ErrInvalidGaugeWeight, "duplicated gauge id: %d", g.GaugeId)
 		}
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Weight)
 	}
 	if total.GT(MaxAllocationWeight) {
-		return ErrInvalidGaugeWeight.Wrapf("total weight must be less than 100 * 10^18, got %s", total)
+		return errorsmod.Wrapf(ErrInvalidGaugeWeight, "total weight must be less than 100 * 10^18, got %s", total)
 	}
 	return nil
 }
 
 func (g GaugeWeight) Validate() error {
 	if !g.Weight.IsPositive() {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be > 0, got %s", g.Weight)
+		return errorsmod.Wrapf(ErrInvalidGaugeWeight, "weight must be > 0, got %s", g.Weight)
 	}
 	if g.Weight.GT(MaxAllocationWeight) {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be <= 100 * 10^18, got %s", g.Weight)
+		return errorsmod.Wrapf(ErrInvalidGaugeWeight, "weight must be <= 100 * 10^18, got %s", g.Weight)
 	}
 	return nil
 }

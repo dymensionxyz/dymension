@@ -16,6 +16,9 @@ const (
 	// MaxServiceValueLength is the maximum length allowed for a service record endpoint value.
 	MaxServiceValueLength = 256
 
+	// ReservedServiceKeyAgent binds a service record to an x/agent identity.
+	ReservedServiceKeyAgent = "agent"
+
 	// MinDymNamePriceStepsCount is the minimum number of price steps required for Dym-Name price.
 	MinDymNamePriceStepsCount = 4
 

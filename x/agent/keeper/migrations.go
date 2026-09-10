@@ -35,3 +35,13 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	params.SpendRecipientAllowlistMax = types.DefaultSpendRecipientAllowlistMax
 	return m.k.SetParams(ctx, params)
 }
+
+// Migrate2to3 initializes fields added to the agent params at version 3.
+func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+	params, err := m.k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
+	params.ValidationMaxResponsesPerRequest = types.DefaultValidationMaxResponsesPerRequest
+	return m.k.SetParams(ctx, params)
+}

@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // TODO: test slashing and Rewardee
@@ -12,10 +14,11 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 	initialHeight := uint64(1)
 
 	testCases := []struct {
-		name          string
-		msgRevision   uint64
-		msgHeight     uint64
-		expectedError bool
+		name            string
+		msgRevision     uint64
+		msgHeight       uint64
+		expectedError   bool
+		removeRevisions bool
 	}{
 		{
 			name:          "first revision proposal",
@@ -40,6 +43,13 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 			msgRevision:   5,
 			msgHeight:     300,
 			expectedError: true,
+		},
+		{
+			name:            "height without revision",
+			msgRevision:     0,
+			msgHeight:       40,
+			expectedError:   true,
+			removeRevisions: true,
 		},
 	}
 
@@ -86,12 +96,16 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 
 			// assert revision correctness
 			rollapp = s.k().MustGetRollapp(s.Ctx, rollappId)
-			s.Require().EqualValues(rollapp.GetRevisionForHeight(1).Number, 0)
-			s.Require().EqualValues(rollapp.GetRevisionForHeight(49).Number, 0)
-			s.Require().EqualValues(rollapp.GetRevisionForHeight(50).Number, 1)
-			s.Require().EqualValues(rollapp.GetRevisionForHeight(55).Number, 1)
-			s.Require().EqualValues(rollapp.GetRevisionForHeight(120).Number, 2)
-			s.Require().EqualValues(rollapp.GetRevisionForHeight(300).Number, 2)
+			for height, expectedRevision := range map[uint64]uint64{1: 0, 49: 0, 50: 1, 55: 1, 120: 2, 300: 2} {
+				revision, found := rollapp.GetRevisionForHeight(height)
+				s.Require().True(found)
+				s.Require().EqualValues(expectedRevision, revision.Number)
+			}
+
+			if tc.removeRevisions {
+				rollapp.Revisions = nil
+				s.k().SetRollapp(s.Ctx, rollapp)
+			}
 
 			msg := &types.MsgRollappFraudProposal{
 				Authority:              s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName).String(),
@@ -108,7 +122,20 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 				s.Require().NoError(err)
 			} else {
 				s.Require().Error(err)
+				if tc.removeRevisions {
+					s.Require().True(errors.IsOf(err, gerrc.ErrFailedPrecondition))
+				}
 			}
 		})
 	}
+}
+
+func (s *RollappTestSuite) TestSubmitRollappFraudPreservesValidationError() {
+	msg := &types.MsgRollappFraudProposal{
+		Authority: s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName).String(),
+	}
+
+	_, err := s.k().SubmitRollappFraud(s.Ctx, msg)
+
+	s.Require().ErrorContains(err, "rollapp ID is invalid")
 }

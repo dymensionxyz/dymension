@@ -24,3 +24,12 @@ func (k Keeper) GetAgent(ctx sdk.Context, id string) (types.Agent, bool) {
 	}
 	return agent, true
 }
+
+// GetAgentOwner returns the owner of a registered agent and whether it exists.
+func (k Keeper) GetAgentOwner(ctx sdk.Context, agentID string) (string, bool) {
+	agent, found := k.GetAgent(ctx, agentID)
+	if !found {
+		return "", false
+	}
+	return agent.Owner, true
+}

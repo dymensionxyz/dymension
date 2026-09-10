@@ -13,12 +13,15 @@ import (
 	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 
@@ -121,6 +124,72 @@ func (suite *AnteTestSuite) TestCircuitBreaker() {
 	// Try again - should pass
 	_, err = suite.anteHandler(suite.ctx, suite.txBuilder.GetTx(), false)
 	suite.Require().NotContains(err.Error(), "tx type not allowed") // not circuit breaker error
+}
+
+// The SDK's CircuitBreakerDecorator only inspects top level msgs, so wrapped ones are covered
+// by our RejectMessagesDecorator predicate instead.
+func (suite *AnteTestSuite) TestCircuitBreakerWrappedMsgs() {
+	msgSend := &banktypes.MsgSend{
+		FromAddress: "cosmos1...",
+		ToAddress:   "cosmos1...",
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+	}
+	sendURL := sdk.MsgTypeURL(msgSend)
+
+	wrap := map[string]func(*codectypes.Any) sdk.Msg{
+		"authz MsgExec": func(inner *codectypes.Any) sdk.Msg {
+			return &authz.MsgExec{Grantee: "cosmos1...", Msgs: []*codectypes.Any{inner}}
+		},
+		"gov v1 MsgSubmitProposal": func(inner *codectypes.Any) sdk.Msg {
+			return &govtypesv1.MsgSubmitProposal{
+				Messages:       []*codectypes.Any{inner},
+				InitialDeposit: sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+				Proposer:       "cosmos1...",
+			}
+		},
+	}
+
+	for name, wrapFn := range wrap {
+		suite.Run(name, func() {
+			// fresh app per case, so circuit breaker state cannot leak between them
+			suite.SetupTestCheckTx(false)
+
+			circuitMsgServ := circuitkeeper.NewMsgServerImpl(suite.app.CircuitBreakerKeeper)
+			authority, err := suite.app.AccountKeeper.AddressCodec().BytesToString(suite.app.CircuitBreakerKeeper.GetAuthority())
+			suite.Require().NoError(err)
+
+			msg := wrapFn(packMsg(suite.T(), msgSend))
+			runAnte := func() error {
+				txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
+				txBuilder.SetGasLimit(200000)
+				suite.Require().NoError(txBuilder.SetMsgs(msg))
+				_, err := suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
+				return err
+			}
+
+			if err := runAnte(); err != nil {
+				suite.Require().NotContains(err.Error(), "disabled: "+sendURL)
+			}
+
+			_, err = circuitMsgServ.TripCircuitBreaker(suite.ctx, &circuittypes.MsgTripCircuitBreaker{
+				Authority:   authority,
+				MsgTypeUrls: []string{sendURL},
+			})
+			suite.Require().NoError(err)
+
+			suite.Require().ErrorContains(runAnte(), "disabled: "+sendURL)
+
+			_, err = circuitMsgServ.ResetCircuitBreaker(suite.ctx, &circuittypes.MsgResetCircuitBreaker{
+				Authority:   authority,
+				MsgTypeUrls: []string{sendURL},
+			})
+			suite.Require().NoError(err)
+
+			if err := runAnte(); err != nil {
+				suite.Require().NotContains(err.Error(), "disabled: "+sendURL)
+			}
+		})
+	}
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(

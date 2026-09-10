@@ -24,6 +24,15 @@ func (k msgServer) SetServiceRecord(goCtx context.Context, msg *dymnstypes.MsgSe
 
 	_, newConfig := msg.GetDymNameConfig()
 	newConfigIdentity := newConfig.GetIdentity()
+	if !newConfig.IsDelete() && msg.ServiceKey == dymnstypes.ReservedServiceKeyAgent {
+		owner, found := k.agentKeeper.GetAgentOwner(ctx, msg.Value)
+		if !found {
+			return nil, errorsmod.Wrap(gerrc.ErrNotFound, "agent not registered")
+		}
+		if owner != dymName.Owner {
+			return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "agent owner does not match Dym-Name owner")
+		}
+	}
 
 	var minimumTxGasRequired storetypes.Gas
 
