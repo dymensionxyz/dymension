@@ -19,11 +19,28 @@ func (m *MsgRollappFraudProposal) ValidateBasic() error {
 			"authority is not a valid bech32 address: %s", m.Authority,
 		)
 	}
+	if _, err := NewChainID(m.RollappId); err != nil {
+		return errorsmod.Wrap(
+			errors.Join(gerrc.ErrInvalidArgument, err),
+			"rollapp ID is invalid",
+		)
+	}
+	if m.FraudHeight == 0 {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "fraud height must be greater than zero")
+	}
+	if m.PunishSequencerAddress != "" {
+		if _, err := sdk.AccAddressFromBech32(m.PunishSequencerAddress); err != nil {
+			return errorsmod.Wrapf(
+				errors.Join(gerrc.ErrInvalidArgument, err),
+				"punish sequencer address is not a valid bech32 address: %s", m.PunishSequencerAddress,
+			)
+		}
+	}
 	if m.Rewardee != "" {
 		if _, err := sdk.AccAddressFromBech32(m.Rewardee); err != nil {
 			return errorsmod.Wrapf(
 				errors.Join(gerrc.ErrInvalidArgument, err),
-				"rewardee is not a valid bech32 address: %s", m.Authority,
+				"rewardee is not a valid bech32 address: %s", m.Rewardee,
 			)
 		}
 	}
