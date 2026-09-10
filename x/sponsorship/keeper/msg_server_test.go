@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -38,7 +38,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 					MinVotingPower:      types.DefaultMinVotingPower,
 				},
 			},
-			error: sdkerrors.ErrorInvalidSigner,
+			error: gerrc.ErrUnauthenticated,
 		},
 		{
 			name: "invalid params",
