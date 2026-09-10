@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	circuitante "cosmossdk.io/x/circuit/ante"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -22,8 +23,10 @@ type RejectMessagesDecorator struct {
 	predicates []Predicate
 }
 
-// Predicate should return true if message is not allowed
-type Predicate = func(typeURL string, depth int) bool
+// Predicate should return true if message is not allowed.
+// A non nil error means the policy could not be evaluated at all, which is distinct from
+// the message being disallowed, and must not be reported as the latter.
+type Predicate = func(ctx sdk.Context, typeURL string, depth int) (bool, error)
 
 // Blocks any message with depth of depthMax OR MORE
 // Depth 0 is top level message
@@ -33,9 +36,24 @@ func BlockTypeUrls(depthMax int, typeUrls ...string) Predicate {
 	for _, url := range typeUrls {
 		block[url] = struct{}{}
 	}
-	return func(url string, depth int) bool {
+	return func(_ sdk.Context, url string, depth int) (bool, error) {
 		_, ok := block[url]
-		return ok && depthMax <= depth
+		return ok && depthMax <= depth, nil
+	}
+}
+
+// BlockTrippedByCircuitBreaker blocks, at any depth, messages whose type is currently tripped
+// in the circuit breaker. The SDK's own CircuitBreakerDecorator deliberately only inspects
+// top level messages, so a tripped type wrapped in authz/gov/group would otherwise be admitted
+// to the mempool and only fail later in baseapp's msg router.
+func BlockTrippedByCircuitBreaker(ck circuitante.CircuitBreaker) Predicate {
+	return func(ctx sdk.Context, url string, _ int) (bool, error) {
+		allowed, err := ck.IsAllowed(ctx, url)
+		if err != nil {
+			// fail closed, but the caller surfaces err rather than claiming a deliberate trip
+			return true, err
+		}
+		return !allowed, nil
 	}
 }
 
@@ -75,6 +93,20 @@ func (rmd RejectMessagesDecorator) checkMsgs(ctx sdk.Context, msgs []sdk.Msg, de
 	return nil
 }
 
+// rejection labels the reason, e.g. 'disabled' for a msg and 'disabled grant' for what a grant authorizes
+func (rmd RejectMessagesDecorator) checkPredicates(ctx sdk.Context, typeURL string, depth int, rejection string) error {
+	for _, pred := range rmd.predicates {
+		blocked, err := pred(ctx, typeURL, depth)
+		if err != nil {
+			return errorsmod.Wrapf(err, "check msg: %s", typeURL)
+		}
+		if blocked {
+			return gerrc.ErrInvalidArgument.Wrapf("%s: %s", rejection, typeURL)
+		}
+	}
+	return nil
+}
+
 // depth=0 means top level message
 func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth int) error {
 	if depth >= maxInnerDepth {
@@ -88,11 +120,8 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 		)
 	}
 
-	typeURL := sdk.MsgTypeURL(msg)
-	for _, pred := range rmd.predicates {
-		if pred(typeURL, depth) {
-			return gerrc.ErrInvalidArgument.Wrapf("disabled: %s", typeURL)
-		}
+	if err := rmd.checkPredicates(ctx, sdk.MsgTypeURL(msg), depth, "disabled"); err != nil {
+		return err
 	}
 
 	var err error
@@ -110,11 +139,8 @@ func (rmd RejectMessagesDecorator) checkMsg(ctx sdk.Context, msg sdk.Msg, depth 
 		if err != nil {
 			return err
 		}
-		typeURL = authorization.MsgTypeURL()
-		for _, pred := range rmd.predicates {
-			if pred(typeURL, depth) {
-				return gerrc.ErrInvalidArgument.Wrapf("disabled grant: %s", typeURL)
-			}
+		if err := rmd.checkPredicates(ctx, authorization.MsgTypeURL(), depth, "disabled grant"); err != nil {
+			return err
 		}
 	default:
 	}

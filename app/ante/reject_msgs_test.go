@@ -1,6 +1,8 @@
 package ante_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -197,6 +199,66 @@ func (suite *AnteTestSuite) TestRejectMessagesDecorator() {
 				suite.Error(err, "Test case %s expected error but got none", tc.name)
 				suite.Contains(err.Error(), tc.expectedError, "Test case %s error message mismatch", tc.name)
 			}
+		})
+	}
+}
+
+var errCircuitUnavailable = errors.New("circuit state unavailable")
+
+// reports every msg as allowed, erroring only for failFor, so a rejection can only come
+// from the error and never from the msg being genuinely tripped
+type erroringCircuitBreaker struct{ failFor string }
+
+func (c erroringCircuitBreaker) IsAllowed(_ context.Context, typeURL string) (bool, error) {
+	if typeURL == c.failFor {
+		return true, errCircuitUnavailable
+	}
+	return true, nil
+}
+
+// A circuit keeper error must reject the tx but stay diagnosable: the ante handler is terminal,
+// so anything it discards here is lost for good rather than resurfaced by baseapp.
+func (suite *AnteTestSuite) TestCircuitBreakerPredicateFailsClosed() {
+	sendURL := sdk.MsgTypeURL(&banktypes.MsgSend{})
+
+	testCases := []struct {
+		name string
+		msg  sdk.Msg
+	}{
+		{
+			name: "msg",
+			msg: &banktypes.MsgSend{
+				FromAddress: "cosmos1...",
+				ToAddress:   "cosmos1...",
+				Amount:      sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
+			},
+		},
+		{
+			name: "authz MsgGrant authorization",
+			msg: &authz.MsgGrant{
+				Granter: "cosmos1...",
+				Grantee: "cosmos1...",
+				Grant: authz.Grant{
+					Authorization: packAuthorization(suite.T(), &authz.GenericAuthorization{Msg: sendURL}),
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTestCheckTx(false)
+
+			decorator := ante.NewRejectMessagesDecorator().
+				WithPredicate(ante.BlockTrippedByCircuitBreaker(erroringCircuitBreaker{failFor: sendURL}))
+
+			ctx := suite.ctx.WithBlockHeight(1)
+			_, err := decorator.AnteHandle(ctx, &mockTx{msgs: []sdk.Msg{tc.msg}}, false,
+				func(sdk.Context, sdk.Tx, bool) (sdk.Context, error) { return ctx, nil })
+
+			suite.Require().Error(err, "must fail closed")
+			suite.Require().ErrorIs(err, errCircuitUnavailable, "keeper error must stay discoverable")
+			suite.Require().NotContains(err.Error(), "disabled", "must not be reported as a deliberate trip")
 		})
 	}
 }
