@@ -24,17 +24,21 @@ const DefaultValidationTagMaxBytes = 32
 // DefaultValidationUriMaxBytes caps validation request and response URIs.
 const DefaultValidationUriMaxBytes = 512
 
+// DefaultValidationMaxResponsesPerRequest bounds responses per validation request.
+const DefaultValidationMaxResponsesPerRequest = 8
+
 func DefaultParams() Params {
 	return Params{
-		AgentRegistrationFee:       commontypes.DYMCoin,
-		MaxActionBytes:             DefaultMaxActionBytes,
-		PolicyRotationDelayBlocks:  DefaultPolicyRotationDelayBlocks,
-		FeedbackFee:                commontypes.DYMCoin,
-		FeedbackTagMaxBytes:        DefaultFeedbackTagMaxBytes,
-		ValidationRequestFee:       commontypes.DYMCoin,
-		ValidationTagMaxBytes:      DefaultValidationTagMaxBytes,
-		ValidationUriMaxBytes:      DefaultValidationUriMaxBytes,
-		SpendRecipientAllowlistMax: DefaultSpendRecipientAllowlistMax,
+		AgentRegistrationFee:             commontypes.DYMCoin,
+		MaxActionBytes:                   DefaultMaxActionBytes,
+		PolicyRotationDelayBlocks:        DefaultPolicyRotationDelayBlocks,
+		FeedbackFee:                      commontypes.DYMCoin,
+		FeedbackTagMaxBytes:              DefaultFeedbackTagMaxBytes,
+		ValidationRequestFee:             commontypes.DYMCoin,
+		ValidationTagMaxBytes:            DefaultValidationTagMaxBytes,
+		ValidationUriMaxBytes:            DefaultValidationUriMaxBytes,
+		SpendRecipientAllowlistMax:       DefaultSpendRecipientAllowlistMax,
+		ValidationMaxResponsesPerRequest: DefaultValidationMaxResponsesPerRequest,
 	}
 }
 

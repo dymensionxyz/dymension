@@ -28,3 +28,9 @@ type TxFeesKeeper interface {
 	CalcBaseInCoin(ctx sdk.Context, inputCoin sdk.Coin, denom string) (sdk.Coin, error)
 	ChargeFeesFromPayer(ctx sdk.Context, payer sdk.AccAddress, takerFeeCoin sdk.Coin, beneficiary *sdk.AccAddress) error
 }
+
+// AgentKeeper defines the read-only x/agent functionality needed by x/dymns.
+type AgentKeeper interface {
+	// GetAgentOwner returns the owner bech32 of a registered agent and whether it exists.
+	GetAgentOwner(ctx sdk.Context, agentID string) (owner string, found bool)
+}
