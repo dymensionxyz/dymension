@@ -20,6 +20,7 @@ type Keeper struct {
 	bankKeeper    dymnstypes.BankKeeper
 	rollappKeeper dymnstypes.RollAppKeeper
 	txFeesKeeper  dymnstypes.TxFeesKeeper
+	agentKeeper   dymnstypes.AgentKeeper
 }
 
 // NewKeeper returns a new instance of the DymNS keeper
@@ -29,6 +30,7 @@ func NewKeeper(
 	bk dymnstypes.BankKeeper,
 	rk dymnstypes.RollAppKeeper,
 	tk dymnstypes.TxFeesKeeper,
+	ak dymnstypes.AgentKeeper,
 	authority string,
 ) Keeper {
 	return Keeper{
@@ -38,6 +40,7 @@ func NewKeeper(
 		bankKeeper:    bk,
 		rollappKeeper: rk,
 		txFeesKeeper:  tk,
+		agentKeeper:   ak,
 	}
 }
 
