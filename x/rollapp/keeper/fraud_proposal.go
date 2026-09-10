@@ -37,8 +37,14 @@ func (k Keeper) SubmitRollappFraud(goCtx context.Context, msg *types.MsgRollappF
 	}
 
 	// check correct revision number (to avoid sending duplicated proposals)
-	if rollapp.GetRevisionForHeight(msg.FraudHeight).Number != msg.FraudRevision {
-		err := errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "fraud revision number mismatch: %d != %d", rollapp.GetRevisionForHeight(msg.FraudHeight).Number, msg.FraudRevision)
+	revision, found := rollapp.GetRevisionForHeight(msg.FraudHeight)
+	if !found {
+		err := errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "revision not found for fraud height: %d", msg.FraudHeight)
+		ctx.Logger().Error("Fraud proposal", "error", err)
+		return nil, err
+	}
+	if revision.Number != msg.FraudRevision {
+		err := errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "fraud revision number mismatch: %d != %d", revision.Number, msg.FraudRevision)
 		ctx.Logger().Error("Fraud proposal", "error", err)
 		return nil, err
 	}
