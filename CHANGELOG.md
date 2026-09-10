@@ -1,7 +1,7 @@
 # Changelog
 ## [Unreleased]
 
-# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-08-15)
+# [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-09-10)
 
 
 ### Bug Fixes
@@ -10,6 +10,7 @@
 * **eibc:** derive on-demand LP shuffle seed ([#2195](https://github.com/dymensionxyz/dymension/issues/2195)) ([28618e9](https://github.com/dymensionxyz/dymension/commit/28618e97825b80e64f88ba24ec04f79b2c333317))
 * **eibc:** honor agent policy revocation ([#2193](https://github.com/dymensionxyz/dymension/issues/2193)) ([5b69a41](https://github.com/dymensionxyz/dymension/commit/5b69a417f16a956e6dd063e895fe0a9e77a1a629))
 * **eth:** fix `eth_gasPrice` query ([#2113](https://github.com/dymensionxyz/dymension/issues/2113)) ([230706a](https://github.com/dymensionxyz/dymension/commit/230706abb96de7b7f8f8daea233242279211d2b5))
+* **forward:** clamp stale IBC timeouts ([#2201](https://github.com/dymensionxyz/dymension/issues/2201)) ([7c3129c](https://github.com/dymensionxyz/dymension/commit/7c3129c442d0810bd7f952f21ffb37efc2201a52))
 
 
 ### Features
