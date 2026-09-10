@@ -12,6 +12,7 @@
 * **eibc:** honor agent policy revocation ([#2193](https://github.com/dymensionxyz/dymension/issues/2193)) ([5b69a41](https://github.com/dymensionxyz/dymension/commit/5b69a417f16a956e6dd063e895fe0a9e77a1a629))
 * **eth:** fix `eth_gasPrice` query ([#2113](https://github.com/dymensionxyz/dymension/issues/2113)) ([230706a](https://github.com/dymensionxyz/dymension/commit/230706abb96de7b7f8f8daea233242279211d2b5))
 * **forward:** clamp stale IBC timeouts ([#2201](https://github.com/dymensionxyz/dymension/issues/2201)) ([7c3129c](https://github.com/dymensionxyz/dymension/commit/7c3129c442d0810bd7f952f21ffb37efc2201a52))
+* **rollapp:** handle missing revision heights ([#2210](https://github.com/dymensionxyz/dymension/issues/2210)) ([62a492a](https://github.com/dymensionxyz/dymension/commit/62a492a31e55245a1e47bc7827b0b79919869932))
 * **rollapp:** validate fraud proposal fields ([#2208](https://github.com/dymensionxyz/dymension/issues/2208)) ([5daa024](https://github.com/dymensionxyz/dymension/commit/5daa024d8d0aa58d880b20a6a1a29f31e1e27605))
 * **sponsorship:** adopt gerrc error taxonomy ([#2209](https://github.com/dymensionxyz/dymension/issues/2209)) ([0272de9](https://github.com/dymensionxyz/dymension/commit/0272de98140fb2354ea30723b156d81ff4d0dc53))
 
