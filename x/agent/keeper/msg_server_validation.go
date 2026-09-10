@@ -95,6 +95,9 @@ func (k msgServer) RespondValidation(goCtx context.Context, msg *types.MsgRespon
 	if !found {
 		return nil, types.ErrValidationRequestNotFound
 	}
+	if p.ValidationMaxResponsesPerRequest != 0 && req.ResponseCount >= p.ValidationMaxResponsesPerRequest {
+		return nil, types.ErrTooManyValidationResponses
+	}
 	validator, found := k.GetAgent(ctx, req.ValidatorId)
 	if !found || !validator.Active {
 		return nil, types.ErrValidatorInactive

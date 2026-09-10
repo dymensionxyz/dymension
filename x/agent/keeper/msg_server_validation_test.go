@@ -56,6 +56,51 @@ func TestValidationRequestResponseProgressiveAndQueries(t *testing.T) {
 	require.Len(t, byAgent.ValidationRequests, 1)
 }
 
+func TestValidationResponsesAreBoundedPerRequest(t *testing.T) {
+	ctx, k, ms, validatorOwner, requester := setupValidation(t)
+	firstHash := bytes.Repeat([]byte{13}, 32)
+	secondHash := bytes.Repeat([]byte{14}, 32)
+	for _, hash := range [][]byte{firstHash, secondHash} {
+		_, err := ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 1, hash, ""))
+		require.NoError(t, err)
+	}
+
+	for i := uint64(0); i < types.DefaultValidationMaxResponsesPerRequest; i++ {
+		res, err := ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, firstHash, 100, "", nil, ""))
+		require.NoError(t, err)
+		require.Equal(t, i, res.Seq)
+	}
+	_, err := ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, firstHash, 100, "", nil, ""))
+	require.ErrorIs(t, err, types.ErrTooManyValidationResponses)
+
+	res, err := ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, secondHash, 100, "", nil, ""))
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), res.Seq)
+
+	req, found := k.GetValidationRequest(ctx, firstHash)
+	require.True(t, found)
+	require.Equal(t, uint64(types.DefaultValidationMaxResponsesPerRequest), req.ResponseCount)
+	_, found = k.GetValidationResponse(ctx, firstHash, types.DefaultValidationMaxResponsesPerRequest)
+	require.False(t, found)
+}
+
+func TestValidationResponsesAreUnlimitedWhenCapIsZero(t *testing.T) {
+	ctx, k, ms, validatorOwner, requester := setupValidation(t)
+	p, err := k.GetParams(ctx)
+	require.NoError(t, err)
+	p.ValidationMaxResponsesPerRequest = 0
+	require.NoError(t, k.SetParams(ctx, p))
+
+	hash := bytes.Repeat([]byte{15}, 32)
+	_, err = ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 1, hash, ""))
+	require.NoError(t, err)
+	for i := uint64(0); i < types.DefaultValidationMaxResponsesPerRequest+1; i++ {
+		res, err := ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+		require.NoError(t, err)
+		require.Equal(t, i, res.Seq)
+	}
+}
+
 func TestValidationRejectsInvalidRequestsAndResponses(t *testing.T) {
 	ctx, k, ms, validatorOwner, requester := setupValidation(t)
 	hash := bytes.Repeat([]byte{2}, 32)
@@ -149,6 +194,7 @@ func TestValidationGenesisRoundTripAndRejectsOrphan(t *testing.T) {
 	require.NoError(t, err)
 	exported := keeper.ExportGenesis(ctx, k)
 	require.NoError(t, exported.Validate())
+	require.Equal(t, uint64(types.DefaultValidationMaxResponsesPerRequest), exported.Params.ValidationMaxResponsesPerRequest)
 	require.Len(t, exported.ValidationRequests, 1)
 	require.Len(t, exported.ValidationResponses, 1)
 	orphan := *types.DefaultGenesis()
@@ -156,6 +202,9 @@ func TestValidationGenesisRoundTripAndRejectsOrphan(t *testing.T) {
 	require.ErrorIs(t, orphan.Validate(), types.ErrValidationRequestNotFound)
 	ctx2, k2, _ := setup(t)
 	keeper.InitGenesis(ctx2, k2, *exported)
+	importedParams, err := k2.GetParams(ctx2)
+	require.NoError(t, err)
+	require.Equal(t, exported.Params.ValidationMaxResponsesPerRequest, importedParams.ValidationMaxResponsesPerRequest)
 	indexed, err := k2.ValidationRequestsByAgent(ctx2, &types.QueryValidationRequestsByAgentRequest{AgentId: "subject"})
 	require.NoError(t, err)
 	require.Len(t, indexed.ValidationRequests, 1)

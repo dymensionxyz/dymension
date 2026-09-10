@@ -435,6 +435,19 @@ func (s *EscrowTestSuite) TestMigrate1to2_DefaultsVersion2Params() {
 	s.Require().Equal(uint64(types.DefaultSpendRecipientAllowlistMax), params.SpendRecipientAllowlistMax)
 }
 
+func (s *EscrowTestSuite) TestMigrate2to3_DefaultsValidationResponseCap() {
+	params := types.DefaultParams()
+	params.ValidationMaxResponsesPerRequest = 0
+	s.Require().NoError(s.k.SetParams(s.Ctx, params))
+
+	migrator := keeper.NewMigrator(*s.k)
+	s.Require().NoError(migrator.Migrate2to3(s.Ctx))
+
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(8), params.ValidationMaxResponsesPerRequest)
+}
+
 func (s *EscrowTestSuite) TestTransfer_RecipientAllowlist() {
 	s.spendingAgent("a1")
 	s.fundEscrow("a1", 500)
