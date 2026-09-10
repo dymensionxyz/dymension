@@ -2,11 +2,11 @@
 
 ![image](./docs/dymension.png)
 
-![license](https://img.shields.io/github/license/dymensionxyz/dymension)
-![Go](https://img.shields.io/badge/go-1.18-blue.svg)
-![issues](https://img.shields.io/github/issues/dymensionxyz/dymension)
-![tests](https://github.com/dymensionxyz/dymension/actions/workflows/test.yml/badge.svg?branch=main)
-![lint](https://github.com/dymensionxyz/dymension/actions/workflows/golangci_lint.yml/badge.svg?branch=main)
+[![license](https://img.shields.io/github/license/dymensionxyz/dymension)](https://github.com/dymensionxyz/dymension/blob/main/LICENSE)
+[![Go](https://img.shields.io/badge/go-1.18-blue.svg)](https://go.dev/)
+[![issues](https://img.shields.io/github/issues/dymensionxyz/dymension)](https://github.com/dymensionxyz/dymension/issues)
+[![tests](https://github.com/dymensionxyz/dymension/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/dymensionxyz/dymension/actions/workflows/test.yml)
+[![lint](https://github.com/dymensionxyz/dymension/actions/workflows/golangci_lint.yml/badge.svg?branch=main)](https://github.com/dymensionxyz/dymension/actions/workflows/golangci_lint.yml)
 
 ## Overview
 
