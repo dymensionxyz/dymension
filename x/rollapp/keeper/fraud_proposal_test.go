@@ -112,3 +112,13 @@ func (s *RollappTestSuite) TestSubmitRollappFraud() {
 		})
 	}
 }
+
+func (s *RollappTestSuite) TestSubmitRollappFraudPreservesValidationError() {
+	msg := &types.MsgRollappFraudProposal{
+		Authority: s.App.AccountKeeper.GetModuleAddress(govtypes.ModuleName).String(),
+	}
+
+	_, err := s.k().SubmitRollappFraud(s.Ctx, msg)
+
+	s.Require().ErrorContains(err, "rollapp ID is invalid")
+}
