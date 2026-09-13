@@ -84,7 +84,9 @@ func ValidationNonce(validatorID string, payload []byte, actionSeq uint64) strin
 // hash and big-endian uint32 response, each variable field (response hash,
 // URI, tag) has a big-endian uint64 byte length. Lengths preserve the distinction
 // between absent and zero hashes and prevent embedded NULs from shifting fields.
-func AttestedValidationBytes(requestHash []byte, response uint32, responseHash []byte, responseUri, tag string) []byte {
+// A length-prefixed subject ID and uint64 evidence sequence follow, binding the
+// subject even if the enclave signs before the on-chain request is created.
+func AttestedValidationBytes(requestHash []byte, response uint32, responseHash []byte, responseUri, tag, subjectID string, evidenceSeq uint64) []byte {
 	buf := append([]byte(nil), requestHash...)
 	buf = binary.BigEndian.AppendUint32(buf, response)
 	buf = binary.BigEndian.AppendUint64(buf, uint64(len(responseHash)))
@@ -92,5 +94,8 @@ func AttestedValidationBytes(requestHash []byte, response uint32, responseHash [
 	buf = binary.BigEndian.AppendUint64(buf, uint64(len(responseUri)))
 	buf = append(buf, responseUri...)
 	buf = binary.BigEndian.AppendUint64(buf, uint64(len(tag)))
-	return append(buf, tag...)
+	buf = append(buf, tag...)
+	buf = binary.BigEndian.AppendUint64(buf, uint64(len(subjectID)))
+	buf = append(buf, subjectID...)
+	return binary.BigEndian.AppendUint64(buf, evidenceSeq)
 }

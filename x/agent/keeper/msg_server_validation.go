@@ -83,7 +83,11 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 }
 
 func (k msgServer) RespondValidation(goCtx context.Context, msg *types.MsgRespondValidation) (*types.MsgRespondValidationResponse, error) {
-	return k.respondValidation(sdk.UnwrapSDKContext(goCtx), msg, nil)
+	result, err := k.respondValidation(sdk.UnwrapSDKContext(goCtx), msg, "")
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgRespondValidationResponse{Seq: result.Seq}, nil
 }
 
 func (k msgServer) RespondValidationAttested(goCtx context.Context, msg *types.MsgRespondValidationAttested) (*types.MsgRespondValidationAttestedResponse, error) {
@@ -91,14 +95,10 @@ func (k msgServer) RespondValidationAttested(goCtx context.Context, msg *types.M
 		return nil, errorsmod.Wrap(err, "validate basic")
 	}
 	plain := types.NewMsgRespondValidation(msg.Responder, msg.RequestHash, msg.Response, msg.ResponseUri, msg.ResponseHash, msg.Tag)
-	result, err := k.respondValidation(sdk.UnwrapSDKContext(goCtx), plain, msg.Token)
-	if err != nil {
-		return nil, err
-	}
-	return &types.MsgRespondValidationAttestedResponse{Seq: result.Seq}, nil
+	return k.respondValidation(sdk.UnwrapSDKContext(goCtx), plain, msg.Token)
 }
 
-func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValidation, token []byte) (*types.MsgRespondValidationResponse, error) {
+func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValidation, token string) (*types.MsgRespondValidationAttestedResponse, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrap(err, "validate basic")
 	}
@@ -136,18 +136,20 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 	if msg.Responder != validator.Owner {
 		return nil, types.ErrUnauthorized
 	}
-	attested := len(token) != 0
+	attested := token != ""
+	var actionSeq uint64
 	if attested {
 		validator, err = k.loadAttestingAgent(ctx, req.ValidatorId)
 		if err != nil {
 			return nil, err
 		}
-		payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag)
+		payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, req.AgentId, req.EvidenceSeq)
 		if uint64(len(payload)) > p.MaxActionBytes {
 			return nil, gerrc.ErrInvalidArgument.Wrapf("validation payload exceeds max action bytes: got %d, max %d", len(payload), p.MaxActionBytes)
 		}
-		nonce := types.ValidationNonce(validator.Id, payload, validator.ActionSeq)
-		if err := k.verifier.Verify(ctx, validator.Policy, nonce, string(token)); err != nil {
+		actionSeq = validator.ActionSeq
+		nonce := types.ValidationNonce(validator.Id, payload, actionSeq)
+		if err := k.verifier.Verify(ctx, validator.Policy, nonce, token); err != nil {
 			return nil, errorsmod.Wrap(err, "verify attestation")
 		}
 		payloadHash := sha256.Sum256(payload)
@@ -164,8 +166,8 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 	if err := k.validationRequests.Set(ctx, msg.RequestHash, req); err != nil {
 		return nil, err
 	}
-	if err := uevent.EmitTypedEvent(ctx, &types.EventRespondValidation{RequestHash: msg.RequestHash, ValidatorId: req.ValidatorId, AgentId: req.AgentId, Response: msg.Response, Seq: seq, Attested: attested}); err != nil {
+	if err := uevent.EmitTypedEvent(ctx, &types.EventRespondValidation{RequestHash: msg.RequestHash, ValidatorId: req.ValidatorId, AgentId: req.AgentId, Response: msg.Response, Seq: seq, Attested: attested, ActionSeq: actionSeq}); err != nil {
 		return nil, err
 	}
-	return &types.MsgRespondValidationResponse{Seq: seq}, nil
+	return &types.MsgRespondValidationAttestedResponse{Seq: seq, ActionSeq: actionSeq}, nil
 }

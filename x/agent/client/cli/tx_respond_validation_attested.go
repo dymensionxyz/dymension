@@ -15,7 +15,7 @@ func CmdRespondValidationAttested() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "respond-validation-attested [request-hash] [response] [response-uri] [response-hash] [tag] [token]",
 		Short: "Respond to a validation request with an enclave-attested verdict",
-		Long:  "Submit an attested verdict. Hashes are hex encoded; token is the raw attestation token (not base64 encoded).",
+		Long:  "Submit an attested verdict. Hashes are hex encoded; token is the attestation JWT.",
 		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, err := client.GetClientTxContext(cmd)
@@ -46,7 +46,7 @@ func newMsgRespondValidationAttested(responder string, args []string) (*types.Ms
 	if err != nil {
 		return nil, err
 	}
-	msg := &types.MsgRespondValidationAttested{Responder: responder, RequestHash: hash, Response: uint32(score), ResponseUri: args[2], ResponseHash: responseHash, Tag: args[4], Token: []byte(args[5])}
+	msg := &types.MsgRespondValidationAttested{Responder: responder, RequestHash: hash, Response: uint32(score), ResponseUri: args[2], ResponseHash: responseHash, Tag: args[4], Token: args[5]}
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}

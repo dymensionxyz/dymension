@@ -261,6 +261,10 @@ message MsgRespondValidation {
 }
 message MsgRespondValidationResponse { uint64 seq = 1; }
 
+// MsgRespondValidationAttested requires the validator owner to sign and pay;
+// unlike attested actions and transfers, arbitrary relayers are not authorized.
+// The enclave token binds the verdict and subject evidence to the validator's
+// effective policy and consumed action sequence.
 message MsgRespondValidationAttested {
   option (cosmos.msg.v1.signer) = "responder";
   string responder = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
@@ -269,6 +273,13 @@ message MsgRespondValidationAttested {
   string response_uri = 4;
   bytes response_hash = 5;
   string tag = 6;
-  bytes token = 7;
+  // Attestation tokens are strings in every attested message, matching Verify
+  // and preserving raw JWTs in protobuf and Amino JSON transactions.
+  string token = 7;
 }
-message MsgRespondValidationAttestedResponse { uint64 seq = 1; }
+message MsgRespondValidationAttestedResponse {
+  // seq indexes the verdict within its validation request.
+  uint64 seq = 1;
+  // action_seq locates the consumed entry in the validator's action log.
+  uint64 action_seq = 2;
+}

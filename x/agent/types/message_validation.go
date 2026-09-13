@@ -52,7 +52,7 @@ func (m *MsgRespondValidationAttested) ValidateBasic() error {
 	if err := plain.ValidateBasic(); err != nil {
 		return err
 	}
-	if len(m.Token) == 0 {
+	if m.Token == "" {
 		return fmt.Errorf("token is required")
 	}
 	return nil

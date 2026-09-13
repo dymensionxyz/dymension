@@ -20,4 +20,6 @@ message EventRespondValidation {
   uint32 response = 4;
   uint64 seq = 5;
   bool attested = 6;
+  // Valid only when attested is true; identifies the validator's log entry.
+  uint64 action_seq = 7;
 }

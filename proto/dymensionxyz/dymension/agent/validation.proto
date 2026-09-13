@@ -29,5 +29,7 @@ message ValidationResponse {
   int64 height = 7;
   google.protobuf.Timestamp time = 8
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  // A token verified against the validator's effective policy, exact verdict,
+  // subject evidence, and consumed validator action sequence.
   bool attested = 9;
 }

@@ -28,8 +28,8 @@ func setupAttestedValidation(t *testing.T) (sdk.Context, *keeper.Keeper, types.M
 	_, err := ms.RequestValidation(ctx, types.NewMsgRequestValidation(owner(t), "validator", "subject", 1, hash, ""))
 	require.NoError(t, err)
 	msg := &types.MsgRespondValidationAttested{Responder: validatorOwner, RequestHash: hash, Response: 100, ResponseUri: "ipfs://verdict", ResponseHash: bytes.Repeat([]byte{2}, 32), Tag: "tee"}
-	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag)
-	msg.Token = []byte(types.ValidationNonce("validator", payload, 3))
+	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, "subject", 1)
+	msg.Token = types.ValidationNonce("validator", payload, 3)
 	return ctx, k, ms, v, msg
 }
 
@@ -38,6 +38,7 @@ func TestAttestedValidationRecordsLogQueryAndGenesis(t *testing.T) {
 	result, err := ms.RespondValidationAttested(ctx, msg)
 	require.NoError(t, err)
 	require.Equal(t, uint64(0), result.Seq)
+	require.Equal(t, uint64(3), result.ActionSeq)
 	require.Equal(t, 1, v.calls)
 	require.Equal(t, policyA(), v.gotPolicy)
 	events := ctx.EventManager().Events()
@@ -48,6 +49,7 @@ func TestAttestedValidationRecordsLogQueryAndGenesis(t *testing.T) {
 		attributes[attr.Key] = attr.Value
 	}
 	require.Equal(t, "true", attributes["attested"])
+	require.Equal(t, "3", attributes["action_seq"])
 	response, found := k.GetValidationResponse(ctx, msg.RequestHash, 0)
 	require.True(t, found)
 	require.True(t, response.Attested)
@@ -58,7 +60,7 @@ func TestAttestedValidationRecordsLogQueryAndGenesis(t *testing.T) {
 	require.Equal(t, uint64(2), subject.ActionSeq)
 	log, found := k.GetActionLogEntry(ctx, "validator", 3)
 	require.True(t, found)
-	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag)
+	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, "subject", 1)
 	require.Equal(t, payload, log.Payload)
 	hash := sha256.Sum256(payload)
 	require.Equal(t, hash[:], log.PayloadHash)
@@ -89,18 +91,27 @@ func TestAttestedValidationRecordsLogQueryAndGenesis(t *testing.T) {
 }
 
 func TestAttestedValidationRejectsWithoutStateChange(t *testing.T) {
-	cases := []string{"invalid token", "action token", "transfer token", "revoked validator", "revoked subject", "oversize", "unauthorized", "inactive validator", "inactive subject", "same owner", "missing request", "bad score", "bad hash", "empty token", "long tag", "long uri"}
+	cases := []string{"invalid token", "action token", "transfer token", "wrong subject", "wrong evidence", "revoked validator", "revoked subject", "oversize", "unauthorized", "inactive validator", "inactive subject", "same owner", "missing request", "bad score", "bad hash", "empty token", "long tag", "long uri"}
 	for _, name := range cases {
 		t.Run(name, func(t *testing.T) {
 			ctx, k, ms, v, msg := setupAttestedValidation(t)
-			payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag)
+			payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, "subject", 1)
 			switch name {
 			case "invalid token":
-				msg.Token = []byte("bad")
+				msg.Token = "bad"
 			case "action token":
-				msg.Token = []byte(types.ActionNonce("validator", payload, 3))
+				msg.Token = types.ActionNonce("validator", payload, 3)
 			case "transfer token":
-				msg.Token = []byte(types.TransferNonce("validator", payload, 3))
+				msg.Token = types.TransferNonce("validator", payload, 3)
+			case "wrong subject", "wrong evidence":
+				subject, evidenceSeq := "subject", uint64(1)
+				if name == "wrong subject" {
+					subject = "other"
+				} else {
+					evidenceSeq = 0
+				}
+				wrongPayload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, subject, evidenceSeq)
+				msg.Token = types.ValidationNonce("validator", wrongPayload, 3)
 			case "revoked validator", "revoked subject":
 				id := "validator"
 				if name == "revoked subject" {
@@ -136,7 +147,7 @@ func TestAttestedValidationRejectsWithoutStateChange(t *testing.T) {
 			case "bad hash":
 				msg.ResponseHash = []byte{1}
 			case "empty token":
-				msg.Token = nil
+				msg.Token = ""
 			case "long tag":
 				msg.Tag = string(bytes.Repeat([]byte{'x'}, int(types.DefaultValidationTagMaxBytes)+1))
 			case "long uri":
@@ -148,7 +159,7 @@ func TestAttestedValidationRejectsWithoutStateChange(t *testing.T) {
 			require.Error(t, err)
 			require.Equal(t, before, keeper.ExportGenesis(ctx, k))
 			require.Len(t, ctx.EventManager().Events(), events)
-			if name != "invalid token" && name != "action token" && name != "transfer token" {
+			if name != "invalid token" && name != "action token" && name != "transfer token" && name != "wrong subject" && name != "wrong evidence" {
 				require.Zero(t, v.calls)
 			}
 		})
@@ -168,6 +179,7 @@ func TestAttestedValidationSharesCapWithPlainResponses(t *testing.T) {
 	result, err := ms.RespondValidationAttested(ctx, msg)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), result.Seq)
+	require.Equal(t, uint64(3), result.ActionSeq)
 	_, err = ms.RespondValidationAttested(ctx, msg)
 	require.ErrorIs(t, err, types.ErrTooManyValidationResponses)
 	validator, _ := k.GetAgent(ctx, "validator")
@@ -191,14 +203,14 @@ func TestAttestedValidationPromotesPolicyAndAcceptsExactPayloadLimit(t *testing.
 	validator.PendingPolicy = &next
 	validator.PendingPolicyHeight = ctx.BlockHeight()
 	require.NoError(t, k.SetAgent(ctx, validator))
-	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag)
+	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, "subject", 1)
 	p, err := k.GetParams(ctx)
 	require.NoError(t, err)
 	p.MaxActionBytes = uint64(len(payload))
 	p.ValidationMaxResponsesPerRequest = 0
 	require.NoError(t, k.SetParams(ctx, p))
 	for seq := uint64(3); seq < 5; seq++ {
-		msg.Token = []byte(types.ValidationNonce("validator", payload, seq))
+		msg.Token = types.ValidationNonce("validator", payload, seq)
 		_, err = ms.RespondValidationAttested(ctx, msg)
 		require.NoError(t, err)
 	}

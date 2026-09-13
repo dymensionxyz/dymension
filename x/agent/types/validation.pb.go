@@ -144,7 +144,9 @@ type ValidationResponse struct {
 	Tag          string    `protobuf:"bytes,6,opt,name=tag,proto3" json:"tag,omitempty"`
 	Height       int64     `protobuf:"varint,7,opt,name=height,proto3" json:"height,omitempty"`
 	Time         time.Time `protobuf:"bytes,8,opt,name=time,proto3,stdtime" json:"time"`
-	Attested     bool      `protobuf:"varint,9,opt,name=attested,proto3" json:"attested,omitempty"`
+	// A token verified against the validator's effective policy, exact verdict,
+	// subject evidence, and consumed validator action sequence.
+	Attested bool `protobuf:"varint,9,opt,name=attested,proto3" json:"attested,omitempty"`
 }
 
 func (m *ValidationResponse) Reset()         { *m = ValidationResponse{} }
