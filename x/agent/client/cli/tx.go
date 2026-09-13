@@ -31,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdRevokeFeedback())
 	cmd.AddCommand(CmdRequestValidation())
 	cmd.AddCommand(CmdRespondValidation())
+	cmd.AddCommand(CmdRespondValidationAttested())
 
 	return cmd
 }

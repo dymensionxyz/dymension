@@ -19,4 +19,5 @@ message EventRespondValidation {
   string agent_id = 3;
   uint32 response = 4;
   uint64 seq = 5;
+  bool attested = 6;
 }

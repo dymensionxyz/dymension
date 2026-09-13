@@ -8,15 +8,16 @@ import (
 	"cosmossdk.io/math"
 )
 
-// Nonce domain tags. Actions and transfers share one action_seq counter, so
+// Nonce domain tags. Actions, transfers and verdicts share one action_seq counter, so
 // without domain separation a token minted for a pending transfer could be
 // replayed by any observer as a plain action at the same seq — advancing the
-// counter and killing the enclave-authorized payment. The tag makes the two
+// counter and killing the enclave-authorized payment. The tag makes the
 // nonce spaces disjoint: a token only verifies for the message type it was
 // minted for.
 const (
-	nonceDomainAction   byte = 0x01
-	nonceDomainTransfer byte = 0x02
+	nonceDomainAction     byte = 0x01
+	nonceDomainTransfer   byte = 0x02
+	nonceDomainValidation byte = 0x03
 )
 
 // ActionNonce derives the per-action nonce that binds an attestation token to
@@ -71,4 +72,25 @@ func AttestedTransferBytes(recipient, spendDenom string, amount math.Int, memo [
 	buf = append(buf, 0x00)
 	buf = append(buf, memo...)
 	return buf
+}
+
+// ValidationNonce isolates verdict tokens from actions and transfers sharing
+// the validator's action sequence.
+func ValidationNonce(validatorID string, payload []byte, actionSeq uint64) string {
+	return attestNonce(nonceDomainValidation, validatorID, payload, actionSeq)
+}
+
+// AttestedValidationBytes binds the entire verdict. After the 32-byte request
+// hash and big-endian uint32 response, each variable field (response hash,
+// URI, tag) has a big-endian uint64 byte length. Lengths preserve the distinction
+// between absent and zero hashes and prevent embedded NULs from shifting fields.
+func AttestedValidationBytes(requestHash []byte, response uint32, responseHash []byte, responseUri, tag string) []byte {
+	buf := append([]byte(nil), requestHash...)
+	buf = binary.BigEndian.AppendUint32(buf, response)
+	buf = binary.BigEndian.AppendUint64(buf, uint64(len(responseHash)))
+	buf = append(buf, responseHash...)
+	buf = binary.BigEndian.AppendUint64(buf, uint64(len(responseUri)))
+	buf = append(buf, responseUri...)
+	buf = binary.BigEndian.AppendUint64(buf, uint64(len(tag)))
+	return append(buf, tag...)
 }

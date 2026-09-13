@@ -29,4 +29,5 @@ message ValidationResponse {
   int64 height = 7;
   google.protobuf.Timestamp time = 8
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
+  bool attested = 9;
 }

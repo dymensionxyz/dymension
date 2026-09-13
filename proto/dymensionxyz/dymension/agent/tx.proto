@@ -67,6 +67,8 @@ service Msg {
       returns (MsgRequestValidationResponse);
   rpc RespondValidation(MsgRespondValidation)
       returns (MsgRespondValidationResponse);
+  rpc RespondValidationAttested(MsgRespondValidationAttested)
+      returns (MsgRespondValidationAttestedResponse);
 }
 
 message MsgRegisterAgent {
@@ -258,3 +260,15 @@ message MsgRespondValidation {
   string tag = 6;
 }
 message MsgRespondValidationResponse { uint64 seq = 1; }
+
+message MsgRespondValidationAttested {
+  option (cosmos.msg.v1.signer) = "responder";
+  string responder = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bytes request_hash = 2;
+  uint32 response = 3;
+  string response_uri = 4;
+  bytes response_hash = 5;
+  string tag = 6;
+  bytes token = 7;
+}
+message MsgRespondValidationAttestedResponse { uint64 seq = 1; }
