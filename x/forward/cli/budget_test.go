@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -108,4 +109,89 @@ func TestLegacyBudgetFloorDisplay(t *testing.T) {
 	hook := forwardtypes.NewHookForwardToHL(hyperutil.HexAddress{}, 1, hyperutil.HexAddress{}, math.NewInt(100), sdk.NewInt64Coin("adym", 10), math.ZeroInt(), nil, "", false, math.NewInt(80))
 	output := captureBudgetOutput(t, func() error { printForwardToHL(hook); return nil })
 	require.Contains(t, output, "Min Amount:         80 (inactive; requires use_full_budget)")
+}
+
+func TestIBCMinimumFlags(t *testing.T) {
+	for _, floor := range []string{"0", "80", "-1", "abc", ""} {
+		t.Run(floor, func(t *testing.T) {
+			cmd := CmdCreateMemo()
+			require.NoError(t, cmd.Flags().Set(FlagDst, DstIBC))
+			require.NoError(t, cmd.Flags().Set(FlagMinAmount, floor))
+			params, err := parseIBCFlags(cmd)
+			if floor == "-1" || floor == "abc" || floor == "" {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, floor, params.MinAmount.String())
+			_, err = parseHyperlaneFlags(cmd)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestComposeIBCMinimum(t *testing.T) {
+	for _, src := range []string{SrcIBC, SrcEIBC, SrcHL, SrcKaspa} {
+		for _, message := range []bool{false, true} {
+			if message && (src == SrcIBC || src == SrcEIBC) || !message && src == SrcKaspa {
+				continue
+			}
+			for _, floor := range []string{"", "0", "80"} {
+				t.Run(src+"/"+fmt.Sprint(message)+"/"+floor, func(t *testing.T) {
+					cmd := CmdCreateMemo()
+					args := []string{"--src=" + src, "--dst=ibc", "--channel=channel-0", "--funds-recipient-dst=" + sdk.AccAddress(make([]byte, 20)).String()}
+					if message {
+						cmd = CmdCreateHLMessage()
+						args = append(args, "--amount=100", "--token-id=0x0101010101010101010101010101010101010101010101010101010101010101", "--funds-recipient-hub="+sdk.AccAddress(make([]byte, 20)).String())
+					} else {
+						args = append(args, "--eibc-fee=10")
+					}
+					if floor != "" {
+						args = append(args, "--min-amount="+floor)
+					}
+					cmd.SetArgs(args)
+					output := captureBudgetOutput(t, cmd.Execute)
+					var hook *forwardtypes.HookForwardToIBC
+					if message {
+						bz, err := hyperutil.DecodeEthHex(output)
+						require.NoError(t, err)
+						decoded, err := parseHL(bz)
+						require.NoError(t, err)
+						hook = decoded.forwardToIBC
+					} else {
+						var data []byte
+						switch src {
+						case SrcIBC:
+							var memo ibcompletiontypes.Memo
+							require.NoError(t, json.Unmarshal([]byte(output), &memo))
+							var call commontypes.CompletionHookCall
+							require.NoError(t, proto.Unmarshal(memo.OnCompletionHook, &call))
+							data = call.Data
+						case SrcEIBC:
+							memo, err := delayedacktypes.ParseMemo(output)
+							require.NoError(t, err)
+							call, err := memo.EIBC.GetCompletionHook()
+							require.NoError(t, err)
+							data = call.Data
+						case SrcHL:
+							bz, err := hyperutil.DecodeEthHex(output)
+							require.NoError(t, err)
+							metadata, err := forwardtypes.UnpackHLMetadata(bz)
+							require.NoError(t, err)
+							data = metadata.HookForwardToIbc
+						}
+						var err error
+						hook, err = forwardtypes.UnpackForwardToIBC(data)
+						require.NoError(t, err)
+					}
+					require.NotNil(t, hook)
+					expected := floor
+					if expected == "" {
+						expected = "0"
+					}
+					require.Equal(t, expected, hook.MinAmount.String())
+				})
+			}
+		}
+	}
 }

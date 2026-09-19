@@ -18,11 +18,13 @@ func NewHookForwardToIBC(
 	sourceChannel string,
 	receiver string,
 	timeoutTimestamp uint64,
+	minAmount math.Int,
 ) *HookForwardToIBC {
 	// sender will be ignored anyway, and replaced by the funds src (eibc fulfiller or HL recipient)
 	arbSender, _ := sample.AccFromSecret("foo")
 
 	return &HookForwardToIBC{
+		MinAmount: minAmount,
 		Transfer: &ibctransfertypes.MsgTransfer{
 			SourcePort:       "transfer",
 			SourceChannel:    sourceChannel,
@@ -35,6 +37,9 @@ func NewHookForwardToIBC(
 }
 
 func (h *HookForwardToIBC) ValidateBasic() error {
+	if !h.MinAmount.IsNil() && h.MinAmount.IsNegative() {
+		return gerrc.ErrInvalidArgument.Wrap("min_amount must be non-negative")
+	}
 	if h.Transfer == nil {
 		return gerrc.ErrInvalidArgument.Wrap("transfer is nil")
 	}

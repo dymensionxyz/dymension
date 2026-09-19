@@ -104,6 +104,7 @@ type HyperlaneParams struct {
 }
 
 type IBCParams struct {
+	MinAmount math.Int
 	Channel   string
 	Recipient string
 	Timeout   time.Duration
@@ -287,7 +288,7 @@ func addTokenFlags(cmd *cobra.Command) {
 
 func addHyperlaneFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool(FlagUseFullBudget, false, "Forward the arriving budget minus max-fee, ignoring the fixed forward amount")
-	cmd.Flags().String(FlagMinAmount, "0", "Minimum amount to forward (base units; positive values require --use-full-budget; zero means no floor)")
+	cmd.Flags().String(FlagMinAmount, "0", "Minimum amount to forward (base units; Hyperlane destinations require --use-full-budget for positive values; zero means no floor)")
 	cmd.Flags().Uint32(FlagNonce, 0, "Message nonce for ordering/uniqueness")
 	cmd.Flags().Uint32(FlagDomain, 0, "Domain ID (deprecated, use --dst-domain)")
 	cmd.Flags().Uint32(FlagSrcDomain, 0, "Source chain domain ID (e.g., 1260813472 for Dymension Hub)")
@@ -373,7 +374,8 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 		return nil, fmt.Errorf("invalid min amount: %s", minAmountS)
 	}
 
-	if params.MinAmount.IsPositive() && !params.UseFullBudget {
+	dst, _ := cmd.Flags().GetString(FlagDst)
+	if dst != DstIBC && params.MinAmount.IsPositive() && !params.UseFullBudget {
 		return nil, fmt.Errorf("min-amount requires --use-full-budget")
 	}
 
@@ -399,7 +401,7 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 	}
 
 	recipientFundsS, _ := cmd.Flags().GetString(FlagRecipientDst)
-	if recipientFundsS != "" {
+	if recipientFundsS != "" && dst != DstIBC {
 		params.RecipientFunds, err = util.DecodeHexAddress(recipientFundsS)
 		if err != nil {
 			return nil, fmt.Errorf("invalid recipient: %w", err)
@@ -427,6 +429,11 @@ func parseHyperlaneFlags(cmd *cobra.Command) (*HyperlaneParams, error) {
 }
 
 func parseIBCFlags(cmd *cobra.Command) (*IBCParams, error) {
+	minAmountS, _ := cmd.Flags().GetString(FlagMinAmount)
+	minAmount, ok := math.NewIntFromString(minAmountS)
+	if !ok || minAmount.IsNegative() {
+		return nil, fmt.Errorf("invalid min amount: %s", minAmountS)
+	}
 	channel, _ := cmd.Flags().GetString(FlagChannel)
 	recipient, _ := cmd.Flags().GetString(FlagRecipientDst)
 
@@ -437,6 +444,7 @@ func parseIBCFlags(cmd *cobra.Command) (*IBCParams, error) {
 	}
 
 	return &IBCParams{
+		MinAmount: minAmount,
 		Channel:   channel,
 		Recipient: recipient,
 		Timeout:   timeout,
@@ -543,6 +551,7 @@ func runCreateMemoFromIBC(cmd *cobra.Command, common *CommonParams) error {
 			ibcParams.Channel,
 			ibcParams.Recipient,
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+			ibcParams.MinAmount,
 		)
 
 		// Validate the created hook to ensure all required fields are populated
@@ -584,6 +593,7 @@ func runCreateMemoFromHL(cmd *cobra.Command, common *CommonParams) error {
 			ibcParams.Channel,
 			ibcParams.Recipient,
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+			ibcParams.MinAmount,
 		)
 
 		// Validate the created hook to ensure all required fields are populated
@@ -713,6 +723,7 @@ func runCreateHLMessageFromKaspa(cmd *cobra.Command, common *CommonParams) error
 			ibcParams.Channel,
 			ibcParams.Recipient,
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+			ibcParams.MinAmount,
 		)
 
 		hookBz, err := proto.Marshal(hook)
@@ -835,6 +846,7 @@ func runCreateHLMessageFromHL(cmd *cobra.Command, common *CommonParams) error {
 			ibcParams.Channel,
 			ibcParams.Recipient,
 			uint64(time.Now().Add(ibcParams.Timeout).UnixNano()), // #nosec G115 - Unix time is always positive
+			ibcParams.MinAmount,
 		)
 
 		m, err = MakeForwardToIBCHyperlaneMessage(

@@ -23,6 +23,14 @@ message HookForwardToHL {
 
 message HookForwardToIBC {
   ibc.applications.transfer.v1.MsgTransfer transfer = 1;
+
+  // Minimum amount that must be available to forward on the IBC leg.
+  // Zero means no floor. If the net budget is below this, the forward
+  // is rolled back and the funds stay with the recipient/fulfiller.
+  string min_amount = 2 [
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // Expected format of metadata received in HL warp route messages

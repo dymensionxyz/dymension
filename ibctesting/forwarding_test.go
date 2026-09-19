@@ -223,6 +223,7 @@ func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
 }
 
 type FinalizeFwdTC struct {
+	minAmount      math.Int
 	bridgeFee      int64 // percentage
 	forwardChannel string
 	ibcAmt         string
@@ -241,6 +242,19 @@ func (s *eibcForwardSuite) TestFinalizeRolToRolOK() {
 	s.runFinalizeFwdTC(tc)
 }
 
+func (s *eibcForwardSuite) TestFinalizeRolToRolBelowMinimum() {
+	tc := FinalizeFwdTCOK
+	tc.minAmount = math.NewInt(199) // 200 less the 1% bridging fee leaves 198.
+	tc.expectOK = false
+	s.runFinalizeFwdTC(tc)
+}
+
+func (s *eibcForwardSuite) TestFinalizeRolToRolAtMinimum() {
+	tc := FinalizeFwdTCOK
+	tc.minAmount = math.NewInt(198)
+	s.runFinalizeFwdTC(tc)
+}
+
 func (s *eibcForwardSuite) TestFinalizeRolToRolWrongChan() {
 	tc := FinalizeFwdTCOK
 	tc.forwardChannel = "channel-999"
@@ -256,6 +270,7 @@ func (s *eibcForwardSuite) runFinalizeFwdTC(tc FinalizeFwdTC) {
 		tc.forwardChannel,
 		"cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp",
 		uint64(time.Now().Add(time.Minute*5).UnixNano()), //nolint:gosec
+		tc.minAmount,
 	)
 	err := hookPayload.ValidateBasic()
 	s.Require().NoError(err)
