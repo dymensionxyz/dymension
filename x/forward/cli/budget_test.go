@@ -15,6 +15,7 @@ import (
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	forwardtypes "github.com/dymensionxyz/dymension/v3/x/forward/types"
 	ibcompletiontypes "github.com/dymensionxyz/dymension/v3/x/ibc_completion/types"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )
 
@@ -139,7 +140,7 @@ func TestComposeIBCMinimum(t *testing.T) {
 			for _, floor := range []string{"", "0", "80"} {
 				t.Run(src+"/"+fmt.Sprint(message)+"/"+floor, func(t *testing.T) {
 					cmd := CmdCreateMemo()
-					args := []string{"--src=" + src, "--dst=ibc", "--channel=channel-0", "--funds-recipient-dst=" + sdk.AccAddress(make([]byte, 20)).String()}
+					args := []string{"--src=" + src, "--dst=ibc", "--channel=channel-0", "--funds-recipient-dst=osmo1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5helwsw"}
 					if message {
 						cmd = CmdCreateHLMessage()
 						args = append(args, "--amount=100", "--token-id=0x0101010101010101010101010101010101010101010101010101010101010101", "--funds-recipient-hub="+sdk.AccAddress(make([]byte, 20)).String())
@@ -158,6 +159,7 @@ func TestComposeIBCMinimum(t *testing.T) {
 						decoded, err := parseHL(bz)
 						require.NoError(t, err)
 						hook = decoded.forwardToIBC
+						require.Equal(t, sdk.AccAddress(make([]byte, 20)), decoded.warpPL.GetCosmosAccount())
 					} else {
 						var data []byte
 						switch src {
@@ -185,13 +187,62 @@ func TestComposeIBCMinimum(t *testing.T) {
 						require.NoError(t, err)
 					}
 					require.NotNil(t, hook)
+					require.Equal(t, "osmo1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5helwsw", hook.Transfer.Receiver)
 					expected := floor
 					if expected == "" {
 						expected = "0"
 					}
 					require.Equal(t, expected, hook.MinAmount.String())
+					if message {
+						decode := CmdDecodeHL()
+						decode.SetArgs([]string{output})
+						displayed := captureBudgetOutput(t, decode.Execute)
+						require.Contains(t, displayed, "Min Amount:        "+expected)
+					}
 				})
 			}
 		}
+	}
+}
+
+func TestIBCMinimumDisplay(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		floor math.Int
+		want  string
+	}{
+		{"absent", math.Int{}, "0"}, {"zero", math.ZeroInt(), "0"}, {"positive", math.NewInt(199), "199"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			hook := forwardtypes.NewHookForwardToIBC("channel-0", "destination", 1, tc.floor)
+			output := captureBudgetOutput(t, func() error { printForwardToIBC(hook); return nil })
+			require.Contains(t, output, "Min Amount:        "+tc.want)
+		})
+	}
+}
+
+func TestIBCMinimumFlagRegistration(t *testing.T) {
+	for _, registrars := range [][]func(*cobra.Command){
+		{addIBCFlags}, {addIBCFlags, addHyperlaneFlags}, {addHyperlaneFlags, addIBCFlags},
+	} {
+		cmd := &cobra.Command{}
+		for _, register := range registrars {
+			register(cmd)
+		}
+		params, err := parseIBCFlags(cmd)
+		require.NoError(t, err)
+		require.True(t, params.MinAmount.IsZero())
+	}
+}
+
+func TestHLToIBCRequiresHubRecipient(t *testing.T) {
+	for _, hub := range []string{"", "not-an-address", "osmo1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5helwsw"} {
+		t.Run(hub, func(t *testing.T) {
+			cmd := CmdCreateHLMessage()
+			cmd.SilenceUsage = true
+			cmd.SilenceErrors = true
+			cmd.SetArgs([]string{"--src=hl", "--dst=ibc", "--channel=channel-0", "--amount=100", "--token-id=0x0101010101010101010101010101010101010101010101010101010101010101", "--funds-recipient-dst=" + sdk.AccAddress(make([]byte, 20)).String(), "--funds-recipient-hub=" + hub, "--min-amount=80"})
+			require.ErrorContains(t, cmd.Execute(), "hub recipient")
+		})
 	}
 }

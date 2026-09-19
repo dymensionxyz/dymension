@@ -90,6 +90,48 @@ func (s *eibcForwardSuite) TestFulfillHookIsCalled() {
 	s.Require().True(h.called)
 }
 
+type observedIBCCompletionHook struct {
+	delayedackkeeper.CompletionHookInstance
+	budget sdk.Coin
+	events sdk.Events
+}
+
+func (h *observedIBCCompletionHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget sdk.Coin, hookData []byte) error {
+	h.budget = budget
+	before := len(ctx.EventManager().Events())
+	err := h.CompletionHookInstance.Run(ctx, fundsSource, budget, hookData)
+	h.events = ctx.EventManager().Events()[before:]
+	return err
+}
+
+func (s *eibcForwardSuite) TestFulfillRolToRolBelowMinimum() {
+	observed := &observedIBCCompletionHook{CompletionHookInstance: s.hubApp().Forward.RollToIBCHook()}
+	s.hubApp().DelayedAckKeeper.SetCompletionHooks(map[string]delayedackkeeper.CompletionHookInstance{
+		forwardtypes.HookNameRollToIBC: observed,
+	})
+	// The order price is 50: the 200 transfer less the 150 eIBC fee.
+	hook := forwardtypes.NewHookForwardToIBC("channel-0", "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgp", uint64(time.Now().Add(time.Hour).UnixNano()), math.NewInt(51)) //nolint:gosec
+	s.Require().NoError(hook.ValidateBasic())
+	bz, err := forwardtypes.NewHookForwardToIBCCallBz(hook)
+	s.Require().NoError(err)
+	// The helper checks that the recipient retains the full order price after
+	// fulfillment and that the fulfiller receives its fee after finalization.
+	s.eibcTransferFulfillment([]eibcTransferFulfillmentTC{{
+		name:              "post-eIBC-fee budget below floor",
+		fulfillerStartBal: "300", eibcFee: "150", transferAmt: "200", fulfillHook: bz,
+	}})
+	s.Require().Equal(math.NewInt(50), observed.budget.Amount)
+	s.Require().Len(observed.events, 1)
+	s.Require().Equal("dymensionxyz.dymension.forward.EventForward", observed.events[0].Type)
+	attrs := make(map[string]string)
+	for _, attr := range observed.events[0].Attributes {
+		attrs[attr.Key] = attr.Value
+	}
+	s.Require().Equal("false", attrs["ok"])
+	s.Require().Equal("true", attrs["was_forwarded"])
+	s.Require().Contains(attrs["err"], "forwardable budget 50 below min_amount 51")
+}
+
 // TestFinalizedRollappPacketWithCompletionHooks tests that completion hooks run
 // even when a rollapp packet arrives already finalized (state finalized before packet processing)
 func (s *eibcForwardSuite) TestFinalizedRollappPacketWithCompletionHooks() {
