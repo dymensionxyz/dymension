@@ -200,6 +200,11 @@ func printForwardToIBC(m *types.HookForwardToIBC) {
 	fmt.Printf("  Source Port:       %s\n", t.SourcePort)
 	fmt.Printf("  Source Channel:    %s\n", t.SourceChannel)
 	fmt.Printf("  Receiver:          %s\n", t.Receiver)
+	minAmount := "0"
+	if !m.MinAmount.IsNil() {
+		minAmount = m.MinAmount.String()
+	}
+	fmt.Printf("  Min Amount:        %s\n", minAmount)
 	fmt.Printf("  Timeout Timestamp: %d", t.TimeoutTimestamp)
 	if t.TimeoutTimestamp > 0 {
 		ts := time.Unix(0, int64(t.TimeoutTimestamp)) // #nosec G115 - timestamp is always positive

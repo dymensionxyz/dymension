@@ -49,7 +49,7 @@ func (k Forward) OnHyperlaneMessage(goCtx context.Context, args warpkeeper.OnHyp
 
 				// funds src is the hyperlane transfer recipient, which should have same priv key as rollapp recipient
 				// so in case of async failure, the funds will get refunded back there.
-				return true, k.forwardToIBC(c, d.Transfer, args.Account, args.Coin())
+				return true, k.forwardToIBC(c, d.Transfer, args.Account, args.Coin(), d.MinAmount)
 			}
 
 			// No forwarding configured
