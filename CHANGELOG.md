@@ -3,11 +3,227 @@
 
 # [](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc06...v) (2026-09-22)
 
+
+### Bug Fixes
+
+* **agent:** bound validation responses per request ([#2205](https://github.com/dymensionxyz/dymension/issues/2205)) ([03a65c6](https://github.com/dymensionxyz/dymension/commit/03a65c67a68b775815d30dff7130f823babdd14e))
+* **bridgingfee:** add CLI guards against empty field updates ([#2130](https://github.com/dymensionxyz/dymension/issues/2130)) ([58abdae](https://github.com/dymensionxyz/dymension/commit/58abdae600c5fa6b7210ca70192f0e46a4fe0ff5))
+* **eibc:** derive on-demand LP shuffle seed ([#2195](https://github.com/dymensionxyz/dymension/issues/2195)) ([28618e9](https://github.com/dymensionxyz/dymension/commit/28618e97825b80e64f88ba24ec04f79b2c333317))
+* **eibc:** honor agent policy revocation ([#2193](https://github.com/dymensionxyz/dymension/issues/2193)) ([5b69a41](https://github.com/dymensionxyz/dymension/commit/5b69a417f16a956e6dd063e895fe0a9e77a1a629))
+* **eth:** fix `eth_gasPrice` query ([#2113](https://github.com/dymensionxyz/dymension/issues/2113)) ([230706a](https://github.com/dymensionxyz/dymension/commit/230706abb96de7b7f8f8daea233242279211d2b5))
+* **forward:** clamp stale IBC timeouts ([#2201](https://github.com/dymensionxyz/dymension/issues/2201)) ([7c3129c](https://github.com/dymensionxyz/dymension/commit/7c3129c442d0810bd7f952f21ffb37efc2201a52))
+* **forward:** support budget-relative Hyperlane amounts ([#2216](https://github.com/dymensionxyz/dymension/issues/2216)) ([8497b49](https://github.com/dymensionxyz/dymension/commit/8497b49ee2702799b3b8d3bc8a42898069757f98))
+* **rollapp:** handle missing revision heights ([#2210](https://github.com/dymensionxyz/dymension/issues/2210)) ([62a492a](https://github.com/dymensionxyz/dymension/commit/62a492a31e55245a1e47bc7827b0b79919869932))
+* **rollapp:** validate fraud proposal fields ([#2208](https://github.com/dymensionxyz/dymension/issues/2208)) ([5daa024](https://github.com/dymensionxyz/dymension/commit/5daa024d8d0aa58d880b20a6a1a29f31e1e27605))
+* **sponsorship:** adopt gerrc error taxonomy ([#2209](https://github.com/dymensionxyz/dymension/issues/2209)) ([0272de9](https://github.com/dymensionxyz/dymension/commit/0272de98140fb2354ea30723b156d81ff4d0dc53))
+
+
 ### Features
 
-* (agent) #2219 Add enclave-attested validation verdicts with domain-separated replay protection and validator action-log entries.
+* **agent:** add ERC-8004 validation registry ([#2199](https://github.com/dymensionxyz/dymension/issues/2199)) ([7064964](https://github.com/dymensionxyz/dymension/commit/70649644964fa6c1b647fc70677d74eeab3a6f70))
+* **agent:** add SubmitAttestedAction (nonce binding + attestation verify + append log) ([#2164](https://github.com/dymensionxyz/dymension/issues/2164)) ([558d9b9](https://github.com/dymensionxyz/dymension/commit/558d9b9ce1f68a03bff4d5d5a636ff8d87572e61))
+* **agent:** add x/agent registry + action-log queries and CLI ([#2165](https://github.com/dymensionxyz/dymension/issues/2165)) ([7daf244](https://github.com/dymensionxyz/dymension/commit/7daf2444f90e7ddcbf84dbbe69d94458b8e211b3)), closes [2158-#2160](https://github.com/2158-/issues/2160) [#2161](https://github.com/dymensionxyz/dymension/issues/2161)
+* **agent:** attest validation verdicts with enclave proofs ([#2220](https://github.com/dymensionxyz/dymension/issues/2220)) ([6324441](https://github.com/dymensionxyz/dymension/commit/63244410d4825069ba7effe1ee7a8b69ab29c13e))
+* **agent:** attested spend authority — escrow-funded, budget-capped agent transfers ([#2184](https://github.com/dymensionxyz/dymension/issues/2184)) ([8a0f2e6](https://github.com/dymensionxyz/dymension/commit/8a0f2e65c91dd09ad1a5cbc8a166fbfa11142a25)), closes [#2168](https://github.com/dymensionxyz/dymension/issues/2168) [#2170](https://github.com/dymensionxyz/dymension/issues/2170)
+* **agent:** complete module proto scaffold ([#2188](https://github.com/dymensionxyz/dymension/issues/2188)) ([3b89681](https://github.com/dymensionxyz/dymension/commit/3b896814622907341cda93783fc62bcacac2af99))
+* **agent:** governance-gated TEE policy revocation denylist ([#2180](https://github.com/dymensionxyz/dymension/issues/2180)) ([d3701a2](https://github.com/dymensionxyz/dymension/commit/d3701a228165fc26e00986d0ff6ecf9aa6150c79)), closes [#2168](https://github.com/dymensionxyz/dymension/issues/2168) [#2170](https://github.com/dymensionxyz/dymension/issues/2170)
+* **agent:** on-chain reputation registry grounded in the attested action log ([#2187](https://github.com/dymensionxyz/dymension/issues/2187)) ([ab4d98a](https://github.com/dymensionxyz/dymension/commit/ab4d98a3dde0a43f31541c454b75dd7933741cf3))
+* **agent:** registry register + deactivate ([#2166](https://github.com/dymensionxyz/dymension/issues/2166)) ([d0eca0e](https://github.com/dymensionxyz/dymension/commit/d0eca0e3709cbbaaaf9490aae6cbfd7dfdaba10d)), closes [#2158](https://github.com/dymensionxyz/dymension/issues/2158) [#2158](https://github.com/dymensionxyz/dymension/issues/2158) [#2159](https://github.com/dymensionxyz/dymension/issues/2159)
+* **agent:** restrict attested transfer recipients ([#2197](https://github.com/dymensionxyz/dymension/issues/2197)) ([945d736](https://github.com/dymensionxyz/dymension/commit/945d73614b53a2acd7e1ed757c124cfe58e3af3b))
+* **agent:** timelocked agent policy rotation (MsgUpdateAgentPolicy) ([#2176](https://github.com/dymensionxyz/dymension/issues/2176)) ([ed58cd3](https://github.com/dymensionxyz/dymension/commit/ed58cd34af89dffc5342da90a2c71e2169754bfc))
+* **ante:** check circuit breaker for wrapped msgs ([#2207](https://github.com/dymensionxyz/dymension/issues/2207)) ([9a13bfe](https://github.com/dymensionxyz/dymension/commit/9a13bfeb4848a2ee2495a08d0a833b252f9571ea))
+* **bridgingfee:** per-asset min/max outbound fee bounds ([#2174](https://github.com/dymensionxyz/dymension/issues/2174)) ([5bf9013](https://github.com/dymensionxyz/dymension/commit/5bf90137c11208c3590ea040aa8ce070ac97d446)), closes [hi#frequency](https://github.com/hi/issues/frequency)
+* **config:** adjust consensus timeouts on node init ([#2108](https://github.com/dymensionxyz/dymension/issues/2108)) ([d4ef55b](https://github.com/dymensionxyz/dymension/commit/d4ef55b6384471e26253c6f2fa67fe5e783ca8cf))
+* **dymns:** bind agent service records ([#2206](https://github.com/dymensionxyz/dymension/issues/2206)) ([dc5c987](https://github.com/dymensionxyz/dymension/commit/dc5c987f2d997bc4204d9c4b9da60456a92002ce))
+* **dymns:** typed service/endpoint records (DCT_SERVICE) for agent discovery ([#2172](https://github.com/dymensionxyz/dymension/issues/2172)) ([0b63076](https://github.com/dymensionxyz/dymension/commit/0b630764fc5f514197fb28652daae44180989d3e)), closes [#2171](https://github.com/dymensionxyz/dymension/issues/2171)
+* **eibc:** absolute minimum-fee floor for on-demand LPs ([#2190](https://github.com/dymensionxyz/dymension/issues/2190)) ([88c83cd](https://github.com/dymensionxyz/dymension/commit/88c83cde22dc124930e23f5683bdac8a118d6617)), closes [#2189](https://github.com/dymensionxyz/dymension/issues/2189)
+* **eibc:** bind on-demand LP to x/agent attested agent ([#2183](https://github.com/dymensionxyz/dymension/issues/2183)) ([bbdefe2](https://github.com/dymensionxyz/dymension/commit/bbdefe20955a16b6550842f471fdaac2c45dab06)), closes [pre-#2167](https://github.com/pre-/issues/2167)
+* **eibc:** time-based competitive fee escalation for demand orders ([#2168](https://github.com/dymensionxyz/dymension/issues/2168)) ([c4238fc](https://github.com/dymensionxyz/dymension/commit/c4238fc19d342bfcfdcad93f2528aa900b63905b))
+* **eibc:** validity window + spend-velocity cap for on-demand LPs ([#2170](https://github.com/dymensionxyz/dymension/issues/2170)) ([a6eaaeb](https://github.com/dymensionxyz/dymension/commit/a6eaaeb47e68d7ef03a58545ba00d48762da4276))
+* **forward/cli:** add Kaspa recipient address display in decode-hl ([#2131](https://github.com/dymensionxyz/dymension/issues/2131)) ([a8fe841](https://github.com/dymensionxyz/dymension/commit/a8fe841c8ef5fc835f815615103d1de4fc311ffa))
+* **forward:** pretty print decode-hl forwarding memo ([#2128](https://github.com/dymensionxyz/dymension/issues/2128)) ([79e7b3b](https://github.com/dymensionxyz/dymension/commit/79e7b3bacb3eee3a3f4f2afa31f311f3311be5ae))
 
-## [v3.2.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.2.0)
+# [4.0.0-rc06](https://github.com/dymensionxyz/dymension/compare/v4.0.0...v4.0.0-rc06) (2025-11-13)
+
+
+### Bug Fixes
+
+* **tee:** typo in rego query ([#2102](https://github.com/dymensionxyz/dymension/issues/2102)) ([5bbee2a](https://github.com/dymensionxyz/dymension/commit/5bbee2a0c74474bc159bd28bd2f70782e2352dcd))
+
+
+### Features
+
+* **rollapp:** add tee-config query command ([#2101](https://github.com/dymensionxyz/dymension/issues/2101)) ([0de6275](https://github.com/dymensionxyz/dymension/commit/0de6275e03975b0dca69f9bb6be5c1f7e3049eb7))
+
+# [4.0.0-rc05](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc04...v4.0.0-rc05) (2025-11-06)
+
+
+### Bug Fixes
+
+* **ante:** block MsgSubmitMisbehaviour to ensure validation logic in … ([#2095](https://github.com/dymensionxyz/dymension/issues/2095)) ([02293a5](https://github.com/dymensionxyz/dymension/commit/02293a5b9f931aa861a75b6557dd992b25a59ed2))
+* **app:** trigger eth tracers registration ([#2094](https://github.com/dymensionxyz/dymension/issues/2094)) ([69dfdef](https://github.com/dymensionxyz/dymension/commit/69dfdeff70c330068a881c7de22036294bc41d8f))
+
+
+### Features
+
+* **upgrade:** add new fee exempt message types for IRO transactions ([#2093](https://github.com/dymensionxyz/dymension/issues/2093)) ([1791000](https://github.com/dymensionxyz/dymension/commit/1791000ccc8ee8d1b0964e9d6e75dd373dcab171))
+
+# [4.0.0-rc04](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc03...v4.0.0-rc04) (2025-11-05)
+
+
+### Bug Fixes
+
+* **ante:** unblock vesting msgs from ante handler ([#2092](https://github.com/dymensionxyz/dymension/issues/2092)) ([6183bf3](https://github.com/dymensionxyz/dymension/commit/6183bf33f5faa224a34359d0f1b68b311a50ab9c))
+
+# [4.0.0-rc03](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc02...v4.0.0-rc03) (2025-11-04)
+
+
+### Bug Fixes
+
+* **migration:** differentiate noble pool id in upgrade ([#2091](https://github.com/dymensionxyz/dymension/issues/2091)) ([76c9e97](https://github.com/dymensionxyz/dymension/commit/76c9e97ea9ebb25bcd564960df4a8816ad5e7ea7))
+
+# [4.0.0-rc02](https://github.com/dymensionxyz/dymension/compare/v4.0.0-rc01...v4.0.0-rc02) (2025-11-04)
+
+
+### Bug Fixes
+
+* **upgrade:** differentiate blumbus ([#2090](https://github.com/dymensionxyz/dymension/issues/2090)) ([9798d49](https://github.com/dymensionxyz/dymension/commit/9798d498462028759c19ab7d6191c4adc69a2707))
+
+# [4.0.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.2.0-rc01...v4.0.0-rc01) (2025-11-04)
+
+
+### Bug Fixes
+
+* add missing validations in x/rollapp/types/genesis.go ([#1657](https://github.com/dymensionxyz/dymension/issues/1657)) ([4ebef89](https://github.com/dymensionxyz/dymension/commit/4ebef89664fbefbede41aa2df24cc0087e01a288))
+* added burner permission for x/streamer ([#2070](https://github.com/dymensionxyz/dymension/issues/2070)) ([048af62](https://github.com/dymensionxyz/dymension/commit/048af62e584609b1585d0a8678841889d90ff96c))
+* **ci:** free up disk space task ([#2043](https://github.com/dymensionxyz/dymension/issues/2043)) ([0a105b4](https://github.com/dymensionxyz/dymension/commit/0a105b4cd78b5bb315e73df4acfee797e74bd71e))
+* **cli:** properly parse recipient flag for IBC forwarding ([#2041](https://github.com/dymensionxyz/dymension/issues/2041)) ([04fbb9c](https://github.com/dymensionxyz/dymension/commit/04fbb9c0be4f0b7194675e5dc1f49b2e04f18a30))
+* **codec:** added missing codec registrations ([#1896](https://github.com/dymensionxyz/dymension/issues/1896)) ([845cf55](https://github.com/dymensionxyz/dymension/commit/845cf55999b92f498e76f916b2827935a0370f56))
+* **codec:** shorten and consistency in amino names ([#1908](https://github.com/dymensionxyz/dymension/issues/1908)) ([88f3eff](https://github.com/dymensionxyz/dymension/commit/88f3eff79a05e81845489435d76e0e87cd4ec664))
+* correct error message for RollappPacket ValidateBasic ([#1992](https://github.com/dymensionxyz/dymension/issues/1992)) ([74bd7d9](https://github.com/dymensionxyz/dymension/commit/74bd7d9fdec0a760e2b5ad092782dc4c14478129))
+* correct two usages of indefinite articles in cli ([#1698](https://github.com/dymensionxyz/dymension/issues/1698)) ([1750571](https://github.com/dymensionxyz/dymension/commit/1750571db86c1ff77538e01d01de240a1ededa42))
+* **denommetadata:** wrong key in paginated guery for registered denoms ([#1798](https://github.com/dymensionxyz/dymension/issues/1798)) ([c5d94ab](https://github.com/dymensionxyz/dymension/commit/c5d94ab99849a0a48e855e011ef980b78ed359b6))
+* **deps:** Updated osmosis dep to include fix for spot price conversion ([#2065](https://github.com/dymensionxyz/dymension/issues/2065)) ([ea9163c](https://github.com/dymensionxyz/dymension/commit/ea9163c8a8ae39f8041e32ce60642295272332a2))
+* **eibc:** authorization min fee truncating ([#1756](https://github.com/dymensionxyz/dymension/issues/1756)) ([e4fc14b](https://github.com/dymensionxyz/dymension/commit/e4fc14bb315a083737f81ce8eb3662053a15bc16))
+* **eibc:** use v2 math rand in on demand ([#1855](https://github.com/dymensionxyz/dymension/issues/1855)) ([66cf8f3](https://github.com/dymensionxyz/dymension/commit/66cf8f3cc0be57b8e789a265b2907c356c8b9dbb))
+* **evm:** fix eth custom get signers registry ([#1850](https://github.com/dymensionxyz/dymension/issues/1850)) ([9b7422f](https://github.com/dymensionxyz/dymension/commit/9b7422f605fab58247f3e48fbbc7b95709121e81))
+* filepath in err string when using Wrapf causes non-determinism ([#2040](https://github.com/dymensionxyz/dymension/issues/2040)) ([faf6c0b](https://github.com/dymensionxyz/dymension/commit/faf6c0b68ffd06c6d72ade2a717d5063c6c9d122))
+* **forward:** cli fixes ([#1975](https://github.com/dymensionxyz/dymension/issues/1975)) ([0230508](https://github.com/dymensionxyz/dymension/commit/02305087123f3e9970969df152f15a65f6e2f002))
+* **hyperlane:** properly allows hook setting ([#1945](https://github.com/dymensionxyz/dymension/issues/1945)) ([5d0fbd2](https://github.com/dymensionxyz/dymension/commit/5d0fbd2444cc00b1e572af4d1a6b0f268da2f7c1))
+* **incentives, lockup, gamm:** added missing signer annotation ([#1843](https://github.com/dymensionxyz/dymension/issues/1843)) ([908edb8](https://github.com/dymensionxyz/dymension/commit/908edb84ff15a552ef82e6c987b041ce6af486d4))
+* **incentives:** param switch for endorsement mode ([#1803](https://github.com/dymensionxyz/dymension/issues/1803)) ([548f80c](https://github.com/dymensionxyz/dymension/commit/548f80ceabe86b8adf0220c55714b496c8b88237))
+* **incentives:** set min threshold for gauge incentives distribution ([#1800](https://github.com/dymensionxyz/dymension/issues/1800)) ([b757e1f](https://github.com/dymensionxyz/dymension/commit/b757e1f63334ad2ee765f363697de8ebe1af9a2f))
+* **IRO:** ensure approximation converges only via under-approximation ([#1955](https://github.com/dymensionxyz/dymension/issues/1955)) ([324c437](https://github.com/dymensionxyz/dymension/commit/324c43779c2abe03ab9aa3a74e46f7d2225849ef))
+* **iro:** first sell tokens, than charge fee ([#1717](https://github.com/dymensionxyz/dymension/issues/1717)) ([9ca4a70](https://github.com/dymensionxyz/dymension/commit/9ca4a7066288bdacb629b4a3b90c4b1922f051cc))
+* **IRO:** fixed precision for accurate liquidity calculations ([#2046](https://github.com/dymensionxyz/dymension/issues/2046)) ([74486cc](https://github.com/dymensionxyz/dymension/commit/74486cc4ddc173c2576be16c0a1dbd23d26558c6))
+* **iro:** fixed TokensForExactInAmount with USDC ([#1922](https://github.com/dymensionxyz/dymension/issues/1922)) ([2b88958](https://github.com/dymensionxyz/dymension/commit/2b889585abde94ea067a7c5d1d01bdbbb51b8bcd))
+* **iro:** make graduation logic gas free ([#2030](https://github.com/dymensionxyz/dymension/issues/2030)) ([8773910](https://github.com/dymensionxyz/dymension/commit/877391089fa9379ada29e58c26d8d4068ea1310d))
+* **iro:** missing `StartTimeAfterSettlement` in IRO default params ([#1704](https://github.com/dymensionxyz/dymension/issues/1704)) ([10edf97](https://github.com/dymensionxyz/dymension/commit/10edf973bf95cd8a28d8af1cd312c3e4e9939f6e))
+* **iro:** set minimum creation fee ([#1919](https://github.com/dymensionxyz/dymension/issues/1919)) ([1ec849d](https://github.com/dymensionxyz/dymension/commit/1ec849de9eda4884f7fcb4b597116b9c15c5c760))
+* kaspa bridge progress indication sign bytes, dont use gogoproto ([#1916](https://github.com/dymensionxyz/dymension/issues/1916)) ([e61b890](https://github.com/dymensionxyz/dymension/commit/e61b890fe908049defe075554c90f46dc36717ed))
+* **lightclient:** avoid all consensus states iter ([#1959](https://github.com/dymensionxyz/dymension/issues/1959)) ([3637708](https://github.com/dymensionxyz/dymension/commit/363770815a21120ba239494ee9920dfb09895121)), closes [#1958](https://github.com/dymensionxyz/dymension/issues/1958)
+* **lightclient:** fixed consensus states iterator ([#1715](https://github.com/dymensionxyz/dymension/issues/1715)) ([6b68cb0](https://github.com/dymensionxyz/dymension/commit/6b68cb0d2c046c9714519b8686141a45447584a6))
+* linter ([#1679](https://github.com/dymensionxyz/dymension/issues/1679)) ([109d4d3](https://github.com/dymensionxyz/dymension/commit/109d4d310518dfc8132751b2597e622460a02df9))
+* **lockup:** charging LockCreationFee only on new lock creation ([#1866](https://github.com/dymensionxyz/dymension/issues/1866)) ([91f6a88](https://github.com/dymensionxyz/dymension/commit/91f6a886cbf22c38cc79701a3c8892a6283b851e))
+* **lockup:** get lock creation fee from params ([#1762](https://github.com/dymensionxyz/dymension/issues/1762)) ([893282a](https://github.com/dymensionxyz/dymension/commit/893282a5d07ad16d37061c874fbe5829af3c530e))
+* **lockup:** remove logic to unlock all locks at end blocker, or from tx ([#1764](https://github.com/dymensionxyz/dymension/issues/1764)) ([a8d5cbc](https://github.com/dymensionxyz/dymension/commit/a8d5cbc197d77635a2f8ad89f9c0998a7260955f))
+* **migration:** Added missing keytable initialization of ibc keeper ([#1913](https://github.com/dymensionxyz/dymension/issues/1913)) ([47395ad](https://github.com/dymensionxyz/dymension/commit/47395ad4956cc550ee617fc59965fb41b2f59a0e))
+* **migration:** fix setting canonical light clients and gauged denom-metadata ([#1680](https://github.com/dymensionxyz/dymension/issues/1680)) ([94f7ccd](https://github.com/dymensionxyz/dymension/commit/94f7ccdf17a846cb27e4ce9056567c58a2095790))
+* **migration:** fixed migration order ([#2022](https://github.com/dymensionxyz/dymension/issues/2022)) ([d5187c9](https://github.com/dymensionxyz/dymension/commit/d5187c9232a470cc4f104caaa887dc5b30bb043e))
+* **migration:** register streamer's old proposals types ([#1923](https://github.com/dymensionxyz/dymension/issues/1923)) ([ae16632](https://github.com/dymensionxyz/dymension/commit/ae1663263435cc40bad1931d37b50f6582ac13da))
+* **migration:** reverted eibc/authz protos ([#1924](https://github.com/dymensionxyz/dymension/issues/1924)) ([ab62145](https://github.com/dymensionxyz/dymension/commit/ab6214531bc85298fbacae9a44838bd0acc8f91b))
+* **migration:** update min swap fee ([#1915](https://github.com/dymensionxyz/dymension/issues/1915)) ([6d86081](https://github.com/dymensionxyz/dymension/commit/6d860818fa62a3115908b7700a0a64df7dfce7df))
+* **otcbuyback:**  audit fixes ([#2029](https://github.com/dymensionxyz/dymension/issues/2029)) ([d7c7425](https://github.com/dymensionxyz/dymension/commit/d7c742570ed524df242d5fb93ceb0971be480901))
+* **otcbuyback:** fix invariants ([#2067](https://github.com/dymensionxyz/dymension/issues/2067)) ([#2078](https://github.com/dymensionxyz/dymension/issues/2078)) ([55c7ed8](https://github.com/dymensionxyz/dymension/commit/55c7ed8308dac70e940ea5264a464101d3894a32))
+* **otcbuyback:** incorrect token validation in SetAcceptedDenoms ([#2084](https://github.com/dymensionxyz/dymension/issues/2084)) ([3c7dc3a](https://github.com/dymensionxyz/dymension/commit/3c7dc3afbda0dcfbee39148e63cfb7f0965ee36a))
+* **otcbuyback:** make end auction flow gas free ([#2042](https://github.com/dymensionxyz/dymension/issues/2042)) ([#2045](https://github.com/dymensionxyz/dymension/issues/2045)) ([b87c1f2](https://github.com/dymensionxyz/dymension/commit/b87c1f2ec6f6cc04c3acb0401e41a857bd9691ca))
+* **otcbuyback:** unable to buy remaining allocation if min purchase amt is positive ([#2079](https://github.com/dymensionxyz/dymension/issues/2079)) ([6cd8388](https://github.com/dymensionxyz/dymension/commit/6cd838898f29a26d968ea2f3e13d0a2c3776e4fe))
+* **proto:** formatting proto files ([#1904](https://github.com/dymensionxyz/dymension/issues/1904)) ([9956d00](https://github.com/dymensionxyz/dymension/commit/9956d0060cfa268541c85229893c8f85bfa33d36))
+* rename x/sequencer after sentinel func ([#1817](https://github.com/dymensionxyz/dymension/issues/1817)) ([3c568c0](https://github.com/dymensionxyz/dymension/commit/3c568c0895de6af95262becb6d690820e0815134))
+* **rollapp:** allow tokenless on `CreateRollapp` / `UpdateRollapp` with eip ([#1685](https://github.com/dymensionxyz/dymension/issues/1685)) ([8bdde21](https://github.com/dymensionxyz/dymension/commit/8bdde215ba0d6e7b2c53c32fed62fd2a3d101232))
+* **rollapp:** cli update only metadata ([#1708](https://github.com/dymensionxyz/dymension/issues/1708)) ([942c868](https://github.com/dymensionxyz/dymension/commit/942c8683b6aed177088eac49bb8703d83fadb210))
+* **rollapp:** fee denom validation ([#2085](https://github.com/dymensionxyz/dymension/issues/2085)) ([25e0392](https://github.com/dymensionxyz/dymension/commit/25e0392ff23465a5c1ac9293ee84d2286eb628dd))
+* **rollapp:** make MinimumSequencerBond optional ([#1754](https://github.com/dymensionxyz/dymension/issues/1754)) ([5c22952](https://github.com/dymensionxyz/dymension/commit/5c22952b10209e63634a7f7c1d9f510506e0344c))
+* **sequencer:** missing interface registration in sequencer module  ([#1912](https://github.com/dymensionxyz/dymension/issues/1912)) ([2ddaf25](https://github.com/dymensionxyz/dymension/commit/2ddaf251568713d45a6900c0abb8a30158efc9aa))
+* **sequencer:** prevent self-kick to avoid state inconsistency ([#1964](https://github.com/dymensionxyz/dymension/issues/1964)) ([776e205](https://github.com/dymensionxyz/dymension/commit/776e205b6fbd29c3eea6457fca6d631895895633)), closes [#1967](https://github.com/dymensionxyz/dymension/issues/1967)
+* **sponsorship:** added epoch identifier ([#1864](https://github.com/dymensionxyz/dymension/issues/1864)) ([1094223](https://github.com/dymensionxyz/dymension/commit/109422326685781577a3148e5284efdeeb80a2e1))
+* **sponsorship:** missing total power in the endorsement migration ([#1865](https://github.com/dymensionxyz/dymension/issues/1865)) ([3e0e9ef](https://github.com/dymensionxyz/dymension/commit/3e0e9effdd628dfd8c3c21cae98ff3a14162791f))
+* **streamer:** oneof parsing in MsgCreatePumpStream ([#2023](https://github.com/dymensionxyz/dymension/issues/2023)) ([8c2345c](https://github.com/dymensionxyz/dymension/commit/8c2345c97b0b74b9e40bbd3313767ab2e6215fed))
+* **streamer:** panic in pump streamer when spending entire epoch budget ([#2076](https://github.com/dymensionxyz/dymension/issues/2076)) ([098ecdd](https://github.com/dymensionxyz/dymension/commit/098ecddbae8053e9e6776ca3b1c4f28664d4876c))
+* **streamer:** tests after v50 ([#1983](https://github.com/dymensionxyz/dymension/issues/1983)) ([1e2563c](https://github.com/dymensionxyz/dymension/commit/1e2563c967ea4f06862a828bf9c9b342e29b305a))
+* **streamer:** top rollapps normalization ([#2044](https://github.com/dymensionxyz/dymension/issues/2044)) ([9d6a3f7](https://github.com/dymensionxyz/dymension/commit/9d6a3f704dc4b626ca327508745196911831aee5))
+* **tee:** add attested bd state root to nonce ([#2066](https://github.com/dymensionxyz/dymension/issues/2066)) ([66f106e](https://github.com/dymensionxyz/dymension/commit/66f106e843adac2f99a751d22f553d8598834f74))
+* **tee:** harden policies to be production ready ([#2057](https://github.com/dymensionxyz/dymension/issues/2057)) ([200127d](https://github.com/dymensionxyz/dymension/commit/200127d34d92d95a363508f70bde616474951832))
+* **TEE:** include hub chain id in nonce ([#2059](https://github.com/dymensionxyz/dymension/issues/2059)) ([6489f4f](https://github.com/dymensionxyz/dymension/commit/6489f4f05a55f15ec6621c899bbc8db08e371a9b))
+* **TEE:** remove a check (moved from on-chain to offchain in dymint) ([#2055](https://github.com/dymensionxyz/dymension/issues/2055)) ([8defaf5](https://github.com/dymensionxyz/dymension/commit/8defaf5fe364dde303f0994e3e467ccaaade99e8))
+* **upgrade:** moved old params load to common flow instead of upgrade specific ([#1687](https://github.com/dymensionxyz/dymension/issues/1687)) ([5ce245c](https://github.com/dymensionxyz/dymension/commit/5ce245c1eddcbbe150ce2db97ce6cfcde936a35e))
+* **upgrade:** params migration to support fast block time ([#1903](https://github.com/dymensionxyz/dymension/issues/1903)) ([32b9533](https://github.com/dymensionxyz/dymension/commit/32b9533bbbce810567be6d2bacf281c93a13e85b))
+* **x/forward:** avoid partial failures in ibc or HL dispatch which result in loss of funds ([#2048](https://github.com/dymensionxyz/dymension/issues/2048)) ([9659cec](https://github.com/dymensionxyz/dymension/commit/9659ceca8a09945ce0cc4e45fc1e9b63ba1771bf))
+
+
+### Features
+
+* **ante:** implemented "inner decorator" which runs logic on wrapped msgs ([#1867](https://github.com/dymensionxyz/dymension/issues/1867)) ([079879a](https://github.com/dymensionxyz/dymension/commit/079879a9ad3847c9b2b383c42cb7fdff8ca447c1))
+* **app:** add circuit breaker module ([#1828](https://github.com/dymensionxyz/dymension/issues/1828)) ([2c71be2](https://github.com/dymensionxyz/dymension/commit/2c71be2e8f09254e7255057fc74bb5d9f357725f))
+* **app:** Upgrading to v50 ([#1736](https://github.com/dymensionxyz/dymension/issues/1736)) ([f2359ac](https://github.com/dymensionxyz/dymension/commit/f2359acdb6d8c4d616d879b6411b0b7067c60447)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
+* **app:** v5 upgrade handler for lockup params ([#1778](https://github.com/dymensionxyz/dymension/issues/1778)) ([3ebc588](https://github.com/dymensionxyz/dymension/commit/3ebc5887390d0f009d413ee5fc0582ad4752aea0))
+* **bridgingfee:** fee for HL transfers ([#2014](https://github.com/dymensionxyz/dymension/issues/2014)) ([01e13dc](https://github.com/dymensionxyz/dymension/commit/01e13dc136ae8652902972fce889c2354e277241))
+* **denommetadata:** Add CLI tx for HL denom meta reg ([#1943](https://github.com/dymensionxyz/dymension/issues/1943)) ([96889d2](https://github.com/dymensionxyz/dymension/commit/96889d21b303c83f19e7d6d2627e5264fae552d0))
+* **deps:** bump ethermint to 07f1611f6247 ([#1909](https://github.com/dymensionxyz/dymension/issues/1909)) ([8786dd2](https://github.com/dymensionxyz/dymension/commit/8786dd2fa0f5827724f7930ded293ea2f204d205))
+* **dymns:** allow alias registration fee in foreign token ([#2017](https://github.com/dymensionxyz/dymension/issues/2017)) ([6e60b1d](https://github.com/dymensionxyz/dymension/commit/6e60b1d4841e992cd1902f21686456d5043ef609))
+* **eibc:** add ability to find fulfiller on demand ([#1745](https://github.com/dymensionxyz/dymension/issues/1745)) ([5722855](https://github.com/dymensionxyz/dymension/commit/57228557e9f9a2cb58ac411e48bbe90254e540ab)), closes [#1752](https://github.com/dymensionxyz/dymension/issues/1752)
+* **eibc:** optimistic eibc min fee is now percent ([#1868](https://github.com/dymensionxyz/dymension/issues/1868)) ([cf94c1a](https://github.com/dymensionxyz/dymension/commit/cf94c1a8a9f48131a449b0072509e4ba32cef5d1))
+* **eip712:**  improvements with eip712 support ([#1970](https://github.com/dymensionxyz/dymension/issues/1970)) ([7b13504](https://github.com/dymensionxyz/dymension/commit/7b1350447d92ffc4fe6f37230b4c8f2370cc27b8))
+* **genesis-bridge:** pessimistic validation for rollapp genesis bridge opening ([#1814](https://github.com/dymensionxyz/dymension/issues/1814)) ([3160858](https://github.com/dymensionxyz/dymension/commit/316085868a43d181b82318ffdd28c788baf6551f))
+* Hyperlane integration + eibc transfer completion hooks ([#1797](https://github.com/dymensionxyz/dymension/issues/1797)) ([e90c399](https://github.com/dymensionxyz/dymension/commit/e90c3995e3f8f061ce933b661a22c68e6165dcb9)), closes [#1808](https://github.com/dymensionxyz/dymension/issues/1808) [#1854](https://github.com/dymensionxyz/dymension/issues/1854)
+* **hyperlane:** support HL-to-HL forwarding in x/forward module ([#1944](https://github.com/dymensionxyz/dymension/issues/1944)) ([d03df0e](https://github.com/dymensionxyz/dymension/commit/d03df0e226564c6491a236d623aecea094145f24))
+* **ibcratelimit:** wired the module ([#1880](https://github.com/dymensionxyz/dymension/issues/1880)) ([afa20ca](https://github.com/dymensionxyz/dymension/commit/afa20ca461c1840dcc2624513157246d3b1a3c77))
+* **incentives:**  dont distribute endorsement rewards to non active rollapps ([#1845](https://github.com/dymensionxyz/dymension/issues/1845)) ([ea42e47](https://github.com/dymensionxyz/dymension/commit/ea42e477c2d7c1a1d101b75e86ccbcb916fe074d))
+* **incentives:** incentives distribution based on lock age ([#1875](https://github.com/dymensionxyz/dymension/issues/1875)) ([ef1768d](https://github.com/dymensionxyz/dymension/commit/ef1768df51c2c974b7558ef6fbd8382d8f9a3edd))
+* **incentives:** prevent multiple partial unlocks for a single lock ([#1877](https://github.com/dymensionxyz/dymension/issues/1877)) ([95efb2f](https://github.com/dymensionxyz/dymension/commit/95efb2f0a06cd5daacb9f99f6c1a2d25b0d17e30))
+* **incentives:** support legacy EIP712 for `CreateGauge` ([#1871](https://github.com/dymensionxyz/dymension/issues/1871)) ([528c31b](https://github.com/dymensionxyz/dymension/commit/528c31b9b144d48fce0b6a90324fea939d86043d)), closes [#1856](https://github.com/dymensionxyz/dymension/issues/1856)
+* **iro:**  iro upgrade handler ([#1793](https://github.com/dymensionxyz/dymension/issues/1793)) ([0bd1c9e](https://github.com/dymensionxyz/dymension/commit/0bd1c9eeb6df90b1b1180ad26499e5b111d16034))
+* **IRO:** ability to have iro raise against other tokens and not only dym ([#1792](https://github.com/dymensionxyz/dymension/issues/1792)) ([7d139b1](https://github.com/dymensionxyz/dymension/commit/7d139b1a79b69800f5fb40b275d762d160fd7ed3))
+* **iro:** ability to launch iro on demand ([#1769](https://github.com/dymensionxyz/dymension/issues/1769)) ([66aeb63](https://github.com/dymensionxyz/dymension/commit/66aeb63c556d35026f7e749d6e40a8e7c2582fc9))
+* **iro:** ability to send percentage of the iro raised funds directly to founder ([#1755](https://github.com/dymensionxyz/dymension/issues/1755)) ([90a5c8b](https://github.com/dymensionxyz/dymension/commit/90a5c8b0975286ab17e1c4c89bea1a9b434b6daa))
+* **IRO:** add min trading amount requirement ([#2052](https://github.com/dymensionxyz/dymension/issues/2052)) ([33e4e4f](https://github.com/dymensionxyz/dymension/commit/33e4e4f4055eedeacdcc804e39cc3e6fcb42e781))
+* **iro:** add option for vesting for owner funds ([#1768](https://github.com/dymensionxyz/dymension/issues/1768)) ([a4b33b0](https://github.com/dymensionxyz/dymension/commit/a4b33b0bb79720bd785a38ecc123b24bb91b8e70))
+* **IRO:** adding initial FDV for standard (v2) IRO ([#2088](https://github.com/dymensionxyz/dymension/issues/2088)) ([9a14e20](https://github.com/dymensionxyz/dymension/commit/9a14e207b144274ba72a856f00a94f4981da2cf5))
+* **iro:** after purchase, validate remaining tokens are purchasable ([#2033](https://github.com/dymensionxyz/dymension/issues/2033)) ([479e43c](https://github.com/dymensionxyz/dymension/commit/479e43c45379e11522c49a3c987391f61744c460))
+* **iro:** founder can trade before start time ([#1753](https://github.com/dymensionxyz/dymension/issues/1753)) ([e7cf378](https://github.com/dymensionxyz/dymension/commit/e7cf378e9c35e428b30d8c5d03ae31497c616a15))
+* **IRO:** graduate completed IROs into amm pool ([#1986](https://github.com/dymensionxyz/dymension/issues/1986)) ([e7afe40](https://github.com/dymensionxyz/dymension/commit/e7afe40c14f438e6b8bb76d399791f32e362c69f))
+* **IRO:** migrate iro plans that pass the eq point ([#2011](https://github.com/dymensionxyz/dymension/issues/2011)) ([10a392f](https://github.com/dymensionxyz/dymension/commit/10a392fc86a9e0facd78f0a06a9a20d4bf842cb5))
+* **IRO:** refactor IRO buy/sell events to return `Coin` instead of `Int` ([#1893](https://github.com/dymensionxyz/dymension/issues/1893)) ([4f5b33a](https://github.com/dymensionxyz/dymension/commit/4f5b33ac24d2602781d1a7c777cc35a9a9c91ff8))
+* **iro:** setting equilibrium point where the raised dym goes to the liquidity pool ([#1750](https://github.com/dymensionxyz/dymension/issues/1750)) ([9ce13d9](https://github.com/dymensionxyz/dymension/commit/9ce13d919d168938180f0e58e02f4f695830d0e1))
+* kas bridge ([#1883](https://github.com/dymensionxyz/dymension/issues/1883)) ([1d2176c](https://github.com/dymensionxyz/dymension/commit/1d2176cce5db7ce6d51c0625e0b28198533cb634))
+* **kas:** Kaspa bridge e2e tests facilitation ([#1918](https://github.com/dymensionxyz/dymension/issues/1918)) ([55468f6](https://github.com/dymensionxyz/dymension/commit/55468f6494cc233d7478a658964881c465c46555))
+* **lightclient,rollapp:** allows rollapp rollback even before the genesis bridge ([#1809](https://github.com/dymensionxyz/dymension/issues/1809)) ([6c3c158](https://github.com/dymensionxyz/dymension/commit/6c3c15866ffabb4374c9fc5167a6abaa6a02b1f7))
+* **lightclient:** Add tx for setting canonical light client ([#1681](https://github.com/dymensionxyz/dymension/issues/1681)) ([eaffb0e](https://github.com/dymensionxyz/dymension/commit/eaffb0e14309a794c82817fc598f64ec5f345d9f))
+* **lightclient:** update IBC headers from state info ([#1836](https://github.com/dymensionxyz/dymension/issues/1836)) ([90824cb](https://github.com/dymensionxyz/dymension/commit/90824cb9a1b1066f31f10fe389c296ab08f2578b))
+* **lockup:** added min lockup duration ([#1781](https://github.com/dymensionxyz/dymension/issues/1781)) ([34272ae](https://github.com/dymensionxyz/dymension/commit/34272ae9a7cc6b0d60876af4bf0656af44d41f4e))
+* **otcbuyback:** add params query ([#2080](https://github.com/dymensionxyz/dymension/issues/2080)) ([079d151](https://github.com/dymensionxyz/dymension/commit/079d15127e3efa10ea87a3f0aceedb73de20cd79))
+* **otcbuyback:** discounted offers ([#2061](https://github.com/dymensionxyz/dymension/issues/2061)) ([5d154a6](https://github.com/dymensionxyz/dymension/commit/5d154a6de64e9e6a14a97f38b9e3ee06ccf69135))
+* **OTCBuyback:** feat OTC buyback ([#2010](https://github.com/dymensionxyz/dymension/issues/2010)) ([0a1597e](https://github.com/dymensionxyz/dymension/commit/0a1597e003e5f366ce1294c5ec48e149ce403427))
+* **otcbuyback:** invariants ([#2034](https://github.com/dymensionxyz/dymension/issues/2034)) ([2b587b1](https://github.com/dymensionxyz/dymension/commit/2b587b1ec01f16d84e5b8c5befe3aee6eaaea0c8))
+* print HL message field by field in utils (CLIENT ONLY) ([#1948](https://github.com/dymensionxyz/dymension/issues/1948)) ([01282e3](https://github.com/dymensionxyz/dymension/commit/01282e3198fb3874fa9660205785f75fc8f64d0c))
+* **sponsorship:**  clear all votes on new endorsement stream creation ([#1968](https://github.com/dymensionxyz/dymension/issues/1968)) ([70147bd](https://github.com/dymensionxyz/dymension/commit/70147bd0cd984992d68e3aba714cb12c18f2435b))
+* **sponsorship:** added endorsement yielding ([#1748](https://github.com/dymensionxyz/dymension/issues/1748)) ([2dc6b08](https://github.com/dymensionxyz/dymension/commit/2dc6b08cca590d5978202ac49d16271746b93b90))
+* **sponsorship:** lazy accumulator for endorsement yielding ([#1872](https://github.com/dymensionxyz/dymension/issues/1872)) ([8db3019](https://github.com/dymensionxyz/dymension/commit/8db3019c64ec81e49f363a528d52cf7b0505ce47))
+* **sponsorship:** only allow voting on rollapp gauges ([#1990](https://github.com/dymensionxyz/dymension/issues/1990)) ([59be658](https://github.com/dymensionxyz/dymension/commit/59be65817b605da17ff60f94560a0723e62bf8fd))
+* **sponsorship:** queries to get endorsement and estimate rewards ([#1932](https://github.com/dymensionxyz/dymension/issues/1932)) ([5da9107](https://github.com/dymensionxyz/dymension/commit/5da9107ccb907e2c44b32ac1991b3ea0fcde219d))
+* **streamer:** fix bad pump amounts and skip non-iro rollapps ([#2032](https://github.com/dymensionxyz/dymension/issues/2032)) ([51ea5df](https://github.com/dymensionxyz/dymension/commit/51ea5df74f18b92e127d16b0caafd639ac94887e))
+* **streamer:** pump stream ([#1981](https://github.com/dymensionxyz/dymension/issues/1981)) ([caf84a4](https://github.com/dymensionxyz/dymension/commit/caf84a474c050317fdedbaaf8753719a32ec1232)), closes [#1988](https://github.com/dymensionxyz/dymension/issues/1988)
+* **streamer:** support graduation in pump streams ([#2001](https://github.com/dymensionxyz/dymension/issues/2001)) ([48ea09b](https://github.com/dymensionxyz/dymension/commit/48ea09b9ab3e32be0164653dbf0fdd4caa052b4a))
+* **streamer:** use pump streams for buyback ([#2007](https://github.com/dymensionxyz/dymension/issues/2007)) ([e6057f3](https://github.com/dymensionxyz/dymension/commit/e6057f3d22b6386a4cf06d4188795106110578b6))
+* **streamer:** wire BeginBlock logic ([#2027](https://github.com/dymensionxyz/dymension/issues/2027)) ([7e87f02](https://github.com/dymensionxyz/dymension/commit/7e87f026742eea99b2e1e7ce6cb8b35fd9afb67b))
+* TEE based finalization ([#1993](https://github.com/dymensionxyz/dymension/issues/1993)) ([f9592ea](https://github.com/dymensionxyz/dymension/commit/f9592ea7484dc2847b911988b1c3898e40a98978)), closes [#2000](https://github.com/dymensionxyz/dymension/issues/2000) [#2005](https://github.com/dymensionxyz/dymension/issues/2005)
+* **tee:** add tee-toggle cli command ([#2069](https://github.com/dymensionxyz/dymension/issues/2069)) ([166493b](https://github.com/dymensionxyz/dymension/commit/166493b7a3af890d92ed3d20b10fe18d2bbeade6))
+* **tee:** allow owner to toggle feature (global param can still block for all rollapps) ([#2067](https://github.com/dymensionxyz/dymension/issues/2067)) ([ac6a972](https://github.com/dymensionxyz/dymension/commit/ac6a9728671b6c84913a61a8a500007a31b14885))
+* **upgrade:** added authorized circuit breaker accounts ([#1907](https://github.com/dymensionxyz/dymension/issues/1907)) ([8a7b6f7](https://github.com/dymensionxyz/dymension/commit/8a7b6f74817d0c9dda88143385f9c9dd156fa4c2))
+* **upgrade:** upgrade handler to initialize endorsements for existing rollapps ([#1821](https://github.com/dymensionxyz/dymension/issues/1821)) ([43d5686](https://github.com/dymensionxyz/dymension/commit/43d5686ca949dd282fb2e5910f050e49b3243f41))
+* **upgrade:** wired gas free whitelisted txs ([#1906](https://github.com/dymensionxyz/dymension/issues/1906)) ([191680b](https://github.com/dymensionxyz/dymension/commit/191680b799b525602d464cdd09158e1eddb1281b))
+
+# [3.2.0-rc01](https://github.com/dymensionxyz/dymension/compare/v3.1.0-rc03...v3.2.0-rc01) (2024-12-24)
 
 
 ### Bug Fixes
