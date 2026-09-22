@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"context"
+	"crypto/sha256"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
@@ -82,7 +85,22 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 }
 
 func (k msgServer) RespondValidation(goCtx context.Context, msg *types.MsgRespondValidation) (*types.MsgRespondValidationResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+	result, err := k.respondValidation(sdk.UnwrapSDKContext(goCtx), msg, "")
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgRespondValidationResponse{Seq: result.Seq}, nil
+}
+
+func (k msgServer) RespondValidationAttested(goCtx context.Context, msg *types.MsgRespondValidationAttested) (*types.MsgRespondValidationAttestedResponse, error) {
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+	plain := types.NewMsgRespondValidation(msg.Responder, msg.RequestHash, msg.Response, msg.ResponseUri, msg.ResponseHash, msg.Tag)
+	return k.respondValidation(sdk.UnwrapSDKContext(goCtx), plain, msg.Token)
+}
+
+func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValidation, token string) (*types.MsgRespondValidationAttestedResponse, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrap(err, "validate basic")
 	}
@@ -120,8 +138,29 @@ func (k msgServer) RespondValidation(goCtx context.Context, msg *types.MsgRespon
 	if msg.Responder != validator.Owner {
 		return nil, types.ErrUnauthorized
 	}
+	attested := token != ""
+	var actionSeq uint64
+	if attested {
+		validator, err = k.loadAttestingAgent(ctx, req.ValidatorId)
+		if err != nil {
+			return nil, err
+		}
+		payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, req.AgentId, req.EvidenceSeq)
+		if uint64(len(payload)) > p.MaxActionBytes {
+			return nil, gerrc.ErrInvalidArgument.Wrapf("validation payload exceeds max action bytes: got %d, max %d", len(payload), p.MaxActionBytes)
+		}
+		actionSeq = validator.ActionSeq
+		nonce := types.ValidationNonce(validator.Id, payload, actionSeq)
+		if err := k.verifier.Verify(ctx, validator.Policy, nonce, token); err != nil {
+			return nil, errorsmod.Wrap(err, "verify attestation")
+		}
+		payloadHash := sha256.Sum256(payload)
+		if err := k.appendAttested(ctx, &validator, payload, payloadHash[:]); err != nil {
+			return nil, err
+		}
+	}
 	seq := req.ResponseCount
-	resp := types.ValidationResponse{RequestHash: msg.RequestHash, Seq: seq, Response: msg.Response, ResponseUri: msg.ResponseUri, ResponseHash: msg.ResponseHash, Tag: msg.Tag, Height: ctx.BlockHeight(), Time: ctx.BlockTime()}
+	resp := types.ValidationResponse{RequestHash: msg.RequestHash, Seq: seq, Response: msg.Response, ResponseUri: msg.ResponseUri, ResponseHash: msg.ResponseHash, Tag: msg.Tag, Height: ctx.BlockHeight(), Time: ctx.BlockTime(), Attested: attested}
 	if err := k.validationResponses.Set(ctx, collections.Join(msg.RequestHash, seq), resp); err != nil {
 		return nil, err
 	}
@@ -129,8 +168,8 @@ func (k msgServer) RespondValidation(goCtx context.Context, msg *types.MsgRespon
 	if err := k.validationRequests.Set(ctx, msg.RequestHash, req); err != nil {
 		return nil, err
 	}
-	if err := uevent.EmitTypedEvent(ctx, &types.EventRespondValidation{RequestHash: msg.RequestHash, ValidatorId: req.ValidatorId, AgentId: req.AgentId, Response: msg.Response, Seq: seq}); err != nil {
+	if err := uevent.EmitTypedEvent(ctx, &types.EventRespondValidation{RequestHash: msg.RequestHash, ValidatorId: req.ValidatorId, AgentId: req.AgentId, Response: msg.Response, Seq: seq, Attested: attested, ActionSeq: actionSeq}); err != nil {
 		return nil, err
 	}
-	return &types.MsgRespondValidationResponse{Seq: seq}, nil
+	return &types.MsgRespondValidationAttestedResponse{Seq: seq, ActionSeq: actionSeq}, nil
 }
