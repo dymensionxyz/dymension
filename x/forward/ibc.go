@@ -2,12 +2,14 @@ package forward
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	dackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	types "github.com/dymensionxyz/dymension/v3/x/forward/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ dackkeeper.CompletionHookInstance = rollToHLHook{}
@@ -84,12 +86,16 @@ func (h rollToIBCHook) Run(ctx sdk.Context, fundsSource sdk.AccAddress, budget s
 			return true, errorsmod.Wrap(err, "unmarshal")
 		}
 		// funds src is the original ibc transfer recipient, which has now been credited by the eibc fulfiller
-		return true, h.forwardToIBC(c, d.Transfer, fundsSource, budget)
+		return true, h.forwardToIBC(c, d.Transfer, fundsSource, budget, d.MinAmount)
 	})
 	return nil
 }
 
-func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin) error {
+func (k Forward) forwardToIBC(ctx sdk.Context, transfer *ibctransfertypes.MsgTransfer, fundsSrc sdk.AccAddress, maxBudget sdk.Coin, minAmount math.Int) error {
+	if !minAmount.IsNil() && minAmount.IsPositive() && maxBudget.Amount.LT(minAmount) {
+		return gerrc.ErrInvalidArgument.Wrapf("forwardable budget %s below min_amount %s", maxBudget.Amount, minAmount)
+	}
+
 	nowNs := uint64(ctx.BlockTime().UnixNano()) //nolint:gosec // block time is never negative
 	timeoutTimestamp := transfer.TimeoutTimestamp
 	if timeoutTimestamp == 0 || timeoutTimestamp <= nowNs+types.MinForwardIBCTimeout {

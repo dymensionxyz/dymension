@@ -30,6 +30,7 @@ func TestMakeForwardToIBCHyperlaneMessage(t *testing.T) {
 			"channel-0",
 			"ethm1wqg8227q0p7pgp7lj7z6cu036l6eg34d9cp6lk",
 			1000000000000000000,
+			math.ZeroInt(),
 		),
 	)
 	require.NoError(t, err)
