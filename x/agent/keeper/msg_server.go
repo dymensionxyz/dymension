@@ -44,7 +44,7 @@ func (k msgServer) loadAttestingAgent(ctx sdk.Context, agentID string) (types.Ag
 
 // appendAttested writes the action log entry for payload at the agent's
 // current seq, advances the seq and persists the agent. Shared by attested
-// actions and attested transfers so both feed the same auditable, monotonic
+// actions, transfers and validation verdicts so all feed the same monotonic
 // log.
 func (k msgServer) appendAttested(ctx sdk.Context, agent *types.Agent, payload, payloadHash []byte) error {
 	entry := types.ActionLogEntry{

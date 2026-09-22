@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Features
+
+* (agent) #2219 Add enclave-attested validation verdicts with domain-separated replay protection and validator action-log entries.
+
 ## [v3.2.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.2.0)
 
 

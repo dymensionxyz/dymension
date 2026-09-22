@@ -22,6 +22,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRevokeFeedback{}, "agent/RevokeFeedback", nil)
 	cdc.RegisterConcrete(&MsgRequestValidation{}, "agent/RequestValidation", nil)
 	cdc.RegisterConcrete(&MsgRespondValidation{}, "agent/RespondValidation", nil)
+	cdc.RegisterConcrete(&MsgRespondValidationAttested{}, "agent/RespondValidationAttested", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -40,6 +41,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgRevokeFeedback{},
 		&MsgRequestValidation{},
 		&MsgRespondValidation{},
+		&MsgRespondValidationAttested{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

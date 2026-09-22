@@ -46,3 +46,14 @@ func (m *MsgRespondValidation) ValidateBasic() error {
 	}
 	return nil
 }
+
+func (m *MsgRespondValidationAttested) ValidateBasic() error {
+	plain := NewMsgRespondValidation(m.Responder, m.RequestHash, m.Response, m.ResponseUri, m.ResponseHash, m.Tag)
+	if err := plain.ValidateBasic(); err != nil {
+		return err
+	}
+	if m.Token == "" {
+		return fmt.Errorf("token is required")
+	}
+	return nil
+}
