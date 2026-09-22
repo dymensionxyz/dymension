@@ -132,7 +132,7 @@ func (suite *AnteTestSuite) TestInnerDecoratorErrorOnDepth() {
 			})
 			if tc.expectError {
 				suite.Require().Error(err, "expected error for test case: %s", tc.name)
-				suite.Require().Contains(err.Error(), "depth", "error message should mention depth")
+				suite.Require().ErrorContains(err, "depth", "error message should mention depth")
 			} else {
 				suite.Require().NoError(err, "unexpected error for test case: %s", tc.name)
 			}
@@ -187,7 +187,7 @@ func (suite *AnteTestSuite) TestInnerDecoratorMultipleCallbacks() {
 			})
 			if tc.expectError {
 				suite.Require().Error(err, "expected error for test case: %s", tc.name)
-				suite.Require().Contains(err.Error(), "depth", "error message should mention depth")
+				suite.Require().ErrorContains(err, "depth", "error message should mention depth")
 				// dummy value 1 should still be set before error
 				val1 := ctxOut.Value(dummyKey1)
 				suite.Require().Equal(dummyValue1, val1, "context should contain dummy value 1 even if error occurs")

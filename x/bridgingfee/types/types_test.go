@@ -1,12 +1,26 @@
 package types
 
 import (
+	"regexp"
 	"testing"
 
 	"cosmossdk.io/math"
 	hyputil "github.com/bcp-innovations/hyperlane-cosmos/util"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 )
+
+func TestAggregationHookValidateDoesNotRenderCosmosErrorSourceLocation(t *testing.T) {
+	owner, err := bech32.ConvertAndEncode(sdk.GetConfig().GetBech32AccountAddrPrefix(), nil)
+	require.NoError(t, err)
+
+	err = (AggregationHook{Owner: owner}).Validate()
+
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidAddress)
+	require.NotRegexp(t, regexp.MustCompile(`\[.*\.go.*\]`), err.Error())
+}
 
 func TestHLAssetFee_Validate_OutboundBounds(t *testing.T) {
 	tokenId := hyputil.CreateMockHexAddress("test", 1)
@@ -63,7 +77,7 @@ func TestHLAssetFee_Validate_OutboundBounds(t *testing.T) {
 			err := f.Validate()
 			if tt.wantErr != "" {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErr)
+				require.ErrorContains(t, err, tt.wantErr)
 			} else {
 				require.NoError(t, err)
 			}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -88,7 +90,7 @@ func (server msgServer) LockTokens(goCtx context.Context, msg *types.MsgLockToke
 
 	lock, err := server.keeper.CreateLock(ctx, owner, msg.Coins, msg.Duration)
 	if err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -111,7 +113,7 @@ func (server msgServer) BeginUnlocking(goCtx context.Context, msg *types.MsgBegi
 
 	lock, err := server.keeper.GetLockByID(ctx, msg.ID)
 	if err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	if msg.Owner != lock.Owner {
@@ -124,7 +126,7 @@ func (server msgServer) BeginUnlocking(goCtx context.Context, msg *types.MsgBegi
 
 	unlockingLock, err := server.keeper.BeginUnlock(ctx, lock.ID, msg.Coins)
 	if err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	// N.B. begin unlock event is emitted downstream in the keeper method.
@@ -155,12 +157,12 @@ func (server msgServer) ExtendLockup(goCtx context.Context, msg *types.MsgExtend
 
 	err = server.keeper.ExtendLockup(ctx, msg.ID, owner, msg.Duration)
 	if err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	lock, err := server.keeper.GetLockByID(ctx, msg.ID)
 	if err != nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -183,7 +185,7 @@ func (server msgServer) ForceUnlock(goCtx context.Context, msg *types.MsgForceUn
 
 	lock, err := server.keeper.GetLockByID(ctx, msg.ID)
 	if err != nil {
-		return &types.MsgForceUnlockResponse{Success: false}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return &types.MsgForceUnlockResponse{Success: false}, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	// check if message sender matches lock owner
@@ -210,7 +212,7 @@ func (server msgServer) ForceUnlock(goCtx context.Context, msg *types.MsgForceUn
 	// provided is empty.
 	err = server.keeper.PartialForceUnlock(ctx, *lock, msg.Coins)
 	if err != nil {
-		return &types.MsgForceUnlockResponse{Success: false}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return &types.MsgForceUnlockResponse{Success: false}, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	return &types.MsgForceUnlockResponse{Success: true}, nil

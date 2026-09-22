@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strings"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -94,7 +96,7 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	if err = validateInitialSequencer(r.InitialSequencer); err != nil {
-		return errorsmod.Wrap(ErrInvalidInitialSequencer, err.Error())
+		return dymerrors.Join(ErrInvalidInitialSequencer, err)
 	}
 
 	if err = r.GenesisInfo.ValidateBasic(); err != nil {

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -133,10 +135,7 @@ func (m *MsgClaimVested) ValidateBasic() error {
 func (m *MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Authority)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf(
-			"authority '%s' must be a valid bech32 address: %s",
-			m.Authority, err.Error(),
-		)
+		return dymerrors.Joinf(sdkerrors.ErrInvalidAddress, err, "authority '%s' must be a valid bech32 address", m.Authority)
 	}
 
 	err = m.NewParams.ValidateBasic()

@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
 
@@ -13,7 +14,7 @@ import (
 
 func (k msgServer) TransferOwnership(goCtx context.Context, msg *types.MsgTransferOwnership) (*types.MsgTransferOwnershipResponse, error) {
 	if err := msg.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalidRequest, err.Error())
+		return nil, dymerrors.Join(types.ErrInvalidRequest, err)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

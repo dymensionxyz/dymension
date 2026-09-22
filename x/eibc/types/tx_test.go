@@ -1,11 +1,11 @@
 package types
 
 import (
-	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
 )
@@ -78,7 +78,7 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 				LpAddress:          validBech32,
 				OperatorFeeAddress: validBech32,
 			},
-			expectedError: "Invalid order ID",
+			expectedError: "invalid order ID",
 		},
 		{
 			name: "invalid order id",
@@ -92,7 +92,7 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 				LpAddress:          validBech32,
 				OperatorFeeAddress: validBech32,
 			},
-			expectedError: "Invalid order ID",
+			expectedError: "invalid order ID",
 		},
 		{
 			name: "invalid operator fee address",
@@ -148,7 +148,7 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 				LpAddress:          validBech32,
 				OperatorFeeAddress: validBech32,
 			},
-			expectedError: "Fee must be greater than or equal to 0",
+			expectedError: "fee must be greater than or equal to 0",
 		},
 		{
 			name: "invalid price (negative coin)",
@@ -270,8 +270,8 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 			if tc.expectedError == "" {
 				require.NoError(t, err)
 			} else {
-				// !! DO NOT USE STRING COMPARISON FOR ERROR MATCHING !!
-				require.True(t, strings.Contains(strings.ToLower(err.Error()), strings.ToLower(tc.expectedError)))
+				require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
+				require.ErrorContains(t, err, tc.expectedError)
 			}
 		})
 	}

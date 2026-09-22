@@ -87,7 +87,7 @@ func TestValidateOrderParams(t *testing.T) {
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				require.ErrorContains(t, err, tt.wantErrContains)
 				return
 			}
 

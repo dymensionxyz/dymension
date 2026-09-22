@@ -7,6 +7,8 @@ import (
 	"slices"
 	"time"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -191,12 +193,12 @@ func (m msgServer) CreateStandardLaunchPlan(goCtx context.Context, req *types.Ms
 	// Get the bonding curve and graduation point
 	bondingCurve, graduationPoint, err := m.GetCurveByLiquidityDenom(ctx, req.LiquidityDenom, params.StandardLaunch)
 	if err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to get standard launch curve and graduation point: %v", err.Error())
+		return nil, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to get standard launch curve and graduation point")
 	}
 
 	// Validate the bonding curve
 	if err := bondingCurve.ValidateBasic(); err != nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid bonding curve: %v", err.Error())
+		return nil, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "invalid bonding curve")
 	}
 
 	// Create plan using global StandardLaunch parameters
@@ -250,14 +252,14 @@ func (k Keeper) GetCurveByLiquidityDenom(ctx sdk.Context, liquidityDenom string,
 	// Convert target raise from its original denom to the requested liquidity denom
 	convertedTargetRaise, err := k.convertTargetRaiseToLiquidityDenom(ctx, params.TargetRaise, liquidityDenom)
 	if err != nil {
-		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
+		return types.BondingCurve{}, math.Int{}, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to convert target raise to liquidity denom")
 	}
 	targetRaiseDec := types.ScaleFromBase(convertedTargetRaise.Amount, int64(liqTokenExponent))
 
 	initialFDVCoin := sdk.NewCoin(params.TargetRaise.Denom, params.InitialFdv)
 	covertedInitialFDV, err := k.convertTargetRaiseToLiquidityDenom(ctx, initialFDVCoin, liquidityDenom)
 	if err != nil {
-		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert initial TVL to liquidity denom: %v", err.Error())
+		return types.BondingCurve{}, math.Int{}, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to convert initial TVL to liquidity denom")
 	}
 	initialFDVDec := types.ScaleFromBase(covertedInitialFDV.Amount, int64(liqTokenExponent))
 
@@ -271,7 +273,7 @@ func (k Keeper) GetCurveByLiquidityDenom(ctx sdk.Context, liquidityDenom string,
 	evaluationAmountDec := targetRaiseDec.MulInt64(2) // evaluation is 2x of target raise
 	graduationPointDec, err := types.FindGraduation(allocationDec, params.CurveExp, C, evaluationAmountDec)
 	if err != nil {
-		return types.BondingCurve{}, math.Int{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to find graduation point: %v", err.Error())
+		return types.BondingCurve{}, math.Int{}, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to find graduation point")
 	}
 
 	M := types.MOfX(graduationPointDec, allocationDec, params.CurveExp, C)
@@ -376,13 +378,13 @@ func (k Keeper) convertTargetRaiseToLiquidityDenom(ctx sdk.Context, targetRaise 
 	// convert the target raise to the base denom (just in case it's not set in base denom)
 	baseTargetRaise, err := k.tk.CalcCoinInBaseDenom(ctx, targetRaise)
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to base denom: %v", err.Error())
+		return sdk.Coin{}, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to convert target raise to base denom")
 	}
 
 	// now get the target raise in the required liquidity denom
 	liquidityTargetRaise, err := k.tk.CalcBaseInCoin(ctx, baseTargetRaise, liquidityDenom)
 	if err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to convert target raise to liquidity denom: %v", err.Error())
+		return sdk.Coin{}, dymerrors.Joinf(gerrc.ErrInvalidArgument, err, "failed to convert target raise to liquidity denom")
 	}
 	return liquidityTargetRaise, nil
 }

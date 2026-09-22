@@ -51,9 +51,9 @@ func TestConvertBitsRoundtrip(t *testing.T) {
 func TestFromH256InvalidLength(t *testing.T) {
 	_, err := FromH256([]byte{0x01, 0x02, 0x03}, true)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid H256 length")
+	require.ErrorContains(t, err, "invalid H256 length")
 
 	_, err = FromH256(make([]byte, 33), true)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid H256 length")
+	require.ErrorContains(t, err, "invalid H256 length")
 }

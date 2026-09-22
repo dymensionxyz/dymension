@@ -4,10 +4,12 @@ import (
 	context "context"
 	"slices"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
@@ -53,7 +55,7 @@ func (a FulfillOrderAuthorization) Accept(
 	mFulfill, ok := msg.(*MsgFulfillOrderAuthorized)
 	if !ok {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrInvalidType,
+			errorsmod.Wrapf(sdkerrors.ErrInvalidType,
 				"type mismatch: expected %T, got %T",
 				&MsgFulfillOrderAuthorized{}, msg)
 	}
@@ -69,19 +71,19 @@ func (a FulfillOrderAuthorization) Accept(
 
 	if matchedCriteria == nil {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrUnauthorized, "rollapp %s is not authorized", mFulfill.RollappId)
+			errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "rollapp %s is not authorized", mFulfill.RollappId)
 	}
 
 	// Check settlement_validated flag
 	if matchedCriteria.SettlementValidated != mFulfill.SettlementValidated {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrUnauthorized, "settlement validation flag mismatch")
+			errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "settlement validation flag mismatch")
 	}
 
 	// Check operator_fee_share
 	if !matchedCriteria.OperatorFeeShare.Dec.Equal(mFulfill.OperatorFeeShare) {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrUnauthorized, "operator fee share mismatch")
+			errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "operator fee share mismatch")
 	}
 
 	// Check denoms
@@ -89,7 +91,7 @@ func (a FulfillOrderAuthorization) Accept(
 		for _, orderDenom := range mFulfill.Price.Denoms() {
 			if !slices.Contains(matchedCriteria.Denoms, orderDenom) {
 				return authz.AcceptResponse{},
-					errorsmod.Wrapf(errors.ErrUnauthorized, "denom %s is not authorized", orderDenom)
+					errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "denom %s is not authorized", orderDenom)
 			}
 		}
 	}
@@ -98,14 +100,14 @@ func (a FulfillOrderAuthorization) Accept(
 	orderFee, ok := math.NewIntFromString(mFulfill.ExpectedFee)
 	if !ok {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrInvalidCoins, "invalid fee amount: %s", mFulfill.ExpectedFee)
+			errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "invalid fee amount: %s", mFulfill.ExpectedFee)
 	}
 
 	minFee := matchedCriteria.MinFeePercentage.Dec.MulInt(mFulfill.Amount).TruncateInt()
 
 	if orderFee.LT(minFee) {
 		return authz.AcceptResponse{},
-			errorsmod.Wrapf(errors.ErrUnauthorized,
+			errorsmod.Wrapf(sdkerrors.ErrUnauthorized,
 				"order fee %s is less than minimum fee %s",
 				orderFee.String(), minFee.String())
 	}
@@ -115,7 +117,7 @@ func (a FulfillOrderAuthorization) Accept(
 		orderPrice := mFulfill.Price
 		if exceedsMaxPrice(orderPrice, matchedCriteria.MaxPrice) {
 			return authz.AcceptResponse{},
-				errorsmod.Wrapf(errors.ErrUnauthorized,
+				errorsmod.Wrapf(sdkerrors.ErrUnauthorized,
 					"order price exceeds max price")
 		}
 	}
@@ -125,7 +127,7 @@ func (a FulfillOrderAuthorization) Accept(
 		spendLeft, isNegative := matchedCriteria.SpendLimit.SafeSub(mFulfill.Price...)
 		if isNegative {
 			return authz.AcceptResponse{},
-				errorsmod.Wrapf(errors.ErrInsufficientFunds,
+				errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds,
 					"spend limit exhausted for rollapp %s", mFulfill.RollappId)
 		}
 
@@ -178,38 +180,38 @@ func (a FulfillOrderAuthorization) ValidateBasic() error {
 	for _, criteria := range a.Rollapps {
 		// Validate that rollapp_id is not empty
 		if err := validateRollappID(criteria.RollappId); err != nil {
-			return errorsmod.Wrap(errors.ErrInvalidRequest, err.Error())
+			return dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 		}
 
 		// Check for duplicate rollapp_ids
 		if _, exists := rollappIDSet[criteria.RollappId]; exists {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "duplicate rollapp_id %s in rollapps", criteria.RollappId)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "duplicate rollapp_id %s in rollapps", criteria.RollappId)
 		}
 		rollappIDSet[criteria.RollappId] = struct{}{}
 
 		// Validate MinFeePercentage
 		if criteria.MinFeePercentage.Dec.IsNil() || criteria.MinFeePercentage.Dec.IsNegative() || criteria.MinFeePercentage.Dec.GT(math.LegacyOneDec()) {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "min_fee_percentage must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "min_fee_percentage must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate OperatorFeeShare
 		if criteria.OperatorFeeShare.Dec.IsNil() || criteria.OperatorFeeShare.Dec.IsNegative() || criteria.OperatorFeeShare.Dec.GT(math.LegacyOneDec()) {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "operator_fee_share must be between 0 and 1 for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate MaxPrice (if provided)
 		if criteria.MaxPrice != nil && !criteria.MaxPrice.IsValid() {
-			return errorsmod.Wrapf(errors.ErrInvalidCoins, "max_price is invalid for rollapp_id %s", criteria.RollappId)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "max_price is invalid for rollapp_id %s", criteria.RollappId)
 		}
 
 		// Validate SpendLimit
 		if criteria.SpendLimit != nil && !criteria.SpendLimit.IsValid() {
-			return errorsmod.Wrapf(errors.ErrInvalidCoins, "spend_limit is invalid")
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "spend_limit is invalid")
 		}
 
 		// Check for duplicates in Denoms
 		if hasDuplicates(criteria.Denoms) {
-			return errorsmod.Wrapf(errors.ErrInvalidRequest, "duplicate denoms in the list for rollapp_id %s", criteria.RollappId)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "duplicate denoms in the list for rollapp_id %s", criteria.RollappId)
 		}
 	}
 

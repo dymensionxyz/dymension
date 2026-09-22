@@ -98,7 +98,7 @@ func TestCmdCreateIRO(t *testing.T) {
 			err := cmd.Execute()
 			if tc.errMsg != "" {
 				require.Error(t, err)
-				assert.Contains(t, err.Error(), tc.errMsg)
+				assert.ErrorContains(t, err, tc.errMsg)
 			} else {
 				// we expect this error because we are not setting the key. anyway it means we passed validation
 				expected1 := "No directory provided for file keyring"

@@ -302,7 +302,7 @@ func TestDymName_Validate(t *testing.T) {
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test")
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				require.ErrorContains(t, err, tt.wantErrContains)
 				return
 			}
 
@@ -328,7 +328,7 @@ func TestDymName_Validate(t *testing.T) {
 
 		err := m.Validate()
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "maximum number of configs allowed")
+		require.ErrorContains(t, err, "maximum number of configs allowed")
 	})
 }
 
@@ -634,7 +634,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test")
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErrContains)
+				require.ErrorContains(t, err, tt.wantErrContains)
 			} else {
 				require.NoError(t, err)
 			}

@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/types"
 )
@@ -55,7 +57,7 @@ func NewChainID(id string) (ChainID, error) {
 
 	revision, err := strconv.ParseUint(matches[3], 0, 64)
 	if err != nil {
-		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "parse revision number: error: %v", err.Error())
+		return ChainID{}, dymerrors.Joinf(ErrInvalidRollappID, err, "parse revision number: error")
 	}
 
 	return ChainID{

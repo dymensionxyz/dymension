@@ -273,7 +273,7 @@ func (s *KeeperTestSuite) TestKeeper_CompleteDymNameSellOrder() {
 			if tt.wantErr {
 				s.Require().Error(errCompleteSellOrder, "action should be failed")
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
-				s.Require().Contains(errCompleteSellOrder.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(errCompleteSellOrder, tt.wantErrContains)
 
 				s.Require().NotNil(laterSo, "SO should not be deleted")
 

@@ -92,7 +92,7 @@ func TestParseGaugeWeights(t *testing.T) {
 			case true:
 				require.Error(t, err)
 				require.Nil(t, actual)
-				require.Contains(t, err.Error(), tt.errorContains)
+				require.ErrorContains(t, err, tt.errorContains)
 			case false:
 				require.NoError(t, err)
 				require.Equal(t, tt.expected, actual)

@@ -311,7 +311,7 @@ func TestParams_ValidateBasic(t *testing.T) {
 			err := tt.params.ValidateBasic()
 			if tt.expectError {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.errorMsg)
+				require.ErrorContains(t, err, tt.errorMsg)
 			} else {
 				require.NoError(t, err)
 			}

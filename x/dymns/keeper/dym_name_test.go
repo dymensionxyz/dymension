@@ -108,7 +108,7 @@ func (s *KeeperTestSuite) TestKeeper_BeforeAfterDymNameOwnerChanged() {
 	s.Run("AfterDymNameOwnerChanged should returns error when calling on non-existing Dym-Name", func() {
 		err := s.dymNsKeeper.AfterDymNameOwnerChanged(s.ctx, "non-exists")
 		s.Require().Error(err)
-		s.Require().Contains(err.Error(), "Dym-Name: non-exists: not found")
+		s.Require().ErrorContains(err, "Dym-Name: non-exists: not found")
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -178,7 +178,7 @@ func (s *KeeperTestSuite) TestKeeper_BeforeAfterDymNameConfigChanged() {
 	s.Run("AfterDymNameConfigChanged should returns error when calling on non-existing Dym-Name", func() {
 		err := s.dymNsKeeper.AfterDymNameConfigChanged(s.ctx, "non-exists")
 		s.Require().Error(err)
-		s.Require().Contains(err.Error(), "Dym-Name: non-exists: not found")
+		s.Require().ErrorContains(err, "Dym-Name: non-exists: not found")
 	})
 
 	ownerAcc := testAddr(1)
@@ -781,11 +781,11 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 
 				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "a@dym")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), "no resolution found")
+				s.Require().ErrorContains(err, "no resolution found")
 
 				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "non-exists.a@dymension_1100-1")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), "no resolution found")
+				s.Require().ErrorContains(err, "no resolution found")
 			},
 		},
 		{
@@ -838,7 +838,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 
 				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "non-exists.a@dym")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), "no resolution found")
+				s.Require().ErrorContains(err, "no resolution found")
 			},
 		},
 		{
@@ -1194,7 +1194,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 
 				_, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "non-exists.a.dym")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), "no resolution found")
+				s.Require().ErrorContains(err, "no resolution found")
 
 				outputAddr, err = s.dymNsKeeper.ResolveByDymNameAddress(s.ctx, "a@bb")
 				s.Require().NoError(err)
@@ -1507,7 +1507,7 @@ func (s *KeeperTestSuite) TestKeeper_ResolveByDymNameAddress() {
 			if tt.wantError {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
@@ -2239,7 +2239,7 @@ func (s *KeeperTestSuite) Test_ParseDymNameAddress() {
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 
 				// cross-check ResolveByDymNameAddress
 
@@ -3209,7 +3209,7 @@ func (s *KeeperTestSuite) TestKeeper_ReverseResolveDymNameAddress() {
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
