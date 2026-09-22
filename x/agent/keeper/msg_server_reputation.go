@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,10 +47,10 @@ func (k msgServer) SubmitFeedback(goCtx context.Context, msg *types.MsgSubmitFee
 		client := sdk.MustAccAddressFromBech32(msg.Client)
 		coins := sdk.NewCoins(params.FeedbackFee)
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, client, types.ModuleName, coins); err != nil {
-			return nil, errorsmod.Wrap(types.ErrFeedbackFeePayment, err.Error())
+			return nil, dymerrors.Join(types.ErrFeedbackFeePayment, err)
 		}
 		if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins); err != nil {
-			return nil, errorsmod.Wrap(types.ErrFeedbackFeePayment, err.Error())
+			return nil, dymerrors.Join(types.ErrFeedbackFeePayment, err)
 		}
 	}
 

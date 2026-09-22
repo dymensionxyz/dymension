@@ -3,6 +3,8 @@ package types
 import (
 	"errors"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -86,7 +88,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	}
 
 	if err = msg.Metadata.Validate(); err != nil {
-		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+		return dymerrors.Join(ErrInvalidMetadata, err)
 	}
 
 	if !msg.Bond.IsValid() || msg.Bond.IsZero() {

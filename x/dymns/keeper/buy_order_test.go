@@ -243,7 +243,7 @@ func (s *KeeperTestSuite) TestKeeper_GetSetInsertNewBuyOrder() {
 
 				_, err = s.dymNsKeeper.InsertNewBuyOrder(s.ctx, offer)
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), "Buy-Order ID already exists")
+				s.Require().ErrorContains(err, "Buy-Order ID already exists")
 			})
 		}
 	})

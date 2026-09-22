@@ -85,7 +85,7 @@ func (s *KeeperTestSuite) TestKeeper_RefundBid() {
 			if tt.wantErr {
 				s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 				s.Require().Error(err)
-				s.Require().Contains(err.Error(), tt.wantErrContains)
+				s.Require().ErrorContains(err, tt.wantErrContains)
 				return
 			}
 
@@ -218,7 +218,7 @@ func (s *KeeperTestSuite) TestKeeper_RefundBuyOrder() {
 					if tt.wantErr {
 						s.Require().NotEmpty(tt.wantErrContains, "mis-configured test case")
 						s.Require().Error(err)
-						s.Require().Contains(err.Error(), tt.wantErrContains)
+						s.Require().ErrorContains(err, tt.wantErrContains)
 						return
 					}
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cockroachdb/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -104,7 +106,7 @@ func validateURLs(urls []string) error {
 
 	for _, u := range urls {
 		if err := validateURL(u); err != nil {
-			return errorsmod.Wrap(ErrInvalidURL, err.Error())
+			return dymerrors.Join(ErrInvalidURL, err)
 		}
 	}
 

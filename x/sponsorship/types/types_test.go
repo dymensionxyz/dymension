@@ -105,7 +105,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 			case true:
 				require.Error(t, err)
 				require.ErrorIs(t, err, tt.errorIs)
-				require.Contains(t, err.Error(), tt.errorContains)
+				require.ErrorContains(t, err, tt.errorContains)
 			case false:
 				require.NoError(t, err)
 			}
@@ -183,7 +183,7 @@ func TestValidateDistribution(t *testing.T) {
 			case true:
 				require.Error(t, err)
 				require.ErrorIs(t, err, tt.errorIs)
-				require.Contains(t, err.Error(), tt.errorContains)
+				require.ErrorContains(t, err, tt.errorContains)
 			case false:
 				require.NoError(t, err)
 			}
@@ -235,7 +235,7 @@ func TestValidateVote(t *testing.T) {
 			case true:
 				require.Error(t, err)
 				require.ErrorIs(t, err, tt.errorIs)
-				require.Contains(t, err.Error(), tt.errorContains)
+				require.ErrorContains(t, err, tt.errorContains)
 			case false:
 				require.NoError(t, err)
 			}

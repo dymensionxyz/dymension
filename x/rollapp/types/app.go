@@ -1,8 +1,6 @@
 package types
 
-import (
-	errorsmod "cosmossdk.io/errors"
-)
+import dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
 
 func NewApp(id uint64, name, rollappId, description, image, url string, order int32) App {
 	return App{
@@ -52,11 +50,11 @@ func (r App) ValidateBasic() error {
 	}
 
 	if err := validateURL(r.ImageUrl); err != nil {
-		return errorsmod.Wrap(ErrInvalidAppImage, err.Error())
+		return dymerrors.Join(ErrInvalidAppImage, err)
 	}
 
 	if err := validateURL(r.Url); err != nil {
-		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+		return dymerrors.Join(ErrInvalidURL, err)
 	}
 
 	return nil

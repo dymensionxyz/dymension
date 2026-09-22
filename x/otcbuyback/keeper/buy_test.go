@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		tinyPayment := sdk.NewCoin("usdc", math.NewInt(1)) // 0.000001 USDC
 		_, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, tinyPayment, 0)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "payment amount too small to purchase any tokens")
+		suite.Require().ErrorContains(err, "payment amount too small to purchase any tokens")
 	})
 
 	suite.Run("BuyExactSpend - different discount levels", func() {
@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		// Test: Try to claim immediately after buy (should fail)
 		_, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), types.ErrNoClaimableTokens.Error())
+		suite.Require().ErrorContains(err, types.ErrNoClaimableTokens.Error())
 
 		// End the auction manually
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.EndTime)
@@ -405,7 +405,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		suite.Ctx = suite.Ctx.WithBlockTime(expectedVestingStartTime.Add(-1 * time.Second))
 		_, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "no tokens available to claim", "Should not be able to claim before vesting starts")
+		suite.Require().ErrorContains(err, "no tokens available to claim", "Should not be able to claim before vesting starts")
 
 		// Claim in the middle of vesting period for partial vesting
 		suite.Ctx = suite.Ctx.WithBlockTime(expectedVestingStartTime.Add(12 * time.Hour))
@@ -416,7 +416,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		// claim again without changing the time, should not be able to claim again
 		_, err = suite.App.OTCBuybackKeeper.ClaimVestedTokens(suite.Ctx, buyer, auctionID)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "no tokens available to claim")
+		suite.Require().ErrorContains(err, "no tokens available to claim")
 
 		// move time forward to the end of the vesting period
 		suite.Ctx = suite.Ctx.WithBlockTime(expectedVestingEndTime)
@@ -471,7 +471,7 @@ func (suite *KeeperTestSuite) TestFixedDiscountBuy() {
 		// Try invalid vesting period
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 60*24*time.Hour)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "vesting period not found")
+		suite.Require().ErrorContains(err, "vesting period not found")
 	})
 }
 
@@ -497,7 +497,7 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 		// 4th purchase should fail
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "maximum purchases")
+		suite.Require().ErrorContains(err, "maximum purchases")
 	})
 
 	suite.Run("min purchase amount enforcement", func() {
@@ -517,7 +517,7 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 		// Try to buy less than minimum
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(5).MulRaw(1e18), "usdc", 0)
 		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), "less than minimum")
+		suite.Require().ErrorContains(err, "less than minimum")
 
 		// Buy exactly minimum (should work)
 		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 0)

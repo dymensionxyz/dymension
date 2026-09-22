@@ -6,6 +6,8 @@ import (
 	"sort"
 	"time"
 
+	dymerrors "github.com/dymensionxyz/dymension/v3/internal/errors"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
@@ -66,7 +68,7 @@ func (k Keeper) AddToExistingLock(ctx sdk.Context, owner sdk.AccAddress, coin sd
 
 	_, err := k.AddTokensToLockByID(ctx, lock.ID, owner, coin)
 	if err != nil {
-		return 0, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return 0, dymerrors.Join(sdkerrors.ErrInvalidRequest, err)
 	}
 
 	// update the timestamp of the lock

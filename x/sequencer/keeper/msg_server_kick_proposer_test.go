@@ -71,7 +71,7 @@ func (s *SequencerTestSuite) TestKickProposerSelfKickPrevented() {
 
 	// Self-kick should be prevented
 	utest.IsErr(s.Require(), err, gerrc.ErrPermissionDenied)
-	s.Require().Contains(err.Error(), "sequencer cannot kick itself")
+	s.Require().ErrorContains(err, "sequencer cannot kick itself")
 
 	// Alice should still be the proposer
 	s.Require().True(s.k().IsProposer(s.Ctx, seqAlice))
