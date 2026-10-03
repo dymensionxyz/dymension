@@ -53,13 +53,14 @@ func validateEscrowAmount(amount sdk.Coins) error {
 	return nil
 }
 
-func NewMsgUpdateAgentSpendPolicy(owner, agentID, spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks uint64) *MsgUpdateAgentSpendPolicy {
+func NewMsgUpdateAgentSpendPolicy(owner, agentID, spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks, spendExpiryHeight uint64) *MsgUpdateAgentSpendPolicy {
 	return &MsgUpdateAgentSpendPolicy{
 		Owner:               owner,
 		AgentId:             agentID,
 		SpendDenom:          spendDenom,
 		SpendLimitPerWindow: spendLimitPerWindow,
 		SpendWindowBlocks:   spendWindowBlocks,
+		SpendExpiryHeight:   spendExpiryHeight,
 	}
 }
 
@@ -82,14 +83,15 @@ func (m *MsgUpdateAgentSpendPolicy) ValidateBasic() error {
 		}
 		recipients[key] = struct{}{}
 	}
-	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks)
+	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks, m.SpendExpiryHeight)
 }
 
 // ValidateSpendPolicy checks the spend-policy invariant shared by
 // MsgUpdateAgentSpendPolicy and genesis-imported agents: the budget fields are
 // set iff the denom is, so SpendBucket can never divide by zero on an enabled
-// agent.
-func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks uint64) error {
+// agent. The expiry is not compared to the block height: a past expiry is a
+// valid paused state, and this check must stay stateless.
+func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks, spendExpiryHeight uint64) error {
 	if spendDenom == "" {
 		// disabling spending: the budget fields must be unset
 		if !spendLimitPerWindow.IsNil() && !spendLimitPerWindow.IsZero() {
@@ -97,6 +99,9 @@ func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendW
 		}
 		if spendWindowBlocks != 0 {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window blocks set without spend denom")
+		}
+		if spendExpiryHeight != 0 {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend expiry set without spend denom")
 		}
 		return nil
 	}

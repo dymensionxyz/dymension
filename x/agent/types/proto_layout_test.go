@@ -46,6 +46,7 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 				reflect.TypeOf(math.Int{}),
 			},
 			"SpendRecipientAllowlist": {"bytes,13,rep,name=spend_recipient_allowlist,json=spendRecipientAllowlist,proto3", reflect.TypeOf([]string(nil))},
+			"SpendExpiryHeight":       {"varint,14,opt,name=spend_expiry_height,json=spendExpiryHeight,proto3", reflect.TypeOf(uint64(0))},
 		}},
 		{types.Params{}, map[string]fieldContract{
 			"MaxActionBytes":             {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},

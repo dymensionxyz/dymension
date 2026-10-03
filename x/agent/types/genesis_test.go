@@ -39,6 +39,9 @@ func TestGenesisValidate(t *testing.T) {
 
 	require.NoError(t, valid().Validate())
 	require.NoError(t, types.DefaultGenesis().Validate())
+	withExpiry := valid()
+	withExpiry.Agents[0].SpendExpiryHeight = 1
+	require.NoError(t, withExpiry.Validate())
 
 	tests := []struct {
 		name   string
@@ -64,6 +67,9 @@ func TestGenesisValidate(t *testing.T) {
 		{"duplicate agent entry", func(g *types.GenesisState) { g.Agents = append(g.Agents, spendingAgent()) }},
 		{"disabled agent with window blocks", func(g *types.GenesisState) {
 			g.Agents[0] = types.Agent{Id: "a1", SpendWindowBlocks: 10}
+		}},
+		{"disabled agent with spend expiry", func(g *types.GenesisState) {
+			g.Agents[0] = types.Agent{Id: "a1", SpendExpiryHeight: 100}
 		}},
 		{"disabled agent with window state", func(g *types.GenesisState) {
 			g.Agents[0] = types.Agent{Id: "a1", SpendWindowSpent: math.NewInt(1)}
