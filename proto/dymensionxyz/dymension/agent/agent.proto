@@ -72,6 +72,10 @@ message Agent {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   repeated string spend_recipient_allowlist = 13;
+  // spend_expiry_height is the last height (inclusive) at which attested
+  // transfers are authorized. 0 means the spend authority never expires. Must
+  // be 0 when spend_denom is empty.
+  uint64 spend_expiry_height = 14;
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent
@@ -158,6 +162,7 @@ message EventUpdateAgentSpendPolicy {
   ];
   uint64 spend_window_blocks = 4;
   repeated string recipient_allowlist = 5;
+  uint64 spend_expiry_height = 6;
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by

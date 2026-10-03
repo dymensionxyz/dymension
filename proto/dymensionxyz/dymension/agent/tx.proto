@@ -157,6 +157,10 @@ message MsgUpdateAgentSpendPolicy {
   ];
   uint64 spend_window_blocks = 5;
   repeated string recipient_allowlist = 6;
+  // spend_expiry_height is the last height (inclusive) at which attested
+  // transfers are authorized; 0 means no expiry. Renew by re-issuing the
+  // policy with a later height.
+  uint64 spend_expiry_height = 7;
 }
 
 message MsgUpdateAgentSpendPolicyResponse {}
