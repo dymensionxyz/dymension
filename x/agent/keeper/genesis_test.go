@@ -26,6 +26,7 @@ func TestGenesis_EscrowAndWindowStateRoundTrip(t *testing.T) {
 			SpendWindowBlocks:      10,
 			SpendWindowStartHeight: 20,
 			SpendWindowSpent:       math.NewInt(400),
+			SpendMaxPerTransfer:    math.NewInt(250),
 		}},
 		Escrows: []types.AgentEscrow{{
 			AgentId: "a1",
@@ -43,5 +44,7 @@ func TestGenesis_EscrowAndWindowStateRoundTrip(t *testing.T) {
 	agent, found := k.GetAgent(ctx, "a1")
 	require.True(t, found)
 	require.Equal(t, math.NewInt(600), agent.RemainingWindowBudget(25))
+	require.True(t, agent.SpendPerTransferAllows(math.NewInt(250)))
+	require.False(t, agent.SpendPerTransferAllows(math.NewInt(251)))
 	require.Equal(t, math.NewInt(600), k.GetEscrowBalance(ctx, "a1").AmountOf("adym"))
 }

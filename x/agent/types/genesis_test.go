@@ -68,6 +68,10 @@ func TestGenesisValidate(t *testing.T) {
 		{"disabled agent with window state", func(g *types.GenesisState) {
 			g.Agents[0] = types.Agent{Id: "a1", SpendWindowSpent: math.NewInt(1)}
 		}},
+		{"negative max per transfer", func(g *types.GenesisState) { g.Agents[0].SpendMaxPerTransfer = math.NewInt(-1) }},
+		{"disabled agent with max per transfer", func(g *types.GenesisState) {
+			g.Agents[0] = types.Agent{Id: "a1", SpendMaxPerTransfer: math.NewInt(1)}
+		}},
 		{"escrow for unknown agent", func(g *types.GenesisState) { g.Escrows[0].AgentId = "ghost" }},
 		{"duplicate escrow entry", func(g *types.GenesisState) { g.Escrows = append(g.Escrows, g.Escrows[0]) }},
 		{"empty escrow balance", func(g *types.GenesisState) { g.Escrows[0].Balance = sdk.NewCoins() }},
@@ -92,7 +96,7 @@ func TestGenesisValidate_RuntimeStatesAccepted(t *testing.T) {
 		Params: types.DefaultParams(),
 		Agents: []types.Agent{
 			{Id: "fresh"},
-			{Id: "exported-disabled", SpendLimitPerWindow: math.ZeroInt(), SpendWindowSpent: math.ZeroInt()},
+			{Id: "exported-disabled", SpendLimitPerWindow: math.ZeroInt(), SpendWindowSpent: math.ZeroInt(), SpendMaxPerTransfer: math.ZeroInt()},
 		},
 	}
 	require.NoError(t, g.Validate())

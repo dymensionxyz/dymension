@@ -22,15 +22,32 @@ func TestUpdateAgentSpendPolicyCommand(t *testing.T) {
 		msg, err := newMsgUpdateAgentSpendPolicy(
 			"dym1owner",
 			[]string{"agent-1", "adym", "100", "10", first.String() + "," + second.String()},
+			"",
 		)
 		require.NoError(t, err)
 		require.Equal(t, []string{first.String(), second.String()}, msg.RecipientAllowlist)
 	})
 
 	t.Run("empty recipient allowlist is explicit unrestricted policy", func(t *testing.T) {
-		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""})
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, "")
 		require.NoError(t, err)
 		require.Empty(t, msg.RecipientAllowlist)
+	})
+
+	t.Run("max per transfer flag", func(t *testing.T) {
+		cmd := CmdUpdateAgentSpendPolicy()
+		require.NotNil(t, cmd.Flags().Lookup(flagMaxPerTransfer))
+
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, "")
+		require.NoError(t, err)
+		require.True(t, msg.SpendMaxPerTransfer.IsZero())
+
+		msg, err = newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, "25")
+		require.NoError(t, err)
+		require.True(t, math.NewInt(25).Equal(msg.SpendMaxPerTransfer))
+
+		_, err = newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, "abc")
+		require.ErrorContains(t, err, "max per transfer")
 	})
 }
 
