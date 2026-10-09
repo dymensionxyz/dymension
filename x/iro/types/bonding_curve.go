@@ -311,7 +311,7 @@ func checkPrecision(d math.LegacyDec) bool {
 	return multiplied.IsInteger()
 }
 
-// String returns a human readable string representation of the bonding curve
+// Stringify returns a human readable string representation of the bonding curve
 func (lbc BondingCurve) Stringify() string {
 	return fmt.Sprintf("M=%s N=%s C=%s",
 		lbc.M.String(),

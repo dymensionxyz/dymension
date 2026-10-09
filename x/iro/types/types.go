@@ -16,7 +16,7 @@ var GraduationStatusString = map[GraduationStatus]string{
 	GraduationStatus_SETTLED:        "settled",
 }
 
-// GetGraduationStatusString returns the string representation of the graduation status
+// String returns the string representation of the graduation status
 func (s GraduationStatus) String() string {
 	return GraduationStatusString[s]
 }

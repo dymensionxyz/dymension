@@ -10,7 +10,7 @@ import (
 
 var ErrBroken = gerrc.ErrInternal.Wrap("invariant broken")
 
-// Wrap an error to mark as invariant breaking. If the error is nil, it will return nil.
+// Breaking wraps an error to mark as invariant breaking. If the error is nil, it will return nil.
 func Breaking(err error) error {
 	if err == nil {
 		return nil
