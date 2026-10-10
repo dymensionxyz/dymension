@@ -23,6 +23,10 @@ message Feedback {
   int64 height = 7;
   google.protobuf.Timestamp time = 8
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+  // from_attested_client is frozen at submit time: whether the client proved
+  // ownership of a live registered agent. Revoke and overwrite use it to undo
+  // the correct reputation bucket even if that agent is later deactivated.
+  bool from_attested_client = 9;
 }
 
 // Reputation is the per-agent incremental aggregate. average = score_sum/count.
@@ -32,6 +36,12 @@ message Reputation {
   uint64 count = 2;
   // score_sum is the sum of current scores.
   uint64 score_sum = 3;
+  // attested_score_sum and attested_count are the same aggregate restricted to
+  // feedback from clients that own a live registered agent, a Sybil-resistant
+  // sub-score since each such client costs a registration fee.
+  // attested average = attested_score_sum/attested_count.
+  uint64 attested_score_sum = 4;
+  uint64 attested_count = 5;
 }
 
 // EventSubmitFeedback is emitted when feedback is submitted or overwritten.

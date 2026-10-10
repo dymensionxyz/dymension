@@ -41,6 +41,16 @@ func (k msgServer) SubmitFeedback(goCtx context.Context, msg *types.MsgSubmitFee
 	if msg.EvidenceSeq >= agent.ActionSeq {
 		return nil, errorsmod.Wrapf(types.ErrInvalidEvidence, "evidence seq %d, agent action seq %d", msg.EvidenceSeq, agent.ActionSeq)
 	}
+	// Naming a live agent the client owns ties this feedback to a paid,
+	// on-chain identity, which is what makes the attested sub-score costly to
+	// Sybil.
+	attested := msg.ClientAgentId != ""
+	if attested {
+		ca, found := k.GetAgent(ctx, msg.ClientAgentId)
+		if !found || ca.Owner != msg.Client || !ca.Active {
+			return nil, errorsmod.Wrap(types.ErrInvalidClientAgent, msg.ClientAgentId)
+		}
+	}
 
 	// charge the anti-spam fee: send to module then burn (mirrors agent registration)
 	if !params.FeedbackFee.IsNil() && !params.FeedbackFee.IsZero() {
@@ -54,27 +64,26 @@ func (k msgServer) SubmitFeedback(goCtx context.Context, msg *types.MsgSubmitFee
 		}
 	}
 
+	fb := types.Feedback{
+		AgentId:            msg.AgentId,
+		Client:             msg.Client,
+		Score:              msg.Score,
+		Tag1:               msg.Tag1,
+		Tag2:               msg.Tag2,
+		EvidenceSeq:        msg.EvidenceSeq,
+		Height:             ctx.BlockHeight(),
+		Time:               ctx.BlockTime(),
+		FromAttestedClient: attested,
+	}
 	rep, found := k.GetReputation(ctx, msg.AgentId)
 	if !found {
 		rep = types.Reputation{AgentId: msg.AgentId}
 	}
 	if old, hadOld := k.GetFeedback(ctx, msg.AgentId, msg.Client); hadOld {
-		rep.ScoreSum = rep.ScoreSum - uint64(old.Score) + uint64(msg.Score)
-	} else {
-		rep.Count++
-		rep.ScoreSum += uint64(msg.Score)
+		rep.Remove(old)
 	}
+	rep.Add(fb)
 
-	fb := types.Feedback{
-		AgentId:     msg.AgentId,
-		Client:      msg.Client,
-		Score:       msg.Score,
-		Tag1:        msg.Tag1,
-		Tag2:        msg.Tag2,
-		EvidenceSeq: msg.EvidenceSeq,
-		Height:      ctx.BlockHeight(),
-		Time:        ctx.BlockTime(),
-	}
 	if err := k.SetFeedback(ctx, fb); err != nil {
 		return nil, errorsmod.Wrap(err, "set feedback")
 	}
@@ -111,8 +120,7 @@ func (k msgServer) RevokeFeedback(goCtx context.Context, msg *types.MsgRevokeFee
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get reputation")
 	}
-	rep.Count--
-	rep.ScoreSum -= uint64(old.Score)
+	rep.Remove(old)
 	if rep.Count == 0 {
 		if err := k.reputation.Remove(ctx, msg.AgentId); err != nil {
 			return nil, errorsmod.Wrap(err, "remove reputation")

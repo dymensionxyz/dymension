@@ -27,4 +27,5 @@ var (
 	ErrValidationFeePayment       = errorsmod.Register(ModuleName, 23, "validation request fee payment error")
 	ErrRecipientNotAllowed        = errorsmod.Register(ModuleName, 24, "transfer recipient not in agent spend allowlist")
 	ErrTooManyValidationResponses = errorsmod.Register(ModuleName, 25, "too many validation responses")
+	ErrInvalidClientAgent         = errorsmod.Register(ModuleName, 27, "client_agent_id must reference a live agent owned by the client")
 )
