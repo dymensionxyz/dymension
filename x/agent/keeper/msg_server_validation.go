@@ -115,6 +115,10 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 	if !found {
 		return nil, types.ErrValidationRequestNotFound
 	}
+	if p.ValidationResponseWindowBlocks != 0 &&
+		ctx.BlockHeight() > req.Height+int64(p.ValidationResponseWindowBlocks) { //nolint:gosec // window is a small governance param, no realistic overflow
+		return nil, types.ErrValidationExpired
+	}
 	if p.ValidationMaxResponsesPerRequest != 0 && req.ResponseCount >= p.ValidationMaxResponsesPerRequest {
 		return nil, types.ErrTooManyValidationResponses
 	}
