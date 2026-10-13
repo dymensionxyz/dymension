@@ -41,8 +41,7 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 		if !found {
 			rep = types.Reputation{AgentId: f.AgentId}
 		}
-		rep.Count++
-		rep.ScoreSum += uint64(f.Score)
+		rep.Add(f)
 		if err := k.reputation.Set(ctx, f.AgentId, rep); err != nil {
 			panic(err)
 		}

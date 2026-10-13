@@ -226,6 +226,10 @@ message MsgSubmitFeedback {
   string tag2 = 5;
   // evidence_seq must reference an existing action-log entry of the agent.
   uint64 evidence_seq = 6;
+  // client_agent_id optionally names a live agent owned by client, counting
+  // this feedback toward the attested reputation sub-score. A set but invalid
+  // id is rejected.
+  string client_agent_id = 7;
 }
 
 message MsgSubmitFeedbackResponse {}

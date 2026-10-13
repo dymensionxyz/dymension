@@ -11,7 +11,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
 
-const flagTag2 = "tag2"
+const (
+	flagTag2          = "tag2"
+	flagClientAgentID = "client-agent-id"
+)
 
 func CmdSubmitFeedback() *cobra.Command {
 	cmd := &cobra.Command{
@@ -39,12 +42,19 @@ func CmdSubmitFeedback() *cobra.Command {
 				return err
 			}
 
+			clientAgentID, err := cmd.Flags().GetString(flagClientAgentID)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgSubmitFeedback(clientCtx.GetFromAddress().String(), args[0], uint32(score), args[2], tag2, evidenceSeq)
+			msg.ClientAgentId = clientAgentID
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().String(flagTag2, "", "optional secondary dimension tag")
+	cmd.Flags().String(flagClientAgentID, "", "optional id of a live agent you own; counts the feedback toward the attested reputation sub-score")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
