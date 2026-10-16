@@ -22,15 +22,33 @@ func TestUpdateAgentSpendPolicyCommand(t *testing.T) {
 		msg, err := newMsgUpdateAgentSpendPolicy(
 			"dym1owner",
 			[]string{"agent-1", "adym", "100", "10", first.String() + "," + second.String()},
+			0,
 		)
 		require.NoError(t, err)
 		require.Equal(t, []string{first.String(), second.String()}, msg.RecipientAllowlist)
 	})
 
 	t.Run("empty recipient allowlist is explicit unrestricted policy", func(t *testing.T) {
-		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""})
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, 0)
 		require.NoError(t, err)
 		require.Empty(t, msg.RecipientAllowlist)
+	})
+
+	t.Run("spend expiry height flag defaults to no expiry", func(t *testing.T) {
+		cmd := CmdUpdateAgentSpendPolicy()
+		expiry, err := cmd.Flags().GetUint64(flagSpendExpiryHeight)
+		require.NoError(t, err)
+		require.Zero(t, expiry)
+		require.NoError(t, cmd.Flags().Set(flagSpendExpiryHeight, "120"))
+		expiry, err = cmd.Flags().GetUint64(flagSpendExpiryHeight)
+		require.NoError(t, err)
+		require.Equal(t, uint64(120), expiry)
+	})
+
+	t.Run("constructs spend expiry height", func(t *testing.T) {
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, 120)
+		require.NoError(t, err)
+		require.Equal(t, uint64(120), msg.SpendExpiryHeight)
 	})
 }
 

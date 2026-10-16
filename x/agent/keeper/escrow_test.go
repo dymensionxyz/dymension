@@ -66,7 +66,7 @@ func (s *EscrowTestSuite) registerAgent(id string) sdk.AccAddress {
 func (s *EscrowTestSuite) spendingAgent(id string) sdk.AccAddress {
 	owner := s.registerAgent(id)
 	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx,
-		types.NewMsgUpdateAgentSpendPolicy(owner.String(), id, spendDenom, math.NewInt(windowLimit), windowLen))
+		types.NewMsgUpdateAgentSpendPolicy(owner.String(), id, spendDenom, math.NewInt(windowLimit), windowLen, 0))
 	s.Require().NoError(err)
 	return owner
 }
@@ -365,14 +365,14 @@ func (s *EscrowTestSuite) TestUpdateSpendPolicy_OwnerOnly() {
 
 	_, _, other := testdata.KeyTestPubAddr()
 	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx,
-		types.NewMsgUpdateAgentSpendPolicy(other.String(), "a1", spendDenom, math.NewInt(1), 1))
+		types.NewMsgUpdateAgentSpendPolicy(other.String(), "a1", spendDenom, math.NewInt(1), 1, 0))
 	s.Require().ErrorIs(err, types.ErrUnauthorized)
 }
 
 func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistPersistedQueriedAndEmitted() {
 	owner := s.registerAgent("a1")
 	_, _, recipient := testdata.KeyTestPubAddr()
-	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen)
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen, 0)
 	msg.RecipientAllowlist = []string{recipient.String()}
 
 	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)
@@ -406,7 +406,7 @@ func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistAboveMaxReject
 	s.Require().NoError(s.k.SetParams(s.Ctx, params))
 	_, _, first := testdata.KeyTestPubAddr()
 	_, _, second := testdata.KeyTestPubAddr()
-	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen)
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen, 0)
 	msg.RecipientAllowlist = []string{first.String(), second.String()}
 
 	_, err = s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)

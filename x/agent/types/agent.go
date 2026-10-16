@@ -35,6 +35,13 @@ func (a Agent) SpendEnabled() bool {
 	return a.SpendDenom != ""
 }
 
+// SpendAuthorityActive reports whether the spend authority has not lapsed at
+// nowHeight. Expiry 0 means the authority never expires. The expiry height
+// itself is still valid (inclusive).
+func (a Agent) SpendAuthorityActive(nowHeight uint64) bool {
+	return a.SpendExpiryHeight == 0 || nowHeight <= a.SpendExpiryHeight
+}
+
 // SpendRecipientAllowed reports whether recipient may receive an attested
 // transfer. An empty allowlist means unrestricted (spending is still bounded
 // by denom + per-window limit).
@@ -60,7 +67,7 @@ func (a Agent) SpendRecipientAllowed(recipient string) bool {
 // imports against e.g. an enabled agent with a zero window length (which would
 // make SpendBucket divide by zero).
 func (a Agent) ValidateSpendState(spendRecipientAllowlistMax uint64) error {
-	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks); err != nil {
+	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks, a.SpendExpiryHeight); err != nil {
 		return err
 	}
 	if uint64(len(a.SpendRecipientAllowlist)) > spendRecipientAllowlistMax {

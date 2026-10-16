@@ -144,6 +144,12 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if !agent.SpendRecipientAllowed(msg.Recipient) {
 		return nil, errorsmod.Wrap(types.ErrRecipientNotAllowed, msg.Recipient)
 	}
+	height := uint64(ctx.BlockHeight()) //nolint:gosec // block height is never negative
+	// Expiry gates spends only: SubmitAttestedAction stays appendable so the
+	// action log remains usable as evidence after the authority lapses.
+	if !agent.SpendAuthorityActive(height) {
+		return nil, errorsmod.Wrapf(types.ErrSpendAuthorityExpired, "agent %s: expiry height %d, now %d", msg.AgentId, agent.SpendExpiryHeight, height)
+	}
 
 	seq := agent.ActionSeq
 	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.Memo)
@@ -161,7 +167,6 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		return nil, errorsmod.Wrap(err, "verify attestation")
 	}
 
-	height := uint64(ctx.BlockHeight()) //nolint:gosec // block height is never negative
 	if !agent.SpendAllows(height, msg.Amount) {
 		return nil, errorsmod.Wrapf(types.ErrSpendBudgetExceeded, "amount %s, remaining %s", msg.Amount, agent.RemainingWindowBudget(height))
 	}

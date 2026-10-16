@@ -15,6 +15,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 )
 
+const flagSpendExpiryHeight = "spend-expiry-height"
+
 func CmdFundAgentEscrow() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "fund-escrow [agent-id] [amount]",
@@ -77,7 +79,11 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 				return err
 			}
 
-			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args)
+			expiryHeight, err := cmd.Flags().GetUint64(flagSpendExpiryHeight)
+			if err != nil {
+				return err
+			}
+			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args, expiryHeight)
 			if err != nil {
 				return err
 			}
@@ -85,11 +91,12 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().Uint64(flagSpendExpiryHeight, 0, "Last block height (inclusive) at which attested transfers are authorized; 0 means no expiry")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
-func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdateAgentSpendPolicy, error) {
+func newMsgUpdateAgentSpendPolicy(owner string, args []string, expiryHeight uint64) (*types.MsgUpdateAgentSpendPolicy, error) {
 	limit, ok := math.NewIntFromString(args[2])
 	if !ok {
 		return nil, gerrc.ErrInvalidArgument.Wrap("spend limit per window")
@@ -98,7 +105,7 @@ func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdate
 	if err != nil {
 		return nil, err
 	}
-	msg := types.NewMsgUpdateAgentSpendPolicy(owner, args[0], args[1], limit, windowBlocks)
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner, args[0], args[1], limit, windowBlocks, expiryHeight)
 	if args[4] != "" {
 		msg.RecipientAllowlist = strings.Split(args[4], ",")
 	}
