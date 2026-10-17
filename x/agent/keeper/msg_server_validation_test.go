@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"bytes"
+	stdmath "math"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -132,6 +133,41 @@ func TestValidationResponseWindowDisabledWhenZero(t *testing.T) {
 	late := ctx.WithBlockHeight(ctx.BlockHeight() + 100*types.DefaultValidationResponseWindowBlocks)
 	_, err = ms.RespondValidation(late, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
 	require.NoError(t, err)
+}
+
+func TestValidationResponseWindowOverflowSafe(t *testing.T) {
+	cases := []struct {
+		name          string
+		window        uint64
+		requestHeight int64
+		respondHeight int64
+		expired       bool
+	}{
+		{"max uint64 window at request height", stdmath.MaxUint64, 10, 10, false},
+		{"max uint64 window at max height", stdmath.MaxUint64, 10, stdmath.MaxInt64, false},
+		{"max int64 window at request height", stdmath.MaxInt64, 10, 10, false},
+		{"max int64 window one block later", stdmath.MaxInt64, 10, 11, false},
+		{"elapsed equals window at max height", stdmath.MaxInt64 - 1, 1, stdmath.MaxInt64, false},
+		{"elapsed exceeds window at max height", stdmath.MaxInt64 - 2, 1, stdmath.MaxInt64, true},
+	}
+	for i, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx, k, ms, validatorOwner, requester := setupValidation(t)
+			p, err := k.GetParams(ctx)
+			require.NoError(t, err)
+			p.ValidationResponseWindowBlocks = tc.window
+			require.NoError(t, k.SetParams(ctx, p))
+			hash := bytes.Repeat([]byte{byte(40 + i)}, 32)
+			_, err = ms.RequestValidation(ctx.WithBlockHeight(tc.requestHeight), types.NewMsgRequestValidation(requester, "validator", "subject", 1, hash, ""))
+			require.NoError(t, err)
+			_, err = ms.RespondValidation(ctx.WithBlockHeight(tc.respondHeight), types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+			if tc.expired {
+				require.ErrorIs(t, err, types.ErrValidationExpired)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestAttestedValidationRejectedAfterWindowWithoutLogAppend(t *testing.T) {

@@ -115,8 +115,7 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 	if !found {
 		return nil, types.ErrValidationRequestNotFound
 	}
-	if p.ValidationResponseWindowBlocks != 0 &&
-		ctx.BlockHeight() > req.Height+int64(p.ValidationResponseWindowBlocks) { //nolint:gosec // window is a small governance param, no realistic overflow
+	if validationResponseExpired(ctx.BlockHeight(), req.Height, p.ValidationResponseWindowBlocks) {
 		return nil, types.ErrValidationExpired
 	}
 	if p.ValidationMaxResponsesPerRequest != 0 && req.ResponseCount >= p.ValidationMaxResponsesPerRequest {
@@ -176,4 +175,14 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 		return nil, err
 	}
 	return &types.MsgRespondValidationAttestedResponse{Seq: seq, ActionSeq: actionSeq}, nil
+}
+
+// validationResponseExpired compares elapsed blocks in uint64 so every window
+// value is honored: for height > requestHeight the two's-complement difference
+// is exact, whereas adding the window to the request height can overflow.
+func validationResponseExpired(height, requestHeight int64, window uint64) bool {
+	if window == 0 || height <= requestHeight {
+		return false
+	}
+	return uint64(height)-uint64(requestHeight) > window //nolint:gosec // exact for height > requestHeight
 }
