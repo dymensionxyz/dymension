@@ -61,6 +61,10 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 				"varint,10,opt,name=validation_max_responses_per_request,json=validationMaxResponsesPerRequest,proto3",
 				reflect.TypeOf(uint64(0)),
 			},
+			"ValidationResponseWindowBlocks": {
+				"varint,11,opt,name=validation_response_window_blocks,json=validationResponseWindowBlocks,proto3",
+				reflect.TypeOf(uint64(0)),
+			},
 		}},
 		{types.ActionLogEntry{}, map[string]fieldContract{
 			"AgentId":     {"bytes,1,opt,name=agent_id,json=agentId,proto3", reflect.TypeOf("")},
@@ -119,7 +123,7 @@ func TestAgentProtoRoundTripCompatibility(t *testing.T) {
 			PolicyRotationDelayBlocks: 99, FeedbackFee: sdk.NewInt64Coin("adym", 34),
 			FeedbackTagMaxBytes:  56,
 			ValidationRequestFee: sdk.NewInt64Coin("adym", 78), ValidationTagMaxBytes: 32, ValidationUriMaxBytes: 512,
-			ValidationMaxResponsesPerRequest: 8,
+			ValidationMaxResponsesPerRequest: 8, ValidationResponseWindowBlocks: 43200,
 		}, &types.Params{}},
 		{&types.ActionLogEntry{
 			AgentId: "agent-1", Seq: 7, Payload: []byte("payload"),
