@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"math/big"
 	"strings"
 	"testing"
 
@@ -106,6 +107,50 @@ func TestAgentSpendWindow_QuietGapFullReset(t *testing.T) {
 	require.Equal(t, uint64(40), a.SpendWindowStartHeight)
 	require.Equal(t, math.NewInt(70), a.SpendWindowSpent)
 	require.True(t, a.SpendPrevWindowSpent.IsZero())
+}
+
+// TestAgentSpendWindow_TrailingWindowNearDoubleExposure pins the accepted
+// limitation of the weighted estimate: spend concentrated late in the previous
+// bucket is under-weighted, so a single W-block interval (heights 199..298) can
+// carry nearly 2x the limit.
+func TestAgentSpendWindow_TrailingWindowNearDoubleExposure(t *testing.T) {
+	const limit, w = 1000, 100
+	a := windowAgent(limit, w)
+	a.RecordSpend(199, math.NewInt(limit))
+
+	require.Equal(t, math.NewInt(980), a.RemainingWindowBudget(298))
+	a.RecordSpend(298, math.NewInt(980))
+	require.Equal(t, math.NewInt(1980), a.SpendWindowSpent.Add(a.SpendPrevWindowSpent))
+	require.Equal(t, w, 298-199+1, "heights 199..298 span exactly one window")
+}
+
+// TestAgentSpendWindow_MaxValuesDoNotOverflow covers spend state at the top of
+// math.Int's range, which validation accepts: weighting must not overflow in
+// the intermediate product and the budget must saturate at zero rather than
+// overflow when current plus weighted previous spend exceeds the limit.
+func TestAgentSpendWindow_MaxValuesDoNotOverflow(t *testing.T) {
+	maxInt := math.NewIntFromBigInt(new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1)))
+	half := maxInt.QuoRaw(2)
+
+	a := windowAgent(0, 2)
+	a.SpendLimitPerWindow = maxInt
+	a.SpendWindowStartHeight = 2
+	a.SpendWindowSpent = math.ZeroInt()
+	a.SpendPrevWindowSpent = maxInt
+	require.NoError(t, a.ValidateSpendState(types.DefaultParams().SpendRecipientAllowlistMax))
+
+	require.Equal(t, maxInt, types.PrevWindowWeighted(maxInt, 0, 2))
+	require.Equal(t, half, types.PrevWindowWeighted(maxInt, 1, 2))
+	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(2))
+	require.Equal(t, maxInt.Sub(half), a.RemainingWindowBudget(3))
+	require.False(t, a.SpendAllows(2, math.OneInt()))
+
+	// current and previous bucket both at the limit: their sum exceeds 256 bits
+	a.SpendWindowSpent = maxInt
+	require.NoError(t, a.ValidateSpendState(types.DefaultParams().SpendRecipientAllowlistMax))
+	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(2))
+	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(3))
+	require.False(t, a.SpendAllows(3, math.OneInt()))
 }
 
 func TestPrevWindowWeighted(t *testing.T) {

@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -147,29 +148,45 @@ func (a Agent) spendWindow(nowHeight uint64) (bucket uint64, cur, prev math.Int)
 }
 
 // PrevWindowWeighted prorates the previous bucket's spend by the fraction of it
-// still inside the trailing window: prev * (W - elapsed) / W. Integer floor
-// division keeps it deterministic; it under-counts by less than one base unit,
-// negligible next to the 2x boundary burst a tumbling window allows.
+// still inside the trailing window: prev * (W - elapsed) / W. The product is
+// formed in an unbounded big.Int because prev may be as large as the limit,
+// and math.Int panics on intermediates beyond 256 bits; the quotient is at most
+// prev, so it always fits. Floor division under-counts the weighted value by
+// less than one base unit.
 func PrevWindowWeighted(prev math.Int, elapsed, windowBlocks uint64) math.Int {
-	return prev.Mul(math.NewIntFromUint64(windowBlocks - elapsed)).Quo(math.NewIntFromUint64(windowBlocks))
+	n := new(big.Int).Mul(prev.BigInt(), new(big.Int).SetUint64(windowBlocks-elapsed))
+	return math.NewIntFromBigInt(n.Quo(n, new(big.Int).SetUint64(windowBlocks)))
 }
 
 // RemainingWindowBudget returns the unspent budget at nowHeight under a
-// weighted sliding window: current bucket spend plus the prorated previous
-// bucket spend, so spend over any trailing window length stays at roughly the
-// limit instead of doubling across a bucket edge. Zero when spending is
-// disabled.
+// weighted two-bucket sliding window: limit minus current bucket spend minus
+// the prorated previous bucket spend. Zero when spending is disabled.
+//
+// This closes the tumbling-window burst at the bucket edge (a full previous
+// bucket leaves zero budget at the next bucket start), but it is an
+// approximation that assumes previous-bucket spend was spread evenly. Spend
+// concentrated late in the previous bucket is under-weighted, so actual spend
+// over an arbitrary W-block interval can approach 2x the limit: with W=100 and
+// limit=1000, 1000 at height 199 and 980 at height 298 are both allowed. That
+// approximation error is separate from, and far larger than, the sub-unit
+// floor rounding in PrevWindowWeighted.
 func (a Agent) RemainingWindowBudget(nowHeight uint64) math.Int {
 	if !a.SpendEnabled() {
 		return math.ZeroInt()
 	}
 	bucket, cur, prev := a.spendWindow(nowHeight)
-	spent := cur.Add(PrevWindowWeighted(prev, nowHeight-bucket, a.SpendWindowBlocks))
+	weighted := PrevWindowWeighted(prev, nowHeight-bucket, a.SpendWindowBlocks)
 	limit := a.SpendLimitPerWindow
 	if limit.IsNil() {
 		limit = math.ZeroInt()
 	}
-	return math.MaxInt(math.ZeroInt(), limit.Sub(spent))
+	// Subtract one term at a time and saturate: cur + weighted may each be up
+	// to the limit, so their sum can exceed math.Int's 256-bit range.
+	remaining := limit.Sub(cur)
+	if remaining.LTE(weighted) {
+		return math.ZeroInt()
+	}
+	return remaining.Sub(weighted)
 }
 
 // SpendAllows reports whether spending amount at nowHeight stays within the
