@@ -21,14 +21,18 @@ func TestAgentSpendRecipientAllowed_EquivalentAddressEncoding(t *testing.T) {
 	require.True(t, (types.Agent{}).SpendRecipientAllowed(denied.String()))
 }
 
-// TestAgentSpendWindow mirrors the eIBC on-demand LP bucket tests: the window
-// is an absolute-aligned tumbling bucket that fully resets on rollover.
-func TestAgentSpendWindow(t *testing.T) {
-	a := types.Agent{
+func windowAgent(limit int64, windowBlocks uint64) types.Agent {
+	return types.Agent{
 		SpendDenom:          "adym",
-		SpendLimitPerWindow: math.NewInt(100),
-		SpendWindowBlocks:   10,
+		SpendLimitPerWindow: math.NewInt(limit),
+		SpendWindowBlocks:   windowBlocks,
 	}
+}
+
+// TestAgentSpendWindow_SingleBucketCap checks that spend within one bucket is
+// capped at exactly the limit.
+func TestAgentSpendWindow_SingleBucketCap(t *testing.T) {
+	a := windowAgent(100, 10)
 
 	// nil window-spent decodes as zero
 	require.True(t, a.SpendAllows(15, math.NewInt(100)))
@@ -39,16 +43,92 @@ func TestAgentSpendWindow(t *testing.T) {
 	require.True(t, a.SpendAllows(19, math.NewInt(40)))
 	require.False(t, a.SpendAllows(19, math.NewInt(41)))
 
-	// rollover: capacity resets even though the prior window was exhausted
 	a.RecordSpend(19, math.NewInt(40))
-	require.False(t, a.SpendAllows(19, math.NewInt(1)))
-	require.True(t, a.SpendAllows(20, math.NewInt(100)))
-
-	a.RecordSpend(20, math.NewInt(100))
-	require.Equal(t, uint64(20), a.SpendWindowStartHeight)
 	require.Equal(t, math.NewInt(100), a.SpendWindowSpent)
-	require.False(t, a.SpendAllows(29, math.NewInt(1)))
-	require.True(t, a.SpendAllows(30, math.NewInt(100)))
+	require.False(t, a.SpendAllows(19, math.NewInt(1)))
+}
+
+// TestAgentSpendWindow_BoundaryBurstBlocked is the regression test for the
+// tumbling-window boundary burst: exhausting the budget in the last block of a
+// bucket must not grant a fresh full budget in the first block of the next.
+func TestAgentSpendWindow_BoundaryBurstBlocked(t *testing.T) {
+	const limit, w = 1000, 100
+	a := windowAgent(limit, w)
+	a.RecordSpend(199, math.NewInt(limit))
+
+	require.False(t, a.SpendAllows(200, math.NewInt(1)))
+	for k := int64(0); k < w; k++ {
+		allowed := limit - limit*(w-k)/w
+		height := uint64(200 + k) //nolint:gosec // test heights are small and positive
+		require.Equal(t, math.NewInt(allowed), a.RemainingWindowBudget(height), "k=%d", k)
+		require.True(t, a.SpendAllows(height, math.NewInt(allowed)), "k=%d", k)
+		require.False(t, a.SpendAllows(height, math.NewInt(allowed+1)), "k=%d", k)
+	}
+}
+
+// TestAgentSpendWindow_OneBucketAdvanceCarriesPrev checks that a full previous
+// bucket leaves zero budget at the next bucket start, rising linearly to the
+// full limit by the bucket end, and that recording migrates the old bucket
+// into the previous-window slot.
+func TestAgentSpendWindow_OneBucketAdvanceCarriesPrev(t *testing.T) {
+	a := windowAgent(100, 10)
+	a.RecordSpend(12, math.NewInt(100))
+
+	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(20))
+	require.Equal(t, math.NewInt(50), a.RemainingWindowBudget(25))
+	require.Equal(t, math.NewInt(90), a.RemainingWindowBudget(29))
+	require.Equal(t, math.NewInt(100), a.RemainingWindowBudget(30))
+
+	a.RecordSpend(25, math.NewInt(30))
+	require.Equal(t, uint64(20), a.SpendWindowStartHeight)
+	require.Equal(t, math.NewInt(30), a.SpendWindowSpent)
+	require.Equal(t, math.NewInt(100), a.SpendPrevWindowSpent)
+	require.Equal(t, math.NewInt(20), a.RemainingWindowBudget(25))
+
+	// advancing one more bucket drops the oldest bucket and carries the 30
+	a.RecordSpend(30, math.NewInt(10))
+	require.Equal(t, uint64(30), a.SpendWindowStartHeight)
+	require.Equal(t, math.NewInt(10), a.SpendWindowSpent)
+	require.Equal(t, math.NewInt(30), a.SpendPrevWindowSpent)
+	require.Equal(t, math.NewInt(60), a.RemainingWindowBudget(30))
+}
+
+// TestAgentSpendWindow_QuietGapFullReset checks that after two or more empty
+// buckets both buckets are treated as empty, both when reading and recording.
+func TestAgentSpendWindow_QuietGapFullReset(t *testing.T) {
+	a := windowAgent(100, 10)
+	a.RecordSpend(12, math.NewInt(100))
+	a.RecordSpend(25, math.NewInt(0))
+	require.Equal(t, math.NewInt(100), a.SpendPrevWindowSpent)
+
+	require.Equal(t, math.NewInt(100), a.RemainingWindowBudget(40))
+	a.RecordSpend(40, math.NewInt(70))
+	require.Equal(t, uint64(40), a.SpendWindowStartHeight)
+	require.Equal(t, math.NewInt(70), a.SpendWindowSpent)
+	require.True(t, a.SpendPrevWindowSpent.IsZero())
+}
+
+func TestPrevWindowWeighted(t *testing.T) {
+	tests := []struct {
+		prev    int64
+		elapsed uint64
+		w       uint64
+		want    int64
+	}{
+		{1000, 0, 100, 1000},
+		{1000, 1, 100, 990},
+		{1000, 50, 100, 500},
+		{1000, 99, 100, 10},
+		{7, 99, 100, 0},
+		{7, 1, 3, 4},
+		{100, 9, 10, 10},
+		{0, 5, 10, 0},
+		{5, 0, 1, 5},
+	}
+	for _, tc := range tests {
+		got := types.PrevWindowWeighted(math.NewInt(tc.prev), tc.elapsed, tc.w)
+		require.Equal(t, math.NewInt(tc.want), got, "prev=%d elapsed=%d w=%d", tc.prev, tc.elapsed, tc.w)
+	}
 }
 
 func TestAgentSpendDisabled(t *testing.T) {

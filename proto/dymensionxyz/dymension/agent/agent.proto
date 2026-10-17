@@ -72,6 +72,14 @@ message Agent {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   repeated string spend_recipient_allowlist = 13;
+  // spend_prev_window_spent is the amount spent in the window immediately
+  // preceding spend_window_start_height, retained for the weighted
+  // sliding-window rate estimate. Nil/absent decodes as zero.
+  string spend_prev_window_spent = 14 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent
