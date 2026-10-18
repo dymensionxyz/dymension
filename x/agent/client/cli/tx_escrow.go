@@ -65,6 +65,8 @@ func CmdWithdrawAgentEscrow() *cobra.Command {
 	return cmd
 }
 
+const flagMaxPerTransfer = "max-per-transfer"
+
 func CmdUpdateAgentSpendPolicy() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-spend-policy [agent-id] [spend-denom] [spend-limit-per-window] [spend-window-blocks] [recipient-allowlist]",
@@ -77,7 +79,11 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 				return err
 			}
 
-			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args)
+			maxPerTransfer, err := cmd.Flags().GetString(flagMaxPerTransfer)
+			if err != nil {
+				return err
+			}
+			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args, maxPerTransfer)
 			if err != nil {
 				return err
 			}
@@ -85,11 +91,12 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(flagMaxPerTransfer, "", "optional cap on any single attested transfer, in spend-denom units; empty means no cap")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
-func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdateAgentSpendPolicy, error) {
+func newMsgUpdateAgentSpendPolicy(owner string, args []string, maxPerTransfer string) (*types.MsgUpdateAgentSpendPolicy, error) {
 	limit, ok := math.NewIntFromString(args[2])
 	if !ok {
 		return nil, gerrc.ErrInvalidArgument.Wrap("spend limit per window")
@@ -101,6 +108,14 @@ func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdate
 	msg := types.NewMsgUpdateAgentSpendPolicy(owner, args[0], args[1], limit, windowBlocks)
 	if args[4] != "" {
 		msg.RecipientAllowlist = strings.Split(args[4], ",")
+	}
+	msg.SpendMaxPerTransfer = math.ZeroInt()
+	if maxPerTransfer != "" {
+		maxPerTransferInt, ok := math.NewIntFromString(maxPerTransfer)
+		if !ok {
+			return nil, gerrc.ErrInvalidArgument.Wrap("max per transfer")
+		}
+		msg.SpendMaxPerTransfer = maxPerTransferInt
 	}
 	return msg, nil
 }

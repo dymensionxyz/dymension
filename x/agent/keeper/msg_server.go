@@ -161,6 +161,9 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		return nil, errorsmod.Wrap(err, "verify attestation")
 	}
 
+	if !agent.SpendPerTransferAllows(msg.Amount) {
+		return nil, errorsmod.Wrapf(types.ErrTransferExceedsPerTxCap, "amount %s, cap %s", msg.Amount, agent.SpendMaxPerTransfer)
+	}
 	height := uint64(ctx.BlockHeight()) //nolint:gosec // block height is never negative
 	if !agent.SpendAllows(height, msg.Amount) {
 		return nil, errorsmod.Wrapf(types.ErrSpendBudgetExceeded, "amount %s, remaining %s", msg.Amount, agent.RemainingWindowBudget(height))

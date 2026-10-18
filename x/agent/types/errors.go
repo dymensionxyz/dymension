@@ -27,4 +27,5 @@ var (
 	ErrValidationFeePayment       = errorsmod.Register(ModuleName, 23, "validation request fee payment error")
 	ErrRecipientNotAllowed        = errorsmod.Register(ModuleName, 24, "transfer recipient not in agent spend allowlist")
 	ErrTooManyValidationResponses = errorsmod.Register(ModuleName, 25, "too many validation responses")
+	ErrTransferExceedsPerTxCap    = errorsmod.Register(ModuleName, 26, "transfer amount exceeds agent per-transfer cap")
 )

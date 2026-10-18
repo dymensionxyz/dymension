@@ -72,6 +72,13 @@ message Agent {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   repeated string spend_recipient_allowlist = 13;
+  // spend_max_per_transfer caps the amount of any single attested transfer.
+  // Zero means no per-transfer cap (the per-window limit still applies).
+  string spend_max_per_transfer = 14 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent
@@ -158,6 +165,11 @@ message EventUpdateAgentSpendPolicy {
   ];
   uint64 spend_window_blocks = 4;
   repeated string recipient_allowlist = 5;
+  string spend_max_per_transfer = 6 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by
