@@ -35,7 +35,7 @@ This guide will walk you through the steps required to set up and run a Dymensio
 
 ## Prerequisites
 
-- [Go (v1.18 or above)](https://go.dev/doc/install)
+- [Go (v1.24.6 or above, matching `go.mod`)](https://go.dev/doc/install)
 
 ## Installation
 
