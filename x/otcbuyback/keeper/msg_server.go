@@ -162,7 +162,7 @@ func (ms msgServer) Buy(goCtx context.Context, req *types.MsgBuy) (*types.MsgBuy
 		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
-	paymentCoin, err := ms.Keeper.Buy(ctx, buyer, req.AuctionId, req.AmountToBuy, req.DenomToPay, req.VestingPeriod)
+	paymentCoin, err := ms.Keeper.Buy(ctx, buyer, req.AuctionId, req.AmountToBuy, req.DenomToPay, req.VestingPeriod, req.MaxCostOrZero())
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (ms msgServer) BuyExactSpend(goCtx context.Context, req *types.MsgBuyExactS
 		return nil, errors.Join(types.ErrInvalidAddress, err)
 	}
 
-	tokensPurchased, err := ms.Keeper.BuyExactSpend(ctx, buyer, req.AuctionId, req.PaymentCoin, req.VestingPeriod)
+	tokensPurchased, err := ms.Keeper.BuyExactSpend(ctx, buyer, req.AuctionId, req.PaymentCoin, req.VestingPeriod, req.MinTokensOutOrZero())
 	if err != nil {
 		return nil, err
 	}

@@ -47,7 +47,12 @@ func CmdBuy() *cobra.Command {
 Example:
 $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --from mykey
 $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --vesting-period 720h --from mykey
+$ %s tx otcbuyback buy 1 1000000000000000000 uusdc --max-cost 260000 --from mykey
+
+The price is derived from the live AMM spot price at execution time. Programmatic
+callers should set --max-cost to bound slippage.
 `,
+				version.AppName,
 				version.AppName,
 				version.AppName,
 			),
@@ -84,12 +89,18 @@ $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --vesting-period 720h --from 
 				vestingPeriod = duration
 			}
 
+			maxCost, err := getOptionalIntFlag(cmd, "max-cost")
+			if err != nil {
+				return err
+			}
+
 			msg := types.MsgBuy{
 				Buyer:         clientCtx.GetFromAddress().String(),
 				AuctionId:     auctionId,
 				AmountToBuy:   amountToBuy,
 				DenomToPay:    denomToPay,
 				VestingPeriod: vestingPeriod,
+				MaxCost:       maxCost,
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
@@ -98,6 +109,7 @@ $ %s tx otcbuyback buy 1 1000000000000000000 uusdc --vesting-period 720h --from 
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().String("vesting-period", "", "Optional vesting period (e.g., '720h' for 30 days). Required for fixed discount auctions, ignored for linear discount auctions")
+	cmd.Flags().String("max-cost", "", "Optional maximum payment (in denom-to-pay base units); the tx fails if the execution price exceeds it. Unset disables the check")
 
 	return cmd
 }
@@ -113,7 +125,12 @@ func CmdBuyExactSpend() *cobra.Command {
 Example:
 $ %s tx otcbuyback buy-exact-spend 1 100uusdc --from mykey
 $ %s tx otcbuyback buy-exact-spend 1 100uusdc --vesting-period 720h --from mykey
+$ %s tx otcbuyback buy-exact-spend 1 100uusdc --min-tokens-out 400000000000000 --from mykey
+
+The price is derived from the live AMM spot price at execution time. Programmatic
+callers should set --min-tokens-out to bound slippage.
 `,
+				version.AppName,
 				version.AppName,
 				version.AppName,
 			),
@@ -149,11 +166,17 @@ $ %s tx otcbuyback buy-exact-spend 1 100uusdc --vesting-period 720h --from mykey
 				vestingPeriod = duration
 			}
 
+			minTokensOut, err := getOptionalIntFlag(cmd, "min-tokens-out")
+			if err != nil {
+				return err
+			}
+
 			msg := types.MsgBuyExactSpend{
 				Buyer:         clientCtx.GetFromAddress().String(),
 				AuctionId:     auctionId,
 				PaymentCoin:   paymentCoin,
 				VestingPeriod: vestingPeriod,
+				MinTokensOut:  minTokensOut,
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
@@ -162,6 +185,7 @@ $ %s tx otcbuyback buy-exact-spend 1 100uusdc --vesting-period 720h --from mykey
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().String("vesting-period", "", "Optional vesting period (e.g., '720h' for 30 days). Required for fixed discount auctions, ignored for linear discount auctions")
+	cmd.Flags().String("min-tokens-out", "", "Optional minimum tokens to receive (base units); the tx fails if the execution price yields fewer. Unset disables the check")
 
 	return cmd
 }
@@ -204,4 +228,19 @@ $ %s tx otcbuyback claim 1 --from mykey
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func getOptionalIntFlag(cmd *cobra.Command, name string) (math.Int, error) {
+	str, err := cmd.Flags().GetString(name)
+	if err != nil {
+		return math.Int{}, err
+	}
+	if str == "" {
+		return math.ZeroInt(), nil
+	}
+	v, ok := math.NewIntFromString(str)
+	if !ok {
+		return math.Int{}, fmt.Errorf("invalid %s: %s", name, str)
+	}
+	return v, nil
 }

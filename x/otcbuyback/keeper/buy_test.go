@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		suite.Require().Equal(discount, auction.DiscountType.GetLinear().InitialDiscount) // 10% default
 
 		amountToBuy := math.NewInt(100).MulRaw(1e18)
-		paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// should have spent ~22.5 usdc (pool price is 1:4 (25 usdc for 100 dym) + 10% discount)
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 
 		// Spend exactly 11.25 USDC to buy ~50 DYM tokens (within auction allocation limit)
 		exactPayment := sdk.NewCoin("usdc", math.NewInt(1125).MulRaw(1e4)) // 11.25 USDC
-		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment, 0)
+		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment, 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// At pool price 1:4 (0.25 USDC per DYM) with 10% discount = 0.225 USDC per DYM
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 
 		// Try to spend a very small amount that won't buy any tokens
 		tinyPayment := sdk.NewCoin("usdc", math.NewInt(1)) // 0.000001 USDC
-		_, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, tinyPayment, 0)
+		_, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, tinyPayment, 0, math.ZeroInt())
 		suite.Require().Error(err)
 		suite.Require().ErrorContains(err, "payment amount too small to purchase any tokens")
 	})
@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 
 		// Spend exactly 25 USDC with 20% discount
 		exactPayment := sdk.NewCoin("usdc", math.NewInt(25).MulRaw(1e6))
-		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment, 0)
+		tokensPurchased, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, exactPayment, 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// At pool price 1:4 (0.25 USDC per DYM) with 20% discount = 0.2 USDC per DYM
@@ -184,7 +184,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		// With 10% discount: 0.25 * 0.9 = 0.225 USDC per DYM
 		// For 100 DYM: 100 * 0.225 = 22.5 USDC
 		amountToBuy := math.NewInt(100).MulRaw(1e18)
-		paymentCoin1, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 30*24*time.Hour)
+		paymentCoin1, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 30*24*time.Hour, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		expectedPayment1 := math.NewInt(225).MulRaw(1e5) // 22.5 USDC
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestBuyPriceDiscount() {
 		// Buy 100 DYM with 90-day vesting (30% discount)
 		// With 30% discount: 0.25 * 0.7 = 0.175 USDC per DYM
 		// For 100 DYM: 100 * 0.175 = 17.5 USDC
-		paymentCoin2, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 90*24*time.Hour)
+		paymentCoin2, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 90*24*time.Hour, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		expectedPayment2 := math.NewInt(175).MulRaw(1e5) // 17.5 USDC
@@ -240,7 +240,7 @@ func (suite *KeeperTestSuite) TestMultipleBuyersAndClaims() {
 			totalRaisedAmount = sdk.NewCoins()
 		)
 		for buyerIdx, buyer := range buyers {
-			paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountsToBuy[buyerIdx], usdcDenom, 0)
+			paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountsToBuy[buyerIdx], usdcDenom, 0, math.ZeroInt())
 			suite.Require().NoError(err)
 			totalPurchased = totalPurchased.Add(amountsToBuy[buyerIdx])
 			totalRaisedAmount = totalRaisedAmount.Add(paymentCoin)
@@ -307,26 +307,26 @@ func (suite *KeeperTestSuite) TestBuyInvalidScenarios() {
 
 		amountToBuy := math.NewInt(100).MulRaw(1e18)
 		// Test 1: Buy with unaccepted token
-		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "unaccepted_token", 0)
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "unaccepted_token", 0, math.ZeroInt())
 		suite.Require().Error(err)
 
 		// Test 2: Buy more than available allocation
 		tooMuch := auction.Allocation.Add(math.NewInt(1))
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, tooMuch, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, tooMuch, "usdc", 0, math.ZeroInt())
 		suite.Require().Error(err)
 
 		// Test 3: Buy on non-active auction
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.StartTime.Add(-1 * time.Hour))
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().Error(err)
 		suite.Ctx = suite.Ctx.WithBlockTime(auction.StartTime.Add(1 * time.Hour))
 
 		// Test 4: Buy with invalid amount
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(-1).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(-1).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().Error(err)
 
 		// Happy path
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 	})
 }
@@ -346,7 +346,7 @@ func (suite *KeeperTestSuite) TestBuyAll() {
 		suite.FundAcc(buyer, buyerFunds)
 
 		amountToBuy := auction.Allocation
-		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// Verify purchase was created
@@ -388,7 +388,7 @@ func (suite *KeeperTestSuite) TestMultipleClaims() {
 		suite.Require().False(found)
 
 		amountToBuy := math.NewInt(10).MulRaw(1e18)
-		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// Test: Try to claim immediately after buy (should fail)
@@ -454,7 +454,7 @@ func (suite *KeeperTestSuite) TestFixedDiscountBuy() {
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000).MulRaw(1e6))))
 
 		// Buy with 30-day vesting (10% discount)
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 30*24*time.Hour)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 30*24*time.Hour, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		purchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
@@ -462,14 +462,14 @@ func (suite *KeeperTestSuite) TestFixedDiscountBuy() {
 		suite.Require().Equal(30*24*time.Hour, purchase.Entries[0].VestingDuration)
 
 		// Buy with 90-day vesting (30% discount)
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(50).MulRaw(1e18), "usdc", 90*24*time.Hour)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(50).MulRaw(1e18), "usdc", 90*24*time.Hour, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
 		suite.Require().Equal(2, len(purchase.Entries))
 
 		// Try invalid vesting period
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 60*24*time.Hour)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 60*24*time.Hour, math.ZeroInt())
 		suite.Require().Error(err)
 		suite.Require().ErrorContains(err, "vesting period not found")
 	})
@@ -490,12 +490,12 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 
 		// Make 3 purchases (at limit)
 		for i := 0; i < 3; i++ {
-			_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0)
+			_, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 			suite.Require().NoError(err)
 		}
 
 		// 4th purchase should fail
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(1).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().Error(err)
 		suite.Require().ErrorContains(err, "maximum purchases")
 	})
@@ -515,24 +515,24 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000).MulRaw(1e6))))
 
 		// Try to buy less than minimum
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(5).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(5).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().Error(err)
 		suite.Require().ErrorContains(err, "less than minimum")
 
 		// Buy exactly minimum (should work)
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(10).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// Buy all except min purchase amount
 		auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		amountToBuy := auction.GetRemainingAllocation().Sub(minPurchaseAmount)
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// Buy the remaining part
 		auction, _ = suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
 		amountToBuy = auction.GetRemainingAllocation()
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 	})
 
@@ -552,7 +552,7 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 
 		// Try to buy the entire allocation
 		amountToBuy := auction.GetRemainingAllocation()
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 	})
 
@@ -572,7 +572,7 @@ func (suite *KeeperTestSuite) TestGovernanceParams() {
 
 		// Buy almost all, leaving 5 DYM (below minimum) – should fail
 		amountToBuy := auction.Allocation.Sub(math.NewInt(5).MulRaw(1e18))
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 		suite.Require().Error(err)
 	})
 }
@@ -604,12 +604,12 @@ func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
 
 		// First purchase
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// Advance time by 6 hours and make second purchase
 		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(6 * time.Hour))
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(50).MulRaw(1e18), "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(50).MulRaw(1e18), "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		purchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
@@ -663,7 +663,7 @@ func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
 		suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(100000).MulRaw(1e6))))
 
 		// 1. First buy with 30-day vesting: 100 DYM
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", v30)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(100).MulRaw(1e18), "usdc", v30, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		purchase, _ := suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
@@ -677,7 +677,7 @@ func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
 		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(15 * 24 * time.Hour))
 
 		// 4. Second buy with 90-day vesting: 180 DYM
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(180).MulRaw(1e18), "usdc", v90)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, math.NewInt(180).MulRaw(1e18), "usdc", v90, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		purchase, _ = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
@@ -748,4 +748,158 @@ func (suite *KeeperTestSuite) TestOverlappingVestingBuyAndClaim() {
 		suite.Require().NoError(err, "All tokens should be claimed (within tolerance), total: %s, claimed: %s",
 			purchase.TotalAmount(), purchase.Claimed)
 	})
+}
+
+// pumpSpotPrice simulates the front-run leg of a sandwich: a swap that makes adym more
+// expensive in usdc between the buyer's quote and the execution of their buy.
+func (suite *KeeperTestSuite) pumpSpotPrice() {
+	poolID, err := suite.App.OTCBuybackKeeper.GetAcceptedTokenPoolID(suite.Ctx, "usdc")
+	suite.Require().NoError(err)
+	attacker := suite.CreateRandomAccount()
+	swapIn := sdk.NewCoin("usdc", math.NewInt(100_000).MulRaw(1e6))
+	suite.FundAcc(attacker, sdk.NewCoins(swapIn))
+	suite.RunBasicSwap(poolID, attacker.String(), swapIn, "adym")
+}
+
+func (suite *KeeperTestSuite) quotePrice(auctionID uint64) math.LegacyDec {
+	price, err := suite.App.OTCBuybackKeeper.GetDiscountedPrice(suite.Ctx, auctionID, "usdc", suite.Ctx.BlockTime(), 0)
+	suite.Require().NoError(err)
+	return price
+}
+
+func (suite *KeeperTestSuite) requireNoPurchase(auctionID uint64, buyer sdk.AccAddress, buyerFunds sdk.Coin) {
+	suite.Require().Equal(buyerFunds, suite.App.BankKeeper.GetBalance(suite.Ctx, buyer, "usdc"))
+	auction, found := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
+	suite.Require().True(found)
+	suite.Require().True(auction.SoldAmount.IsZero())
+	suite.Require().True(auction.RaisedAmount.IsZero())
+	_, found = suite.App.OTCBuybackKeeper.GetPurchase(suite.Ctx, auctionID, buyer)
+	suite.Require().False(found)
+}
+
+func (suite *KeeperTestSuite) TestBuyMaxCost() {
+	amountToBuy := math.NewInt(50).MulRaw(1e18)
+
+	tcs := []struct {
+		name      string
+		pumpPrice bool
+		maxCost   func(quotedCost math.Int) math.Int
+		expErr    error
+	}{
+		{
+			name:      "price moved up past max cost (sandwich)",
+			pumpPrice: true,
+			maxCost:   func(q math.Int) math.Int { return q },
+			expErr:    types.ErrMaxCostExceeded,
+		},
+		{
+			name:    "max cost one below cost",
+			maxCost: func(q math.Int) math.Int { return q.SubRaw(1) },
+			expErr:  types.ErrMaxCostExceeded,
+		},
+		{
+			name:    "max cost equals cost",
+			maxCost: func(q math.Int) math.Int { return q },
+		},
+		{
+			name:      "zero max cost disables the check",
+			pumpPrice: true,
+			maxCost:   func(math.Int) math.Int { return math.ZeroInt() },
+		},
+	}
+
+	for _, tc := range tcs {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			buyerFunds := sdk.NewCoin("usdc", math.NewInt(10_000).MulRaw(1e6))
+			buyer := suite.CreateRandomAccount()
+			suite.FundAcc(buyer, sdk.NewCoins(buyerFunds))
+			auctionID := suite.CreateDefaultLinearAuction()
+
+			quotedPrice := suite.quotePrice(auctionID)
+			quotedCost := math.LegacyNewDecFromInt(amountToBuy).Mul(quotedPrice).TruncateInt()
+			if tc.pumpPrice {
+				suite.pumpSpotPrice()
+				suite.Require().True(suite.quotePrice(auctionID).GT(quotedPrice))
+			}
+
+			paid, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, tc.maxCost(quotedCost))
+			if tc.expErr != nil {
+				suite.Require().ErrorIs(err, tc.expErr)
+				suite.requireNoPurchase(auctionID, buyer, buyerFunds)
+				return
+			}
+			suite.Require().NoError(err)
+			if tc.pumpPrice {
+				suite.Require().True(paid.Amount.GT(quotedCost))
+			} else {
+				suite.Require().Equal(quotedCost, paid.Amount)
+			}
+			suite.Require().Equal(buyerFunds.Amount.Sub(paid.Amount), suite.App.BankKeeper.GetBalance(suite.Ctx, buyer, "usdc").Amount)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestBuyExactSpendMinTokensOut() {
+	spend := sdk.NewCoin("usdc", math.NewInt(1125).MulRaw(1e4))
+
+	tcs := []struct {
+		name         string
+		pumpPrice    bool
+		minTokensOut func(quotedTokens math.Int) math.Int
+		expErr       error
+	}{
+		{
+			name:         "price moved up so fewer tokens than min (sandwich)",
+			pumpPrice:    true,
+			minTokensOut: func(q math.Int) math.Int { return q },
+			expErr:       types.ErrMinTokensOutNotMet,
+		},
+		{
+			name:         "min tokens out one above tokens out",
+			minTokensOut: func(q math.Int) math.Int { return q.AddRaw(1) },
+			expErr:       types.ErrMinTokensOutNotMet,
+		},
+		{
+			name:         "min tokens out equals tokens out",
+			minTokensOut: func(q math.Int) math.Int { return q },
+		},
+		{
+			name:         "zero min tokens out disables the check",
+			pumpPrice:    true,
+			minTokensOut: func(math.Int) math.Int { return math.ZeroInt() },
+		},
+	}
+
+	for _, tc := range tcs {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			buyerFunds := sdk.NewCoin("usdc", math.NewInt(10_000).MulRaw(1e6))
+			buyer := suite.CreateRandomAccount()
+			suite.FundAcc(buyer, sdk.NewCoins(buyerFunds))
+			auctionID := suite.CreateDefaultLinearAuction()
+
+			quotedPrice := suite.quotePrice(auctionID)
+			quotedTokens := math.LegacyNewDecFromInt(spend.Amount).Quo(quotedPrice).TruncateInt()
+			if tc.pumpPrice {
+				suite.pumpSpotPrice()
+				suite.Require().True(suite.quotePrice(auctionID).GT(quotedPrice))
+			}
+
+			tokens, err := suite.App.OTCBuybackKeeper.BuyExactSpend(suite.Ctx, buyer, auctionID, spend, 0, tc.minTokensOut(quotedTokens))
+			if tc.expErr != nil {
+				suite.Require().ErrorIs(err, tc.expErr)
+				suite.requireNoPurchase(auctionID, buyer, buyerFunds)
+				return
+			}
+			suite.Require().NoError(err)
+			if tc.pumpPrice {
+				suite.Require().True(tokens.LT(quotedTokens))
+			} else {
+				suite.Require().Equal(quotedTokens, tokens)
+			}
+			spent := buyerFunds.Amount.Sub(suite.App.BankKeeper.GetBalance(suite.Ctx, buyer, "usdc").Amount)
+			suite.Require().True(spent.LTE(spend.Amount), "spent %s exceeds payment %s", spent, spend.Amount)
+		})
+	}
 }
