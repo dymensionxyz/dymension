@@ -20,6 +20,7 @@ func (k Keeper) Buy(
 	amountToBuy math.Int,
 	denomToPay string,
 	vestingPeriod time.Duration,
+	maxCost math.Int,
 ) (sdk.Coin, error) {
 	// Get and validate auction
 	auction, found := k.GetAuction(ctx, auctionID)
@@ -79,6 +80,10 @@ func (k Keeper) Buy(
 	if !paymentAmt.IsPositive() {
 		return sdk.Coin{}, errorsmod.Wrap(types.ErrInvalidPurchaseAmount,
 			"payment amount too small to purchase any tokens")
+	}
+	if maxCost.IsPositive() && paymentAmt.GT(maxCost) {
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrMaxCostExceeded,
+			"cost %s exceeds max_cost %s", paymentAmt, maxCost)
 	}
 	paymentCoin := sdk.NewCoin(denomToPay, paymentAmt)
 
@@ -171,6 +176,7 @@ func (k Keeper) BuyExactSpend(
 	auctionID uint64,
 	paymentCoin sdk.Coin,
 	vestingPeriod time.Duration,
+	minTokensOut math.Int,
 ) (math.Int, error) {
 	// Get current price
 	currentPrice, err := k.GetDiscountedPrice(ctx, auctionID, paymentCoin.Denom, ctx.BlockTime(), vestingPeriod)
@@ -184,8 +190,13 @@ func (k Keeper) BuyExactSpend(
 		return math.ZeroInt(), errorsmod.Wrap(types.ErrInvalidPurchaseAmount,
 			"payment amount too small to purchase any tokens")
 	}
+	if minTokensOut.IsPositive() && tokensToPurchase.LT(minTokensOut) {
+		return math.ZeroInt(), errorsmod.Wrapf(types.ErrMinTokensOutNotMet,
+			"tokens out %s below min_tokens_out %s", tokensToPurchase, minTokensOut)
+	}
 
-	_, err = k.Buy(ctx, buyer, auctionID, tokensToPurchase, paymentCoin.Denom, vestingPeriod)
+	// Capping cost at the stated spend guards against the independent price recompute and truncation inside Buy
+	_, err = k.Buy(ctx, buyer, auctionID, tokensToPurchase, paymentCoin.Denom, vestingPeriod, paymentCoin.Amount)
 	if err != nil {
 		return math.ZeroInt(), err
 	}

@@ -483,7 +483,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_WithIntervalPump
 	// Fund buyer with enough USDC for purchases
 	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10000000).MulRaw(1e6))))
 
-	paymentCoin1, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0)
+	paymentCoin1, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0, math.ZeroInt())
 	suite.Require().NoError(err)
 	suite.Require().True(paymentCoin1.IsPositive())
 
@@ -515,7 +515,7 @@ func (suite *KeeperTestSuite) TestModuleAccountBalanceInvariant_WithIntervalPump
 
 	// Make another purchase after pumping
 	purchaseAmt2 := math.NewInt(300).MulRaw(1e18)
-	paymentCoin2, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt2, "usdc", 0)
+	paymentCoin2, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt2, "usdc", 0, math.ZeroInt())
 	suite.Require().NoError(err)
 	suite.Require().True(paymentCoin2.IsPositive())
 

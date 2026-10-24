@@ -23,4 +23,6 @@ var (
 	ErrInvalidRaisedAmount    = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid raised amount")
 	ErrInvalidEndTime         = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid end time")
 	ErrInvalidAddress         = sdkerrors.ErrInvalidAddress
+	ErrMaxCostExceeded        = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "max cost exceeded")
+	ErrMinTokensOutNotMet     = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "min tokens out not met")
 )

@@ -301,3 +301,27 @@ func (suite *KeeperTestSuite) TestMsgServer_SetAcceptedTokens() {
 		})
 	}
 }
+
+// Messages from clients predating the slippage fields carry nil bounds and must keep working.
+func (suite *KeeperTestSuite) TestMsgServerBuyUnsetBounds() {
+	suite.SetupTest()
+	buyer := suite.CreateRandomAccount()
+	suite.FundAcc(buyer, sdk.NewCoins(sdk.NewCoin("usdc", math.NewInt(10_000).MulRaw(1e6))))
+	auctionID := suite.CreateDefaultLinearAuction()
+	msgServer := keeper.NewMsgServerImpl(*suite.App.OTCBuybackKeeper)
+
+	_, err := msgServer.Buy(suite.Ctx, &types.MsgBuy{
+		Buyer:       buyer.String(),
+		AuctionId:   auctionID,
+		AmountToBuy: math.NewInt(10).MulRaw(1e18),
+		DenomToPay:  "usdc",
+	})
+	suite.Require().NoError(err)
+
+	_, err = msgServer.BuyExactSpend(suite.Ctx, &types.MsgBuyExactSpend{
+		Buyer:       buyer.String(),
+		AuctionId:   auctionID,
+		PaymentCoin: sdk.NewCoin("usdc", math.NewInt(1125).MulRaw(1e4)),
+	})
+	suite.Require().NoError(err)
+}

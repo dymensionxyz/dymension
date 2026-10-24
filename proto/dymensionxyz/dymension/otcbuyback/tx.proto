@@ -88,6 +88,15 @@ message MsgBuy {
   // options For LinearDiscount auctions, this field is ignored
   google.protobuf.Duration vesting_period = 5
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // Maximum the buyer is willing to pay (in denom_to_pay base units) for
+  // amount_to_buy. Zero/unset disables the check. Set it to bound slippage
+  // from AMM spot-price movement between submission and execution.
+  string max_cost = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgBuy represents a purchase request in an auction
@@ -108,6 +117,14 @@ message MsgBuyExactSpend {
   // options For LinearDiscount auctions, this field is ignored
   google.protobuf.Duration vesting_period = 4
       [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+
+  // Minimum tokens the buyer is willing to receive for payment_coin.
+  // Zero/unset disables the check.
+  string min_tokens_out = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgBuyResponse {
