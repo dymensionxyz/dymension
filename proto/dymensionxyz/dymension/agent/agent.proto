@@ -33,6 +33,10 @@ message Params {
   // validation_max_responses_per_request bounds responses stored for one
   // validation request. Zero means unlimited.
   uint64 validation_max_responses_per_request = 10;
+  // validation_response_window_blocks is the max blocks after a validation
+  // request's height within which a response may be submitted; 0 means no
+  // limit. The default of 43200 is ~1.5 days at ~3s blocks.
+  uint64 validation_response_window_blocks = 11;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action

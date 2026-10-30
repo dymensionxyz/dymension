@@ -27,6 +27,9 @@ const DefaultValidationUriMaxBytes = 512
 // DefaultValidationMaxResponsesPerRequest bounds responses per validation request.
 const DefaultValidationMaxResponsesPerRequest = 8
 
+// DefaultValidationResponseWindowBlocks is ~1.5 days at ~3s blocks.
+const DefaultValidationResponseWindowBlocks = 43_200
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:             commontypes.DYMCoin,
@@ -39,6 +42,7 @@ func DefaultParams() Params {
 		ValidationUriMaxBytes:            DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax:       DefaultSpendRecipientAllowlistMax,
 		ValidationMaxResponsesPerRequest: DefaultValidationMaxResponsesPerRequest,
+		ValidationResponseWindowBlocks:   DefaultValidationResponseWindowBlocks,
 	}
 }
 
