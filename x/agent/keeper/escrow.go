@@ -139,6 +139,7 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 	agent.SpendRecipientAllowlist = msg.RecipientAllowlist
 	agent.SpendWindowStartHeight = 0
 	agent.SpendWindowSpent = math.ZeroInt()
+	agent.SpendPrevWindowSpent = math.ZeroInt()
 	if err := k.SetAgent(ctx, agent); err != nil {
 		return nil, errorsmod.Wrap(err, "set agent")
 	}

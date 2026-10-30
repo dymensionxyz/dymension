@@ -21,6 +21,7 @@ func spendingAgent() types.Agent {
 		SpendWindowBlocks:      10,
 		SpendWindowStartHeight: 20,
 		SpendWindowSpent:       math.NewInt(40),
+		SpendPrevWindowSpent:   math.NewInt(90),
 	}
 }
 
@@ -49,6 +50,8 @@ func TestGenesisValidate(t *testing.T) {
 		{"enabled agent with invalid denom", func(g *types.GenesisState) { g.Agents[0].SpendDenom = "1" }},
 		{"window spent above limit", func(g *types.GenesisState) { g.Agents[0].SpendWindowSpent = math.NewInt(101) }},
 		{"negative window spent", func(g *types.GenesisState) { g.Agents[0].SpendWindowSpent = math.NewInt(-1) }},
+		{"previous window spent above limit", func(g *types.GenesisState) { g.Agents[0].SpendPrevWindowSpent = math.NewInt(101) }},
+		{"negative previous window spent", func(g *types.GenesisState) { g.Agents[0].SpendPrevWindowSpent = math.NewInt(-1) }},
 		{"window start not bucket-aligned", func(g *types.GenesisState) { g.Agents[0].SpendWindowStartHeight = 15 }},
 		{"invalid spend recipient", func(g *types.GenesisState) { g.Agents[0].SpendRecipientAllowlist = []string{"invalid"} }},
 		{"duplicate spend recipient", func(g *types.GenesisState) {
@@ -67,6 +70,9 @@ func TestGenesisValidate(t *testing.T) {
 		}},
 		{"disabled agent with window state", func(g *types.GenesisState) {
 			g.Agents[0] = types.Agent{Id: "a1", SpendWindowSpent: math.NewInt(1)}
+		}},
+		{"disabled agent with previous window state", func(g *types.GenesisState) {
+			g.Agents[0] = types.Agent{Id: "a1", SpendPrevWindowSpent: math.NewInt(1)}
 		}},
 		{"escrow for unknown agent", func(g *types.GenesisState) { g.Escrows[0].AgentId = "ghost" }},
 		{"duplicate escrow entry", func(g *types.GenesisState) { g.Escrows = append(g.Escrows, g.Escrows[0]) }},
@@ -92,7 +98,10 @@ func TestGenesisValidate_RuntimeStatesAccepted(t *testing.T) {
 		Params: types.DefaultParams(),
 		Agents: []types.Agent{
 			{Id: "fresh"},
-			{Id: "exported-disabled", SpendLimitPerWindow: math.ZeroInt(), SpendWindowSpent: math.ZeroInt()},
+			{
+				Id: "exported-disabled", SpendLimitPerWindow: math.ZeroInt(),
+				SpendWindowSpent: math.ZeroInt(), SpendPrevWindowSpent: math.ZeroInt(),
+			},
 		},
 	}
 	require.NoError(t, g.Validate())

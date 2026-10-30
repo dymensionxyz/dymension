@@ -165,7 +165,7 @@ func (s *EscrowTestSuite) TestTransfer_ExceedsWindowCap_NothingChanges() {
 	s.Require().Equal(uint64(0), agent.ActionSeq)
 }
 
-func (s *EscrowTestSuite) TestTransfer_WindowRollsOver() {
+func (s *EscrowTestSuite) TestTransfer_WindowSlides() {
 	s.spendingAgent("a1")
 	s.fundEscrow("a1", 5000)
 	_, _, recipient := testdata.KeyTestPubAddr()
@@ -178,16 +178,86 @@ func (s *EscrowTestSuite) TestTransfer_WindowRollsOver() {
 	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 1, 1))
 	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
 
-	// same bucket (heights 10..19): still exhausted
-	s.Ctx = s.Ctx.WithBlockHeight(19)
+	// next bucket start: the previous bucket still fully counts
+	s.Ctx = s.Ctx.WithBlockHeight(20)
 	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 1, 1))
 	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
 
-	// next bucket: full budget available again
-	s.Ctx = s.Ctx.WithBlockHeight(20)
-	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit, 1))
+	// mid-bucket: half the previous bucket has slid out of the window
+	s.Ctx = s.Ctx.WithBlockHeight(25)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit/2+1, 1))
+	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit/2, 1))
 	s.Require().NoError(err)
-	s.Require().Equal(math.NewInt(2*windowLimit), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(uint64(20), agent.SpendWindowStartHeight)
+	s.Require().Equal(math.NewInt(windowLimit/2), agent.SpendWindowSpent)
+	s.Require().Equal(math.NewInt(windowLimit), agent.SpendPrevWindowSpent)
+
+	// after a quiet gap of two full windows the whole budget is back
+	s.Ctx = s.Ctx.WithBlockHeight(40)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit, 2))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(2*windowLimit+windowLimit/2), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+}
+
+// TestTransfer_BoundaryBurstBlocked is the regression test for the tumbling
+// window boundary burst: a full-limit spend in the last block of one bucket
+// must not be followed by any spend in the first block of the next.
+func (s *EscrowTestSuite) TestTransfer_BoundaryBurstBlocked() {
+	const limit, w = 1000, 100
+	owner := s.registerAgent("a1")
+	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx,
+		types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(limit), w))
+	s.Require().NoError(err)
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	s.Ctx = s.Ctx.WithBlockHeight(199)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, limit, 0))
+	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithBlockHeight(200)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 1, 1))
+	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
+
+	// at height 200+k exactly limit - floor(limit*(w-k)/w) is spendable
+	const k = 37
+	allowed := int64(limit - limit*(w-k)/w)
+	s.Ctx = s.Ctx.WithBlockHeight(200 + k)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, allowed+1, 1))
+	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, allowed, 1))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(limit+allowed), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+}
+
+// TestUpdateSpendPolicy_ResetsWindow checks that a policy update clears both
+// the current and previous bucket bookkeeping.
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_ResetsWindow() {
+	owner := s.spendingAgent("a1")
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+	s.Ctx = s.Ctx.WithBlockHeight(15)
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 300, 0))
+	s.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockHeight(25)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 200, 1))
+	s.Require().NoError(err)
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(math.NewInt(200), agent.SpendWindowSpent)
+	s.Require().Equal(math.NewInt(300), agent.SpendPrevWindowSpent)
+
+	_, err = s.msgServer.UpdateAgentSpendPolicy(s.Ctx,
+		types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen))
+	s.Require().NoError(err)
+
+	agent, _ = s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Zero(agent.SpendWindowStartHeight)
+	s.Require().True(agent.SpendWindowSpent.IsZero())
+	s.Require().True(agent.SpendPrevWindowSpent.IsZero())
+	s.Require().Equal(math.NewInt(windowLimit), agent.RemainingWindowBudget(25))
 }
 
 func (s *EscrowTestSuite) TestTransfer_NonceBindsRecipientAndAmount() {
@@ -516,8 +586,14 @@ func (s *EscrowTestSuite) TestEscrowBalanceQuery() {
 	s.Require().Equal(math.NewInt(300), res.Balance.AmountOf(spendDenom))
 	s.Require().Equal(math.NewInt(windowLimit-200), res.RemainingWindowBudget)
 
-	// next window: full budget again
+	// next window start: the previous bucket's spend still fully counts
 	s.Ctx = s.Ctx.WithBlockHeight(20)
+	res, err = s.k.EscrowBalance(s.Ctx, &types.QueryEscrowBalanceRequest{AgentId: "a1"})
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(windowLimit-200), res.RemainingWindowBudget)
+
+	// two windows later: full budget again
+	s.Ctx = s.Ctx.WithBlockHeight(30)
 	res, err = s.k.EscrowBalance(s.Ctx, &types.QueryEscrowBalanceRequest{AgentId: "a1"})
 	s.Require().NoError(err)
 	s.Require().Equal(math.NewInt(windowLimit), res.RemainingWindowBudget)
