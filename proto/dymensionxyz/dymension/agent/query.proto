@@ -100,6 +100,17 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/agent/agents/{agent_id}/validations";
   }
+
+  // InvoiceSettlement reports whether agent_id has settled invoice_ref to
+  // recipient, and the settlement receipt if so. Settlements are payer-scoped:
+  // another agent paying the same (recipient, invoice_ref) neither shows up
+  // here nor blocks this agent's settlement.
+  rpc InvoiceSettlement(QueryInvoiceSettlementRequest)
+      returns (QueryInvoiceSettlementResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/agent/agents/{agent_id}/invoice-settlements/"
+        "{recipient}/{invoice_ref}";
+  }
 }
 
 message QueryParamsRequest {}
@@ -219,4 +230,14 @@ message QueryValidationRequestsByAgentResponse {
   repeated ValidationRequest validation_requests = 1
       [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryInvoiceSettlementRequest {
+  string agent_id = 1;
+  string recipient = 2;
+  bytes invoice_ref = 3;
+}
+message QueryInvoiceSettlementResponse {
+  bool settled = 1;
+  InvoiceSettlement settlement = 2 [ (gogoproto.nullable) = false ];
 }

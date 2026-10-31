@@ -33,6 +33,9 @@ message Params {
   // validation_max_responses_per_request bounds responses stored for one
   // validation request. Zero means unlimited.
   uint64 validation_max_responses_per_request = 10;
+  // invoice_ref_max_bytes is the maximum byte length of an attested transfer's
+  // invoice_ref.
+  uint64 invoice_ref_max_bytes = 11;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action
@@ -123,6 +126,8 @@ message EventAttestedTransfer {
   string recipient = 3;
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
   string submitter = 5;
+  // invoice_ref is the settled invoice; empty for transfers without one.
+  bytes invoice_ref = 7;
 }
 
 // EventFundAgentEscrow is emitted when an agent's escrow is funded.
@@ -170,4 +175,16 @@ message ActionLogEntry {
   int64 height = 5;
   google.protobuf.Timestamp time = 6
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+}
+
+// InvoiceSettlement is the permanent receipt of the attested transfer that
+// settled an invoice, keyed by (agent_id, recipient, invoice_ref). A payee
+// verifies it, for the agent it expects to pay, before granting access to the
+// paid-for resource.
+message InvoiceSettlement {
+  string agent_id = 1;
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+  int64 height = 3;
+  // seq is the agent action log sequence of the settling transfer.
+  uint64 seq = 4;
 }

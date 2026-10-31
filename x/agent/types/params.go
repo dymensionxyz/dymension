@@ -27,6 +27,9 @@ const DefaultValidationUriMaxBytes = 512
 // DefaultValidationMaxResponsesPerRequest bounds responses per validation request.
 const DefaultValidationMaxResponsesPerRequest = 8
 
+// DefaultInvoiceRefMaxBytes fits a UUID, a hex sha256 or a short URI.
+const DefaultInvoiceRefMaxBytes = 128
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:             commontypes.DYMCoin,
@@ -39,6 +42,7 @@ func DefaultParams() Params {
 		ValidationUriMaxBytes:            DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax:       DefaultSpendRecipientAllowlistMax,
 		ValidationMaxResponsesPerRequest: DefaultValidationMaxResponsesPerRequest,
+		InvoiceRefMaxBytes:               DefaultInvoiceRefMaxBytes,
 	}
 }
 
@@ -69,6 +73,9 @@ func (p Params) Validate() error {
 	}
 	if p.ValidationUriMaxBytes == 0 {
 		return fmt.Errorf("validation uri max bytes must be positive")
+	}
+	if p.InvoiceRefMaxBytes == 0 {
+		return fmt.Errorf("invoice ref max bytes must be positive")
 	}
 	return nil
 }

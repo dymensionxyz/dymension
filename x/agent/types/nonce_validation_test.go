@@ -29,7 +29,7 @@ func TestValidationNonceCommitsFullVerdict(t *testing.T) {
 	require.NotEqual(t, nonce, types.ValidationNonce("other", payload, 7))
 	require.NotEqual(t, nonce, types.ValidationNonce("validator", payload, 8))
 	require.NotEqual(t, nonce, types.ActionNonce("validator", payload, 7))
-	require.NotEqual(t, nonce, types.TransferNonce("validator", payload, 7))
+	require.NotEqual(t, nonce, types.TransferNonce("validator", payload, 7, false))
 	require.NotEqual(t, types.AttestedValidationBytes(hash, 0, nil, "a\x00b", "c", "subject", 1), types.AttestedValidationBytes(hash, 0, nil, "a", "b\x00c", "subject", 1))
 	require.NotEqual(t, types.AttestedValidationBytes(hash, 0, nil, "", "", "subject", 1), types.AttestedValidationBytes(hash, 0, make([]byte, 32), "", "", "subject", 1))
 }

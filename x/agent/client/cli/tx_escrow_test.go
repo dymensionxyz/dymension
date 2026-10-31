@@ -48,6 +48,7 @@ func TestSubmitAttestedTransferCommand(t *testing.T) {
 		msg, err := newMsgSubmitAttestedTransfer(
 			"dym1submitter",
 			[]string{"agent-1", "dym1recipient", "42", "invoice-7", "attestation-token"},
+			"",
 		)
 		require.NoError(t, err)
 		require.Equal(t, "dym1submitter", msg.Submitter)
@@ -58,10 +59,27 @@ func TestSubmitAttestedTransferCommand(t *testing.T) {
 		require.Equal(t, "attestation-token", msg.Token)
 	})
 
+	t.Run("decodes hex invoice ref flag", func(t *testing.T) {
+		cmd := CmdSubmitAttestedTransfer()
+		require.NotNil(t, cmd.Flags().Lookup(flagInvoiceRef))
+
+		msg, err := newMsgSubmitAttestedTransfer("dym1submitter", []string{"agent-1", "dym1recipient", "42", "memo", "token"}, "696e7600")
+		require.NoError(t, err)
+		require.Equal(t, []byte("inv\x00"), msg.InvoiceRef)
+
+		msg, err = newMsgSubmitAttestedTransfer("dym1submitter", []string{"agent-1", "dym1recipient", "42", "memo", "token"}, "")
+		require.NoError(t, err)
+		require.Empty(t, msg.InvoiceRef)
+
+		_, err = newMsgSubmitAttestedTransfer("dym1submitter", []string{"agent-1", "dym1recipient", "42", "memo", "token"}, "not-hex")
+		require.ErrorContains(t, err, "invoice ref")
+	})
+
 	t.Run("rejects invalid amount", func(t *testing.T) {
 		_, err := newMsgSubmitAttestedTransfer(
 			"dym1submitter",
 			[]string{"agent-1", "dym1recipient", "not-an-integer", "memo", "token"},
+			"",
 		)
 		require.ErrorContains(t, err, "amount")
 	})

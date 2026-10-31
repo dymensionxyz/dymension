@@ -22,4 +22,5 @@ var (
 	KeyValidationRequests  = []byte{0x07}
 	KeyValidationResponses = []byte{0x08}
 	KeyValidationByAgent   = []byte{0x09}
+	KeyInvoiceSettlements  = []byte{0x0A}
 )

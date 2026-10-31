@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -120,8 +121,9 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 // SubmitAttestedTransfer pays out from the agent's escrow to a recipient,
 // authorized by the same TEE attestation + nonce machinery as
 // SubmitAttestedAction. The nonce commits to the exact (recipient, denom,
-// amount, memo) in the transfer domain, so the enclave — not the submitter —
-// authorizes the payment.
+// amount, invoice_ref, memo) in the transfer domain, so the enclave — not the
+// submitter — authorizes the payment. A non-empty invoice_ref settles at most
+// once per (agent, recipient) and leaves a queryable settlement receipt.
 func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgSubmitAttestedTransfer) (*types.MsgSubmitAttestedTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -132,6 +134,9 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	params, err := k.GetParams(ctx)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get params")
+	}
+	if uint64(len(msg.InvoiceRef)) > params.InvoiceRefMaxBytes {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("invoice ref exceeds max bytes: got %d, max %d", len(msg.InvoiceRef), params.InvoiceRefMaxBytes)
 	}
 
 	agent, err := k.loadAttestingAgent(ctx, msg.AgentId)
@@ -146,13 +151,14 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	}
 
 	seq := agent.ActionSeq
-	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.Memo)
+	invoiced := len(msg.InvoiceRef) > 0
+	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.InvoiceRef, msg.Memo)
 	// bound the stored log entry, not just the memo: the payload is what the
 	// log persists
 	if uint64(len(payload)) > params.MaxActionBytes {
 		return nil, gerrc.ErrInvalidArgument.Wrapf("transfer payload exceeds max action bytes: got %d, max %d", len(payload), params.MaxActionBytes)
 	}
-	nonce := types.TransferNonce(msg.AgentId, payload, seq)
+	nonce := types.TransferNonce(msg.AgentId, payload, seq, invoiced)
 
 	// On any failure the tx rolls back, so no state changes. Replay protection
 	// is structural, as in SubmitAttestedAction: action_seq below advances, so
@@ -166,7 +172,22 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		return nil, errorsmod.Wrapf(types.ErrSpendBudgetExceeded, "amount %s, remaining %s", msg.Amount, agent.RemainingWindowBudget(height))
 	}
 
-	payout := sdk.NewCoins(sdk.NewCoin(agent.SpendDenom, msg.Amount))
+	amount := sdk.NewCoin(agent.SpendDenom, msg.Amount)
+	recipient := sdk.MustAccAddressFromBech32(msg.Recipient)
+	// key by the canonical address: bech32 also accepts an all-uppercase
+	// spelling, which would otherwise open a second namespace for the same payee
+	invoiceKey := collections.Join3(msg.AgentId, recipient.String(), msg.InvoiceRef)
+	if invoiced {
+		settled, err := k.invoiceSettlements.Has(ctx, invoiceKey)
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "has invoice settlement")
+		}
+		if settled {
+			return nil, errorsmod.Wrapf(types.ErrInvoiceAlreadySettled, "agent %s recipient %s invoice ref %x", msg.AgentId, msg.Recipient, msg.InvoiceRef)
+		}
+	}
+
+	payout := sdk.NewCoins(amount)
 	balance, negative := k.GetEscrowBalance(ctx, msg.AgentId).SafeSub(payout...)
 	if negative {
 		return nil, errorsmod.Wrap(types.ErrInsufficientEscrow, payout.String())
@@ -174,7 +195,6 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if err := k.setEscrowBalance(ctx, msg.AgentId, balance); err != nil {
 		return nil, errorsmod.Wrap(err, "set escrow balance")
 	}
-	recipient := sdk.MustAccAddressFromBech32(msg.Recipient)
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, payout); err != nil {
 		return nil, errorsmod.Wrap(err, "send coins to recipient")
 	}
@@ -184,13 +204,20 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if err := k.appendAttested(ctx, &agent, payload, payloadHash[:]); err != nil {
 		return nil, err
 	}
+	if invoiced {
+		settlement := types.InvoiceSettlement{AgentId: msg.AgentId, Amount: amount, Height: ctx.BlockHeight(), Seq: seq}
+		if err := k.invoiceSettlements.Set(ctx, invoiceKey, settlement); err != nil {
+			return nil, errorsmod.Wrap(err, "set invoice settlement")
+		}
+	}
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventAttestedTransfer{
-		AgentId:   msg.AgentId,
-		Seq:       seq,
-		Recipient: msg.Recipient,
-		Amount:    sdk.NewCoin(agent.SpendDenom, msg.Amount),
-		Submitter: msg.Submitter,
+		AgentId:    msg.AgentId,
+		Seq:        seq,
+		Recipient:  msg.Recipient,
+		Amount:     amount,
+		Submitter:  msg.Submitter,
+		InvoiceRef: msg.InvoiceRef,
 	}); err != nil {
 		return nil, err
 	}

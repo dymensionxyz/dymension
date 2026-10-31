@@ -1,6 +1,10 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
@@ -87,6 +91,41 @@ func (g GenesisState) Validate() error {
 		if responseCounts[hash] != request.ResponseCount {
 			return fmt.Errorf("validation response count mismatch: hash %x stored %d actual %d", request.RequestHash, request.ResponseCount, responseCounts[hash])
 		}
+	}
+	settlements := make(map[string]struct{}, len(g.InvoiceSettlements))
+	for _, s := range g.InvoiceSettlements {
+		if err := s.Validate(agentIDs); err != nil {
+			return fmt.Errorf("invoice settlement: agent %s recipient %s invoice ref %x: %w", s.Settlement.AgentId, s.Recipient, s.InvoiceRef, err)
+		}
+		// %q delimits the free-form agent ID and bech32 has no '/', so the key
+		// is unambiguous
+		key := fmt.Sprintf("%q/%s/%s", s.Settlement.AgentId, s.Recipient, s.InvoiceRef)
+		if _, dup := settlements[key]; dup {
+			return fmt.Errorf("duplicate invoice settlement: agent %s recipient %s invoice ref %x", s.Settlement.AgentId, s.Recipient, s.InvoiceRef)
+		}
+		settlements[key] = struct{}{}
+	}
+	return nil
+}
+
+// Validate does not bound the ref by the current invoice_ref_max_bytes: the
+// param may have been lowered after the settlement was recorded.
+func (s GenesisInvoiceSettlement) Validate(agentIDs map[string]struct{}) error {
+	recipient, err := sdk.AccAddressFromBech32(s.Recipient)
+	if err != nil {
+		return fmt.Errorf("recipient: %w", err)
+	}
+	if recipient.String() != s.Recipient {
+		return fmt.Errorf("recipient is not in canonical form")
+	}
+	if len(s.InvoiceRef) == 0 {
+		return fmt.Errorf("empty invoice ref")
+	}
+	if _, ok := agentIDs[s.Settlement.AgentId]; !ok {
+		return fmt.Errorf("unknown agent: %s", s.Settlement.AgentId)
+	}
+	if err := s.Settlement.Amount.Validate(); err != nil {
+		return fmt.Errorf("amount: %w", err)
 	}
 	return nil
 }

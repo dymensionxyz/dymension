@@ -43,9 +43,10 @@ service Msg {
       returns (MsgUpdateAgentSpendPolicyResponse);
 
   // SubmitAttestedTransfer verifies a TEE attestation token bound to a
-  // specific (recipient, denom, amount, memo), checks the per-window spend
-  // budget, pays out from the agent's escrow, and appends an entry to the
-  // agent's action log.
+  // specific (recipient, denom, amount, invoice_ref, memo), checks the
+  // per-window spend budget, rejects an invoice the agent already settled to
+  // the recipient, pays out from the agent's escrow, and appends an entry to
+  // the agent's action log.
   rpc SubmitAttestedTransfer(MsgSubmitAttestedTransfer)
       returns (MsgSubmitAttestedTransferResponse);
 
@@ -164,8 +165,8 @@ message MsgUpdateAgentSpendPolicyResponse {}
 // MsgSubmitAttestedTransfer submits an attested transfer on behalf of an
 // agent. Like MsgSubmitAttestedAction, the submitter signs and pays for the tx
 // but is not validated against the agent: the enclave token is bound to the
-// exact (recipient, denom, amount, memo) via the nonce, so the enclave — not
-// the submitter — authorizes the payment.
+// exact (recipient, denom, amount, invoice_ref, memo) via the nonce, so the
+// enclave — not the submitter — authorizes the payment.
 message MsgSubmitAttestedTransfer {
   option (cosmos.msg.v1.signer) = "submitter";
 
@@ -179,6 +180,9 @@ message MsgSubmitAttestedTransfer {
   ];
   bytes memo = 5;
   string token = 6;
+  // invoice_ref, if non-empty, is settled at most once per (agent, recipient).
+  // It is part of the attested payload, so the enclave authorizes it.
+  bytes invoice_ref = 7;
 }
 
 message MsgSubmitAttestedTransferResponse { uint64 seq = 1; }
