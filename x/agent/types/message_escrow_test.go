@@ -39,3 +39,36 @@ func TestMsgUpdateAgentSpendPolicyValidateBasic_RecipientAllowlist(t *testing.T)
 		})
 	}
 }
+
+func TestMsgUpdateAgentSpendPolicyValidateBasic_MaxPerTransfer(t *testing.T) {
+	_, _, owner := testdata.KeyTestPubAddr()
+
+	tests := []struct {
+		name           string
+		spendDenom     string
+		maxPerTransfer math.Int
+		wantErr        bool
+	}{
+		{name: "unset", spendDenom: "adym"},
+		{name: "zero", spendDenom: "adym", maxPerTransfer: math.ZeroInt()},
+		{name: "below window limit", spendDenom: "adym", maxPerTransfer: math.NewInt(10)},
+		{name: "above window limit never binds", spendDenom: "adym", maxPerTransfer: math.NewInt(1000)},
+		{name: "negative", spendDenom: "adym", maxPerTransfer: math.NewInt(-1), wantErr: true},
+		{name: "set without spend denom", maxPerTransfer: math.NewInt(10), wantErr: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", "", math.Int{}, 0)
+			if tc.spendDenom != "" {
+				msg = types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", tc.spendDenom, math.NewInt(100), 10)
+			}
+			msg.SpendMaxPerTransfer = tc.maxPerTransfer
+			err := msg.ValidateBasic()
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

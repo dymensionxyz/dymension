@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"bytes"
+	"slices"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -69,6 +71,15 @@ func (s *EscrowTestSuite) spendingAgent(id string) sdk.AccAddress {
 		types.NewMsgUpdateAgentSpendPolicy(owner.String(), id, spendDenom, math.NewInt(windowLimit), windowLen))
 	s.Require().NoError(err)
 	return owner
+}
+
+// cappedSpendingAgent is spendingAgent with a per-transfer cap.
+func (s *EscrowTestSuite) cappedSpendingAgent(id string, maxPerTransfer int64) {
+	owner := s.registerAgent(id)
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), id, spendDenom, math.NewInt(windowLimit), windowLen)
+	msg.SpendMaxPerTransfer = math.NewInt(maxPerTransfer)
+	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)
+	s.Require().NoError(err)
 }
 
 func (s *EscrowTestSuite) fundEscrow(id string, amt int64) {
@@ -163,6 +174,81 @@ func (s *EscrowTestSuite) TestTransfer_ExceedsWindowCap_NothingChanges() {
 	s.Require().False(found)
 	agent, _ := s.k.GetAgent(s.Ctx, "a1")
 	s.Require().Equal(uint64(0), agent.ActionSeq)
+}
+
+func (s *EscrowTestSuite) TestTransfer_ExceedsPerTransferCap_NothingChanges() {
+	s.cappedSpendingAgent("a1", 100)
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	// within the window budget, but above the per-transfer cap
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 101, 0))
+	s.Require().ErrorIs(err, types.ErrTransferExceedsPerTxCap)
+
+	s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).IsZero())
+	s.Require().Equal(math.NewInt(5000), s.k.GetEscrowBalance(s.Ctx, "a1").AmountOf(spendDenom))
+	s.Require().Equal(math.NewInt(5000), s.moduleBalance())
+	_, found := s.k.GetActionLogEntry(s.Ctx, "a1", 0)
+	s.Require().False(found)
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(uint64(0), agent.ActionSeq)
+	s.Require().True(agent.SpendWindowSpent.IsZero())
+
+	// the rejected transfer consumed no seq: the next transfer still uses seq 0
+	res, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 100, 0))
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(0), res.Seq)
+}
+
+func (s *EscrowTestSuite) TestTransfer_AtPerTransferCapSucceeds() {
+	s.cappedSpendingAgent("a1", 100)
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 100, 0))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(100), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+}
+
+func (s *EscrowTestSuite) TestTransfer_UnsetPerTransferCapAllowsFullWindow() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(agent.SpendMaxPerTransfer.IsNil() || agent.SpendMaxPerTransfer.IsZero())
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit, 0))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(windowLimit), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+}
+
+func (s *EscrowTestSuite) TestTransfer_PerTransferCapAboveWindowNeverBinds() {
+	s.cappedSpendingAgent("a1", 2*windowLimit)
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit+1, 0))
+	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit, 0))
+	s.Require().NoError(err)
+}
+
+func (s *EscrowTestSuite) TestTransfer_PerTransferCapComposesWithWindow() {
+	s.cappedSpendingAgent("a1", 600)
+	s.fundEscrow("a1", 5000)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 600, 0))
+	s.Require().NoError(err)
+
+	// each transfer is within the cap, but together they exceed the window
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 600, 1))
+	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
+
+	s.Require().Equal(math.NewInt(600), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(uint64(1), agent.ActionSeq)
 }
 
 func (s *EscrowTestSuite) TestTransfer_WindowRollsOver() {
@@ -398,6 +484,41 @@ func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistPersistedQueri
 	s.Require().True(foundAllowlist)
 }
 
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_MaxPerTransferPersistedQueriedAndEmitted() {
+	owner := s.registerAgent("a1")
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen)
+	msg.SpendMaxPerTransfer = math.NewInt(250)
+
+	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)
+	s.Require().NoError(err)
+
+	agent, found := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(found)
+	s.Require().Equal(math.NewInt(250), agent.SpendMaxPerTransfer)
+	query, err := s.k.Agent(s.Ctx, &types.QueryAgentRequest{AgentId: "a1"})
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(250), query.Agent.SpendMaxPerTransfer)
+
+	events := s.Ctx.EventManager().Events()
+	s.Require().NotEmpty(events)
+	last := events[len(events)-1]
+	s.Require().Equal("dymensionxyz.dymension.agent.EventUpdateAgentSpendPolicy", last.Type)
+	foundCap := false
+	for _, attr := range last.Attributes {
+		if attr.Key == "spend_max_per_transfer" && attr.Value == "250" {
+			foundCap = true
+		}
+	}
+	s.Require().True(foundCap)
+
+	// a later update without a cap clears it
+	_, err = s.msgServer.UpdateAgentSpendPolicy(s.Ctx,
+		types.NewMsgUpdateAgentSpendPolicy(owner.String(), "a1", spendDenom, math.NewInt(windowLimit), windowLen))
+	s.Require().NoError(err)
+	agent, _ = s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(agent.SpendMaxPerTransfer.IsZero())
+}
+
 func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientAllowlistAboveMaxRejected() {
 	owner := s.registerAgent("a1")
 	params, err := s.k.GetParams(s.Ctx)
@@ -446,6 +567,36 @@ func (s *EscrowTestSuite) TestMigrate2to3_DefaultsValidationResponseCap() {
 	params, err := s.k.GetParams(s.Ctx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(8), params.ValidationMaxResponsesPerRequest)
+}
+
+func (s *EscrowTestSuite) TestMigrate3to4_PersistsUnsetPerTransferCap() {
+	s.spendingAgent("a1")
+	s.registerAgent("a2")
+	// rewrite the records as version 3 encoded them: without field 14, which
+	// marshals last, so they decode it nil
+	store := s.Ctx.KVStore(s.App.GetKVStoreKeys()[types.StoreKey])
+	field14 := []byte{0x72, 0x01, '0'}
+	for _, id := range []string{"a1", "a2"} {
+		agent, _ := s.k.GetAgent(s.Ctx, id)
+		bz, err := agent.Marshal()
+		s.Require().NoError(err)
+		s.Require().True(bytes.HasSuffix(bz, field14))
+		store.Set(append(slices.Clone(types.KeyAgents), id...), bytes.TrimSuffix(bz, field14))
+		agent, _ = s.k.GetAgent(s.Ctx, id)
+		s.Require().True(agent.SpendMaxPerTransfer.IsNil())
+	}
+
+	migrator := keeper.NewMigrator(*s.k)
+	s.Require().NoError(migrator.Migrate3to4(s.Ctx))
+
+	for _, id := range []string{"a1", "a2"} {
+		agent, found := s.k.GetAgent(s.Ctx, id)
+		s.Require().True(found)
+		s.Require().False(agent.SpendMaxPerTransfer.IsNil())
+		s.Require().True(agent.SpendMaxPerTransfer.IsZero())
+	}
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(math.NewInt(windowLimit), agent.SpendLimitPerWindow)
 }
 
 func (s *EscrowTestSuite) TestTransfer_RecipientAllowlist() {

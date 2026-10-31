@@ -60,7 +60,7 @@ func (a Agent) SpendRecipientAllowed(recipient string) bool {
 // imports against e.g. an enabled agent with a zero window length (which would
 // make SpendBucket divide by zero).
 func (a Agent) ValidateSpendState(spendRecipientAllowlistMax uint64) error {
-	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks); err != nil {
+	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks, a.SpendMaxPerTransfer); err != nil {
 		return err
 	}
 	if uint64(len(a.SpendRecipientAllowlist)) > spendRecipientAllowlistMax {
@@ -136,6 +136,15 @@ func (a Agent) RemainingWindowBudget(nowHeight uint64) math.Int {
 // per-window cap.
 func (a Agent) SpendAllows(nowHeight uint64, amount math.Int) bool {
 	return amount.LTE(a.RemainingWindowBudget(nowHeight))
+}
+
+// SpendPerTransferAllows reports whether amount stays within the per-transfer
+// cap. A nil or zero cap means no per-transfer cap.
+func (a Agent) SpendPerTransferAllows(amount math.Int) bool {
+	if a.SpendMaxPerTransfer.IsNil() || a.SpendMaxPerTransfer.IsZero() {
+		return true
+	}
+	return amount.LTE(a.SpendMaxPerTransfer)
 }
 
 // RecordSpend accounts a successful transfer of amount at nowHeight, rolling

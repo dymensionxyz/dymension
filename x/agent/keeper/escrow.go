@@ -137,6 +137,7 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 	agent.SpendLimitPerWindow = msg.SpendLimitPerWindow
 	agent.SpendWindowBlocks = msg.SpendWindowBlocks
 	agent.SpendRecipientAllowlist = msg.RecipientAllowlist
+	agent.SpendMaxPerTransfer = msg.SpendMaxPerTransfer
 	agent.SpendWindowStartHeight = 0
 	agent.SpendWindowSpent = math.ZeroInt()
 	if err := k.SetAgent(ctx, agent); err != nil {
@@ -149,6 +150,7 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 		SpendLimitPerWindow: msg.SpendLimitPerWindow,
 		SpendWindowBlocks:   msg.SpendWindowBlocks,
 		RecipientAllowlist:  msg.RecipientAllowlist,
+		SpendMaxPerTransfer: msg.SpendMaxPerTransfer,
 	}); err != nil {
 		return nil, err
 	}

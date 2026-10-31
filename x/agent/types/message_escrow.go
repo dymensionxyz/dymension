@@ -82,14 +82,18 @@ func (m *MsgUpdateAgentSpendPolicy) ValidateBasic() error {
 		}
 		recipients[key] = struct{}{}
 	}
-	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks)
+	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks, m.SpendMaxPerTransfer)
 }
 
 // ValidateSpendPolicy checks the spend-policy invariant shared by
 // MsgUpdateAgentSpendPolicy and genesis-imported agents: the budget fields are
 // set iff the denom is, so SpendBucket can never divide by zero on an enabled
-// agent.
-func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks uint64) error {
+// agent. The per-transfer cap is optional (zero = no cap) and may exceed the
+// window limit, in which case it simply never binds.
+func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendWindowBlocks uint64, spendMaxPerTransfer math.Int) error {
+	if !spendMaxPerTransfer.IsNil() && spendMaxPerTransfer.IsNegative() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend max per transfer must not be negative")
+	}
 	if spendDenom == "" {
 		// disabling spending: the budget fields must be unset
 		if !spendLimitPerWindow.IsNil() && !spendLimitPerWindow.IsZero() {
@@ -97,6 +101,9 @@ func ValidateSpendPolicy(spendDenom string, spendLimitPerWindow math.Int, spendW
 		}
 		if spendWindowBlocks != 0 {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend window blocks set without spend denom")
+		}
+		if !spendMaxPerTransfer.IsNil() && !spendMaxPerTransfer.IsZero() {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend max per transfer set without spend denom")
 		}
 		return nil
 	}

@@ -57,3 +57,13 @@ func TestAgentSpendDisabled(t *testing.T) {
 	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(100))
 	require.False(t, a.SpendAllows(100, math.NewInt(1)))
 }
+
+func TestAgentSpendPerTransferAllows(t *testing.T) {
+	// nil (pre-migration record) and zero both mean no cap
+	require.True(t, (types.Agent{}).SpendPerTransferAllows(math.NewInt(1_000_000)))
+	require.True(t, (types.Agent{SpendMaxPerTransfer: math.ZeroInt()}).SpendPerTransferAllows(math.NewInt(1_000_000)))
+
+	a := types.Agent{SpendMaxPerTransfer: math.NewInt(100)}
+	require.True(t, a.SpendPerTransferAllows(math.NewInt(100)))
+	require.False(t, a.SpendPerTransferAllows(math.NewInt(101)))
+}
