@@ -51,7 +51,6 @@ import (
 	v047 "github.com/cosmos/cosmos-sdk/x/genutil/migrations/v047"
 	forwardcli "github.com/dymensionxyz/dymension/v3/x/forward/cli"
 	ethclient "github.com/evmos/ethermint/client"
-	"github.com/evmos/ethermint/crypto/hd"
 	ethservercfg "github.com/evmos/ethermint/server/config"
 )
 
@@ -91,7 +90,7 @@ func NewRootCmd() *cobra.Command {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
-		WithKeyringOptions(hd.EthSecp256k1Option()).
+		WithKeyringOptions(keyringOption()).
 		WithHomeDir(app.DefaultNodeHome).
 		WithViper("")
 
