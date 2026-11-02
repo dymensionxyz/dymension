@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (cli) #2242 `--ledger` keys use the Ledger Cosmos app with the Dymension chain config: the stored address is the eth_secp256k1 address shown on the device (the same account as Keplr and MetaMask), and transactions are signed with clear signing. Requires Expert mode in the Cosmos app.
 * (agent) #2219 Add enclave-attested validation verdicts with domain-separated replay protection and validator action-log entries.
 
 ## [v3.2.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.2.0)
