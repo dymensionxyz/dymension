@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestPumpStreamsCreation() {
 
 	// Make a purchase (buy 50 DYM tokens)
 	amountToBuy := math.NewInt(50).MulRaw(1e18)
-	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0)
+	paymentCoin, err := suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, amountToBuy, "usdc", 0, math.ZeroInt())
 	suite.Require().NoError(err)
 
 	auction, _ := suite.App.OTCBuybackKeeper.GetAuction(suite.Ctx, auctionID)
@@ -184,7 +184,7 @@ func (suite *KeeperTestSuite) TestIntervalPumping() {
 
 		// First purchase: 200 DYM
 		purchaseAmt := math.NewInt(200).MulRaw(1e18)
-		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0)
+		_, err = suite.App.OTCBuybackKeeper.Buy(suite.Ctx, buyer, auctionID, purchaseAmt, "usdc", 0, math.ZeroInt())
 		suite.Require().NoError(err)
 
 		// Before the first pump_interval-no pump should occur
