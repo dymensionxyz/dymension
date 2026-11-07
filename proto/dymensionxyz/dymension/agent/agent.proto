@@ -33,6 +33,9 @@ message Params {
   // validation_max_responses_per_request bounds responses stored for one
   // validation request. Zero means unlimited.
   uint64 validation_max_responses_per_request = 10;
+  // validation_bounty_expiry_blocks is how long, in blocks after the request,
+  // the validator has to claim a bounty before the requester may reclaim it.
+  uint64 validation_bounty_expiry_blocks = 11;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action

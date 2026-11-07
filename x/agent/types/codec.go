@@ -23,6 +23,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRequestValidation{}, "agent/RequestValidation", nil)
 	cdc.RegisterConcrete(&MsgRespondValidation{}, "agent/RespondValidation", nil)
 	cdc.RegisterConcrete(&MsgRespondValidationAttested{}, "agent/RespondValidationAttested", nil)
+	cdc.RegisterConcrete(&MsgReclaimValidationBounty{}, "agent/ReclaimValidationBounty", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -42,6 +43,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgRequestValidation{},
 		&MsgRespondValidation{},
 		&MsgRespondValidationAttested{},
+		&MsgReclaimValidationBounty{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

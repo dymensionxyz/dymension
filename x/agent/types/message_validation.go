@@ -24,6 +24,31 @@ func (m *MsgRequestValidation) ValidateBasic() error {
 	if len(m.RequestHash) != 32 {
 		return errorsmod.Wrapf(ErrInvalidValidationHash, "request hash length %d", len(m.RequestHash))
 	}
+	if !m.Bounty.IsNil() && !m.Bounty.IsZero() {
+		if err := m.Bounty.Validate(); err != nil {
+			return errorsmod.Wrap(err, "bounty")
+		}
+	}
+	return nil
+}
+
+// HasBounty reports whether a validation bounty is attached; an unset or zero
+// coin means no bounty.
+func HasBounty(c sdk.Coin) bool {
+	return !c.IsNil() && c.IsPositive()
+}
+
+func NewMsgReclaimValidationBounty(requester string, requestHash []byte) *MsgReclaimValidationBounty {
+	return &MsgReclaimValidationBounty{Requester: requester, RequestHash: requestHash}
+}
+
+func (m *MsgReclaimValidationBounty) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Requester); err != nil {
+		return err
+	}
+	if len(m.RequestHash) != 32 {
+		return errorsmod.Wrapf(ErrInvalidValidationHash, "request hash length %d", len(m.RequestHash))
+	}
 	return nil
 }
 

@@ -10,6 +10,7 @@ import (
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/agent/types"
 	"github.com/dymensionxyz/sdk-utils/utils/uevent"
@@ -61,9 +62,9 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 	} else if has {
 		return nil, types.ErrValidationRequestExists
 	}
+	requester := sdk.MustAccAddressFromBech32(msg.Requester)
 	if !p.ValidationRequestFee.IsNil() && !p.ValidationRequestFee.IsZero() {
 		coins := sdk.NewCoins(p.ValidationRequestFee)
-		requester := sdk.MustAccAddressFromBech32(msg.Requester)
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleName, coins); err != nil {
 			return nil, dymerrors.Join(types.ErrValidationFeePayment, err)
 		}
@@ -72,13 +73,19 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 		}
 	}
 	req := types.ValidationRequest{RequestHash: msg.RequestHash, Requester: msg.Requester, ValidatorId: msg.ValidatorId, AgentId: msg.AgentId, EvidenceSeq: msg.EvidenceSeq, RequestUri: msg.RequestUri, Height: ctx.BlockHeight(), Time: ctx.BlockTime()}
+	if types.HasBounty(msg.Bounty) {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, requester, types.ModuleName, sdk.NewCoins(msg.Bounty)); err != nil {
+			return nil, errorsmod.Wrap(err, "escrow bounty")
+		}
+		req.Bounty = msg.Bounty
+	}
 	if err := k.validationRequests.Set(ctx, msg.RequestHash, req); err != nil {
 		return nil, err
 	}
 	if err := k.validationByAgent.Set(ctx, collections.Join(msg.AgentId, msg.RequestHash)); err != nil {
 		return nil, err
 	}
-	if err := uevent.EmitTypedEvent(ctx, &types.EventRequestValidation{RequestHash: msg.RequestHash, ValidatorId: msg.ValidatorId, AgentId: msg.AgentId, EvidenceSeq: msg.EvidenceSeq}); err != nil {
+	if err := uevent.EmitTypedEvent(ctx, &types.EventRequestValidation{RequestHash: msg.RequestHash, ValidatorId: msg.ValidatorId, AgentId: msg.AgentId, EvidenceSeq: msg.EvidenceSeq, Bounty: req.Bounty}); err != nil {
 		return nil, err
 	}
 	return &types.MsgRequestValidationResponse{}, nil
@@ -158,6 +165,9 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 		if err := k.appendAttested(ctx, &validator, payload, payloadHash[:]); err != nil {
 			return nil, err
 		}
+		if err := k.claimValidationBounty(ctx, &req); err != nil {
+			return nil, err
+		}
 	}
 	seq := req.ResponseCount
 	resp := types.ValidationResponse{RequestHash: msg.RequestHash, Seq: seq, Response: msg.Response, ResponseUri: msg.ResponseUri, ResponseHash: msg.ResponseHash, Tag: msg.Tag, Height: ctx.BlockHeight(), Time: ctx.BlockTime(), Attested: attested}
@@ -172,4 +182,59 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 		return nil, err
 	}
 	return &types.MsgRespondValidationAttestedResponse{Seq: seq, ActionSeq: actionSeq}, nil
+}
+
+// claimValidationBounty credits an unclaimed bounty to the validator's escrow
+// ledger. The coins already sit in the module account since request time, so
+// only the ledger moves. The caller persists req.
+func (k msgServer) claimValidationBounty(ctx sdk.Context, req *types.ValidationRequest) error {
+	if !types.HasBounty(req.Bounty) || req.BountyClaimed {
+		return nil
+	}
+	if err := k.setEscrowBalance(ctx, req.ValidatorId, k.GetEscrowBalance(ctx, req.ValidatorId).Add(req.Bounty)); err != nil {
+		return errorsmod.Wrap(err, "set escrow balance")
+	}
+	req.BountyClaimed = true
+	return uevent.EmitTypedEvent(ctx, &types.EventClaimValidationBounty{RequestHash: req.RequestHash, ValidatorId: req.ValidatorId, Bounty: req.Bounty})
+}
+
+func (k msgServer) ReclaimValidationBounty(goCtx context.Context, msg *types.MsgReclaimValidationBounty) (*types.MsgReclaimValidationBountyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrap(err, "validate basic")
+	}
+	p, err := k.GetParams(ctx)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "get params")
+	}
+	req, found := k.GetValidationRequest(ctx, msg.RequestHash)
+	if !found {
+		return nil, types.ErrValidationRequestNotFound
+	}
+	if msg.Requester != req.Requester {
+		return nil, errorsmod.Wrap(types.ErrUnauthorized, "not the validation requester")
+	}
+	if !types.HasBounty(req.Bounty) || req.BountyClaimed {
+		return nil, gerrc.ErrInvalidArgument.Wrap("no reclaimable bounty")
+	}
+	// Comparing elapsed blocks avoids overflowing height + expiry for any
+	// expiry the params allow.
+	elapsed := uint64(ctx.BlockHeight() - req.Height) //nolint:gosec // a request is never above the current height
+	if elapsed < p.ValidationBountyExpiryBlocks {
+		return nil, gerrc.ErrInvalidArgument.Wrapf("bounty not yet expired: request height %d, expiry blocks %d", req.Height, p.ValidationBountyExpiryBlocks)
+	}
+	bounty := req.Bounty
+	requester := sdk.MustAccAddressFromBech32(msg.Requester)
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, requester, sdk.NewCoins(bounty)); err != nil {
+		return nil, errorsmod.Wrap(err, "refund bounty")
+	}
+	req.Bounty = sdk.NewCoin(bounty.Denom, math.ZeroInt())
+	req.BountyClaimed = true
+	if err := k.validationRequests.Set(ctx, msg.RequestHash, req); err != nil {
+		return nil, err
+	}
+	if err := uevent.EmitTypedEvent(ctx, &types.EventReclaimValidationBounty{RequestHash: msg.RequestHash, Requester: msg.Requester, Bounty: bounty}); err != nil {
+		return nil, err
+	}
+	return &types.MsgReclaimValidationBountyResponse{}, nil
 }
