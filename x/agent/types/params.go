@@ -27,6 +27,9 @@ const DefaultValidationUriMaxBytes = 512
 // DefaultValidationMaxResponsesPerRequest bounds responses per validation request.
 const DefaultValidationMaxResponsesPerRequest = 8
 
+// DefaultValidationBountyExpiryBlocks is ~7 days at 6s blocks.
+const DefaultValidationBountyExpiryBlocks = 100_800
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:             commontypes.DYMCoin,
@@ -39,6 +42,7 @@ func DefaultParams() Params {
 		ValidationUriMaxBytes:            DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax:       DefaultSpendRecipientAllowlistMax,
 		ValidationMaxResponsesPerRequest: DefaultValidationMaxResponsesPerRequest,
+		ValidationBountyExpiryBlocks:     DefaultValidationBountyExpiryBlocks,
 	}
 }
 
@@ -69,6 +73,9 @@ func (p Params) Validate() error {
 	}
 	if p.ValidationUriMaxBytes == 0 {
 		return fmt.Errorf("validation uri max bytes must be positive")
+	}
+	if p.ValidationBountyExpiryBlocks == 0 {
+		return fmt.Errorf("validation bounty expiry blocks must be positive")
 	}
 	return nil
 }

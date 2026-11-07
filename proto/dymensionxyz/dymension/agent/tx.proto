@@ -69,6 +69,10 @@ service Msg {
       returns (MsgRespondValidationResponse);
   rpc RespondValidationAttested(MsgRespondValidationAttested)
       returns (MsgRespondValidationAttestedResponse);
+  // ReclaimValidationBounty refunds an unclaimed bounty to its requester once
+  // the bounty expiry has passed.
+  rpc ReclaimValidationBounty(MsgReclaimValidationBounty)
+      returns (MsgReclaimValidationBountyResponse);
 }
 
 message MsgRegisterAgent {
@@ -247,6 +251,9 @@ message MsgRequestValidation {
   uint64 evidence_seq = 4;
   bytes request_hash = 5;
   string request_uri = 6;
+  // bounty is escrowed and paid to the validator on its first attested
+  // verdict. A zero amount means no bounty.
+  cosmos.base.v1beta1.Coin bounty = 7 [ (gogoproto.nullable) = false ];
 }
 message MsgRequestValidationResponse {}
 
@@ -283,3 +290,10 @@ message MsgRespondValidationAttestedResponse {
   // action_seq locates the consumed entry in the validator's action log.
   uint64 action_seq = 2;
 }
+
+message MsgReclaimValidationBounty {
+  option (cosmos.msg.v1.signer) = "requester";
+  string requester = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  bytes request_hash = 2;
+}
+message MsgReclaimValidationBountyResponse {}

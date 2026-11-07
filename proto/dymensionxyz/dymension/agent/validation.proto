@@ -4,6 +4,7 @@ package dymensionxyz.dymension.agent;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 
 message ValidationRequest {
@@ -17,6 +18,11 @@ message ValidationRequest {
   google.protobuf.Timestamp time = 8
       [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
   uint64 response_count = 9;
+  // bounty is held in the module account until claimed by the validator or
+  // reclaimed by the requester.
+  cosmos.base.v1beta1.Coin bounty = 10 [ (gogoproto.nullable) = false ];
+  // bounty_claimed is set once the bounty has been paid out or refunded.
+  bool bounty_claimed = 11;
 }
 
 message ValidationResponse {
