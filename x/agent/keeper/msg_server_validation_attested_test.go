@@ -102,7 +102,7 @@ func TestAttestedValidationRejectsWithoutStateChange(t *testing.T) {
 			case "action token":
 				msg.Token = types.ActionNonce("validator", payload, 3)
 			case "transfer token":
-				msg.Token = types.TransferNonce("validator", payload, 3)
+				msg.Token = types.TransferNonce("validator", payload, 3, false)
 			case "wrong subject", "wrong evidence":
 				subject, evidenceSeq := "subject", uint64(1)
 				if name == "wrong subject" {

@@ -45,3 +45,13 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	params.ValidationMaxResponsesPerRequest = types.DefaultValidationMaxResponsesPerRequest
 	return m.k.SetParams(ctx, params)
 }
+
+// Migrate3to4 initializes fields added to the agent params at version 4.
+func (m Migrator) Migrate3to4(ctx sdk.Context) error {
+	params, err := m.k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
+	params.InvoiceRefMaxBytes = types.DefaultInvoiceRefMaxBytes
+	return m.k.SetParams(ctx, params)
+}

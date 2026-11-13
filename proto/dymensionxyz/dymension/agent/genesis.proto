@@ -22,4 +22,13 @@ message GenesisState {
       [ (gogoproto.nullable) = false ];
   repeated ValidationResponse validation_responses = 8
       [ (gogoproto.nullable) = false ];
+  repeated GenesisInvoiceSettlement invoice_settlements = 9
+      [ (gogoproto.nullable) = false ];
+}
+
+// GenesisInvoiceSettlement is an invoice settlement with its store key.
+message GenesisInvoiceSettlement {
+  string recipient = 1;
+  bytes invoice_ref = 2;
+  InvoiceSettlement settlement = 3 [ (gogoproto.nullable) = false ];
 }

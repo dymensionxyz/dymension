@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
@@ -207,4 +208,26 @@ func (k Keeper) ValidationRequestsByAgent(goCtx context.Context, req *types.Quer
 		requests = append(requests, v)
 	}
 	return &types.QueryValidationRequestsByAgentResponse{ValidationRequests: requests, Pagination: page}, nil
+}
+
+func (k Keeper) InvoiceSettlement(goCtx context.Context, req *types.QueryInvoiceSettlementRequest) (*types.QueryInvoiceSettlementResponse, error) {
+	if req.AgentId == "" {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty agent id")
+	}
+	recipient, err := sdk.AccAddressFromBech32(req.Recipient)
+	if err != nil {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "recipient: %v", err)
+	}
+	if len(req.InvoiceRef) == 0 {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "empty invoice ref")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	settlement, err := k.invoiceSettlements.Get(ctx, collections.Join3(req.AgentId, recipient.String(), req.InvoiceRef))
+	if errors.Is(err, collections.ErrNotFound) {
+		return &types.QueryInvoiceSettlementResponse{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryInvoiceSettlementResponse{Settled: true, Settlement: settlement}, nil
 }

@@ -85,14 +85,14 @@ func (s *EscrowTestSuite) transferMsg(id string, recipient sdk.AccAddress, amt i
 	_, _, sub := testdata.KeyTestPubAddr()
 	amount := math.NewInt(amt)
 	memo := []byte("m")
-	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, amount, memo)
+	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, amount, nil, memo)
 	return &types.MsgSubmitAttestedTransfer{
 		Submitter: sub.String(),
 		AgentId:   id,
 		Recipient: recipient.String(),
 		Amount:    amount,
 		Memo:      memo,
-		Token:     types.TransferNonce(id, payload, seq),
+		Token:     types.TransferNonce(id, payload, seq, false),
 	}
 }
 
@@ -120,7 +120,7 @@ func (s *EscrowTestSuite) TestFundTransfer_HappyPath() {
 	// transfer is in the action log with the nonce-committed payload
 	entry, found := s.k.GetActionLogEntry(s.Ctx, "a1", 0)
 	s.Require().True(found)
-	s.Require().Equal(types.AttestedTransferBytes(recipient.String(), spendDenom, math.NewInt(200), []byte("m")), entry.Payload)
+	s.Require().Equal(types.AttestedTransferBytes(recipient.String(), spendDenom, math.NewInt(200), nil, []byte("m")), entry.Payload)
 
 	agent, _ := s.k.GetAgent(s.Ctx, "a1")
 	s.Require().Equal(uint64(1), agent.ActionSeq)
@@ -222,7 +222,7 @@ func (s *EscrowTestSuite) TestCrossDomainReplayRejected() {
 
 	// observer copies a pending transfer's payload+token and submits it as an action
 	transfer := s.transferMsg("a1", recipient, 100, 0)
-	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, transfer.Amount, transfer.Memo)
+	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, transfer.Amount, nil, transfer.Memo)
 	_, err := s.msgServer.SubmitAttestedAction(s.Ctx, &types.MsgSubmitAttestedAction{
 		Submitter: transfer.Submitter,
 		AgentId:   "a1",
@@ -253,8 +253,8 @@ func (s *EscrowTestSuite) TestTransfer_PayloadTooLarge() {
 
 	msg := s.transferMsg("a1", recipient, 100, 0)
 	msg.Memo = make([]byte, params.MaxActionBytes) // payload = memo + transfer fields > max
-	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, msg.Amount, msg.Memo)
-	msg.Token = types.TransferNonce("a1", payload, 0)
+	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, msg.Amount, nil, msg.Memo)
+	msg.Token = types.TransferNonce("a1", payload, 0, false)
 
 	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
 	s.Require().ErrorContains(err, "max action bytes")

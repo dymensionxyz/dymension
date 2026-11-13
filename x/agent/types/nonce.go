@@ -15,9 +15,10 @@ import (
 // nonce spaces disjoint: a token only verifies for the message type it was
 // minted for.
 const (
-	nonceDomainAction     byte = 0x01
-	nonceDomainTransfer   byte = 0x02
-	nonceDomainValidation byte = 0x03
+	nonceDomainAction          byte = 0x01
+	nonceDomainTransfer        byte = 0x02
+	nonceDomainValidation      byte = 0x03
+	nonceDomainInvoiceTransfer byte = 0x04
 )
 
 // ActionNonce derives the per-action nonce that binds an attestation token to
@@ -34,8 +35,14 @@ func ActionNonce(agentID string, payload []byte, actionSeq uint64) string {
 }
 
 // TransferNonce is ActionNonce in the transfer domain: same layout, disjoint
-// nonce space (see the domain tag comment above).
-func TransferNonce(agentID string, payload []byte, actionSeq uint64) string {
+// nonce space (see the domain tag comment above). Invoice-bound transfers get
+// their own domain because their payload can equal a legacy payload whose memo
+// starts with the invoice length prefix; without it, a token minted for an
+// invoice transfer could be submitted invoice-less, skipping settlement dedup.
+func TransferNonce(agentID string, payload []byte, actionSeq uint64, invoiced bool) string {
+	if invoiced {
+		return attestNonce(nonceDomainInvoiceTransfer, agentID, payload, actionSeq)
+	}
 	return attestNonce(nonceDomainTransfer, agentID, payload, actionSeq)
 }
 
@@ -58,18 +65,25 @@ func attestNonce(domain byte, agentID string, payload []byte, actionSeq uint64) 
 }
 
 // AttestedTransferBytes is the canonical payload an attested transfer's nonce
-// commits to, so the enclave attests to this exact recipient, denom and
-// amount rather than an opaque blob. Fields are NUL-separated: 0x00 cannot
-// appear in a bech32 address, a denom or a decimal string, so the encoding is
-// unambiguous and deterministic.
-func AttestedTransferBytes(recipient, spendDenom string, amount math.Int, memo []byte) []byte {
-	buf := make([]byte, 0, len(recipient)+len(spendDenom)+len(memo)+24)
+// commits to, so the enclave attests to this exact recipient, denom, amount and
+// invoice rather than an opaque blob. The first three fields are NUL-separated:
+// 0x00 cannot appear in a bech32 address, a denom or a decimal string. A
+// non-empty invoiceRef follows as a big-endian uint64 byte length plus its
+// bytes, since it may contain 0x00 and sits next to the free-form memo, which
+// stays last. An empty invoiceRef is omitted, keeping legacy payloads
+// byte-for-byte unchanged.
+func AttestedTransferBytes(recipient, spendDenom string, amount math.Int, invoiceRef, memo []byte) []byte {
+	buf := make([]byte, 0, len(recipient)+len(spendDenom)+len(invoiceRef)+len(memo)+32)
 	buf = append(buf, recipient...)
 	buf = append(buf, 0x00)
 	buf = append(buf, spendDenom...)
 	buf = append(buf, 0x00)
 	buf = append(buf, amount.String()...)
 	buf = append(buf, 0x00)
+	if len(invoiceRef) > 0 {
+		buf = binary.BigEndian.AppendUint64(buf, uint64(len(invoiceRef)))
+		buf = append(buf, invoiceRef...)
+	}
 	buf = append(buf, memo...)
 	return buf
 }
