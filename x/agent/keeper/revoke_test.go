@@ -407,3 +407,36 @@ func TestGenesisValidate_BadFingerprint(t *testing.T) {
 	g.RevokedPolicies = []string{fingerprint(t, policyA())}
 	require.NoError(t, g.Validate())
 }
+
+func setLivenessWindow(t *testing.T, ctx sdk.Context, k *keeper.Keeper, window uint64) {
+	t.Helper()
+	p, err := k.GetParams(ctx)
+	require.NoError(t, err)
+	p.AgentLivenessWindowBlocks = window
+	require.NoError(t, k.SetParams(ctx, p))
+}
+
+func TestIsAgentFresh(t *testing.T) {
+	ctx, k, _ := setup(t)
+	require.NoError(t, k.SetAgent(ctx, types.Agent{Id: "a", Policy: policyA(), Active: true, LastActionHeight: 100}))
+
+	// window 0 disables the requirement regardless of age
+	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(1_000_000), "a"))
+
+	setLivenessWindow(t, ctx, k, 50)
+	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(100), "a"))
+	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(150), "a"))
+	// a last action above the current height (e.g. after a zero-height
+	// genesis export) counts as fresh
+	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(1), "a"))
+	require.False(t, k.IsAgentFresh(ctx.WithBlockHeight(151), "a"))
+
+	// not live means not fresh, however recent the last action
+	require.False(t, k.IsAgentFresh(ctx.WithBlockHeight(100), "unknown"))
+	require.NoError(t, k.SetAgent(ctx, types.Agent{Id: "inactive", Policy: policyA(), Active: false, LastActionHeight: 100}))
+	require.False(t, k.IsAgentFresh(ctx.WithBlockHeight(100), "inactive"))
+	require.NoError(t, k.SetRevoked(ctx, fingerprint(t, policyA())))
+	require.False(t, k.IsAgentFresh(ctx.WithBlockHeight(100), "a"))
+	setLivenessWindow(t, ctx, k, 0)
+	require.False(t, k.IsAgentFresh(ctx.WithBlockHeight(100), "a"))
+}

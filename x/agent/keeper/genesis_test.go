@@ -14,8 +14,10 @@ import (
 func TestGenesis_EscrowAndWindowStateRoundTrip(t *testing.T) {
 	ctx, k, _ := setup(t)
 
+	params := types.DefaultParams()
+	params.AgentLivenessWindowBlocks = 100_800
 	g := types.GenesisState{
-		Params: types.DefaultParams(),
+		Params: params,
 		Agents: []types.Agent{{
 			Id:                     "a1",
 			Owner:                  owner(t),
@@ -26,6 +28,7 @@ func TestGenesis_EscrowAndWindowStateRoundTrip(t *testing.T) {
 			SpendWindowBlocks:      10,
 			SpendWindowStartHeight: 20,
 			SpendWindowSpent:       math.NewInt(400),
+			LastActionHeight:       17,
 		}},
 		Escrows: []types.AgentEscrow{{
 			AgentId: "a1",
@@ -35,6 +38,7 @@ func TestGenesis_EscrowAndWindowStateRoundTrip(t *testing.T) {
 	keeper.InitGenesis(ctx, k, g)
 
 	out := keeper.ExportGenesis(ctx, k)
+	require.Equal(t, g.Params, out.Params)
 	require.Equal(t, g.Agents, out.Agents)
 	require.Equal(t, g.Escrows, out.Escrows)
 

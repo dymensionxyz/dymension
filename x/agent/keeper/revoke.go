@@ -59,6 +59,28 @@ func (k Keeper) IsAgentLive(ctx sdk.Context, agentID string) bool {
 	return !revoked
 }
 
+// IsAgentFresh reports whether an agent may ACT: live (active + policy not
+// revoked) AND, if a liveness window is configured, it posted an attested
+// action within that window. Window 0 disables the freshness requirement.
+func (k Keeper) IsAgentFresh(ctx sdk.Context, agentID string) bool {
+	if !k.IsAgentLive(ctx, agentID) {
+		return false
+	}
+	p, err := k.GetParams(ctx)
+	if err != nil {
+		return false
+	}
+	if p.AgentLivenessWindowBlocks == 0 {
+		return true
+	}
+	agent, err := k.agents.Get(ctx, agentID)
+	if err != nil {
+		return false
+	}
+	age := ctx.BlockHeight() - agent.LastActionHeight
+	return age <= 0 || uint64(age) <= p.AgentLivenessWindowBlocks
+}
+
 // AllRevokedPolicies returns all revoked fingerprints in ascending order.
 func (k Keeper) AllRevokedPolicies(ctx sdk.Context) ([]string, error) {
 	var fps []string

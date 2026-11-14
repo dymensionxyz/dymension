@@ -108,6 +108,7 @@ func (s *EscrowTestSuite) TestFundTransfer_HappyPath() {
 	s.Require().Equal(math.NewInt(500), s.moduleBalance())
 
 	_, _, recipient := testdata.KeyTestPubAddr()
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 7)
 	res, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 200, 0))
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(0), res.Seq)
@@ -124,6 +125,7 @@ func (s *EscrowTestSuite) TestFundTransfer_HappyPath() {
 
 	agent, _ := s.k.GetAgent(s.Ctx, "a1")
 	s.Require().Equal(uint64(1), agent.ActionSeq)
+	s.Require().Equal(s.Ctx.BlockHeight(), agent.LastActionHeight)
 	s.Require().Equal(math.NewInt(200), agent.SpendWindowSpent)
 }
 
@@ -446,6 +448,28 @@ func (s *EscrowTestSuite) TestMigrate2to3_DefaultsValidationResponseCap() {
 	params, err := s.k.GetParams(s.Ctx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(8), params.ValidationMaxResponsesPerRequest)
+}
+
+func (s *EscrowTestSuite) TestMigrate3to4_BackfillsLastActionHeight() {
+	s.registerAgent("a1")
+	s.registerAgent("a2")
+	for _, id := range []string{"a1", "a2"} {
+		agent, _ := s.k.GetAgent(s.Ctx, id)
+		agent.LastActionHeight = 0
+		s.Require().NoError(s.k.SetAgent(s.Ctx, agent))
+	}
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 500)
+
+	s.Require().NoError(keeper.NewMigrator(*s.k).Migrate3to4(s.Ctx))
+
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	s.Require().Zero(params.AgentLivenessWindowBlocks)
+	for _, id := range []string{"a1", "a2"} {
+		agent, _ := s.k.GetAgent(s.Ctx, id)
+		s.Require().Equal(s.Ctx.BlockHeight(), agent.LastActionHeight)
+		s.Require().True(s.k.IsAgentFresh(s.Ctx, id))
+	}
 }
 
 func (s *EscrowTestSuite) TestTransfer_RecipientAllowlist() {

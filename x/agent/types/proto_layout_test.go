@@ -46,6 +46,7 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 				reflect.TypeOf(math.Int{}),
 			},
 			"SpendRecipientAllowlist": {"bytes,13,rep,name=spend_recipient_allowlist,json=spendRecipientAllowlist,proto3", reflect.TypeOf([]string(nil))},
+			"LastActionHeight":        {"varint,14,opt,name=last_action_height,json=lastActionHeight,proto3", reflect.TypeOf(int64(0))},
 		}},
 		{types.Params{}, map[string]fieldContract{
 			"MaxActionBytes":             {"varint,1,opt,name=max_action_bytes,json=maxActionBytes,proto3", reflect.TypeOf(uint64(0))},
@@ -59,6 +60,10 @@ func TestAgentProtoFieldCompatibility(t *testing.T) {
 			"SpendRecipientAllowlistMax": {"varint,9,opt,name=spend_recipient_allowlist_max,json=spendRecipientAllowlistMax,proto3", reflect.TypeOf(uint64(0))},
 			"ValidationMaxResponsesPerRequest": {
 				"varint,10,opt,name=validation_max_responses_per_request,json=validationMaxResponsesPerRequest,proto3",
+				reflect.TypeOf(uint64(0)),
+			},
+			"AgentLivenessWindowBlocks": {
+				"varint,11,opt,name=agent_liveness_window_blocks,json=agentLivenessWindowBlocks,proto3",
 				reflect.TypeOf(uint64(0)),
 			},
 		}},

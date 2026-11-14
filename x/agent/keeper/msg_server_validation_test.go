@@ -164,6 +164,31 @@ func TestValidationRejectsRevokedAgents(t *testing.T) {
 	require.Error(t, err)
 }
 
+// Freshness gates the validator (the actor) only: a stale subject's past
+// action can still be validated.
+func TestValidationLivenessWindowGatesValidatorOnly(t *testing.T) {
+	ctx, k, ms, validatorOwner, requester := setupValidation(t)
+	setLivenessWindow(t, ctx, k, 5)
+	validator, _ := k.GetAgent(ctx, "validator")
+	validator.LastActionHeight = ctx.BlockHeight()
+	require.NoError(t, k.SetAgent(ctx, validator))
+	// the subject's last action is 10 blocks old: stale
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 5)
+	require.False(t, k.IsAgentFresh(ctx, "subject"))
+
+	hash := bytes.Repeat([]byte{10}, 32)
+	_, err := ms.RequestValidation(ctx, types.NewMsgRequestValidation(requester, "validator", "subject", 1, hash, ""))
+	require.NoError(t, err)
+	_, err = ms.RespondValidation(ctx, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+	require.NoError(t, err)
+
+	stale := ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	_, err = ms.RequestValidation(stale, types.NewMsgRequestValidation(requester, "validator", "subject", 1, bytes.Repeat([]byte{11}, 32), ""))
+	require.ErrorIs(t, err, types.ErrValidatorInactive)
+	_, err = ms.RespondValidation(stale, types.NewMsgRespondValidation(validatorOwner, hash, 100, "", nil, ""))
+	require.ErrorIs(t, err, types.ErrValidatorInactive)
+}
+
 func TestValidationRejectsSameOwnerAcrossAgentIDs(t *testing.T) {
 	ctx, k, ms, validatorOwner, requester := setupValidation(t)
 	subject, _ := k.GetAgent(ctx, "subject")

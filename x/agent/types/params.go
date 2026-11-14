@@ -27,6 +27,10 @@ const DefaultValidationUriMaxBytes = 512
 // DefaultValidationMaxResponsesPerRequest bounds responses per validation request.
 const DefaultValidationMaxResponsesPerRequest = 8
 
+// DefaultAgentLivenessWindowBlocks disables the liveness requirement.
+// Governance can enable it, e.g. 100_800 blocks (~7 days at 6s blocks).
+const DefaultAgentLivenessWindowBlocks = 0
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:             commontypes.DYMCoin,
@@ -39,6 +43,7 @@ func DefaultParams() Params {
 		ValidationUriMaxBytes:            DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax:       DefaultSpendRecipientAllowlistMax,
 		ValidationMaxResponsesPerRequest: DefaultValidationMaxResponsesPerRequest,
+		AgentLivenessWindowBlocks:        DefaultAgentLivenessWindowBlocks,
 	}
 }
 

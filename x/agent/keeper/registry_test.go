@@ -69,6 +69,7 @@ func (s *RegistryTestSuite) TestRegisterAgent_HappyPathAndFeeBurned() {
 	balBefore := s.App.BankKeeper.GetBalance(s.Ctx, owner, fee.Denom)
 	supplyBefore := s.App.BankKeeper.GetSupply(s.Ctx, fee.Denom)
 
+	s.Ctx = s.Ctx.WithBlockHeight(42)
 	_, err = s.msgServer.RegisterAgent(s.Ctx, types.NewMsgRegisterAgent(owner.String(), "agent-1", validPolicy(s)))
 	s.Require().NoError(err)
 
@@ -77,6 +78,8 @@ func (s *RegistryTestSuite) TestRegisterAgent_HappyPathAndFeeBurned() {
 	s.Require().Equal(owner.String(), agent.Owner)
 	s.Require().True(agent.Active)
 	s.Require().Equal(uint64(0), agent.ActionSeq)
+	// a new agent gets the full liveness window to post its first heartbeat
+	s.Require().Equal(int64(42), agent.LastActionHeight)
 
 	// fee debited from owner and burned (total supply reduced)
 	balAfter := s.App.BankKeeper.GetBalance(s.Ctx, owner, fee.Denom)
