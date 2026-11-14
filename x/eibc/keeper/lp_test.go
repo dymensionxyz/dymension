@@ -3,6 +3,7 @@ package keeper_test
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -402,6 +403,82 @@ func (suite *KeeperTestSuite) TestLPAgentPolicyRevocation() {
 	suite.Require().Empty(compat)
 	err = k.FulfillByOnDemandLP(suite.Ctx, id3, 0)
 	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound), "expected no compatible lp, got %v", err)
+}
+
+type acceptAllVerifier struct{}
+
+func (acceptAllVerifier) Verify(sdk.Context, tee.Policy, string, string) error { return nil }
+
+// A bound LP stops matching once its agent goes past the liveness window and
+// matches again after the agent posts an attested heartbeat. Agents that
+// existed before the upgrade keep matching after the migration.
+func (suite *KeeperTestSuite) TestLPAgentLivenessWindow() {
+	k := suite.App.EIBCKeeper
+	addrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(10_000_000))
+	orderAddr, lpAddr := addrs[0], addrs[1]
+	// pre-upgrade agent: never had a last action height
+	suite.Require().NoError(suite.App.AgentKeeper.SetAgent(suite.Ctx, agenttypes.Agent{
+		Id:     "agent1",
+		Owner:  lpAddr.String(),
+		Active: true,
+	}))
+	lp := types.OnDemandLP{
+		FundsAddr:  lpAddr.String(),
+		Rollapp:    rollappPacket.RollappId,
+		Denom:      sdk.DefaultBondDenom,
+		MaxPrice:   math.NewInt(100),
+		MinFee:     math.LegacyZeroDec(),
+		SpendLimit: math.NewInt(1000),
+		AgentId:    "agent1",
+	}
+	boundID, err := k.LPs.Create(suite.Ctx, &lp)
+	suite.Require().NoError(err)
+	unbound := lp
+	unbound.AgentId = ""
+	unboundID, err := k.LPs.Create(suite.Ctx, &unbound)
+	suite.Require().NoError(err)
+
+	compatIDs := func(id string) []uint64 {
+		o, err := k.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, id)
+		suite.Require().NoError(err)
+		compat, err := k.LPs.GetOrderCompatibleLPs(suite.Ctx, *o)
+		suite.Require().NoError(err)
+		var ids []uint64
+		for _, c := range compat {
+			ids = append(ids, c.Id)
+		}
+		return ids
+	}
+
+	suite.Require().NoError(agentkeeper.NewMigrator(*suite.App.AgentKeeper).Migrate3to4(suite.Ctx))
+	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1_000)
+	id1 := suite.orderWithSeq(1, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	// window 0: an agent idle for any number of blocks still matches
+	suite.Require().ElementsMatch([]uint64{boundID, unboundID}, compatIDs(id1))
+
+	params, err := suite.App.AgentKeeper.GetParams(suite.Ctx)
+	suite.Require().NoError(err)
+	params.AgentLivenessWindowBlocks = 100
+	suite.Require().NoError(suite.App.AgentKeeper.SetParams(suite.Ctx, params))
+
+	// stale bound LP excluded and not chosen; the unbound LP is unaffected
+	suite.Require().Equal([]uint64{unboundID}, compatIDs(id1))
+	suite.Require().NoError(k.FulfillByOnDemandLP(suite.Ctx, id1, 0))
+	bound, err := k.LPs.Get(suite.Ctx, boundID)
+	suite.Require().NoError(err)
+	suite.Require().True(bound.Spent.IsZero())
+	// an attested heartbeat makes the bound LP match again
+	key := suite.App.GetKVStoreKeys()[agenttypes.StoreKey]
+	attesting := agentkeeper.NewKeeper(suite.App.AppCodec(), runtime.NewKVStoreService(key), acceptAllVerifier{}, suite.App.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	_, err = agentkeeper.NewMsgServerImpl(*attesting).SubmitAttestedAction(suite.Ctx, &agenttypes.MsgSubmitAttestedAction{
+		Submitter: lpAddr.String(),
+		AgentId:   "agent1",
+		Payload:   []byte("heartbeat"),
+		Token:     "token",
+	})
+	suite.Require().NoError(err)
+	id2 := suite.orderWithSeq(2, orderAddr.String(), math.NewInt(40), math.NewInt(10))
+	suite.Require().ElementsMatch([]uint64{boundID, unboundID}, compatIDs(id2))
 }
 
 // CreateOnDemandLP requires a referenced agent to exist, but not to be active.

@@ -38,4 +38,5 @@ type RollappKeeper interface {
 type AgentKeeper interface {
 	GetAgent(ctx sdk.Context, id string) (agenttypes.Agent, bool)
 	IsAgentLive(ctx sdk.Context, id string) bool
+	IsAgentFresh(ctx sdk.Context, id string) bool
 }

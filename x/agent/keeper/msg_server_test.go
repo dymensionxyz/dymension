@@ -150,6 +150,12 @@ func TestSubmitAttestedAction_Valid(t *testing.T) {
 
 	agent, _ := k.GetAgent(ctx, "agent1")
 	require.Equal(t, uint64(1), agent.ActionSeq)
+	require.Equal(t, int64(10), agent.LastActionHeight)
+
+	_, err = ms.SubmitAttestedAction(ctx.WithBlockHeight(25), validMsg(t, "agent1", payload, 1))
+	require.NoError(t, err)
+	agent, _ = k.GetAgent(ctx, "agent1")
+	require.Equal(t, int64(25), agent.LastActionHeight)
 }
 
 func TestSubmitAttestedAction_TamperedPayload(t *testing.T) {
