@@ -200,13 +200,14 @@ func (s LPs) GetOrderCompatibleLPs(ctx sdk.Context, o types.DemandOrder) ([]type
 	return compat, nil
 }
 
-// agentLive reports whether an LP bound to agentID may fulfill. Unbound LPs
-// (empty id) are always live.
+// agentLive reports whether an LP bound to agentID may fulfill: the agent must
+// be fresh (live and within the liveness window). Unbound LPs (empty id) are
+// always live.
 func (s LPs) agentLive(ctx sdk.Context, agentID string) bool {
 	if agentID == "" {
 		return true
 	}
-	return s.agents.IsAgentLive(ctx, agentID)
+	return s.agents.IsAgentFresh(ctx, agentID)
 }
 
 // NextID returns the current value of the LP id sequence.

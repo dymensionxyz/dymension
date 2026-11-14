@@ -60,6 +60,7 @@ func (k msgServer) appendAttested(ctx sdk.Context, agent *types.Agent, payload, 
 	}
 
 	agent.ActionSeq++
+	agent.LastActionHeight = ctx.BlockHeight()
 	if err := k.SetAgent(ctx, *agent); err != nil {
 		return errorsmod.Wrap(err, "set agent")
 	}

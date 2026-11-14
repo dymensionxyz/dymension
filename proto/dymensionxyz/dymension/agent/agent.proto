@@ -33,6 +33,10 @@ message Params {
   // validation_max_responses_per_request bounds responses stored for one
   // validation request. Zero means unlimited.
   uint64 validation_max_responses_per_request = 10;
+  // agent_liveness_window_blocks is how many blocks an agent may go without
+  // an attested action and still act (match eIBC orders, serve as a
+  // validator). Zero disables the requirement.
+  uint64 agent_liveness_window_blocks = 11;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action
@@ -72,6 +76,9 @@ message Agent {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   repeated string spend_recipient_allowlist = 13;
+  // last_action_height is the height of the agent's latest attested action,
+  // or its registration height if it has none. Drives the liveness window.
+  int64 last_action_height = 14;
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent

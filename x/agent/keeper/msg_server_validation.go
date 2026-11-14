@@ -34,7 +34,7 @@ func (k msgServer) RequestValidation(goCtx context.Context, msg *types.MsgReques
 	if !validator.Active {
 		return nil, errorsmod.Wrap(types.ErrValidatorInactive, msg.ValidatorId)
 	}
-	if !k.IsAgentLive(ctx, msg.ValidatorId) {
+	if !k.IsAgentFresh(ctx, msg.ValidatorId) {
 		return nil, errorsmod.Wrap(types.ErrValidatorInactive, msg.ValidatorId)
 	}
 	agent, found := k.GetAgent(ctx, msg.AgentId)
@@ -122,7 +122,7 @@ func (k msgServer) respondValidation(ctx sdk.Context, msg *types.MsgRespondValid
 	if !found || !validator.Active {
 		return nil, types.ErrValidatorInactive
 	}
-	if !k.IsAgentLive(ctx, req.ValidatorId) {
+	if !k.IsAgentFresh(ctx, req.ValidatorId) {
 		return nil, types.ErrValidatorInactive
 	}
 	agent, found := k.GetAgent(ctx, req.AgentId)

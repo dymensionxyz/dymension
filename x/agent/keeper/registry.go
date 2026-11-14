@@ -40,11 +40,12 @@ func (k msgServer) RegisterAgent(goCtx context.Context, msg *types.MsgRegisterAg
 	}
 
 	agent := types.Agent{
-		Id:        msg.AgentId,
-		Owner:     msg.Owner,
-		Policy:    msg.Policy,
-		Active:    true,
-		ActionSeq: 0,
+		Id:               msg.AgentId,
+		Owner:            msg.Owner,
+		Policy:           msg.Policy,
+		Active:           true,
+		ActionSeq:        0,
+		LastActionHeight: ctx.BlockHeight(),
 	}
 	if err := k.SetAgent(ctx, agent); err != nil {
 		return nil, err
