@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	stdmath "math"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -17,9 +18,10 @@ import (
 )
 
 const (
-	spendDenom  = "adym"
-	windowLimit = 1000
-	windowLen   = 10
+	spendDenom    = "adym"
+	windowLimit   = 1000
+	windowLen     = 10
+	deadlineSlack = 5
 )
 
 // EscrowTestSuite runs against the real app (bank keeper, module account) but
@@ -80,20 +82,27 @@ func (s *EscrowTestSuite) fundEscrow(id string, amt int64) {
 }
 
 // transferMsg builds a transfer whose token equals the nonce the handler
-// derives, so the fake verifier accepts it.
+// derives, so the fake verifier accepts it. Its deadline is a few blocks past
+// the current height, as an enclave observing the tip would sign it.
 func (s *EscrowTestSuite) transferMsg(id string, recipient sdk.AccAddress, amt int64, seq uint64) *types.MsgSubmitAttestedTransfer {
 	_, _, sub := testdata.KeyTestPubAddr()
-	amount := math.NewInt(amt)
-	memo := []byte("m")
-	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, amount, memo)
-	return &types.MsgSubmitAttestedTransfer{
-		Submitter: sub.String(),
-		AgentId:   id,
-		Recipient: recipient.String(),
-		Amount:    amount,
-		Memo:      memo,
-		Token:     types.TransferNonce(id, payload, seq),
+	msg := &types.MsgSubmitAttestedTransfer{
+		Submitter:      sub.String(),
+		AgentId:        id,
+		Recipient:      recipient.String(),
+		Amount:         math.NewInt(amt),
+		Memo:           []byte("m"),
+		DeadlineHeight: uint64(s.Ctx.BlockHeight()) + deadlineSlack, //nolint:gosec // test height is never negative
 	}
+	s.signTransfer(msg, seq)
+	return msg
+}
+
+// signTransfer re-mints msg's token over its current fields, as the enclave
+// would.
+func (s *EscrowTestSuite) signTransfer(msg *types.MsgSubmitAttestedTransfer, seq uint64) {
+	payload := types.AttestedTransferBytes(msg.Recipient, spendDenom, msg.Amount, msg.DeadlineHeight, msg.Memo)
+	msg.Token = types.TransferNonce(msg.AgentId, payload, seq)
 }
 
 func (s *EscrowTestSuite) moduleBalance() math.Int {
@@ -120,7 +129,7 @@ func (s *EscrowTestSuite) TestFundTransfer_HappyPath() {
 	// transfer is in the action log with the nonce-committed payload
 	entry, found := s.k.GetActionLogEntry(s.Ctx, "a1", 0)
 	s.Require().True(found)
-	s.Require().Equal(types.AttestedTransferBytes(recipient.String(), spendDenom, math.NewInt(200), []byte("m")), entry.Payload)
+	s.Require().Equal(types.AttestedTransferBytes(recipient.String(), spendDenom, math.NewInt(200), uint64(s.Ctx.BlockHeight())+deadlineSlack, []byte("m")), entry.Payload) //nolint:gosec // test height is never negative
 
 	agent, _ := s.k.GetAgent(s.Ctx, "a1")
 	s.Require().Equal(uint64(1), agent.ActionSeq)
@@ -222,7 +231,7 @@ func (s *EscrowTestSuite) TestCrossDomainReplayRejected() {
 
 	// observer copies a pending transfer's payload+token and submits it as an action
 	transfer := s.transferMsg("a1", recipient, 100, 0)
-	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, transfer.Amount, transfer.Memo)
+	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, transfer.Amount, transfer.DeadlineHeight, transfer.Memo)
 	_, err := s.msgServer.SubmitAttestedAction(s.Ctx, &types.MsgSubmitAttestedAction{
 		Submitter: transfer.Submitter,
 		AgentId:   "a1",
@@ -253,8 +262,7 @@ func (s *EscrowTestSuite) TestTransfer_PayloadTooLarge() {
 
 	msg := s.transferMsg("a1", recipient, 100, 0)
 	msg.Memo = make([]byte, params.MaxActionBytes) // payload = memo + transfer fields > max
-	payload := types.AttestedTransferBytes(recipient.String(), spendDenom, msg.Amount, msg.Memo)
-	msg.Token = types.TransferNonce("a1", payload, 0)
+	s.signTransfer(msg, 0)
 
 	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
 	s.Require().ErrorContains(err, "max action bytes")
@@ -446,6 +454,123 @@ func (s *EscrowTestSuite) TestMigrate2to3_DefaultsValidationResponseCap() {
 	params, err := s.k.GetParams(s.Ctx)
 	s.Require().NoError(err)
 	s.Require().Equal(uint64(8), params.ValidationMaxResponsesPerRequest)
+}
+
+func (s *EscrowTestSuite) TestMigrate3to4_DefaultsTransferDeadlineHorizon() {
+	params := types.DefaultParams()
+	params.MaxTransferDeadlineHorizonBlocks = 0
+	s.Require().NoError(s.k.SetParams(s.Ctx, params))
+
+	migrator := keeper.NewMigrator(*s.k)
+	s.Require().NoError(migrator.Migrate3to4(s.Ctx))
+
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(7200), params.MaxTransferDeadlineHorizonBlocks)
+}
+
+// requireNoTransferEffects asserts a rejected transfer left escrow, the spend
+// window and the action sequence untouched.
+func (s *EscrowTestSuite) requireNoTransferEffects(id string, escrow int64, recipient sdk.AccAddress) {
+	s.Require().Equal(math.NewInt(escrow), s.k.GetEscrowBalance(s.Ctx, id).AmountOf(spendDenom))
+	s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).IsZero())
+	agent, _ := s.k.GetAgent(s.Ctx, id)
+	s.Require().Equal(uint64(0), agent.ActionSeq)
+	s.Require().True(agent.SpendWindowSpent.IsZero())
+}
+
+func (s *EscrowTestSuite) TestTransfer_DeadlinePassed() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	// a validly signed token held past its deadline
+	msg := s.transferMsg("a1", recipient, 100, 0)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(msg.DeadlineHeight) + 1) //nolint:gosec // small test height
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().ErrorIs(err, types.ErrTransferDeadlinePassed)
+	s.requireNoTransferEffects("a1", 500, recipient)
+}
+
+func (s *EscrowTestSuite) TestTransfer_DeadlineAtCurrentHeightSettles() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	msg := s.transferMsg("a1", recipient, 100, 0)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(msg.DeadlineHeight)) //nolint:gosec // small test height
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(100), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+}
+
+func (s *EscrowTestSuite) TestTransfer_DeadlineHorizon() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	horizonEnd := uint64(s.Ctx.BlockHeight()) + params.MaxTransferDeadlineHorizonBlocks //nolint:gosec // test height is never negative
+
+	// one block past the horizon is rejected even though the enclave signed it
+	msg := s.transferMsg("a1", recipient, 100, 0)
+	msg.DeadlineHeight = horizonEnd + 1
+	s.signTransfer(msg, 0)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().ErrorIs(err, types.ErrTransferDeadlineTooFar)
+	s.requireNoTransferEffects("a1", 500, recipient)
+
+	// exactly at the horizon settles
+	msg.DeadlineHeight = horizonEnd
+	s.signTransfer(msg, 0)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().NoError(err)
+}
+
+// TestTransfer_MaxHorizonDoesNotOverflow pins that a MaxUint64 horizon, which
+// Params.Validate accepts, still lets in-window transfers settle at a positive
+// height while expired deadlines stay rejected.
+func (s *EscrowTestSuite) TestTransfer_MaxHorizonDoesNotOverflow() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	params.MaxTransferDeadlineHorizonBlocks = stdmath.MaxUint64
+	s.Require().NoError(s.k.SetParams(s.Ctx, params))
+	s.Ctx = s.Ctx.WithBlockHeight(100)
+
+	msg := s.transferMsg("a1", recipient, 100, 0)
+	msg.DeadlineHeight = 99
+	s.signTransfer(msg, 0)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().ErrorIs(err, types.ErrTransferDeadlinePassed)
+	s.requireNoTransferEffects("a1", 500, recipient)
+
+	msg.DeadlineHeight = 100
+	s.signTransfer(msg, 0)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(100), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
+}
+
+// TestTransfer_NonceBindsDeadline pins that the submitter cannot alter the
+// enclave-signed deadline: any other deadline_height re-derives a different
+// nonce.
+func (s *EscrowTestSuite) TestTransfer_NonceBindsDeadline() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+
+	for _, delta := range []int64{-1, 1} {
+		msg := s.transferMsg("a1", recipient, 100, 0)
+		msg.DeadlineHeight = uint64(int64(msg.DeadlineHeight) + delta) //nolint:gosec // small test height
+		_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+		s.Require().ErrorContains(err, "verify attestation")
+	}
+	s.requireNoTransferEffects("a1", 500, recipient)
 }
 
 func (s *EscrowTestSuite) TestTransfer_RecipientAllowlist() {

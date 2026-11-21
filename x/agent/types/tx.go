@@ -31,6 +31,9 @@ func (m *MsgSubmitAttestedTransfer) ValidateBasic() error {
 	if m.Amount.IsNil() || !m.Amount.IsPositive() {
 		return gerrc.ErrInvalidArgument.Wrap("amount must be positive")
 	}
+	if m.DeadlineHeight == 0 {
+		return gerrc.ErrInvalidArgument.Wrap("deadline height is required")
+	}
 	if m.Token == "" {
 		return gerrc.ErrInvalidArgument.Wrap("token is required")
 	}

@@ -105,6 +105,8 @@ func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdate
 	return msg, nil
 }
 
+const FlagDeadlineHeight = "deadline-height"
+
 func CmdSubmitAttestedTransfer() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit-attested-transfer [agent-id] [recipient] [amount] [memo] [token]",
@@ -116,7 +118,11 @@ func CmdSubmitAttestedTransfer() *cobra.Command {
 				return err
 			}
 
-			msg, err := newMsgSubmitAttestedTransfer(clientCtx.GetFromAddress().String(), args)
+			deadlineHeight, err := cmd.Flags().GetUint64(FlagDeadlineHeight)
+			if err != nil {
+				return err
+			}
+			msg, err := newMsgSubmitAttestedTransfer(clientCtx.GetFromAddress().String(), args, deadlineHeight)
 			if err != nil {
 				return err
 			}
@@ -124,21 +130,24 @@ func CmdSubmitAttestedTransfer() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().Uint64(FlagDeadlineHeight, 0, "Enclave-signed last block height at which the transfer may settle")
+	_ = cmd.MarkFlagRequired(FlagDeadlineHeight)
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
-func newMsgSubmitAttestedTransfer(submitter string, args []string) (*types.MsgSubmitAttestedTransfer, error) {
+func newMsgSubmitAttestedTransfer(submitter string, args []string, deadlineHeight uint64) (*types.MsgSubmitAttestedTransfer, error) {
 	amount, ok := math.NewIntFromString(args[2])
 	if !ok {
 		return nil, gerrc.ErrInvalidArgument.Wrap("amount")
 	}
 	return &types.MsgSubmitAttestedTransfer{
-		Submitter: submitter,
-		AgentId:   args[0],
-		Recipient: args[1],
-		Amount:    amount,
-		Memo:      []byte(args[3]),
-		Token:     args[4],
+		Submitter:      submitter,
+		AgentId:        args[0],
+		Recipient:      args[1],
+		Amount:         amount,
+		Memo:           []byte(args[3]),
+		Token:          args[4],
+		DeadlineHeight: deadlineHeight,
 	}, nil
 }

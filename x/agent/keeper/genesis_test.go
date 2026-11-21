@@ -35,6 +35,7 @@ func TestGenesis_EscrowAndWindowStateRoundTrip(t *testing.T) {
 	keeper.InitGenesis(ctx, k, g)
 
 	out := keeper.ExportGenesis(ctx, k)
+	require.Equal(t, g.Params, out.Params)
 	require.Equal(t, g.Agents, out.Agents)
 	require.Equal(t, g.Escrows, out.Escrows)
 

@@ -179,6 +179,9 @@ message MsgSubmitAttestedTransfer {
   ];
   bytes memo = 5;
   string token = 6;
+  // deadline_height is the last block height at which this transfer may
+  // settle. The enclave signs it, so the submitter cannot extend it.
+  uint64 deadline_height = 7;
 }
 
 message MsgSubmitAttestedTransferResponse { uint64 seq = 1; }
