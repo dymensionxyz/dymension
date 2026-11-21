@@ -157,6 +157,14 @@ message MsgUpdateAgentSpendPolicy {
   ];
   uint64 spend_window_blocks = 5;
   repeated string recipient_allowlist = 6;
+  // spend_limit_per_recipient_per_window caps what any single recipient may
+  // receive per rate window. Zero disables the cap; a positive value requires a
+  // non-empty recipient_allowlist and must not exceed spend_limit_per_window.
+  string spend_limit_per_recipient_per_window = 7 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }
 
 message MsgUpdateAgentSpendPolicyResponse {}

@@ -72,6 +72,31 @@ message Agent {
     (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   repeated string spend_recipient_allowlist = 13;
+  // spend_limit_per_recipient_per_window caps what any single allowlisted
+  // recipient may receive within one rate window. Zero disables the cap.
+  string spend_limit_per_recipient_per_window = 14 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+}
+
+// RecipientSpendWindow is the amount one recipient has received from an agent
+// in the rate window starting at window_start_height.
+message RecipientSpendWindow {
+  uint64 window_start_height = 1;
+  string spent = 2 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
+}
+
+// RecipientSpend is the genesis form of one per-recipient spend window record.
+message RecipientSpend {
+  string agent_id = 1;
+  string recipient = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  RecipientSpendWindow window = 3 [ (gogoproto.nullable) = false ];
 }
 
 // AgentEscrow is one agent's escrow ledger entry: funds held in the agent
@@ -158,6 +183,11 @@ message EventUpdateAgentSpendPolicy {
   ];
   uint64 spend_window_blocks = 4;
   repeated string recipient_allowlist = 5;
+  string spend_limit_per_recipient_per_window = 6 [
+    (gogoproto.nullable) = false,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
+  ];
 }
 
 // ActionLogEntry is an immutable record of one attested action, keyed by

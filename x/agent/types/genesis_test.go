@@ -24,6 +24,21 @@ func spendingAgent() types.Agent {
 	}
 }
 
+// capRecipients gives the genesis agent a per-recipient cap of 40 over the
+// given allowlist and a current window record for the first recipient.
+func capRecipients(g *types.GenesisState, recipients ...sdk.AccAddress) {
+	g.Agents[0].SpendRecipientAllowlist = nil
+	for _, r := range recipients {
+		g.Agents[0].SpendRecipientAllowlist = append(g.Agents[0].SpendRecipientAllowlist, r.String())
+	}
+	g.Agents[0].SpendLimitPerRecipientPerWindow = math.NewInt(40)
+	g.RecipientSpends = []types.RecipientSpend{{
+		AgentId:   "a1",
+		Recipient: recipients[0].String(),
+		Window:    types.RecipientSpendWindow{WindowStartHeight: 20, Spent: math.NewInt(40)},
+	}}
+}
+
 func TestGenesisValidate(t *testing.T) {
 	_, _, recipient := testdata.KeyTestPubAddr()
 	_, _, otherRecipient := testdata.KeyTestPubAddr()
@@ -39,6 +54,9 @@ func TestGenesisValidate(t *testing.T) {
 
 	require.NoError(t, valid().Validate())
 	require.NoError(t, types.DefaultGenesis().Validate())
+	capped := valid()
+	capRecipients(&capped, recipient)
+	require.NoError(t, capped.Validate())
 
 	tests := []struct {
 		name   string
@@ -73,6 +91,47 @@ func TestGenesisValidate(t *testing.T) {
 		{"empty escrow balance", func(g *types.GenesisState) { g.Escrows[0].Balance = sdk.NewCoins() }},
 		{"invalid escrow balance", func(g *types.GenesisState) {
 			g.Escrows[0].Balance = sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(-1)}}
+		}},
+		{"recipient cap without allowlist", func(g *types.GenesisState) {
+			g.Agents[0].SpendLimitPerRecipientPerWindow = math.NewInt(40)
+		}},
+		{"recipient cap above aggregate", func(g *types.GenesisState) {
+			g.Agents[0].SpendRecipientAllowlist = []string{recipient.String()}
+			g.Agents[0].SpendLimitPerRecipientPerWindow = math.NewInt(101)
+		}},
+		{"recipient spend for unknown agent", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.RecipientSpends[0].AgentId = "ghost"
+		}},
+		{"recipient spend without recipient cap", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.Agents[0].SpendLimitPerRecipientPerWindow = math.ZeroInt()
+		}},
+		{"recipient spend for non-allowlisted recipient", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.RecipientSpends[0].Recipient = otherRecipient.String()
+		}},
+		{"recipient spend invalid address", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.RecipientSpends[0].Recipient = "invalid"
+		}},
+		{"duplicate recipient spend across encodings", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			dup := g.RecipientSpends[0]
+			dup.Recipient = strings.ToUpper(recipient.String())
+			g.RecipientSpends = append(g.RecipientSpends, dup)
+		}},
+		{"recipient spend window not bucket-aligned", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.RecipientSpends[0].Window.WindowStartHeight = 15
+		}},
+		{"recipient spend above cap", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.RecipientSpends[0].Window.Spent = math.NewInt(41)
+		}},
+		{"negative recipient spend", func(g *types.GenesisState) {
+			capRecipients(g, recipient)
+			g.RecipientSpends[0].Window.Spent = math.NewInt(-1)
 		}},
 	}
 	for _, tc := range tests {

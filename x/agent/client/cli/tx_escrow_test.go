@@ -22,15 +22,36 @@ func TestUpdateAgentSpendPolicyCommand(t *testing.T) {
 		msg, err := newMsgUpdateAgentSpendPolicy(
 			"dym1owner",
 			[]string{"agent-1", "adym", "100", "10", first.String() + "," + second.String()},
+			"0",
 		)
 		require.NoError(t, err)
 		require.Equal(t, []string{first.String(), second.String()}, msg.RecipientAllowlist)
 	})
 
 	t.Run("empty recipient allowlist is explicit unrestricted policy", func(t *testing.T) {
-		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""})
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", ""}, "0")
 		require.NoError(t, err)
 		require.Empty(t, msg.RecipientAllowlist)
+	})
+
+	t.Run("per-recipient limit flag defaults to disabled", func(t *testing.T) {
+		cmd := CmdUpdateAgentSpendPolicy()
+		v, err := cmd.Flags().GetString("spend-limit-per-recipient-per-window")
+		require.NoError(t, err)
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", first.String()}, v)
+		require.NoError(t, err)
+		require.True(t, msg.SpendLimitPerRecipientPerWindow.IsZero())
+	})
+
+	t.Run("constructs per-recipient limit", func(t *testing.T) {
+		msg, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", first.String()}, "40")
+		require.NoError(t, err)
+		require.True(t, math.NewInt(40).Equal(msg.SpendLimitPerRecipientPerWindow))
+	})
+
+	t.Run("rejects invalid per-recipient limit", func(t *testing.T) {
+		_, err := newMsgUpdateAgentSpendPolicy("dym1owner", []string{"agent-1", "adym", "100", "10", first.String()}, "forty")
+		require.ErrorContains(t, err, "per recipient")
 	})
 }
 

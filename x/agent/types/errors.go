@@ -27,4 +27,6 @@ var (
 	ErrValidationFeePayment       = errorsmod.Register(ModuleName, 23, "validation request fee payment error")
 	ErrRecipientNotAllowed        = errorsmod.Register(ModuleName, 24, "transfer recipient not in agent spend allowlist")
 	ErrTooManyValidationResponses = errorsmod.Register(ModuleName, 25, "too many validation responses")
+	ErrRecipientBudgetExceeded    = errorsmod.Register(ModuleName, 26, "recipient spend budget exceeded for the current window")
+	ErrInvalidSpendPolicy         = errorsmod.Register(ModuleName, 27, "invalid spend policy")
 )

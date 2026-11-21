@@ -14,6 +14,7 @@ import (
 var invs = uinv.NamedFuncsList[Keeper]{
 	{Name: "escrow-solvency", Func: InvariantEscrowSolvency},
 	{Name: "validation-response-integrity", Func: InvariantValidationResponseIntegrity},
+	{Name: "recipient-spend-within-limit", Func: InvariantRecipientSpendWithinLimit},
 }
 
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
@@ -78,5 +79,26 @@ func InvariantEscrowSolvency(k Keeper) uinv.Func {
 			return fmt.Errorf("escrow ledger exceeds module account balance: ledger %s, module %s", total, moduleBalance)
 		}
 		return nil
+	})
+}
+
+// InvariantRecipientSpendWithinLimit checks that no recipient's window total
+// exceeds the agent's per-recipient cap, when one is set.
+func InvariantRecipientSpendWithinLimit(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		return k.recipientSpend.Walk(ctx, nil, func(key collections.Pair[string, []byte], rec types.RecipientSpendWindow) (bool, error) {
+			agent, found := k.GetAgent(ctx, key.K1())
+			if !found {
+				return true, fmt.Errorf("recipient spend for unknown agent: %s", key.K1())
+			}
+			limit := agent.SpendLimitPerRecipientPerWindow
+			if limit.IsNil() || limit.IsZero() {
+				return false, nil
+			}
+			if rec.Spent.IsNil() || rec.Spent.IsNegative() || rec.Spent.GT(limit) {
+				return true, fmt.Errorf("recipient spend out of bounds: agent %s recipient %s spent %s limit %s", key.K1(), sdk.AccAddress(key.K2()), rec.Spent, limit)
+			}
+			return false, nil
+		})
 	})
 }

@@ -137,21 +137,46 @@ func (k msgServer) UpdateAgentSpendPolicy(goCtx context.Context, msg *types.MsgU
 	agent.SpendLimitPerWindow = msg.SpendLimitPerWindow
 	agent.SpendWindowBlocks = msg.SpendWindowBlocks
 	agent.SpendRecipientAllowlist = msg.RecipientAllowlist
+	agent.SpendLimitPerRecipientPerWindow = msg.SpendLimitPerRecipientPerWindow
 	agent.SpendWindowStartHeight = 0
 	agent.SpendWindowSpent = math.ZeroInt()
 	if err := k.SetAgent(ctx, agent); err != nil {
 		return nil, errorsmod.Wrap(err, "set agent")
 	}
+	if err := k.clearRecipientSpend(ctx, msg.AgentId); err != nil {
+		return nil, errorsmod.Wrap(err, "clear recipient spend")
+	}
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventUpdateAgentSpendPolicy{
-		AgentId:             msg.AgentId,
-		SpendDenom:          msg.SpendDenom,
-		SpendLimitPerWindow: msg.SpendLimitPerWindow,
-		SpendWindowBlocks:   msg.SpendWindowBlocks,
-		RecipientAllowlist:  msg.RecipientAllowlist,
+		AgentId:                         msg.AgentId,
+		SpendDenom:                      msg.SpendDenom,
+		SpendLimitPerWindow:             msg.SpendLimitPerWindow,
+		SpendWindowBlocks:               msg.SpendWindowBlocks,
+		RecipientAllowlist:              msg.RecipientAllowlist,
+		SpendLimitPerRecipientPerWindow: msg.SpendLimitPerRecipientPerWindow,
 	}); err != nil {
 		return nil, err
 	}
 
 	return &types.MsgUpdateAgentSpendPolicyResponse{}, nil
+}
+
+// getRecipientSpend returns the recipient's spend window record; a missing
+// record is an empty window.
+func (k Keeper) getRecipientSpend(ctx sdk.Context, agentID string, recipient sdk.AccAddress) (types.RecipientSpendWindow, error) {
+	rec, err := k.recipientSpend.Get(ctx, collections.Join(agentID, []byte(recipient)))
+	if errors.Is(err, collections.ErrNotFound) {
+		return types.RecipientSpendWindow{}, nil
+	}
+	return rec, err
+}
+
+func (k Keeper) setRecipientSpend(ctx sdk.Context, agentID string, recipient sdk.AccAddress, rec types.RecipientSpendWindow) error {
+	return k.recipientSpend.Set(ctx, collections.Join(agentID, []byte(recipient)), rec)
+}
+
+// clearRecipientSpend drops all of the agent's per-recipient windows. The
+// records are bounded by the allowlist size, so this is bounded too.
+func (k Keeper) clearRecipientSpend(ctx sdk.Context, agentID string) error {
+	return k.recipientSpend.Clear(ctx, collections.NewPrefixedPairRange[string, []byte](agentID))
 }
