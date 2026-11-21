@@ -27,6 +27,11 @@ const DefaultValidationUriMaxBytes = 512
 // DefaultValidationMaxResponsesPerRequest bounds responses per validation request.
 const DefaultValidationMaxResponsesPerRequest = 8
 
+// DefaultMaxTransferDeadlineHorizonBlocks is ~12h at 6s blocks. It is only a
+// safety clamp against a buggy enclave signing an effectively unbounded
+// deadline; enclaves are expected to sign far tighter ones.
+const DefaultMaxTransferDeadlineHorizonBlocks = 7200
+
 func DefaultParams() Params {
 	return Params{
 		AgentRegistrationFee:             commontypes.DYMCoin,
@@ -39,6 +44,7 @@ func DefaultParams() Params {
 		ValidationUriMaxBytes:            DefaultValidationUriMaxBytes,
 		SpendRecipientAllowlistMax:       DefaultSpendRecipientAllowlistMax,
 		ValidationMaxResponsesPerRequest: DefaultValidationMaxResponsesPerRequest,
+		MaxTransferDeadlineHorizonBlocks: DefaultMaxTransferDeadlineHorizonBlocks,
 	}
 }
 
@@ -69,6 +75,9 @@ func (p Params) Validate() error {
 	}
 	if p.ValidationUriMaxBytes == 0 {
 		return fmt.Errorf("validation uri max bytes must be positive")
+	}
+	if p.MaxTransferDeadlineHorizonBlocks == 0 {
+		return fmt.Errorf("max transfer deadline horizon blocks must be positive")
 	}
 	return nil
 }

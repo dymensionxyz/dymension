@@ -33,6 +33,9 @@ message Params {
   // validation_max_responses_per_request bounds responses stored for one
   // validation request. Zero means unlimited.
   uint64 validation_max_responses_per_request = 10;
+  // max_transfer_deadline_horizon_blocks bounds how far past the current
+  // height an attested transfer's deadline_height may be.
+  uint64 max_transfer_deadline_horizon_blocks = 11;
 }
 
 // Agent is a registered agent whose actions are attested by a TEE. Its action
@@ -123,6 +126,7 @@ message EventAttestedTransfer {
   string recipient = 3;
   cosmos.base.v1beta1.Coin amount = 4 [ (gogoproto.nullable) = false ];
   string submitter = 5;
+  uint64 deadline_height = 6;
 }
 
 // EventFundAgentEscrow is emitted when an agent's escrow is funded.

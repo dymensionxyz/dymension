@@ -120,8 +120,8 @@ func (k msgServer) SubmitAttestedAction(goCtx context.Context, msg *types.MsgSub
 // SubmitAttestedTransfer pays out from the agent's escrow to a recipient,
 // authorized by the same TEE attestation + nonce machinery as
 // SubmitAttestedAction. The nonce commits to the exact (recipient, denom,
-// amount, memo) in the transfer domain, so the enclave — not the submitter —
-// authorizes the payment.
+// amount, deadline, memo) in the transfer domain, so the enclave — not the
+// submitter — authorizes the payment and fixes how late it may settle.
 func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgSubmitAttestedTransfer) (*types.MsgSubmitAttestedTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -145,8 +145,18 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		return nil, errorsmod.Wrap(types.ErrRecipientNotAllowed, msg.Recipient)
 	}
 
+	// Without a deadline, a submitter holding a signed token could settle it
+	// at any later height while action_seq stays put.
+	height := uint64(ctx.BlockHeight()) //nolint:gosec // block height is never negative
+	if msg.DeadlineHeight < height {
+		return nil, errorsmod.Wrapf(types.ErrTransferDeadlinePassed, "deadline %d, height %d", msg.DeadlineHeight, height)
+	}
+	if msg.DeadlineHeight > height+params.MaxTransferDeadlineHorizonBlocks {
+		return nil, errorsmod.Wrapf(types.ErrTransferDeadlineTooFar, "deadline %d, height %d, max horizon %d", msg.DeadlineHeight, height, params.MaxTransferDeadlineHorizonBlocks)
+	}
+
 	seq := agent.ActionSeq
-	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.Memo)
+	payload := types.AttestedTransferBytes(msg.Recipient, agent.SpendDenom, msg.Amount, msg.DeadlineHeight, msg.Memo)
 	// bound the stored log entry, not just the memo: the payload is what the
 	// log persists
 	if uint64(len(payload)) > params.MaxActionBytes {
@@ -161,7 +171,6 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 		return nil, errorsmod.Wrap(err, "verify attestation")
 	}
 
-	height := uint64(ctx.BlockHeight()) //nolint:gosec // block height is never negative
 	if !agent.SpendAllows(height, msg.Amount) {
 		return nil, errorsmod.Wrapf(types.ErrSpendBudgetExceeded, "amount %s, remaining %s", msg.Amount, agent.RemainingWindowBudget(height))
 	}
@@ -186,11 +195,12 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	}
 
 	if err := uevent.EmitTypedEvent(ctx, &types.EventAttestedTransfer{
-		AgentId:   msg.AgentId,
-		Seq:       seq,
-		Recipient: msg.Recipient,
-		Amount:    sdk.NewCoin(agent.SpendDenom, msg.Amount),
-		Submitter: msg.Submitter,
+		AgentId:        msg.AgentId,
+		Seq:            seq,
+		Recipient:      msg.Recipient,
+		Amount:         sdk.NewCoin(agent.SpendDenom, msg.Amount),
+		Submitter:      msg.Submitter,
+		DeadlineHeight: msg.DeadlineHeight,
 	}); err != nil {
 		return nil, err
 	}

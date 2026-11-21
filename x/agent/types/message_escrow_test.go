@@ -39,3 +39,14 @@ func TestMsgUpdateAgentSpendPolicyValidateBasic_RecipientAllowlist(t *testing.T)
 		})
 	}
 }
+
+func TestMsgSubmitAttestedTransferValidateBasic_DeadlineRequired(t *testing.T) {
+	_, _, addr := testdata.KeyTestPubAddr()
+	msg := types.MsgSubmitAttestedTransfer{
+		Submitter: addr.String(), AgentId: "a1", Recipient: addr.String(),
+		Amount: math.NewInt(1), Token: "t", DeadlineHeight: 1,
+	}
+	require.NoError(t, msg.ValidateBasic())
+	msg.DeadlineHeight = 0
+	require.Error(t, msg.ValidateBasic())
+}

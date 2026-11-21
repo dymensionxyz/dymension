@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,12 +43,14 @@ func TestSubmitAttestedTransferCommand(t *testing.T) {
 		require.NoError(t, cmd.Args(cmd, []string{"agent-1", "dym1recipient", "42", "invoice-7", "token"}))
 		require.Error(t, cmd.Args(cmd, []string{"agent-1", "dym1recipient", "42", "invoice-7"}))
 		require.Error(t, cmd.Args(cmd, []string{"agent-1", "dym1recipient", "42", "invoice-7", "token", "extra"}))
+		require.Equal(t, []string{"true"}, cmd.Flag(FlagDeadlineHeight).Annotations[cobra.BashCompOneRequiredFlag])
 	})
 
 	t.Run("constructs message from arguments", func(t *testing.T) {
 		msg, err := newMsgSubmitAttestedTransfer(
 			"dym1submitter",
 			[]string{"agent-1", "dym1recipient", "42", "invoice-7", "attestation-token"},
+			99,
 		)
 		require.NoError(t, err)
 		require.Equal(t, "dym1submitter", msg.Submitter)
@@ -56,12 +59,14 @@ func TestSubmitAttestedTransferCommand(t *testing.T) {
 		require.True(t, math.NewInt(42).Equal(msg.Amount))
 		require.Equal(t, []byte("invoice-7"), msg.Memo)
 		require.Equal(t, "attestation-token", msg.Token)
+		require.Equal(t, uint64(99), msg.DeadlineHeight)
 	})
 
 	t.Run("rejects invalid amount", func(t *testing.T) {
 		_, err := newMsgSubmitAttestedTransfer(
 			"dym1submitter",
 			[]string{"agent-1", "dym1recipient", "not-an-integer", "memo", "token"},
+			99,
 		)
 		require.ErrorContains(t, err, "amount")
 	})

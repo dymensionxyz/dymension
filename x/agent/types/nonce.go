@@ -58,18 +58,20 @@ func attestNonce(domain byte, agentID string, payload []byte, actionSeq uint64) 
 }
 
 // AttestedTransferBytes is the canonical payload an attested transfer's nonce
-// commits to, so the enclave attests to this exact recipient, denom and
-// amount rather than an opaque blob. Fields are NUL-separated: 0x00 cannot
-// appear in a bech32 address, a denom or a decimal string, so the encoding is
-// unambiguous and deterministic.
-func AttestedTransferBytes(recipient, spendDenom string, amount math.Int, memo []byte) []byte {
-	buf := make([]byte, 0, len(recipient)+len(spendDenom)+len(memo)+24)
+// commits to, so the enclave attests to this exact recipient, denom, amount
+// and deadline rather than an opaque blob. The string fields are
+// NUL-separated: 0x00 cannot appear in a bech32 address, a denom or a decimal
+// string. The deadline is fixed-width and sits before the terminal memo, so
+// the encoding stays unambiguous even though the memo may hold any bytes.
+func AttestedTransferBytes(recipient, spendDenom string, amount math.Int, deadlineHeight uint64, memo []byte) []byte {
+	buf := make([]byte, 0, len(recipient)+len(spendDenom)+len(memo)+32)
 	buf = append(buf, recipient...)
 	buf = append(buf, 0x00)
 	buf = append(buf, spendDenom...)
 	buf = append(buf, 0x00)
 	buf = append(buf, amount.String()...)
 	buf = append(buf, 0x00)
+	buf = binary.BigEndian.AppendUint64(buf, deadlineHeight)
 	buf = append(buf, memo...)
 	return buf
 }
