@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	stdmath "math"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -526,6 +527,33 @@ func (s *EscrowTestSuite) TestTransfer_DeadlineHorizon() {
 	s.signTransfer(msg, 0)
 	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
 	s.Require().NoError(err)
+}
+
+// TestTransfer_MaxHorizonDoesNotOverflow pins that a MaxUint64 horizon, which
+// Params.Validate accepts, still lets in-window transfers settle at a positive
+// height while expired deadlines stay rejected.
+func (s *EscrowTestSuite) TestTransfer_MaxHorizonDoesNotOverflow() {
+	s.spendingAgent("a1")
+	s.fundEscrow("a1", 500)
+	_, _, recipient := testdata.KeyTestPubAddr()
+	params, err := s.k.GetParams(s.Ctx)
+	s.Require().NoError(err)
+	params.MaxTransferDeadlineHorizonBlocks = stdmath.MaxUint64
+	s.Require().NoError(s.k.SetParams(s.Ctx, params))
+	s.Ctx = s.Ctx.WithBlockHeight(100)
+
+	msg := s.transferMsg("a1", recipient, 100, 0)
+	msg.DeadlineHeight = 99
+	s.signTransfer(msg, 0)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().ErrorIs(err, types.ErrTransferDeadlinePassed)
+	s.requireNoTransferEffects("a1", 500, recipient)
+
+	msg.DeadlineHeight = 100
+	s.signTransfer(msg, 0)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(100), s.App.BankKeeper.GetBalance(s.Ctx, recipient, spendDenom).Amount)
 }
 
 // TestTransfer_NonceBindsDeadline pins that the submitter cannot alter the

@@ -151,7 +151,8 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if msg.DeadlineHeight < height {
 		return nil, errorsmod.Wrapf(types.ErrTransferDeadlinePassed, "deadline %d, height %d", msg.DeadlineHeight, height)
 	}
-	if msg.DeadlineHeight > height+params.MaxTransferDeadlineHorizonBlocks {
+	// subtract rather than add: height+horizon can overflow for a large horizon
+	if msg.DeadlineHeight-height > params.MaxTransferDeadlineHorizonBlocks {
 		return nil, errorsmod.Wrapf(types.ErrTransferDeadlineTooFar, "deadline %d, height %d, max horizon %d", msg.DeadlineHeight, height, params.MaxTransferDeadlineHorizonBlocks)
 	}
 
