@@ -3,6 +3,8 @@ package dymensionxyz.dymension.agent;
 
 import public "dymensionxyz/dymension/agent/agent.proto";
 import "dymensionxyz/dymension/agent/validation.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/agent/types";
 
@@ -11,6 +13,19 @@ message EventRequestValidation {
   string validator_id = 2;
   string agent_id = 3;
   uint64 evidence_seq = 4;
+  cosmos.base.v1beta1.Coin bounty = 5 [ (gogoproto.nullable) = false ];
+}
+
+message EventClaimValidationBounty {
+  bytes request_hash = 1;
+  string validator_id = 2;
+  cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.nullable) = false ];
+}
+
+message EventReclaimValidationBounty {
+  bytes request_hash = 1;
+  string requester = 2;
+  cosmos.base.v1beta1.Coin bounty = 3 [ (gogoproto.nullable) = false ];
 }
 
 message EventRespondValidation {
