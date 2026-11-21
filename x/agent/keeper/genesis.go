@@ -60,6 +60,11 @@ func InitGenesis(ctx sdk.Context, k *Keeper, g types.GenesisState) {
 			panic(err)
 		}
 	}
+	for _, r := range g.RecipientSpends {
+		if err := k.setRecipientSpend(ctx, r.AgentId, sdk.MustAccAddressFromBech32(r.Recipient), r.Window); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
@@ -117,6 +122,32 @@ func ExportGenesis(ctx sdk.Context, k *Keeper) *types.GenesisState {
 	}); err != nil {
 		panic(err)
 	}
+	recipientSpends, err := k.currentRecipientSpends(ctx)
+	if err != nil {
+		panic(err)
+	}
+	g.RecipientSpends = recipientSpends
 
 	return &g
+}
+
+// currentRecipientSpends returns the per-recipient windows that still count
+// at the current height. Records from earlier windows are dead state, so they
+// are dropped rather than exported.
+func (k *Keeper) currentRecipientSpends(ctx sdk.Context) ([]types.RecipientSpend, error) {
+	height := uint64(ctx.BlockHeight()) //nolint:gosec // block height is never negative
+	var spends []types.RecipientSpend
+	err := k.recipientSpend.Walk(ctx, nil, func(key collections.Pair[string, []byte], rec types.RecipientSpendWindow) (bool, error) {
+		agent, found := k.GetAgent(ctx, key.K1())
+		if !found || !agent.RecipientSpendEnforced() || rec.WindowStartHeight != agent.SpendBucket(height) {
+			return false, nil
+		}
+		spends = append(spends, types.RecipientSpend{
+			AgentId:   key.K1(),
+			Recipient: sdk.AccAddress(key.K2()).String(),
+			Window:    rec,
+		})
+		return false, nil
+	})
+	return spends, err
 }

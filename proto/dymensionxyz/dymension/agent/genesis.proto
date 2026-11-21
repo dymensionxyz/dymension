@@ -22,4 +22,6 @@ message GenesisState {
       [ (gogoproto.nullable) = false ];
   repeated ValidationResponse validation_responses = 8
       [ (gogoproto.nullable) = false ];
+  // recipient_spends holds per-recipient spend windows that are still current.
+  repeated RecipientSpend recipient_spends = 9 [ (gogoproto.nullable) = false ];
 }

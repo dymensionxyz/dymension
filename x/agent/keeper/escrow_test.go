@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -521,4 +522,166 @@ func (s *EscrowTestSuite) TestEscrowBalanceQuery() {
 	res, err = s.k.EscrowBalance(s.Ctx, &types.QueryEscrowBalanceRequest{AgentId: "a1"})
 	s.Require().NoError(err)
 	s.Require().Equal(math.NewInt(windowLimit), res.RemainingWindowBudget)
+}
+
+// cappedAgent registers a funded agent whose allowlist is recipients and whose
+// per-recipient window cap is perRecipient.
+func (s *EscrowTestSuite) cappedAgent(id string, perRecipient int64, recipients ...sdk.AccAddress) sdk.AccAddress {
+	owner := s.registerAgent(id)
+	s.Require().NoError(s.updateCappedPolicy(owner, id, perRecipient, recipients...))
+	s.fundEscrow(id, 10*windowLimit)
+	return owner
+}
+
+func (s *EscrowTestSuite) updateCappedPolicy(owner sdk.AccAddress, id string, perRecipient int64, recipients ...sdk.AccAddress) error {
+	msg := types.NewMsgUpdateAgentSpendPolicy(owner.String(), id, spendDenom, math.NewInt(windowLimit), windowLen)
+	msg.SpendLimitPerRecipientPerWindow = math.NewInt(perRecipient)
+	for _, r := range recipients {
+		msg.RecipientAllowlist = append(msg.RecipientAllowlist, r.String())
+	}
+	_, err := s.msgServer.UpdateAgentSpendPolicy(s.Ctx, msg)
+	return err
+}
+
+func (s *EscrowTestSuite) balance(addr sdk.AccAddress) math.Int {
+	return s.App.BankKeeper.GetBalance(s.Ctx, addr, spendDenom).Amount
+}
+
+func (s *EscrowTestSuite) TestTransfer_RecipientCapIsolatesRecipients() {
+	_, _, capped := testdata.KeyTestPubAddr()
+	_, _, other := testdata.KeyTestPubAddr()
+	s.cappedAgent("a1", 400, capped, other)
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", capped, 300, 0))
+	s.Require().NoError(err)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", capped, 100, 1))
+	s.Require().NoError(err)
+
+	// the aggregate budget (600 left) would allow it; the recipient cap does not
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().True(agent.SpendAllows(uint64(s.Ctx.BlockHeight()), math.NewInt(1)))
+	escrowBefore := s.k.GetEscrowBalance(s.Ctx, "a1")
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", capped, 1, 2))
+	s.Require().ErrorIs(err, types.ErrRecipientBudgetExceeded)
+	s.Require().Equal(math.NewInt(400), s.balance(capped))
+	s.Require().Equal(escrowBefore, s.k.GetEscrowBalance(s.Ctx, "a1"))
+	agent, _ = s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(uint64(2), agent.ActionSeq)
+	s.Require().Equal(math.NewInt(400), agent.SpendWindowSpent)
+
+	// another allowlisted recipient still has its full share
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", other, 400, 2))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(400), s.balance(other))
+}
+
+func (s *EscrowTestSuite) TestTransfer_RecipientCapSharedAcrossAddressEncodings() {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	s.cappedAgent("a1", 400, recipient)
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 400, 0))
+	s.Require().NoError(err)
+
+	upper := strings.ToUpper(recipient.String())
+	msg := s.transferMsg("a1", recipient, 1, 1)
+	msg.Recipient = upper
+	msg.Token = types.TransferNonce("a1", types.AttestedTransferBytes(upper, spendDenom, math.NewInt(1), msg.Memo), 1)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, msg)
+	s.Require().ErrorIs(err, types.ErrRecipientBudgetExceeded)
+}
+
+func (s *EscrowTestSuite) TestTransfer_RecipientCapDoesNotReplaceAggregateBudget() {
+	_, _, first := testdata.KeyTestPubAddr()
+	_, _, second := testdata.KeyTestPubAddr()
+	s.cappedAgent("a1", 600, first, second)
+
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", first, 600, 0))
+	s.Require().NoError(err)
+	// second is within its own cap (500 <= 600) but only 400 aggregate remains
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", second, 500, 1))
+	s.Require().ErrorIs(err, types.ErrSpendBudgetExceeded)
+	s.Require().True(s.balance(second).IsZero())
+}
+
+func (s *EscrowTestSuite) TestTransfer_RecipientCapResetsWithSpendBucket() {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	s.cappedAgent("a1", 400, recipient)
+
+	s.Ctx = s.Ctx.WithBlockHeight(15)
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 400, 0))
+	s.Require().NoError(err)
+
+	// same bucket (heights 10..19): still capped
+	s.Ctx = s.Ctx.WithBlockHeight(19)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 1, 1))
+	s.Require().ErrorIs(err, types.ErrRecipientBudgetExceeded)
+
+	// bucket B+window: the full per-recipient limit is available again
+	s.Ctx = s.Ctx.WithBlockHeight(25)
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 400, 1))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(800), s.balance(recipient))
+}
+
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_RecipientCapValidation() {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	owner := s.registerAgent("a1")
+
+	err := s.updateCappedPolicy(owner, "a1", 400)
+	s.Require().ErrorIs(err, types.ErrInvalidSpendPolicy, "cap without allowlist")
+	err = s.updateCappedPolicy(owner, "a1", windowLimit+1, recipient)
+	s.Require().ErrorIs(err, types.ErrInvalidSpendPolicy, "cap above aggregate limit")
+	err = s.updateCappedPolicy(owner, "a1", -1, recipient)
+	s.Require().ErrorIs(err, types.ErrInvalidSpendPolicy, "negative cap")
+
+	s.Require().NoError(s.updateCappedPolicy(owner, "a1", windowLimit, recipient))
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	s.Require().Equal(math.NewInt(windowLimit), agent.SpendLimitPerRecipientPerWindow)
+}
+
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_DisablingRecipientCapStopsEnforcement() {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	owner := s.cappedAgent("a1", 400, recipient)
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 400, 0))
+	s.Require().NoError(err)
+
+	s.Require().NoError(s.updateCappedPolicy(owner, "a1", 0, recipient))
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, windowLimit, 1))
+	s.Require().NoError(err)
+	s.Require().Equal(math.NewInt(400+windowLimit), s.balance(recipient))
+	s.Require().Empty(keeper.ExportGenesis(s.Ctx, s.k).RecipientSpends)
+}
+
+func (s *EscrowTestSuite) TestUpdateSpendPolicy_RemovingRecipientDropsItsWindow() {
+	_, _, removed := testdata.KeyTestPubAddr()
+	_, _, kept := testdata.KeyTestPubAddr()
+	owner := s.cappedAgent("a1", 400, removed, kept)
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", removed, 400, 0))
+	s.Require().NoError(err)
+
+	s.Require().NoError(s.updateCappedPolicy(owner, "a1", 400, kept))
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", removed, 1, 1))
+	s.Require().ErrorIs(err, types.ErrRecipientNotAllowed)
+	s.Require().Empty(keeper.ExportGenesis(s.Ctx, s.k).RecipientSpends)
+
+	// re-adding the recipient starts it on a fresh window, like the aggregate
+	s.Require().NoError(s.updateCappedPolicy(owner, "a1", 400, removed, kept))
+	_, err = s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", removed, 400, 1))
+	s.Require().NoError(err)
+}
+
+func (s *EscrowTestSuite) TestRecipientSpendInvariant() {
+	inv := keeper.InvariantRecipientSpendWithinLimit(*s.k)
+	_, _, recipient := testdata.KeyTestPubAddr()
+	s.cappedAgent("a1", 400, recipient)
+	_, err := s.msgServer.SubmitAttestedTransfer(s.Ctx, s.transferMsg("a1", recipient, 400, 0))
+	s.Require().NoError(err)
+	msg, broken := keeper.AllInvariants(*s.k)(s.Ctx)
+	s.Require().False(broken, msg)
+
+	// a cap below a recorded total is a state the runtime never writes
+	agent, _ := s.k.GetAgent(s.Ctx, "a1")
+	agent.SpendLimitPerRecipientPerWindow = math.NewInt(399)
+	s.Require().NoError(s.k.SetAgent(s.Ctx, agent))
+	s.Require().Error(inv(s.Ctx))
 }

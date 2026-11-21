@@ -34,6 +34,9 @@ type Keeper struct {
 	validationRequests  collections.Map[[]byte, types.ValidationRequest]
 	validationResponses collections.Map[collections.Pair[[]byte, uint64], types.ValidationResponse]
 	validationByAgent   collections.KeySet[collections.Pair[string, []byte]]
+	// recipientSpend is keyed by (agent id, recipient address bytes) so every
+	// encoding of one address shares a bucket.
+	recipientSpend collections.Map[collections.Pair[string, []byte], types.RecipientSpendWindow]
 }
 
 func NewKeeper(
@@ -72,6 +75,9 @@ func NewKeeper(
 		validationRequests:  collections.NewMap(sb, collections.NewPrefix(types.KeyValidationRequests), "validation_requests", collections.BytesKey, collcompat.ProtoValue[types.ValidationRequest](cdc)),
 		validationResponses: collections.NewMap(sb, collections.NewPrefix(types.KeyValidationResponses), "validation_responses", collections.PairKeyCodec(collections.BytesKey, collections.Uint64Key), collcompat.ProtoValue[types.ValidationResponse](cdc)),
 		validationByAgent:   collections.NewKeySet(sb, collections.NewPrefix(types.KeyValidationByAgent), "validation_by_agent", collections.PairKeyCodec(collections.StringKey, collections.BytesKey)),
+		recipientSpend: collections.NewMap(sb, collections.NewPrefix(types.KeyRecipientSpend),
+			"recipient_spend", collections.PairKeyCodec(collections.StringKey, collections.BytesKey),
+			collcompat.ProtoValue[types.RecipientSpendWindow](cdc)),
 	}
 
 	if _, err := sb.Build(); err != nil {

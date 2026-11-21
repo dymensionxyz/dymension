@@ -57,3 +57,40 @@ func TestAgentSpendDisabled(t *testing.T) {
 	require.Equal(t, math.ZeroInt(), a.RemainingWindowBudget(100))
 	require.False(t, a.SpendAllows(100, math.NewInt(1)))
 }
+
+// TestAgentRecipientSpendWindow checks the per-recipient window shares the
+// aggregate's SpendBucket alignment and resets on rollover.
+func TestAgentRecipientSpendWindow(t *testing.T) {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	a := types.Agent{
+		SpendDenom:                      "adym",
+		SpendLimitPerWindow:             math.NewInt(100),
+		SpendWindowBlocks:               10,
+		SpendRecipientAllowlist:         []string{recipient.String()},
+		SpendLimitPerRecipientPerWindow: math.NewInt(40),
+	}
+	require.True(t, a.RecipientSpendEnforced())
+
+	// a missing record is an empty window
+	var rec types.RecipientSpendWindow
+	require.True(t, a.RecipientSpendAllows(rec, 15, math.NewInt(40)))
+	require.False(t, a.RecipientSpendAllows(rec, 15, math.NewInt(41)))
+
+	rec = a.RecordRecipientSpend(rec, 15, math.NewInt(30))
+	require.Equal(t, a.SpendBucket(15), rec.WindowStartHeight)
+	require.True(t, a.RecipientSpendAllows(rec, 19, math.NewInt(10)))
+	require.False(t, a.RecipientSpendAllows(rec, 19, math.NewInt(11)))
+
+	// the next bucket ignores the stale total and overwrites it on write
+	require.True(t, a.RecipientSpendAllows(rec, 20, math.NewInt(40)))
+	rec = a.RecordRecipientSpend(rec, 20, math.NewInt(5))
+	require.Equal(t, uint64(20), rec.WindowStartHeight)
+	require.Equal(t, math.NewInt(5), rec.Spent)
+}
+
+func TestAgentRecipientSpendEnforced(t *testing.T) {
+	_, _, recipient := testdata.KeyTestPubAddr()
+	require.False(t, (types.Agent{}).RecipientSpendEnforced())
+	require.False(t, (types.Agent{SpendLimitPerRecipientPerWindow: math.ZeroInt(), SpendRecipientAllowlist: []string{recipient.String()}}).RecipientSpendEnforced())
+	require.False(t, (types.Agent{SpendLimitPerRecipientPerWindow: math.NewInt(1)}).RecipientSpendEnforced())
+}

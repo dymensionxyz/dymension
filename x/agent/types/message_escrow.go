@@ -82,7 +82,30 @@ func (m *MsgUpdateAgentSpendPolicy) ValidateBasic() error {
 		}
 		recipients[key] = struct{}{}
 	}
-	return ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks)
+	if err := ValidateSpendPolicy(m.SpendDenom, m.SpendLimitPerWindow, m.SpendWindowBlocks); err != nil {
+		return err
+	}
+	return ValidateRecipientSpendLimit(m.SpendLimitPerWindow, m.SpendLimitPerRecipientPerWindow, len(m.RecipientAllowlist))
+}
+
+// ValidateRecipientSpendLimit checks the optional per-recipient window cap.
+// It requires an allowlist because per-recipient state is only bounded by the
+// allowlist size, and it may not exceed the aggregate cap, above which it
+// would never bind. Call after ValidateSpendPolicy.
+func ValidateRecipientSpendLimit(spendLimitPerWindow, perRecipient math.Int, allowlistLen int) error {
+	if perRecipient.IsNil() || perRecipient.IsZero() {
+		return nil
+	}
+	if perRecipient.IsNegative() {
+		return errorsmod.Wrap(ErrInvalidSpendPolicy, "negative spend limit per recipient per window")
+	}
+	if allowlistLen == 0 {
+		return errorsmod.Wrap(ErrInvalidSpendPolicy, "spend limit per recipient per window requires a recipient allowlist")
+	}
+	if spendLimitPerWindow.IsNil() || perRecipient.GT(spendLimitPerWindow) {
+		return errorsmod.Wrap(ErrInvalidSpendPolicy, "spend limit per recipient per window exceeds spend limit per window")
+	}
+	return nil
 }
 
 // ValidateSpendPolicy checks the spend-policy invariant shared by

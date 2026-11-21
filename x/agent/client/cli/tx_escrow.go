@@ -65,6 +65,8 @@ func CmdWithdrawAgentEscrow() *cobra.Command {
 	return cmd
 }
 
+const flagSpendLimitPerRecipientPerWindow = "spend-limit-per-recipient-per-window"
+
 func CmdUpdateAgentSpendPolicy() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-spend-policy [agent-id] [spend-denom] [spend-limit-per-window] [spend-window-blocks] [recipient-allowlist]",
@@ -77,7 +79,11 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 				return err
 			}
 
-			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args)
+			perRecipient, err := cmd.Flags().GetString(flagSpendLimitPerRecipientPerWindow)
+			if err != nil {
+				return err
+			}
+			msg, err := newMsgUpdateAgentSpendPolicy(clientCtx.GetFromAddress().String(), args, perRecipient)
 			if err != nil {
 				return err
 			}
@@ -85,20 +91,26 @@ func CmdUpdateAgentSpendPolicy() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(flagSpendLimitPerRecipientPerWindow, "0", "max any single recipient may receive per window; 0 disables, a positive value requires a recipient allowlist")
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
-func newMsgUpdateAgentSpendPolicy(owner string, args []string) (*types.MsgUpdateAgentSpendPolicy, error) {
+func newMsgUpdateAgentSpendPolicy(owner string, args []string, perRecipient string) (*types.MsgUpdateAgentSpendPolicy, error) {
 	limit, ok := math.NewIntFromString(args[2])
 	if !ok {
 		return nil, gerrc.ErrInvalidArgument.Wrap("spend limit per window")
+	}
+	limitPerRecipient, ok := math.NewIntFromString(perRecipient)
+	if !ok {
+		return nil, gerrc.ErrInvalidArgument.Wrap("spend limit per recipient per window")
 	}
 	windowBlocks, err := strconv.ParseUint(args[3], 10, 64)
 	if err != nil {
 		return nil, err
 	}
 	msg := types.NewMsgUpdateAgentSpendPolicy(owner, args[0], args[1], limit, windowBlocks)
+	msg.SpendLimitPerRecipientPerWindow = limitPerRecipient
 	if args[4] != "" {
 		msg.RecipientAllowlist = strings.Split(args[4], ",")
 	}

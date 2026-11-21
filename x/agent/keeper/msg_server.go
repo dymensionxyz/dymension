@@ -165,6 +165,20 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if !agent.SpendAllows(height, msg.Amount) {
 		return nil, errorsmod.Wrapf(types.ErrSpendBudgetExceeded, "amount %s, remaining %s", msg.Amount, agent.RemainingWindowBudget(height))
 	}
+	recipient := sdk.MustAccAddressFromBech32(msg.Recipient)
+	// The per-recipient cap runs in addition to the aggregate budget, never
+	// instead of it. Unconfigured agents skip the store read entirely.
+	enforceRecipientCap := agent.RecipientSpendEnforced()
+	var recipientSpend types.RecipientSpendWindow
+	if enforceRecipientCap {
+		recipientSpend, err = k.getRecipientSpend(ctx, msg.AgentId, recipient)
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "get recipient spend")
+		}
+		if !agent.RecipientSpendAllows(recipientSpend, height, msg.Amount) {
+			return nil, errorsmod.Wrapf(types.ErrRecipientBudgetExceeded, "amount %s, recipient remaining %s", msg.Amount, agent.RemainingRecipientBudget(recipientSpend, height))
+		}
+	}
 
 	payout := sdk.NewCoins(sdk.NewCoin(agent.SpendDenom, msg.Amount))
 	balance, negative := k.GetEscrowBalance(ctx, msg.AgentId).SafeSub(payout...)
@@ -174,12 +188,16 @@ func (k msgServer) SubmitAttestedTransfer(goCtx context.Context, msg *types.MsgS
 	if err := k.setEscrowBalance(ctx, msg.AgentId, balance); err != nil {
 		return nil, errorsmod.Wrap(err, "set escrow balance")
 	}
-	recipient := sdk.MustAccAddressFromBech32(msg.Recipient)
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, payout); err != nil {
 		return nil, errorsmod.Wrap(err, "send coins to recipient")
 	}
 
 	agent.RecordSpend(height, msg.Amount)
+	if enforceRecipientCap {
+		if err := k.setRecipientSpend(ctx, msg.AgentId, recipient, agent.RecordRecipientSpend(recipientSpend, height, msg.Amount)); err != nil {
+			return nil, errorsmod.Wrap(err, "set recipient spend")
+		}
+	}
 	payloadHash := sha256.Sum256(payload)
 	if err := k.appendAttested(ctx, &agent, payload, payloadHash[:]); err != nil {
 		return nil, err

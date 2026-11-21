@@ -63,6 +63,9 @@ func (a Agent) ValidateSpendState(spendRecipientAllowlistMax uint64) error {
 	if err := ValidateSpendPolicy(a.SpendDenom, a.SpendLimitPerWindow, a.SpendWindowBlocks); err != nil {
 		return err
 	}
+	if err := ValidateRecipientSpendLimit(a.SpendLimitPerWindow, a.SpendLimitPerRecipientPerWindow, len(a.SpendRecipientAllowlist)); err != nil {
+		return err
+	}
 	if uint64(len(a.SpendRecipientAllowlist)) > spendRecipientAllowlistMax {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "spend recipient allowlist exceeds max")
 	}
@@ -146,5 +149,44 @@ func (a *Agent) RecordSpend(nowHeight uint64, amount math.Int) {
 		a.SpendWindowSpent = amount
 	} else {
 		a.SpendWindowSpent = a.spendWindowSpentAmount().Add(amount)
+	}
+}
+
+// RecipientSpendEnforced reports whether transfers are capped per recipient.
+// Only allowlisted agents are capped, so per-agent recipient state is bounded
+// by the allowlist size.
+func (a Agent) RecipientSpendEnforced() bool {
+	limit := a.SpendLimitPerRecipientPerWindow
+	return !limit.IsNil() && limit.IsPositive() && len(a.SpendRecipientAllowlist) > 0
+}
+
+// RecipientWindowSpent returns what rec counts against the window containing
+// nowHeight: a record from an earlier window is stale and counts as zero.
+func (a Agent) RecipientWindowSpent(rec RecipientSpendWindow, nowHeight uint64) math.Int {
+	if rec.Spent.IsNil() || rec.WindowStartHeight != a.SpendBucket(nowHeight) {
+		return math.ZeroInt()
+	}
+	return rec.Spent
+}
+
+// RemainingRecipientBudget returns what the recipient behind rec may still
+// receive in the window containing nowHeight.
+func (a Agent) RemainingRecipientBudget(rec RecipientSpendWindow, nowHeight uint64) math.Int {
+	return a.SpendLimitPerRecipientPerWindow.Sub(a.RecipientWindowSpent(rec, nowHeight))
+}
+
+// RecipientSpendAllows reports whether sending amount at nowHeight keeps the
+// recipient behind rec within the per-recipient window cap.
+func (a Agent) RecipientSpendAllows(rec RecipientSpendWindow, nowHeight uint64, amount math.Int) bool {
+	return amount.LTE(a.RemainingRecipientBudget(rec, nowHeight))
+}
+
+// RecordRecipientSpend returns rec after accounting amount at nowHeight,
+// overwriting it when nowHeight falls into a new bucket. Windows align with
+// the aggregate budget's SpendBucket.
+func (a Agent) RecordRecipientSpend(rec RecipientSpendWindow, nowHeight uint64, amount math.Int) RecipientSpendWindow {
+	return RecipientSpendWindow{
+		WindowStartHeight: a.SpendBucket(nowHeight),
+		Spent:             a.RecipientWindowSpent(rec, nowHeight).Add(amount),
 	}
 }
