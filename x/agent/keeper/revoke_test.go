@@ -426,8 +426,7 @@ func TestIsAgentFresh(t *testing.T) {
 	setLivenessWindow(t, ctx, k, 50)
 	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(100), "a"))
 	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(150), "a"))
-	// a last action above the current height (e.g. after a zero-height
-	// genesis export) counts as fresh
+	// the spec's signed comparison: a last action above the current height is fresh
 	require.True(t, k.IsAgentFresh(ctx.WithBlockHeight(1), "a"))
 	require.False(t, k.IsAgentFresh(ctx.WithBlockHeight(151), "a"))
 

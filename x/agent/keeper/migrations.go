@@ -58,19 +58,6 @@ func (m Migrator) Migrate3to4(ctx sdk.Context) error {
 	if err := m.k.SetParams(ctx, params); err != nil {
 		return err
 	}
-	iter, err := m.k.agents.Iterate(ctx, nil)
-	if err != nil {
-		return err
-	}
-	agents, err := iter.Values()
-	if err != nil {
-		return err
-	}
-	for _, a := range agents {
-		a.LastActionHeight = ctx.BlockHeight()
-		if err := m.k.SetAgent(ctx, a); err != nil {
-			return err
-		}
-	}
-	return nil
+	h := ctx.BlockHeight()
+	return m.k.updateAllAgents(ctx, func(a *types.Agent) { a.LastActionHeight = h })
 }

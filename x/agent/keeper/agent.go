@@ -33,3 +33,31 @@ func (k Keeper) GetAgentOwner(ctx sdk.Context, agentID string) (string, bool) {
 	}
 	return agent.Owner, true
 }
+
+// RebaseLastActionHeights re-expresses every agent's last action height
+// relative to height for a zero-height export. The restarted chain's block 1
+// follows height, so each agent keeps exactly the heartbeat age it had: a
+// stale agent stays stale and a fresh one expires on its original schedule.
+func (k Keeper) RebaseLastActionHeights(ctx sdk.Context, height int64) error {
+	return k.updateAllAgents(ctx, func(a *types.Agent) { a.LastActionHeight -= height })
+}
+
+// updateAllAgents collects all agents before writing so the store is never
+// written while an iterator is open.
+func (k Keeper) updateAllAgents(ctx sdk.Context, update func(*types.Agent)) error {
+	iter, err := k.agents.Iterate(ctx, nil)
+	if err != nil {
+		return err
+	}
+	agents, err := iter.Values()
+	if err != nil {
+		return err
+	}
+	for _, a := range agents {
+		update(&a)
+		if err := k.SetAgent(ctx, a); err != nil {
+			return err
+		}
+	}
+	return nil
+}
