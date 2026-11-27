@@ -56,8 +56,10 @@ func TestAttestedValidationRecordsLogQueryAndGenesis(t *testing.T) {
 	require.Equal(t, msg.ResponseHash, response.ResponseHash)
 	validator, _ := k.GetAgent(ctx, "validator")
 	require.Equal(t, uint64(4), validator.ActionSeq)
+	require.Equal(t, ctx.BlockHeight(), validator.LastActionHeight)
 	subject, _ := k.GetAgent(ctx, "subject")
 	require.Equal(t, uint64(2), subject.ActionSeq)
+	require.Zero(t, subject.LastActionHeight)
 	log, found := k.GetActionLogEntry(ctx, "validator", 3)
 	require.True(t, found)
 	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, "subject", 1)
@@ -219,4 +221,22 @@ func TestAttestedValidationPromotesPolicyAndAcceptsExactPayloadLimit(t *testing.
 	require.Equal(t, next, validator.Policy)
 	require.Nil(t, validator.PendingPolicy)
 	require.Equal(t, uint64(5), validator.ActionSeq)
+}
+
+// A validator past the liveness window cannot post an attested verdict until
+// it refreshes its heartbeat with an attested action.
+func TestAttestedValidationRejectsStaleValidator(t *testing.T) {
+	ctx, k, ms, _, msg := setupAttestedValidation(t)
+	setLivenessWindow(t, ctx, k, 5)
+	stale := ctx.WithBlockHeight(ctx.BlockHeight() + 6)
+	_, err := ms.RespondValidationAttested(stale, msg)
+	require.ErrorIs(t, err, types.ErrValidatorInactive)
+
+	heartbeat := []byte("heartbeat")
+	_, err = ms.SubmitAttestedAction(stale, &types.MsgSubmitAttestedAction{Submitter: owner(t), AgentId: "validator", Payload: heartbeat, Token: types.ActionNonce("validator", heartbeat, 3)})
+	require.NoError(t, err)
+	payload := types.AttestedValidationBytes(msg.RequestHash, msg.Response, msg.ResponseHash, msg.ResponseUri, msg.Tag, "subject", 1)
+	msg.Token = types.ValidationNonce("validator", payload, 4)
+	_, err = ms.RespondValidationAttested(stale, msg)
+	require.NoError(t, err)
 }

@@ -45,3 +45,19 @@ func (m Migrator) Migrate2to3(ctx sdk.Context) error {
 	params.ValidationMaxResponsesPerRequest = types.DefaultValidationMaxResponsesPerRequest
 	return m.k.SetParams(ctx, params)
 }
+
+// Migrate3to4 initializes the liveness window (disabled) and backfills every
+// agent's last action height to the upgrade height, so enabling the window
+// later never retroactively makes pre-existing agents stale.
+func (m Migrator) Migrate3to4(ctx sdk.Context) error {
+	params, err := m.k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
+	params.AgentLivenessWindowBlocks = types.DefaultAgentLivenessWindowBlocks
+	if err := m.k.SetParams(ctx, params); err != nil {
+		return err
+	}
+	h := ctx.BlockHeight()
+	return m.k.updateAllAgents(ctx, func(a *types.Agent) { a.LastActionHeight = h })
+}

@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (agent) #2257 Add a proof-of-liveness heartbeat: with `agent_liveness_window_blocks` set, agent-bound eIBC LPs and validation validators must have posted an attested action within the window (disabled by default).
 * (agent) #2219 Add enclave-attested validation verdicts with domain-separated replay protection and validator action-log entries.
 
 ## [v3.2.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.2.0)

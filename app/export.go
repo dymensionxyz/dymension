@@ -249,4 +249,10 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 	if err != nil {
 		panic(err)
 	}
+
+	/* Handle agent state. */
+
+	if err := app.AgentKeeper.RebaseLastActionHeights(ctx, app.LastBlockHeight()); err != nil {
+		panic(err)
+	}
 }
